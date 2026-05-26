@@ -1314,7 +1314,7 @@ type LbProfile = {
   level: number; xp: number; coins: number; gems: number;
 };
 
-type TribeLb = { id: string; name: string; emblem: string; members: number; power: number };
+type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
 
 function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"xp" | "gems" | "coins" | "tribes" | "search">("xp");
