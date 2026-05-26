@@ -266,6 +266,7 @@ function PlayerPage() {
     if (n > 0) flash(`🛑 أوقفت السرقة — غنمت ${n} (قيمتها ${v})`);
     else flash("🛑 أوقفت السرقة — سفينتك ترجع فاضية");
     loadRaiders();
+    broadcastRaid();
   };
 
 
