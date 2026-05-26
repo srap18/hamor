@@ -289,3 +289,41 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+/* ========== Performance optimizations ========== */
+.animate-cloud-drift,
+.animate-bird-fly,
+.animate-flag-wave,
+.animate-sail-flap,
+.animate-crew-bob,
+.animate-bow-splash,
+.animate-smoke-rise,
+.animate-shimmer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .animate-cloud-drift { animation-duration: 180s !important; }
+  .animate-bird-fly { animation-duration: 60s !important; }
+}
+
