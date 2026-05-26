@@ -72,6 +72,7 @@ function priceHistory(fish: Fish): number[] {
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
+  const [priceMap, setPriceMap] = useState<Record<string, { current: number; min: number; max: number }>>({});
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
@@ -91,6 +92,31 @@ function FishMarket() {
     setUpToast(m);
     window.setTimeout(() => setUpToast(null), 1800);
   };
+
+  // Load dynamic fish prices from DB + subscribe to hourly updates
+  useEffect(() => {
+    const loadPrices = async () => {
+      const { data } = await supabase
+        .from("fish_market_prices")
+        .select("fish_id, current_price, min_price, max_price");
+      const m: Record<string, { current: number; min: number; max: number }> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number }>) {
+        m[row.fish_id] = {
+          current: Number(row.current_price) || 0,
+          min: Number(row.min_price) || 0,
+          max: Number(row.max_price) || 0,
+        };
+      }
+      setPriceMap(m);
+    };
+    loadPrices();
+    const ch = supabase
+      .channel("fish_market_prices_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fish_market_prices" }, () => loadPrices())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
 
   const loadMarket = async () => {
     if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
