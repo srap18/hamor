@@ -475,8 +475,11 @@ function PlayerPage() {
       else flash("تعذّر إرسال الدعم");
     }
 
-    setBusy(false); closeMenu();
+    setBusy(false);
+    // Keep support panel open so the user can keep adding crews to other ships
+    if (kind !== "crew") closeMenu();
   };
+
 
   const buyAndSendCrew = async (crewId: string) => {
     if (!me || !selectedShip) return;
