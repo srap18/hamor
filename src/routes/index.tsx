@@ -468,6 +468,25 @@ function Index() {
     reloadRaids();
   };
 
+  // Outgoing steal missions — my ships currently raiding others. Banner lets the
+  // user jump straight back to the target harbor to watch or cancel the raid.
+  const [stealTargetNames, setStealTargetNames] = useState<Record<string, { name: string; emoji: string }>>({});
+  const outgoingSteals = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt);
+  useEffect(() => {
+    const missing = Array.from(new Set(outgoingSteals.map((s) => s.stealingTargetUserId!).filter((id) => !stealTargetNames[id])));
+    if (missing.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", missing);
+      if (data && data.length) {
+        setStealTargetNames((prev) => {
+          const next = { ...prev };
+          for (const p of data as any[]) next[p.id] = { name: p.display_name || "لاعب", emoji: p.avatar_emoji || "🧑‍✈️" };
+          return next;
+        });
+      }
+    })();
+  }, [outgoingSteals.map((s) => s.stealingTargetUserId).join(",")]);
+
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
