@@ -1672,8 +1672,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const atSea = ship.sail > 0.85;
-  const isFishing = ship.fishing && atSea && !moving && !ready;
+  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > Date.now();
+  const atSea = ship.sail > 0.85 && !destroyed;
+  const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   const flipX = facing === -1 ? -1 : 1;
   const bankRoll = 0;
   const bankPitch = 0;
