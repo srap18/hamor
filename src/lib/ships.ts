@@ -185,3 +185,34 @@ export function fishMarketCapacity(level: number): number {
   return cap;
 }
 
+// ─────── سعة سوق السفن حسب المستوى ───────
+// L1 = 10,000. نفس نمط زيادات سوق السمك ×20.
+const SM_INCREMENTS: number[] = [
+  /* L2  */ 10000,
+  /* L3  */ 10000,
+  /* L4  */ 20000,
+  /* L5  */ 30000,
+  /* L6  */ 40000,
+  /* L7  */ 50000,
+  /* L8  */ 60000,
+  /* L9  */ 70000,
+  /* L10 */ 80000,
+  /* L11 */ 100000,
+  /* L12 */ 120000,
+  /* L13 */ 140000,
+  /* L14 */ 160000,
+  /* L15 */ 200000,
+];
+
+export function shipMarketCapacity(level: number): number {
+  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  let cap = 10000;
+  for (let l = 2; l <= lvl; l++) {
+    if (l <= 15) cap += SM_INCREMENTS[l - 2];
+    else if (l <= 23) cap += 400000;   // 16-23: +400k
+    else if (l <= 27) cap += 1000000;  // 24-27: +1M
+    else cap += 2000000;               // 28+:   +2M
+  }
+  return cap;
+}
+

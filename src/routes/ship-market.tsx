@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { SHIPS, catchPerTrip, type ShipDef } from "@/lib/ships";
+import { SHIPS, catchPerTrip, shipMarketCapacity, type ShipDef } from "@/lib/ships";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
@@ -65,6 +65,12 @@ function ShipyardPage() {
     }, {}),
     [owned],
   );
+  const fleetStorageUsed = useMemo(
+    () => owned.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
+    [owned],
+  );
+  const fleetStorageMax = shipMarketCapacity(marketLevel);
+  const fleetFull = fleetStorageUsed >= fleetStorageMax;
 
   const showToast = (message: string) => {
     setToast(message);
@@ -136,8 +142,8 @@ function ShipyardPage() {
 
   const buyShip = async (ship: ShipDef) => {
     if (!user || !profile) return;
-    if (owned.length >= 3) {
-      showToast("الحد الأقصى 3 سفن في الأسطول — بِع سفينة أولًا");
+    if (fleetFull || fleetStorageUsed + ship.storage > fleetStorageMax) {
+      showToast("سعة الأسطول ممتلئة — بِع سفينة أو رقِّ السوق أولًا");
       return;
     }
     if (marketLevel < ship.marketLevel) {
@@ -272,7 +278,7 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">المملوك: {owned.length} سفينة</div>
+            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -310,8 +316,8 @@ function ShipyardPage() {
                       <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || owned.length >= 3} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : owned.length >= 3 ? "الأسطول ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
+                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
+                      {locked ? `يتطلب ${ship.marketLevel}` : fleetFull ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
                     </button>
                   </div>
                 </button>
