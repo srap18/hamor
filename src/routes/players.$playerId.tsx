@@ -825,11 +825,15 @@ function PlayerPage() {
               const existingIds = new Set(
                 playerCrews.filter((c) => c.ship_id === shipId).map((c) => c.item_id),
               );
-              const existingList = CREWS.filter((c) => existingIds.has(c.id) && c.id !== "trader");
+              const shipIdx = ships.findIndex((s) => s.id === shipId);
               return (
                 <>
-                  <div className="text-amber-200 text-xs font-bold">اختر سفينة وأرسل لها طاقم دعم:</div>
-                  {ships.length > 1 && (
+                  {/* Step 1: Pick a ship */}
+                  <div className="rounded-xl bg-stone-900/60 border border-amber-700/40 p-2.5">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-stone-900 text-[10px] font-extrabold">1</span>
+                      <span className="text-amber-200 text-xs font-bold">اختر سفينته</span>
+                    </div>
                     <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                       {ships.map((sh, idx) => {
                         const img = sh.catalog_code ? getShipByCode(sh.catalog_code).image : getShipByMarketLevel(sh.template_id || 1).image;
@@ -839,65 +843,68 @@ function PlayerPage() {
                           <button
                             key={sh.id}
                             onClick={() => setSelectedShip(sh)}
-                            className={`relative flex flex-col items-center gap-0.5 min-w-[64px] p-1.5 rounded-xl border-2 active:scale-95 ${isActive ? "border-amber-400 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"}`}
+                            className={`relative flex flex-col items-center gap-0.5 min-w-[70px] p-2 rounded-xl border-2 active:scale-95 transition-all ${isActive ? "border-amber-400 bg-amber-500/25 shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "border-stone-700 bg-stone-800/60 opacity-70"}`}
                           >
                             <img src={img} alt="" className="w-12 h-12 object-contain" />
-                            <span className="text-[10px] text-amber-200 font-bold">سفينة {idx + 1}</span>
+                            <span className={`text-[10px] font-bold ${isActive ? "text-amber-200" : "text-amber-300/60"}`}>سفينة {idx + 1}</span>
                             {shCrewCount > 0 && (
-                              <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">{shCrewCount}</span>
+                              <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5 shadow">👥 {shCrewCount}</span>
                             )}
                           </button>
                         );
                       })}
                     </div>
-                  )}
+                  </div>
 
-                  {existingList.length > 0 && (
-                    <div className="flex items-center gap-1 flex-wrap rounded-lg bg-stone-800/60 border border-amber-700/30 px-2 py-1.5">
-                      <span className="text-[10px] text-amber-300/80 ms-1">عنده على السفينة:</span>
-                      {existingList.map((c) => (
-                        <span key={c.id} title={c.name} className="flex items-center gap-0.5">
-                          {c.image ? <img src={c.image} alt={c.name} className="w-5 h-5 object-contain" /> : <span className="text-base">{c.emoji}</span>}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {/* Step 2: Pick a crew to send */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-stone-900 text-[10px] font-extrabold">2</span>
+                    <span className="text-amber-200 text-xs font-bold">أرسل طاقم لسفينة {shipIdx >= 0 ? shipIdx + 1 : ""}</span>
+                  </div>
 
-                  {CREWS.map((c) => {
+                  {/* Category: Fixers (instant repair) */}
+                  <div className="text-[10px] text-amber-300/70 font-bold ps-1">🛠️ مصلّحون — يصلحون سفينته فوراً</div>
+                  {CREWS.filter((c) => c.id.startsWith("fixer_")).map((c) => {
                     const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
-                    const isFixer = c.id.startsWith("fixer_");
-                    const isTrader = c.id === "trader";
-                    // duplicates blocked only for persistent crew slots above the ship
-                    const alreadyOnShip = !isFixer && !isTrader && existingIds.has(c.id);
-                    const canSend = q > 0 && !alreadyOnShip;
                     return (
-                      <div key={c.id} className="flex items-stretch gap-2">
-                        <button disabled={busy || !canSend} onClick={() => sendSupport("crew", c.id)}
-                          className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
-                          {c.image ? <img src={c.image} alt={c.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{c.emoji}</span>}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-amber-200 font-bold text-sm">{c.name}</div>
-                            <div className="text-[10px] text-amber-300/70">{c.bonus}</div>
-                            {alreadyOnShip && <div className="text-[10px] text-rose-300 font-bold">موجود على سفينته ✓</div>}
-                            {isTrader && <div className="text-[10px] text-emerald-300/90">يفعّل سوق السمك مباشرة</div>}
-                          </div>
-                          <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
-                        </button>
-                        {q === 0 && !alreadyOnShip && (
-                          <button disabled={busy} onClick={() => buyAndSendCrew(c.id)}
-                            className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
-                            <span>🛒 شراء</span>
-                            <span className="text-[10px] opacity-90 mt-0.5">
-                              {c.currency === "gems" ? `💎 ${c.price}` : `💰 ${c.price.toLocaleString()}`}
-                            </span>
-                            <span className="text-[9px] opacity-80">وأرسل</span>
-                          </button>
-                        )}
-                      </div>
+                      <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
+                        badge={null}
+                        onSend={() => sendSupport("crew", c.id)}
+                        onBuy={() => buyAndSendCrew(c.id)} />
                     );
                   })}
-                  <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
+
+                  {/* Category: Persistent crews (24h slot on ship) */}
+                  <div className="text-[10px] text-amber-300/70 font-bold ps-1 mt-1">👥 طواقم دائمة — تركب سفينته 24 ساعة</div>
+                  {CREWS.filter((c) => !c.id.startsWith("fixer_") && c.id !== "trader").map((c) => {
+                    const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
+                    const alreadyOnShip = existingIds.has(c.id);
+                    return (
+                      <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
+                        badge={alreadyOnShip ? { text: "موجود ✓", tone: "rose" } : null}
+                        disabled={alreadyOnShip}
+                        onSend={() => sendSupport("crew", c.id)}
+                        onBuy={() => buyAndSendCrew(c.id)} />
+                    );
+                  })}
+
+                  {/* Category: Trader (goes to market) */}
+                  <div className="text-[10px] text-amber-300/70 font-bold ps-1 mt-1">💰 تاجر — يفعّل سوق السمك عنده</div>
+                  {CREWS.filter((c) => c.id === "trader").map((c) => {
+                    const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
+                    return (
+                      <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
+                        badge={{ text: "→ سوق السمك", tone: "emerald" }}
+                        onSend={() => sendSupport("crew", c.id)}
+                        onBuy={() => buyAndSendCrew(c.id)} />
+                    );
+                  })}
+
+                  <button onClick={() => setMode("menu")} className="py-2 mt-1 rounded-xl bg-stone-700 text-stone-200 text-sm font-bold active:scale-95">← رجوع</button>
                 </>
+              );
+            })()}
+
               );
             })()}
 
