@@ -16,6 +16,7 @@ import { Route as ShipMarketRouteImport } from './routes/ship-market'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RechargeRouteImport } from './routes/recharge'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as FriendsRouteImport } from './routes/friends'
@@ -66,6 +67,11 @@ const RechargeRoute = RechargeRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
+  id: '/payment-success',
+  path: '/payment-success',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/friends': typeof FriendsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/friends': typeof FriendsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/friends': typeof FriendsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/payment-success': typeof PaymentSuccessRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/inventory'
     | '/login'
+    | '/payment-success'
     | '/profile'
     | '/recharge'
     | '/reset-password'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/inventory'
     | '/login'
+    | '/payment-success'
     | '/profile'
     | '/recharge'
     | '/reset-password'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/inventory'
     | '/login'
+    | '/payment-success'
     | '/profile'
     | '/recharge'
     | '/reset-password'
@@ -312,6 +324,7 @@ export interface RootRouteChildren {
   FriendsRoute: typeof FriendsRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  PaymentSuccessRoute: typeof PaymentSuccessRoute
   ProfileRoute: typeof ProfileRoute
   RechargeRoute: typeof RechargeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-success': {
+      id: '/payment-success'
+      path: '/payment-success'
+      fullPath: '/payment-success'
+      preLoaderRoute: typeof PaymentSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -517,6 +537,7 @@ const rootRouteChildren: RootRouteChildren = {
   FriendsRoute: FriendsRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  PaymentSuccessRoute: PaymentSuccessRoute,
   ProfileRoute: ProfileRoute,
   RechargeRoute: RechargeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
