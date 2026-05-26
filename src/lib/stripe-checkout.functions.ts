@@ -44,7 +44,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
 
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) throw new Error("STRIPE_SECRET_KEY غير مكوّن");
-    const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" as Stripe.LatestApiVersion });
+    const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" as any });
 
     // Get user email for receipt
     const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
@@ -97,7 +97,7 @@ export const verifyStripePayment = createServerFn({ method: "POST" })
     const { userId } = context;
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) throw new Error("STRIPE_SECRET_KEY غير مكوّن");
-    const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" as Stripe.LatestApiVersion });
+    const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" as any });
 
     const session = await stripe.checkout.sessions.retrieve(data.sessionId);
     if (!session) throw new Error("Session غير موجود");
