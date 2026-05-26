@@ -1420,6 +1420,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_fish_market: {
+        Row: {
+          created_at: string
+          level: number
+          updated_at: string
+          upgrade_cost_coins: number | null
+          upgrade_ends_at: string | null
+          upgrade_started_at: string | null
+          upgrading_to: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          level?: number
+          updated_at?: string
+          upgrade_cost_coins?: number | null
+          upgrade_ends_at?: string | null
+          upgrade_started_at?: string | null
+          upgrading_to?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          level?: number
+          updated_at?: string
+          upgrade_cost_coins?: number | null
+          upgrade_ends_at?: string | null
+          upgrade_started_at?: string | null
+          upgrading_to?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_market: {
         Row: {
           created_at: string
@@ -1727,8 +1760,25 @@ export type Database = {
         Returns: undefined
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
+      fish_market_finish_upgrade_with_gems: { Args: never; Returns: number }
+      fish_market_start_upgrade: {
+        Args: never
+        Returns: {
+          cost_coins: number
+          ends_at: string
+          new_level: number
+        }[]
+      }
+      fish_market_upgrade_cost: {
+        Args: { _level: number }
+        Returns: {
+          cost_coins: number
+          seconds: number
+        }[]
+      }
       get_my_ships: {
         Args: never
         Returns: {
