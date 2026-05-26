@@ -1009,6 +1009,42 @@ export type Database = {
           },
         ]
       }
+      stripe_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          granted: boolean
+          granted_at: string | null
+          id: string
+          pack_id: string
+          status: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          pack_id: string
+          status?: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          pack_id?: string
+          status?: string
+          stripe_session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_gifts: {
         Row: {
           amount: number
@@ -1590,6 +1626,21 @@ export type Database = {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
       }
+      grant_stripe_purchase: {
+        Args: {
+          _amount_cents: number
+          _coins: number
+          _gems: number
+          _pack_id: string
+          _rubies: number
+          _session_id: string
+          _shield_days: number
+          _user: string
+          _vip_days: number
+        }
+        Returns: Json
+      }
+      has_bought_starter: { Args: { _user: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1656,6 +1707,7 @@ export type Database = {
         Args: { _at_sea: boolean; _ship_id: string }
         Returns: undefined
       }
+      shield_purchases_last_week: { Args: { _user: string }; Returns: number }
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string
