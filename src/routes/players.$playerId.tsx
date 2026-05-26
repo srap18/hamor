@@ -184,6 +184,19 @@ function PlayerPage() {
   const harborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const clientIdRef = useRef<string>(Math.random().toString(36).slice(2));
 
+  // Refetch visited player's ships from DB (realtime backstop).
+  const reloadShipsRef = useRef<() => Promise<void>>(async () => {});
+  reloadShipsRef.current = async () => {
+    if (!playerId) return;
+    const { data } = await supabase
+      .from("ships_owned")
+      .select("*")
+      .eq("user_id", playerId);
+    const fresh = (data as Ship[]) || [];
+    setShips(fresh);
+    setSelectedShip((cur) => (cur ? (fresh.find((s) => s.id === cur.id) ?? null) : cur));
+  };
+
   // Live updates: watch the visited player's ships AND any raiders attacking them
   useEffect(() => {
     if (!playerId) return;
@@ -225,6 +238,14 @@ function PlayerPage() {
       )
       .subscribe();
 
+    // Backstop: poll every 4s + refresh on tab visibility/focus so visitors
+    // always see live state even if a realtime event is missed.
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); }, 4000);
+    const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
+    const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+
     // Shared broadcast channel — every viewer of this harbor sees every action live
     const myCid = clientIdRef.current;
     const harborChan = supabase.channel(`harbor:${playerId}`, { config: { broadcast: { self: false } } });
@@ -238,15 +259,16 @@ function PlayerPage() {
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
-    // Polling fallback so raiders always show up even if realtime is delayed/blocked
-    const poll = window.setInterval(() => { loadRaiders(); }, 4000);
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(harborChan);
       harborChanRef.current = null;
       window.clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
     };
   }, [playerId]);
+
 
   // Broadcast helpers — share an action with every spectator in this harbor
   const broadcastFx = (data: { targetId: string; emoji: string; friendly?: boolean; weaponId?: string; toast?: string }) => {
