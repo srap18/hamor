@@ -598,6 +598,34 @@ function SellView({
     return () => window.clearInterval(id);
   }, [traderActive]);
 
+  // Auto-activate the 9H forecast when the user has an active assigned "trader" crew
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("inventory")
+        .select("meta")
+        .eq("user_id", userId)
+        .eq("item_type", "crew")
+        .eq("item_id", "trader");
+      if (cancelled || !data) return;
+      let best = 0;
+      for (const r of data as any[]) {
+        const exp = r?.meta?.expires_at;
+        const assigned = r?.meta?.assigned_ship_id;
+        if (!assigned || !exp) continue;
+        const t = new Date(exp).getTime();
+        if (t > Date.now() && t > best) best = t;
+      }
+      if (best > 0) {
+        setTraderEndsAt((prev) => Math.max(prev, best));
+        try { localStorage.setItem(traderKey(userId), String(best)); } catch {}
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
   // Forecast (blue) — only visible when trader is active. Seeded by activation bucket so it's stable.
   const future = useMemo(() => {
     if (!traderActive) return [] as number[];
