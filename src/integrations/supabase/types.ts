@@ -1279,6 +1279,30 @@ export type Database = {
           },
         ]
       }
+      tribe_donations: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tribe_join_requests: {
         Row: {
           created_at: string
@@ -1384,25 +1408,40 @@ export type Database = {
       }
       tribes: {
         Row: {
+          banner: string
           created_at: string
+          description: string
           emblem: string
           id: string
+          level: number
           name: string
           owner_id: string
+          total_donations: number
+          treasure_coins: number
         }
         Insert: {
+          banner?: string
           created_at?: string
+          description?: string
           emblem?: string
           id?: string
+          level?: number
           name: string
           owner_id: string
+          total_donations?: number
+          treasure_coins?: number
         }
         Update: {
+          banner?: string
           created_at?: string
+          description?: string
           emblem?: string
           id?: string
+          level?: number
           name?: string
           owner_id?: string
+          total_donations?: number
+          treasure_coins?: number
         }
         Relationships: [
           {
@@ -1814,6 +1853,10 @@ export type Database = {
         Returns: undefined
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      donate_to_tribe: {
+        Args: { _amount: number; _tribe_id: string }
+        Returns: Json
+      }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
@@ -1964,6 +2007,10 @@ export type Database = {
         }
         Returns: string
       }
+      rename_tribe: {
+        Args: { _new_name: string; _tribe_id: string }
+        Returns: Json
+      }
       repair_ship_instant: {
         Args: { _gems_cost: number; _ship_id: string }
         Returns: undefined
@@ -2026,6 +2073,10 @@ export type Database = {
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
+      }
+      update_tribe_details: {
+        Args: { _banner: string; _description: string; _tribe_id: string }
+        Returns: Json
       }
     }
     Enums: {
