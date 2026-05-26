@@ -482,9 +482,8 @@ function PlayerPage() {
       {/* Raiding ships — pirates currently stealing from this player */}
       {raiders.map((r, i) => {
         const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
-        const idx = ships.length + i;
         const top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
-        const left = `${wLeft + 0.05 + ((i % 3) * 0.22) * wWidth}%`;
+        const left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
         const isMine = me === r.user_id;
         return (
           <button
@@ -494,13 +493,12 @@ function PlayerPage() {
             style={{ top, left }}
           >
             <div className="relative">
-              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ transform: `scale(${0.9})` }} />
+              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
               <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
               <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
                 {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
               </div>
             </div>
-            void idx;
           </button>
         );
       })}
