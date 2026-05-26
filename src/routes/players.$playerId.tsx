@@ -284,7 +284,6 @@ function PlayerPage() {
   const stealWithShip = async (myShipId: string) => {
     if (!me || !selectedShip) return;
     setBusy(true); sound.play("click");
-    await playProjectile(selectedShip.id, "🏴‍☠️", true);
     // Start a timed steal mission — ship sails to enemy waters and returns later
     const { data: missionRes, error: missionErr } = await (supabase as any).rpc("start_steal_mission", {
       _attacker_ship_id: myShipId,
