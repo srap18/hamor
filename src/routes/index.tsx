@@ -1192,7 +1192,7 @@ function Index() {
                     .update({ repair_ends_at: newEnd })
                     .eq("id", s.dbId);
                   setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, repairEndsAt: newEnd } : x));
-                  toast.success(`تم تقليل وقت الإصلاح بنسبة ${Math.round(reducePct * 100)}%`);
+                  setToast(`تم تقليل وقت الإصلاح بنسبة ${Math.round(reducePct * 100)}%`);
                 }
               }
               // consume one unit of the fixer crew
