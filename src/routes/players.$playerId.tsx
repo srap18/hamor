@@ -51,7 +51,7 @@ function PlayerPage() {
     setSelectedShip(s); setMode("menu");
     if (!me) return;
     const [{ data: ms }, { data: iv }] = await Promise.all([
-      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp").eq("user_id", me),
+      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id").eq("user_id", me),
       supabase.from("inventory").select("item_id,item_type,quantity").eq("user_id", me),
     ]);
     setMyShips((ms as Ship[]) || []);
