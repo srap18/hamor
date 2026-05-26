@@ -316,8 +316,8 @@ function ShipyardPage() {
                       <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || owned.length >= 3} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : owned.length >= 3 ? "الأسطول ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
+                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
+                      {locked ? `يتطلب ${ship.marketLevel}` : fleetFull ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
                     </button>
                   </div>
                 </button>
