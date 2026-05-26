@@ -1840,6 +1840,15 @@ export type Database = {
         Args: { _refund_coins: number; _ship_id: string }
         Returns: undefined
       }
+      send_support: {
+        Args: {
+          _crew_id?: string
+          _kind: string
+          _recipient_id: string
+          _ship_id: string
+        }
+        Returns: undefined
+      }
       set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       set_ship_at_sea: {
         Args: { _at_sea: boolean; _ship_id: string }
