@@ -129,6 +129,7 @@ function RechargePage() {
           "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
       }}
     >
+      <PaymentTestModeBanner />
       <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 py-2.5 flex items-center gap-2">
         <Link
           to="/profile"
