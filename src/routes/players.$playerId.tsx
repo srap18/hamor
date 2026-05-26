@@ -459,13 +459,22 @@ function PlayerPage() {
         setShips((arr) => arr.map((x) => x.id === selectedShip.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x));
       }
       sound.play("success");
-      flash(kind === "crew" ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته" : "👨‍✈️ تم إرسال الطاقم — وصل لمخزونه") : "🛠️ تم إصلاح سفينته بالكامل");
+      const isTrader = kind === "crew" && itemId === "trader";
+      flash(
+        kind === "crew"
+          ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته"
+            : isTrader ? "💰 التاجر فعّل سوق السمك عنده"
+            : "👨‍✈️ تم إرسال الطاقم — يعمل على سفينته")
+          : "🛠️ تم إصلاح سفينته بالكامل"
+      );
 
     } else {
       const msg = (error as any).message || "";
       if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
+      else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
       else flash("تعذّر إرسال الدعم");
     }
+
     setBusy(false); closeMenu();
   };
 
@@ -583,7 +592,8 @@ function PlayerPage() {
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
-          .filter(Boolean) as typeof CREWS;
+          .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
+
         return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
@@ -807,40 +817,64 @@ function PlayerPage() {
               </>
             )}
 
-            {mode === "support" && (
-              <>
-                <div className="text-amber-200 text-xs font-bold">أرسل طاقم مصلّح لإصلاح سفينته (من مخزنك أو شراء):</div>
-
-                {CREWS.map((c) => {
-                  const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
-                  const canSend = q > 0;
-                  return (
-                    <div key={c.id} className="flex items-stretch gap-2">
-                      <button disabled={busy || !canSend} onClick={() => sendSupport("crew", c.id)}
-                        className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
-                        {c.image ? <img src={c.image} alt={c.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{c.emoji}</span>}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-amber-200 font-bold text-sm">{c.name}</div>
-                          <div className="text-[10px] text-amber-300/70">{c.bonus}</div>
-                        </div>
-                        <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
-                      </button>
-                      {!canSend && (
-                        <button disabled={busy} onClick={() => buyAndSendCrew(c.id)}
-                          className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
-                          <span>🛒 شراء</span>
-                          <span className="text-[10px] opacity-90 mt-0.5">
-                            {c.currency === "gems" ? `💎 ${c.price}` : `💰 ${c.price.toLocaleString()}`}
-                          </span>
-                          <span className="text-[9px] opacity-80">وأرسل</span>
-                        </button>
-                      )}
+            {mode === "support" && (() => {
+              const shipId = selectedShip?.id;
+              const existingIds = new Set(
+                playerCrews.filter((c) => c.ship_id === shipId).map((c) => c.item_id),
+              );
+              const existingList = CREWS.filter((c) => existingIds.has(c.id) && c.id !== "trader");
+              return (
+                <>
+                  <div className="text-amber-200 text-xs font-bold">أرسل طاقم دعم لسفينته (من مخزنك أو شراء):</div>
+                  {existingList.length > 0 && (
+                    <div className="flex items-center gap-1 flex-wrap rounded-lg bg-stone-800/60 border border-amber-700/30 px-2 py-1.5">
+                      <span className="text-[10px] text-amber-300/80 ms-1">عنده على السفينة:</span>
+                      {existingList.map((c) => (
+                        <span key={c.id} title={c.name} className="flex items-center gap-0.5">
+                          {c.image ? <img src={c.image} alt={c.name} className="w-5 h-5 object-contain" /> : <span className="text-base">{c.emoji}</span>}
+                        </span>
+                      ))}
                     </div>
-                  );
-                })}
-                <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
-              </>
-            )}
+                  )}
+
+                  {CREWS.map((c) => {
+                    const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
+                    const isFixer = c.id.startsWith("fixer_");
+                    const isTrader = c.id === "trader";
+                    // duplicates blocked only for persistent crew slots above the ship
+                    const alreadyOnShip = !isFixer && !isTrader && existingIds.has(c.id);
+                    const canSend = q > 0 && !alreadyOnShip;
+                    return (
+                      <div key={c.id} className="flex items-stretch gap-2">
+                        <button disabled={busy || !canSend} onClick={() => sendSupport("crew", c.id)}
+                          className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
+                          {c.image ? <img src={c.image} alt={c.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{c.emoji}</span>}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-amber-200 font-bold text-sm">{c.name}</div>
+                            <div className="text-[10px] text-amber-300/70">{c.bonus}</div>
+                            {alreadyOnShip && <div className="text-[10px] text-rose-300 font-bold">موجود على سفينته ✓</div>}
+                            {isTrader && <div className="text-[10px] text-emerald-300/90">يفعّل سوق السمك مباشرة</div>}
+                          </div>
+                          <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
+                        </button>
+                        {q === 0 && !alreadyOnShip && (
+                          <button disabled={busy} onClick={() => buyAndSendCrew(c.id)}
+                            className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
+                            <span>🛒 شراء</span>
+                            <span className="text-[10px] opacity-90 mt-0.5">
+                              {c.currency === "gems" ? `💎 ${c.price}` : `💰 ${c.price.toLocaleString()}`}
+                            </span>
+                            <span className="text-[9px] opacity-80">وأرسل</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
+                </>
+              );
+            })()}
+
           </div>
         </div>
       )}
