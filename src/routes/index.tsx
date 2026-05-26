@@ -1475,6 +1475,91 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
           onClick={onClose}>إغلاق</button>
       </div>
+      {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} />}
+    </div>
+  );
+}
+
+function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () => void }) {
+  const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number } | null>(null);
+  const [members, setMembers] = useState<Array<{ user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; xp: number }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations").eq("id", tribeId).maybeSingle();
+      if (t) setInfo(t as any);
+      const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
+      const ids = (ms || []).map((m: any) => m.user_id);
+      const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
+      const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
+      const merged = (ms || []).map((m: any) => {
+        const p: any = pmap.get(m.user_id) || {};
+        return { user_id: m.user_id, role: m.role, display_name: p.display_name || "...", avatar_emoji: p.avatar_emoji || "👤", level: p.level || 1, xp: p.xp || 0 };
+      }).sort((a, b) => (b.level * 100 + b.xp / 10) - (a.level * 100 + a.xp / 10));
+      setMembers(merged);
+      setLoading(false);
+    })();
+  }, [tribeId]);
+
+  const totalPower = members.reduce((s, m) => s + (m.level * 100 + Math.floor(m.xp / 10)), 0) + ((info?.level || 1) - 1) * 500;
+
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2" onClick={onClose}>
+      <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()} dir="rtl">
+        {loading || !info ? (
+          <div className="text-center text-accent/70 py-10">جاري التحميل…</div>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-3xl">{info.banner || info.emblem}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-lg font-extrabold text-accent truncate">{info.name}</div>
+                <div className="text-xs text-amber-300">⭐ المستوى {info.level} • ⚡ {totalPower.toLocaleString()}</div>
+              </div>
+              <button onClick={onClose} className="px-3 py-1 rounded bg-secondary/70 text-accent">✕</button>
+            </div>
+
+            <div className="rounded-xl bg-secondary/50 border border-accent/30 p-2 mb-2">
+              <div className="text-xs text-accent/90 whitespace-pre-wrap break-words">
+                {info.description || "لا يوجد وصف بعد."}
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px]">
+                <div className="rounded bg-stone-900/60 p-1.5">
+                  <div className="text-amber-300 font-bold">{info.treasure_coins.toLocaleString()}</div>
+                  <div className="text-accent/60">خزنة 🪙</div>
+                </div>
+                <div className="rounded bg-stone-900/60 p-1.5">
+                  <div className="text-amber-300 font-bold">{info.total_donations.toLocaleString()}</div>
+                  <div className="text-accent/60">تبرعات 🪙</div>
+                </div>
+                <div className="rounded bg-stone-900/60 p-1.5">
+                  <div className="text-amber-300 font-bold">{members.length}</div>
+                  <div className="text-accent/60">أعضاء 👥</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-1">
+              <div className="text-xs font-bold text-accent mb-1">👥 الأعضاء</div>
+              {members.map((m, i) => (
+                <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
+                  onClick={() => { sound.play("click"); onClose(); }}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                  <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                  <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-accent truncate">{m.display_name} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}</div>
+                    <div className="text-[10px] text-accent/70">المستوى {m.level}</div>
+                  </div>
+                  <div className="text-xs font-bold text-accent tabular-nums">⚡ {(m.level * 100 + Math.floor(m.xp / 10)).toLocaleString()}</div>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
