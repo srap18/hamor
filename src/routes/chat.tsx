@@ -317,17 +317,41 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 // ===================== Tribe Management Modal =====================
 type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number };
 type JoinReq = { id: string; user_id: string; display_name: string; avatar_emoji: string; level: number };
+type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number };
+
+const RENAME_COST_GEMS = 100;
+const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
+
+function levelGoal(level: number): number {
+  return 10000 * level * level;
+}
 
 function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userId: string; onClose: () => void }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [requests, setRequests] = useState<JoinReq[]>([]);
   const [myRole, setMyRole] = useState<string>("member");
-  const [tribeName, setTribeName] = useState("");
+  const [info, setInfo] = useState<TribeInfo | null>(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [desc, setDesc] = useState("");
+  const [banner, setBanner] = useState("");
+  const [donateAmount, setDonateAmount] = useState<number>(500);
 
   const load = useCallback(async () => {
-    const { data: t } = await supabase.from("tribes").select("name").eq("id", tribeId).maybeSingle();
-    if (t) setTribeName((t as any).name);
+    const { data: t } = await supabase.from("tribes")
+      .select("name,emblem,description,banner,level,treasure_coins,total_donations")
+      .eq("id", tribeId).maybeSingle();
+    if (t) {
+      const ti = t as any as TribeInfo;
+      setInfo(ti);
+      setNewName(ti.name);
+      setDesc(ti.description || "");
+      setBanner(ti.banner || "🏴‍☠️");
+    }
     const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
     const mIds = (ms || []).map((m: any) => m.user_id);
     const { data: ps } = mIds.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level").in("id", mIds) : { data: [] };
@@ -359,49 +383,162 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   const isOfficer = myRole === "owner" || myRole === "moderator";
   const isOwner = myRole === "owner";
 
-  const acceptReq = async (r: JoinReq) => {
-    setBusy(true);
+  const wrap = async (fn: () => Promise<void>) => {
+    setBusy(true); setErr(null);
+    try { await fn(); } catch (e: any) { setErr(e?.message || "خطأ"); }
+    setBusy(false);
+  };
+
+  const acceptReq = (r: JoinReq) => wrap(async () => {
     await supabase.from("tribe_members").insert({ tribe_id: tribeId, user_id: r.user_id, role: "member" });
     await officerSetTribe(r.user_id, tribeId);
     await supabase.from("tribe_join_requests").update({ status: "accepted" }).eq("id", r.id);
-    setBusy(false); load();
-  };
-  const rejectReq = async (r: JoinReq) => {
-    setBusy(true);
+    await load();
+  });
+  const rejectReq = (r: JoinReq) => wrap(async () => {
     await supabase.from("tribe_join_requests").update({ status: "rejected" }).eq("id", r.id);
-    setBusy(false); load();
-  };
-  const kick = async (m: Member) => {
+    await load();
+  });
+  const kick = (m: Member) => {
     if (m.role === "owner") return alert("لا يمكن طرد المالك");
     if (!confirm(`طرد ${m.display_name}؟`)) return;
-    setBusy(true);
-    await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", m.user_id);
-    await officerSetTribe(m.user_id, null);
-    setBusy(false); load();
+    wrap(async () => {
+      await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", m.user_id);
+      await officerSetTribe(m.user_id, null);
+      await load();
+    });
   };
-  const promote = async (m: Member) => {
-    setBusy(true);
+  const promote = (m: Member) => wrap(async () => {
     const newRole = m.role === "moderator" ? "member" : "moderator";
     await supabase.from("tribe_members").update({ role: newRole }).eq("tribe_id", tribeId).eq("user_id", m.user_id);
-    setBusy(false); load();
-  };
-  const leaveTribe = async () => {
+    await load();
+  });
+  const leaveTribe = () => {
     if (!confirm("هل تريد مغادرة القبيلة؟")) return;
-    setBusy(true);
-    await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", userId);
-    await setMyTribe(null);
-    setBusy(false);
-    window.location.reload();
+    wrap(async () => {
+      await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", userId);
+      await setMyTribe(null);
+      window.location.reload();
+    });
   };
+  const saveRename = () => wrap(async () => {
+    const { error } = await supabase.rpc("rename_tribe" as never, { _tribe_id: tribeId, _new_name: newName } as never);
+    if (error) throw error;
+    setEditingName(false);
+    await load();
+  });
+  const saveDetails = () => wrap(async () => {
+    const { error } = await supabase.rpc("update_tribe_details" as never, { _tribe_id: tribeId, _description: desc, _banner: banner } as never);
+    if (error) throw error;
+    setEditingDetails(false);
+    await load();
+  });
+  const donate = () => wrap(async () => {
+    if (!donateAmount || donateAmount < 100) throw new Error("الحد الأدنى 100 عملة");
+    const { error } = await supabase.rpc("donate_to_tribe" as never, { _tribe_id: tribeId, _amount: donateAmount } as never);
+    if (error) throw error;
+    await load();
+  });
+
+  const goal = info ? levelGoal(info.level) : 1;
+  const progress = info ? Math.min(100, Math.floor((info.treasure_coins / goal) * 100)) : 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
       <div className="w-full max-w-md max-h-[90vh] bg-stone-950 border-2 border-amber-700 rounded-2xl flex flex-col overflow-hidden">
         <div className="flex items-center gap-2 p-3 border-b border-amber-700/60 bg-stone-900">
-          <div className="flex-1 font-extrabold text-amber-300">⚙️ إدارة القبيلة — {tribeName}</div>
+          <div className="text-2xl">{info?.banner || "🏴‍☠️"}</div>
+          <div className="flex-1 font-extrabold text-amber-300 truncate">⚙️ {info?.name || "..."}</div>
           <button onClick={onClose} className="px-3 py-1 rounded bg-stone-800 text-amber-200">✕</button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          {info && (
+            <div className="rounded-xl border border-amber-700/40 bg-gradient-to-b from-stone-900 to-stone-950 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-xs text-amber-300">المستوى</div>
+                <div className="font-extrabold text-amber-200">⭐ {info.level}</div>
+                <div className="flex-1" />
+                <div className="text-[10px] text-amber-300/70">إجمالي التبرعات: {info.total_donations.toLocaleString()} 🪙</div>
+              </div>
+              <div className="h-2 rounded bg-stone-800 overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-300" style={{ width: `${progress}%` }} />
+              </div>
+              <div className="text-[10px] text-amber-300/70 mt-1 text-center">
+                {info.treasure_coins.toLocaleString()} / {goal.toLocaleString()} 🪙 للمستوى {info.level + 1}
+              </div>
+              <div className="text-xs text-amber-200/90 mt-2 whitespace-pre-wrap break-words">
+                {info.description || "لا يوجد وصف للقبيلة بعد."}
+              </div>
+              <div className="mt-2 text-[10px] text-amber-300/80 flex flex-wrap gap-x-3 gap-y-1">
+                <span>🎁 شات خاص</span>
+                <span>⚔️ إعلان حروب</span>
+                <span>💰 خزنة مشتركة</span>
+                <span>🏆 ترتيب بالقوة</span>
+              </div>
+            </div>
+          )}
+
+          {isOwner && (
+            <div className="space-y-2">
+              {!editingName ? (
+                <button onClick={() => setEditingName(true)} className="w-full py-2 rounded-lg bg-amber-700/40 border border-amber-500/50 text-amber-100 text-xs font-bold">
+                  ✏️ تغيير اسم القبيلة (💎 {RENAME_COST_GEMS})
+                </button>
+              ) : (
+                <div className="p-2 rounded-lg bg-stone-900 border border-amber-700/40 space-y-2">
+                  <input value={newName} onChange={e => setNewName(e.target.value)} maxLength={40}
+                    className="w-full px-2 py-1.5 rounded bg-stone-800 border border-amber-700/40 text-amber-100 text-sm" />
+                  <div className="flex gap-2">
+                    <button disabled={busy} onClick={saveRename} className="flex-1 py-1.5 rounded bg-amber-600 text-stone-900 font-bold text-xs">حفظ (💎 {RENAME_COST_GEMS})</button>
+                    <button onClick={() => setEditingName(false)} className="px-3 py-1.5 rounded bg-stone-800 text-amber-200 text-xs">إلغاء</button>
+                  </div>
+                </div>
+              )}
+
+              {!editingDetails ? (
+                <button onClick={() => setEditingDetails(true)} className="w-full py-2 rounded-lg bg-amber-700/40 border border-amber-500/50 text-amber-100 text-xs font-bold">
+                  🎨 تعديل البنر والوصف
+                </button>
+              ) : (
+                <div className="p-2 rounded-lg bg-stone-900 border border-amber-700/40 space-y-2">
+                  <div className="text-[10px] text-amber-300">اختر البنر</div>
+                  <div className="grid grid-cols-8 gap-1">
+                    {EMBLEM_CHOICES.map(em => (
+                      <button key={em} onClick={() => setBanner(em)}
+                        className={`text-xl py-1 rounded ${banner === em ? "bg-amber-600/60 ring-2 ring-amber-300" : "bg-stone-800"}`}>{em}</button>
+                    ))}
+                  </div>
+                  <textarea value={desc} onChange={e => setDesc(e.target.value.slice(0, 240))} placeholder="وصف القبيلة..."
+                    rows={3} className="w-full px-2 py-1.5 rounded bg-stone-800 border border-amber-700/40 text-amber-100 text-sm resize-none" />
+                  <div className="text-[10px] text-amber-300/60 text-left">{desc.length}/240</div>
+                  <div className="flex gap-2">
+                    <button disabled={busy} onClick={saveDetails} className="flex-1 py-1.5 rounded bg-amber-600 text-stone-900 font-bold text-xs">حفظ</button>
+                    <button onClick={() => setEditingDetails(false)} className="px-3 py-1.5 rounded bg-stone-800 text-amber-200 text-xs">إلغاء</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="p-2 rounded-lg bg-stone-900 border border-emerald-700/40 space-y-2">
+            <div className="text-xs font-bold text-emerald-300">💰 تبرع للقبيلة (يرفع مستواها)</div>
+            <div className="flex gap-1">
+              {[500, 1000, 5000, 10000].map(v => (
+                <button key={v} onClick={() => setDonateAmount(v)}
+                  className={`flex-1 py-1 rounded text-[11px] font-bold ${donateAmount === v ? "bg-emerald-600 text-white" : "bg-stone-800 text-emerald-200"}`}>
+                  {v.toLocaleString()}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input type="number" min={100} value={donateAmount} onChange={e => setDonateAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                className="flex-1 px-2 py-1.5 rounded bg-stone-800 border border-emerald-700/40 text-emerald-100 text-sm" />
+              <button disabled={busy} onClick={donate} className="px-4 py-1.5 rounded bg-emerald-600 text-white font-bold text-xs">تبرع</button>
+            </div>
+          </div>
+
+          {err && <div className="text-xs text-red-400 text-center">{err}</div>}
+
           {isOfficer && requests.length > 0 && (
             <div>
               <div className="text-xs font-bold text-amber-300 mb-2">📩 طلبات الانضمام ({requests.length})</div>
