@@ -799,17 +799,20 @@ function Index() {
 
       {/* Animated clouds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-        <div className="absolute text-white/70 text-5xl animate-cloud-drift" style={{ top: "8%", left: "-15%", animationDuration: "60s" }}>☁️</div>
-        <div className="absolute text-white/60 text-4xl animate-cloud-drift" style={{ top: "18%", left: "-25%", animationDuration: "85s", animationDelay: "-20s" }}>☁️</div>
-        <div className="absolute text-white/80 text-6xl animate-cloud-drift" style={{ top: "3%", left: "-40%", animationDuration: "110s", animationDelay: "-50s" }}>☁️</div>
+      {/* Realistic drifting clouds */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "6%", left: "-20%", width: "26%", opacity: 0.85, animationDuration: "90s", filter: "drop-shadow(0 4px 10px rgba(255,255,255,0.15))" }} draggable={false} />
+        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "16%", left: "-30%", width: "18%", opacity: 0.7, animationDuration: "120s", animationDelay: "-30s", transform: "scaleX(-1)" }} draggable={false} />
+        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "2%", left: "-45%", width: "32%", opacity: 0.9, animationDuration: "150s", animationDelay: "-70s" }} draggable={false} />
       </div>
 
-      {/* Animated birds */}
+      {/* Realistic flying seagulls */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[6]">
-        <div className="absolute text-xl animate-bird-fly" style={{ top: "12%", left: "-10%", animationDuration: "22s" }}>🕊️</div>
-        <div className="absolute text-base animate-bird-fly" style={{ top: "20%", left: "-15%", animationDuration: "28s", animationDelay: "-8s" }}>🕊️</div>
-        <div className="absolute text-lg animate-bird-fly" style={{ top: "6%", left: "-20%", animationDuration: "35s", animationDelay: "-18s" }}>🕊️</div>
+        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "12%", left: "-10%", width: "5%", animationDuration: "28s", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))" }} draggable={false} />
+        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "20%", left: "-15%", width: "3.5%", animationDuration: "36s", animationDelay: "-10s" }} draggable={false} />
+        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "6%", left: "-20%", width: "4%", animationDuration: "44s", animationDelay: "-22s" }} draggable={false} />
       </div>
+
 
       {/* Animated sea waves shimmer */}
       <div className="absolute inset-0 pointer-events-none z-[4]"
