@@ -181,6 +181,38 @@ function PlayerPage() {
     }
   };
 
+  const buyAndFire = async (weaponId: string) => {
+    if (!me || !selectedShip) return;
+    const w = WEAPONS.find((x) => x.id === weaponId);
+    if (!w) return;
+    setBusy(true); sound.play("click");
+    const { error } = w.currency === "gems"
+      ? await buyWithGems(w.id, "weapon", w.price)
+      : await buyWithCoins(w.id, "weapon", w.price);
+    if (error) {
+      setBusy(false);
+      const msg = (error as any).message || "";
+      if (msg.includes("insufficient") || msg.includes("not enough")) {
+        flash(w.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
+      } else flash("تعذّر الشراء");
+      return;
+    }
+    // Add to local inventory so fireWeapon's consume works visually
+    setInv((arr) => {
+      const idx = arr.findIndex((x) => x.item_id === w.id && x.item_type === "weapon");
+      if (idx >= 0) {
+        const next = [...arr];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        return next;
+      }
+      return [...arr, { item_id: w.id, item_type: "weapon", quantity: 1 }];
+    });
+    sound.play("success");
+    flash(`🛒 اشتريت ${w.name} — يطلق الآن!`);
+    setBusy(false);
+    await fireWeapon(weaponId);
+  };
+
   const submitNukeMessage = async () => {
     const msg = nukeMsg.trim();
     if (msg.length < 20) { flash("الرسالة يجب أن تكون ٢٠ حرف على الأقل"); return; }
