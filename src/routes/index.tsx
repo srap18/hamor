@@ -1784,12 +1784,16 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       <div
         className="relative w-full"
         style={{
-          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
+          transform: destroyed
+            ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
+            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.2s ease-out",
-          filter:
-            "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          filter: destroyed
+            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          opacity: destroyed ? 0.8 : 1,
         }}
       >
         <div className="relative w-full">
@@ -1810,29 +1814,41 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           <img
             src={ship.img}
             alt="Ship"
-            className="w-full block select-none animate-sail-flap"
+            className={`w-full block select-none ${destroyed ? "" : "animate-sail-flap"}`}
             draggable={false}
             style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
           />
 
 
-          {/* Waving flag on the mast */}
-          <div
-            className="absolute pointer-events-none"
-            style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
-          >
+          {/* Waving flag on the mast (hidden when destroyed) */}
+          {!destroyed && (
             <div
-              className="w-full h-full animate-flag-wave"
-              style={{
-                background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
-                clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
-              }}
-            />
-          </div>
+              className="absolute pointer-events-none"
+              style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
+            >
+              <div
+                className="w-full h-full animate-flag-wave"
+                style={{
+                  background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
+                  clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Destroyed: dark smoke billows */}
+          {destroyed && (
+            <>
+              <div className="absolute left-[45%] top-[10%] w-4 h-4 rounded-full bg-stone-900/70 blur-[3px] animate-smoke-rise" />
+              <div className="absolute left-[45%] top-[10%] w-5 h-5 rounded-full bg-stone-800/60 blur-[3px] animate-smoke-rise" style={{ animationDelay: "0.6s" }} />
+              <div className="absolute left-[45%] top-[10%] w-4 h-4 rounded-full bg-stone-900/50 blur-[3px] animate-smoke-rise" style={{ animationDelay: "1.2s" }} />
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 text-3xl pointer-events-none">💥</div>
+            </>
+          )}
 
           {/* Chimney smoke when sailing */}
-          {moving && (
+          {moving && !destroyed && (
             <>
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/60 blur-[2px] animate-smoke-rise" />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/40 blur-[2px] animate-smoke-rise" style={{ animationDelay: "0.8s" }} />
