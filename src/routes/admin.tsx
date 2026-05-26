@@ -48,14 +48,20 @@ function AdminLayout() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen flex flex-col md:flex-row bg-slate-950 text-slate-100">
+    <div dir="rtl" className="min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row bg-slate-950 text-slate-100">
       {/* Sidebar / Topbar */}
-      <aside className="w-full md:w-60 md:shrink-0 border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/60 backdrop-blur flex flex-col">
-        <div className="p-3 md:p-4 border-b border-slate-800 flex items-center justify-between md:block">
+      <aside className="w-full md:w-60 md:shrink-0 md:h-screen md:overflow-y-auto sticky top-0 z-30 md:static border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/95 backdrop-blur flex flex-col">
+        <div className="p-3 md:p-4 border-b border-slate-800 flex items-center justify-between gap-2">
           <div className="text-base md:text-lg font-bold flex items-center gap-2">
             <span>⚓</span> Admin Panel
           </div>
-          <div className="text-xs text-slate-500 md:mt-1">Ocean Catch</div>
+          <div className="flex md:hidden items-center gap-1.5">
+            <Link to="/" className="text-xs px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700">🎮</Link>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); nav({ to: "/login" }); }}
+              className="text-xs px-2.5 py-1.5 rounded-md bg-red-900/40 hover:bg-red-900/60 text-red-200"
+            >خروج</button>
+          </div>
         </div>
         <nav className="flex md:flex-col gap-1 p-2 overflow-x-auto md:overflow-x-visible md:flex-1">
           {NAV.map((item) => {
@@ -93,7 +99,7 @@ function AdminLayout() {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto min-w-0">
+      <main className="flex-1 md:overflow-y-auto min-w-0 pb-24 md:pb-6">
         <Outlet />
       </main>
     </div>

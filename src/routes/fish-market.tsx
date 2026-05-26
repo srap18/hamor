@@ -72,6 +72,7 @@ function priceHistory(fish: Fish): number[] {
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
+  const [priceMap, setPriceMap] = useState<Record<string, { current: number; min: number; max: number }>>({});
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
@@ -91,6 +92,31 @@ function FishMarket() {
     setUpToast(m);
     window.setTimeout(() => setUpToast(null), 1800);
   };
+
+  // Load dynamic fish prices from DB + subscribe to hourly updates
+  useEffect(() => {
+    const loadPrices = async () => {
+      const { data } = await supabase
+        .from("fish_market_prices")
+        .select("fish_id, current_price, min_price, max_price");
+      const m: Record<string, { current: number; min: number; max: number }> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number }>) {
+        m[row.fish_id] = {
+          current: Number(row.current_price) || 0,
+          min: Number(row.min_price) || 0,
+          max: Number(row.max_price) || 0,
+        };
+      }
+      setPriceMap(m);
+    };
+    loadPrices();
+    const ch = supabase
+      .channel("fish_market_prices_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fish_market_prices" }, () => loadPrices())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
 
   const loadMarket = async () => {
     if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
@@ -189,11 +215,15 @@ function FishMarket() {
     };
   }, [user?.id]);
 
-  // Only show fish the player owns (qty > 0)
+  // Only show fish the player owns (qty > 0). basePrice is overridden by the
+  // live hourly price from the DB when available.
   const fish: Fish[] = Object.entries(qtyMap)
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
-      return meta ? { ...meta, qty } : null;
+      if (!meta) return null;
+      const live = priceMap[id]?.current;
+      const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
+      return { ...meta, basePrice, qty };
     })
     .filter((f): f is Fish => !!f && f.qty > 0)
     .sort((a, b) => b.basePrice - a.basePrice);
@@ -211,11 +241,15 @@ function FishMarket() {
 
   const sell = async (amount: number) => {
     if (!sel || !user) return;
-    const history = priceHistory(sel);
-    const price = history[history.length - 1];
+    // Use live DB price when available; fall back to local history
+    const livePrice = priceMap[sel.id]?.current;
+    const price = typeof livePrice === "number" && livePrice > 0
+      ? livePrice
+      : priceHistory(sel)[priceHistory(sel).length - 1];
     const qty = Math.min(amount, sel.qty);
     if (qty <= 0) return;
     const earned = Math.round(qty * price);
+
 
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
