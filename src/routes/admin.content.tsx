@@ -1,18 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SHIPS, fishMarketCapacity } from "@/lib/ships";
+import { FM_CAP_OVERRIDES } from "@/lib/economy-overrides";
 
 export const Route = createFileRoute("/admin/content")({
   component: AdminContent,
   ssr: false,
 });
 
-type Tab = "quests" | "achievements" | "lootboxes" | "events" | "catalog";
+type Tab = "quests" | "achievements" | "lootboxes" | "events" | "catalog" | "economy";
 
 function AdminContent() {
-  const [tab, setTab] = useState<Tab>("quests");
+  const [tab, setTab] = useState<Tab>("economy");
 
   const TABS: Array<{ id: Tab; label: string; icon: string }> = [
+    { id: "economy", label: "الاقتصاد", icon: "💰" },
     { id: "quests", label: "المهام اليومية", icon: "🎯" },
     { id: "achievements", label: "الإنجازات", icon: "🏆" },
     { id: "lootboxes", label: "الصناديق", icon: "🎁" },
@@ -38,6 +41,7 @@ function AdminContent() {
         ))}
       </div>
 
+      {tab === "economy" && <EconomyTab />}
       {tab === "quests" && <QuestsTab />}
       {tab === "achievements" && <AchievementsTab />}
       {tab === "lootboxes" && <LootboxesTab />}
