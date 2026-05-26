@@ -459,13 +459,22 @@ function PlayerPage() {
         setShips((arr) => arr.map((x) => x.id === selectedShip.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x));
       }
       sound.play("success");
-      flash(kind === "crew" ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته" : "👨‍✈️ تم إرسال الطاقم — وصل لمخزونه") : "🛠️ تم إصلاح سفينته بالكامل");
+      const isTrader = kind === "crew" && itemId === "trader";
+      flash(
+        kind === "crew"
+          ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته"
+            : isTrader ? "💰 التاجر فعّل سوق السمك عنده"
+            : "👨‍✈️ تم إرسال الطاقم — يعمل على سفينته")
+          : "🛠️ تم إصلاح سفينته بالكامل"
+      );
 
     } else {
       const msg = (error as any).message || "";
       if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
+      else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
       else flash("تعذّر إرسال الدعم");
     }
+
     setBusy(false); closeMenu();
   };
 
