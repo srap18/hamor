@@ -447,6 +447,25 @@ function Index() {
     reloadRaids();
   };
 
+  // Auto-claim expired steal missions — loot arrives automatically
+  useEffect(() => {
+    const id = setInterval(async () => {
+      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= Date.now() && s.dbId);
+      for (const s of expired) {
+        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+        if (!error) {
+          const row = Array.isArray(data) && data[0] ? data[0] : null;
+          const n = row?.stolen_count ?? 0;
+          const v = row?.total_value ?? 0;
+          if (n > 0) { sound.play("catch"); showToast(`🏴‍☠️ سرقت ${n} سمكة (قيمتها ${v})`); }
+          else { showToast("🪶 سفينتك رجعت فاضية"); }
+          syncFleetFromDb();
+        }
+      }
+    }, 4000);
+    return () => clearInterval(id);
+  }, [ships]);
+
 
 
   // Progress + sail animation ticker — strictly time-proportional.
