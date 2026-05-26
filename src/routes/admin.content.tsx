@@ -471,13 +471,16 @@ function ShipOverridesTable() {
         // propagate maxHp to all owned ships of this template so existing players see new HP
         if (overrides.maxHp != null) {
           const newMax = overrides.maxHp;
-          const { data: owned } = await supabase
-            .from("ships")
-            .select("id, hp, max_hp")
-            .eq("template_id", level);
+          const sb = supabase as unknown as {
+            from: (t: string) => {
+              select: (c: string) => { eq: (c: string, v: number) => Promise<{ data: Array<{ id: string; hp: number | null; max_hp: number | null }> | null }> };
+              update: (v: Record<string, number>) => { eq: (c: string, v: string) => Promise<unknown> };
+            };
+          };
+          const { data: owned } = await sb.from("ships").select("id, hp, max_hp").eq("template_id", level);
           for (const row of owned ?? []) {
             const nextHp = Math.min(Number(row.hp ?? newMax), newMax);
-            await supabase.from("ships").update({ max_hp: newMax, hp: nextHp }).eq("id", row.id);
+            await sb.from("ships").update({ max_hp: newMax, hp: nextHp }).eq("id", row.id);
           }
         }
       }
