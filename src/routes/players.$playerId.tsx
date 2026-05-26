@@ -578,7 +578,11 @@ function PlayerPage() {
         const seaLeft = wLeft + seaOffsets[i % seaOffsets.length] * wWidth;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
         const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaLeft}%` : `${dockLeft}%`);
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        const shipCrews = playerCrews
+          .filter((c) => c.ship_id === s.id)
+          .map((c) => CREWS.find((x) => x.id === c.item_id))
+          .filter(Boolean) as typeof CREWS;
+        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
