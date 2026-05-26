@@ -362,16 +362,29 @@ function Index() {
   };
 
   const [now, setNow] = useState(() => Date.now());
-  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number; expires_at?: string } | null };
+  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
 
+  // Match crew row to a ship by either local numeric id OR ship UUID (dbId).
+  // Support sent from other players uses the UUID (ship_id) since they don't
+  // know our local fleet numbering.
+  const isCrewAssignedToShip = (
+    meta: { assigned_ship_id?: number | string } | null | undefined,
+    ship: { id: number; dbId?: string },
+  ) => {
+    const a = meta?.assigned_ship_id;
+    if (a == null) return false;
+    if (typeof a === "number") return a === ship.id;
+    return a === ship.dbId || a === String(ship.id);
+  };
+
   // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
-  const getCrewBonuses = (shipId: number) => {
+  const getCrewBonuses = (ship: { id: number; dbId?: string }) => {
     const nowMs = Date.now();
     const active = crewRowsRef.current.filter(
-      (r) => r.meta?.assigned_ship_id === shipId &&
+      (r) => isCrewAssignedToShip(r.meta, ship) &&
              (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
     );
     const ids = new Set(active.map((r) => r.item_id));
@@ -411,7 +424,20 @@ function Index() {
     reloadCrews();
     const onFocus = () => reloadCrews();
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    let ch: any;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid) return;
+      ch = supabase
+        .channel(`my-inv-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "inventory", filter: `user_id=eq.${uid}` }, () => reloadCrews())
+        .subscribe();
+    })();
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      if (ch) supabase.removeChannel(ch);
+    };
   }, [modal, crewTick]);
 
   const [bgId, setBgId] = useState<string>("harbor");
@@ -530,7 +556,7 @@ function Index() {
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
           }
-          const { sailorMult } = getCrewBonuses(s.id);
+          const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
@@ -578,7 +604,7 @@ function Index() {
       return;
     }
     // Compute time-based ratio so fishGained is strictly proportional to time at sea.
-    const { luckMult, sailorMult, guide } = getCrewBonuses(s.id);
+    const { luckMult, sailorMult, guide } = getCrewBonuses(s);
     void guide;
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
@@ -922,7 +948,7 @@ function Index() {
 
 
         const shipCrews = crewRows
-          .filter((r) => r.meta?.assigned_ship_id === s.id)
+          .filter((r) => isCrewAssignedToShip(r.meta, s))
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter(Boolean) as typeof CREWS;
 
@@ -1044,7 +1070,7 @@ function Index() {
                         const { error } = await sellShip(soldDbId, price);
                         if (error) console.error("[sell ship]", error);
                       }
-                      const assignedHere = crewRows.filter((r) => r.meta?.assigned_ship_id === s.id);
+                      const assignedHere = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
                       if (assignedHere.length) {
                         await deleteInventoryRows(assignedHere.map((r) => r.id));
                       }
@@ -1063,9 +1089,9 @@ function Index() {
         const s = ships.find((x) => x.id === modal.shipId);
         if (!s) return null;
         const slots = Math.min(3, Math.floor(s.level / 5) + 1); // lvl1-4:1, 5-9:2, 10+:3
-        const assignedRows = crewRows.filter((r) => r.meta?.assigned_ship_id === s.id);
+        const assignedRows = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
         // available = rows not assigned to any ship (or assigned-but-expired already purged)
-        const availableRows = crewRows.filter((r) => !r.meta?.assigned_ship_id);
+        const availableRows = crewRows.filter((r) => r.meta?.assigned_ship_id == null);
         // group available by item_id with total qty
         const availMap = new Map<string, number>();
         availableRows.forEach((r) => availMap.set(r.item_id, (availMap.get(r.item_id) ?? 0) + r.quantity));
@@ -1091,7 +1117,7 @@ function Index() {
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) return;
           const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-          const newMeta = { assigned_ship_id: s.id, expires_at: expiresAt };
+          const newMeta = { assigned_ship_id: s.dbId ?? s.id, expires_at: expiresAt };
           if (row.quantity <= 1) {
             await updateInventoryMeta(row.id, newMeta);
           } else {
