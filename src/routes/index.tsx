@@ -797,10 +797,9 @@ function Index() {
         <span className="text-[10px] font-black mt-0.5 drop-shadow whitespace-nowrap">سوق السفن</span>
       </Link>
 
-      {/* Animated clouds */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
       {/* Realistic drifting clouds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+
         <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "6%", left: "-20%", width: "26%", opacity: 0.85, animationDuration: "90s", filter: "drop-shadow(0 4px 10px rgba(255,255,255,0.15))" }} draggable={false} />
         <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "16%", left: "-30%", width: "18%", opacity: 0.7, animationDuration: "120s", animationDelay: "-30s", transform: "scaleX(-1)" }} draggable={false} />
         <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "2%", left: "-45%", width: "32%", opacity: 0.9, animationDuration: "150s", animationDelay: "-70s" }} draggable={false} />
