@@ -1506,6 +1506,7 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         )}
       </div>
       )}
+      </div>
     </button>
   );
 }
