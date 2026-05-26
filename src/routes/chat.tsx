@@ -135,9 +135,9 @@ function ChatPage() {
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
-    const { data, error } = await supabase.from("messages").insert(row).select("*").single();
-    if (!error && data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
-    else if (error) alert("تعذر الإرسال: " + error.message);
+    const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
+    if (error) { alert("تعذر الإرسال: " + error.message); return; }
+    if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
   }, [user, text, tab, profile?.tribe_id, dmWith]);
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
@@ -708,7 +708,7 @@ function ChatComposer({ text, setText, onSend, disabled, userId, onAudioSent, ch
         const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: duration };
         if (channel === "tribe") row.tribe_id = tribeId;
         if (channel === "dm") row.recipient_id = dmWith;
-        const { data, error } = await supabase.from("messages").insert(row).select("*").single();
+        const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
         setUploading(false);
         if (error) { alert("تعذر الإرسال: " + error.message); return; }
         if (data) onAudioSent(data as Msg);
