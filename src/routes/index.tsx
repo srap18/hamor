@@ -207,9 +207,11 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
-          // Restore fishing trip from DB if server says ship is at sea.
-          // If local state says fishing but DB says not, trust local and
-          // re-sync DB so background fishing persists across sessions.
+          // Restore fishing trip from DB only when local state agrees, OR
+          // when local has no opinion yet (no startedAt and not fishing).
+          // If the user just pressed STOP locally (fishing=false), we MUST
+          // trust local and force-sync DB → at_sea=false. Otherwise the
+          // realtime/poll cycle re-enables fishing automatically.
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
@@ -217,6 +219,16 @@ function Index() {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
+          } else if (s.fishing === false) {
+            // Local says STOPPED — that's the source of truth.
+            // If DB still says at_sea, push the stop again to fix the race.
+            fishing = false;
+            startedAt = undefined;
+            if (row.at_sea) {
+              import("@/lib/economy").then(({ setShipAtSea }) => {
+                setShipAtSea(s.dbId!, false).catch(() => {});
+              });
+            }
           } else if (row.at_sea && row.fishing_started_at) {
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
