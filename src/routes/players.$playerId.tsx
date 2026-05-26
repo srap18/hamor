@@ -41,6 +41,7 @@ function PlayerPage() {
   const [nowTs, setNowTs] = useState<number>(Date.now());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
+  const [playerCrews, setPlayerCrews] = useState<{ item_id: string; ship_id: string }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [fx, setFx] = useState<{ id: number; emoji: string; fromX: number; fromY: number; toX: number; toY: number; phase: "fly" | "boom"; friendly?: boolean; weaponId?: string } | null>(null);
   const [shake, setShake] = useState<"" | "shake-sm" | "shake-md" | "shake-lg">("");
