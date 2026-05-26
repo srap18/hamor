@@ -279,7 +279,28 @@ function Index() {
     syncFleetFromDb();
     const onFocus = () => syncFleetFromDb();
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    // Live updates: any change to my own ships triggers an instant re-sync
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const kick = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => syncFleetFromDb(), 120);
+    };
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid) return;
+      ch = supabase
+        .channel(`my-ships-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${uid}` }, kick)
+        .on("postgres_changes", { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${uid}` }, kick)
+        .subscribe();
+    })();
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      if (debounce) clearTimeout(debounce);
+      if (ch) supabase.removeChannel(ch);
+    };
   }, []);
   const { user } = useAuth();
   const { profile } = useProfile();
