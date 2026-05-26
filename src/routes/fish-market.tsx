@@ -416,19 +416,41 @@ function StorageView({
         </div>
       </div>
 
-      {/* Upgrade button */}
+      {/* Upgrade footer */}
       <div className="absolute bottom-16 left-2 right-2 z-20 flex items-center gap-3">
-        <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
-            🪙 <span className="text-rose-300">8,500,000</span>
-          </div>
-          <div className="flex items-center gap-1 text-cyan-200 text-sm font-bold">
-            💎 <span>1,250</span>
-          </div>
-        </div>
-        <button className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95">
-          ترقية
-        </button>
+        {upgradingTo ? (
+          <>
+            <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-0.5">
+              <div className="text-[11px] text-cyan-100 font-bold">جارٍ الترقية {lvl} → {upgradingTo}</div>
+              <div className="text-amber-300 text-sm font-extrabold tabular-nums">{formatDur(secondsLeft)}</div>
+            </div>
+            <button
+              onClick={onBoost}
+              disabled={upBusy === "boost"}
+              className="px-5 py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 shadow-lg text-rose-950 font-extrabold active:scale-95 disabled:opacity-50"
+            >
+              💎 {accelCost}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
+              <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
+                🪙 <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-1 text-cyan-200 text-xs font-bold">
+                ⏱ <span>{formatDur(upPreview?.seconds ?? 0)}</span>
+              </div>
+            </div>
+            <button
+              onClick={onUpgrade}
+              disabled={upBusy === "start" || lvl >= 30}
+              className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
+            >
+              {lvl >= 30 ? "أعلى مستوى" : upBusy === "start" ? "..." : "ترقية"}
+            </button>
+          </>
+        )}
       </div>
     </>
   );
