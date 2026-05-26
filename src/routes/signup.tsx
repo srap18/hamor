@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { LegalFooter } from "@/components/LegalFooter";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "إنشاء حساب — Ocean Catch" }] }),
@@ -55,6 +56,11 @@ function SignupPage() {
         <div className="mt-4 text-center text-xs text-amber-100/70">
           عندك حساب؟ <Link to="/login" className="text-amber-300 font-bold">دخول</Link>
         </div>
+        <div className="mt-2 text-center text-[10px] text-amber-100/50">
+          بإنشاء حسابك فأنت توافق على <Link to="/terms" className="text-amber-300">الشروط</Link> و
+          <Link to="/privacy" className="text-amber-300"> سياسة الخصوصية</Link>.
+        </div>
+        <LegalFooter />
       </div>
     </div>
   );
