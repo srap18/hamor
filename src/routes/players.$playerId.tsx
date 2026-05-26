@@ -484,11 +484,25 @@ function PlayerPage() {
         return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
-      {/* Raiding ships — pirates currently stealing from this player */}
+      {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
       {raiders.map((r, i) => {
         const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
-        const top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
-        const left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
+        const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
+        let top: string; let left: string;
+        if (tIdx >= 0) {
+          const t = ships[tIdx];
+          const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
+          const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
+          const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
+          const seaLeft = wLeft + seaOffsets[tIdx % seaOffsets.length] * wWidth;
+          const tLeft = t.at_sea ? seaLeft : dockLeft;
+          top = `${tTop + 2}%`;
+          // Place to the right of the target ship on screen (+10% of width)
+          left = `${Math.min(95, tLeft + 12)}%`;
+        } else {
+          top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
+          left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
+        }
         const isMine = me === r.user_id;
         return (
           <button
