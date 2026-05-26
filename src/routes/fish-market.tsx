@@ -506,36 +506,139 @@ function StorageView({
 
 /* ───────────────── Sell view ───────────────── */
 
+const TRADER_DURATION_MS = 9 * 60 * 60 * 1000;
+const PAST_HOURS = 2; // past + current shown in red
+const FUTURE_HOURS = 9; // future shown in blue when trader is active
+
+function traderKey(userId: string) {
+  return `trader_active_until_${userId}`;
+}
+
+function getTraderEndsAt(userId: string): number {
+  try {
+    const v = localStorage.getItem(traderKey(userId));
+    if (!v) return 0;
+    const t = parseInt(v, 10);
+    return Number.isFinite(t) && t > Date.now() ? t : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function activateTrader(userId: string): number {
+  const ends = Date.now() + TRADER_DURATION_MS;
+  try { localStorage.setItem(traderKey(userId), String(ends)); } catch {}
+  return ends;
+}
+
+// Deterministic forecast seeded by fish + activation bucket so it doesn't change between renders
+function forecastPrices(fish: Fish, startPrice: number, bucketSeed: number, hours: number): number[] {
+  let seed = bucketSeed >>> 0;
+  for (const c of fish.id) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+  const rand = () => {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    return (seed % 10000) / 10000;
+  };
+  const out: number[] = [];
+  let p = startPrice;
+  const minBound = Math.max(0.1, fish.basePrice * 0.25);
+  for (let i = 0; i < hours; i++) {
+    const delta = (rand() - 0.5) * 2 * fish.volatility * fish.basePrice;
+    p = Math.max(minBound, p + delta);
+    out.push(Math.round(p * 10) / 10);
+  }
+  return out;
+}
+
+function formatHHMMSS(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return `${h}:${m}:${ss}`;
+}
+
+function hourLabel(d: Date) {
+  let h = d.getHours();
+  const ampm = h < 12 ? "am" : "pm";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return { h: String(h), ampm };
+}
+
 function SellView({
   fish,
+  userId,
   onBack,
   onSell,
 }: {
   fish: Fish;
+  userId: string;
   onBack: () => void;
   onSell: (amount: number) => void;
 }) {
-  const history = useMemo(() => priceHistory(fish), [fish.id]);
-  const currentPrice = history[history.length - 1];
-  const minP = Math.min(...history);
-  const maxP = Math.max(...history);
+  // Past series (red) — deterministic walk landing on the current live price
+  const past = useMemo(() => {
+    const startBase = fish.basePrice * 0.9;
+    const arr = forecastPrices(fish, startBase, 1337, PAST_HOURS);
+    arr.push(fish.basePrice); // ends at current price
+    return arr;
+  }, [fish.id, fish.basePrice]);
+  const currentPrice = past[past.length - 1];
+
+  // Trader countdown
+  const [traderEndsAt, setTraderEndsAt] = useState<number>(() => getTraderEndsAt(userId));
+  const [now, setNow] = useState<number>(() => Date.now());
+  const traderActive = traderEndsAt > now;
+  const msLeft = Math.max(0, traderEndsAt - now);
+
+  useEffect(() => {
+    if (!traderActive) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [traderActive]);
+
+  // Forecast (blue) — only visible when trader is active. Seeded by activation bucket so it's stable.
+  const future = useMemo(() => {
+    if (!traderActive) return [] as number[];
+    const bucket = Math.floor(traderEndsAt / (60 * 1000));
+    return forecastPrices(fish, currentPrice, bucket, FUTURE_HOURS);
+  }, [traderActive, traderEndsAt, fish.id, currentPrice]);
+
+  const allPoints = traderActive ? [...past, ...future] : past;
+  const minP = Math.min(...allPoints);
+  const maxP = Math.max(...allPoints);
   const range = Math.max(0.1, maxP - minP);
   const yLabels = useMemo(() => {
     const out: number[] = [];
-    for (let i = 0; i < 5; i++) {
-      out.push(Math.round((minP + (range * (4 - i)) / 4) * 10) / 10);
-    }
+    for (let i = 0; i < 5; i++) out.push(Math.round((minP + (range * (4 - i)) / 4) * 10) / 10);
     return out;
   }, [minP, range]);
 
+  // Hour labels: past hours (now-PAST_HOURS … now) + future hours (now+1 … now+FUTURE_HOURS)
+  const hourLabels = useMemo(() => {
+    const base = new Date();
+    base.setMinutes(0, 0, 0);
+    const labels: { h: string; ampm: string }[] = [];
+    for (let i = -PAST_HOURS; i <= (traderActive ? FUTURE_HOURS : 0); i++) {
+      const d = new Date(base.getTime() + i * 60 * 60 * 1000);
+      labels.push(hourLabel(d));
+    }
+    return labels;
+  }, [traderActive, now]);
+
   const [amount, setAmount] = useState(fish.qty);
-  useEffect(() => {
-    setAmount(fish.qty);
-  }, [fish.qty]);
+  useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
+
+  const handleTrader = () => {
+    if (traderActive) return;
+    const ends = activateTrader(userId);
+    setTraderEndsAt(ends);
+    setNow(Date.now());
+  };
 
   return (
     <>
-      {/* Close button */}
       <button
         onClick={onBack}
         className="absolute top-2 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95"
@@ -552,29 +655,45 @@ function SellView({
         </div>
       </div>
 
-      {/* Predict price button */}
-      <button className="absolute top-[46%] left-3 z-20 rounded-lg bg-gradient-to-b from-emerald-300 to-emerald-500 border-2 border-emerald-200 shadow-lg px-4 py-2 text-center active:scale-95">
-        <div className="text-base font-extrabold text-emerald-950">10H</div>
-        <div className="text-[10px] font-bold text-emerald-950">توقع السعر</div>
+      {/* Trader countdown timer (visible while active) */}
+      {traderActive && (
+        <div className="absolute top-[42%] left-3 z-20 rounded-lg bg-black/70 border-2 border-amber-300/70 px-3 py-1.5 text-amber-200 font-extrabold tabular-nums shadow-lg">
+          {formatHHMMSS(msLeft)}
+        </div>
+      )}
+
+      {/* Predict price button — activates the Trader for 9h */}
+      <button
+        onClick={handleTrader}
+        disabled={traderActive}
+        className={`absolute top-[46%] left-3 z-20 rounded-lg border-2 shadow-lg px-4 py-2 text-center active:scale-95 ${traderActive ? "bg-gradient-to-b from-slate-300 to-slate-500 border-slate-200 opacity-70 cursor-not-allowed" : "bg-gradient-to-b from-emerald-300 to-emerald-500 border-emerald-200"}`}
+        style={traderActive ? { marginTop: 36 } : undefined}
+      >
+        <div className="text-base font-extrabold text-emerald-950">9H</div>
+        <div className="text-[10px] font-bold text-emerald-950">{traderActive ? "التاجر يعمل" : "توقع السعر"}</div>
       </button>
 
       {/* Quality + freeze bar */}
       <div className="absolute top-[55%] left-2 right-2 z-20 h-7 rounded-md bg-gradient-to-r from-lime-400 to-emerald-500 border border-lime-200 flex items-center justify-between px-2 shadow">
-        <button className="text-[10px] font-bold text-sky-100 bg-sky-700/70 px-2 py-0.5 rounded">
-          تجميد
-        </button>
+        <button className="text-[10px] font-bold text-sky-100 bg-sky-700/70 px-2 py-0.5 rounded">تجميد</button>
         <div className="text-xs font-bold text-white text-glow">الجودة: 100%</div>
-        <button className="w-5 h-5 rounded-full bg-white/90 text-sky-700 text-xs font-bold flex items-center justify-center">
-          i
-        </button>
+        <button className="w-5 h-5 rounded-full bg-white/90 text-sky-700 text-xs font-bold flex items-center justify-center">i</button>
       </div>
 
-      {/* Price chart panel */}
+      {/* Price chart */}
       <div className="absolute top-[60%] left-2 right-2 z-10 bottom-32 rounded-xl bg-gradient-to-b from-amber-100 to-amber-200 border-4 border-amber-700/70 shadow-2xl p-2">
-        <PriceChart history={history} yLabels={yLabels} minP={minP} range={range} currentPrice={currentPrice} />
+        <PriceChart
+          past={past}
+          future={future}
+          hourLabels={hourLabels}
+          yLabels={yLabels}
+          minP={minP}
+          range={range}
+          currentPrice={currentPrice}
+          traderActive={traderActive}
+        />
       </div>
 
-      {/* Current price + capacity + sell */}
       <div className="absolute bottom-16 left-2 right-2 z-20 flex flex-col gap-1.5">
         <div className="text-center text-white text-sm font-bold text-glow" dir="rtl">
           السعر الحالي : <span className="text-amber-300">{currentPrice}</span>
@@ -584,10 +703,7 @@ function SellView({
             {amount.toLocaleString()}/{fish.qty.toLocaleString()}
           </span>
           <input
-            type="range"
-            min={0}
-            max={fish.qty}
-            value={amount}
+            type="range" min={0} max={fish.qty} value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
             className="flex-1 accent-amber-400 h-2"
           />
@@ -597,8 +713,7 @@ function SellView({
             🪙 <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
           </div>
           <button
-            onClick={() => onSell(amount)}
-            disabled={amount === 0}
+            onClick={() => onSell(amount)} disabled={amount === 0}
             className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
           >
             بيع
@@ -610,92 +725,68 @@ function SellView({
 }
 
 function PriceChart({
-  history,
-  yLabels,
-  minP,
-  range,
-  currentPrice,
+  past, future, hourLabels, yLabels, minP, range, currentPrice, traderActive,
 }: {
-  history: number[];
+  past: number[];
+  future: number[];
+  hourLabels: { h: string; ampm: string }[];
   yLabels: number[];
   minP: number;
   range: number;
   currentPrice: number;
+  traderActive: boolean;
 }) {
-  // SVG viewport
-  const W = 320;
-  const H = 160;
-  const PAD_L = 36;
-  const PAD_R = 12;
-  const PAD_T = 10;
-  const PAD_B = 22;
+  const W = 320, H = 160, PAD_L = 36, PAD_R = 12, PAD_T = 14, PAD_B = 22;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
-
-  const xAt = (i: number) => PAD_L + (i / (history.length - 1)) * innerW;
+  const totalPts = past.length + future.length;
+  const xAt = (i: number) => PAD_L + (i / Math.max(1, totalPts - 1)) * innerW;
   const yAt = (v: number) => PAD_T + innerH - ((v - minP) / range) * innerH;
 
-  const pts = history.map((v, i) => `${xAt(i)},${yAt(v)}`).join(" ");
-  const lastX = xAt(history.length - 1);
-  const lastY = yAt(currentPrice);
+  const pastPts = past.map((v, i) => `${xAt(i)},${yAt(v)}`).join(" ");
+  const futureStartIdx = past.length - 1; // anchor at current point
+  const futurePts = future.length
+    ? [`${xAt(futureStartIdx)},${yAt(currentPrice)}`, ...future.map((v, i) => `${xAt(futureStartIdx + 1 + i)},${yAt(v)}`)].join(" ")
+    : "";
+
+  const currentX = xAt(futureStartIdx);
+  const currentY = yAt(currentPrice);
 
   return (
     <div className="w-full h-full">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
-        {/* Y-axis labels */}
         {yLabels.map((v, i) => {
           const y = PAD_T + (i * innerH) / (yLabels.length - 1);
           return (
             <g key={i}>
-              <text x={4} y={y + 3} fontSize="9" fill="#7a4a18" fontWeight="bold">
-                {v}$
-              </text>
+              <text x={4} y={y + 3} fontSize="9" fill="#7a4a18" fontWeight="bold">{v}$</text>
               <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#c89860" strokeWidth="0.4" strokeDasharray="2,2" opacity="0.4" />
             </g>
           );
         })}
 
-        {/* Line */}
-        <polyline
-          points={pts}
-          fill="none"
-          stroke="#ee4f2e"
-          strokeWidth="2.2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
+        {/* Past line (red) */}
+        <polyline points={pastPts} fill="none" stroke="#ee4f2e" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+
+        {/* Future line (blue) when trader is active */}
+        {traderActive && futurePts && (
+          <>
+            <polyline points={futurePts} fill="none" stroke="#3b82f6" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+            <line x1={currentX} y1={PAD_T} x2={currentX} y2={H - PAD_B} stroke="#6b7280" strokeWidth="0.6" />
+            <text x={W - PAD_R} y={PAD_T - 2} fontSize="9" fill="#2563eb" fontWeight="bold" textAnchor="end">السعر المستقبلي</text>
+          </>
+        )}
 
         {/* Current price marker */}
-        <circle cx={lastX} cy={lastY} r="4" fill="#4ade80" stroke="#fff" strokeWidth="1.2" />
-        <text x={lastX - 18} y={lastY - 8} fontSize="10" fill="#7a4a18" fontWeight="bold">
-          {currentPrice}
-        </text>
+        <circle cx={currentX} cy={currentY} r="4" fill="#4ade80" stroke="#fff" strokeWidth="1.2" />
+        <text x={currentX - 18} y={currentY - 8} fontSize="10" fill="#7a4a18" fontWeight="bold">{currentPrice}</text>
 
-        {/* X-axis labels */}
-        {HOURS.map((h, i) => (
-          <text
-            key={i}
-            x={xAt(i)}
-            y={H - 8}
-            fontSize="8"
-            fill="#7a4a18"
-            fontWeight="bold"
-            textAnchor="middle"
-          >
-            {h}
-          </text>
-        ))}
-        {HOURS.map((_, i) => (
-          <text
-            key={`m${i}`}
-            x={xAt(i)}
-            y={H - 1}
-            fontSize="7"
-            fill="#7a4a18"
-            textAnchor="middle"
-          >
-            am
-          </text>
+        {/* X-axis hour labels */}
+        {hourLabels.map((lab, i) => (
+          <g key={i}>
+            <text x={xAt(i)} y={H - 8} fontSize="8" fill="#7a4a18" fontWeight="bold" textAnchor="middle">{lab.h}</text>
+            <text x={xAt(i)} y={H - 1} fontSize="7" fill="#7a4a18" textAnchor="middle">{lab.ampm}</text>
+          </g>
         ))}
       </svg>
     </div>
