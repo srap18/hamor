@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { LegalFooter } from "@/components/LegalFooter";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "تسجيل الدخول — Ocean Catch" }] }),
@@ -67,6 +68,7 @@ function LoginPage() {
         <div className="mt-2 text-center text-xs">
           <Link to="/forgot-password" className="text-amber-200/80 hover:text-amber-300">نسيت كلمة المرور؟</Link>
         </div>
+        <LegalFooter />
       </div>
     </div>
   );
