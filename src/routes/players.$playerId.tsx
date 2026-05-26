@@ -322,6 +322,38 @@ function PlayerPage() {
     setBusy(false); closeMenu();
   };
 
+  const buyAndSendCrew = async (crewId: string) => {
+    if (!me || !selectedShip) return;
+    const c = CREWS.find((x) => x.id === crewId);
+    if (!c) return;
+    setBusy(true); sound.play("click");
+    const { error } = c.currency === "gems"
+      ? await buyWithGems(c.id, "crew", c.price)
+      : await buyWithCoins(c.id, "crew", c.price);
+    if (error) {
+      setBusy(false);
+      const msg = (error as any).message || "";
+      if (msg.includes("insufficient") || msg.includes("not enough")) {
+        flash(c.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
+      } else flash("تعذّر الشراء");
+      return;
+    }
+    setInv((arr) => {
+      const idx = arr.findIndex((x) => x.item_id === c.id && x.item_type === "crew");
+      if (idx >= 0) {
+        const next = [...arr];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        return next;
+      }
+      return [...arr, { item_id: c.id, item_type: "crew", quantity: 1 }];
+    });
+    sound.play("success");
+    flash(`🛒 اشتريت ${c.name} — يُرسل الآن!`);
+    setBusy(false);
+    await sendSupport("crew", crewId);
+  };
+
+
 
   if (!loading && !p) {
     return (
