@@ -583,9 +583,17 @@ function Index() {
   }, []);
 
 
+  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
+
   const toggleFishing = (shipId: number) => {
     let dbIdToSync: string | undefined;
     let nextAtSea = false;
+    const target = ships.find((x) => x.id === shipId);
+    if (target && isDestroyed(target) && !target.fishing) {
+      showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
+      sound.play("error");
+      return;
+    }
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
