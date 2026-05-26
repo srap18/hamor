@@ -216,8 +216,9 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
                 }`}
               >
                 <div className="text-[8px] text-amber-200/80 font-bold">يوم {i + 1}</div>
-                <div className="text-xl leading-none my-0.5">{r.emoji}</div>
+                <RewardIcon r={r} size={22} />
                 <div className="text-[9px] font-bold text-amber-100">×{r.qty}</div>
+
                 {isClaimed && (
                   <div className="absolute inset-0 flex items-center justify-center text-emerald-400 text-xl bg-black/40 rounded-md">
                     ✓
