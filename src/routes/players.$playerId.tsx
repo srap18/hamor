@@ -324,15 +324,19 @@ function PlayerPage() {
   };
 
   const stealWithShip = async (myShipId: string) => {
-    if (!me || !selectedShip) return;
+    if (!me) { flash("سجّل دخول أولاً"); return; }
+    if (!selectedShip) { flash("اختر سفينة الخصم أولاً"); return; }
+    const targetShipId = selectedShip.id;
     setBusy(true); sound.play("click");
+    console.log("[steal] start", { myShipId, targetUser: playerId, targetShip: targetShipId });
     // Start a timed steal mission — ship sails to enemy waters and returns later
     const { data: missionRes, error: missionErr } = await (supabase as any).rpc("start_steal_mission", {
       _attacker_ship_id: myShipId,
       _target_user_id: playerId,
-      _target_ship_id: selectedShip.id,
+      _target_ship_id: targetShipId,
     });
     if (missionErr) {
+      console.error("[steal] error", missionErr);
       const msg = missionErr.message || "";
       if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
       else if (msg.includes("blocked")) {
@@ -341,16 +345,21 @@ function PlayerPage() {
         const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
-      else if (msg.includes("not fishing")) flash("🎣 السرقة فقط من سفينة تصيد بالبحر");
-      else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
-      else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
+      else if (msg.includes("not fishing")) flash("🎣 لازم سفينة الخصم تكون تصيد فعلاً");
+      else if (msg.includes("busy")) flash("⚓ سفينتك مشغولة — اختر سفينة بالميناء");
+      else if (msg.includes("repair")) flash("🛠️ سفينتك تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
-      else flash("تعذّر بدء السرقة");
+      else if (msg.includes("self")) flash("ما تقدر تسرق نفسك");
+      else if (msg.includes("attacker ship not found")) flash("ما لقيت سفينتك");
+      else if (msg.includes("target ship")) flash("سفينة الخصم غير متاحة");
+      else flash(`تعذّر بدء السرقة: ${msg.slice(0, 60)}`);
     } else {
+      console.log("[steal] success", missionRes);
       const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
+      loadRaiders();
     }
     setBusy(false); closeMenu();
   };
