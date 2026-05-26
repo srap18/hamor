@@ -42,9 +42,12 @@ export async function loadEconomyOverrides(): Promise<void> {
   if (loadingPromise) return loadingPromise;
   loadingPromise = (async () => {
     try {
-      const [shipsRes, esRes] = await Promise.all([
+      const [shipsRes, esRes, cipRes, bgMod, fMod] = await Promise.all([
         supabase.from("ship_overrides").select("level, overrides"),
         supabase.from("economy_settings").select("key, value").eq("key", "fish_market_capacity_overrides").maybeSingle(),
+        supabase.from("client_item_prices").select("item_id, item_type, price_coins, price_gems"),
+        import("@/lib/backgrounds"),
+        import("@/lib/frames"),
       ]);
       for (const row of shipsRes.data ?? []) {
         applyShipRow(row.level as number, (row.overrides ?? {}) as ShipOverridePartial);
@@ -53,6 +56,18 @@ export async function loadEconomyOverrides(): Promise<void> {
       if (fm) {
         for (const [k, v] of Object.entries(fm)) {
           FM_CAP_OVERRIDES[Number(k)] = Number(v);
+        }
+      }
+      // Apply catalog price overrides to in-memory shop arrays
+      for (const row of cipRes.data ?? []) {
+        const id = row.item_id as string;
+        const type = row.item_type as string;
+        if (type === "background") {
+          const bg = bgMod.BACKGROUNDS.find((b) => b.id === id);
+          if (bg && row.price_coins != null) bg.price = Number(row.price_coins);
+        } else if (type === "avatar_frame" || type === "name_frame" || type === "frame") {
+          const f = fMod.ALL_FRAMES.find((x) => x.id === id);
+          if (f && row.price_gems != null) f.price = Number(row.price_gems);
         }
       }
       loaded = true;

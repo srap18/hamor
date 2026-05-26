@@ -397,7 +397,7 @@ type ShipOverrideRow = {
   fishingMinutes?: number;
   maxHp?: number;
 };
-type CipRow = { item_id: string; item_type: string; price_coins: number; price_gems: number };
+
 
 function EconomyTab() {
   const [sub, setSub] = useState<"ships" | "fishmarket" | "prices">("ships");
@@ -613,76 +613,197 @@ function FishMarketTable() {
   );
 }
 
+/* ============== أسعار الكتالوج (واجهة بصرية كما يراها اللاعب) ============== */
+
+type CatItem = {
+  id: string;
+  name: string;
+  type: "background" | "avatar_frame" | "name_frame";
+  defaultPrice: number;
+  currency: "coins" | "gems";
+  rarity: string;
+  preview: { kind: "image"; src: string } | { kind: "ring"; ring: string } | { kind: "name"; cls: string };
+};
+
 function ClientItemPricesTable() {
-  const [rows, setRows] = useState<CipRow[]>([]);
-  const [form, setForm] = useState<Partial<CipRow>>({ item_id: "", item_type: "background", price_coins: 0, price_gems: 0 });
-  const load = async () => {
-    const { data } = await supabase.from("client_item_prices").select("*").order("item_type");
-    setRows((data ?? []) as CipRow[]);
-  };
-  useEffect(() => { load(); }, []);
-  const save = async () => {
-    if (!form.item_id?.trim() || !form.item_type?.trim()) return;
-    await supabase.from("client_item_prices").upsert({
-      item_id: form.item_id.trim(),
-      item_type: form.item_type.trim(),
-      price_coins: form.price_coins ?? 0,
-      price_gems: form.price_gems ?? 0,
-    } as never);
-    setForm({ item_id: "", item_type: form.item_type, price_coins: 0, price_gems: 0 });
-    load();
-  };
-  const del = async (item_id: string, item_type: string) => {
-    if (!confirm("حذف؟")) return;
-    await supabase.from("client_item_prices").delete().eq("item_id", item_id).eq("item_type", item_type);
-    load();
+  const [section, setSection] = useState<"background" | "avatar_frame" | "name_frame">("background");
+  const [items, setItems] = useState<CatItem[]>([]);
+  const [overrides, setOverrides] = useState<Record<string, { coins?: number; gems?: number }>>({});
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const [{ BACKGROUNDS }, { AVATAR_FRAMES, NAME_FRAMES }] = await Promise.all([
+        import("@/lib/backgrounds"),
+        import("@/lib/frames"),
+      ]);
+      const list: CatItem[] = [
+        ...BACKGROUNDS.map<CatItem>((b) => ({
+          id: b.id, name: b.name, type: "background", defaultPrice: b.price, currency: "coins",
+          rarity: b.rarity, preview: { kind: "image", src: b.image },
+        })),
+        ...AVATAR_FRAMES.map<CatItem>((f) => ({
+          id: f.id, name: f.name, type: "avatar_frame", defaultPrice: f.price, currency: "gems",
+          rarity: f.rarity, preview: { kind: "ring", ring: f.ring ?? "" },
+        })),
+        ...NAME_FRAMES.map<CatItem>((f) => ({
+          id: f.id, name: f.name, type: "name_frame", defaultPrice: f.price, currency: "gems",
+          rarity: f.rarity, preview: { kind: "name", cls: f.nameClass ?? "" },
+        })),
+      ];
+      setItems(list);
+      const { data } = await supabase.from("client_item_prices").select("item_id, item_type, price_coins, price_gems");
+      const map: Record<string, { coins?: number; gems?: number }> = {};
+      for (const r of data ?? []) {
+        map[`${r.item_type}:${r.item_id}`] = { coins: Number(r.price_coins ?? 0), gems: Number(r.price_gems ?? 0) };
+      }
+      setOverrides(map);
+    })();
+  }, []);
+
+  const showToast = (t: string) => { setMsg(t); setTimeout(() => setMsg(""), 1800); };
+
+  const saveOne = async (it: CatItem) => {
+    const k = `${it.type}:${it.id}`;
+    const raw = draft[k];
+    if (raw == null || raw === "") return;
+    const val = Number(raw);
+    if (!Number.isFinite(val) || val < 0) return;
+    setSavingId(k);
+    try {
+      const payload = {
+        item_id: it.id,
+        item_type: it.type,
+        price_coins: it.currency === "coins" ? val : 0,
+        price_gems: it.currency === "gems" ? val : 0,
+      };
+      await supabase.from("client_item_prices").upsert(payload as never, { onConflict: "item_type,item_id" } as never);
+      setOverrides((p) => ({ ...p, [k]: { coins: payload.price_coins, gems: payload.price_gems } }));
+      setDraft((p) => { const n = { ...p }; delete n[k]; return n; });
+      // patch in-memory so other open pages reflect immediately
+      if (it.type === "background") {
+        const { BACKGROUNDS } = await import("@/lib/backgrounds");
+        const bg = BACKGROUNDS.find((b) => b.id === it.id);
+        if (bg) bg.price = val;
+      } else {
+        const { ALL_FRAMES } = await import("@/lib/frames");
+        const f = ALL_FRAMES.find((x) => x.id === it.id);
+        if (f) f.price = val;
+      }
+      showToast("✓ تم الحفظ");
+    } finally { setSavingId(null); }
   };
 
+  const resetOne = async (it: CatItem) => {
+    if (!confirm(`إعادة "${it.name}" للسعر الافتراضي (${it.defaultPrice.toLocaleString()})؟`)) return;
+    await supabase.from("client_item_prices").delete().eq("item_id", it.id).eq("item_type", it.type);
+    setOverrides((p) => { const n = { ...p }; delete n[`${it.type}:${it.id}`]; return n; });
+    // restore in-memory price from defaults
+    if (it.type === "background") {
+      const { BACKGROUNDS } = await import("@/lib/backgrounds");
+      const bg = BACKGROUNDS.find((b) => b.id === it.id);
+      if (bg) bg.price = it.defaultPrice;
+    } else {
+      const { ALL_FRAMES } = await import("@/lib/frames");
+      const f = ALL_FRAMES.find((x) => x.id === it.id);
+      if (f) f.price = it.defaultPrice;
+    }
+    showToast("✓ تم الإرجاع");
+  };
+
+  const SECTIONS = [
+    { k: "background" as const, label: "🌅 خلفيات الميناء", help: "السعر بالعملة 🪙" },
+    { k: "avatar_frame" as const, label: "🖼️ إطارات الصورة", help: "السعر بالجواهر 💎" },
+    { k: "name_frame" as const, label: "🏷️ إطارات الاسم", help: "السعر بالجواهر 💎" },
+  ];
+  const current = SECTIONS.find((s) => s.k === section)!;
+  const list = items.filter((i) => i.type === section);
+
   return (
-    <div className="grid md:grid-cols-[1fr_320px] gap-4">
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-auto">
-        <table className="w-full text-xs">
-          <thead className="bg-slate-800/60"><tr>
-            <th className="p-2 text-right">المعرّف</th>
-            <th className="p-2 text-right">النوع</th>
-            <th className="p-2 text-right">🪙</th>
-            <th className="p-2 text-right">💎</th>
-            <th className="p-2 text-right">⚙️</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={`${r.item_type}-${r.item_id}`} className="border-t border-slate-800/50">
-                <td className="p-2 font-mono">{r.item_id}</td>
-                <td className="p-2 text-slate-400">{r.item_type}</td>
-                <td className="p-2">{r.price_coins}</td>
-                <td className="p-2">{r.price_gems}</td>
-                <td className="p-2"><div className="flex gap-2">
-                  <button onClick={() => setForm(r)} className="text-indigo-300">تعديل</button>
-                  <button onClick={() => del(r.item_id, r.item_type)} className="text-red-400">حذف</button>
-                </div></td>
-              </tr>
-            ))}
-            {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-slate-500">لا توجد أسعار مخصّصة</td></tr>}
-          </tbody>
-        </table>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-indigo-900/50 bg-indigo-950/30 p-3 text-xs text-indigo-200">
+        👇 اختر نوع العنصر، عدّل السعر مباشرة في خانة العنصر ثم اضغط «حفظ». تنطبق التغييرات فوراً على متجر اللاعبين.
       </div>
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-3 h-fit">
-        <h3 className="font-semibold">إضافة / تعديل سعر</h3>
-        <Field label="المعرّف (item_id)"><input className={inp} value={form.item_id ?? ""} onChange={(e) => setForm({ ...form, item_id: e.target.value })} /></Field>
-        <Field label="النوع (item_type)">
-          <select className={inp} value={form.item_type ?? "background"} onChange={(e) => setForm({ ...form, item_type: e.target.value })}>
-            <option value="background">background</option>
-            <option value="frame">frame</option>
-            <option value="avatar">avatar</option>
-            <option value="ship">ship</option>
-            <option value="other">other</option>
-          </select>
-        </Field>
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="🪙"><input type="number" className={inp} value={form.price_coins ?? 0} onChange={(e) => setForm({ ...form, price_coins: Number(e.target.value) })} /></Field>
-          <Field label="💎"><input type="number" className={inp} value={form.price_gems ?? 0} onChange={(e) => setForm({ ...form, price_gems: Number(e.target.value) })} /></Field>
-        </div>
-        <button onClick={save} className="w-full px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold">حفظ</button>
+
+      <div className="flex flex-wrap gap-2">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.k}
+            onClick={() => setSection(s.k)}
+            className={`px-3 py-1.5 rounded-lg text-xs ${section === s.k ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+          >{s.label}</button>
+        ))}
+        {msg && <span className="ms-auto text-xs text-emerald-400 self-center">{msg}</span>}
+      </div>
+
+      <p className="text-xs text-slate-400">{current.help} — السعر الافتراضي يظهر باللون الرمادي، والسعر المخصّص يظهر بالأخضر.</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {list.map((it) => {
+          const k = `${it.type}:${it.id}`;
+          const ov = overrides[k];
+          const ovVal = ov ? (it.currency === "coins" ? ov.coins : ov.gems) : undefined;
+          const effective = ovVal != null && ovVal !== 0 ? ovVal : it.defaultPrice;
+          const hasOverride = ovVal != null && ovVal !== it.defaultPrice;
+          const sym = it.currency === "coins" ? "🪙" : "💎";
+          return (
+            <div key={k} className={`rounded-xl border p-3 ${hasOverride ? "border-emerald-700/60 bg-emerald-950/20" : "border-slate-800 bg-slate-900/40"}`}>
+              <div className="flex gap-3 items-start">
+                {/* Preview */}
+                <div className="shrink-0">
+                  {it.preview.kind === "image" && (
+                    <img src={it.preview.src} alt="" className="w-20 h-20 rounded-lg object-cover" />
+                  )}
+                  {it.preview.kind === "ring" && (
+                    <div className={`w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-2xl ${it.preview.ring}`}>🧑‍✈️</div>
+                  )}
+                  {it.preview.kind === "name" && (
+                    <div className={`px-3 py-1 rounded-lg text-xs font-bold ${it.preview.cls}`}>اسم</div>
+                  )}
+                </div>
+                {/* Body */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold truncate">{it.name}</div>
+                  <div className="text-[10px] text-slate-500 truncate">{it.id} · {it.rarity}</div>
+                  <div className="mt-1 flex items-center gap-2 text-xs">
+                    <span className="text-slate-500">افتراضي:</span>
+                    <span className="text-slate-400 tabular-nums">{it.defaultPrice.toLocaleString()} {sym}</span>
+                  </div>
+                  {hasOverride && (
+                    <div className="flex items-center gap-2 text-xs mt-0.5">
+                      <span className="text-emerald-400">حالي:</span>
+                      <span className="text-emerald-300 font-semibold tabular-nums">{effective.toLocaleString()} {sym}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <div className="flex-1 flex items-center gap-1 rounded-lg bg-slate-800 border border-slate-700 px-2">
+                  <span className="text-sm">{sym}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder={String(ovVal ?? it.defaultPrice)}
+                    value={draft[k] ?? ""}
+                    onChange={(e) => setDraft((p) => ({ ...p, [k]: e.target.value }))}
+                    className="w-full bg-transparent py-1.5 text-sm focus:outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => saveOne(it)}
+                  disabled={savingId === k || draft[k] == null || draft[k] === ""}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold disabled:opacity-40"
+                >{savingId === k ? "..." : "حفظ"}</button>
+                {hasOverride && (
+                  <button onClick={() => resetOne(it)} className="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-xs text-rose-300">↺</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {list.length === 0 && <div className="col-span-full p-6 text-center text-slate-500 text-sm">لا توجد عناصر في هذا القسم</div>}
       </div>
     </div>
   );
