@@ -1223,20 +1223,19 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
 function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; active?: boolean }) {
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
-  const lastDirRef = useRef(1); // remember last travel direction for bow orientation
+  // Default idle orientation: bow toward the shore (left).
+  const lastDirRef = useRef(-1);
 
   // Track per-frame sail delta to derive direction & motion intensity
   const delta = ship.sail - prevSailRef.current;
   prevSailRef.current = ship.sail;
-  // Smooth the velocity so tilt doesn't jitter
   velocityRef.current = velocityRef.current * 0.8 + delta * 0.2;
   const v = velocityRef.current;
   const moving = Math.abs(v) > 0.0005;
-  const direction = v > 0 ? 1 : v < 0 ? -1 : 0; // +1 sailing out, -1 returning
+  const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
-  // Bow faces direction of travel: out to sea while fishing, back to dock while returning
-  const intent = ship.fishing ? 1 : (ship.sail > 0.02 ? -1 : 0);
-  const facing = intent !== 0 ? intent : lastDirRef.current;
+  // Idle ships face the shore (-1); fishing ships face out to sea (+1).
+  const facing = ship.fishing ? 1 : -1;
 
 
   const pct = (ship.progress / ship.max) * 100;
@@ -1248,45 +1247,35 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = Date.now() / 1000;
-  // Subtle bobbing — realistic water motion, never lifts off or sinks
   const bobAmp = moving ? 2.5 : 1.2;
   const bob = Math.sin((t + ship.id) * 1.4) * bobAmp;
-  // Gentle side-to-side sway when sailing
   const sway = moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0;
-  // Tilt: face direction of travel + soft rocking
   const baseTilt = direction * 2.5;
   const rockTilt = Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
   const tilt = baseTilt + rockTilt;
 
-  // Dock at the ship's assigned slot; sail strongly out toward the far edge while staying fully visible
-  const shipW = 22 * ship.scale; // % width
+  const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
-  const maxLeft = 96 - shipW; // ensures the whole ship fits on screen
+  const maxLeft = 96 - shipW;
   const computedLeft = dockLeft + ship.sail * (maxLeft - dockLeft);
 
-  // Instant mirror flip — no pause before moving.
-  const TURN_MS = 0;
+  // Pivot-in-place: when bow direction changes, hold position while the flip
+  // animation plays, then release so the ship slides smoothly to its new spot.
+  const TURN_MS = 700;
   const facingRef = useRef(facing);
-  const turnStartRef = useRef(0);
   const turnEndRef = useRef(0);
-  const turnDirRef = useRef(0); // +1 turning to sea, -1 turning to dock
   const heldLeftRef = useRef(computedLeft);
   if (facingRef.current !== facing) {
-    turnDirRef.current = facing - facingRef.current > 0 ? 1 : -1;
     facingRef.current = facing;
-    turnStartRef.current = Date.now();
     turnEndRef.current = Date.now() + TURN_MS;
     heldLeftRef.current = computedLeft;
   }
   const now = Date.now();
   const turning = now < turnEndRef.current;
-  const turnProgress = turning ? (now - turnStartRef.current) / TURN_MS : 0; // 0→1
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  // Fishing state: ship is out at sea, fishing flag on, not actively moving
   const atSea = ship.sail > 0.85;
   const isFishing = ship.fishing && atSea && !moving && !ready;
-  // Instant mirror flip — no 3D yaw/banking, just face the travel direction.
   const flipX = facing === -1 ? -1 : 1;
   const bankRoll = 0;
   const bankPitch = 0;
@@ -1303,6 +1292,7 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
+        transition: "left 0.5s ease-in-out",
       }}
     >
       {/* Wake ripples behind — stronger when moving */}
@@ -1347,11 +1337,20 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         </div>
       )}
 
+      {/* Flip wrapper: animates the bow turning in place (longer transition). */}
+      <div
+        className="relative w-full"
+        style={{
+          transform: `scaleX(${flipX})`,
+          transformOrigin: "center center",
+          transition: "transform 0.7s ease-in-out",
+        }}
+      >
       {/* 3D ship body */}
       <div
         className="relative w-full"
         style={{
-          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg) scaleX(${flipX})`,
+          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.2s ease-out",
@@ -1507,6 +1506,7 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         )}
       </div>
       )}
+      </div>
     </button>
   );
 }
