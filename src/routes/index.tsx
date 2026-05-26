@@ -657,20 +657,9 @@ function Index() {
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
     const baseFish = Math.max(1, Math.round(fullAmount * effRatio));
-    // Ship under repair: fishing capacity = repair progress %.
-    // Below 30% repair the ship can't fish at all.
-    let repairMult = 1;
-    if (s.destroyedAt && s.repairEndsAt) {
-      const start = new Date(s.destroyedAt).getTime();
-      const end = new Date(s.repairEndsAt).getTime();
-      const now = Date.now();
-      if (end > start) {
-        const progress = Math.max(0, Math.min(1, (now - start) / (end - start)));
-        repairMult = progress < 0.3 ? 0 : progress;
-      }
-    }
-    if (repairMult === 0) {
-      showToast("السفينة تحت الإصلاح — يجب أن يصل الإصلاح إلى ٣٠٪");
+    // Destroyed ships cannot fish at all until fully repaired.
+    if (isDestroyed(s)) {
+      showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
       setShips((curr) =>
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
@@ -681,7 +670,7 @@ function Index() {
       }
       return;
     }
-    const fishGained = Math.max(1, Math.floor(baseFish * luckMult * repairMult));
+    const fishGained = Math.max(1, Math.floor(baseFish * luckMult));
     // Fishing yields only fish — sell them at the fish market to earn gold.
     setFish((f) => f + fishGained);
     if (user && caught) {
