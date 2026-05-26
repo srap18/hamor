@@ -573,25 +573,34 @@ function PlayerPage() {
                   <span className="text-3xl">🛠️</span>
                   <div className="flex-1"><div className="text-emerald-200 font-bold text-sm">طقم إصلاح</div><div className="text-[10px] text-emerald-300/70">+200 HP للسفينة</div></div>
                 </button>
-                <div className="text-amber-200 text-xs font-bold mt-2">أو طاقم من مخزنك:</div>
+                <div className="text-amber-200 text-xs font-bold mt-2">أو طاقم (من مخزنك أو شراء):</div>
                 {CREWS.map((c) => {
                   const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
-                  if (q <= 0) return null;
+                  const canSend = q > 0;
                   return (
-                    <button key={c.id} disabled={busy} onClick={() => sendSupport("crew", c.id)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right">
-                      {c.image ? <img src={c.image} alt={c.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{c.emoji}</span>}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-amber-200 font-bold text-sm">{c.name}</div>
-                        <div className="text-[10px] text-amber-300/70">{c.bonus}</div>
-                      </div>
-                      <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
-                    </button>
+                    <div key={c.id} className="flex items-stretch gap-2">
+                      <button disabled={busy || !canSend} onClick={() => sendSupport("crew", c.id)}
+                        className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
+                        {c.image ? <img src={c.image} alt={c.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{c.emoji}</span>}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-amber-200 font-bold text-sm">{c.name}</div>
+                          <div className="text-[10px] text-amber-300/70">{c.bonus}</div>
+                        </div>
+                        <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
+                      </button>
+                      {!canSend && (
+                        <button disabled={busy} onClick={() => buyAndSendCrew(c.id)}
+                          className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
+                          <span>🛒 شراء</span>
+                          <span className="text-[10px] opacity-90 mt-0.5">
+                            {c.currency === "gems" ? `💎 ${c.price}` : `💰 ${c.price.toLocaleString()}`}
+                          </span>
+                          <span className="text-[9px] opacity-80">وأرسل</span>
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
-                {!CREWS.some((c) => (inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0) > 0) && (
-                  <div className="text-amber-300/60 text-xs text-center">ما عندك طواقم بالمخزن</div>
-                )}
                 <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
               </>
             )}
