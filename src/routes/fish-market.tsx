@@ -329,12 +329,26 @@ function StorageView({
   capUsed,
   capMax,
   lvl,
+  upgradingTo,
+  secondsLeft,
+  upPreview,
+  accelCost,
+  upBusy,
+  onUpgrade,
+  onBoost,
   onPick,
 }: {
   fish: Fish[];
   capUsed: number;
   capMax: number;
   lvl: number;
+  upgradingTo: number | null;
+  secondsLeft: number;
+  upPreview: { cost_coins: number; seconds: number } | null;
+  accelCost: number;
+  upBusy: null | "start" | "boost";
+  onUpgrade: () => void;
+  onBoost: () => void;
   onPick: (id: string) => void;
 }) {
   const pct = (capUsed / capMax) * 100;
