@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  createStripeCheckout,
+  checkPackEligibility,
   getStorePurchaseStatus,
-} from "@/lib/stripe-checkout.functions";
+} from "@/lib/paddle-checkout.functions";
+import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
 
 export const Route = createFileRoute("/recharge")({
@@ -36,10 +38,11 @@ const TAG_STYLES: Record<string, string> = {
 
 function RechargePage() {
   const nav = useNavigate();
-  const checkout = useServerFn(createStripeCheckout);
+  const eligibility = useServerFn(checkPackEligibility);
   const getStatus = useServerFn(getStorePurchaseStatus);
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [gems, setGems] = useState(0);
   const [coins, setCoins] = useState<number>(0);
   const [busy, setBusy] = useState<string | null>(null);
@@ -62,6 +65,7 @@ function RechargePage() {
         return;
       }
       setUserId(u.user.id);
+      setUserEmail(u.user.email ?? null);
       const { data: p } = await supabase
         .from("profiles")
         .select("gems, coins")
@@ -79,6 +83,8 @@ function RechargePage() {
       } catch {
         /* non-fatal */
       }
+      // Warm up Paddle.js in the background
+      initializePaddle().catch(() => {});
     })();
   }, [nav, getStatus]);
 
@@ -86,20 +92,28 @@ function RechargePage() {
     if (!userId || busy) return;
     setBusy(pack.id);
     try {
-      const { url } = await checkout({
-        data: { packId: pack.id, origin: window.location.origin },
+      await eligibility({ data: { packId: pack.id } });
+      await initializePaddle();
+      const paddlePriceId = await getPaddlePriceId(pack.id);
+      window.Paddle.Checkout.open({
+        items: [{ priceId: paddlePriceId, quantity: 1 }],
+        customer: userEmail ? { email: userEmail } : undefined,
+        customData: { userId, packId: pack.id },
+        settings: {
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}/payment-success`,
+          allowLogout: false,
+          variant: "one-page",
+        },
       });
-      if (url) {
-        window.location.href = url;
-      } else {
-        flash("تعذّر فتح بوابة الدفع");
-        setBusy(null);
-      }
+      // Paddle overlay handles the rest; reset busy in case user closes it
+      setTimeout(() => setBusy(null), 1500);
     } catch (e) {
       flash(e instanceof Error ? e.message : "خطأ غير متوقع");
       setBusy(null);
     }
   };
+
 
   const list = useMemo(
     () => STORE_PACKS.filter((p) => p.category === tab),
@@ -115,6 +129,7 @@ function RechargePage() {
           "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
       }}
     >
+      <PaymentTestModeBanner />
       <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 py-2.5 flex items-center gap-2">
         <Link
           to="/profile"
