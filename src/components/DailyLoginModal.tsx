@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import iconCoins from "@/assets/icons/icon-coins.png";
+import iconGems from "@/assets/icons/icon-gems.png";
 
 type Reward = {
   item_type: "crew" | "weapon" | "coins" | "gems";
@@ -10,6 +12,7 @@ type Reward = {
   name: string;
   qty: number;
 };
+
 
 // 15-day cycle. Day 15 = legendary nuke bundle.
 // IMPORTANT: crew item_id must match an entry in src/lib/crews.ts and
@@ -36,6 +39,17 @@ const REWARDS: Reward[] = [
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+
+function RewardIcon({ r, size }: { r: Reward; size: number }) {
+  if (r.item_type === "coins") {
+    return <img src={iconCoins} alt="ذهب" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+  }
+  if (r.item_type === "gems") {
+    return <img src={iconGems} alt="جواهر" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+  }
+  return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
+}
+
 
 export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth();
@@ -213,8 +227,9 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
                 }`}
               >
                 <div className="text-[8px] text-amber-200/80 font-bold">يوم {i + 1}</div>
-                <div className="text-xl leading-none my-0.5">{r.emoji}</div>
+                <RewardIcon r={r} size={22} />
                 <div className="text-[9px] font-bold text-amber-100">×{r.qty}</div>
+
                 {isClaimed && (
                   <div className="absolute inset-0 flex items-center justify-center text-emerald-400 text-xl bg-black/40 rounded-md">
                     ✓
@@ -228,7 +243,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
         {/* Today reward + claim */}
         <div className="px-4 pb-4">
           <div className="rounded-xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-900/50 via-amber-800/40 to-amber-900/50 p-3 flex items-center gap-3">
-            <div className="text-4xl">{todaysReward.emoji}</div>
+            <div className="shrink-0"><RewardIcon r={todaysReward} size={44} /></div>
             <div className="flex-1 text-right">
               <div className="text-[10px] text-amber-300">هدية اليوم {nextDayIndex + 1}</div>
               <div className="text-amber-100 font-bold text-sm">{todaysReward.name}</div>
