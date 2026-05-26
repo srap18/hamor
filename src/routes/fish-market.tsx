@@ -215,11 +215,15 @@ function FishMarket() {
     };
   }, [user?.id]);
 
-  // Only show fish the player owns (qty > 0)
+  // Only show fish the player owns (qty > 0). basePrice is overridden by the
+  // live hourly price from the DB when available.
   const fish: Fish[] = Object.entries(qtyMap)
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
-      return meta ? { ...meta, qty } : null;
+      if (!meta) return null;
+      const live = priceMap[id]?.current;
+      const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
+      return { ...meta, basePrice, qty };
     })
     .filter((f): f is Fish => !!f && f.qty > 0)
     .sort((a, b) => b.basePrice - a.basePrice);
@@ -237,11 +241,15 @@ function FishMarket() {
 
   const sell = async (amount: number) => {
     if (!sel || !user) return;
-    const history = priceHistory(sel);
-    const price = history[history.length - 1];
+    // Use live DB price when available; fall back to local history
+    const livePrice = priceMap[sel.id]?.current;
+    const price = typeof livePrice === "number" && livePrice > 0
+      ? livePrice
+      : priceHistory(sel)[priceHistory(sel).length - 1];
     const qty = Math.min(amount, sel.qty);
     if (qty <= 0) return;
     const earned = Math.round(qty * price);
+
 
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
