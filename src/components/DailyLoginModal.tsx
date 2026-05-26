@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import iconCoins from "@/assets/icons/icon-coins.png";
+import iconGems from "@/assets/icons/icon-gems.png";
 
 type Reward = {
   item_type: "crew" | "weapon" | "coins" | "gems";
@@ -10,6 +12,7 @@ type Reward = {
   name: string;
   qty: number;
 };
+
 
 // 15-day cycle. Day 15 = legendary nuke bundle.
 // IMPORTANT: crew item_id must match an entry in src/lib/crews.ts and
