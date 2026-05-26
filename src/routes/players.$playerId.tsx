@@ -288,6 +288,8 @@ function PlayerPage() {
     await consumeItem(weaponId, "weapon");
     const targets = w.aoe ? ships : [selectedShip];
     for (const t of targets) {
+      // Tell every spectator in this harbor to play the same rocket FX
+      broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
       await playProjectile(t.id, w.emoji, false, w.id);
       const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
       const row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
