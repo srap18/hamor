@@ -267,7 +267,8 @@ function Index() {
         const maxProg = 35000 + (lvl - 1) * 9000;
         const duration = Math.round(maxProg / 30);
         const onSteal = !!dbShip.stealing_target_user_id;
-        const isFishing = !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
+        const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
           id: nextId,
