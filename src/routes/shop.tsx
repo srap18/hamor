@@ -35,6 +35,8 @@ import rocketSmallImg from "@/assets/weapons/rocket-small.png";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
 import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import nukeImg from "@/assets/weapons/nuke.png";
+import coinIcon from "@/assets/icons/icon-coins.png";
+import gemIcon from "@/assets/icons/icon-gems.png";
 
 const WEAPON_IMAGES: Record<string, string> = {
   rocket_small: rocketSmallImg,
@@ -185,8 +187,8 @@ function Shop() {
           ↩
         </Link>
         <div className="flex-1 flex items-center justify-around gap-1">
-          <ResChip icon="💎" v={gems} color="text-cyan-200" />
-          <ResChip icon="🪙" v={coins} color="text-amber-300" />
+          <ResChip icon={gemIcon} v={gems} color="text-cyan-200" />
+          <ResChip icon={coinIcon} v={coins} color="text-amber-300" />
         </div>
         <Link to="/backgrounds-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-800 border-2 border-indigo-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="متجر الخلفيات">🖼️</Link>
         <Link to="/ships-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
@@ -369,7 +371,7 @@ function ShopCard({
 function ResChip({ icon, v, color, plus }: { icon: string; v: number; color: string; plus?: boolean }) {
   return (
     <div className="glass-hud rounded-lg px-2 py-1 flex items-center gap-1 border border-accent/30">
-      <span className="text-base">{icon}</span>
+      <img src={icon} alt="" className="w-5 h-5 object-contain drop-shadow" />
       <span className={`text-[11px] font-bold tabular-nums ${color}`}>{v.toLocaleString()}</span>
       {plus && (
         <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">+</span>
