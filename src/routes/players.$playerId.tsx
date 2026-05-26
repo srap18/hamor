@@ -479,6 +479,47 @@ function PlayerPage() {
         return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
+      {/* Raiding ships — pirates currently stealing from this player */}
+      {raiders.map((r, i) => {
+        const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
+        const idx = ships.length + i;
+        const top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
+        const left = `${wLeft + 0.05 + ((i % 3) * 0.22) * wWidth}%`;
+        const isMine = me === r.user_id;
+        return (
+          <button
+            key={`raider-${r.id}`}
+            onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
+            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
+            style={{ top, left }}
+          >
+            <div className="relative">
+              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ transform: `scale(${0.9})` }} />
+              <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
+                {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+              </div>
+            </div>
+            void idx;
+          </button>
+        );
+      })}
+
+      {/* Cancel raid confirmation */}
+      {cancelRaiderId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setCancelRaiderId(null)}>
+          <div className="w-full max-w-xs glass-hud rounded-2xl border-2 border-rose-400/60 p-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center text-amber-100 font-bold">إيقاف السرقة؟</div>
+            <div className="text-center text-amber-300/70 text-xs">سترجع سفينتك بدون غنيمة</div>
+            <div className="flex gap-2">
+              <button onClick={() => setCancelRaiderId(null)} className="flex-1 py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
+              <button onClick={() => stopRaid(cancelRaiderId)} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">🛑 أوقف</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
