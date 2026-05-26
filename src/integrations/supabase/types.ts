@@ -1,0 +1,1816 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      achievements: {
+        Row: {
+          active: boolean
+          code: string
+          description: string
+          goal_count: number
+          goal_type: string
+          icon: string
+          id: string
+          reward_coins: number
+          reward_gems: number
+          reward_xp: number
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          description?: string
+          goal_count?: number
+          goal_type: string
+          icon?: string
+          id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          description?: string
+          goal_count?: number
+          goal_type?: string
+          icon?: string
+          id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      admin_audit: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      attacks: {
+        Row: {
+          attacker_id: string
+          attacker_won: boolean | null
+          created_at: string
+          damage: number
+          damage_dealt: number
+          defender_id: string
+          id: string
+          loot_coins: number
+          target_ship_id: string | null
+        }
+        Insert: {
+          attacker_id: string
+          attacker_won?: boolean | null
+          created_at?: string
+          damage?: number
+          damage_dealt?: number
+          defender_id: string
+          id?: string
+          loot_coins?: number
+          target_ship_id?: string | null
+        }
+        Update: {
+          attacker_id?: string
+          attacker_won?: boolean | null
+          created_at?: string
+          damage?: number
+          damage_dealt?: number
+          defender_id?: string
+          id?: string
+          loot_coins?: number
+          target_ship_id?: string | null
+        }
+        Relationships: []
+      }
+      bans: {
+        Row: {
+          active: boolean
+          banned_at: string
+          banned_by: string | null
+          expires_at: string | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          expires_at?: string | null
+          id?: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          banned_at?: string
+          banned_by?: string | null
+          expires_at?: string | null
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      client_item_prices: {
+        Row: {
+          item_id: string
+          item_type: string
+          price_coins: number
+          price_gems: number
+        }
+        Insert: {
+          item_id: string
+          item_type: string
+          price_coins?: number
+          price_gems?: number
+        }
+        Update: {
+          item_id?: string
+          item_type?: string
+          price_coins?: number
+          price_gems?: number
+        }
+        Relationships: []
+      }
+      daily_login_streaks: {
+        Row: {
+          current_streak: number
+          last_claim_date: string | null
+          total_claims: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          last_claim_date?: string | null
+          total_claims?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          last_claim_date?: string | null
+          total_claims?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_quests: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          goal_count: number
+          goal_type: string
+          icon: string
+          id: string
+          reward_coins: number
+          reward_gems: number
+          reward_xp: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          goal_count?: number
+          goal_type: string
+          icon?: string
+          id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          goal_count?: number
+          goal_type?: string
+          icon?: string
+          id?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_xp?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          active: boolean
+          banner: string
+          coin_multiplier: number
+          description: string
+          ends_at: string
+          id: string
+          starts_at: string
+          title: string
+          xp_multiplier: number
+        }
+        Insert: {
+          active?: boolean
+          banner?: string
+          coin_multiplier?: number
+          description?: string
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          title: string
+          xp_multiplier?: number
+        }
+        Update: {
+          active?: boolean
+          banner?: string
+          coin_multiplier?: number
+          description?: string
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          title?: string
+          xp_multiplier?: number
+        }
+        Relationships: []
+      }
+      fish_caught: {
+        Row: {
+          fish_id: string
+          id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          fish_id: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          fish_id?: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fish_market_prices: {
+        Row: {
+          current_price: number
+          fish_id: string
+          last_updated: string
+          max_price: number
+          min_price: number
+          trend: number
+        }
+        Insert: {
+          current_price?: number
+          fish_id: string
+          last_updated?: string
+          max_price?: number
+          min_price?: number
+          trend?: number
+        }
+        Update: {
+          current_price?: number
+          fish_id?: string
+          last_updated?: string
+          max_price?: number
+          min_price?: number
+          trend?: number
+        }
+        Relationships: []
+      }
+      fish_stock: {
+        Row: {
+          base_value: number
+          caught_at: string
+          fish_id: string
+          id: string
+          ship_id: string | null
+          user_id: string
+        }
+        Insert: {
+          base_value?: number
+          caught_at?: string
+          fish_id: string
+          id?: string
+          ship_id?: string | null
+          user_id: string
+        }
+        Update: {
+          base_value?: number
+          caught_at?: string
+          fish_id?: string
+          id?: string
+          ship_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friends: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friends_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory: {
+        Row: {
+          acquired_at: string
+          id: string
+          item_id: string
+          item_type: string
+          meta: Json | null
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          meta?: Json | null
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          meta?: Json | null
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      items_catalog: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          kind: string
+          name: string
+          price_coins: number
+          price_gems: number
+          rarity: string
+          sort_order: number
+          stats: Json
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          kind: string
+          name: string
+          price_coins?: number
+          price_gems?: number
+          rarity?: string
+          sort_order?: number
+          stats?: Json
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          kind?: string
+          name?: string
+          price_coins?: number
+          price_gems?: number
+          rarity?: string
+          sort_order?: number
+          stats?: Json
+        }
+        Relationships: []
+      }
+      lootbox_owned: {
+        Row: {
+          acquired_at: string
+          id: string
+          opened: boolean
+          reward: Json | null
+          type_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          opened?: boolean
+          reward?: Json | null
+          type_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          opened?: boolean
+          reward?: Json | null
+          type_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lootbox_owned_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "lootbox_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lootbox_types: {
+        Row: {
+          active: boolean
+          cost_coins: number
+          cost_gems: number
+          icon: string
+          id: string
+          max_coins: number
+          max_gems: number
+          max_xp: number
+          min_coins: number
+          min_gems: number
+          min_xp: number
+          name: string
+          rarity: string
+        }
+        Insert: {
+          active?: boolean
+          cost_coins?: number
+          cost_gems?: number
+          icon?: string
+          id?: string
+          max_coins?: number
+          max_gems?: number
+          max_xp?: number
+          min_coins?: number
+          min_gems?: number
+          min_xp?: number
+          name: string
+          rarity?: string
+        }
+        Update: {
+          active?: boolean
+          cost_coins?: number
+          cost_gems?: number
+          icon?: string
+          id?: string
+          max_coins?: number
+          max_gems?: number
+          max_xp?: number
+          min_coins?: number
+          min_gems?: number
+          min_xp?: number
+          name?: string
+          rarity?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          audio_duration_ms: number | null
+          audio_url: string | null
+          body: string
+          channel: string
+          created_at: string
+          id: string
+          recipient_id: string | null
+          sender_id: string
+          tribe_id: string | null
+        }
+        Insert: {
+          audio_duration_ms?: number | null
+          audio_url?: string | null
+          body: string
+          channel: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          sender_id: string
+          tribe_id?: string | null
+        }
+        Update: {
+          audio_duration_ms?: number | null
+          audio_url?: string | null
+          body?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          sender_id?: string
+          tribe_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          recipient_id: string | null
+          title: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          recipient_id?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          recipient_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_emoji: string
+          avatar_frame: string | null
+          avatar_url: string | null
+          coins: number
+          created_at: string
+          display_name: string
+          gems: number
+          id: string
+          level: number
+          name_frame: string | null
+          online_at: string
+          protection_until: string | null
+          rubies: number
+          selected_bg_id: string
+          tribe_id: string | null
+          xp: number
+        }
+        Insert: {
+          avatar_emoji?: string
+          avatar_frame?: string | null
+          avatar_url?: string | null
+          coins?: number
+          created_at?: string
+          display_name: string
+          gems?: number
+          id: string
+          level?: number
+          name_frame?: string | null
+          online_at?: string
+          protection_until?: string | null
+          rubies?: number
+          selected_bg_id?: string
+          tribe_id?: string | null
+          xp?: number
+        }
+        Update: {
+          avatar_emoji?: string
+          avatar_frame?: string | null
+          avatar_url?: string | null
+          coins?: number
+          created_at?: string
+          display_name?: string
+          gems?: number
+          id?: string
+          level?: number
+          name_frame?: string | null
+          online_at?: string
+          protection_until?: string | null
+          rubies?: number
+          selected_bg_id?: string
+          tribe_id?: string | null
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tribe_fk"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_progress: {
+        Row: {
+          claimed: boolean
+          day_key: string
+          id: string
+          progress: number
+          quest_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed?: boolean
+          day_key: string
+          id?: string
+          progress?: number
+          quest_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed?: boolean
+          day_key?: string
+          id?: string
+          progress?: number
+          quest_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "daily_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ship_catalog: {
+        Row: {
+          active: boolean
+          armor: number
+          attack_power: number
+          code: string
+          created_at: string
+          description: string
+          fish_pool: Json
+          fishing_power: number
+          fishing_seconds: number
+          id: string
+          image_url: string | null
+          market_level_required: number
+          max_hp: number
+          name: string
+          price_coins: number
+          price_gems: number
+          rarity: string
+          repair_seconds: number
+          sort_order: number
+          speed: number
+          storage: number
+        }
+        Insert: {
+          active?: boolean
+          armor?: number
+          attack_power?: number
+          code: string
+          created_at?: string
+          description?: string
+          fish_pool?: Json
+          fishing_power?: number
+          fishing_seconds?: number
+          id?: string
+          image_url?: string | null
+          market_level_required?: number
+          max_hp?: number
+          name: string
+          price_coins?: number
+          price_gems?: number
+          rarity?: string
+          repair_seconds?: number
+          sort_order?: number
+          speed?: number
+          storage?: number
+        }
+        Update: {
+          active?: boolean
+          armor?: number
+          attack_power?: number
+          code?: string
+          created_at?: string
+          description?: string
+          fish_pool?: Json
+          fishing_power?: number
+          fishing_seconds?: number
+          id?: string
+          image_url?: string | null
+          market_level_required?: number
+          max_hp?: number
+          name?: string
+          price_coins?: number
+          price_gems?: number
+          rarity?: string
+          repair_seconds?: number
+          sort_order?: number
+          speed?: number
+          storage?: number
+        }
+        Relationships: []
+      }
+      ship_listings: {
+        Row: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          price: number
+          seller_id: string
+          ship_id: string
+          sold_at: string | null
+          status: string
+          template_id: number
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          price: number
+          seller_id: string
+          ship_id: string
+          sold_at?: string | null
+          status?: string
+          template_id: number
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          price?: number
+          seller_id?: string
+          ship_id?: string
+          sold_at?: string | null
+          status?: string
+          template_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ship_listings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ship_listings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ship_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ship_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ship_listings_ship_id_fkey"
+            columns: ["ship_id"]
+            isOneToOne: true
+            referencedRelation: "ships_owned"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ship_listings_ship_id_fkey"
+            columns: ["ship_id"]
+            isOneToOne: true
+            referencedRelation: "ships_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ships_owned: {
+        Row: {
+          acquired_at: string
+          at_sea: boolean
+          catalog_code: string | null
+          destroyed_at: string | null
+          hp: number
+          id: string
+          last_fishing_reward_at: string | null
+          max_hp: number
+          repair_ends_at: string | null
+          template_id: number
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          at_sea?: boolean
+          catalog_code?: string | null
+          destroyed_at?: string | null
+          hp?: number
+          id?: string
+          last_fishing_reward_at?: string | null
+          max_hp?: number
+          repair_ends_at?: string | null
+          template_id: number
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          at_sea?: boolean
+          catalog_code?: string | null
+          destroyed_at?: string | null
+          hp?: number
+          id?: string
+          last_fishing_reward_at?: string | null
+          max_hp?: number
+          repair_ends_at?: string | null
+          template_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ships_owned_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ships_owned_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_gifts: {
+        Row: {
+          amount: number
+          claimed: boolean
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          recipient_id: string
+          sender_id: string
+          ship_id: string | null
+        }
+        Insert: {
+          amount?: number
+          claimed?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          message?: string
+          recipient_id: string
+          sender_id: string
+          ship_id?: string | null
+        }
+        Update: {
+          amount?: number
+          claimed?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          recipient_id?: string
+          sender_id?: string
+          ship_id?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          meta: Json | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          meta?: Json | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          meta?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tribe_join_requests: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tribe_members: {
+        Row: {
+          joined_at: string
+          role: string
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          role?: string
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          role?: string
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_members_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tribe_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tribe_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tribe_wars: {
+        Row: {
+          created_at: string
+          declarer_id: string
+          declarer_tribe_id: string | null
+          ended_at: string | null
+          id: string
+          message: string
+          status: string
+          target_id: string
+          target_tribe_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          declarer_id: string
+          declarer_tribe_id?: string | null
+          ended_at?: string | null
+          id?: string
+          message?: string
+          status?: string
+          target_id: string
+          target_tribe_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          declarer_id?: string
+          declarer_tribe_id?: string | null
+          ended_at?: string | null
+          id?: string
+          message?: string
+          status?: string
+          target_id?: string
+          target_tribe_id?: string | null
+        }
+        Relationships: []
+      }
+      tribes: {
+        Row: {
+          created_at: string
+          emblem: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          emblem?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          emblem?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribes_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tribes_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          claimed: boolean
+          progress: number
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          claimed?: boolean
+          progress?: number
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          claimed?: boolean
+          progress?: number
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_market: {
+        Row: {
+          created_at: string
+          level: number
+          updated_at: string
+          upgrade_cost_coins: number | null
+          upgrade_ends_at: string | null
+          upgrade_started_at: string | null
+          upgrading_to: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          level?: number
+          updated_at?: string
+          upgrade_cost_coins?: number | null
+          upgrade_ends_at?: string | null
+          upgrade_started_at?: string | null
+          upgrading_to?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          level?: number
+          updated_at?: string
+          upgrade_cost_coins?: number | null
+          upgrade_ends_at?: string | null
+          upgrade_started_at?: string | null
+          upgrading_to?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          granted_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      profiles_public: {
+        Row: {
+          avatar_emoji: string | null
+          avatar_frame: string | null
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          level: number | null
+          name_frame: string | null
+          online_at: string | null
+          selected_bg_id: string | null
+          tribe_id: string | null
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          avatar_frame?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          level?: number | null
+          name_frame?: string | null
+          online_at?: string | null
+          selected_bg_id?: string | null
+          tribe_id?: string | null
+        }
+        Update: {
+          avatar_emoji?: string | null
+          avatar_frame?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          level?: number | null
+          name_frame?: string | null
+          online_at?: string | null
+          selected_bg_id?: string | null
+          tribe_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tribe_fk"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ships_public: {
+        Row: {
+          acquired_at: string | null
+          at_sea: boolean | null
+          catalog_code: string | null
+          id: string | null
+          max_hp: number | null
+          template_id: number | null
+          user_id: string | null
+        }
+        Insert: {
+          acquired_at?: string | null
+          at_sea?: boolean | null
+          catalog_code?: string | null
+          id?: string | null
+          max_hp?: number | null
+          template_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          acquired_at?: string | null
+          at_sea?: boolean | null
+          catalog_code?: string | null
+          id?: string | null
+          max_hp?: number | null
+          template_id?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ships_owned_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ships_owned_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Functions: {
+      _mutate_currency: {
+        Args: {
+          _coins?: number
+          _gems?: number
+          _rubies?: number
+          _user: string
+          _xp?: number
+        }
+        Returns: undefined
+      }
+      admin_grant_lootbox: {
+        Args: { _player: string; _type_id: string }
+        Returns: string
+      }
+      admin_mass_gift: {
+        Args: { _coins: number; _gems: number; _xp: number }
+        Returns: number
+      }
+      admin_set_player_currency: {
+        Args: {
+          _coins: number
+          _gems: number
+          _level: number
+          _player: string
+          _xp: number
+        }
+        Returns: undefined
+      }
+      apply_ship_damage: {
+        Args: { _damage: number; _ship_id: string }
+        Returns: {
+          destroyed: boolean
+          new_hp: number
+          repair_ends_at: string
+        }[]
+      }
+      award_fishing_revenue: {
+        Args: { _coins: number; _ship_id: string; _xp: number }
+        Returns: undefined
+      }
+      award_fishing_revenue_simple: {
+        Args: { _coins: number; _xp: number }
+        Returns: undefined
+      }
+      broadcast_nuke: {
+        Args: { _message: string; _target_id: string }
+        Returns: undefined
+      }
+      buy_catalog_item: {
+        Args: { _item_id: string; _item_type: string }
+        Returns: undefined
+      }
+      buy_lootbox: { Args: { _type_id: string }; Returns: string }
+      buy_protection: {
+        Args: { _coins_cost: number; _days: number; _gems_cost: number }
+        Returns: string
+      }
+      buy_ship: { Args: { _template_id: number }; Returns: string }
+      buy_ship_by_code: {
+        Args: {
+          _code: string
+          _max_hp: number
+          _price_coins: number
+          _template_id: number
+        }
+        Returns: string
+      }
+      buy_with_coins: {
+        Args: {
+          _coins_cost: number
+          _item_id: string
+          _item_type: string
+          _meta?: Json
+        }
+        Returns: undefined
+      }
+      buy_with_gems: {
+        Args: {
+          _gems_cost: number
+          _item_id: string
+          _item_type: string
+          _meta?: Json
+        }
+        Returns: undefined
+      }
+      catch_fish: {
+        Args: {
+          _base_value: number
+          _fish_id: string
+          _ship_id: string
+          _xp_gain: number
+        }
+        Returns: undefined
+      }
+      claim_daily_login: {
+        Args: never
+        Returns: {
+          coins_awarded: number
+          day_index: number
+          gems_awarded: number
+          xp_awarded: number
+        }[]
+      }
+      claim_quest: {
+        Args: { _day_key: string; _quest_id: string }
+        Returns: undefined
+      }
+      consume_inventory_item: {
+        Args: { _count?: number; _item_id: string; _item_type: string }
+        Returns: undefined
+      }
+      delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      finalize_market_upgrades: { Args: never; Returns: undefined }
+      finalize_ship_repairs: { Args: never; Returns: undefined }
+      get_my_ships: {
+        Args: never
+        Returns: {
+          acquired_at: string
+          at_sea: boolean
+          catalog_code: string | null
+          destroyed_at: string | null
+          hp: number
+          id: string
+          last_fishing_reward_at: string | null
+          max_hp: number
+          repair_ends_at: string | null
+          template_id: number
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ships_owned"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_my_wallet: {
+        Args: never
+        Returns: {
+          coins: number
+          gems: number
+          level: number
+          protection_until: string
+          rubies: number
+          xp: number
+        }[]
+      }
+      gift_gold: {
+        Args: { _amount: number; _recipient: string }
+        Returns: undefined
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      increment_fish_caught: {
+        Args: { _fish_id: string; _qty: number }
+        Returns: undefined
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_tribe_member: {
+        Args: { _tribe_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_tribe_officer: {
+        Args: { _tribe_id: string; _user_id: string }
+        Returns: boolean
+      }
+      market_finish_upgrade_with_gems: { Args: never; Returns: number }
+      market_start_upgrade: {
+        Args: never
+        Returns: {
+          cost_coins: number
+          ends_at: string
+          new_level: number
+        }[]
+      }
+      market_upgrade_cost: {
+        Args: { _level: number }
+        Returns: {
+          cost_coins: number
+          seconds: number
+        }[]
+      }
+      officer_set_tribe: {
+        Args: { _target: string; _tribe_id: string }
+        Returns: undefined
+      }
+      open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      record_attack: {
+        Args: {
+          _attacker_won: boolean
+          _damage: number
+          _damage_dealt: number
+          _defender_id: string
+          _target_ship_id: string
+        }
+        Returns: string
+      }
+      repair_ship_instant: {
+        Args: { _gems_cost: number; _ship_id: string }
+        Returns: undefined
+      }
+      sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
+      sell_ship: {
+        Args: { _refund_coins: number; _ship_id: string }
+        Returns: undefined
+      }
+      set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
+      set_ship_at_sea: {
+        Args: { _at_sea: boolean; _ship_id: string }
+        Returns: undefined
+      }
+      split_inventory_assign: {
+        Args: { _inv_id: string; _new_meta: Json }
+        Returns: string
+      }
+      steal_fish:
+        | {
+            Args: { _defender_id: string; _max_count?: number }
+            Returns: {
+              stolen_count: number
+              total_value: number
+            }[]
+          }
+        | {
+            Args: {
+              _attacker_ship_id?: string
+              _defender_id: string
+              _max_count?: number
+              _target_ship_id?: string
+            }
+            Returns: {
+              stolen_count: number
+              total_value: number
+            }[]
+          }
+      update_inventory_meta: {
+        Args: { _inv_id: string; _meta: Json }
+        Returns: undefined
+      }
+    }
+    Enums: {
+      app_role: "admin" | "moderator" | "user"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
+  },
+} as const

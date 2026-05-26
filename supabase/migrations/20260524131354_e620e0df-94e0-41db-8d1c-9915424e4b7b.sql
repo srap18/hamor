@@ -1,0 +1,1 @@
+CREATE POLICY "ships_select_public" ON public.ships_owned FOR SELECT USING (true);

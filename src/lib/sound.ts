@@ -1,0 +1,309 @@
+// Web Audio API-based sound engine — zero dependencies, no network.
+// Provides procedural SFX + an ambient music pad. Respects user toggles
+// in localStorage ("sfx_on" / "music_on").
+
+type SfxKind =
+  | "click"
+  | "catch"
+  | "coin"
+  | "explosion"
+  | "nuke"
+  | "splash"
+  | "success"
+  | "whoosh"
+  | "error";
+
+class SoundEngine {
+  private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private musicGain: GainNode | null = null;
+  private musicNodes: AudioNode[] = [];
+  private musicOn = true;
+  private sfxOn = true;
+  private musicPlaying = false;
+  private inited = false;
+
+  init() {
+    if (typeof window === "undefined") return;
+    if (this.inited) return;
+    this.sfxOn = window.localStorage.getItem("sfx_on") !== "0";
+    this.musicOn = window.localStorage.getItem("music_on") !== "0";
+    this.inited = true;
+  }
+
+  private ensureCtx() {
+    if (typeof window === "undefined") return null;
+    if (this.ctx) return this.ctx;
+    const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+    if (!AC) return null;
+    this.ctx = new AC();
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.gain.value = 0.5;
+    this.masterGain.connect(this.ctx.destination);
+    this.musicGain = this.ctx.createGain();
+    // Keep ambient/music subtle so it never overpowers any background
+    this.musicGain.gain.value = 0.06;
+    this.musicGain.connect(this.masterGain);
+    return this.ctx;
+  }
+
+  getSfx() { this.init(); return this.sfxOn; }
+  getMusic() { this.init(); return this.musicOn; }
+
+  setSfx(v: boolean) {
+    this.init();
+    this.sfxOn = v;
+    if (typeof window !== "undefined") window.localStorage.setItem("sfx_on", v ? "1" : "0");
+  }
+  setMusic(v: boolean) {
+    this.init();
+    this.musicOn = v;
+    if (typeof window !== "undefined") window.localStorage.setItem("music_on", v ? "1" : "0");
+    if (v) this.startMusic(); else this.stopMusic();
+  }
+
+  // Must be called inside a user gesture for autoplay
+  resume() {
+    const c = this.ensureCtx();
+    if (c && c.state === "suspended") void c.resume();
+  }
+
+  startMusic() {
+    this.init();
+    const c = this.ensureCtx();
+    if (!c || !this.musicGain || this.musicPlaying || !this.musicOn) return;
+    this.musicPlaying = true;
+    const t = c.currentTime;
+    // Soft ambient pad — C minor triad with slow detune LFO
+    const freqs = [130.81, 196.0, 261.63, 311.13]; // C3, G3, C4, Eb4
+    freqs.forEach((f, i) => {
+      const osc = c.createOscillator();
+      osc.type = i === 0 ? "sine" : i === 3 ? "sine" : "triangle";
+      osc.frequency.value = f;
+      const g = c.createGain();
+      g.gain.value = 0;
+      g.gain.linearRampToValueAtTime(0.12, t + 3);
+      const lfo = c.createOscillator();
+      lfo.frequency.value = 0.08 + i * 0.04;
+      const lfoGain = c.createGain();
+      lfoGain.gain.value = 3;
+      lfo.connect(lfoGain).connect(osc.detune);
+      lfo.start(t);
+      osc.connect(g).connect(this.musicGain!);
+      osc.start(t);
+      this.musicNodes.push(osc, lfo, g, lfoGain);
+    });
+    // Very subtle wave wash (filtered noise) — kept low so it doesn't clash with backgrounds
+    const bufSize = c.sampleRate * 4;
+    const buf = c.createBuffer(1, bufSize, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+    const noise = c.createBufferSource();
+    noise.buffer = buf;
+    noise.loop = true;
+    const nf = c.createBiquadFilter();
+    nf.type = "bandpass";
+    nf.frequency.value = 500;
+    nf.Q.value = 0.7;
+    const ng = c.createGain();
+    ng.gain.value = 0.012;
+    noise.connect(nf).connect(ng).connect(this.musicGain);
+    noise.start(t);
+    this.musicNodes.push(noise, nf, ng);
+  }
+
+  stopMusic() {
+    this.musicPlaying = false;
+    this.musicNodes.forEach((n) => {
+      try {
+        if ((n as OscillatorNode).stop) (n as OscillatorNode).stop();
+        if ((n as AudioBufferSourceNode).stop) (n as AudioBufferSourceNode).stop();
+      } catch {/* noop */}
+      try { n.disconnect(); } catch {/* noop */}
+    });
+    this.musicNodes = [];
+  }
+
+  play(kind: SfxKind) {
+    this.init();
+    if (!this.sfxOn) return;
+    const c = this.ensureCtx();
+    if (!c || !this.masterGain) return;
+    const t = c.currentTime;
+    const M = this.masterGain;
+
+    if (kind === "click") {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.frequency.setValueAtTime(900, t);
+      o.frequency.exponentialRampToValueAtTime(400, t + 0.07);
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      o.connect(g).connect(M); o.start(t); o.stop(t + 0.1);
+    } else if (kind === "catch") {
+      [523.25, 659.25, 783.99].forEach((f, i) => {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        const s = t + i * 0.06;
+        g.gain.setValueAtTime(0, s);
+        g.gain.linearRampToValueAtTime(0.16, s + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, s + 0.22);
+        o.connect(g).connect(M); o.start(s); o.stop(s + 0.24);
+      });
+    } else if (kind === "coin") {
+      const o1 = c.createOscillator(); const o2 = c.createOscillator(); const g = c.createGain();
+      o1.frequency.value = 988; o2.frequency.value = 1318;
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o1.connect(g); o2.connect(g); g.connect(M);
+      o1.start(t); o1.stop(t + 0.05);
+      o2.start(t + 0.05); o2.stop(t + 0.2);
+    } else if (kind === "explosion") {
+      // Realistic layered explosion: sharp crack + body noise + deep sub thud + long rumble tail
+      // 1) Initial crack (very short, bright transient)
+      {
+        const sz = (c.sampleRate * 0.05) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / sz);
+        const n = c.createBufferSource(); n.buffer = b;
+        const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1500;
+        const g = c.createGain(); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        n.connect(hp).connect(g).connect(M); n.start(t);
+      }
+      // 2) Main body — low-passed white noise, longer decay
+      {
+        const sz = (c.sampleRate * 1.4) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sz, 1.4);
+        const n = c.createBufferSource(); n.buffer = b;
+        const lp = c.createBiquadFilter(); lp.type = "lowpass";
+        lp.frequency.setValueAtTime(2800, t);
+        lp.frequency.exponentialRampToValueAtTime(120, t + 1.3);
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.85, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+        n.connect(lp).connect(g).connect(M); n.start(t);
+      }
+      // 3) Sub-bass thud (deep "boom")
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(110, t);
+        o.frequency.exponentialRampToValueAtTime(22, t + 0.9);
+        g.gain.setValueAtTime(0.85, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.95);
+        o.connect(g).connect(M); o.start(t); o.stop(t + 1.0);
+      }
+      // 4) Distorted growl for menace
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        const ws = c.createWaveShaper();
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) { const x = (i / 128) - 1; curve[i] = Math.tanh(x * 4); }
+        ws.curve = curve;
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(60, t + 0.04);
+        o.frequency.exponentialRampToValueAtTime(18, t + 0.85);
+        g.gain.setValueAtTime(0.35, t + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+        o.connect(ws).connect(g).connect(M); o.start(t + 0.04); o.stop(t + 0.95);
+      }
+    } else if (kind === "nuke") {
+      // Massive cinematic nuclear detonation: huge flash crack, enormous body, very deep
+      // collapsing sub, long ominous rumble tail with shifting filter.
+      const out = c.createGain(); out.gain.value = 1.0; out.connect(M);
+      // 1) Bright flash transient
+      {
+        const sz = (c.sampleRate * 0.08) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / sz);
+        const n = c.createBufferSource(); n.buffer = b;
+        const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1200;
+        const g = c.createGain(); g.gain.setValueAtTime(1.0, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        n.connect(hp).connect(g).connect(out); n.start(t);
+      }
+      // 2) Massive body
+      {
+        const sz = (c.sampleRate * 3.2) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sz, 1.1);
+        const n = c.createBufferSource(); n.buffer = b;
+        const lp = c.createBiquadFilter(); lp.type = "lowpass";
+        lp.frequency.setValueAtTime(3200, t);
+        lp.frequency.exponentialRampToValueAtTime(80, t + 3.0);
+        const g = c.createGain();
+        g.gain.setValueAtTime(1.0, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 3.2);
+        n.connect(lp).connect(g).connect(out); n.start(t);
+      }
+      // 3) Earth-shaking sub
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(140, t);
+        o.frequency.exponentialRampToValueAtTime(14, t + 2.2);
+        g.gain.setValueAtTime(1.0, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 2.4);
+        o.connect(g).connect(out); o.start(t); o.stop(t + 2.5);
+      }
+      // 4) Ominous metallic growl
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        const ws = c.createWaveShaper();
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) { const x = (i / 128) - 1; curve[i] = Math.tanh(x * 6); }
+        ws.curve = curve;
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(50, t + 0.05);
+        o.frequency.exponentialRampToValueAtTime(15, t + 2.4);
+        g.gain.setValueAtTime(0.45, t + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        o.connect(ws).connect(g).connect(out); o.start(t + 0.05); o.stop(t + 2.5);
+      }
+    } else if (kind === "splash") {
+      const bufSize = c.sampleRate * 0.35;
+      const buf = c.createBuffer(1, bufSize, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.25));
+      const noise = c.createBufferSource(); noise.buffer = buf;
+      const filt = c.createBiquadFilter(); filt.type = "highpass"; filt.frequency.value = 700;
+      const g = c.createGain(); g.gain.value = 0.3;
+      noise.connect(filt).connect(g).connect(M); noise.start(t);
+    } else if (kind === "success") {
+      [523, 659, 784, 1046].forEach((f, i) => {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        const s = t + i * 0.08;
+        g.gain.setValueAtTime(0, s);
+        g.gain.linearRampToValueAtTime(0.18, s + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, s + 0.26);
+        o.connect(g).connect(M); o.start(s); o.stop(s + 0.28);
+      });
+    } else if (kind === "whoosh") {
+      const bufSize = c.sampleRate * 0.3;
+      const buf = c.createBuffer(1, bufSize, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) d[i] = (Math.random() * 2 - 1);
+      const noise = c.createBufferSource(); noise.buffer = buf;
+      const filt = c.createBiquadFilter(); filt.type = "bandpass";
+      filt.frequency.setValueAtTime(400, t);
+      filt.frequency.exponentialRampToValueAtTime(1700, t + 0.3);
+      filt.Q.value = 5;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      noise.connect(filt).connect(g).connect(M); noise.start(t);
+    } else if (kind === "error") {
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = "sawtooth"; o.frequency.value = 220;
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.connect(g).connect(M); o.start(t); o.stop(t + 0.22);
+    }
+  }
+}
+
+export const sound = new SoundEngine();

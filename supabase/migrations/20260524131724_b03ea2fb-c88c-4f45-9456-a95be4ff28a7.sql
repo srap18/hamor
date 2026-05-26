@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS selected_bg_id text NOT NULL DEFAULT 'harbor';
