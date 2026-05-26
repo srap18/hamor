@@ -397,7 +397,7 @@ type ShipOverrideRow = {
   fishingMinutes?: number;
   maxHp?: number;
 };
-type CipRow = { item_id: string; item_type: string; price_coins: number; price_gems: number };
+
 
 function EconomyTab() {
   const [sub, setSub] = useState<"ships" | "fishmarket" | "prices">("ships");
