@@ -1125,6 +1125,30 @@ function Index() {
         };
 
         const assignCrew = async (itemId: string) => {
+          // Fixer crews: consume immediately, repair the ship, do NOT assign as a crew member.
+          if (itemId.startsWith("fixer_")) {
+            if (!s.dbId) { sound.play("error"); return; }
+            const row = availableRows.find((r) => r.item_id === itemId);
+            if (!row) return;
+            try {
+              await (supabase as any)
+                .from("ships_owned")
+                .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
+                .eq("id", s.dbId);
+              setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+              // consume one unit of the fixer crew (don't keep it assigned)
+              if (row.quantity <= 1) {
+                await deleteInventoryRows([row.id]);
+              } else {
+                await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+              }
+            } catch {}
+            sound.play("success");
+            await reloadCrews();
+            setCrewTick((t) => t + 1);
+            setModal(null);
+            return;
+          }
           // Prevent duplicates: max 1 crew per type per ship
           if (assignedRows.some((r) => r.item_id === itemId)) {
             sound.play("error");
@@ -1140,19 +1164,11 @@ function Index() {
           } else {
             await splitInventoryAssign(row.id, newMeta);
           }
-          // Fixer crews instantly repair the ship on activation
-          if (itemId.startsWith("fixer_") && s.dbId) {
-            try {
-              await (supabase as any)
-                .from("ships_owned")
-                .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
-                .eq("id", s.dbId);
-              setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
-            } catch {}
-          }
           sound.play("success");
+          await reloadCrews();
           setCrewTick((t) => t + 1);
         };
+
 
         const removeCrew = async (rowId: string) => {
           await deleteInventoryRows([rowId]);
