@@ -1,37 +1,44 @@
-# نظام السرقة الجديد (مهمة بوقت)
 
-## الفكرة
-بدل ما السرقة تتنفذ فوراً، سفينتك تنطلق لمحيط العدو وتغيب لمدة = `fishing_seconds` حق سفينتك. لما المهمة تخلص، ترجع وتجيب سمك من نوع اللي **سفينة العدو** تصيده (من مخزون العدو).
+## 1) إصلاح تمرير الـ /admin على الجوال
+- في `src/routes/admin.tsx`: المشكلة أن `<main className="flex-1 overflow-y-auto">` داخل `min-h-screen flex-col` على الجوال يحبس التمرير.
+- الحل: استخدام `md:h-screen md:overflow-hidden` على الحاوية الخارجية، و`overflow-y-auto` على `main` فقط في الـ md+. على الجوال نخلي الصفحة تمرّر طبيعياً.
+- إضافة sticky topbar للجوال + زر "خروج" و"العودة للعبة" يظهرون على الجوال أيضاً (حالياً مخفيين بـ `hidden md:block`).
 
-## التغييرات
+## 2) لوحة تحكم شاملة للترقيات/السفن/الأسعار
+سننشئ تبويب جديد في `/admin/content` اسمه **"الاقتصاد"** (`economy`) يحتوي على:
 
-### 1. قاعدة البيانات
-أضف أعمدة على `ships_owned`:
-- `stealing_target_user_id uuid` — صاحب السفينة الهدف
-- `stealing_target_ship_id uuid` — السفينة الهدف
-- `stealing_ends_at timestamptz` — وقت رجوع السفينة
+### أ) تحرير ترقيات سوق السمك وسوق السفن
+- جدولين قابلين للتحرير: سعة كل مستوى + تكلفة الترقية لكل مستوى.
+- يُحفظ في جدول جديد `economy_settings` (key/value JSON) بدلاً من ثوابت الكود.
+- `src/lib/ships.ts` يتم تحديثه لقراءة القيم من Supabase عبر hook + كاش، مع fallback للقيم الحالية.
 
-دالة `start_steal_mission(_attacker_ship_id, _target_user_id, _target_ship_id)`:
-- ترفض إذا السفينة بالبحر/مدمّرة/الهدف محمي
-- تحط `at_sea = true`، `stealing_*` معبّاة، `stealing_ends_at = now() + my_ship.fishing_seconds`
+### ب) تحرير السفن (سعر/قوة/سعة/مدة صيد/HP/درع)
+- جدول قابل للتحرير لكل المستويات 1-30 (السعر، storage، fishingMinutes، maxHp formula override، fishPool).
+- يُحفظ في جدول جديد `ship_overrides` (level PK + jsonb).
+- `buildShip()` في `ships.ts` يدمج القيم المخصصة فوق الافتراضيات.
 
-دالة `claim_steal_mission(_attacker_ship_id)`:
-- ترفض قبل انتهاء الوقت
-- تجيب `fish_pool` حق سفينة العدو من `ship_catalog`
-- تنقل حتى 5 أسماك من `fish_stock` تبع العدو **اللي `fish_id` ضمن fish_pool حق سفينة العدو** للسفينة المهاجمة
-- تصفّر `stealing_*`، `at_sea = false`
-- ترجع `stolen_count, total_value`
+### ج) تحرير أسعار الشحن/المتجر
+- يدير `client_item_prices` و `lootbox_types` و `items_catalog` الموجودة فعلاً (موجودة جزئياً في تبويبات أخرى، نضيف رابط مباشر).
+- إضافة قسم لأسعار حزم الشحن (`recharge_packs` جدول جديد إذا غير موجود).
 
-### 2. الواجهة (`players.$playerId.tsx`)
-- زر سفينتي في قائمة "سرقة" → يستدعي `start_steal_mission` بدل التنفيذ الفوري
-- رسالة: "🏴‍☠️ سفينتك انطلقت — ترجع بعد X دقيقة"
+## 3) تسعير السمك حسب مستوى السفينة (تحديث ساعي)
+المنطق:
+- كل ساعة UTC، نولّد سعر لكل سمكة عشوائياً بين `min_price` و `max_price`.
+- `min/max` للسمكة تُحسب من **مستوى أعلى سفينة فيها هذه السمكة في fishPool**:
+  - سفينة مستوى 1 (سردين): النطاق 0.80 → 1.03
+  - سفينة مستوى 30: أقصى max = 36
+  - بين 1-30: تدرّج خطي (`min` و `max` ينموان معاً).
+  - داخل نفس مستوى السفينة: نقسم حسب الندرة (rarity tier: common < uncommon < rare < epic < legendary < mythic) — الأندر يأخذ القيمة الأعلى من النطاق.
+- pg_cron job كل ساعة يحدّث `fish_market_prices.current_price` لكل سمكة عشوائياً بين min/max الجديدين.
 
-### 3. صفحة الرئيسية (`index.tsx`)
-- لما السفينة عندها `stealing_target_user_id`: تختفي من المحيط (أو تظهر شارة "🏴‍☠️ في مهمة سرقة — MM:SS")
-- بعد انتهاء الوقت: زر "🏴‍☠️ استلم الغنيمة" → يستدعي `claim_steal_mission`
+### خطوات الـ DB:
+1. ترحيل (migration) ينشئ:
+   - `economy_settings` (key text PK, value jsonb)
+   - `ship_overrides` (level int PK, overrides jsonb)
+   - دالة `recompute_fish_prices()` تحدّث `fish_market_prices` بناءً على المنطق أعلاه.
+   - cron job ساعي يستدعي الدالة.
+2. seed `fish_market_prices` بـ min/max المحسوبة لكل سمكة.
 
-## نقاط للتأكيد
-1. **مدة المهمة** = `fishing_seconds` حق **سفينتي** المهاجمة (مو حق سفينة العدو). صح؟
-2. **عدد السمك المسروق**: حتى 5 (نفس الحالي)؟
-3. **لو العدو ما عنده سمك من نوع سفينته**: ترجع السفينة فاضية، صح؟
-4. **الحماية بالدرع**: تنفحص وقت بدء المهمة فقط، ولا وقت الاستلام كمان؟
+## ملاحظات
+- العمل كبير ومُتعدّد الملفات. سأنفذه على دفعات صغيرة بعد الموافقة.
+- ملف `ships.ts` سيحتاج تحويل من ثوابت ثابتة إلى hook async لقراءة الـ overrides — سيؤثر على عدة شاشات (ship-market, fleet, إلخ).
