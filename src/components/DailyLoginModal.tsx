@@ -40,6 +40,17 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 
+function RewardIcon({ r, size }: { r: Reward; size: number }) {
+  if (r.item_type === "coins") {
+    return <img src={iconCoins} alt="ذهب" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+  }
+  if (r.item_type === "gems") {
+    return <img src={iconGems} alt="جواهر" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+  }
+  return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
+}
+
+
 export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth();
   const [streak, setStreak] = useState(0);
