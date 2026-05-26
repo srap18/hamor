@@ -210,7 +210,12 @@ function Index() {
           // re-sync DB so background fishing persists across sessions.
           let fishing = s.fishing;
           let startedAt = s.startedAt;
-          if (row.at_sea && row.fishing_started_at) {
+          const onSteal = !!row.stealing_target_user_id;
+          if (onSteal) {
+            // Stealing mission: ship is sailing (at sea) but not fishing
+            fishing = false;
+            startedAt = undefined;
+          } else if (row.at_sea && row.fishing_started_at) {
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing && s.startedAt) {
@@ -218,7 +223,7 @@ function Index() {
               setShipAtSea(s.dbId!, true).catch(() => {});
             });
           }
-          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt };
+          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
