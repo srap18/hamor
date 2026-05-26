@@ -285,25 +285,25 @@ function PlayerPage() {
     if (!me || !selectedShip) return;
     setBusy(true); sound.play("click");
     await playProjectile(selectedShip.id, "🏴‍☠️", true);
-    // Actually transfer fish from defender to attacker via RPC
-    const { data: stealRes, error: stealErr } = await (supabase as any).rpc("steal_fish", {
-      _defender_id: playerId, _max_count: 5,
-      _attacker_ship_id: myShipId, _target_ship_id: selectedShip.id,
+    // Start a timed steal mission — ship sails to enemy waters and returns later
+    const { data: missionRes, error: missionErr } = await (supabase as any).rpc("start_steal_mission", {
+      _attacker_ship_id: myShipId,
+      _target_user_id: playerId,
+      _target_ship_id: selectedShip.id,
     });
-    const row = Array.isArray(stealRes) && stealRes[0] ? stealRes[0] : null;
-    const stolenCount = row?.stolen_count ?? 0;
-    const totalValue = row?.total_value ?? 0;
-    await (supabase as any).rpc("record_attack", {
-      _defender_id: playerId, _target_ship_id: selectedShip.id,
-      _damage: 0, _damage_dealt: 0, _attacker_won: stolenCount > 0,
-    });
-    if (stealErr) {
-      const msg = stealErr.message || "";
+    if (missionErr) {
+      const msg = missionErr.message || "";
       if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
-      else flash("تعذّرت السرقة");
+      else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
+      else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
+      else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
+      else flash("تعذّر إطلاق المهمة");
+    } else {
+      const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
+      const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
+      sound.play("success");
+      flash(`🏴‍☠️ سفينتك انطلقت — ترجع بعد ${Math.ceil(secs / 60)} دقيقة`);
     }
-    else if (stolenCount > 0) { sound.play("success"); flash(`🐟 سرقت ${stolenCount} سمكة (قيمتها ${totalValue})`); }
-    else flash("ما عنده سمك تسرقه 🐟");
     setBusy(false); closeMenu();
   };
 
