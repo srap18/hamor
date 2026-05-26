@@ -420,24 +420,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "friends_addressee_id_fkey"
-            columns: ["addressee_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "friends_requester_id_fkey"
             columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "friends_requester_id_fkey"
-            columns: ["requester_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -646,24 +632,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
           {
@@ -991,24 +963,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ship_listings_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ship_listings_seller_id_fkey"
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ship_listings_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
           {
@@ -1103,13 +1061,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ships_owned_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1270,13 +1221,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       tribe_donations: {
@@ -1361,13 +1305,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "tribe_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       tribe_wars: {
@@ -1449,13 +1386,6 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tribes_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1602,59 +1532,6 @@ export type Database = {
       }
     }
     Views: {
-      profiles_public: {
-        Row: {
-          avatar_emoji: string | null
-          avatar_frame: string | null
-          avatar_url: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          level: number | null
-          name_frame: string | null
-          online_at: string | null
-          selected_bg_id: string | null
-          tribe_id: string | null
-          xp: number | null
-        }
-        Insert: {
-          avatar_emoji?: string | null
-          avatar_frame?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          level?: number | null
-          name_frame?: string | null
-          online_at?: string | null
-          selected_bg_id?: string | null
-          tribe_id?: string | null
-          xp?: number | null
-        }
-        Update: {
-          avatar_emoji?: string | null
-          avatar_frame?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          level?: number | null
-          name_frame?: string | null
-          online_at?: string | null
-          selected_bg_id?: string | null
-          tribe_id?: string | null
-          xp?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_tribe_fk"
-            columns: ["tribe_id"]
-            isOneToOne: false
-            referencedRelation: "tribes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ships_public: {
         Row: {
           acquired_at: string | null
@@ -1689,13 +1566,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ships_owned_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1929,11 +1799,45 @@ export type Database = {
           xp: number
         }[]
       }
+      get_online_players: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          level: number
+          name_frame: string
+          online_at: string
+          selected_bg_id: string
+          tribe_id: string
+          xp: number
+        }[]
+      }
       get_player_crews: {
         Args: { _player_id: string }
         Returns: {
           item_id: string
           ship_id: string
+        }[]
+      }
+      get_profiles_public: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          level: number
+          name_frame: string
+          online_at: string
+          selected_bg_id: string
+          tribe_id: string
+          xp: number
         }[]
       }
       gift_gold: {
@@ -2032,6 +1936,23 @@ export type Database = {
         Returns: undefined
       }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
+      search_profiles_public: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          level: number
+          name_frame: string
+          online_at: string
+          selected_bg_id: string
+          tribe_id: string
+          xp: number
+        }[]
+      }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
       sell_ship: {
         Args: { _refund_coins: number; _ship_id: string }
