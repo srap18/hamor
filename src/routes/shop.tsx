@@ -187,8 +187,8 @@ function Shop() {
           ↩
         </Link>
         <div className="flex-1 flex items-center justify-around gap-1">
-          <ResChip icon="💎" v={gems} color="text-cyan-200" />
-          <ResChip icon="🪙" v={coins} color="text-amber-300" />
+          <ResChip icon={gemIcon} v={gems} color="text-cyan-200" />
+          <ResChip icon={coinIcon} v={coins} color="text-amber-300" />
         </div>
         <Link to="/backgrounds-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-800 border-2 border-indigo-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="متجر الخلفيات">🖼️</Link>
         <Link to="/ships-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
