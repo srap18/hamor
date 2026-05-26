@@ -239,6 +239,24 @@ export type Database = {
         }
         Relationships: []
       }
+      economy_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           active: boolean
@@ -323,6 +341,24 @@ export type Database = {
           max_price?: number
           min_price?: number
           trend?: number
+        }
+        Relationships: []
+      }
+      fish_ship_max_level: {
+        Row: {
+          fish_id: string
+          max_ship_level: number
+          rarity_rank: number
+        }
+        Insert: {
+          fish_id: string
+          max_ship_level: number
+          rarity_rank?: number
+        }
+        Update: {
+          fish_id?: string
+          max_ship_level?: number
+          rarity_rank?: number
         }
         Relationships: []
       }
@@ -990,6 +1026,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ship_overrides: {
+        Row: {
+          level: number
+          overrides: Json
+          updated_at: string
+        }
+        Insert: {
+          level: number
+          overrides?: Json
+          updated_at?: string
+        }
+        Update: {
+          level?: number
+          overrides?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       ships_owned: {
         Row: {
@@ -1892,6 +1946,7 @@ export type Database = {
         Returns: undefined
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      recompute_fish_prices: { Args: never; Returns: undefined }
       record_attack: {
         Args: {
           _attacker_won: boolean
