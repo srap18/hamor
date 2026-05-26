@@ -790,12 +790,8 @@ function PlayerPage() {
 
             {mode === "support" && (
               <>
-                <div className="text-amber-200 text-xs font-bold">اختر دعم لإرساله:</div>
-                <button disabled={busy} onClick={() => sendSupport("repair", "repair_kit")} className="flex items-center gap-3 p-3 rounded-xl bg-emerald-900/40 border border-emerald-500/40 active:scale-95 text-right">
-                  <span className="text-3xl">🛠️</span>
-                  <div className="flex-1"><div className="text-emerald-200 font-bold text-sm">طقم إصلاح</div><div className="text-[10px] text-emerald-300/70">+200 HP للسفينة</div></div>
-                </button>
-                <div className="text-amber-200 text-xs font-bold mt-2">أو طاقم (من مخزنك أو شراء):</div>
+                <div className="text-amber-200 text-xs font-bold">أرسل طاقم مصلّح لإصلاح سفينته (من مخزنك أو شراء):</div>
+
                 {CREWS.map((c) => {
                   const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
                   const canSend = q > 0;
