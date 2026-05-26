@@ -36,6 +36,8 @@ function PlayerPage() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
+  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; owner_name: string; owner_emoji: string }[]>([]);
+  const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [fx, setFx] = useState<{ id: number; emoji: string; fromX: number; fromY: number; toX: number; toY: number; phase: "fly" | "boom"; friendly?: boolean; weaponId?: string } | null>(null);
@@ -137,9 +139,29 @@ function PlayerPage() {
     })();
   }, [playerId]);
 
-  // Live updates: watch the visited player's ships move in/out of sea, repair, take damage, etc.
+  // Load raiders currently stealing FROM this player (their ships visible in this harbor)
+  const loadRaiders = async () => {
+    const { data: rs } = await supabase
+      .from("ships_owned")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at")
+      .eq("stealing_target_user_id", playerId)
+      .not("stealing_ends_at", "is", null);
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null }[];
+    if (list.length === 0) { setRaiders([]); return; }
+    const ids = Array.from(new Set(list.map((r) => r.user_id)));
+    const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
+    const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    setRaiders(list.map((r) => ({
+      ...r,
+      owner_name: pmap.get(r.user_id)?.display_name || "قرصان",
+      owner_emoji: pmap.get(r.user_id)?.avatar_emoji || "🏴‍☠️",
+    })));
+  };
+
+  // Live updates: watch the visited player's ships AND any raiders attacking them
   useEffect(() => {
     if (!playerId) return;
+    loadRaiders();
     const channel = supabase
       .channel(`ships-watch:${playerId}`)
       .on(
@@ -171,9 +193,25 @@ function PlayerPage() {
           });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ships_owned" },
+        () => { loadRaiders(); }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [playerId]);
+
+  const stopRaid = async (shipId: string) => {
+    setCancelRaiderId(null);
+    sound.play("click");
+    const { error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
+    if (error) { flash("تعذّر إيقاف السرقة"); return; }
+    sound.play("success");
+    flash("🛑 أوقفت السرقة — سفينتك ترجع");
+    loadRaiders();
+  };
+
 
   const addFriend = async () => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
@@ -302,12 +340,12 @@ function PlayerPage() {
       else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
       else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
-      else flash("تعذّر إطلاق المهمة");
+      else flash("تعذّر بدء السرقة");
     } else {
       const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
       sound.play("success");
-      flash(`🏴‍☠️ سفينتك انطلقت — ترجع بعد ${Math.ceil(secs / 60)} دقيقة`);
+      flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
     }
     setBusy(false); closeMenu();
   };
@@ -441,6 +479,45 @@ function PlayerPage() {
         return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
+      {/* Raiding ships — pirates currently stealing from this player */}
+      {raiders.map((r, i) => {
+        const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
+        const top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
+        const left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
+        const isMine = me === r.user_id;
+        return (
+          <button
+            key={`raider-${r.id}`}
+            onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
+            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
+            style={{ top, left }}
+          >
+            <div className="relative">
+              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+              <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
+                {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+              </div>
+            </div>
+          </button>
+        );
+      })}
+
+      {/* Cancel raid confirmation */}
+      {cancelRaiderId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setCancelRaiderId(null)}>
+          <div className="w-full max-w-xs glass-hud rounded-2xl border-2 border-rose-400/60 p-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center text-amber-100 font-bold">إيقاف السرقة؟</div>
+            <div className="text-center text-amber-300/70 text-xs">سترجع سفينتك بدون غنيمة</div>
+            <div className="flex gap-2">
+              <button onClick={() => setCancelRaiderId(null)} className="flex-1 py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
+              <button onClick={() => stopRaid(cancelRaiderId)} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">🛑 أوقف</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
@@ -559,7 +636,7 @@ function PlayerPage() {
                   const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
                   const onMission = !!ms.stealing_target_user_id;
                   const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
-                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ في مهمة" : ms.at_sea ? "⚓ بالبحر" : null;
+                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ تسرق" : ms.at_sea ? "⚓ بالبحر" : null;
                   return (
                     <button key={ms.id} disabled={busy || isBusy} onClick={() => stealWithShip(ms.id)}
                       className="flex items-center gap-3 p-2 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right disabled:opacity-40">
