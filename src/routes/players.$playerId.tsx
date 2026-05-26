@@ -184,6 +184,19 @@ function PlayerPage() {
   const harborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const clientIdRef = useRef<string>(Math.random().toString(36).slice(2));
 
+  // Refetch visited player's ships from DB (realtime backstop).
+  const reloadShipsRef = useRef<() => Promise<void>>(async () => {});
+  reloadShipsRef.current = async () => {
+    if (!playerId) return;
+    const { data } = await supabase
+      .from("ships_owned")
+      .select("*")
+      .eq("user_id", playerId);
+    const fresh = (data as Ship[]) || [];
+    setShips(fresh);
+    setSelectedShip((cur) => (cur ? (fresh.find((s) => s.id === cur.id) ?? null) : cur));
+  };
+
   // Live updates: watch the visited player's ships AND any raiders attacking them
   useEffect(() => {
     if (!playerId) return;
@@ -224,6 +237,15 @@ function PlayerPage() {
         () => { loadRaiders(); }
       )
       .subscribe();
+
+    // Backstop: poll every 4s + refresh on tab visibility/focus so visitors
+    // always see the live state even if a realtime event is missed.
+    const poll = setInterval(() => { reloadShipsRef.current(); loadRaiders(); }, 4000);
+    const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
+    const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+
 
     // Shared broadcast channel — every viewer of this harbor sees every action live
     const myCid = clientIdRef.current;
