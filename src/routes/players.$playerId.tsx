@@ -458,6 +458,7 @@ function PlayerPage() {
 
   const sendSupport = async (kind: "crew" | "repair", itemId: string) => {
     if (!me || !selectedShip) return;
+    if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
     setBusy(true); sound.play("click");
     const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
     broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
