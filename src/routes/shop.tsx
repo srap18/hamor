@@ -145,14 +145,12 @@ function Shop() {
       if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       localStorage.setItem(ARMOR_LAST_KEY(user.id), String(Date.now()));
     } else {
-      // Buy inventory item N times (server-side debits currency and inserts inventory)
+      // Buy inventory item — one RPC call adds N to inventory and charges N × price
       const itemType = tab === "weapons" ? "weapon" : "crew";
-      for (let i = 0; i < qty; i++) {
-        const { error } = selected.currency === "gem"
-          ? await buyWithGems(selected.id, itemType, selected.price)
-          : await buyWithCoins(selected.id, itemType, selected.price);
-        if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
-      }
+      const { error } = selected.currency === "gem"
+        ? await buyWithGems(selected.id, itemType, selected.price, undefined, qty)
+        : await buyWithCoins(selected.id, itemType, selected.price, undefined, qty);
+      if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       setBusy(false);
     }
 
