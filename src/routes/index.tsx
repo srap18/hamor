@@ -18,7 +18,7 @@ import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
-import { useAuth } from "@/hooks/use-auth";
+
 
 
 
