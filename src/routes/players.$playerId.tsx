@@ -978,7 +978,52 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: numb
   );
 }
 
+function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
+  crew: (typeof CREWS)[number];
+  qty: number;
+  busy: boolean;
+  badge: { text: string; tone: "rose" | "emerald" } | null;
+  disabled?: boolean;
+  onSend: () => void;
+  onBuy: () => void;
+}) {
+  const canSend = qty > 0 && !disabled;
+  const toneCls = badge?.tone === "rose"
+    ? "bg-rose-900/60 text-rose-200 border-rose-500/40"
+    : "bg-emerald-900/60 text-emerald-200 border-emerald-500/40";
+  return (
+    <div className="flex items-stretch gap-2">
+      <button disabled={busy || !canSend} onClick={onSend}
+        className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 active:scale-95 disabled:opacity-50 text-right transition-all ${canSend ? "bg-stone-800/90 border-amber-600/50 hover:border-amber-400" : "bg-stone-900/60 border-stone-700"}`}>
+        {crew.image ? <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain drop-shadow" /> : <span className="text-3xl">{crew.emoji}</span>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-amber-200 font-bold text-sm truncate">{crew.name}</span>
+            {badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold ${toneCls}`}>{badge.text}</span>}
+          </div>
+          <div className="text-[10px] text-amber-300/70 leading-tight mt-0.5 line-clamp-2">{crew.bonus}</div>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>عندك</span>
+          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>×{qty}</span>
+        </div>
+      </button>
+      {qty === 0 && !disabled && (
+        <button disabled={busy} onClick={onBuy}
+          className="px-2.5 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[76px] leading-tight shadow-lg">
+          <span className="text-base">🛒</span>
+          <span className="text-[10px] opacity-95 mt-0.5">
+            {crew.currency === "gems" ? `💎 ${crew.price}` : `💰 ${crew.price.toLocaleString()}`}
+          </span>
+          <span className="text-[9px] opacity-90">شراء وإرسال</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [] }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS }) {
+
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (!atSea || destroyed) return;
