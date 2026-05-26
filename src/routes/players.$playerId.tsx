@@ -139,9 +139,29 @@ function PlayerPage() {
     })();
   }, [playerId]);
 
-  // Live updates: watch the visited player's ships move in/out of sea, repair, take damage, etc.
+  // Load raiders currently stealing FROM this player (their ships visible in this harbor)
+  const loadRaiders = async () => {
+    const { data: rs } = await supabase
+      .from("ships_owned")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at")
+      .eq("stealing_target_user_id", playerId)
+      .not("stealing_ends_at", "is", null);
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null }[];
+    if (list.length === 0) { setRaiders([]); return; }
+    const ids = Array.from(new Set(list.map((r) => r.user_id)));
+    const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
+    const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    setRaiders(list.map((r) => ({
+      ...r,
+      owner_name: pmap.get(r.user_id)?.display_name || "قرصان",
+      owner_emoji: pmap.get(r.user_id)?.avatar_emoji || "🏴‍☠️",
+    })));
+  };
+
+  // Live updates: watch the visited player's ships AND any raiders attacking them
   useEffect(() => {
     if (!playerId) return;
+    loadRaiders();
     const channel = supabase
       .channel(`ships-watch:${playerId}`)
       .on(
@@ -173,9 +193,25 @@ function PlayerPage() {
           });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ships_owned" },
+        () => { loadRaiders(); }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [playerId]);
+
+  const stopRaid = async (shipId: string) => {
+    setCancelRaiderId(null);
+    sound.play("click");
+    const { error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
+    if (error) { flash("تعذّر إيقاف السرقة"); return; }
+    sound.play("success");
+    flash("🛑 أوقفت السرقة — سفينتك ترجع");
+    loadRaiders();
+  };
+
 
   const addFriend = async () => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
