@@ -636,7 +636,7 @@ function PlayerPage() {
                   const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
                   const onMission = !!ms.stealing_target_user_id;
                   const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
-                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ في مهمة" : ms.at_sea ? "⚓ بالبحر" : null;
+                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ تسرق" : ms.at_sea ? "⚓ بالبحر" : null;
                   return (
                     <button key={ms.id} disabled={busy || isBusy} onClick={() => stealWithShip(ms.id)}
                       className="flex items-center gap-3 p-2 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right disabled:opacity-40">
