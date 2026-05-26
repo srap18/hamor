@@ -198,7 +198,7 @@ function FishMarket() {
     .sort((a, b) => b.basePrice - a.basePrice);
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
-  const capMax = 500000;
+  const capMax = fishMarketCapacity(lvl);
   
 
   const sel = fish.find((f) => f.id === selected) || null;
