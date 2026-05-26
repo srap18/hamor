@@ -1174,7 +1174,7 @@ function Index() {
                   .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
                   .eq("id", s.dbId);
                 setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
-                if (isDestroyed) toast.success("تم إصلاح السفينة فوراً ⚒️");
+                if (isDestroyed) setToast("تم إصلاح السفينة فوراً ⚒️");
               } else {
                 // Reduce remaining repair time by reducePct
                 const remaining = endMs - nowMs;
