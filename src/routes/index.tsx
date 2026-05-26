@@ -71,6 +71,8 @@ interface Ship {
   maxHp?: number;
   destroyedAt?: string | null;
   repairEndsAt?: string | null;
+  stealingEndsAt?: string | null;
+  stealingTargetUserId?: string | null;
 }
 
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
