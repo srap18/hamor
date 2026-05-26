@@ -242,7 +242,8 @@ function Index() {
         const slot = SLOTS[slotIdx];
         const maxProg = 35000 + (lvl - 1) * 9000;
         const duration = Math.round(maxProg / 30);
-        const isFishing = !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        const onSteal = !!dbShip.stealing_target_user_id;
+        const isFishing = !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
           id: nextId,
@@ -257,12 +258,14 @@ function Index() {
           top: slot.top,
           dockLeft: slot.dockLeft,
           fishing: isFishing,
-          sail: isFishing ? 1 : 0,
+          sail: isFishing || onSteal ? 1 : 0,
           startedAt,
           hp: dbShip.hp ?? undefined,
           maxHp: dbShip.max_hp ?? undefined,
           destroyedAt: dbShip.destroyed_at,
           repairEndsAt: dbShip.repair_ends_at,
+          stealingEndsAt: dbShip.stealing_ends_at,
+          stealingTargetUserId: dbShip.stealing_target_user_id,
         });
       }
       const next = [...keptDb, ...newShips];
