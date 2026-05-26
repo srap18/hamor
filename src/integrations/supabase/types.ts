@@ -1870,6 +1870,13 @@ export type Database = {
           xp: number
         }[]
       }
+      get_player_crews: {
+        Args: { _player_id: string }
+        Returns: {
+          item_id: string
+          ship_id: string
+        }[]
+      }
       gift_gold: {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
