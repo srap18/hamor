@@ -45,6 +45,8 @@ export type ShipDef = {
   speed: number;
   storage: number;
   repairSeconds: number;
+  fishingSeconds: number;
+  fishPool: string[];
   flavor: string;
 };
 
@@ -57,64 +59,74 @@ const IMG_BY_LEVEL: Record<number, string> = {
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
 };
 
-const NAME_BY_LEVEL: Record<number, { en: string; ar: string; flavor: string; rarity: string }> = {
-  1:  { en: "Wooden Skiff Mk I",       ar: "قارب خشبي - I",     rarity: "Starter",   flavor: "قارب خشبي بسيط للمبتدئين في الموانئ القريبة." },
-  2:  { en: "Wooden Skiff Mk II",      ar: "قارب خشبي - II",    rarity: "Common",    flavor: "قارب خشبي معزّز بصاري قصير وشراع متهالك." },
-  3:  { en: "Wooden Skiff Mk III",     ar: "قارب خشبي - III",   rarity: "Common",    flavor: "قارب خشبي مزدوج الصواري مع كابينة وشباك صيد." },
-  4:  { en: "Motor Cutter Mk I",       ar: "زورق محرك - I",     rarity: "Common",    flavor: "زورق فيبرجلاس صغير بمحرك خارجي للمياه الساحلية." },
-  5:  { en: "Motor Cutter Mk II",      ar: "زورق محرك - II",    rarity: "Uncommon",  flavor: "زورق محرك أبيض بصاري رادار وكابينة مغلقة." },
-  6:  { en: "Motor Cutter Mk III",     ar: "زورق محرك - III",   rarity: "Uncommon",  flavor: "زورق أزرق وأبيض بمحركين داخليين وصنارات صيد." },
-  7:  { en: "Steel Trawler Mk I",      ar: "ترالر فولاذي - I",  rarity: "Uncommon",  flavor: "ترالر فولاذي بشبكات احترافية لرحلات صيد أطول." },
-  8:  { en: "Steel Trawler Mk II",     ar: "ترالر فولاذي - II", rarity: "Rare",      flavor: "ترالر أخضر بكابينة عالية ورافعات وشباك ضخمة." },
-  9:  { en: "Steel Trawler Mk III",    ar: "ترالر فولاذي - III",rarity: "Rare",      flavor: "ترالر أحمر تجاري بمدخنتي بخار وبكرة شباك خلفية." },
-  10: { en: "Steel Trawler Mk IV",     ar: "ترالر فولاذي - IV", rarity: "Rare",      flavor: "ترالر محيطي ضخم بهيكل فولاذي ورافعات متعددة." },
-  11: { en: "Deep Sea Vessel Mk I",    ar: "سفينة الأعماق - I", rarity: "Rare",      flavor: "سفينة أعماق بجسر كبير وتجهيزات بحرية ثقيلة." },
-  12: { en: "Deep Sea Vessel Mk II",   ar: "سفينة الأعماق - II",rarity: "Epic",      flavor: "سفينة بحرية ضخمة بمنصة هليكوبتر وبرج عالٍ." },
-  13: { en: "Deep Sea Vessel Mk III",  ar: "سفينة الأعماق - III",rarity: "Epic",     flavor: "سفينة رمادية معزّزة برادارات وأنظمة سونار متقدمة." },
-  14: { en: "Deep Sea Vessel Mk IV",   ar: "سفينة الأعماق - IV",rarity: "Epic",      flavor: "سفينة بحث وصيد سوداء عملاقة بأبراج توأم وإضاءة." },
-  15: { en: "Hunter Warship Mk I",     ar: "سفينة هجومية - I",  rarity: "Epic",      flavor: "سفينة هجومية مرعبة بتسليح واضح للمعارك البحرية." },
-  16: { en: "Hunter Warship Mk II",    ar: "سفينة هجومية - II", rarity: "Epic+",     flavor: "سفينة دورية رمادية بمدفع رئيسي ومنصات صواريخ." },
-  17: { en: "Hunter Warship Mk III",   ar: "سفينة هجومية - III",rarity: "Epic+",     flavor: "كورفيت سوداء شبحية بهيكل مائل وأضواء حمراء." },
-  18: { en: "Hunter Warship Mk IV",    ar: "سفينة هجومية - IV", rarity: "Epic+",     flavor: "مدمّرة ثقيلة بمدافع بحرية وأبراج رادار متعددة." },
-  19: { en: "Factory Ship Mk I",       ar: "سفينة المصنع - I",  rarity: "Epic+",     flavor: "عملاقة صناعية بتفاصيل ثقيلة وإنتاج مرتفع." },
-  20: { en: "Factory Ship Mk II",      ar: "سفينة المصنع - II", rarity: "Legendary", flavor: "سفينة معالجة صناعية ضخمة برافعات ومداخن متعددة." },
-  21: { en: "Factory Ship Mk III",     ar: "سفينة المصنع - III",rarity: "Legendary", flavor: "سفينة برتقالية ضخمة ببنية شاهقة ونوافذ مضاءة." },
-  22: { en: "Factory Ship Mk IV",      ar: "سفينة المصنع - IV", rarity: "Legendary", flavor: "مصنع بحري عملاق كالقلعة مع مداخن تنفث الدخان." },
-  23: { en: "Royal Galleon Mk I",      ar: "سفينة ملكية - I",   rarity: "Legendary", flavor: "سفينة ملكية فخمة بهالة أسطورية على الأمواج." },
-  24: { en: "Royal Galleon Mk II",     ar: "سفينة ملكية - II",  rarity: "Legendary", flavor: "يخت ملكي أسود وذهبي بثلاث صواري مزخرفة." },
-  25: { en: "Royal Galleon Mk III",    ar: "سفينة ملكية - III", rarity: "Mythic",    flavor: "غاليون أسود بزخارف ذهبية وأربع صواري وفوانيس متوهجة." },
-  26: { en: "Royal Galleon Mk IV",     ar: "سفينة ملكية - IV",  rarity: "Mythic",    flavor: "سفينة قيادة ملكية بهيكل أسود وزخارف ذهبية معقدة." },
-  27: { en: "Mythic Leviathan Mk I",   ar: "الليفايثان - I",    rarity: "Mythic",    flavor: "وحش بحري نهائي بتصميم نهاية اللعبة." },
-  28: { en: "Mythic Leviathan Mk II",  ar: "الليفايثان - II",   rarity: "Mythic",    flavor: "سفينة ليفايثان أسطورية بأشواك سوداء ورموز زرقاء متوهجة." },
-  29: { en: "Mythic Leviathan Mk III", ar: "الليفايثان - III",  rarity: "Mythic",    flavor: "دريدنوت ليفايثان بمدافع وأذرع كالمجسات وأضواء حمراء." },
-  30: { en: "Mythic Leviathan Mk IV",  ar: "الليفايثان - IV",   rarity: "Mythic",    flavor: "وحش ليفايثان نهائي ببرج مدمر وعيون أرجوانية متوهجة." },
+// ─────── المصدر الموحّد لتعريف السفن ───────
+// أي تحديث على هذه القائمة ينعكس على كل واجهات اللعبة (سوق السفن، الأسطول، الصيد ...).
+type ShipOverride = {
+  ar: string;
+  rarity: string;
+  flavor: string;
+  storage: number;       // السعة = طاقة السفينة
+  price: number;         // السعر بالذهب
+  fishingMinutes: number;// مدة الصيد بالدقائق
+  fishPool: string[];    // أنواع السمك المتاحة
+};
+
+const SHIP_DATA: Record<number, ShipOverride> = {
+  1:  { ar: "قارب صغير",              rarity: "Starter",   flavor: "قارب خشبي بسيط للمبتدئين في الموانئ القريبة.",         storage: 80,     price: 400,         fishingMinutes: 2.5,  fishPool: ["sardine"] },
+  2:  { ar: "قارب كبير",              rarity: "Common",    flavor: "قارب خشبي معزّز بصاري قصير وشراع متهالك.",            storage: 180,    price: 2500,        fishingMinutes: 4.5,  fishPool: ["sardine"] },
+  3:  { ar: "سفينة شراعية",            rarity: "Common",    flavor: "سفينة شراعية رشيقة تجوب المياه الساحلية.",            storage: 600,    price: 7500,        fishingMinutes: 6,    fishPool: ["sardine","tuna"] },
+  4:  { ar: "سفينة مجداف",             rarity: "Common",    flavor: "سفينة بمجاديف قوية لرحلات أطول قليلاً.",              storage: 900,    price: 11000,       fishingMinutes: 7.5,  fishPool: ["sardine","shrimp"] },
+  5:  { ar: "يخت أبيض",                rarity: "Uncommon",  flavor: "يخت أبيض أنيق بمحرك هادئ.",                          storage: 1200,   price: 20000,       fishingMinutes: 9,    fishPool: ["sardine","shrimp","tuna"] },
+  6:  { ar: "قارب حرب",                rarity: "Uncommon",  flavor: "قارب حربي مدرّع لمواجهة البحار الخطرة.",              storage: 1800,   price: 50000,       fishingMinutes: 11,   fishPool: ["grouper","shrimp"] },
+  7:  { ar: "كمين",                    rarity: "Uncommon",  flavor: "سفينة كمين شبحية تنقض على فرائسها.",                  storage: 2500,   price: 90000,       fishingMinutes: 13,   fishPool: ["squid","tuna"] },
+  8:  { ar: "حفارة",                   rarity: "Rare",      flavor: "حفّارة بحرية ثقيلة تجرف أعماق البحر.",                storage: 3500,   price: 150000,      fishingMinutes: 14,   fishPool: ["squid","grouper"] },
+  9:  { ar: "باخرة",                   rarity: "Rare",      flavor: "باخرة ضخمة بمداخن بخار ومستودعات واسعة.",             storage: 5000,   price: 300000,      fishingMinutes: 16,   fishPool: ["grouper","carp"] },
+  10: { ar: "سفينة أبحاث",             rarity: "Rare",      flavor: "سفينة أبحاث علمية بأجهزة سونار متقدمة.",              storage: 7500,   price: 700000,      fishingMinutes: 20,   fishPool: ["eel","tang_blue","tuna"] },
+  11: { ar: "سفينة الفانوس",           rarity: "Epic",      flavor: "سفينة بفوانيس متوهجة تجذب كائنات الأعماق.",            storage: 9000,   price: 2200000,     fishingMinutes: 24,   fishPool: ["stingray","goldfish"] },
+  12: { ar: "سفينة الميلاد",           rarity: "Epic",      flavor: "سفينة احتفالية مزخرفة بأضواء وأشرعة فاخرة.",          storage: 13000,  price: 5000000,     fishingMinutes: 27,   fishPool: ["shark","squid","snapper"] },
+  13: { ar: "سفينة الصقر",             rarity: "Epic",      flavor: "سفينة سريعة كالصقر تنقضّ على الفرائس.",               storage: 16000,  price: 8000000,     fishingMinutes: 30,   fishPool: ["shark","tuna","squid"] },
+  14: { ar: "سفينة الأعماق",           rarity: "Epic",      flavor: "سفينة أعماق متخصصة بالنزول لقاع المحيط.",             storage: 20000,  price: 12000000,    fishingMinutes: 33,   fishPool: ["grouper","eel","snapper"] },
+  15: { ar: "سفينة العاصفة",           rarity: "Epic",      flavor: "سفينة تشق العواصف بلا خوف.",                          storage: 25000,  price: 18000000,    fishingMinutes: 36,   fishPool: ["tuna","shark","grouper"] },
+  16: { ar: "سفينة الكابوس",           rarity: "Epic+",     flavor: "سفينة شبحية سوداء تثير الرعب.",                       storage: 30000,  price: 25000000,    fishingMinutes: 39,   fishPool: ["squid","stingray","goldfish"] },
+  17: { ar: "سفينة المحيط الأزرق",     rarity: "Epic+",     flavor: "سفينة محيطية تجوب المياه الزرقاء الواسعة.",           storage: 36000,  price: 34000000,    fishingMinutes: 42,   fishPool: ["carp","tuna","grouper"] },
+  18: { ar: "سفينة الإعصار",           rarity: "Epic+",     flavor: "سفينة لا توقفها الأعاصير ولا الأمواج.",               storage: 42000,  price: 45000000,    fishingMinutes: 46,   fishPool: ["shark","squid","eel"] },
+  19: { ar: "سفينة الجبروت",           rarity: "Epic+",     flavor: "سفينة جبّارة بهيكل فولاذي ضخم.",                      storage: 50000,  price: 60000000,    fishingMinutes: 50,   fishPool: ["grouper","tuna","shark"] },
+  20: { ar: "سفينة الموجة السوداء",    rarity: "Legendary", flavor: "سفينة مظلمة كموجة الليل.",                            storage: 60000,  price: 80000000,    fishingMinutes: 55,   fishPool: ["stingray","squid","snapper"] },
+  21: { ar: "سفينة الفاتح البحري",     rarity: "Legendary", flavor: "سفينة فاتحة للأقاليم البحرية النائية.",              storage: 72000,  price: 110000000,   fishingMinutes: 60,   fishPool: ["shark","grouper","tuna"] },
+  22: { ar: "سفينة نجم البحر",         rarity: "Legendary", flavor: "سفينة تتلألأ كنجمٍ يهتدي به البحّارة.",              storage: 85000,  price: 150000000,   fishingMinutes: 66,   fishPool: ["eel","carp","squid"] },
+  23: { ar: "سفينة أسطورة الأعماق",    rarity: "Legendary", flavor: "سفينة الأسطورة التي تجوب أعمق الأعماق.",             storage: 100000, price: 200000000,   fishingMinutes: 72,   fishPool: ["shark","tuna","stingray"] },
+  24: { ar: "سفينة نهاية المحيط",      rarity: "Legendary", flavor: "سفينة نهائية تصل لحدود المحيط البعيد.",              storage: 120000, price: 300000000,   fishingMinutes: 80,   fishPool: ["shark","tuna","squid","stingray","grouper","carp"] },
+  25: { ar: "سفينة العرش البحري",      rarity: "Mythic",    flavor: "عرش بحري ملكي للقباطنة الأسطوريين.",                 storage: 140000, price: 650000000,   fishingMinutes: 88,   fishPool: ["shark","tuna","grouper","carp"] },
+  26: { ar: "سفينة أسد الأعماق",       rarity: "Mythic",    flavor: "سفينة الأسد المرعبة بقوة لا تُقهر.",                  storage: 165000, price: 800000000,   fishingMinutes: 96,   fishPool: ["shark","squid","tuna","stingray"] },
+  27: { ar: "سفينة التيتانيوم البحري", rarity: "Mythic",    flavor: "سفينة تيتانيوم لا يخترقها شيء.",                      storage: 190000, price: 1000000000,  fishingMinutes: 105,  fishPool: ["shark","tuna","grouper","squid","carp"] },
+  28: { ar: "سفينة ملك المحيط",        rarity: "Mythic",    flavor: "سفينة ملك المحيط بلا منازع.",                         storage: 220000, price: 2000000000,  fishingMinutes: 115,  fishPool: ["shark","stingray","tuna","grouper","squid","snapper","carp"] },
+  29: { ar: "سفينة التنين البحري",     rarity: "Mythic",    flavor: "تنين بحري ينفث الرعب في الأمواج.",                    storage: 260000, price: 500000000,   fishingMinutes: 125,  fishPool: ["shark","tuna","stingray","grouper","squid"] },
+  30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 140,  fishPool: ["shark","tuna","grouper","carp","squid","stingray","snapper","eel"] },
 };
 
 function buildShip(level: number): ShipDef {
-  const meta = NAME_BY_LEVEL[level];
-  const price = Math.round(300 * Math.pow(1.42, level - 1));
+  const d = SHIP_DATA[level];
   const maxHp = 80 + (level - 1) * 65;
   const armor = 4 + Math.floor((level - 1) * 3.5);
   const speed = 9 + Math.floor((level - 1) * 1.4);
-  // Catch per trip: level 1 = 100 fish, level 30 = 150,000 fish (geometric distribution).
-  // Storage shown in UI = catchPerTrip * 50 so the storage number remains meaningful.
-  const catchAmount = Math.max(1, Math.round(100 * Math.pow(1500, (level - 1) / 29)));
-  const storage = catchAmount * 50;
   const repairSeconds = Math.round(240 * Math.pow(1.20, level - 1));
+  const fishingSeconds = Math.round(d.fishingMinutes * 60);
   return {
     code: `ship-lvl-${level}`,
-    name: meta.en,
-    title: meta.ar,
+    name: d.ar,
+    title: d.ar,
     image: IMG_BY_LEVEL[level],
-    price,
+    price: d.price,
     marketLevel: level,
-    rarity: meta.rarity,
+    rarity: d.rarity,
     maxHp,
     armor,
     speed,
-    storage,
+    storage: d.storage,
     repairSeconds,
-    flavor: meta.flavor,
+    fishingSeconds,
+    fishPool: d.fishPool,
+    flavor: d.flavor,
   };
 }
 
@@ -137,8 +149,37 @@ export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
 }
 
-// Single source of truth: how many fish a ship hauls per full trip.
-// Used by both the shipyard display and the in-game collection logic.
+// السعة الكاملة للسفينة = ما تحمله في رحلة واحدة (طاقة = سعة).
 export function catchPerTrip(ship: ShipDef): number {
-  return Math.max(1, Math.round(ship.storage / 50));
+  return Math.max(1, ship.storage);
 }
+
+// ─────── سعة سوق السمك حسب المستوى ───────
+// L1 = 500. زيادات تدريجية، +10K عند المستوى 15، +20K من المستوى 16 فما فوق.
+const FM_INCREMENTS: number[] = [
+  /* L2  */ 500,
+  /* L3  */ 500,
+  /* L4  */ 1000,
+  /* L5  */ 1500,
+  /* L6  */ 2000,
+  /* L7  */ 2500,
+  /* L8  */ 3000,
+  /* L9  */ 3500,
+  /* L10 */ 4000,
+  /* L11 */ 5000,
+  /* L12 */ 6000,
+  /* L13 */ 7000,
+  /* L14 */ 8000,
+  /* L15 */ 10000,
+];
+
+export function fishMarketCapacity(level: number): number {
+  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  let cap = 500;
+  for (let l = 2; l <= lvl; l++) {
+    if (l <= 15) cap += FM_INCREMENTS[l - 2];
+    else cap += 20000; // من 16 فما فوق
+  }
+  return cap;
+}
+
