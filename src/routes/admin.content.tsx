@@ -468,6 +468,18 @@ function ShipOverridesTable() {
           if (overrides.maxHp != null) ship.maxHp = overrides.maxHp;
           if (overrides.fishingMinutes != null) ship.fishingSeconds = Math.round(overrides.fishingMinutes * 60);
         }
+        // propagate maxHp to all owned ships of this template so existing players see new HP
+        if (overrides.maxHp != null) {
+          const newMax = overrides.maxHp;
+          const { data: owned } = await supabase
+            .from("ships")
+            .select("id, hp, max_hp")
+            .eq("template_id", level);
+          for (const row of owned ?? []) {
+            const nextHp = Math.min(Number(row.hp ?? newMax), newMax);
+            await supabase.from("ships").update({ max_hp: newMax, hp: nextHp }).eq("id", row.id);
+          }
+        }
       }
       setDirty(new Set());
       setMsg("✓ تم الحفظ");
