@@ -605,7 +605,7 @@ function PlayerPage() {
             {mode === "menu" && (
               <>
                 <button disabled={busy} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95">⚔️ هجوم</button>
-                <button disabled={busy} onClick={() => setMode("myship")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95">🗡️ سرقة</button>
+                <button disabled={busy || !selectedShip.at_sea} onClick={() => selectedShip.at_sea ? setMode("myship") : flash("🎣 السرقة فقط من سفينة تصيد بالبحر")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40">🗡️ سرقة {!selectedShip.at_sea && <span className="text-[10px] opacity-80">(لازم تكون تصيد)</span>}</button>
                 <button disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
               </>
