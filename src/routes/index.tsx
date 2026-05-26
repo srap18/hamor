@@ -1057,7 +1057,7 @@ function Index() {
                         const { error } = await sellShip(soldDbId, price);
                         if (error) console.error("[sell ship]", error);
                       }
-                      const assignedHere = crewRows.filter((r) => r.meta?.assigned_ship_id === s.id);
+                      const assignedHere = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
                       if (assignedHere.length) {
                         await deleteInventoryRows(assignedHere.map((r) => r.id));
                       }
