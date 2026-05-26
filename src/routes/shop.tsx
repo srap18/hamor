@@ -371,7 +371,7 @@ function ShopCard({
 function ResChip({ icon, v, color, plus }: { icon: string; v: number; color: string; plus?: boolean }) {
   return (
     <div className="glass-hud rounded-lg px-2 py-1 flex items-center gap-1 border border-accent/30">
-      <span className="text-base">{icon}</span>
+      <img src={icon} alt="" className="w-5 h-5 object-contain drop-shadow" />
       <span className={`text-[11px] font-bold tabular-nums ${color}`}>{v.toLocaleString()}</span>
       {plus && (
         <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">+</span>
