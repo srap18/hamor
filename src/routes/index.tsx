@@ -921,10 +921,16 @@ function Index() {
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
 
 
+        const shipCrews = crewRows
+          .filter((r) => r.meta?.assigned_ship_id === s.id)
+          .map((r) => CREWS.find((c) => c.id === r.item_id))
+          .filter(Boolean) as typeof CREWS;
+
         return (
           <ShipSlot
             key={s.id}
             ship={{ ...s, top, scale, dockLeft }}
+            crews={shipCrews}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
@@ -1076,6 +1082,11 @@ function Index() {
         };
 
         const assignCrew = async (itemId: string) => {
+          // Prevent duplicates: max 1 crew per type per ship
+          if (assignedRows.some((r) => r.item_id === itemId)) {
+            sound.play("error");
+            return;
+          }
           // find a row with this item_id that's unassigned
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) return;
@@ -1154,7 +1165,8 @@ function Index() {
                   {Array.from(availMap.entries()).map(([cid, qty]) => {
                     const c = CREWS.find((x) => x.id === cid);
                     if (!c) return null;
-                    const canAssign = assignedRows.length < slots;
+                    const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
+                    const canAssign = assignedRows.length < slots && !alreadyOnShip;
                     return (
                       <button
                         key={cid}
@@ -1172,7 +1184,7 @@ function Index() {
                           <div className="text-[10px] text-emerald-300">{c.bonus}</div>
                         </div>
                         <span className="text-[10px] text-accent/60">
-                          {canAssign ? "تفعيل 24س" : "ممتلئ"}
+                          {alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل 24س" : "ممتلئ"}
                         </span>
                       </button>
                     );
@@ -1450,7 +1462,7 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
   );
 }
 
-function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; active?: boolean }) {
+function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
@@ -1563,6 +1575,41 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
                 transform: facing === -1 ? "scaleX(-1)" : undefined,
               }}
             />
+          ))}
+        </div>
+      )}
+
+      {/* Crew characters standing on the ship deck */}
+      {crews.length > 0 && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20 flex items-end justify-center gap-1"
+          style={{ top: "-18%", width: "120%", height: "40%" }}
+        >
+          {crews.map((c, i) => (
+            <div
+              key={c.id}
+              className="relative animate-crew-bob"
+              style={{
+                width: "28%",
+                animationDelay: `${i * 0.25}s`,
+                filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.6))",
+              }}
+              title={c.name}
+            >
+              {c.image ? (
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  className="w-full h-auto object-contain"
+                  draggable={false}
+                />
+              ) : (
+                <div className="w-full text-center text-2xl">{c.emoji}</div>
+              )}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-amber-100 bg-black/70 px-1 rounded whitespace-nowrap">
+                {c.name}
+              </div>
+            </div>
           ))}
         </div>
       )}
