@@ -362,16 +362,29 @@ function Index() {
   };
 
   const [now, setNow] = useState(() => Date.now());
-  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number; expires_at?: string } | null };
+  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
 
+  // Match crew row to a ship by either local numeric id OR ship UUID (dbId).
+  // Support sent from other players uses the UUID (ship_id) since they don't
+  // know our local fleet numbering.
+  const isCrewAssignedToShip = (
+    meta: { assigned_ship_id?: number | string } | null | undefined,
+    ship: { id: number; dbId?: string },
+  ) => {
+    const a = meta?.assigned_ship_id;
+    if (a == null) return false;
+    if (typeof a === "number") return a === ship.id;
+    return a === ship.dbId || a === String(ship.id);
+  };
+
   // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
-  const getCrewBonuses = (shipId: number) => {
+  const getCrewBonuses = (ship: { id: number; dbId?: string }) => {
     const nowMs = Date.now();
     const active = crewRowsRef.current.filter(
-      (r) => r.meta?.assigned_ship_id === shipId &&
+      (r) => isCrewAssignedToShip(r.meta, ship) &&
              (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
     );
     const ids = new Set(active.map((r) => r.item_id));
