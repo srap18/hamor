@@ -48,9 +48,9 @@ function AdminLayout() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row bg-slate-950 text-slate-100">
+    <div dir="rtl" className="h-screen overflow-hidden flex flex-col md:flex-row bg-slate-950 text-slate-100">
       {/* Sidebar / Topbar */}
-      <aside className="w-full md:w-60 md:shrink-0 md:h-screen md:overflow-y-auto sticky top-0 z-30 md:static border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/95 backdrop-blur flex flex-col">
+      <aside className="w-full md:w-60 md:shrink-0 md:h-screen md:overflow-y-auto shrink-0 z-30 border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/95 backdrop-blur flex flex-col">
         <div className="p-3 md:p-4 border-b border-slate-800 flex items-center justify-between gap-2">
           <div className="text-base md:text-lg font-bold flex items-center gap-2">
             <span>⚓</span> Admin Panel
