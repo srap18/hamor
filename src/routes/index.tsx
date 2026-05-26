@@ -424,7 +424,20 @@ function Index() {
     reloadCrews();
     const onFocus = () => reloadCrews();
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    let ch: any;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid) return;
+      ch = supabase
+        .channel(`my-inv-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "inventory", filter: `user_id=eq.${uid}` }, () => reloadCrews())
+        .subscribe();
+    })();
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      if (ch) supabase.removeChannel(ch);
+    };
   }, [modal, crewTick]);
 
   const [bgId, setBgId] = useState<string>("harbor");
