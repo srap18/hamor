@@ -215,7 +215,17 @@ function Index() {
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
-          if (onSteal) {
+          const destroyed = !!row.destroyed_at && !!row.repair_ends_at && new Date(row.repair_ends_at).getTime() > Date.now();
+          if (destroyed) {
+            // Destroyed ships can't fish. Force them home and clear at_sea in DB.
+            fishing = false;
+            startedAt = undefined;
+            if (row.at_sea) {
+              import("@/lib/economy").then(({ setShipAtSea }) => {
+                setShipAtSea(s.dbId!, false).catch(() => {});
+              });
+            }
+          } else if (onSteal) {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
@@ -257,7 +267,8 @@ function Index() {
         const maxProg = 35000 + (lvl - 1) * 9000;
         const duration = Math.round(maxProg / 30);
         const onSteal = !!dbShip.stealing_target_user_id;
-        const isFishing = !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
+        const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
           id: nextId,
@@ -583,9 +594,17 @@ function Index() {
   }, []);
 
 
+  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
+
   const toggleFishing = (shipId: number) => {
     let dbIdToSync: string | undefined;
     let nextAtSea = false;
+    const target = ships.find((x) => x.id === shipId);
+    if (target && isDestroyed(target) && !target.fishing) {
+      showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
+      sound.play("error");
+      return;
+    }
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
@@ -649,20 +668,9 @@ function Index() {
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
     const baseFish = Math.max(1, Math.round(fullAmount * effRatio));
-    // Ship under repair: fishing capacity = repair progress %.
-    // Below 30% repair the ship can't fish at all.
-    let repairMult = 1;
-    if (s.destroyedAt && s.repairEndsAt) {
-      const start = new Date(s.destroyedAt).getTime();
-      const end = new Date(s.repairEndsAt).getTime();
-      const now = Date.now();
-      if (end > start) {
-        const progress = Math.max(0, Math.min(1, (now - start) / (end - start)));
-        repairMult = progress < 0.3 ? 0 : progress;
-      }
-    }
-    if (repairMult === 0) {
-      showToast("السفينة تحت الإصلاح — يجب أن يصل الإصلاح إلى ٣٠٪");
+    // Destroyed ships cannot fish at all until fully repaired.
+    if (isDestroyed(s)) {
+      showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
       setShips((curr) =>
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
@@ -673,7 +681,7 @@ function Index() {
       }
       return;
     }
-    const fishGained = Math.max(1, Math.floor(baseFish * luckMult * repairMult));
+    const fishGained = Math.max(1, Math.floor(baseFish * luckMult));
     // Fishing yields only fish — sell them at the fish market to earn gold.
     setFish((f) => f + fishGained);
     if (user && caught) {
@@ -1025,35 +1033,59 @@ function Index() {
                   )}
                 </div>
               )}
-              {!onSteal && (
-                <div className="flex gap-3">
-                  <ActionBtn
-                    emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
-                    label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
-                    onClick={(e: React.MouseEvent) => {
-                      setMenuShipId(null);
-                      collect(s.id, e);
-                    }}
-                  />
-                  <ActionBtn
-                    emoji="👥"
-                    label="طاقم"
-                    onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
-                  />
-                  <ActionBtn
-                    emoji="💰"
-                    label="بيع"
-                    onClick={() => {
-                      setMenuShipId(null);
-                      if (ships.length <= MIN_FLEET) {
-                        showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                        return;
-                      }
-                      setModal({ kind: "sell", shipId: s.id });
-                    }}
-                  />
-                </div>
-              )}
+              {!onSteal && (() => {
+                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > Date.now();
+                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - Date.now()) / 1000)) : 0;
+                const h = Math.floor(remSec / 3600);
+                const m = Math.floor((remSec % 3600) / 60);
+                const sec = remSec % 60;
+                const remStr = h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}د ${sec}ث` : `${sec}ث`;
+                if (dead) {
+                  return (
+                    <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-stone-900/70 border border-rose-500/50">
+                      <div className="text-3xl">💥</div>
+                      <div className="text-rose-200 font-bold text-sm">السفينة مدمّرة</div>
+                      <div className="text-rose-300/90 text-xs">⏳ الإصلاح ينتهي خلال {remStr}</div>
+                      <div className="flex gap-3 mt-1">
+                        <ActionBtn
+                          emoji="👥"
+                          label="طاقم/إصلاح"
+                          onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="flex gap-3">
+                    <ActionBtn
+                      emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
+                      label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
+                      onClick={(e: React.MouseEvent) => {
+                        setMenuShipId(null);
+                        collect(s.id, e);
+                      }}
+                    />
+                    <ActionBtn
+                      emoji="👥"
+                      label="طاقم"
+                      onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                    />
+                    <ActionBtn
+                      emoji="💰"
+                      label="بيع"
+                      onClick={() => {
+                        setMenuShipId(null);
+                        if (ships.length <= MIN_FLEET) {
+                          showToast("لا يمكن بيع آخر سفينة في الأسطول");
+                          return;
+                        }
+                        setModal({ kind: "sell", shipId: s.id });
+                      }}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
@@ -1664,8 +1696,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const atSea = ship.sail > 0.85;
-  const isFishing = ship.fishing && atSea && !moving && !ready;
+  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > Date.now();
+  const atSea = ship.sail > 0.85 && !destroyed;
+  const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   const flipX = facing === -1 ? -1 : 1;
   const bankRoll = 0;
   const bankPitch = 0;
@@ -1775,12 +1808,16 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       <div
         className="relative w-full"
         style={{
-          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
+          transform: destroyed
+            ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
+            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.2s ease-out",
-          filter:
-            "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          filter: destroyed
+            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          opacity: destroyed ? 0.8 : 1,
         }}
       >
         <div className="relative w-full">
@@ -1801,29 +1838,41 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           <img
             src={ship.img}
             alt="Ship"
-            className="w-full block select-none animate-sail-flap"
+            className={`w-full block select-none ${destroyed ? "" : "animate-sail-flap"}`}
             draggable={false}
             style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
           />
 
 
-          {/* Waving flag on the mast */}
-          <div
-            className="absolute pointer-events-none"
-            style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
-          >
+          {/* Waving flag on the mast (hidden when destroyed) */}
+          {!destroyed && (
             <div
-              className="w-full h-full animate-flag-wave"
-              style={{
-                background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
-                clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
-              }}
-            />
-          </div>
+              className="absolute pointer-events-none"
+              style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
+            >
+              <div
+                className="w-full h-full animate-flag-wave"
+                style={{
+                  background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
+                  clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Destroyed: dark smoke billows */}
+          {destroyed && (
+            <>
+              <div className="absolute left-[45%] top-[10%] w-4 h-4 rounded-full bg-stone-900/70 blur-[3px] animate-smoke-rise" />
+              <div className="absolute left-[45%] top-[10%] w-5 h-5 rounded-full bg-stone-800/60 blur-[3px] animate-smoke-rise" style={{ animationDelay: "0.6s" }} />
+              <div className="absolute left-[45%] top-[10%] w-4 h-4 rounded-full bg-stone-900/50 blur-[3px] animate-smoke-rise" style={{ animationDelay: "1.2s" }} />
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 text-3xl pointer-events-none">💥</div>
+            </>
+          )}
 
           {/* Chimney smoke when sailing */}
-          {moving && (
+          {moving && !destroyed && (
             <>
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/60 blur-[2px] animate-smoke-rise" />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/40 blur-[2px] animate-smoke-rise" style={{ animationDelay: "0.8s" }} />
