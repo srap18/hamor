@@ -383,15 +383,29 @@ function PlayerPage() {
   const sendSupport = async (kind: "crew" | "repair", itemId: string) => {
     if (!me || !selectedShip) return;
     setBusy(true); sound.play("click");
-    if (kind === "crew") await consumeItem(itemId, "crew");
     await playProjectile(selectedShip.id, kind === "crew" ? "👨‍✈️" : "🛠️", true);
-    const amount = kind === "repair" ? 200 : 0;
-    const { error } = await supabase.from("support_gifts").insert({
-      sender_id: me, recipient_id: playerId, ship_id: selectedShip.id,
-      kind, amount, message: kind === "crew" ? `طاقم: ${itemId}` : "إصلاح",
+    const { error } = await (supabase as any).rpc("send_support", {
+      _recipient_id: playerId,
+      _ship_id: selectedShip.id,
+      _kind: kind,
+      _crew_id: kind === "crew" ? itemId : null,
     });
-    if (!error) { sound.play("success"); flash(kind === "crew" ? "👨‍✈️ تم إرسال طاقم" : "🛠️ تم إرسال إصلاح"); }
-    else flash("تعذّر إرسال الدعم");
+    if (!error) {
+      // Refresh local inventory so the consumed crew updates immediately
+      if (kind === "crew") {
+        setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
+      }
+      // Refresh visited ships so the repaired ship shows full HP immediately
+      if (kind === "repair") {
+        setShips((arr) => arr.map((x) => x.id === selectedShip.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x));
+      }
+      sound.play("success");
+      flash(kind === "crew" ? "👨‍✈️ تم إرسال الطاقم — وصل لمخزونه" : "🛠️ تم إصلاح سفينته بالكامل");
+    } else {
+      const msg = (error as any).message || "";
+      if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
+      else flash("تعذّر إرسال الدعم");
+    }
     setBusy(false); closeMenu();
   };
 
