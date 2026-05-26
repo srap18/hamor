@@ -36,7 +36,8 @@ function PlayerPage() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
-  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; owner_name: string; owner_emoji: string }[]>([]);
+  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; fishing_power: number; owner_name: string; owner_emoji: string }[]>([]);
+  const [nowTs, setNowTs] = useState<number>(Date.now());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -143,16 +144,22 @@ function PlayerPage() {
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
-      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id,fishing_started_at")
       .eq("stealing_target_user_id", playerId)
       .not("stealing_ends_at", "is", null);
-    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null }[];
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null }[];
     if (list.length === 0) { setRaiders([]); return; }
     const ids = Array.from(new Set(list.map((r) => r.user_id)));
-    const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
+    const codes = Array.from(new Set(list.map((r) => r.catalog_code).filter(Boolean) as string[]));
+    const [{ data: profs }, { data: cats }] = await Promise.all([
+      supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids),
+      codes.length ? supabase.from("ship_catalog").select("code,fishing_power").in("code", codes) : Promise.resolve({ data: [] as any[] }),
+    ]);
     const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    const cmap = new Map((cats ?? []).map((c: any) => [c.code, c.fishing_power]));
     setRaiders(list.map((r) => ({
       ...r,
+      fishing_power: Math.max(1, Math.min(100, (r.catalog_code && cmap.get(r.catalog_code)) || 5)),
       owner_name: pmap.get(r.user_id)?.display_name || "قرصان",
       owner_emoji: pmap.get(r.user_id)?.avatar_emoji || "🏴‍☠️",
     })));
@@ -202,6 +209,13 @@ function PlayerPage() {
     const poll = window.setInterval(() => { loadRaiders(); }, 4000);
     return () => { supabase.removeChannel(channel); window.clearInterval(poll); };
   }, [playerId]);
+
+  // Live ticker for raider counters (fish stolen so far + countdown)
+  useEffect(() => {
+    if (raiders.length === 0) return;
+    const id = window.setInterval(() => setNowTs(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [raiders.length]);
 
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
@@ -515,21 +529,49 @@ function PlayerPage() {
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
         }
         const isMine = me === r.user_id;
+        const endMs = r.stealing_ends_at ? new Date(r.stealing_ends_at).getTime() : 0;
+        const startMs = r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0;
+        const total = Math.max(1, endMs - startMs);
+        const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
+        const ratio = total > 0 ? elapsed / total : 0;
+        const stolenSoFar = Math.floor(r.fishing_power * ratio);
+        const secsLeft = Math.max(0, Math.ceil((endMs - nowTs) / 1000));
         return (
-          <button
-            key={`raider-${r.id}`}
-            onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
-            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
-            style={{ top, left }}
-          >
-            <div className="relative">
-              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
-              <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
-              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
-                {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+          <div key={`raider-${r.id}`} className="absolute z-20 -translate-x-1/2 -translate-y-1/2" style={{ top, left }}>
+            {/* floating fish trail while raid is active */}
+            {isMine && secsLeft > 0 && (
+              <>
+                {["🐟", "🐠", "🦐"].map((e, k) => (
+                  <span
+                    key={k}
+                    className="absolute text-lg pointer-events-none"
+                    style={{
+                      right: "100%",
+                      top: `${10 + k * 18}px`,
+                      animation: `fish-steal 1.6s ${k * 0.4}s linear infinite`,
+                    }}
+                  >{e}</span>
+                ))}
+              </>
+            )}
+            <button
+              onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
+              className="active:scale-95"
+            >
+              <div className="relative">
+                <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+                <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
+                {isMine && (
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
+                    🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                  </div>
+                )}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
+                  {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
         );
       })}
 

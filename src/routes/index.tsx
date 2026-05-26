@@ -468,6 +468,25 @@ function Index() {
     reloadRaids();
   };
 
+  // Outgoing steal missions — my ships currently raiding others. Banner lets the
+  // user jump straight back to the target harbor to watch or cancel the raid.
+  const [stealTargetNames, setStealTargetNames] = useState<Record<string, { name: string; emoji: string }>>({});
+  const outgoingSteals = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt);
+  useEffect(() => {
+    const missing = Array.from(new Set(outgoingSteals.map((s) => s.stealingTargetUserId!).filter((id) => !stealTargetNames[id])));
+    if (missing.length === 0) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", missing);
+      if (data && data.length) {
+        setStealTargetNames((prev) => {
+          const next = { ...prev };
+          for (const p of data as any[]) next[p.id] = { name: p.display_name || "لاعب", emoji: p.avatar_emoji || "🧑‍✈️" };
+          return next;
+        });
+      }
+    })();
+  }, [outgoingSteals.map((s) => s.stealingTargetUserId).join(",")]);
+
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
@@ -693,6 +712,37 @@ function Index() {
           })}
         </div>
       )}
+
+      {/* Outgoing steals — my ships currently raiding other players' harbors */}
+      {outgoingSteals.length > 0 && (
+        <div className="absolute top-32 left-2 right-2 z-30 flex flex-col gap-2 pointer-events-none">
+          {outgoingSteals.map((s) => {
+            const tgt = stealTargetNames[s.stealingTargetUserId!] || { name: "لاعب", emoji: "🧑‍✈️" };
+            const secsLeft = Math.max(0, Math.ceil((new Date(s.stealingEndsAt!).getTime() - now) / 1000));
+            return (
+              <Link
+                key={`out-${s.id}`}
+                to="/players/$playerId"
+                params={{ playerId: s.stealingTargetUserId! }}
+                onClick={() => sound.play("click")}
+                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-950/85 border-2 border-amber-400/70 backdrop-blur-sm shadow-lg active:scale-95"
+              >
+                <span className="text-2xl animate-pulse">🏴‍☠️</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-amber-100 text-xs font-bold truncate">
+                    سفينتك تسرق من {tgt.emoji} {tgt.name}
+                  </div>
+                  <div className="text-amber-300/80 text-[10px]">
+                    اضغط للمتابعة · ترجع خلال {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                  </div>
+                </div>
+                <span className="text-amber-300 text-lg">‹</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
 
 
 
