@@ -346,6 +346,7 @@ function PlayerPage() {
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
       else if (msg.includes("not fishing")) flash("🎣 لازم سفينة الخصم تكون تصيد فعلاً");
+      else if (msg.includes("caught by police")) { sound.play("explosion"); flash("👮 قبض عليك الشرطي! ممنوع من السرقة ساعة"); }
       else if (msg.includes("busy")) flash("⚓ سفينتك مشغولة — اختر سفينة بالميناء");
       else if (msg.includes("repair")) flash("🛠️ سفينتك تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
