@@ -269,10 +269,20 @@ function Index() {
         });
       }
       const next = [...keptDb, ...newShips];
-      // No change? bail to avoid re-render loops.
+      // Bail only when nothing meaningful changed — including stealing state,
+      // otherwise ships on steal missions won't disappear from the harbor.
       const sameLen = next.length === curr.length;
-      const sameIds = sameLen && next.every((s, i) => s.dbId === curr[i].dbId);
-      return sameIds ? curr : next;
+      const sameAll = sameLen && next.every((s, i) => {
+        const c = curr[i];
+        return s.dbId === c.dbId
+          && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
+          && (s.stealingEndsAt ?? null) === (c.stealingEndsAt ?? null)
+          && !!s.fishing === !!c.fishing
+          && (s.destroyedAt ?? null) === (c.destroyedAt ?? null)
+          && (s.repairEndsAt ?? null) === (c.repairEndsAt ?? null);
+      });
+      return sameAll ? curr : next;
+
     });
   };
   useEffect(() => {
