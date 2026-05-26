@@ -1256,8 +1256,10 @@ function Index() {
                   {Array.from(availMap.entries()).map(([cid, qty]) => {
                     const c = CREWS.find((x) => x.id === cid);
                     if (!c) return null;
+                    const isFixer = cid.startsWith("fixer_");
                     const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                    const canAssign = assignedRows.length < slots && !alreadyOnShip;
+                    // Fixer crews bypass slot limits and are always usable (consumed instantly).
+                    const canAssign = isFixer ? true : (assignedRows.length < slots && !alreadyOnShip);
                     return (
                       <button
                         key={cid}
@@ -1265,7 +1267,7 @@ function Index() {
                         onClick={() => assignCrew(cid)}
                         className={`w-full flex items-center gap-2 p-2 rounded-lg border text-right active:scale-[0.98] ${
                           canAssign
-                            ? "border-accent/30 bg-black/20 hover:bg-accent/10"
+                            ? (isFixer ? "border-amber-400/50 bg-amber-900/20 hover:bg-amber-500/10" : "border-accent/30 bg-black/20 hover:bg-accent/10")
                             : "border-accent/20 bg-black/10 opacity-50"
                         }`}
                       >
@@ -1275,7 +1277,7 @@ function Index() {
                           <div className="text-[10px] text-emerald-300">{c.bonus}</div>
                         </div>
                         <span className="text-[10px] text-accent/60">
-                          {alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل 24س" : "ممتلئ"}
+                          {isFixer ? "🛠️ إصلاح فوري" : alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل 24س" : "ممتلئ"}
                         </span>
                       </button>
                     );
