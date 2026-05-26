@@ -191,14 +191,18 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
-          // Restore fishing trip from DB if server says ship is at sea
+          // Restore fishing trip from DB if server says ship is at sea.
+          // If local state says fishing but DB says not, trust local and
+          // re-sync DB so background fishing persists across sessions.
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           if (row.at_sea && row.fishing_started_at) {
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
-          } else if (!row.at_sea) {
-            fishing = false;
+          } else if (s.fishing && s.startedAt) {
+            import("@/lib/economy").then(({ setShipAtSea }) => {
+              setShipAtSea(s.dbId!, true).catch(() => {});
+            });
           }
           return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt };
         });
@@ -445,6 +449,11 @@ function Index() {
           x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x
         )
       );
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
       sound.play("whoosh");
       return;
     }
@@ -476,6 +485,11 @@ function Index() {
       setShips((curr) =>
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
       return;
     }
     const fishGained = Math.max(1, Math.floor(baseFish * luckMult * repairMult));
@@ -494,6 +508,11 @@ function Index() {
           : x
       )
     );
+    if (s.dbId) {
+      import("@/lib/economy").then(({ setShipAtSea }) => {
+        setShipAtSea(s.dbId!, false).catch(() => {});
+      });
+    }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
       id: Date.now(),
