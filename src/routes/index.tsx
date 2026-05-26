@@ -1323,6 +1323,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
   const [tribeQ, setTribeQ] = useState("");
   const [loading, setLoading] = useState(false);
+  const [openTribeId, setOpenTribeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (tab === "search") return;
