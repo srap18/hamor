@@ -1,0 +1,40 @@
+CREATE OR REPLACE FUNCTION public.apply_ship_damage(_ship_id uuid, _damage integer)
+RETURNS TABLE(new_hp integer, destroyed boolean, repair_ends_at timestamp with time zone)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  _owner uuid;
+  _tpl int;
+  _repair_secs int;
+  _resulting_hp int;
+  _resulting_repair timestamptz;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not authenticated'; END IF;
+  SELECT s.user_id, s.template_id INTO _owner, _tpl
+    FROM public.ships_owned s WHERE s.id = _ship_id;
+  IF _owner IS NULL THEN RAISE EXCEPTION 'ship not found'; END IF;
+  IF _owner = auth.uid() THEN RAISE EXCEPTION 'cannot attack own ship'; END IF;
+
+  _tpl := COALESCE(_tpl, 1);
+  -- lvl 1 = 1800s (30min), lvl 30 ≈ 259200s (72h), capped 3 days.
+  _repair_secs := LEAST(259200, GREATEST(1800, _tpl * _tpl * 288));
+
+  UPDATE public.ships_owned AS s
+    SET hp = GREATEST(0, COALESCE(s.hp, 100) - _damage),
+        destroyed_at = CASE
+          WHEN GREATEST(0, COALESCE(s.hp, 100) - _damage) = 0 AND s.destroyed_at IS NULL
+          THEN now() ELSE s.destroyed_at END,
+        repair_ends_at = CASE
+          WHEN GREATEST(0, COALESCE(s.hp, 100) - _damage) = 0 AND s.repair_ends_at IS NULL
+          THEN now() + make_interval(secs => _repair_secs) ELSE s.repair_ends_at END
+  WHERE s.id = _ship_id
+  RETURNING s.hp, s.repair_ends_at INTO _resulting_hp, _resulting_repair;
+
+  new_hp := _resulting_hp;
+  destroyed := _resulting_hp = 0;
+  repair_ends_at := _resulting_repair;
+  RETURN NEXT;
+END;
+$function$;
