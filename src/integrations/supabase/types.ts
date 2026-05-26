@@ -1640,24 +1640,46 @@ export type Database = {
         }
         Returns: string
       }
-      buy_with_coins: {
-        Args: {
-          _coins_cost: number
-          _item_id: string
-          _item_type: string
-          _meta?: Json
-        }
-        Returns: undefined
-      }
-      buy_with_gems: {
-        Args: {
-          _gems_cost: number
-          _item_id: string
-          _item_type: string
-          _meta?: Json
-        }
-        Returns: undefined
-      }
+      buy_with_coins:
+        | {
+            Args: {
+              _coins_cost: number
+              _item_id: string
+              _item_type: string
+              _meta?: Json
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _coins_cost: number
+              _count?: number
+              _item_id: string
+              _item_type: string
+              _meta?: Json
+            }
+            Returns: undefined
+          }
+      buy_with_gems:
+        | {
+            Args: {
+              _gems_cost: number
+              _item_id: string
+              _item_type: string
+              _meta?: Json
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _count?: number
+              _gems_cost: number
+              _item_id: string
+              _item_type: string
+              _meta?: Json
+            }
+            Returns: undefined
+          }
       cancel_steal_mission: {
         Args: { _attacker_ship_id: string }
         Returns: {
