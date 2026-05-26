@@ -398,6 +398,56 @@ function Index() {
   }, []);
   const scene = bgById(bgId);
 
+  // Incoming raids: ships from other players currently stealing from me
+  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string };
+  const [raids, setRaids] = useState<Raid[]>([]);
+  const reloadRaids = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    const uid = userData.user?.id;
+    if (!uid) { setRaids([]); return; }
+    const { data: ships } = await supabase
+      .from("ships_owned")
+      .select("id,user_id,stealing_ends_at")
+      .eq("stealing_target_user_id", uid)
+      .not("stealing_target_user_id", "is", null);
+    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null }[];
+    if (list.length === 0) { setRaids([]); return; }
+    const ids = Array.from(new Set(list.map((s) => s.user_id)));
+    const { data: profs } = await supabase
+      .from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
+    const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    setRaids(list.map((s) => ({
+      ship_id: s.id,
+      attacker_id: s.user_id,
+      attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
+      attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
+      ends_at: s.stealing_ends_at || new Date().toISOString(),
+    })));
+  };
+  useEffect(() => {
+    reloadRaids();
+    let uid: string | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      uid = data.user?.id ?? null;
+      if (!uid) return;
+      channel = supabase
+        .channel(`raids-${uid}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned" }, () => reloadRaids())
+        .subscribe();
+    })();
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, []);
+  const catchThief = async (shipId: string) => {
+    const { error } = await (supabase as any).rpc("catch_thief", { _attacker_ship_id: shipId });
+    if (error) { showToast("تعذّر القبض"); return; }
+    sound.play("success");
+    showToast("🚔 قبضت على اللص! ممنوع من السرقة ساعة");
+    reloadRaids();
+  };
+
+
 
   // Progress + sail animation ticker — strictly time-proportional.
   useEffect(() => {
@@ -576,6 +626,34 @@ function Index() {
             "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)",
         }}
       />
+
+      {/* Incoming raids — pirates stealing from me */}
+      {raids.length > 0 && (
+        <div className="absolute top-20 left-2 right-2 z-30 flex flex-col gap-2 pointer-events-none">
+          {raids.map((r) => {
+            const secsLeft = Math.max(0, Math.ceil((new Date(r.ends_at).getTime() - now) / 1000));
+            return (
+              <div key={r.ship_id}
+                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/85 border-2 border-rose-500/70 backdrop-blur-sm shadow-lg animate-pulse">
+                <span className="text-2xl">🏴‍☠️</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-rose-100 text-xs font-bold truncate">
+                    {r.attacker_emoji} {r.attacker_name} يسرق منك!
+                  </div>
+                  <div className="text-rose-300/80 text-[10px]">
+                    ينتهي خلال {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                  </div>
+                </div>
+                <button
+                  onClick={() => catchThief(r.ship_id)}
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 text-xs font-extrabold active:scale-95"
+                >🚔 قبض</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
 
 
       {/* Clickable building hotspots */}

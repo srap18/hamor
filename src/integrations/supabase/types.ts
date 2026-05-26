@@ -750,6 +750,7 @@ export type Database = {
           protection_until: string | null
           rubies: number
           selected_bg_id: string
+          steal_blocked_until: string | null
           tribe_id: string | null
           xp: number
         }
@@ -768,6 +769,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          steal_blocked_until?: string | null
           tribe_id?: string | null
           xp?: number
         }
@@ -786,6 +788,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          steal_blocked_until?: string | null
           tribe_id?: string | null
           xp?: number
         }
@@ -1663,6 +1666,12 @@ export type Database = {
           _xp_gain: number
         }
         Returns: undefined
+      }
+      catch_thief: {
+        Args: { _attacker_ship_id: string }
+        Returns: {
+          blocked_until: string
+        }[]
       }
       claim_daily_login: {
         Args: never

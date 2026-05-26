@@ -294,6 +294,12 @@ function PlayerPage() {
     if (missionErr) {
       const msg = missionErr.message || "";
       if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
+      else if (msg.includes("blocked")) {
+        const m = msg.match(/until ([\d\-:.+T ]+)/);
+        const until = m ? new Date(m[1]) : null;
+        const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
+        flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
+      }
       else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
       else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
