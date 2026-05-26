@@ -17,6 +17,8 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
+import { Landing } from "@/components/Landing";
+
 
 
 
@@ -27,18 +29,28 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Ocean Catch — محاكي صيد البحر" },
-      { name: "description", content: "محاكي صيد بحري بأسطول من السفن وإدارة الموارد" },
+      { name: "description", content: "محاكي صيد بحري عربي: ابنِ أسطولك، وظّف الطاقم، واصطد أنواع نادرة من الأسماك." },
     ],
   }),
 });
 
 function GuardedIndex() {
+  const { session, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-stone-950 text-amber-200">
+        <div className="animate-pulse text-lg">جاري التحميل...</div>
+      </div>
+    );
+  }
+  if (!session) return <Landing />;
   return (
     <AuthGuard>
       <Index />
     </AuthGuard>
   );
 }
+
 
 interface Ship {
   id: number;
