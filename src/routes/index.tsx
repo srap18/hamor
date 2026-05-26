@@ -71,6 +71,8 @@ interface Ship {
   maxHp?: number;
   destroyedAt?: string | null;
   repairEndsAt?: string | null;
+  stealingEndsAt?: string | null;
+  stealingTargetUserId?: string | null;
 }
 
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
@@ -186,10 +188,10 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at")
+      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
       .eq("user_id", uid)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -208,7 +210,12 @@ function Index() {
           // re-sync DB so background fishing persists across sessions.
           let fishing = s.fishing;
           let startedAt = s.startedAt;
-          if (row.at_sea && row.fishing_started_at) {
+          const onSteal = !!row.stealing_target_user_id;
+          if (onSteal) {
+            // Stealing mission: ship is sailing (at sea) but not fishing
+            fishing = false;
+            startedAt = undefined;
+          } else if (row.at_sea && row.fishing_started_at) {
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing && s.startedAt) {
@@ -216,7 +223,7 @@ function Index() {
               setShipAtSea(s.dbId!, true).catch(() => {});
             });
           }
-          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt };
+          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -235,7 +242,8 @@ function Index() {
         const slot = SLOTS[slotIdx];
         const maxProg = 35000 + (lvl - 1) * 9000;
         const duration = Math.round(maxProg / 30);
-        const isFishing = !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        const onSteal = !!dbShip.stealing_target_user_id;
+        const isFishing = !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
           id: nextId,
@@ -250,12 +258,14 @@ function Index() {
           top: slot.top,
           dockLeft: slot.dockLeft,
           fishing: isFishing,
-          sail: isFishing ? 1 : 0,
+          sail: isFishing || onSteal ? 1 : 0,
           startedAt,
           hp: dbShip.hp ?? undefined,
           maxHp: dbShip.max_hp ?? undefined,
           destroyedAt: dbShip.destroyed_at,
           repairEndsAt: dbShip.repair_ends_at,
+          stealingEndsAt: dbShip.stealing_ends_at,
+          stealingTargetUserId: dbShip.stealing_target_user_id,
         });
       }
       const next = [...keptDb, ...newShips];
@@ -750,41 +760,73 @@ function Index() {
         const s = ships.find((x) => x.id === menuShipId);
         if (!s) return null;
         const ready = s.progress >= s.max;
+        const onSteal = !!s.stealingTargetUserId;
+        const stealEnd = s.stealingEndsAt ? new Date(s.stealingEndsAt).getTime() : 0;
+        const stealReady = onSteal && stealEnd > 0 && Date.now() >= stealEnd;
+        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - Date.now()) / 1000)) : 0;
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
             onClick={() => setMenuShipId(null)}
           >
             <div
-              className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex gap-3"
+              className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex flex-col gap-3"
               onClick={(e) => e.stopPropagation()}
             >
-              <ActionBtn
-                emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
-                label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
-                onClick={(e: React.MouseEvent) => {
-                  setMenuShipId(null);
-                  collect(s.id, e);
-                }}
-              />
-              <ActionBtn
-                emoji="👥"
-                label="طاقم"
-                onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
-              />
-              <ActionBtn
-                emoji="💰"
-                label="بيع"
-                onClick={() => {
-                  setMenuShipId(null);
-                  if (ships.length <= MIN_FLEET) {
-                    showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                    return;
-                  }
-                  setModal({ kind: "sell", shipId: s.id });
-                }}
-              />
-
+              {onSteal && (
+                <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/60 border border-rose-500/50">
+                  <div className="text-2xl">🏴‍☠️</div>
+                  <div className="text-rose-200 font-bold text-sm">السفينة في مهمة سرقة</div>
+                  {stealReady ? (
+                    <button
+                      className="px-4 py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 text-xs font-bold active:scale-95"
+                      onClick={async () => {
+                        setMenuShipId(null);
+                        if (!s.dbId) return;
+                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+                        if (error) { showToast("تعذّر استلام الغنيمة"); return; }
+                        const row = Array.isArray(data) && data[0] ? data[0] : null;
+                        const n = row?.stolen_count ?? 0;
+                        const v = row?.total_value ?? 0;
+                        sound.play(n > 0 ? "catch" : "click");
+                        showToast(n > 0 ? `🐟 سرقت ${n} سمكة (قيمتها ${v})` : "السفينة رجعت فاضية 🪶");
+                        syncFleetFromDb();
+                      }}
+                    >🏴‍☠️ استلم الغنيمة</button>
+                  ) : (
+                    <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                  )}
+                </div>
+              )}
+              {!onSteal && (
+                <div className="flex gap-3">
+                  <ActionBtn
+                    emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
+                    label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
+                    onClick={(e: React.MouseEvent) => {
+                      setMenuShipId(null);
+                      collect(s.id, e);
+                    }}
+                  />
+                  <ActionBtn
+                    emoji="👥"
+                    label="طاقم"
+                    onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                  />
+                  <ActionBtn
+                    emoji="💰"
+                    label="بيع"
+                    onClick={() => {
+                      setMenuShipId(null);
+                      if (ships.length <= MIN_FLEET) {
+                        showToast("لا يمكن بيع آخر سفينة في الأسطول");
+                        return;
+                      }
+                      setModal({ kind: "sell", shipId: s.id });
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         );

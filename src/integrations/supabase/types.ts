@@ -1000,6 +1000,9 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           repair_ends_at: string | null
+          stealing_ends_at: string | null
+          stealing_target_ship_id: string | null
+          stealing_target_user_id: string | null
           template_id: number
           user_id: string
         }
@@ -1014,6 +1017,9 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           repair_ends_at?: string | null
+          stealing_ends_at?: string | null
+          stealing_target_ship_id?: string | null
+          stealing_target_user_id?: string | null
           template_id: number
           user_id: string
         }
@@ -1028,6 +1034,9 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           repair_ends_at?: string | null
+          stealing_ends_at?: string | null
+          stealing_target_ship_id?: string | null
+          stealing_target_user_id?: string | null
           template_id?: number
           user_id?: string
         }
@@ -1668,6 +1677,13 @@ export type Database = {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
       }
+      claim_steal_mission: {
+        Args: { _attacker_ship_id: string }
+        Returns: {
+          stolen_count: number
+          total_value: number
+        }[]
+      }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
@@ -1688,6 +1704,9 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           repair_ends_at: string | null
+          stealing_ends_at: string | null
+          stealing_target_ship_id: string | null
+          stealing_target_user_id: string | null
           template_id: number
           user_id: string
         }[]
@@ -1814,6 +1833,16 @@ export type Database = {
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string
+      }
+      start_steal_mission: {
+        Args: {
+          _attacker_ship_id: string
+          _target_ship_id: string
+          _target_user_id: string
+        }
+        Returns: {
+          ends_at: string
+        }[]
       }
       steal_fish:
         | {

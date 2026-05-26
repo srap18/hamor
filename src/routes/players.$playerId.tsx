@@ -20,7 +20,7 @@ type Profile = {
   level: number; xp: number; coins: number; gems: number; online_at: string;
   selected_bg_id?: string | null;
 };
-type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null };
+type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
 
 function PlayerPage() {
@@ -51,7 +51,7 @@ function PlayerPage() {
     setSelectedShip(s); setMode("menu");
     if (!me) return;
     const [{ data: ms }, { data: iv }] = await Promise.all([
-      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp").eq("user_id", me),
+      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id").eq("user_id", me),
       supabase.from("inventory").select("item_id,item_type,quantity").eq("user_id", me),
     ]);
     setMyShips((ms as Ship[]) || []);
@@ -285,25 +285,25 @@ function PlayerPage() {
     if (!me || !selectedShip) return;
     setBusy(true); sound.play("click");
     await playProjectile(selectedShip.id, "🏴‍☠️", true);
-    // Actually transfer fish from defender to attacker via RPC
-    const { data: stealRes, error: stealErr } = await (supabase as any).rpc("steal_fish", {
-      _defender_id: playerId, _max_count: 5,
-      _attacker_ship_id: myShipId, _target_ship_id: selectedShip.id,
+    // Start a timed steal mission — ship sails to enemy waters and returns later
+    const { data: missionRes, error: missionErr } = await (supabase as any).rpc("start_steal_mission", {
+      _attacker_ship_id: myShipId,
+      _target_user_id: playerId,
+      _target_ship_id: selectedShip.id,
     });
-    const row = Array.isArray(stealRes) && stealRes[0] ? stealRes[0] : null;
-    const stolenCount = row?.stolen_count ?? 0;
-    const totalValue = row?.total_value ?? 0;
-    await (supabase as any).rpc("record_attack", {
-      _defender_id: playerId, _target_ship_id: selectedShip.id,
-      _damage: 0, _damage_dealt: 0, _attacker_won: stolenCount > 0,
-    });
-    if (stealErr) {
-      const msg = stealErr.message || "";
+    if (missionErr) {
+      const msg = missionErr.message || "";
       if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
-      else flash("تعذّرت السرقة");
+      else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
+      else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
+      else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
+      else flash("تعذّر إطلاق المهمة");
+    } else {
+      const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
+      const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
+      sound.play("success");
+      flash(`🏴‍☠️ سفينتك انطلقت — ترجع بعد ${Math.ceil(secs / 60)} دقيقة`);
     }
-    else if (stolenCount > 0) { sound.play("success"); flash(`🐟 سرقت ${stolenCount} سمكة (قيمتها ${totalValue})`); }
-    else flash("ما عنده سمك تسرقه 🐟");
     setBusy(false); closeMenu();
   };
 
@@ -550,13 +550,18 @@ function PlayerPage() {
                 {myShips.length === 0 && <div className="text-amber-300/60 text-xs text-center py-3">ما عندك سفن</div>}
                 {myShips.map((ms) => {
                   const img = ms.catalog_code ? getShipByCode(ms.catalog_code).image : getShipByMarketLevel(ms.template_id || 1).image;
+                  const isDestroyed = !!ms.destroyed_at;
+                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
+                  const onMission = !!ms.stealing_target_user_id;
+                  const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
+                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ في مهمة" : ms.at_sea ? "⚓ بالبحر" : null;
                   return (
-                    <button key={ms.id} disabled={busy} onClick={() => stealWithShip(ms.id)}
+                    <button key={ms.id} disabled={busy || isBusy} onClick={() => stealWithShip(ms.id)}
                       className="flex items-center gap-3 p-2 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right disabled:opacity-40">
                       <img src={img} alt="" className="w-14 h-14 object-contain" />
                       <div className="flex-1 min-w-0">
                         <div className="text-amber-200 font-bold text-sm">سفينة مستوى {ms.template_id}</div>
-                        <div className="text-[10px] text-amber-300/70">❤️ {ms.hp ?? "-"}/{ms.max_hp ?? "-"}</div>
+                        <div className="text-[10px] text-amber-300/70">❤️ {ms.hp ?? "-"}/{ms.max_hp ?? "-"} {label && <span className="ms-1 text-rose-300">{label}</span>}</div>
                       </div>
                       <span className="text-2xl">🏴‍☠️</span>
                     </button>
