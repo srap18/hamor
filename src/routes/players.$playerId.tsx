@@ -36,7 +36,7 @@ function PlayerPage() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
-  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; owner_name: string; owner_emoji: string }[]>([]);
+  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; owner_name: string; owner_emoji: string }[]>([]);
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
