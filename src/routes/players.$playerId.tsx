@@ -905,8 +905,7 @@ function PlayerPage() {
               );
             })()}
 
-              );
-            })()}
+
 
           </div>
         </div>
