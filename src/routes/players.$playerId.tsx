@@ -210,6 +210,13 @@ function PlayerPage() {
     return () => { supabase.removeChannel(channel); window.clearInterval(poll); };
   }, [playerId]);
 
+  // Live ticker for raider counters (fish stolen so far + countdown)
+  useEffect(() => {
+    if (raiders.length === 0) return;
+    const id = window.setInterval(() => setNowTs(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [raiders.length]);
+
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
