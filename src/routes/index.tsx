@@ -803,7 +803,7 @@ function Index() {
       {/* SHIPS — auto-placed inside the current background's open-water region.
           Each scene declares waterTop / waterLeft / waterRight so ships always
           sit on water and never overlap shore, docks, rocks or buildings. */}
-      {ships.map((s, i) => {
+      {ships.filter((s) => !s.stealingTargetUserId).map((s, i) => {
         const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
         const wTop = scene.waterTop ?? 45;
         const wLeft = scene.waterLeft ?? 30;
