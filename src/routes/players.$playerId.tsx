@@ -166,6 +166,11 @@ function PlayerPage() {
     })));
   };
 
+  // Live broadcast channel: every spectator in THIS harbor joins, so any action
+  // (rocket, support, repair) is mirrored to every spectator in real-time.
+  const harborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const clientIdRef = useRef<string>(Math.random().toString(36).slice(2));
+
   // Live updates: watch the visited player's ships AND any raiders attacking them
   useEffect(() => {
     if (!playerId) return;
@@ -206,10 +211,41 @@ function PlayerPage() {
         () => { loadRaiders(); }
       )
       .subscribe();
+
+    // Shared broadcast channel — every viewer of this harbor sees every action live
+    const myCid = clientIdRef.current;
+    const harborChan = supabase.channel(`harbor:${playerId}`, { config: { broadcast: { self: false } } });
+    harborChan.on("broadcast", { event: "fx" }, ({ payload }) => {
+      const d = payload as { cid: string; targetId: string; emoji: string; friendly?: boolean; weaponId?: string; toast?: string };
+      if (!d || d.cid === myCid) return;
+      playProjectile(d.targetId, d.emoji, !!d.friendly, d.weaponId);
+      if (d.toast) flash(d.toast);
+    });
+    harborChan.on("broadcast", { event: "raid" }, () => { loadRaiders(); });
+    harborChan.subscribe();
+    harborChanRef.current = harborChan;
+
     // Polling fallback so raiders always show up even if realtime is delayed/blocked
     const poll = window.setInterval(() => { loadRaiders(); }, 4000);
-    return () => { supabase.removeChannel(channel); window.clearInterval(poll); };
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(harborChan);
+      harborChanRef.current = null;
+      window.clearInterval(poll);
+    };
   }, [playerId]);
+
+  // Broadcast helpers — share an action with every spectator in this harbor
+  const broadcastFx = (data: { targetId: string; emoji: string; friendly?: boolean; weaponId?: string; toast?: string }) => {
+    const ch = harborChanRef.current;
+    if (!ch) return;
+    try { ch.send({ type: "broadcast", event: "fx", payload: { cid: clientIdRef.current, ...data } }); } catch { /* ignore */ }
+  };
+  const broadcastRaid = () => {
+    const ch = harborChanRef.current;
+    if (!ch) return;
+    try { ch.send({ type: "broadcast", event: "raid", payload: { cid: clientIdRef.current } }); } catch { /* ignore */ }
+  };
 
   // Live ticker for raider counters (fish stolen so far + countdown)
   useEffect(() => {
