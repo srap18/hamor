@@ -143,10 +143,10 @@ function PlayerPage() {
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
-      .select("id,user_id,catalog_code,template_id,stealing_ends_at")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id")
       .eq("stealing_target_user_id", playerId)
       .not("stealing_ends_at", "is", null);
-    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null }[];
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaiders([]); return; }
     const ids = Array.from(new Set(list.map((r) => r.user_id)));
     const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
