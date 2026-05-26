@@ -433,7 +433,7 @@ function Index() {
       uid = data.user?.id ?? null;
       if (!uid) return;
       channel = supabase
-        .channel(`raids-${uid}`)
+        .channel(`raids-${uid}-${Math.random().toString(36).slice(2, 8)}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned" }, () => reloadRaids())
         .subscribe();
     })();

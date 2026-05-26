@@ -36,7 +36,7 @@ function PlayerPage() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
-  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; owner_name: string; owner_emoji: string }[]>([]);
+  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; owner_name: string; owner_emoji: string }[]>([]);
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -143,10 +143,10 @@ function PlayerPage() {
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
-      .select("id,user_id,catalog_code,template_id,stealing_ends_at")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id")
       .eq("stealing_target_user_id", playerId)
       .not("stealing_ends_at", "is", null);
-    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null }[];
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaiders([]); return; }
     const ids = Array.from(new Set(list.map((r) => r.user_id)));
     const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
@@ -205,10 +205,14 @@ function PlayerPage() {
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
-    const { error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
+    const { data, error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
     if (error) { flash("تعذّر إيقاف السرقة"); return; }
     sound.play("success");
-    flash("🛑 أوقفت السرقة — سفينتك ترجع");
+    const row = Array.isArray(data) && data[0] ? data[0] : null;
+    const n = row?.stolen_count ?? 0;
+    const v = row?.total_value ?? 0;
+    if (n > 0) flash(`🛑 أوقفت السرقة — غنمت ${n} (قيمتها ${v})`);
+    else flash("🛑 أوقفت السرقة — سفينتك ترجع فاضية");
     loadRaiders();
   };
 
@@ -337,6 +341,7 @@ function PlayerPage() {
         const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
+      else if (msg.includes("not fishing")) flash("🎣 السرقة فقط من سفينة تصيد بالبحر");
       else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
       else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
@@ -479,11 +484,25 @@ function PlayerPage() {
         return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
-      {/* Raiding ships — pirates currently stealing from this player */}
+      {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
       {raiders.map((r, i) => {
         const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
-        const top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
-        const left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
+        const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
+        let top: string; let left: string;
+        if (tIdx >= 0) {
+          const t = ships[tIdx];
+          const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
+          const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
+          const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
+          const seaLeft = wLeft + seaOffsets[tIdx % seaOffsets.length] * wWidth;
+          const tLeft = t.at_sea ? seaLeft : dockLeft;
+          top = `${tTop + 2}%`;
+          // Place to the right of the target ship on screen (+10% of width)
+          left = `${Math.min(95, tLeft + 12)}%`;
+        } else {
+          top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
+          left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
+        }
         const isMine = me === r.user_id;
         return (
           <button
@@ -586,7 +605,7 @@ function PlayerPage() {
             {mode === "menu" && (
               <>
                 <button disabled={busy} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95">⚔️ هجوم</button>
-                <button disabled={busy} onClick={() => setMode("myship")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95">🗡️ سرقة</button>
+                <button disabled={busy || !selectedShip.at_sea} onClick={() => selectedShip.at_sea ? setMode("myship") : flash("🎣 السرقة فقط من سفينة تصيد بالبحر")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40">🗡️ سرقة {!selectedShip.at_sea && <span className="text-[10px] opacity-80">(لازم تكون تصيد)</span>}</button>
                 <button disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
               </>
