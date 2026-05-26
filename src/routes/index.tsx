@@ -1159,7 +1159,8 @@ function Index() {
                   {Array.from(availMap.entries()).map(([cid, qty]) => {
                     const c = CREWS.find((x) => x.id === cid);
                     if (!c) return null;
-                    const canAssign = assignedRows.length < slots;
+                    const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
+                    const canAssign = assignedRows.length < slots && !alreadyOnShip;
                     return (
                       <button
                         key={cid}
@@ -1177,7 +1178,7 @@ function Index() {
                           <div className="text-[10px] text-emerald-300">{c.bonus}</div>
                         </div>
                         <span className="text-[10px] text-accent/60">
-                          {canAssign ? "تفعيل 24س" : "ممتلئ"}
+                          {alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل 24س" : "ممتلئ"}
                         </span>
                       </button>
                     );
