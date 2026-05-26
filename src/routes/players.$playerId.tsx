@@ -475,8 +475,11 @@ function PlayerPage() {
       else flash("تعذّر إرسال الدعم");
     }
 
-    setBusy(false); closeMenu();
+    setBusy(false);
+    // Keep support panel open so the user can keep adding crews to other ships
+    if (kind !== "crew") closeMenu();
   };
+
 
   const buyAndSendCrew = async (crewId: string) => {
     if (!me || !selectedShip) return;
@@ -825,7 +828,30 @@ function PlayerPage() {
               const existingList = CREWS.filter((c) => existingIds.has(c.id) && c.id !== "trader");
               return (
                 <>
-                  <div className="text-amber-200 text-xs font-bold">أرسل طاقم دعم لسفينته (من مخزنك أو شراء):</div>
+                  <div className="text-amber-200 text-xs font-bold">اختر سفينة وأرسل لها طاقم دعم:</div>
+                  {ships.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                      {ships.map((sh, idx) => {
+                        const img = sh.catalog_code ? getShipByCode(sh.catalog_code).image : getShipByMarketLevel(sh.template_id || 1).image;
+                        const isActive = sh.id === selectedShip?.id;
+                        const shCrewCount = playerCrews.filter((c) => c.ship_id === sh.id && c.item_id !== "trader").length;
+                        return (
+                          <button
+                            key={sh.id}
+                            onClick={() => setSelectedShip(sh)}
+                            className={`relative flex flex-col items-center gap-0.5 min-w-[64px] p-1.5 rounded-xl border-2 active:scale-95 ${isActive ? "border-amber-400 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"}`}
+                          >
+                            <img src={img} alt="" className="w-12 h-12 object-contain" />
+                            <span className="text-[10px] text-amber-200 font-bold">سفينة {idx + 1}</span>
+                            {shCrewCount > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">{shCrewCount}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {existingList.length > 0 && (
                     <div className="flex items-center gap-1 flex-wrap rounded-lg bg-stone-800/60 border border-amber-700/30 px-2 py-1.5">
                       <span className="text-[10px] text-amber-300/80 ms-1">عنده على السفينة:</span>
