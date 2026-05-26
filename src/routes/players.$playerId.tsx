@@ -7,6 +7,7 @@ import { bgById } from "@/lib/backgrounds";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
+import { buyWithCoins, buyWithGems } from "@/lib/economy";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
