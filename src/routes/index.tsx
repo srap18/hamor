@@ -1033,35 +1033,59 @@ function Index() {
                   )}
                 </div>
               )}
-              {!onSteal && (
-                <div className="flex gap-3">
-                  <ActionBtn
-                    emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
-                    label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
-                    onClick={(e: React.MouseEvent) => {
-                      setMenuShipId(null);
-                      collect(s.id, e);
-                    }}
-                  />
-                  <ActionBtn
-                    emoji="👥"
-                    label="طاقم"
-                    onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
-                  />
-                  <ActionBtn
-                    emoji="💰"
-                    label="بيع"
-                    onClick={() => {
-                      setMenuShipId(null);
-                      if (ships.length <= MIN_FLEET) {
-                        showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                        return;
-                      }
-                      setModal({ kind: "sell", shipId: s.id });
-                    }}
-                  />
-                </div>
-              )}
+              {!onSteal && (() => {
+                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > Date.now();
+                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - Date.now()) / 1000)) : 0;
+                const h = Math.floor(remSec / 3600);
+                const m = Math.floor((remSec % 3600) / 60);
+                const sec = remSec % 60;
+                const remStr = h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}د ${sec}ث` : `${sec}ث`;
+                if (dead) {
+                  return (
+                    <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-stone-900/70 border border-rose-500/50">
+                      <div className="text-3xl">💥</div>
+                      <div className="text-rose-200 font-bold text-sm">السفينة مدمّرة</div>
+                      <div className="text-rose-300/90 text-xs">⏳ الإصلاح ينتهي خلال {remStr}</div>
+                      <div className="flex gap-3 mt-1">
+                        <ActionBtn
+                          emoji="👥"
+                          label="طاقم/إصلاح"
+                          onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="flex gap-3">
+                    <ActionBtn
+                      emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
+                      label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
+                      onClick={(e: React.MouseEvent) => {
+                        setMenuShipId(null);
+                        collect(s.id, e);
+                      }}
+                    />
+                    <ActionBtn
+                      emoji="👥"
+                      label="طاقم"
+                      onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                    />
+                    <ActionBtn
+                      emoji="💰"
+                      label="بيع"
+                      onClick={() => {
+                        setMenuShipId(null);
+                        if (ships.length <= MIN_FLEET) {
+                          showToast("لا يمكن بيع آخر سفينة في الأسطول");
+                          return;
+                        }
+                        setModal({ kind: "sell", shipId: s.id });
+                      }}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
