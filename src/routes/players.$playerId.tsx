@@ -340,12 +340,12 @@ function PlayerPage() {
       else if (msg.includes("busy")) flash("⚓ السفينة مشغولة بالبحر");
       else if (msg.includes("repair")) flash("🛠️ السفينة تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
-      else flash("تعذّر إطلاق المهمة");
+      else flash("تعذّر بدء السرقة");
     } else {
       const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
       sound.play("success");
-      flash(`🏴‍☠️ سفينتك انطلقت — ترجع بعد ${Math.ceil(secs / 60)} دقيقة`);
+      flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
     }
     setBusy(false); closeMenu();
   };
