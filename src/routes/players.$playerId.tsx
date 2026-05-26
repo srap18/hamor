@@ -239,13 +239,12 @@ function PlayerPage() {
       .subscribe();
 
     // Backstop: poll every 4s + refresh on tab visibility/focus so visitors
-    // always see the live state even if a realtime event is missed.
-    const poll = setInterval(() => { reloadShipsRef.current(); loadRaiders(); }, 4000);
+    // always see live state even if a realtime event is missed.
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); }, 4000);
     const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
     const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onFocus);
-
 
     // Shared broadcast channel — every viewer of this harbor sees every action live
     const myCid = clientIdRef.current;
@@ -260,15 +259,16 @@ function PlayerPage() {
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
-    // Polling fallback so raiders always show up even if realtime is delayed/blocked
-    const poll = window.setInterval(() => { loadRaiders(); }, 4000);
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(harborChan);
       harborChanRef.current = null;
       window.clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
     };
   }, [playerId]);
+
 
   // Broadcast helpers — share an action with every spectator in this harbor
   const broadcastFx = (data: { targetId: string; emoji: string; friendly?: boolean; weaponId?: string; toast?: string }) => {
