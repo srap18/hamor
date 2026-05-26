@@ -331,6 +331,7 @@ function FishMarket() {
       {sel && (
         <SellView
           fish={sel}
+          userId={user?.id ?? "anon"}
           onBack={() => setSelected(null)}
           onSell={sell}
         />
