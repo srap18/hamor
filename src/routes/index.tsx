@@ -191,14 +191,18 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
-          // Restore fishing trip from DB if server says ship is at sea
+          // Restore fishing trip from DB if server says ship is at sea.
+          // If local state says fishing but DB says not, trust local and
+          // re-sync DB so background fishing persists across sessions.
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           if (row.at_sea && row.fishing_started_at) {
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
-          } else if (!row.at_sea) {
-            fishing = false;
+          } else if (s.fishing && s.startedAt) {
+            import("@/lib/economy").then(({ setShipAtSea }) => {
+              setShipAtSea(s.dbId!, true).catch(() => {});
+            });
           }
           return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt };
         });
