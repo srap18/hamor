@@ -1337,11 +1337,20 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         </div>
       )}
 
+      {/* Flip wrapper: animates the bow turning in place (longer transition). */}
+      <div
+        className="relative w-full"
+        style={{
+          transform: `scaleX(${flipX})`,
+          transformOrigin: "center center",
+          transition: "transform 0.7s ease-in-out",
+        }}
+      >
       {/* 3D ship body */}
       <div
         className="relative w-full"
         style={{
-          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg) scaleX(${flipX})`,
+          transform: `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.2s ease-out",
