@@ -415,6 +415,7 @@ function PlayerPage() {
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
       loadRaiders();
+      broadcastRaid();
     }
     setBusy(false); closeMenu();
   };
