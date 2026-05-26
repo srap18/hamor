@@ -1462,7 +1462,7 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
   );
 }
 
-function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; active?: boolean }) {
+function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
