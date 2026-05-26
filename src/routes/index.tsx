@@ -1436,15 +1436,16 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
             ) : tribesFiltered.map((t, i) => (
-              <div key={t.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30">
+              <button key={t.id} onClick={() => { sound.play("click"); setOpenTribeId(t.id); }}
+                className="w-full text-right flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
                 <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-800 flex items-center justify-center text-lg">{t.emblem}</div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-800 flex items-center justify-center text-lg">{t.banner || t.emblem}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-accent truncate">{t.name}</div>
-                  <div className="text-[10px] text-accent/70">👥 {t.members} عضو</div>
+                  <div className="text-sm font-bold text-accent truncate">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
+                  <div className="text-[10px] text-accent/70">👥 {t.members} عضو • انقر للتفاصيل</div>
                 </div>
                 <div className="text-xs font-bold text-accent tabular-nums">⚡ {t.power.toLocaleString()}</div>
-              </div>
+              </button>
             ))
           ) : rows.length === 0 ? (
             <div className="text-center text-accent/60 py-6 text-sm">
