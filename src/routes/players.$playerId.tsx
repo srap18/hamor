@@ -550,13 +550,18 @@ function PlayerPage() {
                 {myShips.length === 0 && <div className="text-amber-300/60 text-xs text-center py-3">ما عندك سفن</div>}
                 {myShips.map((ms) => {
                   const img = ms.catalog_code ? getShipByCode(ms.catalog_code).image : getShipByMarketLevel(ms.template_id || 1).image;
+                  const isDestroyed = !!ms.destroyed_at;
+                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
+                  const onMission = !!ms.stealing_target_user_id;
+                  const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
+                  const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ في مهمة" : ms.at_sea ? "⚓ بالبحر" : null;
                   return (
-                    <button key={ms.id} disabled={busy} onClick={() => stealWithShip(ms.id)}
+                    <button key={ms.id} disabled={busy || isBusy} onClick={() => stealWithShip(ms.id)}
                       className="flex items-center gap-3 p-2 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right disabled:opacity-40">
                       <img src={img} alt="" className="w-14 h-14 object-contain" />
                       <div className="flex-1 min-w-0">
                         <div className="text-amber-200 font-bold text-sm">سفينة مستوى {ms.template_id}</div>
-                        <div className="text-[10px] text-amber-300/70">❤️ {ms.hp ?? "-"}/{ms.max_hp ?? "-"}</div>
+                        <div className="text-[10px] text-amber-300/70">❤️ {ms.hp ?? "-"}/{ms.max_hp ?? "-"} {label && <span className="ms-1 text-rose-300">{label}</span>}</div>
                       </div>
                       <span className="text-2xl">🏴‍☠️</span>
                     </button>
