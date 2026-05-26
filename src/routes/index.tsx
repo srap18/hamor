@@ -1076,9 +1076,9 @@ function Index() {
         const s = ships.find((x) => x.id === modal.shipId);
         if (!s) return null;
         const slots = Math.min(3, Math.floor(s.level / 5) + 1); // lvl1-4:1, 5-9:2, 10+:3
-        const assignedRows = crewRows.filter((r) => r.meta?.assigned_ship_id === s.id);
+        const assignedRows = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
         // available = rows not assigned to any ship (or assigned-but-expired already purged)
-        const availableRows = crewRows.filter((r) => !r.meta?.assigned_ship_id);
+        const availableRows = crewRows.filter((r) => r.meta?.assigned_ship_id == null);
         // group available by item_id with total qty
         const availMap = new Map<string, number>();
         availableRows.forEach((r) => availMap.set(r.item_id, (availMap.get(r.item_id) ?? 0) + r.quantity));
