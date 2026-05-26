@@ -451,6 +451,8 @@ function PlayerPage() {
       if (kind === "crew") {
         setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
       }
+      // Refresh crew assignments so the new crew shows on the ship immediately
+      if (kind === "crew") loadPlayerCrews();
       // Refresh visited ships so the repaired ship shows full HP immediately
       const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
       if (kind === "repair" || isFixerCrew) {
