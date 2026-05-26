@@ -167,6 +167,18 @@ function PlayerPage() {
     })));
   };
 
+  // Load crews currently assigned to this player's ships (visible to all visitors)
+  const loadPlayerCrews = async () => {
+    const { data } = await (supabase as any).rpc("get_player_crews", { _player_id: playerId });
+    setPlayerCrews((data ?? []) as { item_id: string; ship_id: string }[]);
+  };
+  useEffect(() => {
+    if (!playerId) return;
+    loadPlayerCrews();
+    const t = setInterval(loadPlayerCrews, 8000);
+    return () => clearInterval(t);
+  }, [playerId]);
+
   // Live broadcast channel: every spectator in THIS harbor joins, so any action
   // (rocket, support, repair) is mirrored to every spectator in real-time.
   const harborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
