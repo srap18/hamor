@@ -324,6 +324,18 @@ function FishMarket() {
 
 /* ───────────────── Storage view ───────────────── */
 
+function formatDur(sec: number): string {
+  const s = Math.max(0, Math.floor(sec));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    return `${h}س ${m % 60}د`;
+  }
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
+
 function StorageView({
   fish,
   capUsed,
