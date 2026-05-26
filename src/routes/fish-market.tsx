@@ -281,6 +281,13 @@ function FishMarket() {
           capUsed={capUsed}
           capMax={capMax}
           lvl={lvl}
+          upgradingTo={upgradingTo}
+          secondsLeft={secondsLeft}
+          upPreview={upPreview}
+          accelCost={accelCost}
+          upBusy={upBusy}
+          onUpgrade={startFishUpgrade}
+          onBoost={finishFishUpgrade}
           onPick={setSelected}
         />
       )}
@@ -296,6 +303,12 @@ function FishMarket() {
 
       {/* Bottom nav */}
       <BottomNav />
+
+      {upToast && (
+        <div className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-xl border border-accent/30 bg-card px-4 py-3 text-sm font-bold text-foreground shadow-2xl">
+          {upToast}
+        </div>
+      )}
 
       {/* Floating earn popup */}
       {pop && (
