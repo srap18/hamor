@@ -1329,7 +1329,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (tab === "tribes") {
       setLoading(true);
       (async () => {
-        const { data: ts } = await supabase.from("tribes").select("id,name,emblem").limit(200);
+        const { data: ts } = await supabase.from("tribes").select("id,name,emblem,banner,level").limit(200);
         if (!ts || ts.length === 0) { setTribes([]); setLoading(false); return; }
         const ids = ts.map((t: any) => t.id);
         const { data: mems } = await supabase.from("tribe_members").select("tribe_id,user_id").in("tribe_id", ids);
@@ -1347,8 +1347,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         }
         const list: TribeLb[] = (ts as any[]).map(t => {
           const uids = byTribe.get(t.id) || [];
-          const power = uids.reduce((s, u) => s + (powerMap.get(u) || 0), 0);
-          return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power };
+          const memberPower = uids.reduce((s, u) => s + (powerMap.get(u) || 0), 0);
+          const lvlBonus = ((t.level || 1) - 1) * 500;
+          const power = memberPower + lvlBonus;
+          return { id: t.id, name: t.name, emblem: t.emblem, banner: t.banner, level: t.level || 1, members: uids.length, power };
         }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
         setTribes(list);
         setLoading(false);
