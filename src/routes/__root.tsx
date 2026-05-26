@@ -7,10 +7,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
-
 
 import appCss from "../styles.css?url";
 
@@ -120,50 +118,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => {
-    // Block right-click context menu globally
-    const onContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-    // Block drag (prevents dragging images / links which exposes URLs)
-    const onDragStart = (e: DragEvent) => {
-      e.preventDefault();
-      return false;
-    };
-    // Block selection start to reduce long-press tooltip on touch
-    const onSelectStart = (e: Event) => {
-      const target = e.target as HTMLElement | null;
-      // Allow selection only in editable fields
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-        return;
-      }
-      e.preventDefault();
-    };
-    // Block DevTools shortcuts: F12, Ctrl+Shift+I/J/C, Ctrl+U (view source)
-    const onKeyDown = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      if (e.key === "F12") { e.preventDefault(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (k === "i" || k === "j" || k === "c")) {
-        e.preventDefault();
-      }
-      if ((e.ctrlKey || e.metaKey) && k === "u") {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener("contextmenu", onContextMenu);
-    document.addEventListener("dragstart", onDragStart);
-    document.addEventListener("selectstart", onSelectStart);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("contextmenu", onContextMenu);
-      document.removeEventListener("dragstart", onDragStart);
-      document.removeEventListener("selectstart", onSelectStart);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <GlobalBanner />
@@ -172,5 +126,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-
 
