@@ -163,7 +163,7 @@ function PlayerPage() {
     if (!playerId) return;
     loadRaiders();
     const channel = supabase
-      .channel(`ships-watch:${playerId}`)
+      .channel(`ships-watch:${playerId}:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${playerId}` },
@@ -181,7 +181,6 @@ function PlayerPage() {
             const r = payload.new as Ship;
             return arr.map((x) => (x.id === r.id ? { ...x, ...r } : x));
           });
-          // keep open modal in sync if it's the same ship
           setSelectedShip((cur) => {
             if (!cur) return cur;
             if (payload.eventType === "DELETE") {
@@ -199,7 +198,9 @@ function PlayerPage() {
         () => { loadRaiders(); }
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Polling fallback so raiders always show up even if realtime is delayed/blocked
+    const poll = window.setInterval(() => { loadRaiders(); }, 4000);
+    return () => { supabase.removeChannel(channel); window.clearInterval(poll); };
   }, [playerId]);
 
   const stopRaid = async (shipId: string) => {
@@ -346,6 +347,7 @@ function PlayerPage() {
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
       else if (msg.includes("not fishing")) flash("🎣 لازم سفينة الخصم تكون تصيد فعلاً");
+      else if (msg.includes("caught by police")) { sound.play("explosion"); flash("👮 قبض عليك الشرطي! ممنوع من السرقة ساعة"); }
       else if (msg.includes("busy")) flash("⚓ سفينتك مشغولة — اختر سفينة بالميناء");
       else if (msg.includes("repair")) flash("🛠️ سفينتك تحت الإصلاح");
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
