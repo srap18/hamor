@@ -950,7 +950,8 @@ function Index() {
         const shipCrews = crewRows
           .filter((r) => isCrewAssignedToShip(r.meta, s))
           .map((r) => CREWS.find((c) => c.id === r.item_id))
-          .filter(Boolean) as typeof CREWS;
+          .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
+
 
         return (
           <ShipSlot
