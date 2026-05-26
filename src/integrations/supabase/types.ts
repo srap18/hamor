@@ -695,6 +695,45 @@ export type Database = {
         }
         Relationships: []
       }
+      paddle_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          environment: string
+          granted: boolean
+          granted_at: string | null
+          id: string
+          pack_id: string
+          paddle_transaction_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          environment?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          pack_id: string
+          paddle_transaction_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          environment?: string
+          granted?: boolean
+          granted_at?: string | null
+          id?: string
+          pack_id?: string
+          paddle_transaction_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_emoji: string
@@ -1041,6 +1080,54 @@ export type Database = {
           pack_id?: string
           status?: string
           stripe_session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id: string
+          paddle_subscription_id: string
+          price_id: string
+          product_id: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          paddle_customer_id?: string
+          paddle_subscription_id?: string
+          price_id?: string
+          product_id?: string
+          status?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1626,6 +1713,21 @@ export type Database = {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
       }
+      grant_paddle_purchase: {
+        Args: {
+          _amount_cents: number
+          _coins: number
+          _env: string
+          _gems: number
+          _pack_id: string
+          _rubies: number
+          _shield_days: number
+          _txn_id: string
+          _user: string
+          _vip_days: number
+        }
+        Returns: Json
+      }
       grant_stripe_purchase: {
         Args: {
           _amount_cents: number
@@ -1697,6 +1799,7 @@ export type Database = {
         Args: { _gems_cost: number; _ship_id: string }
         Returns: undefined
       }
+      revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
       sell_ship: {
         Args: { _refund_coins: number; _ship_id: string }
