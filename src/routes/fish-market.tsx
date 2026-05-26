@@ -78,6 +78,19 @@ function FishMarket() {
   const rubies = profile?.rubies ?? 0;
   const [selected, setSelected] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
+  const [lvl, setLvl] = useState<number>(1);
+
+  // Load market level from user_market
+  useEffect(() => {
+    if (!user) { setLvl(1); return; }
+    supabase
+      .from("user_market")
+      .select("level")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setLvl(data?.level ?? 1));
+  }, [user?.id]);
+
 
   // Load owned fish quantities from DB (only fish the player actually has)
   const loadFish = async () => {
@@ -126,7 +139,7 @@ function FishMarket() {
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
   const capMax = 500000;
-  const lvl = 11;
+  
 
   const sel = fish.find((f) => f.id === selected) || null;
 
