@@ -935,7 +935,7 @@ function Index() {
 
 
         const shipCrews = crewRows
-          .filter((r) => r.meta?.assigned_ship_id === s.id)
+          .filter((r) => isCrewAssignedToShip(r.meta, s))
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter(Boolean) as typeof CREWS;
 
