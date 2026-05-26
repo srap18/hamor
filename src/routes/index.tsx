@@ -1579,6 +1579,41 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         </div>
       )}
 
+      {/* Crew characters standing on the ship deck */}
+      {crews.length > 0 && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20 flex items-end justify-center gap-1"
+          style={{ top: "-18%", width: "120%", height: "40%" }}
+        >
+          {crews.map((c, i) => (
+            <div
+              key={c.id}
+              className="relative animate-crew-bob"
+              style={{
+                width: "28%",
+                animationDelay: `${i * 0.25}s`,
+                filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.6))",
+              }}
+              title={c.name}
+            >
+              {c.image ? (
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  className="w-full h-auto object-contain"
+                  draggable={false}
+                />
+              ) : (
+                <div className="w-full text-center text-2xl">{c.emoji}</div>
+              )}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-amber-100 bg-black/70 px-1 rounded whitespace-nowrap">
+                {c.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Flip wrapper: animates the bow turning in place (longer transition). */}
       <div
         className="relative w-full"
