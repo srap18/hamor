@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 // All currency / inventory / ship / quest mutations MUST go through these
 // to prevent client-side cheating.
 
-export async function buyWithGems(itemId: string, itemType: string, gemsCost: number, meta?: unknown) {
-  return supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never });
+export async function buyWithGems(itemId: string, itemType: string, gemsCost: number, meta?: unknown, count: number = 1) {
+  return supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never, _count: count } as never);
 }
 
-export async function buyWithCoins(itemId: string, itemType: string, coinsCost: number, meta?: unknown) {
-  return supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never });
+export async function buyWithCoins(itemId: string, itemType: string, coinsCost: number, meta?: unknown, count: number = 1) {
+  return supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
 }
 
 export async function buyProtection(days: number, coinsCost: number, gemsCost: number) {
