@@ -9,7 +9,9 @@ type ShipOverridePartial = Partial<Pick<ShipDef, "price" | "storage" | "fishingS
   fishingMinutes?: number;
 };
 
-export const FM_CAP_OVERRIDES: Record<number, number> = {};
+export const FM_CAP_OVERRIDES: Record<number, number> =
+  ((globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__ ??=
+    {});
 let loaded = false;
 let loadingPromise: Promise<void> | null = null;
 
