@@ -472,6 +472,7 @@ function PlayerPage() {
       const msg = (error as any).message || "";
       if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
       else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
+      else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
       else flash("تعذّر إرسال الدعم");
     }
 
