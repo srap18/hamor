@@ -155,32 +155,14 @@ export function catchPerTrip(ship: ShipDef): number {
 }
 
 // ─────── سعة سوق السمك حسب المستوى ───────
-// L1 = 500. زيادات تدريجية، +10K عند المستوى 15، +20K من المستوى 16 فما فوق.
-const FM_INCREMENTS: number[] = [
-  /* L2  */ 500,
-  /* L3  */ 500,
-  /* L4  */ 1000,
-  /* L5  */ 1500,
-  /* L6  */ 2000,
-  /* L7  */ 2500,
-  /* L8  */ 3000,
-  /* L9  */ 3500,
-  /* L10 */ 4000,
-  /* L11 */ 5000,
-  /* L12 */ 6000,
-  /* L13 */ 7000,
-  /* L14 */ 8000,
-  /* L15 */ 10000,
-];
-
+// L1 = 10000. +10000 لكل مستوى حتى 10، +30000 من 11 إلى 20، +100000 من 21 فما فوق.
 export function fishMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
-  let cap = 500;
+  let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 15) cap += FM_INCREMENTS[l - 2];
-    else if (l <= 23) cap += 20000;   // 16-23: +20k
-    else if (l <= 27) cap += 50000;   // 24-27: +50k
-    else cap += 100000;               // 28+:   +100k
+    if (l <= 10) cap += 10000;      // 2–10: +10k
+    else if (l <= 20) cap += 30000;  // 11–20: +30k
+    else cap += 100000;              // 21+: +100k
   }
   return cap;
 }
