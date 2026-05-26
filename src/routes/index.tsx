@@ -1086,6 +1086,16 @@ function Index() {
           } else {
             await splitInventoryAssign(row.id, newMeta);
           }
+          // Fixer crews instantly repair the ship on activation
+          if (itemId.startsWith("fixer_") && s.dbId) {
+            try {
+              await (supabase as any)
+                .from("ships_owned")
+                .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
+                .eq("id", s.dbId);
+              setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+            } catch {}
+          }
           sound.play("success");
           setCrewTick((t) => t + 1);
         };
