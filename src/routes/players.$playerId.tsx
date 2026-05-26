@@ -507,6 +507,7 @@ function PlayerPage() {
 
   const buyAndSendCrew = async (crewId: string) => {
     if (!me || !selectedShip) return;
+    if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
     const c = CREWS.find((x) => x.id === crewId);
     if (!c) return;
     setBusy(true); sound.play("click");
