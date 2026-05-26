@@ -7,6 +7,7 @@ import { bgById } from "@/lib/backgrounds";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
+import { buyWithCoins, buyWithGems } from "@/lib/economy";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -178,6 +179,38 @@ function PlayerPage() {
     } else {
       closeMenu();
     }
+  };
+
+  const buyAndFire = async (weaponId: string) => {
+    if (!me || !selectedShip) return;
+    const w = WEAPONS.find((x) => x.id === weaponId);
+    if (!w) return;
+    setBusy(true); sound.play("click");
+    const { error } = w.currency === "gems"
+      ? await buyWithGems(w.id, "weapon", w.price)
+      : await buyWithCoins(w.id, "weapon", w.price);
+    if (error) {
+      setBusy(false);
+      const msg = (error as any).message || "";
+      if (msg.includes("insufficient") || msg.includes("not enough")) {
+        flash(w.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
+      } else flash("تعذّر الشراء");
+      return;
+    }
+    // Add to local inventory so fireWeapon's consume works visually
+    setInv((arr) => {
+      const idx = arr.findIndex((x) => x.item_id === w.id && x.item_type === "weapon");
+      if (idx >= 0) {
+        const next = [...arr];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        return next;
+      }
+      return [...arr, { item_id: w.id, item_type: "weapon", quantity: 1 }];
+    });
+    sound.play("success");
+    flash(`🛒 اشتريت ${w.name} — يطلق الآن!`);
+    setBusy(false);
+    await fireWeapon(weaponId);
   };
 
   const submitNukeMessage = async () => {
@@ -382,6 +415,20 @@ function PlayerPage() {
             <div className="text-center">
               <div className="text-amber-200 font-bold text-base">سفينة {p?.display_name ?? ""}</div>
               <div className="text-amber-300/70 text-xs mt-0.5">مستوى {selectedShip.template_id} · ❤️ {selectedShip.hp ?? "-"}/{selectedShip.max_hp ?? "-"}</div>
+              <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                style={
+                  (selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0)
+                    ? { background: "rgba(127,29,29,0.4)", borderColor: "rgba(248,113,113,0.5)", color: "#fecaca" }
+                    : selectedShip.at_sea
+                      ? { background: "rgba(6,78,59,0.4)", borderColor: "rgba(52,211,153,0.5)", color: "#a7f3d0" }
+                      : { background: "rgba(120,53,15,0.4)", borderColor: "rgba(251,191,36,0.5)", color: "#fde68a" }
+                }>
+                {(selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0)
+                  ? "💀 مدمّرة — قيد الإصلاح"
+                  : selectedShip.at_sea
+                    ? "🎣 تصيد في البحر"
+                    : "⚓ راسية في المرسى"}
+              </div>
             </div>
 
             {mode === "menu" && (
@@ -398,16 +445,29 @@ function PlayerPage() {
                 <div className="text-amber-200 text-xs font-bold">اختر صاروخ من مخزنك:</div>
                 {WEAPONS.map((w) => {
                   const q = inv.find((x) => x.item_id === w.id && x.item_type === "weapon")?.quantity ?? 0;
+                  const canFire = q > 0;
                   return (
-                    <button key={w.id} disabled={busy || q <= 0} onClick={() => fireWeapon(w.id)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
-                      {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-amber-200 font-bold text-sm">{w.name}</div>
-                        <div className="text-[10px] text-amber-300/70">ضرر {w.damage}{w.aoe ? " · يصيب الكل" : ""}</div>
-                      </div>
-                      <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
-                    </button>
+                    <div key={w.id} className="flex items-stretch gap-2">
+                      <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
+                        className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
+                        {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-amber-200 font-bold text-sm">{w.name}</div>
+                          <div className="text-[10px] text-amber-300/70">ضرر {w.damage}{w.aoe ? " · يصيب الكل" : ""}</div>
+                        </div>
+                        <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
+                      </button>
+                      {!canFire && (
+                        <button disabled={busy} onClick={() => buyAndFire(w.id)}
+                          className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
+                          <span>🛒 شراء</span>
+                          <span className="text-[10px] opacity-90 mt-0.5">
+                            {w.currency === "gems" ? `💎 ${w.price}` : `💰 ${w.price.toLocaleString()}`}
+                          </span>
+                          <span className="text-[9px] opacity-80">واستخدم</span>
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
                 <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
