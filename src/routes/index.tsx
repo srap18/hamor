@@ -385,20 +385,29 @@ function Index() {
 
 
   const toggleFishing = (shipId: number) => {
+    let dbIdToSync: string | undefined;
+    let nextAtSea = false;
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
+        dbIdToSync = x.dbId;
         if (x.fishing) {
-          // Pause — keep progress where it is, drop startedAt
+          nextAtSea = false;
           return { ...x, fishing: false, startedAt: undefined };
         }
-        // (Re)start: anchor startedAt so that elapsed == current progress ratio * duration
+        nextAtSea = true;
         const ratio = x.max > 0 ? x.progress / x.max : 0;
         const startedAt = Date.now() - Math.round(ratio * x.duration * 1000);
         return { ...x, fishing: true, startedAt };
       })
     );
     sound.play("whoosh");
+    // Sync at_sea to DB so other players see live status via realtime
+    if (dbIdToSync) {
+      import("@/lib/economy").then(({ setShipAtSea }) => {
+        setShipAtSea(dbIdToSync!, nextAtSea).catch(() => {});
+      });
+    }
   };
 
   const collect = (shipId: number, e: React.MouseEvent) => {
