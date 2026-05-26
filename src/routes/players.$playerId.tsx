@@ -445,16 +445,29 @@ function PlayerPage() {
                 <div className="text-amber-200 text-xs font-bold">اختر صاروخ من مخزنك:</div>
                 {WEAPONS.map((w) => {
                   const q = inv.find((x) => x.item_id === w.id && x.item_type === "weapon")?.quantity ?? 0;
+                  const canFire = q > 0;
                   return (
-                    <button key={w.id} disabled={busy || q <= 0} onClick={() => fireWeapon(w.id)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
-                      {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-amber-200 font-bold text-sm">{w.name}</div>
-                        <div className="text-[10px] text-amber-300/70">ضرر {w.damage}{w.aoe ? " · يصيب الكل" : ""}</div>
-                      </div>
-                      <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
-                    </button>
+                    <div key={w.id} className="flex items-stretch gap-2">
+                      <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
+                        className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
+                        {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-amber-200 font-bold text-sm">{w.name}</div>
+                          <div className="text-[10px] text-amber-300/70">ضرر {w.damage}{w.aoe ? " · يصيب الكل" : ""}</div>
+                        </div>
+                        <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
+                      </button>
+                      {!canFire && (
+                        <button disabled={busy} onClick={() => buyAndFire(w.id)}
+                          className="px-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[78px] leading-tight">
+                          <span>🛒 شراء</span>
+                          <span className="text-[10px] opacity-90 mt-0.5">
+                            {w.currency === "gems" ? `💎 ${w.price}` : `💰 ${w.price.toLocaleString()}`}
+                          </span>
+                          <span className="text-[9px] opacity-80">واستخدم</span>
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
                 <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
