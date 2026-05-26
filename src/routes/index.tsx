@@ -543,7 +543,7 @@ function Index() {
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
           }
-          const { sailorMult } = getCrewBonuses(s.id);
+          const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
