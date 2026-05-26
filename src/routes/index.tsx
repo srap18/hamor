@@ -921,10 +921,16 @@ function Index() {
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
 
 
+        const shipCrews = crewRows
+          .filter((r) => r.meta?.assigned_ship_id === s.id)
+          .map((r) => CREWS.find((c) => c.id === r.item_id))
+          .filter(Boolean) as typeof CREWS;
+
         return (
           <ShipSlot
             key={s.id}
             ship={{ ...s, top, scale, dockLeft }}
+            crews={shipCrews}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
