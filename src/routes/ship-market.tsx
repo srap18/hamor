@@ -65,6 +65,12 @@ function ShipyardPage() {
     }, {}),
     [owned],
   );
+  const fleetStorageUsed = useMemo(
+    () => owned.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
+    [owned],
+  );
+  const fleetStorageMax = shipMarketCapacity(marketLevel);
+  const fleetFull = fleetStorageUsed >= fleetStorageMax;
 
   const showToast = (message: string) => {
     setToast(message);
