@@ -1660,7 +1660,10 @@ export type Database = {
       }
       cancel_steal_mission: {
         Args: { _attacker_ship_id: string }
-        Returns: undefined
+        Returns: {
+          stolen_count: number
+          total_value: number
+        }[]
       }
       catch_fish: {
         Args: {
