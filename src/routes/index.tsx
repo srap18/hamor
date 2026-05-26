@@ -18,6 +18,8 @@ import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
+import cloudImg from "@/assets/cloud-realistic.png";
+import birdImg from "@/assets/bird-realistic.png";
 
 
 
