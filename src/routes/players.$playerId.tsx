@@ -724,13 +724,14 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         {/* Fishing nets when at sea and not destroyed */}
         {atSea && !destroyed && (
           <>
-            <div className="absolute" style={{ left: "8%", top: "55%", width: "22%", height: "55%", transformOrigin: "top center", animation: "net-drop 2.6s ease-in-out infinite" }}>
+            <div className="absolute z-20" style={{ left: "2%", top: "50%", width: "32%", height: "80%", transformOrigin: "top center", animation: "net-drop 2.6s ease-in-out infinite", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))" }}>
               <VisitorNet />
             </div>
-            <div className="absolute" style={{ right: "8%", top: "55%", width: "22%", height: "55%", transformOrigin: "top center", animation: "net-drop 2.6s ease-in-out infinite", animationDelay: "-1.3s" }}>
+            <div className="absolute z-20" style={{ right: "2%", top: "50%", width: "32%", height: "80%", transformOrigin: "top center", animation: "net-drop 2.6s ease-in-out infinite", animationDelay: "-1.3s", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.5))" }}>
               <VisitorNet />
             </div>
-            <div className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 border-white/70" style={{ bottom: "-18%", width: "70%", aspectRatio: "3 / 1", animation: "splash-ring 2.6s ease-out infinite" }} />
+            <div className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 border-white/80 z-10" style={{ bottom: "-22%", width: "85%", aspectRatio: "3 / 1", animation: "splash-ring 2.6s ease-out infinite" }} />
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-600/90 border border-emerald-300 text-white text-[10px] font-bold whitespace-nowrap z-30 shadow-lg">🎣 يصيد</div>
           </>
         )}
       </div>
