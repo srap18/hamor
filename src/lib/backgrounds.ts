@@ -32,20 +32,21 @@ export type SceneBg = {
   shipSlots?: { top: number; left: number; scale: number }[];
 };
 
+// All backgrounds share the SAME water region as "harbor" so ships are
+// always placed correctly on the sea (never on shore, rocks, or buildings).
+// The visual artwork still differs per background — only the ship-placement
+// math is unified.
+const HARBOR_WATER = { waterTop: 45, waterLeft: 35, waterRight: 78 } as const;
+
 export const BACKGROUNDS: SceneBg[] = [
-  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: harborVideo.url,   animated: true, waterTop: 45, waterLeft: 35, waterRight: 78 },
-  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: sunsetVideo.url,   animated: true, waterTop: 48, waterLeft: 38, waterRight: 78 },
-  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: tropicalVideo.url, animated: true, waterTop: 42, waterLeft: 30, waterRight: 70 },
-  { id: "arctic",   name: "بحر القطب ✨",         price: 150000,   rarity: "epic",      image: arcticBg,   video: arcticVideo.url,   animated: true, waterTop: 50, waterLeft: 32, waterRight: 80 },
-  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: nightVideo.url,    animated: true, waterTop: 50, waterLeft: 15, waterRight: 55 },
-  { id: "cursed",   name: "الميناء الملعون ✨",   price: 500000,   rarity: "legendary", image: cursedBg,   video: cursedVideo.url,   animated: true, waterTop: 55, waterLeft: 30, waterRight: 75 },
-  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: volcanoVideo.url,  animated: true, waterTop: 50, waterLeft: 40, waterRight: 78 },
-  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: royalVideo.url,    animated: true, waterTop: 48, waterLeft: 54, waterRight: 82,
-    shipSlots: [
-      { top: 50, left: 58, scale: 0.77 },
-      { top: 62, left: 66, scale: 0.92 },
-      { top: 63, left: 70, scale: 1.07 },
-    ] },
+  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: harborVideo.url,   animated: true, ...HARBOR_WATER },
+  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: sunsetVideo.url,   animated: true, ...HARBOR_WATER },
+  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: tropicalVideo.url, animated: true, ...HARBOR_WATER },
+  { id: "arctic",   name: "بحر القطب ✨",         price: 150000,   rarity: "epic",      image: arcticBg,   video: arcticVideo.url,   animated: true, ...HARBOR_WATER },
+  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: nightVideo.url,    animated: true, ...HARBOR_WATER },
+  { id: "cursed",   name: "الميناء الملعون ✨",   price: 500000,   rarity: "legendary", image: cursedBg,   video: cursedVideo.url,   animated: true, ...HARBOR_WATER },
+  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: volcanoVideo.url,  animated: true, ...HARBOR_WATER },
+  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: royalVideo.url,    animated: true, ...HARBOR_WATER },
 ];
 
 
