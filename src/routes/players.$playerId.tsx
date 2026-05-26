@@ -447,7 +447,7 @@ function PlayerPage() {
       </div>
 
       {/* Ship action menu — multi-step */}
-      {selectedShip && (
+      {selectedShip && mode !== null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => !busy && closeMenu()}>
           <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm glass-hud rounded-2xl border-2 border-amber-400/60 p-4 flex flex-col gap-3 max-h-[80vh] overflow-y-auto">
             <div className="text-center">
