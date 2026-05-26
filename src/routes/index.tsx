@@ -319,7 +319,8 @@ function Index() {
     let debounce: ReturnType<typeof setTimeout> | null = null;
     const kick = () => {
       if (debounce) clearTimeout(debounce);
-      debounce = setTimeout(() => syncFleetFromDb(), 120);
+      // Immediate sync for instant updates across the app
+      syncFleetFromDb();
     };
     (async () => {
       const { data } = await supabase.auth.getUser();
