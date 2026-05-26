@@ -1104,7 +1104,7 @@ function Index() {
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) return;
           const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-          const newMeta = { assigned_ship_id: s.id, expires_at: expiresAt };
+          const newMeta = { assigned_ship_id: s.dbId ?? s.id, expires_at: expiresAt };
           if (row.quantity <= 1) {
             await updateInventoryMeta(row.id, newMeta);
           } else {
