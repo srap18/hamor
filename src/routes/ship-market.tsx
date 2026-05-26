@@ -278,7 +278,7 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">المملوك: {owned.length} سفينة</div>
+            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
