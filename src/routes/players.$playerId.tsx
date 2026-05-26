@@ -439,11 +439,13 @@ function PlayerPage() {
         setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
       }
       // Refresh visited ships so the repaired ship shows full HP immediately
-      if (kind === "repair") {
+      const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
+      if (kind === "repair" || isFixerCrew) {
         setShips((arr) => arr.map((x) => x.id === selectedShip.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x));
       }
       sound.play("success");
-      flash(kind === "crew" ? "👨‍✈️ تم إرسال الطاقم — وصل لمخزونه" : "🛠️ تم إصلاح سفينته بالكامل");
+      flash(kind === "crew" ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته" : "👨‍✈️ تم إرسال الطاقم — وصل لمخزونه") : "🛠️ تم إصلاح سفينته بالكامل");
+
     } else {
       const msg = (error as any).message || "";
       if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
