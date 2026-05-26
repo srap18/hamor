@@ -1658,6 +1658,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      cancel_steal_mission: {
+        Args: { _attacker_ship_id: string }
+        Returns: undefined
+      }
       catch_fish: {
         Args: {
           _base_value: number
