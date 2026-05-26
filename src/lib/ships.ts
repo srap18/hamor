@@ -178,7 +178,9 @@ export function fishMarketCapacity(level: number): number {
   let cap = 500;
   for (let l = 2; l <= lvl; l++) {
     if (l <= 15) cap += FM_INCREMENTS[l - 2];
-    else cap += 20000; // من 16 فما فوق
+    else if (l <= 23) cap += 20000;   // 16-23: +20k
+    else if (l <= 27) cap += 50000;   // 24-27: +50k
+    else cap += 100000;               // 28+:   +100k
   }
   return cap;
 }
