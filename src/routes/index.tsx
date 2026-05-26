@@ -1292,6 +1292,7 @@ function ShipSlot({ ship, onTap, active }: { ship: Ship; onTap: () => void; acti
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
+        transition: "left 0.5s ease-in-out",
       }}
     >
       {/* Wake ripples behind — stronger when moving */}
