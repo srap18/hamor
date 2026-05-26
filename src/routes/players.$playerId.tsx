@@ -137,6 +137,44 @@ function PlayerPage() {
     })();
   }, [playerId]);
 
+  // Live updates: watch the visited player's ships move in/out of sea, repair, take damage, etc.
+  useEffect(() => {
+    if (!playerId) return;
+    const channel = supabase
+      .channel(`ships-watch:${playerId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${playerId}` },
+        (payload) => {
+          setShips((arr) => {
+            if (payload.eventType === "INSERT") {
+              const r = payload.new as Ship;
+              if (arr.some((x) => x.id === r.id)) return arr;
+              return [...arr, r];
+            }
+            if (payload.eventType === "DELETE") {
+              const r = payload.old as { id: string };
+              return arr.filter((x) => x.id !== r.id);
+            }
+            const r = payload.new as Ship;
+            return arr.map((x) => (x.id === r.id ? { ...x, ...r } : x));
+          });
+          // keep open modal in sync if it's the same ship
+          setSelectedShip((cur) => {
+            if (!cur) return cur;
+            if (payload.eventType === "DELETE") {
+              const r = payload.old as { id: string };
+              return cur.id === r.id ? null : cur;
+            }
+            const r = payload.new as Ship;
+            return cur.id === r.id ? { ...cur, ...r } : cur;
+          });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [playerId]);
+
   const addFriend = async () => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
     sound.play("click");
