@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
+import { useEffect } from "react";
+import { loadEconomyOverrides } from "@/lib/economy-overrides";
 
 import appCss from "../styles.css?url";
 
