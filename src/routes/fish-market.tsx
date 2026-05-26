@@ -4,6 +4,7 @@ import piratesBg from "@/assets/pirates-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { FISH, type Fish as CatalogFish } from "@/lib/fish";
+import { fishMarketCapacity } from "@/lib/ships";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -198,7 +199,7 @@ function FishMarket() {
     .sort((a, b) => b.basePrice - a.basePrice);
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
-  const capMax = 500000;
+  const capMax = fishMarketCapacity(lvl);
   
 
   const sel = fish.find((f) => f.id === selected) || null;
