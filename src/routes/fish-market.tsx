@@ -79,17 +79,77 @@ function FishMarket() {
   const [selected, setSelected] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
   const [lvl, setLvl] = useState<number>(1);
+  const [upgradingTo, setUpgradingTo] = useState<number | null>(null);
+  const [upgradeEndsAt, setUpgradeEndsAt] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
+  const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
+  const [upToast, setUpToast] = useState<string | null>(null);
 
-  // Load market level from user_market
-  useEffect(() => {
-    if (!user) { setLvl(1); return; }
-    supabase
-      .from("user_market")
-      .select("level")
+  const showUpToast = (m: string) => {
+    setUpToast(m);
+    window.setTimeout(() => setUpToast(null), 1800);
+  };
+
+  const loadMarket = async () => {
+    if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
+    await supabase.rpc("finalize_fish_market_upgrades" as never);
+    const { data } = await supabase
+      .from("user_fish_market" as never)
+      .select("level, upgrading_to, upgrade_ends_at")
       .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => setLvl(data?.level ?? 1));
-  }, [user?.id]);
+      .maybeSingle();
+    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null);
+    setLvl(row?.level ?? 1);
+    setUpgradingTo(row?.upgrading_to ?? null);
+    setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+  };
+
+  useEffect(() => { loadMarket(); }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("fish_market_upgrade_cost" as never, { _level: lvl } as never).then(({ data }) => {
+      const row = (data as Array<{ cost_coins: number; seconds: number }> | null)?.[0] ?? null;
+      setUpPreview(row);
+    });
+  }, [user?.id, lvl]);
+
+  useEffect(() => {
+    if (!upgradeEndsAt) { setSecondsLeft(0); return; }
+    const tick = () => {
+      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - Date.now()) / 1000));
+      setSecondsLeft(diff);
+      if (diff === 0) loadMarket();
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [upgradeEndsAt]);
+
+  const startFishUpgrade = async () => {
+    if (!user || upgradingTo) return;
+    setUpBusy("start");
+    const { error } = await supabase.rpc("fish_market_start_upgrade" as never);
+    setUpBusy(null);
+    if (error) { showUpToast(error.message || "تعذر بدء الترقية"); return; }
+    await loadMarket();
+    refreshProfile();
+    showUpToast("بدأت ترقية سوق السمك");
+  };
+
+  const finishFishUpgrade = async () => {
+    if (!user || !upgradingTo || secondsLeft <= 0) return;
+    setUpBusy("boost");
+    const { error } = await supabase.rpc("fish_market_finish_upgrade_with_gems" as never);
+    setUpBusy(null);
+    if (error) { showUpToast(error.message || "تعذر التسريع"); return; }
+    await loadMarket();
+    refreshProfile();
+    showUpToast("تم إنهاء الترقية");
+  };
+
+  const accelCost = Math.max(1, Math.ceil(secondsLeft / 60));
 
 
   // Load owned fish quantities from DB (only fish the player actually has)
