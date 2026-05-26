@@ -35,6 +35,8 @@ import rocketSmallImg from "@/assets/weapons/rocket-small.png";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
 import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import nukeImg from "@/assets/weapons/nuke.png";
+import coinIcon from "@/assets/icons/icon-coins.png";
+import gemIcon from "@/assets/icons/icon-gems.png";
 
 const WEAPON_IMAGES: Record<string, string> = {
   rocket_small: rocketSmallImg,
