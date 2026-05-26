@@ -1076,6 +1076,11 @@ function Index() {
         };
 
         const assignCrew = async (itemId: string) => {
+          // Prevent duplicates: max 1 crew per type per ship
+          if (assignedRows.some((r) => r.item_id === itemId)) {
+            sound.play("error");
+            return;
+          }
           // find a row with this item_id that's unassigned
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) return;
