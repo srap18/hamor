@@ -1615,6 +1615,7 @@ export type Database = {
           online_at: string | null
           selected_bg_id: string | null
           tribe_id: string | null
+          xp: number | null
         }
         Insert: {
           avatar_emoji?: string | null
@@ -1628,6 +1629,7 @@ export type Database = {
           online_at?: string | null
           selected_bg_id?: string | null
           tribe_id?: string | null
+          xp?: number | null
         }
         Update: {
           avatar_emoji?: string | null
@@ -1641,6 +1643,7 @@ export type Database = {
           online_at?: string | null
           selected_bg_id?: string | null
           tribe_id?: string | null
+          xp?: number | null
         }
         Relationships: [
           {
@@ -1874,6 +1877,19 @@ export type Database = {
         Returns: {
           cost_coins: number
           seconds: number
+        }[]
+      }
+      get_currency_leaderboard: {
+        Args: { _col: string; _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          display_name: string
+          id: string
+          level: number
+          name_frame: string
+          xp: number
         }[]
       }
       get_my_ships: {
