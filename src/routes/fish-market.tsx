@@ -139,7 +139,7 @@ function FishMarket() {
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
   const capMax = 500000;
-  const lvl = 11;
+  
 
   const sel = fish.find((f) => f.id === selected) || null;
 
