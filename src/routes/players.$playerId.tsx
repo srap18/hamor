@@ -383,6 +383,20 @@ function PlayerPage() {
             <div className="text-center">
               <div className="text-amber-200 font-bold text-base">سفينة {p?.display_name ?? ""}</div>
               <div className="text-amber-300/70 text-xs mt-0.5">مستوى {selectedShip.template_id} · ❤️ {selectedShip.hp ?? "-"}/{selectedShip.max_hp ?? "-"}</div>
+              <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                style={
+                  (selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0)
+                    ? { background: "rgba(127,29,29,0.4)", borderColor: "rgba(248,113,113,0.5)", color: "#fecaca" }
+                    : selectedShip.at_sea
+                      ? { background: "rgba(6,78,59,0.4)", borderColor: "rgba(52,211,153,0.5)", color: "#a7f3d0" }
+                      : { background: "rgba(120,53,15,0.4)", borderColor: "rgba(251,191,36,0.5)", color: "#fde68a" }
+                }>
+                {(selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0)
+                  ? "💀 مدمّرة — قيد الإصلاح"
+                  : selectedShip.at_sea
+                    ? "🎣 تصيد في البحر"
+                    : "⚓ راسية في المرسى"}
+              </div>
             </div>
 
             {mode === "menu" && (
