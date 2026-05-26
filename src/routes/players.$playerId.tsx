@@ -691,12 +691,19 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
 
 
 
+      {/* Persistent damage level — visible even after refresh, scales with HP loss */}
+      {(() => {
+        const dmgRatio = Math.max(0, Math.min(1, 1 - hp / Math.max(1, maxHp))); // 0=fine, 1=destroyed
+        const damaged = !destroyed && dmgRatio > 0.05;
+        return (
       <div
         className="relative w-full"
         style={{
-          transform: `translateY(${bob}px) rotateZ(${tilt}deg)`,
+          transform: `translateY(${bob}px) rotateZ(${tilt + (damaged ? dmgRatio * 4 : 0)}deg)`,
           filter: destroyed
             ? "drop-shadow(0 12px 14px rgba(0,0,0,0.45)) grayscale(0.85) brightness(0.55)"
+            : damaged
+            ? `drop-shadow(0 12px 14px rgba(0,0,0,0.45)) grayscale(${dmgRatio * 0.7}) brightness(${1 - dmgRatio * 0.35}) sepia(${dmgRatio * 0.3})`
             : "drop-shadow(0 12px 14px rgba(0,0,0,0.45))",
           transformOrigin: "center 70%",
           opacity: destroyed ? 0.75 : 1,
@@ -721,6 +728,32 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
             <div className="absolute pointer-events-none text-3xl animate-pulse" style={{ left: "40%", top: "10%" }}>🔥</div>
           </>
         )}
+        {/* Persistent damage smoke for partially-damaged ships (heavier with more damage) */}
+        {damaged && (
+          <>
+            <div
+              className="absolute pointer-events-none animate-cloud-drift"
+              style={{
+                left: "35%",
+                top: "-20%",
+                fontSize: `${1.4 + dmgRatio * 1.6}rem`,
+                opacity: 0.5 + dmgRatio * 0.4,
+                animationDuration: "5s",
+                filter: "grayscale(1) brightness(0.7)",
+              }}
+            >
+              💨
+            </div>
+            {dmgRatio > 0.4 && (
+              <div
+                className="absolute pointer-events-none animate-pulse"
+                style={{ left: "42%", top: "20%", fontSize: `${1 + dmgRatio * 1.2}rem`, opacity: dmgRatio }}
+              >
+                🔥
+              </div>
+            )}
+          </>
+        )}
         {/* Fishing nets when at sea and not destroyed */}
         {atSea && !destroyed && (
           <>
@@ -735,6 +768,8 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
           </>
         )}
       </div>
+        );
+      })()}
       {/* Wake ripples */}
       <div className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-4" style={{ width: "60%", opacity: destroyed ? 0 : (atSea ? 0.5 : 0.25) }}>
         <div className="w-full h-full rounded-[50%] border-t-2 border-white/70" />
