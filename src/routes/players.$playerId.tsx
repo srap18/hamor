@@ -41,6 +41,7 @@ function PlayerPage() {
   const [nowTs, setNowTs] = useState<number>(Date.now());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
+  const [playerCrews, setPlayerCrews] = useState<{ item_id: string; ship_id: string }[]>([]);
   const shipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [fx, setFx] = useState<{ id: number; emoji: string; fromX: number; fromY: number; toX: number; toY: number; phase: "fly" | "boom"; friendly?: boolean; weaponId?: string } | null>(null);
   const [shake, setShake] = useState<"" | "shake-sm" | "shake-md" | "shake-lg">("");
@@ -165,6 +166,18 @@ function PlayerPage() {
       owner_emoji: pmap.get(r.user_id)?.avatar_emoji || "🏴‍☠️",
     })));
   };
+
+  // Load crews currently assigned to this player's ships (visible to all visitors)
+  const loadPlayerCrews = async () => {
+    const { data } = await (supabase as any).rpc("get_player_crews", { _player_id: playerId });
+    setPlayerCrews((data ?? []) as { item_id: string; ship_id: string }[]);
+  };
+  useEffect(() => {
+    if (!playerId) return;
+    loadPlayerCrews();
+    const t = setInterval(loadPlayerCrews, 8000);
+    return () => clearInterval(t);
+  }, [playerId]);
 
   // Live broadcast channel: every spectator in THIS harbor joins, so any action
   // (rocket, support, repair) is mirrored to every spectator in real-time.
@@ -438,6 +451,8 @@ function PlayerPage() {
       if (kind === "crew") {
         setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
       }
+      // Refresh crew assignments so the new crew shows on the ship immediately
+      if (kind === "crew") loadPlayerCrews();
       // Refresh visited ships so the repaired ship shows full HP immediately
       const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
       if (kind === "repair" || isFixerCrew) {
@@ -565,7 +580,11 @@ function PlayerPage() {
         const seaLeft = wLeft + seaOffsets[i % seaOffsets.length] * wWidth;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
         const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaLeft}%` : `${dockLeft}%`);
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        const shipCrews = playerCrews
+          .filter((c) => c.ship_id === s.id)
+          .map((c) => CREWS.find((x) => x.id === c.item_id))
+          .filter(Boolean) as typeof CREWS;
+        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
@@ -893,7 +912,7 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: numb
   );
 }
 
-function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void }) {
+function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [] }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (!atSea || destroyed) return;
@@ -947,6 +966,32 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
             : `❤️ ${hp}/${maxHp}`}
         </div>
       </div>
+
+      {/* Crew characters standing on the ship deck (visible to all spectators) */}
+      {!destroyed && crews.length > 0 && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20 flex items-end justify-center gap-1"
+          style={{ top: "-22%", width: "120%", height: "40%" }}
+        >
+          {crews.map((c, i) => (
+            <div
+              key={c.id}
+              className="relative animate-crew-bob"
+              style={{ width: "28%", animationDelay: `${i * 0.25}s`, filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.6))" }}
+              title={c.name}
+            >
+              {c.image ? (
+                <img src={c.image} alt={c.name} className="w-full h-auto object-contain" draggable={false} />
+              ) : (
+                <div className="w-full text-center text-2xl">{c.emoji}</div>
+              )}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-amber-100 bg-black/70 px-1 rounded whitespace-nowrap">{c.name}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+
 
 
 
