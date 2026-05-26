@@ -472,6 +472,7 @@ function PlayerPage() {
       const msg = (error as any).message || "";
       if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
       else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
+      else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
       else flash("تعذّر إرسال الدعم");
     }
 
@@ -892,9 +893,11 @@ function PlayerPage() {
                   <div className="text-[10px] text-amber-300/70 font-bold ps-1 mt-1">💰 تاجر — يفعّل سوق السمك عنده</div>
                   {CREWS.filter((c) => c.id === "trader").map((c) => {
                     const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
+                    const traderActive = playerCrews.some((pc) => pc.item_id === "trader");
                     return (
                       <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
-                        badge={{ text: "→ سوق السمك", tone: "emerald" }}
+                        badge={traderActive ? { text: "عنده تاجر نشط", tone: "rose" } : { text: "→ سوق السمك", tone: "emerald" }}
+                        disabled={traderActive}
                         onSend={() => sendSupport("crew", c.id)}
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
