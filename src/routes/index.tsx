@@ -591,7 +591,7 @@ function Index() {
       return;
     }
     // Compute time-based ratio so fishGained is strictly proportional to time at sea.
-    const { luckMult, sailorMult, guide } = getCrewBonuses(s.id);
+    const { luckMult, sailorMult, guide } = getCrewBonuses(s);
     void guide;
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
