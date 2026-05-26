@@ -485,6 +485,11 @@ function Index() {
       setShips((curr) =>
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
       return;
     }
     const fishGained = Math.max(1, Math.floor(baseFish * luckMult * repairMult));
@@ -503,6 +508,11 @@ function Index() {
           : x
       )
     );
+    if (s.dbId) {
+      import("@/lib/economy").then(({ setShipAtSea }) => {
+        setShipAtSea(s.dbId!, false).catch(() => {});
+      });
+    }
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
       id: Date.now(),
