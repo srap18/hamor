@@ -20,7 +20,7 @@ type Profile = {
   level: number; xp: number; coins: number; gems: number; online_at: string;
   selected_bg_id?: string | null;
 };
-type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null };
+type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
 
 function PlayerPage() {
