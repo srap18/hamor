@@ -9,13 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShipsShopRouteImport } from './routes/ships-shop'
 import { Route as ShipMarketRouteImport } from './routes/ship-market'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RechargeRouteImport } from './routes/recharge'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -35,6 +39,11 @@ import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -60,6 +69,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RechargeRoute = RechargeRouteImport.update({
   id: '/recharge',
   path: '/recharge',
@@ -68,6 +82,16 @@ const RechargeRoute = RechargeRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
@@ -174,13 +198,17 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/payment-success': typeof PaymentSuccessRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/content': typeof AdminContentRoute
@@ -200,13 +228,17 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/payment-success': typeof PaymentSuccessRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/content': typeof AdminContentRoute
@@ -228,13 +260,17 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/payment-success': typeof PaymentSuccessRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/recharge': typeof RechargeRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/content': typeof AdminContentRoute
@@ -257,13 +293,17 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/payment-success'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
     | '/recharge'
+    | '/refund'
     | '/reset-password'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/content'
@@ -283,13 +323,17 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/payment-success'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
     | '/recharge'
+    | '/refund'
     | '/reset-password'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/content'
@@ -310,13 +354,17 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/payment-success'
+    | '/pricing'
+    | '/privacy'
     | '/profile'
     | '/recharge'
+    | '/refund'
     | '/reset-password'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/content'
@@ -338,19 +386,30 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   RechargeRoute: typeof RechargeRoute
+  RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ShipMarketRoute: typeof ShipMarketRoute
   ShipsShopRoute: typeof ShipsShopRoute
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -386,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recharge': {
       id: '/recharge'
       path: '/recharge'
@@ -398,6 +464,20 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payment-success': {
@@ -559,13 +639,17 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   RechargeRoute: RechargeRoute,
+  RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ShipMarketRoute: ShipMarketRoute,
   ShipsShopRoute: ShipsShopRoute,
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
