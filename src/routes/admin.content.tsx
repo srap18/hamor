@@ -1,18 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SHIPS, fishMarketCapacity } from "@/lib/ships";
+import { FM_CAP_OVERRIDES } from "@/lib/economy-overrides";
 
 export const Route = createFileRoute("/admin/content")({
   component: AdminContent,
   ssr: false,
 });
 
-type Tab = "quests" | "achievements" | "lootboxes" | "events" | "catalog";
+type Tab = "quests" | "achievements" | "lootboxes" | "events" | "catalog" | "economy";
 
 function AdminContent() {
-  const [tab, setTab] = useState<Tab>("quests");
+  const [tab, setTab] = useState<Tab>("economy");
 
   const TABS: Array<{ id: Tab; label: string; icon: string }> = [
+    { id: "economy", label: "الاقتصاد", icon: "💰" },
     { id: "quests", label: "المهام اليومية", icon: "🎯" },
     { id: "achievements", label: "الإنجازات", icon: "🏆" },
     { id: "lootboxes", label: "الصناديق", icon: "🎁" },
@@ -38,6 +41,7 @@ function AdminContent() {
         ))}
       </div>
 
+      {tab === "economy" && <EconomyTab />}
       {tab === "quests" && <QuestsTab />}
       {tab === "achievements" && <AchievementsTab />}
       {tab === "lootboxes" && <LootboxesTab />}
@@ -380,6 +384,290 @@ function CatalogTab() {
             {form.id && <button onClick={() => setForm({ ...empty, kind: kindFilter })} className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">جديد</button>}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============== Economy: Ships + Fish Market + Client Prices ============== */
+type ShipOverrideRow = {
+  level: number;
+  price?: number;
+  storage?: number;
+  fishingMinutes?: number;
+  maxHp?: number;
+};
+type CipRow = { item_id: string; item_type: string; price_coins: number; price_gems: number };
+
+function EconomyTab() {
+  const [sub, setSub] = useState<"ships" | "fishmarket" | "prices">("ships");
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        {[
+          { k: "ships", l: "⛵ السفن (لكل مستوى)" },
+          { k: "fishmarket", l: "🐟 سعة سوق السمك" },
+          { k: "prices", l: "💵 أسعار الكتالوج العامة" },
+        ].map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setSub(t.k as typeof sub)}
+            className={`px-3 py-1.5 rounded-lg text-xs ${sub === t.k ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
+          >{t.l}</button>
+        ))}
+      </div>
+      {sub === "ships" && <ShipOverridesTable />}
+      {sub === "fishmarket" && <FishMarketTable />}
+      {sub === "prices" && <ClientItemPricesTable />}
+    </div>
+  );
+}
+
+function ShipOverridesTable() {
+  const [rows, setRows] = useState<Record<number, ShipOverrideRow>>({});
+  const [dirty, setDirty] = useState<Set<number>>(new Set());
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("ship_overrides").select("level, overrides");
+      const map: Record<number, ShipOverrideRow> = {};
+      for (const r of data ?? []) {
+        const ov = (r.overrides ?? {}) as Partial<ShipOverrideRow>;
+        map[r.level as number] = { level: r.level as number, ...ov };
+      }
+      setRows(map);
+    })();
+  }, []);
+
+  const update = (level: number, key: keyof ShipOverrideRow, val: string) => {
+    setRows((p) => ({
+      ...p,
+      [level]: { ...(p[level] ?? { level }), [key]: val === "" ? undefined : Number(val) },
+    }));
+    setDirty((d) => new Set(d).add(level));
+  };
+
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      for (const level of dirty) {
+        const r = rows[level] ?? { level };
+        const overrides: Record<string, number> = {};
+        if (r.price != null) overrides.price = r.price;
+        if (r.storage != null) overrides.storage = r.storage;
+        if (r.fishingMinutes != null) overrides.fishingMinutes = r.fishingMinutes;
+        if (r.maxHp != null) overrides.maxHp = r.maxHp;
+        await supabase.from("ship_overrides").upsert({ level, overrides } as never);
+        // apply locally in memory
+        const ship = SHIPS[level - 1];
+        if (ship) {
+          if (overrides.price != null) ship.price = overrides.price;
+          if (overrides.storage != null) ship.storage = overrides.storage;
+          if (overrides.maxHp != null) ship.maxHp = overrides.maxHp;
+          if (overrides.fishingMinutes != null) ship.fishingSeconds = Math.round(overrides.fishingMinutes * 60);
+        }
+      }
+      setDirty(new Set());
+      setMsg("✓ تم الحفظ");
+      setTimeout(() => setMsg(""), 2000);
+    } finally { setSaving(false); }
+  };
+
+  const resetLevel = async (level: number) => {
+    if (!confirm(`إعادة سفينة المستوى ${level} للقيم الافتراضية؟`)) return;
+    await supabase.from("ship_overrides").delete().eq("level", level);
+    setRows((p) => { const n = { ...p }; delete n[level]; return n; });
+    location.reload();
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-400">القيم الفارغة = استخدام الافتراضي. الحفظ يُطبَّق فوراً.</p>
+        <div className="flex items-center gap-2">
+          {msg && <span className="text-xs text-emerald-400">{msg}</span>}
+          <button onClick={saveAll} disabled={saving || dirty.size === 0}
+            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold disabled:opacity-40">
+            {saving ? "جاري الحفظ..." : `حفظ (${dirty.size})`}
+          </button>
+        </div>
+      </div>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-800/60 sticky top-0">
+            <tr>
+              <th className="p-2 text-right">المستوى</th>
+              <th className="p-2 text-right">الاسم</th>
+              <th className="p-2 text-right">السعر 🪙</th>
+              <th className="p-2 text-right">السعة 📦</th>
+              <th className="p-2 text-right">مدة الصيد (دقيقة)</th>
+              <th className="p-2 text-right">HP ❤️</th>
+              <th className="p-2 text-right">⚙️</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SHIPS.map((s) => {
+              const r = rows[s.marketLevel] ?? {};
+              const has = rows[s.marketLevel] != null;
+              return (
+                <tr key={s.marketLevel} className={`border-t border-slate-800/50 ${has ? "bg-indigo-950/20" : ""}`}>
+                  <td className="p-2 font-semibold">L{s.marketLevel}</td>
+                  <td className="p-2">{s.name}</td>
+                  <td className="p-2"><input type="number" placeholder={String(s.price)} value={r.price ?? ""} onChange={(e) => update(s.marketLevel, "price", e.target.value)} className="w-28 px-2 py-1 rounded bg-slate-800 border border-slate-700" /></td>
+                  <td className="p-2"><input type="number" placeholder={String(s.storage)} value={r.storage ?? ""} onChange={(e) => update(s.marketLevel, "storage", e.target.value)} className="w-24 px-2 py-1 rounded bg-slate-800 border border-slate-700" /></td>
+                  <td className="p-2"><input type="number" step="0.5" placeholder={String((s.fishingSeconds / 60).toFixed(1))} value={r.fishingMinutes ?? ""} onChange={(e) => update(s.marketLevel, "fishingMinutes", e.target.value)} className="w-20 px-2 py-1 rounded bg-slate-800 border border-slate-700" /></td>
+                  <td className="p-2"><input type="number" placeholder={String(s.maxHp)} value={r.maxHp ?? ""} onChange={(e) => update(s.marketLevel, "maxHp", e.target.value)} className="w-20 px-2 py-1 rounded bg-slate-800 border border-slate-700" /></td>
+                  <td className="p-2">{has && <button onClick={() => resetLevel(s.marketLevel)} className="text-red-400 text-xs">إعادة</button>}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function FishMarketTable() {
+  const [overrides, setOverrides] = useState<Record<number, number | "">>({});
+  const [dirty, setDirty] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("economy_settings").select("value").eq("key", "fish_market_capacity_overrides").maybeSingle();
+      const v = (data?.value ?? {}) as Record<string, number>;
+      const map: Record<number, number> = {};
+      for (const [k, val] of Object.entries(v)) map[Number(k)] = Number(val);
+      setOverrides(map);
+    })();
+  }, []);
+
+  const update = (lvl: number, val: string) => {
+    setOverrides((p) => ({ ...p, [lvl]: val === "" ? "" : Number(val) }));
+    setDirty(true);
+  };
+
+  const save = async () => {
+    const value: Record<string, number> = {};
+    for (const [k, v] of Object.entries(overrides)) if (v !== "" && v != null) value[k] = Number(v);
+    await supabase.from("economy_settings").upsert({ key: "fish_market_capacity_overrides", value } as never);
+    // apply locally
+    for (const k of Object.keys(FM_CAP_OVERRIDES)) delete FM_CAP_OVERRIDES[Number(k)];
+    for (const [k, v] of Object.entries(value)) FM_CAP_OVERRIDES[Number(k)] = v;
+    setDirty(false);
+    setMsg("✓ تم الحفظ");
+    setTimeout(() => setMsg(""), 2000);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-400">القيم الفارغة = استخدام السعة الافتراضية المحسوبة.</p>
+        <div className="flex items-center gap-2">
+          {msg && <span className="text-xs text-emerald-400">{msg}</span>}
+          <button onClick={save} disabled={!dirty} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold disabled:opacity-40">حفظ</button>
+        </div>
+      </div>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-800/60 sticky top-0">
+            <tr>
+              <th className="p-2 text-right">المستوى</th>
+              <th className="p-2 text-right">الافتراضي</th>
+              <th className="p-2 text-right">سعة مخصّصة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 30 }, (_, i) => i + 1).map((lvl) => (
+              <tr key={lvl} className="border-t border-slate-800/50">
+                <td className="p-2 font-semibold">L{lvl}</td>
+                <td className="p-2 text-slate-400">{fishMarketCapacity(lvl).toLocaleString()}</td>
+                <td className="p-2">
+                  <input type="number" placeholder="—" value={overrides[lvl] ?? ""} onChange={(e) => update(lvl, e.target.value)}
+                    className="w-36 px-2 py-1 rounded bg-slate-800 border border-slate-700" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ClientItemPricesTable() {
+  const [rows, setRows] = useState<CipRow[]>([]);
+  const [form, setForm] = useState<Partial<CipRow>>({ item_id: "", item_type: "background", price_coins: 0, price_gems: 0 });
+  const load = async () => {
+    const { data } = await supabase.from("client_item_prices").select("*").order("item_type");
+    setRows((data ?? []) as CipRow[]);
+  };
+  useEffect(() => { load(); }, []);
+  const save = async () => {
+    if (!form.item_id?.trim() || !form.item_type?.trim()) return;
+    await supabase.from("client_item_prices").upsert({
+      item_id: form.item_id.trim(),
+      item_type: form.item_type.trim(),
+      price_coins: form.price_coins ?? 0,
+      price_gems: form.price_gems ?? 0,
+    } as never);
+    setForm({ item_id: "", item_type: form.item_type, price_coins: 0, price_gems: 0 });
+    load();
+  };
+  const del = async (item_id: string, item_type: string) => {
+    if (!confirm("حذف؟")) return;
+    await supabase.from("client_item_prices").delete().eq("item_id", item_id).eq("item_type", item_type);
+    load();
+  };
+
+  return (
+    <div className="grid md:grid-cols-[1fr_320px] gap-4">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-800/60"><tr>
+            <th className="p-2 text-right">المعرّف</th>
+            <th className="p-2 text-right">النوع</th>
+            <th className="p-2 text-right">🪙</th>
+            <th className="p-2 text-right">💎</th>
+            <th className="p-2 text-right">⚙️</th>
+          </tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={`${r.item_type}-${r.item_id}`} className="border-t border-slate-800/50">
+                <td className="p-2 font-mono">{r.item_id}</td>
+                <td className="p-2 text-slate-400">{r.item_type}</td>
+                <td className="p-2">{r.price_coins}</td>
+                <td className="p-2">{r.price_gems}</td>
+                <td className="p-2"><div className="flex gap-2">
+                  <button onClick={() => setForm(r)} className="text-indigo-300">تعديل</button>
+                  <button onClick={() => del(r.item_id, r.item_type)} className="text-red-400">حذف</button>
+                </div></td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-slate-500">لا توجد أسعار مخصّصة</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-3 h-fit">
+        <h3 className="font-semibold">إضافة / تعديل سعر</h3>
+        <Field label="المعرّف (item_id)"><input className={inp} value={form.item_id ?? ""} onChange={(e) => setForm({ ...form, item_id: e.target.value })} /></Field>
+        <Field label="النوع (item_type)">
+          <select className={inp} value={form.item_type ?? "background"} onChange={(e) => setForm({ ...form, item_type: e.target.value })}>
+            <option value="background">background</option>
+            <option value="frame">frame</option>
+            <option value="avatar">avatar</option>
+            <option value="ship">ship</option>
+            <option value="other">other</option>
+          </select>
+        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="🪙"><input type="number" className={inp} value={form.price_coins ?? 0} onChange={(e) => setForm({ ...form, price_coins: Number(e.target.value) })} /></Field>
+          <Field label="💎"><input type="number" className={inp} value={form.price_gems ?? 0} onChange={(e) => setForm({ ...form, price_gems: Number(e.target.value) })} /></Field>
+        </div>
+        <button onClick={save} className="w-full px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold">حفظ</button>
       </div>
     </div>
   );
