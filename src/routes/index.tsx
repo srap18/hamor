@@ -174,10 +174,10 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at")
+      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at")
       .eq("user_id", uid)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -190,7 +190,17 @@ function Index() {
         .filter((s) => s.dbId && ownedIds.has(s.dbId))
         .map((s) => {
           const row = ownedById.get(s.dbId!);
-          return row ? { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at } : s;
+          if (!row) return s;
+          // Restore fishing trip from DB if server says ship is at sea
+          let fishing = s.fishing;
+          let startedAt = s.startedAt;
+          if (row.at_sea && row.fishing_started_at) {
+            fishing = true;
+            startedAt = new Date(row.fishing_started_at).getTime();
+          } else if (!row.at_sea) {
+            fishing = false;
+          }
+          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -208,6 +218,9 @@ function Index() {
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
         const maxProg = 35000 + (lvl - 1) * 9000;
+        const duration = Math.round(maxProg / 30);
+        const isFishing = !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
@@ -215,13 +228,14 @@ function Index() {
           img: getShipByMarketLevel(lvl).image,
           progress: 0,
           max: maxProg,
-          timeLeft: Math.round(maxProg / 30),
-          duration: Math.round(maxProg / 30),
+          timeLeft: duration,
+          duration,
           scale: slot.scale,
           top: slot.top,
           dockLeft: slot.dockLeft,
-          fishing: false,
-          sail: 0,
+          fishing: isFishing,
+          sail: isFishing ? 1 : 0,
+          startedAt,
           hp: dbShip.hp ?? undefined,
           maxHp: dbShip.max_hp ?? undefined,
           destroyedAt: dbShip.destroyed_at,

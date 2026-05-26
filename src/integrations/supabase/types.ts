@@ -955,6 +955,7 @@ export type Database = {
           at_sea: boolean
           catalog_code: string | null
           destroyed_at: string | null
+          fishing_started_at: string | null
           hp: number
           id: string
           last_fishing_reward_at: string | null
@@ -968,6 +969,7 @@ export type Database = {
           at_sea?: boolean
           catalog_code?: string | null
           destroyed_at?: string | null
+          fishing_started_at?: string | null
           hp?: number
           id?: string
           last_fishing_reward_at?: string | null
@@ -981,6 +983,7 @@ export type Database = {
           at_sea?: boolean
           catalog_code?: string | null
           destroyed_at?: string | null
+          fishing_started_at?: string | null
           hp?: number
           id?: string
           last_fishing_reward_at?: string | null
@@ -1556,6 +1559,7 @@ export type Database = {
           at_sea: boolean
           catalog_code: string | null
           destroyed_at: string | null
+          fishing_started_at: string | null
           hp: number
           id: string
           last_fishing_reward_at: string | null
