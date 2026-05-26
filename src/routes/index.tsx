@@ -760,41 +760,73 @@ function Index() {
         const s = ships.find((x) => x.id === menuShipId);
         if (!s) return null;
         const ready = s.progress >= s.max;
+        const onSteal = !!s.stealingTargetUserId;
+        const stealEnd = s.stealingEndsAt ? new Date(s.stealingEndsAt).getTime() : 0;
+        const stealReady = onSteal && stealEnd > 0 && Date.now() >= stealEnd;
+        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - Date.now()) / 1000)) : 0;
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
             onClick={() => setMenuShipId(null)}
           >
             <div
-              className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex gap-3"
+              className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex flex-col gap-3"
               onClick={(e) => e.stopPropagation()}
             >
-              <ActionBtn
-                emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
-                label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
-                onClick={(e: React.MouseEvent) => {
-                  setMenuShipId(null);
-                  collect(s.id, e);
-                }}
-              />
-              <ActionBtn
-                emoji="👥"
-                label="طاقم"
-                onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
-              />
-              <ActionBtn
-                emoji="💰"
-                label="بيع"
-                onClick={() => {
-                  setMenuShipId(null);
-                  if (ships.length <= MIN_FLEET) {
-                    showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                    return;
-                  }
-                  setModal({ kind: "sell", shipId: s.id });
-                }}
-              />
-
+              {onSteal && (
+                <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/60 border border-rose-500/50">
+                  <div className="text-2xl">🏴‍☠️</div>
+                  <div className="text-rose-200 font-bold text-sm">السفينة في مهمة سرقة</div>
+                  {stealReady ? (
+                    <button
+                      className="px-4 py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 text-xs font-bold active:scale-95"
+                      onClick={async () => {
+                        setMenuShipId(null);
+                        if (!s.dbId) return;
+                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+                        if (error) { showToast("تعذّر استلام الغنيمة"); return; }
+                        const row = Array.isArray(data) && data[0] ? data[0] : null;
+                        const n = row?.stolen_count ?? 0;
+                        const v = row?.total_value ?? 0;
+                        sound.play(n > 0 ? "catch" : "click");
+                        showToast(n > 0 ? `🐟 سرقت ${n} سمكة (قيمتها ${v})` : "السفينة رجعت فاضية 🪶");
+                        syncFleetFromDb();
+                      }}
+                    >🏴‍☠️ استلم الغنيمة</button>
+                  ) : (
+                    <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                  )}
+                </div>
+              )}
+              {!onSteal && (
+                <div className="flex gap-3">
+                  <ActionBtn
+                    emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
+                    label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
+                    onClick={(e: React.MouseEvent) => {
+                      setMenuShipId(null);
+                      collect(s.id, e);
+                    }}
+                  />
+                  <ActionBtn
+                    emoji="👥"
+                    label="طاقم"
+                    onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                  />
+                  <ActionBtn
+                    emoji="💰"
+                    label="بيع"
+                    onClick={() => {
+                      setMenuShipId(null);
+                      if (ships.length <= MIN_FLEET) {
+                        showToast("لا يمكن بيع آخر سفينة في الأسطول");
+                        return;
+                      }
+                      setModal({ kind: "sell", shipId: s.id });
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         );
