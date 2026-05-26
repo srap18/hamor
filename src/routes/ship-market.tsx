@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { SHIPS, catchPerTrip, type ShipDef } from "@/lib/ships";
+import { SHIPS, catchPerTrip, shipMarketCapacity, type ShipDef } from "@/lib/ships";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
