@@ -1204,6 +1204,7 @@ function Index() {
             } catch {}
             sound.play("success");
             await reloadCrews();
+            await syncFleetFromDb();
             setCrewTick((t) => t + 1);
             setModal(null);
             return;
