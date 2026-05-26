@@ -1157,18 +1157,45 @@ function Index() {
         };
 
         const assignCrew = async (itemId: string) => {
-          // Fixer crews: consume immediately, repair the ship, do NOT assign as a crew member.
+          // Fixer crews: reduce remaining repair time (or instant full heal for legendary).
           if (itemId.startsWith("fixer_")) {
             if (!s.dbId) { sound.play("error"); return; }
             const row = availableRows.find((r) => r.item_id === itemId);
             if (!row) return;
+            const reducePct = itemId === "fixer_1" ? 0.30 : itemId === "fixer_2" ? 0.70 : 1.0;
+            const nowMs = Date.now();
+            const endMs = s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0;
+            const isDestroyed = !!s.destroyedAt && endMs > nowMs;
             try {
-              await (supabase as any)
-                .from("ships_owned")
-                .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
-                .eq("id", s.dbId);
-              setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
-              // consume one unit of the fixer crew (don't keep it assigned)
+              if (!isDestroyed || reducePct >= 1) {
+                // Not destroyed, or legendary fixer → instant full repair
+                await (supabase as any)
+                  .from("ships_owned")
+                  .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
+                  .eq("id", s.dbId);
+                setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+                if (isDestroyed) toast.success("تم إصلاح السفينة فوراً ⚒️");
+              } else {
+                // Reduce remaining repair time by reducePct
+                const remaining = endMs - nowMs;
+                const newRemaining = Math.max(0, Math.floor(remaining * (1 - reducePct)));
+                if (newRemaining <= 0) {
+                  await (supabase as any)
+                    .from("ships_owned")
+                    .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
+                    .eq("id", s.dbId);
+                  setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+                } else {
+                  const newEnd = new Date(nowMs + newRemaining).toISOString();
+                  await (supabase as any)
+                    .from("ships_owned")
+                    .update({ repair_ends_at: newEnd })
+                    .eq("id", s.dbId);
+                  setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, repairEndsAt: newEnd } : x));
+                  toast.success(`تم تقليل وقت الإصلاح بنسبة ${Math.round(reducePct * 100)}%`);
+                }
+              }
+              // consume one unit of the fixer crew
               if (row.quantity <= 1) {
                 await deleteInventoryRows([row.id]);
               } else {
