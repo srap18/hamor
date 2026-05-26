@@ -79,17 +79,77 @@ function FishMarket() {
   const [selected, setSelected] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
   const [lvl, setLvl] = useState<number>(1);
+  const [upgradingTo, setUpgradingTo] = useState<number | null>(null);
+  const [upgradeEndsAt, setUpgradeEndsAt] = useState<string | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
+  const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
+  const [upToast, setUpToast] = useState<string | null>(null);
 
-  // Load market level from user_market
-  useEffect(() => {
-    if (!user) { setLvl(1); return; }
-    supabase
-      .from("user_market")
-      .select("level")
+  const showUpToast = (m: string) => {
+    setUpToast(m);
+    window.setTimeout(() => setUpToast(null), 1800);
+  };
+
+  const loadMarket = async () => {
+    if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
+    await supabase.rpc("finalize_fish_market_upgrades" as never);
+    const { data } = await supabase
+      .from("user_fish_market" as never)
+      .select("level, upgrading_to, upgrade_ends_at")
       .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => setLvl(data?.level ?? 1));
-  }, [user?.id]);
+      .maybeSingle();
+    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null);
+    setLvl(row?.level ?? 1);
+    setUpgradingTo(row?.upgrading_to ?? null);
+    setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+  };
+
+  useEffect(() => { loadMarket(); }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("fish_market_upgrade_cost" as never, { _level: lvl } as never).then(({ data }) => {
+      const row = (data as Array<{ cost_coins: number; seconds: number }> | null)?.[0] ?? null;
+      setUpPreview(row);
+    });
+  }, [user?.id, lvl]);
+
+  useEffect(() => {
+    if (!upgradeEndsAt) { setSecondsLeft(0); return; }
+    const tick = () => {
+      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - Date.now()) / 1000));
+      setSecondsLeft(diff);
+      if (diff === 0) loadMarket();
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [upgradeEndsAt]);
+
+  const startFishUpgrade = async () => {
+    if (!user || upgradingTo) return;
+    setUpBusy("start");
+    const { error } = await supabase.rpc("fish_market_start_upgrade" as never);
+    setUpBusy(null);
+    if (error) { showUpToast(error.message || "تعذر بدء الترقية"); return; }
+    await loadMarket();
+    refreshProfile();
+    showUpToast("بدأت ترقية سوق السمك");
+  };
+
+  const finishFishUpgrade = async () => {
+    if (!user || !upgradingTo || secondsLeft <= 0) return;
+    setUpBusy("boost");
+    const { error } = await supabase.rpc("fish_market_finish_upgrade_with_gems" as never);
+    setUpBusy(null);
+    if (error) { showUpToast(error.message || "تعذر التسريع"); return; }
+    await loadMarket();
+    refreshProfile();
+    showUpToast("تم إنهاء الترقية");
+  };
+
+  const accelCost = Math.max(1, Math.ceil(secondsLeft / 60));
 
 
   // Load owned fish quantities from DB (only fish the player actually has)
@@ -221,6 +281,13 @@ function FishMarket() {
           capUsed={capUsed}
           capMax={capMax}
           lvl={lvl}
+          upgradingTo={upgradingTo}
+          secondsLeft={secondsLeft}
+          upPreview={upPreview}
+          accelCost={accelCost}
+          upBusy={upBusy}
+          onUpgrade={startFishUpgrade}
+          onBoost={finishFishUpgrade}
           onPick={setSelected}
         />
       )}
@@ -237,6 +304,12 @@ function FishMarket() {
       {/* Bottom nav */}
       <BottomNav />
 
+      {upToast && (
+        <div className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-xl border border-accent/30 bg-card px-4 py-3 text-sm font-bold text-foreground shadow-2xl">
+          {upToast}
+        </div>
+      )}
+
       {/* Floating earn popup */}
       {pop && (
         <div
@@ -251,17 +324,43 @@ function FishMarket() {
 
 /* ───────────────── Storage view ───────────────── */
 
+function formatDur(sec: number): string {
+  const s = Math.max(0, Math.floor(sec));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    return `${h}س ${m % 60}د`;
+  }
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
+
 function StorageView({
   fish,
   capUsed,
   capMax,
   lvl,
+  upgradingTo,
+  secondsLeft,
+  upPreview,
+  accelCost,
+  upBusy,
+  onUpgrade,
+  onBoost,
   onPick,
 }: {
   fish: Fish[];
   capUsed: number;
   capMax: number;
   lvl: number;
+  upgradingTo: number | null;
+  secondsLeft: number;
+  upPreview: { cost_coins: number; seconds: number } | null;
+  accelCost: number;
+  upBusy: null | "start" | "boost";
+  onUpgrade: () => void;
+  onBoost: () => void;
   onPick: (id: string) => void;
 }) {
   const pct = (capUsed / capMax) * 100;
@@ -329,19 +428,41 @@ function StorageView({
         </div>
       </div>
 
-      {/* Upgrade button */}
+      {/* Upgrade footer */}
       <div className="absolute bottom-16 left-2 right-2 z-20 flex items-center gap-3">
-        <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
-            🪙 <span className="text-rose-300">8,500,000</span>
-          </div>
-          <div className="flex items-center gap-1 text-cyan-200 text-sm font-bold">
-            💎 <span>1,250</span>
-          </div>
-        </div>
-        <button className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95">
-          ترقية
-        </button>
+        {upgradingTo ? (
+          <>
+            <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-0.5">
+              <div className="text-[11px] text-cyan-100 font-bold">جارٍ الترقية {lvl} → {upgradingTo}</div>
+              <div className="text-amber-300 text-sm font-extrabold tabular-nums">{formatDur(secondsLeft)}</div>
+            </div>
+            <button
+              onClick={onBoost}
+              disabled={upBusy === "boost"}
+              className="px-5 py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 shadow-lg text-rose-950 font-extrabold active:scale-95 disabled:opacity-50"
+            >
+              💎 {accelCost}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
+              <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
+                🪙 <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-1 text-cyan-200 text-xs font-bold">
+                ⏱ <span>{formatDur(upPreview?.seconds ?? 0)}</span>
+              </div>
+            </div>
+            <button
+              onClick={onUpgrade}
+              disabled={upBusy === "start" || lvl >= 30}
+              className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
+            >
+              {lvl >= 30 ? "أعلى مستوى" : upBusy === "start" ? "..." : "ترقية"}
+            </button>
+          </>
+        )}
       </div>
     </>
   );
