@@ -423,7 +423,9 @@ function PlayerPage() {
   const sendSupport = async (kind: "crew" | "repair", itemId: string) => {
     if (!me || !selectedShip) return;
     setBusy(true); sound.play("click");
-    await playProjectile(selectedShip.id, kind === "crew" ? "👨‍✈️" : "🛠️", true);
+    const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
+    broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
+    await playProjectile(selectedShip.id, fxEmoji, true);
     const { error } = await (supabase as any).rpc("send_support", {
       _recipient_id: playerId,
       _ship_id: selectedShip.id,
