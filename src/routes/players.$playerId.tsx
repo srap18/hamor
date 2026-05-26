@@ -529,21 +529,49 @@ function PlayerPage() {
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
         }
         const isMine = me === r.user_id;
+        const endMs = r.stealing_ends_at ? new Date(r.stealing_ends_at).getTime() : 0;
+        const startMs = r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0;
+        const total = Math.max(1, endMs - startMs);
+        const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
+        const ratio = total > 0 ? elapsed / total : 0;
+        const stolenSoFar = Math.floor(r.fishing_power * ratio);
+        const secsLeft = Math.max(0, Math.ceil((endMs - nowTs) / 1000));
         return (
-          <button
-            key={`raider-${r.id}`}
-            onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
-            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 active:scale-95"
-            style={{ top, left }}
-          >
-            <div className="relative">
-              <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
-              <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
-              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
-                {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+          <div key={`raider-${r.id}`} className="absolute z-20 -translate-x-1/2 -translate-y-1/2" style={{ top, left }}>
+            {/* floating fish trail while raid is active */}
+            {isMine && secsLeft > 0 && (
+              <>
+                {["🐟", "🐠", "🦐"].map((e, k) => (
+                  <span
+                    key={k}
+                    className="absolute text-lg pointer-events-none"
+                    style={{
+                      right: "100%",
+                      top: `${10 + k * 18}px`,
+                      animation: `fish-steal 1.6s ${k * 0.4}s linear infinite`,
+                    }}
+                  >{e}</span>
+                ))}
+              </>
+            )}
+            <button
+              onClick={() => isMine ? setCancelRaiderId(r.id) : flash(`🏴‍☠️ ${r.owner_name} يسرق من هنا`)}
+              className="active:scale-95"
+            >
+              <div className="relative">
+                <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+                <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
+                {isMine && (
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
+                    🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                  </div>
+                )}
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
+                  {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
         );
       })}
 
