@@ -9,6 +9,8 @@ export type PublicProfile = {
   xp: number | null;
   name_frame: string | null;
   avatar_frame: string | null;
+  bubble_frame: string | null;
+  profile_frame: string | null;
   selected_bg_id: string | null;
   tribe_id: string | null;
   online_at: string | null;

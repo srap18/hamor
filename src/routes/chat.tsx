@@ -1,30 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { officerSetTribe, setMyTribe, giftGold } from "@/lib/economy";
+import { officerSetTribe, setMyTribe, giftGems } from "@/lib/economy";
 import { AuthGuard } from "@/components/AuthGuard";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
+import { VoiceRooms } from "@/components/VoiceRooms";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
   component: () => <AuthGuard><ChatPage /></AuthGuard>,
 });
 
-type Channel = "public" | "tribe" | "dm";
+type Channel = "public" | "tribe" | "dm" | "voice";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null };
-type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null };
+type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null };
 
-function Avatar({ p, size = 28 }: { p?: Prof | null; size?: number }) {
+function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   const style = { width: size, height: size };
   const frame = frameById(p?.avatar_frame);
   const ringCls = frame?.kind === "avatar" ? frame.ring || "" : "";
-  if (p?.avatar_url) {
-    return <img src={p.avatar_url} alt={p.display_name || ""} style={style} className={`rounded-full object-cover bg-sky-700 shrink-0 ${ringCls}`} />;
-  }
-  return <div style={style} className={`rounded-full bg-sky-700 flex items-center justify-center text-sm shrink-0 ${ringCls}`}>{p?.avatar_emoji || "👤"}</div>;
+  return (
+    <div style={style} className="relative shrink-0 flex items-center justify-center">
+      {p?.avatar_url ? (
+        <img src={p.avatar_url} alt={p.display_name || ""} className={`w-[68%] h-[68%] rounded-full object-cover bg-sky-700 ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)] ${ringCls}`} />
+      ) : (
+        <div className={`w-[68%] h-[68%] rounded-full bg-sky-700 flex items-center justify-center text-xl ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)] ${ringCls}`}>{p?.avatar_emoji || "👤"}</div>
+      )}
+      {frame?.imageUrl && <img src={frame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frame.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />}
+    </div>
+  );
 }
 
 function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
@@ -32,7 +39,7 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
   const cls = frame?.kind === "name" ? frame.nameClass || "" : "";
   const lvl = typeof p?.level === "number" ? p.level : null;
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${cls || (mine ? "text-amber-100" : "text-amber-300")}`}>
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
       <span>{p?.display_name || "..."}</span>
       {lvl !== null && (
         <span className="text-[9px] px-1 rounded bg-black/40 text-amber-200 border border-amber-300/40">Lv {lvl}</span>
@@ -77,7 +84,7 @@ function ChatPage() {
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
       const ids = (f || []).map((x: any) => x.requester_id === user.id ? x.addressee_id : x.requester_id);
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame").in("id", ids);
         setDmFriends((ps || []) as Prof[]);
       }
     })();
@@ -96,7 +103,7 @@ function ChatPage() {
       setMsgs(list);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame").in("id", ids);
         setProfMap(new Map((ps || []).map((p: any) => [p.id, p])));
       }
     });
@@ -112,7 +119,7 @@ function ChatPage() {
         setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m]);
         setProfMap(prev => {
           if (prev.has(m.sender_id)) return prev;
-          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
+          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
             if (p) setProfMap(s => new Map(s).set((p as any).id, p as Prof));
           });
           return prev;
@@ -131,12 +138,13 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
-    if (!override) setText("");
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
     const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
     if (error) { alert("تعذر الإرسال: " + error.message); return; }
+    if (!override) setText("");
+    if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
     if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
   }, [user, text, tab, profile?.tribe_id, dmWith]);
 
@@ -154,16 +162,18 @@ function ChatPage() {
       </div>
 
       <div className="absolute top-14 left-2 right-2 z-20 flex gap-1">
-        {(["public", "tribe", "dm"] as Channel[]).map(t => (
+        {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-            {t === "public" ? "عام" : t === "tribe" ? "القبيله" : "خاص"}
+            {t === "public" ? "عام" : t === "tribe" ? "القبيله" : t === "dm" ? "خاص" : "🎙️ صوتي"}
           </button>
         ))}
       </div>
 
-      <div className="absolute top-24 bottom-32 left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col">
-        {tab === "dm" && !dmWith ? (
+      <div className={`absolute top-24 ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`}>
+        {tab === "voice" ? (
+          <VoiceRooms userId={user?.id || ""} />
+        ) : tab === "dm" && !dmWith ? (
           <div className="flex-1 overflow-y-auto p-3">
             <div className="text-xs text-amber-200/60 mb-2">اختر صديق للمحادثه:</div>
             {dmFriends.length === 0 && <div className="text-center text-amber-100/50 text-sm py-8">لا يوجد أصدقاء بعد. اذهب إلى صفحه الأصدقاء.</div>}
@@ -183,7 +193,7 @@ function ChatPage() {
                 <button onClick={() => setDmWith(null)} className="text-amber-300 text-sm">←</button>
                 <Avatar p={dmFriendInfo} size={28} />
                 <div className="flex-1 text-sm font-bold">{dmFriendInfo.display_name}</div>
-                <button onClick={() => setSupportTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-emerald-600 text-xs font-bold">🛠️ دعم</button>
+                <button onClick={() => setSupportTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-cyan-600 text-xs font-bold">💎 دعم</button>
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-red-700 text-xs font-bold">⚔️ حرب</button>
               </div>
             )}
@@ -195,23 +205,31 @@ function ChatPage() {
                 return (
                   <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
                     <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
-                      <Avatar p={p} size={28} />
+                      <Avatar p={p} size={56} />
                     </button>
-                    <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white"}`}>
-                      {!mine && (
-                        <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
-                          <NameBadge p={p} />
-                        </button>
-                      )}
-                      {mine && (
-                        <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
-                      )}
-                      {m.audio_url ? (
-                        <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
-                      ) : (
-                        <div className="text-sm break-words">{m.body}</div>
-                      )}
-                    </div>
+                    {(() => {
+                      const bubbleFrame = frameById((mine ? (profile as any)?.bubble_frame : p?.bubble_frame));
+                      const bubbleCls = bubbleFrame?.kind === "bubble" && bubbleFrame.bubbleClass
+                        ? bubbleFrame.bubbleClass
+                        : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
+                      return (
+                          <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
+                          {!mine && (
+                            <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
+                              <NameBadge p={p} />
+                            </button>
+                          )}
+                          {mine && (
+                            <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
+                          )}
+                          {m.audio_url ? (
+                            <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
+                          ) : (
+                            <div className="text-sm break-words">{m.body}</div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -220,17 +238,19 @@ function ChatPage() {
         )}
       </div>
 
-      <ChatComposer
-        text={text}
-        setText={setText}
-        onSend={send}
-        disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
-        userId={user?.id || ""}
-        onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
-        channel={tab}
-        tribeId={profile?.tribe_id || null}
-        dmWith={dmWith}
-      />
+      {tab !== "voice" && (
+        <ChatComposer
+          text={text}
+          setText={setText}
+          onSend={send}
+          disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
+          userId={user?.id || ""}
+          onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
+          channel={tab as "public" | "tribe" | "dm"}
+          tribeId={profile?.tribe_id || null}
+          dmWith={dmWith}
+        />
+      )}
 
 
       <BottomNav active="/chat" />
@@ -593,49 +613,44 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
 
 // ===================== Support Modal =====================
 function SupportModal({ sender, recipient, onClose }: { sender: string; recipient: Prof; onClose: () => void }) {
-  const [kind, setKind] = useState<"repair" | "crew" | "coins">("repair");
-  const [amount, setAmount] = useState(500);
+  const [amount, setAmount] = useState(10);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const send = async () => {
     setBusy(true); setErr(null);
-    const { error: e1 } = await supabase.from("support_gifts").insert({
-      sender_id: sender, recipient_id: recipient.id, kind, amount, message: msg.slice(0, 200),
+    const { data, error } = await giftGems(recipient.id, amount);
+    if (error || !(data as any)?.ok) {
+      setErr((data as any)?.error === "insufficient" ? "💎 رصيدك غير كافٍ" : (error?.message || "فشل الإرسال"));
+      setBusy(false); return;
+    }
+    await supabase.from("support_gifts").insert({
+      sender_id: sender, recipient_id: recipient.id, kind: "gems", amount, message: msg.slice(0, 200),
     });
-    if (e1) { setErr(e1.message); setBusy(false); return; }
-    const { error: e2 } = await giftGold(recipient.id, amount);
-    if (e2) { setErr(e2.message); setBusy(false); return; }
     await supabase.from("messages").insert({
       sender_id: sender, recipient_id: recipient.id, channel: "dm",
-      body: `🎁 دعم (${kind === "repair" ? "إصلاح سفن" : kind === "crew" ? "طاقم" : "عملات"}): ${amount} 🪙${msg ? " — " + msg : ""}`,
+      body: `🎁 دعم: ${amount} 💎${msg ? " — " + msg : ""}`,
     });
     setBusy(false); onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
-      <div className="w-full max-w-sm bg-stone-950 border-2 border-emerald-600 rounded-2xl p-4 space-y-3">
-        <div className="font-extrabold text-emerald-300">🛠️ دعم {recipient.display_name}</div>
-        <div className="flex gap-1">
-          {([["repair","🛠️ إصلاح"],["crew","⚓ طاقم"],["coins","🪙 عملات"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setKind(k as any)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold border ${kind === k ? "bg-emerald-500 text-emerald-950 border-emerald-200" : "bg-stone-900 text-emerald-200 border-emerald-700/40"}`}>{l}</button>
-          ))}
-        </div>
+      <div className="w-full max-w-sm bg-stone-950 border-2 border-cyan-500 rounded-2xl p-4 space-y-3">
+        <div className="font-extrabold text-cyan-300">💎 دعم {recipient.display_name} بالجواهر</div>
         <div>
-          <div className="text-xs text-emerald-200/70 mb-1">المبلغ (يُخصم من رصيدك)</div>
-          <input type="number" value={amount} min={100} onChange={(e) => setAmount(Math.max(100, Number(e.target.value) || 0))}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-sm text-white" />
+          <div className="text-xs text-cyan-200/70 mb-1">عدد الجواهر (يُخصم من رصيدك)</div>
+          <input type="number" value={amount} min={1} onChange={(e) => setAmount(Math.max(1, Number(e.target.value) || 0))}
+            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-cyan-700/40 text-sm text-white" />
         </div>
         <input value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={200} placeholder="رساله مرافقه (اختياري)..."
-          className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-sm text-white" />
+          className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-cyan-700/40 text-sm text-white" />
         {err && <div className="text-xs text-red-400">{err}</div>}
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-stone-800 text-white font-bold text-sm">إلغاء</button>
-          <button onClick={send} disabled={busy} className="flex-1 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-sm disabled:opacity-50">
-            {busy ? "..." : "إرسال الدعم"}
+          <button onClick={send} disabled={busy} className="flex-1 py-2 rounded-lg bg-cyan-500 text-cyan-950 font-bold text-sm disabled:opacity-50">
+            {busy ? "..." : "💎 إرسال الجواهر"}
           </button>
         </div>
       </div>

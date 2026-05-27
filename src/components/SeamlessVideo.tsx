@@ -3,16 +3,21 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Seamless looping background video.
  * Uses two stacked <video> elements offset by half the duration and
- * crossfades between them so the loop seam is never visible.
+ * crossfades between them so the loop seam is never visible. Also slows the
+ * playback rate by default so the short clip feels less repetitive.
  */
 export function SeamlessVideo({
   src,
   poster,
   className,
+  style,
+  playbackRate = 0.6,
 }: {
   src: string;
   poster?: string;
   className?: string;
+  style?: React.CSSProperties;
+  playbackRate?: number;
 }) {
   const aRef = useRef<HTMLVideoElement | null>(null);
   const bRef = useRef<HTMLVideoElement | null>(null);
@@ -27,31 +32,38 @@ export function SeamlessVideo({
     if (!a || !b) return;
 
     let raf = 0;
-    const FADE = 0.6; // seconds of crossfade on each side of the seam
+    // Crossfade window — sized as a fraction of the clip length so even very
+    // short loops fully hide the seam.
+    let FADE = 1.6;
 
+    const applyRate = () => {
+      try { a.playbackRate = playbackRate; b.playbackRate = playbackRate; } catch {}
+    };
+    const offsetB = () => {
+      const dur = a.duration;
+      if (!dur || !isFinite(dur)) return;
+      FADE = Math.max(0.8, Math.min(2.5, dur * 0.35));
+      try { b.currentTime = dur / 2; } catch {}
+    };
     const onLoaded = () => {
-      const dur = a.duration || 5;
-      // Offset B by half so its seam falls in the middle of A's playback
-      try {
-        b.currentTime = dur / 2;
-      } catch {}
+      offsetB();
+      applyRate();
       setVideoReady(true);
+      a.play().catch(() => {});
     };
     a.addEventListener("loadedmetadata", onLoaded);
-    const onCanPlay = () => setVideoReady(true);
+    b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
+    b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
+    const onCanPlay = () => { applyRate(); setVideoReady(true); };
     a.addEventListener("canplay", onCanPlay);
     const onError = () => setVideoFailed(true);
     a.addEventListener("error", onError);
     b.addEventListener("error", onError);
 
-    // Fallback: if video doesn't load within 6s, give up and show poster
-    const slowNetTimer = window.setTimeout(() => {
-      if (a.readyState < 2) setVideoFailed(true);
-    }, 6000);
-
     // Retry play on visibility change (some mobile browsers pause when tab hidden)
     const onVis = () => {
       if (document.visibilityState === "visible") {
+        applyRate();
         a.play().catch(() => {});
         b.play().catch(() => {});
       }
@@ -63,13 +75,14 @@ export function SeamlessVideo({
       if (dur > 0) {
         const ta = a.currentTime;
         const tb = b.currentTime;
-        // distance from each video's own seam (start or end)
         const da = Math.min(ta, dur - ta);
         const db = Math.min(tb, dur - tb);
-        // The video that's FURTHER from its seam should be more visible.
-        // Use a smooth blend in the danger zone.
-        const wa = Math.min(1, da / FADE);
-        const wb = Math.min(1, db / FADE);
+        const ease = (x: number) => {
+          const t = Math.max(0, Math.min(1, x));
+          return t * t * (3 - 2 * t);
+        };
+        const wa = ease(da / FADE);
+        const wb = ease(db / FADE);
         const total = wa + wb || 1;
         a.style.opacity = String(wa / total);
         b.style.opacity = String(wb / total);
@@ -84,10 +97,9 @@ export function SeamlessVideo({
       a.removeEventListener("error", onError);
       b.removeEventListener("error", onError);
       document.removeEventListener("visibilitychange", onVis);
-      window.clearTimeout(slowNetTimer);
       cancelAnimationFrame(raf);
     };
-  }, [src]);
+  }, [src, playbackRate]);
 
   return (
     <>
@@ -101,6 +113,7 @@ export function SeamlessVideo({
           className={className}
           draggable={false}
           style={{
+            ...style,
             opacity: videoReady && !videoFailed ? 0 : 1,
             transition: "opacity 0.6s ease",
           }}
@@ -116,7 +129,7 @@ export function SeamlessVideo({
         playsInline
         preload="auto"
         className={className}
-        style={{ opacity: videoFailed ? 0 : 1, display: videoFailed ? "none" : undefined }}
+        style={{ ...style, opacity: videoFailed ? 0 : 1, display: videoFailed ? "none" : undefined }}
       />
       <video
         ref={bRef}
@@ -128,7 +141,7 @@ export function SeamlessVideo({
         playsInline
         preload="auto"
         className={className}
-        style={{ opacity: 0, display: videoFailed ? "none" : undefined }}
+        style={{ ...style, opacity: 0, display: videoFailed ? "none" : undefined }}
       />
     </>
   );

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { BottomNav } from "@/components/BottomNav";
+
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { SHIPS, catchPerTrip, shipMarketCapacity, type ShipDef } from "@/lib/ships";
@@ -150,9 +150,15 @@ function ShipyardPage() {
       showToast("ارفع مستوى السوق أولًا");
       return;
     }
-    if (profile.coins < ship.price) {
-      showToast("العملات غير كافية للشراء");
+    const coinShortfall = Math.max(0, ship.price - (profile.coins ?? 0));
+    const gemsNeeded = Math.ceil(coinShortfall / 1000);
+    if (coinShortfall > 0 && (profile.gems ?? 0) < gemsNeeded) {
+      showToast(`الذهب والجواهر غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`);
       return;
+    }
+    if (coinShortfall > 0) {
+      const ok = window.confirm(`الذهب غير كافٍ. سيتم خصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`);
+      if (!ok) return;
     }
 
     setBusy(ship.code);
@@ -332,7 +338,7 @@ function ShipyardPage() {
           </div>
         )}
       </div>
-      <BottomNav active="/shop" />
+      
     </div>
   );
 }

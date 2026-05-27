@@ -59,6 +59,18 @@ const IMG_BY_LEVEL: Record<number, string> = {
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
 };
 
+// Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
+// Listed here so the renderer can normalize them all to the same on-screen
+// direction (toward shore when docked, toward sea when fishing).
+const BOW_FACES_RIGHT: Record<number, boolean> = {
+  3: true, 5: true, 6: true, 12: true, 14: true,
+  17: true, 18: true, 20: true, 27: true, 28: true, 30: true,
+};
+
+export function shipBowFacesRight(level: number): boolean {
+  return !!BOW_FACES_RIGHT[level];
+}
+
 // ─────── المصدر الموحّد لتعريف السفن ───────
 // أي تحديث على هذه القائمة ينعكس على كل واجهات اللعبة (سوق السفن، الأسطول، الصيد ...).
 type ShipOverride = {
@@ -106,10 +118,20 @@ const SHIP_DATA: Record<number, ShipOverride> = {
 
 function buildShip(level: number): ShipDef {
   const d = SHIP_DATA[level];
-  const maxHp = 80 + (level - 1) * 65;
+  // دم السفينة = سعتها (طاقة السفينة)
+  const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
   const speed = 9 + Math.floor((level - 1) * 1.4);
-  const repairSeconds = Math.round(240 * Math.pow(1.20, level - 1));
+  // التقسيم المتدرّج لمدة إصلاح السفينة المدمَّرة (نفس صيغة قاعدة البيانات)
+  //  L1..10  : 1h  → 5h
+  //  L11..20 : 5h  → 10h
+  //  L21..25 : 11h → 20h
+  //  L26..30 : 21h → 24h
+  let repairSeconds: number;
+  if (level <= 10) repairSeconds = Math.round(3600  + (level - 1)  * (18000 - 3600)  / 9);
+  else if (level <= 20) repairSeconds = Math.round(18000 + (level - 11) * (36000 - 18000) / 9);
+  else if (level <= 25) repairSeconds = Math.round(39600 + (level - 21) * (72000 - 39600) / 4);
+  else repairSeconds = Math.round(75600 + (level - 26) * (86400 - 75600) / 4);
   const fishingSeconds = Math.round(d.fishingMinutes * 60);
   return {
     code: `ship-lvl-${level}`,

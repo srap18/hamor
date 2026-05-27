@@ -28,6 +28,10 @@ export async function giftGold(recipientId: string, amount: number) {
   return supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount });
 }
 
+export async function giftGems(recipientId: string, amount: number) {
+  return supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount });
+}
+
 export async function claimDailyLogin() {
   return supabase.rpc("claim_daily_login");
 }
@@ -118,4 +122,8 @@ export async function marketStartUpgrade() {
 
 export async function marketFinishUpgradeWithGems() {
   return supabase.rpc("market_finish_upgrade_with_gems");
+}
+
+export async function deductGemsForVoiceChange(userId: string, amount = 200) {
+  return supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount });
 }

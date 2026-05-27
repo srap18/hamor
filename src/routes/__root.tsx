@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
+import { MobileFrame } from "@/components/MobileFrame";
 
 import appCss from "../styles.css?url";
 
@@ -89,12 +90,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "صيد سمك، هامور شابك، هامور 360، شابك 360." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/28BjizFYbZY4r6R7g9uwXqykIuC2/social-images/social-1779659939703-598384.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/28BjizFYbZY4r6R7g9uwXqykIuC2/social-images/social-1779659939703-598384.webp" },
+      { name: "theme-color", content: "#0a1929" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "هامور شابك" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
       { rel: "preconnect", href: "https://qjwbfkpudysxqtkeouwu.supabase.co", crossOrigin: "" },
       { rel: "dns-prefetch", href: "https://qjwbfkpudysxqtkeouwu.supabase.co" },
     ],
@@ -128,9 +137,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GlobalBanner />
-      <Outlet />
-      <Toaster position="top-center" richColors />
+      <MobileFrame>
+        <GlobalBanner />
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </MobileFrame>
     </QueryClientProvider>
   );
 }

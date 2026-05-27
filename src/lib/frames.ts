@@ -1,116 +1,319 @@
-// Cosmetic frames — equipped on avatar or name in HUD.
-// `ring` is a Tailwind class chunk applied to the avatar wrapper.
-// `nameClass` is applied to the display name container.
+// Cosmetic frames — equipped on avatar / name / message bubble / profile card.
+// `ring`         → tailwind classes applied to the avatar wrapper
+// `nameClass`    → tailwind classes applied to the display-name pill
+// `bubbleClass`  → tailwind classes applied to the chat message bubble
+// `profileClass` → tailwind classes applied to the outer profile card wrapper
+
+import ariesImg from "@/assets/frames/aries.png";
+import phoenixImg from "@/assets/frames/phoenix-wings.png";
+import virgoImg from "@/assets/frames/virgo.png";
+import leoImg from "@/assets/frames/leo.png";
+import taurusImg from "@/assets/frames/taurus.png";
+import geminiImg from "@/assets/frames/gemini.png";
+import scorpioImg from "@/assets/frames/scorpio.png";
+import piscesImg from "@/assets/frames/pisces.png";
+
+export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
 export type Frame = {
   id: string;
   name: string;
-  kind: "avatar" | "name";
+  kind: FrameKind;
   price: number;
   currency: "gem";
   rarity: "common" | "rare" | "epic" | "legendary" | "mythic";
-  ring?: string;     // avatar frame styles (border / shadow / gradient ring)
-  nameClass?: string; // name frame styles (background pill / glow / gradient text)
-  preview: string;   // emoji or short label for catalog
+  ring?: string;
+  nameClass?: string;
+  bubbleClass?: string;
+  profileClass?: string;
+  imageUrl?: string;
+  animClass?: string;
+  preview: string;
 };
 
 export const AVATAR_FRAMES: Frame[] = [
   {
-    id: "af_bronze", name: "إطار برونزي", kind: "avatar",
-    price: 500, currency: "gem", rarity: "common", preview: "🟫",
-    ring: "ring-2 ring-amber-200/60 outline outline-4 outline-amber-800 shadow-[0_0_18px_rgba(180,90,30,0.7),inset_0_0_10px_rgba(255,200,120,0.4)]",
+    id: "af_aries", name: "إطار الحَمَل 🔥", kind: "avatar",
+    price: 1000, currency: "gem", rarity: "rare", preview: "♈",
+    imageUrl: ariesImg, animClass: "frame-anim-flame",
   },
   {
-    id: "af_silver", name: "إطار فضي", kind: "avatar",
-    price: 2000, currency: "gem", rarity: "rare", preview: "⚪",
-    ring: "ring-2 ring-white/70 outline outline-4 outline-slate-400 shadow-[0_0_22px_rgba(200,210,230,0.85),inset_0_0_14px_rgba(255,255,255,0.5)]",
+    id: "af_phoenix", name: "أجنحة العنقاء", kind: "avatar",
+    price: 5000, currency: "gem", rarity: "epic", preview: "🔥",
+    imageUrl: phoenixImg, animClass: "frame-anim-flame",
   },
   {
-    id: "af_gold", name: "إطار ذهبي", kind: "avatar",
-    price: 6000, currency: "gem", rarity: "epic", preview: "🟡",
-    ring: "ring-2 ring-amber-100 outline outline-[5px] outline-amber-500 shadow-[0_0_28px_rgba(251,191,36,1),inset_0_0_18px_rgba(255,235,150,0.6)]",
+    id: "af_virgo", name: "إطار العذراء 🌾", kind: "avatar",
+    price: 8000, currency: "gem", rarity: "epic", preview: "♍",
+    imageUrl: virgoImg, animClass: "frame-anim-leaf",
   },
   {
-    id: "af_emerald", name: "إطار زمردي", kind: "avatar",
-    price: 9000, currency: "gem", rarity: "epic", preview: "🟢",
-    ring: "ring-2 ring-emerald-100 outline outline-[5px] outline-emerald-500 shadow-[0_0_30px_rgba(52,211,153,1),inset_0_0_18px_rgba(167,243,208,0.6)]",
+    id: "af_leo", name: "إطار الأسد ☀️", kind: "avatar",
+    price: 12000, currency: "gem", rarity: "legendary", preview: "♌",
+    imageUrl: leoImg, animClass: "frame-anim-flame",
   },
   {
-    id: "af_ruby", name: "إطار ياقوتي", kind: "avatar",
-    price: 18000, currency: "gem", rarity: "legendary", preview: "🔴",
-    ring: "ring-2 ring-rose-100 outline outline-[5px] outline-rose-600 shadow-[0_0_36px_rgba(244,63,94,1),0_0_60px_rgba(244,63,94,0.6),inset_0_0_20px_rgba(255,200,210,0.6)]",
+    id: "af_taurus", name: "إطار الثور 💚", kind: "avatar",
+    price: 18000, currency: "gem", rarity: "legendary", preview: "♉",
+    imageUrl: taurusImg, animClass: "frame-anim-leaf",
   },
   {
-    id: "af_diamond", name: "إطار ماسي", kind: "avatar",
-    price: 45000, currency: "gem", rarity: "mythic", preview: "💎",
-    ring: "ring-2 ring-white outline outline-[6px] outline-cyan-300 shadow-[0_0_44px_rgba(103,232,249,1),0_0_80px_rgba(165,243,252,0.7),inset_0_0_22px_rgba(255,255,255,0.8)] animate-pulse",
+    id: "af_gemini", name: "إطار الجوزاء ✨", kind: "avatar",
+    price: 25000, currency: "gem", rarity: "legendary", preview: "♊",
+    imageUrl: geminiImg, animClass: "frame-anim-sparkle",
   },
   {
-    id: "af_dragon", name: "إطار التنين", kind: "avatar",
-    price: 90000, currency: "gem", rarity: "mythic", preview: "🐉",
-    ring: "ring-2 ring-amber-200 outline outline-[6px] outline-fuchsia-600 shadow-[0_0_48px_rgba(232,121,249,1),0_0_90px_rgba(251,191,36,0.6),inset_0_0_24px_rgba(255,215,255,0.7)] animate-pulse",
+    id: "af_scorpio", name: "إطار العقرب 🦂", kind: "avatar",
+    price: 50000, currency: "gem", rarity: "mythic", preview: "♏",
+    imageUrl: scorpioImg, animClass: "frame-anim-pulse",
   },
   {
-    id: "af_phoenix", name: "إطار العنقاء", kind: "avatar",
-    price: 120000, currency: "gem", rarity: "mythic", preview: "🔥",
-    ring: "ring-2 ring-amber-100 outline outline-[6px] outline-orange-600 shadow-[0_0_50px_rgba(251,146,60,1),0_0_100px_rgba(244,63,94,0.7),inset_0_0_24px_rgba(255,220,180,0.8)] animate-pulse",
-  },
-  {
-    id: "af_imperial", name: "إطار الإمبراطور", kind: "avatar",
-    price: 200000, currency: "gem", rarity: "mythic", preview: "👑",
-    ring: "ring-2 ring-amber-200 outline outline-[7px] outline-amber-600 shadow-[0_0_55px_rgba(251,191,36,1),0_0_110px_rgba(168,85,247,0.6),inset_0_0_26px_rgba(255,240,180,0.9)] animate-pulse",
+    id: "af_pisces", name: "إطار الحوت 🐟", kind: "avatar",
+    price: 75000, currency: "gem", rarity: "mythic", preview: "♓",
+    imageUrl: piscesImg, animClass: "frame-anim-wave",
   },
 ];
 
+// ─────── إطارات الاسم (لوحات فاخرة بحواف معدنية) ───────
 export const NAME_FRAMES: Frame[] = [
   {
-    id: "nf_simple", name: "لوحة بسيطة", kind: "name",
-    price: 300, currency: "gem", rarity: "common", preview: "Aa",
-    nameClass: "bg-gradient-to-b from-stone-700 to-stone-900 border-2 border-stone-400 text-stone-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]",
+    id: "nf_aries", name: "لوحة الحَمَل ♈", kind: "name",
+    price: 1000, currency: "gem", rarity: "rare", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-orange-500 via-red-600 to-orange-900 " +
+      "border-[3px] border-double border-amber-200 ring-2 ring-orange-950/70 ring-offset-2 ring-offset-amber-300/80 " +
+      "text-white font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.35),0_4px_14px_rgba(251,146,60,0.55)]",
   },
   {
-    id: "nf_sky", name: "لوحة سماوية", kind: "name",
-    price: 1500, currency: "gem", rarity: "rare", preview: "Aa",
-    nameClass: "bg-gradient-to-r from-sky-600 via-cyan-500 to-sky-800 border-2 border-sky-200 text-white shadow-[0_0_14px_rgba(56,189,248,0.7),inset_0_1px_0_rgba(255,255,255,0.3)]",
-  },
-  {
-    id: "nf_gold", name: "لوحة ذهبية", kind: "name",
+    id: "nf_phoenix", name: "لوحة العنقاء 🔥", kind: "name",
     price: 5000, currency: "gem", rarity: "epic", preview: "Aa",
-    nameClass: "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-700 border-2 border-amber-100 text-amber-950 font-extrabold shadow-[0_0_18px_rgba(251,191,36,0.9),inset_0_1px_0_rgba(255,255,255,0.5)]",
+    nameClass:
+      "relative bg-gradient-to-b from-amber-300 via-orange-500 to-rose-800 " +
+      "border-[3px] border-double border-amber-100 ring-2 ring-rose-950/70 ring-offset-2 ring-offset-amber-200 " +
+      "text-white font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_18px_rgba(244,63,94,0.45)]",
   },
   {
-    id: "nf_emerald", name: "لوحة زمردية", kind: "name",
+    id: "nf_virgo", name: "لوحة العذراء 🌾", kind: "name",
     price: 8000, currency: "gem", rarity: "epic", preview: "Aa",
-    nameClass: "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-800 border-2 border-emerald-100 text-white shadow-[0_0_18px_rgba(52,211,153,0.9),inset_0_1px_0_rgba(255,255,255,0.4)]",
+    nameClass:
+      "relative bg-gradient-to-b from-amber-200 via-yellow-400 to-amber-700 " +
+      "border-[3px] border-double border-amber-50 ring-2 ring-amber-900/70 ring-offset-2 ring-offset-yellow-200 " +
+      "text-amber-950 font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(120,53,15,0.45),0_4px_14px_rgba(251,191,36,0.55)]",
   },
   {
-    id: "nf_royal", name: "لوحة ملكية", kind: "name",
-    price: 22000, currency: "gem", rarity: "legendary", preview: "👑",
-    nameClass: "bg-gradient-to-r from-violet-600 via-purple-500 to-fuchsia-700 border-2 border-fuchsia-200 text-white font-extrabold shadow-[0_0_22px_rgba(232,121,249,1),0_0_40px_rgba(168,85,247,0.5),inset_0_1px_0_rgba(255,255,255,0.4)]",
+    id: "nf_leo", name: "لوحة الأسد ☀️", kind: "name",
+    price: 12000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-yellow-200 via-amber-400 to-orange-700 " +
+      "border-[3px] border-double border-yellow-50 ring-2 ring-amber-950/80 ring-offset-2 ring-offset-yellow-300 " +
+      "text-amber-950 font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(120,53,15,0.5),0_6px_20px_rgba(251,191,36,0.7)]",
   },
   {
-    id: "nf_legend", name: "لوحة الأسطورة", kind: "name",
-    price: 60000, currency: "gem", rarity: "mythic", preview: "🏆",
-    nameClass: "bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 border-2 border-amber-200 text-white font-extrabold shadow-[0_0_28px_rgba(251,191,36,1),0_0_50px_rgba(232,121,249,0.6),inset_0_1px_0_rgba(255,255,255,0.5)] animate-pulse",
+    id: "nf_taurus", name: "لوحة الثور 💚", kind: "name",
+    price: 18000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-emerald-300 via-teal-600 to-emerald-900 " +
+      "border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950/80 ring-offset-2 ring-offset-emerald-200 " +
+      "text-white font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_20px_rgba(16,185,129,0.55)]",
   },
   {
-    id: "nf_inferno", name: "لوحة الجحيم", kind: "name",
-    price: 80000, currency: "gem", rarity: "mythic", preview: "🔥",
-    nameClass: "bg-gradient-to-r from-orange-500 via-red-500 to-rose-700 border-2 border-amber-200 text-white font-extrabold shadow-[0_0_28px_rgba(251,146,60,1),0_0_55px_rgba(239,68,68,0.6),inset_0_1px_0_rgba(255,255,255,0.4)] animate-pulse",
+    id: "nf_gemini", name: "لوحة الجوزاء ✨", kind: "name",
+    price: 25000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-fuchsia-400 via-purple-600 to-violet-900 " +
+      "border-[3px] border-double border-fuchsia-100 ring-2 ring-violet-950/80 ring-offset-2 ring-offset-fuchsia-200 " +
+      "text-white font-extrabold tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_22px_rgba(168,85,247,0.6)]",
   },
   {
-    id: "nf_abyss", name: "لوحة الأعماق", kind: "name",
-    price: 100000, currency: "gem", rarity: "mythic", preview: "🌊",
-    nameClass: "bg-gradient-to-r from-cyan-400 via-blue-600 to-indigo-800 border-2 border-cyan-100 text-white font-extrabold shadow-[0_0_28px_rgba(103,232,249,1),0_0_55px_rgba(59,130,246,0.6),inset_0_1px_0_rgba(255,255,255,0.5)] animate-pulse",
+    id: "nf_scorpio", name: "لوحة العقرب 🦂", kind: "name",
+    price: 50000, currency: "gem", rarity: "mythic", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-rose-600 via-red-800 to-zinc-950 " +
+      "border-[3px] border-double border-rose-200 ring-2 ring-black ring-offset-2 ring-offset-rose-300 " +
+      "text-white font-extrabold tracking-wider " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.7),0_8px_26px_rgba(244,63,94,0.7)]",
+  },
+  {
+    id: "nf_pisces", name: "لوحة الحوت 🐟", kind: "name",
+    price: 75000, currency: "gem", rarity: "mythic", preview: "Aa",
+    nameClass:
+      "relative bg-gradient-to-b from-cyan-300 via-sky-600 to-blue-900 " +
+      "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
+      "text-white font-extrabold tracking-wider " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),inset_0_-2px_0_rgba(0,0,0,0.45),0_8px_26px_rgba(59,130,246,0.7)]",
   },
 ];
 
-export const ALL_FRAMES: Frame[] = [...AVATAR_FRAMES, ...NAME_FRAMES];
+// ─────── إطارات فقاعة الشات (فاخرة بحواف ذهبية مزدوجة) ───────
+export const BUBBLE_FRAMES: Frame[] = [
+  {
+    id: "bf_aries", name: "فقاعة الحَمَل ♈", kind: "bubble",
+    price: 1000, currency: "gem", rarity: "rare", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-orange-500 via-red-600 to-orange-900 " +
+      "border-[3px] border-double border-amber-200 ring-2 ring-orange-950/70 ring-offset-2 ring-offset-amber-300/80 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.35),0_6px_18px_rgba(251,146,60,0.5)]",
+  },
+  {
+    id: "bf_phoenix", name: "فقاعة العنقاء 🔥", kind: "bubble",
+    price: 5000, currency: "gem", rarity: "epic", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-amber-400 via-orange-600 to-rose-800 " +
+      "border-[3px] border-double border-amber-100 ring-2 ring-rose-950/70 ring-offset-2 ring-offset-amber-200 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.4),0_8px_22px_rgba(244,63,94,0.5)]",
+  },
+  {
+    id: "bf_virgo", name: "فقاعة العذراء 🌾", kind: "bubble",
+    price: 8000, currency: "gem", rarity: "epic", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-amber-200 via-yellow-500 to-amber-800 " +
+      "border-[3px] border-double border-amber-50 ring-2 ring-amber-900/70 ring-offset-2 ring-offset-yellow-200 " +
+      "text-amber-950 font-medium shadow-[inset_0_2px_0_rgba(255,255,255,0.65),inset_0_-2px_0_rgba(120,53,15,0.45),0_6px_20px_rgba(251,191,36,0.6)]",
+  },
+  {
+    id: "bf_leo", name: "فقاعة الأسد ☀️", kind: "bubble",
+    price: 12000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-yellow-200 via-amber-500 to-orange-800 " +
+      "border-[3px] border-double border-yellow-50 ring-2 ring-amber-950/80 ring-offset-2 ring-offset-yellow-300 " +
+      "text-amber-950 font-medium shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(120,53,15,0.5),0_8px_24px_rgba(251,191,36,0.75)]",
+  },
+  {
+    id: "bf_taurus", name: "فقاعة الثور 💚", kind: "bubble",
+    price: 18000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-emerald-400 via-teal-600 to-emerald-900 " +
+      "border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950/80 ring-offset-2 ring-offset-emerald-200 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.4),0_8px_24px_rgba(16,185,129,0.6)]",
+  },
+  {
+    id: "bf_gemini", name: "فقاعة الجوزاء ✨", kind: "bubble",
+    price: 25000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-fuchsia-500 via-purple-600 to-violet-900 " +
+      "border-[3px] border-double border-fuchsia-100 ring-2 ring-violet-950/80 ring-offset-2 ring-offset-fuchsia-200 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_8px_26px_rgba(168,85,247,0.65)]",
+  },
+  {
+    id: "bf_scorpio", name: "فقاعة العقرب 🦂", kind: "bubble",
+    price: 50000, currency: "gem", rarity: "mythic", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-rose-600 via-red-800 to-zinc-950 " +
+      "border-[3px] border-double border-rose-200 ring-2 ring-black ring-offset-2 ring-offset-rose-300 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.4),inset_0_-2px_0_rgba(0,0,0,0.7),0_10px_30px_rgba(244,63,94,0.75)]",
+  },
+  {
+    id: "bf_pisces", name: "فقاعة الحوت 🐟", kind: "bubble",
+    price: 75000, currency: "gem", rarity: "mythic", preview: "💬",
+    bubbleClass:
+      "relative bg-gradient-to-br from-cyan-300 via-sky-600 to-blue-900 " +
+      "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
+      "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.45),0_10px_30px_rgba(59,130,246,0.75)]",
+  },
+];
+
+// ─────── إطارات بطاقة البروفايل (إطارات مزخرفة مزدوجة) ───────
+export const PROFILE_FRAMES: Frame[] = [
+  {
+    id: "pf_aries", name: "بطاقة الحَمَل ♈", kind: "profile",
+    price: 1000, currency: "gem", rarity: "rare", preview: "♈",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-orange-400 via-red-600 to-orange-900 " +
+      "border-[3px] border-double border-amber-200 ring-2 ring-orange-950/70 ring-offset-2 ring-offset-amber-300 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_10px_30px_rgba(251,146,60,0.55)]",
+  },
+  {
+    id: "pf_phoenix", name: "بطاقة العنقاء 🔥", kind: "profile",
+    price: 5000, currency: "gem", rarity: "epic", preview: "🔥",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-amber-300 via-orange-600 to-rose-800 " +
+      "border-[3px] border-double border-amber-100 ring-2 ring-rose-950/70 ring-offset-2 ring-offset-amber-200 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_14px_36px_rgba(244,63,94,0.55)]",
+  },
+  {
+    id: "pf_virgo", name: "بطاقة العذراء 🌾", kind: "profile",
+    price: 8000, currency: "gem", rarity: "epic", preview: "♍",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-amber-200 via-yellow-500 to-amber-800 " +
+      "border-[3px] border-double border-amber-50 ring-2 ring-amber-900/70 ring-offset-2 ring-offset-yellow-200 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(251,191,36,0.6)]",
+  },
+  {
+    id: "pf_leo", name: "بطاقة الأسد ☀️", kind: "profile",
+    price: 12000, currency: "gem", rarity: "legendary", preview: "♌",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-yellow-200 via-amber-500 to-orange-800 " +
+      "border-[3px] border-double border-yellow-50 ring-2 ring-amber-950/80 ring-offset-2 ring-offset-yellow-300 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_16px_40px_rgba(251,191,36,0.75)]",
+  },
+  {
+    id: "pf_taurus", name: "بطاقة الثور 💚", kind: "profile",
+    price: 18000, currency: "gem", rarity: "legendary", preview: "♉",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-emerald-400 via-teal-600 to-emerald-900 " +
+      "border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950/80 ring-offset-2 ring-offset-emerald-200 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_16px_40px_rgba(16,185,129,0.6)]",
+  },
+  {
+    id: "pf_gemini", name: "بطاقة الجوزاء ✨", kind: "profile",
+    price: 25000, currency: "gem", rarity: "legendary", preview: "♊",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-fuchsia-500 via-purple-600 to-violet-900 " +
+      "border-[3px] border-double border-fuchsia-100 ring-2 ring-violet-950/80 ring-offset-2 ring-offset-fuchsia-200 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_16px_42px_rgba(168,85,247,0.65)]",
+  },
+  {
+    id: "pf_scorpio", name: "بطاقة العقرب 🦂", kind: "profile",
+    price: 50000, currency: "gem", rarity: "mythic", preview: "♏",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-rose-600 via-red-800 to-zinc-950 " +
+      "border-[3px] border-double border-rose-200 ring-2 ring-black ring-offset-2 ring-offset-rose-300 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.4),0_20px_50px_rgba(244,63,94,0.75)]",
+  },
+  {
+    id: "pf_pisces", name: "بطاقة الحوت 🐟", kind: "profile",
+    price: 75000, currency: "gem", rarity: "mythic", preview: "♓",
+    profileClass:
+      "rounded-2xl p-[6px] bg-gradient-to-br from-cyan-300 via-sky-600 to-blue-900 " +
+      "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_20px_50px_rgba(59,130,246,0.75)]",
+  },
+];
+
+export const ALL_FRAMES: Frame[] = [
+  ...AVATAR_FRAMES, ...NAME_FRAMES, ...BUBBLE_FRAMES, ...PROFILE_FRAMES,
+];
 
 export function frameById(id?: string | null): Frame | undefined {
   if (!id) return undefined;
-  return ALL_FRAMES.find((f) => f.id === id);
+  const frame = ALL_FRAMES.find((f) => f.id === id);
+  if (!frame || frame.animClass) return frame;
+  const motion = frameMotionClass(id);
+  return motion ? { ...frame, animClass: motion } : frame;
 }
+
+function frameMotionClass(id: string): string {
+  if (id.includes("aries") || id.includes("phoenix") || id.includes("leo")) return "frame-anim-flame";
+  if (id.includes("virgo") || id.includes("taurus")) return "frame-anim-leaf";
+  if (id.includes("gemini")) return "frame-anim-sparkle";
+  if (id.includes("scorpio")) return "frame-anim-pulse";
+  if (id.includes("pisces")) return "frame-anim-wave";
+  return "frame-anim-float";
+}
+
+// Map frame kind → inventory item_type stored in DB
+export const FRAME_KIND_TO_ITEM_TYPE: Record<FrameKind, string> = {
+  avatar: "frame",
+  name: "name_frame",
+  bubble: "bubble_frame",
+  profile: "profile_frame",
+};
 
 // ============================================================
 // Store offers — gem packs, coin packs, bundles & VIP
@@ -166,19 +369,19 @@ export const GEM_PACKS: Pack[] = [
     id: "bd_captain", category: "bundle", label: "باقة القبطان",  emoji: "🧭",
     amount: 0, currency: "gem", priceUSD: 9.99, popular: true,
     description: "1500 💎 + 100,000 🪙 + إطار ذهبي",
-    reward: { gems: 1500, coins: 100_000, frameIds: ["af_gold"] },
+    reward: { gems: 1500, coins: 100_000, frameIds: ["af_leo"] },
   },
   {
     id: "bd_admiral", category: "bundle", label: "باقة الأميرال", emoji: "⚔️",
     amount: 0, currency: "gem", priceUSD: 24.99,
     description: "4000 💎 + 300,000 🪙 + خلفيتان + إطار ياقوتي",
-    reward: { gems: 4000, coins: 300_000, bgIds: ["sunset", "tropical"], frameIds: ["af_ruby"] },
+    reward: { gems: 4000, coins: 300_000, bgIds: ["sunset", "tropical"], frameIds: ["af_taurus"] },
   },
   {
     id: "bd_legend", category: "bundle", label: "باقة الأسطورة",  emoji: "🐉",
     amount: 0, currency: "gem", priceUSD: 49.99, tag: "محدود",
     description: "9000 💎 + 700,000 🪙 + 3 خلفيات + إطار التنين + لوحة الأسطورة",
-    reward: { gems: 9000, coins: 700_000, bgIds: ["volcano", "arctic", "cursed"], frameIds: ["af_dragon", "nf_legend"] },
+    reward: { gems: 9000, coins: 700_000, bgIds: ["volcano", "arctic", "cursed"], frameIds: ["af_scorpio", "nf_leo"] },
   },
   {
     id: "bd_emperor", category: "bundle", label: "باقة الإمبراطور", emoji: "👑",
@@ -187,7 +390,7 @@ export const GEM_PACKS: Pack[] = [
     reward: {
       gems: 20_000, coins: 1_500_000,
       bgIds: ["harbor", "sunset", "tropical", "volcano", "arctic", "cursed", "night", "royal"],
-      frameIds: ["af_imperial", "nf_inferno", "nf_abyss"],
+      frameIds: ["af_pisces", "nf_scorpio", "nf_pisces"],
       rubies: 50,
     },
   },

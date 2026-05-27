@@ -13,6 +13,11 @@ export type Profile = {
   rubies: number;
   tribe_id: string | null;
   online_at: string;
+  avatar_url?: string | null;
+  avatar_frame?: string | null;
+  name_frame?: string | null;
+  bubble_frame?: string | null;
+  profile_frame?: string | null;
   protection_until?: string | null;
 };
 
