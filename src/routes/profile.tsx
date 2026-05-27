@@ -1,7 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ALL_FRAMES, AVATAR_FRAMES, NAME_FRAMES, frameById, type Frame } from "@/lib/frames";
+import {
+  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES,
+  frameById, type Frame, type FrameKind,
+} from "@/lib/frames";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -14,7 +17,20 @@ export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
 
-const EMOJIS = ["🧙","🧑‍✈️","👨‍🚀","👩‍🚀","🧜‍♂️","🧜‍♀️","🦸","🦸‍♀️","🥷","🧛","👨‍🎤","👩‍🎤","🦹","🤴","👸"];
+import av1 from "@/assets/avatars/avatar-1.jpg";
+import av2 from "@/assets/avatars/avatar-2.jpg";
+import av3 from "@/assets/avatars/avatar-3.jpg";
+import av4 from "@/assets/avatars/avatar-4.jpg";
+import av5 from "@/assets/avatars/avatar-5.jpg";
+import av6 from "@/assets/avatars/avatar-6.jpg";
+import av7 from "@/assets/avatars/avatar-7.jpg";
+import av8 from "@/assets/avatars/avatar-8.jpg";
+import av9 from "@/assets/avatars/avatar-9.jpg";
+import av10 from "@/assets/avatars/avatar-10.jpg";
+import av11 from "@/assets/avatars/avatar-11.jpg";
+import av12 from "@/assets/avatars/avatar-12.jpg";
+
+const PRESET_AVATARS = [av1, av2, av3, av4, av5, av6, av7, av8, av9, av10, av11, av12];
 
 function ProfilePage() {
   const nav = useNavigate();
@@ -26,6 +42,8 @@ function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFrame, setAvatarFrame] = useState<string | null>(null);
   const [nameFrame, setNameFrame] = useState<string | null>(null);
+  const [bubbleFrame, setBubbleFrame] = useState<string | null>(null);
+  const [profileFrame, setProfileFrame] = useState<string | null>(null);
   const [ownedFrameIds, setOwnedFrameIds] = useState<Set<string>>(new Set());
   const [pop, setPop] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -38,8 +56,15 @@ function ProfilePage() {
       if (!u.user) { nav({ to: "/login" }); return; }
       setUserId(u.user.id);
       const [{ data: p }, { data: inv }] = await Promise.all([
-        supabase.from("profiles").select("display_name,avatar_emoji,avatar_url,avatar_frame,name_frame").eq("id", u.user.id).maybeSingle(),
-        supabase.from("inventory").select("item_id").eq("user_id", u.user.id).eq("item_type", "frame"),
+        supabase
+          .from("profiles")
+          .select("display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame")
+          .eq("id", u.user.id).maybeSingle(),
+        supabase
+          .from("inventory")
+          .select("item_id,item_type")
+          .eq("user_id", u.user.id)
+          .in("item_type", ["frame", "name_frame", "bubble_frame", "profile_frame"]),
       ]);
       if (p) {
         setDisplayName(p.display_name ?? "");
@@ -47,8 +72,10 @@ function ProfilePage() {
         setAvatarUrl(p.avatar_url ?? null);
         setAvatarFrame(p.avatar_frame ?? null);
         setNameFrame(p.name_frame ?? null);
+        setBubbleFrame((p as any).bubble_frame ?? null);
+        setProfileFrame((p as any).profile_frame ?? null);
       }
-      setOwnedFrameIds(new Set((inv ?? []).map(r => r.item_id)));
+      setOwnedFrameIds(new Set((inv ?? []).map((r: any) => r.item_id)));
       setLoading(false);
     })();
   }, [nav]);
@@ -79,7 +106,9 @@ function ProfilePage() {
       avatar_emoji: avatarEmoji,
       avatar_frame: avatarFrame,
       name_frame: nameFrame,
-    }).eq("id", userId);
+      bubble_frame: bubbleFrame,
+      profile_frame: profileFrame,
+    } as any).eq("id", userId);
     setSaving(false);
     if (error) { flash("فشل الحفظ"); return; }
     flash("تم الحفظ ✓");
@@ -87,6 +116,8 @@ function ProfilePage() {
 
   const equippedAvatarFrame = frameById(avatarFrame);
   const equippedNameFrame = frameById(nameFrame);
+  const equippedBubbleFrame = frameById(bubbleFrame);
+  const equippedProfileFrame = frameById(profileFrame);
 
   if (loading) {
     return <div className="fixed inset-0 flex items-center justify-center bg-stone-950 text-amber-200">جاري التحميل…</div>;
@@ -108,20 +139,32 @@ function ProfilePage() {
       </header>
 
       <main className="p-3 pb-10 space-y-4">
-        {/* Live preview */}
-        <section className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
-          <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}>
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-secondary text-4xl">{avatarEmoji}</div>
-            )}
-          </div>
-          <div className="flex-1">
-            <div className={`inline-block px-3 py-1 rounded-md font-bold text-base ${equippedNameFrame?.nameClass ?? "bg-secondary/60 border border-border text-foreground"}`}>
-              {displayName || "اسم اللاعب"}
+        {/* Live preview — profile card frame wraps the entire card */}
+        <section className={equippedProfileFrame?.profileClass ?? ""}>
+          <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
+            <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+              <div className={`relative w-16 h-16 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-secondary text-3xl">{avatarEmoji}</div>
+                )}
+              </div>
+              {equippedAvatarFrame?.imageUrl && (
+                <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
+              )}
             </div>
-            <div className="text-[10px] text-muted-foreground mt-1">المعاينة المباشرة</div>
+            <div className="flex-1">
+              <div className={`inline-block px-3 py-1 rounded-md font-bold text-base ${equippedNameFrame?.nameClass ?? "bg-secondary/60 border border-border text-foreground"}`}>
+                {displayName || "اسم اللاعب"}
+              </div>
+              <div className="mt-2">
+                <div className={`inline-block px-3 py-1.5 rounded-2xl text-xs ${equippedBubbleFrame?.bubbleClass ?? "bg-secondary/60 border border-border text-foreground"}`}>
+                  مرحباً 👋
+                </div>
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">المعاينة المباشرة</div>
+            </div>
           </div>
         </section>
 
@@ -153,33 +196,44 @@ function ProfilePage() {
             <button onClick={async () => { setAvatarUrl(null); await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId!); flash("حُذفت الصورة"); }}
               className="text-[11px] text-rose-300 underline">إزالة الصورة المرفوعة</button>
           )}
-          <div className="text-xs text-muted-foreground">أو اختر شكل افتراضي:</div>
-          <div className="flex flex-wrap gap-2">
-            {EMOJIS.map(em => (
-              <button key={em} onClick={() => setAvatarEmoji(em)}
-                className={`w-11 h-11 rounded-xl text-2xl flex items-center justify-center border-2 transition-all active:scale-95 ${avatarEmoji === em ? "bg-amber-400/30 border-amber-300" : "bg-secondary/40 border-border"}`}>
-                {em}
-              </button>
-            ))}
+          <div className="text-xs text-muted-foreground">أو اختر شخصية جاهزة:</div>
+          <div className="grid grid-cols-6 gap-2">
+            {PRESET_AVATARS.map((src, i) => {
+              const isSelected = avatarUrl === src;
+              return (
+                <button key={i} onClick={async () => {
+                  setAvatarUrl(src);
+                  if (userId) await supabase.from("profiles").update({ avatar_url: src }).eq("id", userId);
+                  flash("تم تحديث الصورة");
+                }}
+                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all active:scale-95 ${isSelected ? "border-amber-300 ring-2 ring-amber-300/60" : "border-border"}`}>
+                  <img src={src} alt={`avatar ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                </button>
+              );
+            })}
           </div>
         </section>
 
-        {/* Owned avatar frames */}
+        {/* Owned frames — 4 sections */}
         <FrameSection
-          title="إطارات صورتي"
+          title="إطارات صورتي" kind="avatar"
           frames={AVATAR_FRAMES}
-          owned={ownedFrameIds}
-          selected={avatarFrame}
-          onSelect={setAvatarFrame}
+          owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
         />
-
-        {/* Owned name frames */}
         <FrameSection
-          title="إطارات اسمي"
+          title="إطارات اسمي" kind="name"
           frames={NAME_FRAMES}
-          owned={ownedFrameIds}
-          selected={nameFrame}
-          onSelect={setNameFrame}
+          owned={ownedFrameIds} selected={nameFrame} onSelect={setNameFrame}
+        />
+        <FrameSection
+          title="إطارات فقاعة الشات" kind="bubble"
+          frames={BUBBLE_FRAMES}
+          owned={ownedFrameIds} selected={bubbleFrame} onSelect={setBubbleFrame}
+        />
+        <FrameSection
+          title="إطارات بطاقة البروفايل" kind="profile"
+          frames={PROFILE_FRAMES}
+          owned={ownedFrameIds} selected={profileFrame} onSelect={setProfileFrame}
         />
 
         <Link to="/cosmetics" className="block text-center rounded-2xl px-4 py-3 bg-gradient-to-b from-fuchsia-500 to-rose-700 border-2 border-fuchsia-200 text-white font-bold shadow-lg active:scale-95">
@@ -200,8 +254,9 @@ function ProfilePage() {
   );
 }
 
-function FrameSection({ title, frames, owned, selected, onSelect }: {
-  title: string; frames: Frame[]; owned: Set<string>; selected: string | null; onSelect: (id: string | null) => void;
+function FrameSection({ title, kind, frames, owned, selected, onSelect }: {
+  title: string; kind: FrameKind; frames: Frame[]; owned: Set<string>;
+  selected: string | null; onSelect: (id: string | null) => void;
 }) {
   return (
     <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-3">
@@ -220,14 +275,33 @@ function FrameSection({ title, frames, owned, selected, onSelect }: {
             <button key={f.id}
               onClick={() => isOwned ? onSelect(f.id) : undefined}
               disabled={!isOwned}
-              className={`relative rounded-xl p-2 border-2 transition-all ${isSel ? "border-amber-300 bg-amber-400/20" : "border-border bg-secondary/40"} ${!isOwned ? "opacity-40" : "active:scale-95"}`}>
-              {f.kind === "avatar" ? (
-                <div className={`w-12 h-12 mx-auto rounded-full bg-stone-700 flex items-center justify-center text-xl ${f.ring}`}>👤</div>
-              ) : (
-                <div className={`inline-block px-2 py-1 rounded text-xs font-bold ${f.nameClass}`}>Aa</div>
+              className={`relative rounded-xl p-2 border-2 min-h-[78px] flex items-center justify-center transition-all ${isSel ? "border-amber-300 bg-amber-400/20" : "border-border bg-secondary/40"} ${!isOwned ? "opacity-40" : "active:scale-95"}`}>
+              {kind === "avatar" && (
+                f.imageUrl ? (
+                  <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="absolute w-9 h-9 rounded-full bg-stone-700 flex items-center justify-center text-base">👤</div>
+                    <img src={f.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${f.animClass ?? ""}`} loading="lazy" />
+                  </div>
+                ) : (
+                  <div className={`w-12 h-12 rounded-full bg-stone-700 flex items-center justify-center text-xl ${f.ring ?? ""}`}>👤</div>
+                )
               )}
-              <div className="text-[10px] font-bold mt-1 truncate">{f.name}</div>
-              {!isOwned && <div className="text-[9px] text-muted-foreground mt-0.5">🔒 غير مملوك</div>}
+              {kind === "name" && (
+                <div className={`inline-block px-2 py-1 rounded text-xs font-bold ${f.nameClass ?? ""}`}>Aa</div>
+              )}
+              {kind === "bubble" && (
+                <div className={`inline-block px-2 py-1 rounded-2xl text-[11px] ${f.bubbleClass ?? ""}`}>مرحباً</div>
+              )}
+              {kind === "profile" && (
+                <div className={`w-full ${f.profileClass ?? ""}`}>
+                  <div className="bg-black/40 rounded p-1.5 flex items-center gap-1.5">
+                    <div className="w-6 h-6 rounded-full bg-sky-700 text-[10px] flex items-center justify-center">🧙</div>
+                    <div className="flex-1 h-1.5 bg-white/15 rounded-full" />
+                  </div>
+                </div>
+              )}
+              <div className="absolute bottom-0.5 inset-x-0 text-[9px] font-bold truncate text-center text-white/80 px-1">{f.name}</div>
+              {!isOwned && <div className="absolute top-1 right-1 text-[10px]">🔒</div>}
             </button>
           );
         })}

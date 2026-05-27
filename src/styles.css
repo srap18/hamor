@@ -262,6 +262,70 @@
     100% { transform: translateX(40px) scaleX(0.3); opacity: 0; }
   }
   .animate-water-trail { animation: water-trail 1.6s ease-out infinite; }
+
+  /* === Cinematic explosion FX === */
+  @keyframes flash-bang {
+    0% { opacity: 0; } 8% { opacity: 1; } 100% { opacity: 0; }
+  }
+  .animate-flash-bang { animation: flash-bang 0.55s ease-out forwards; }
+
+  @keyframes fireball {
+    0%   { transform: scale(0.15); opacity: 0; filter: brightness(2.2) saturate(1.6); }
+    15%  { transform: scale(1);    opacity: 1; }
+    55%  { transform: scale(1.25); opacity: 0.95; filter: brightness(1.4) saturate(1.4); }
+    100% { transform: scale(1.7);  opacity: 0;    filter: brightness(0.7) saturate(0.7); }
+  }
+  .animate-fireball { animation: fireball 1.1s cubic-bezier(.2,.7,.3,1) forwards; }
+  .animate-fireball-nuke { animation: fireball 2.2s cubic-bezier(.2,.7,.3,1) forwards; }
+
+  @keyframes debris-arc {
+    0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+    60%  { opacity: 1; }
+    100% { transform: translate(var(--dx), calc(var(--dy) + 140px)) rotate(540deg) scale(0.35); opacity: 0; }
+  }
+  .animate-debris-arc { animation: debris-arc 1.4s cubic-bezier(.3,.1,.6,1) forwards; }
+
+  @keyframes heat-shimmer {
+    0%,100% { transform: translateY(0) skewX(0deg); }
+    50%     { transform: translateY(-4px) skewX(0.6deg); }
+  }
+  .animate-heat-shimmer { animation: heat-shimmer 2.4s ease-in-out infinite; }
+
+  @keyframes smoke-column {
+    0%   { transform: translate(var(--sx,0), 0) scale(0.6); opacity: 0; }
+    15%  { opacity: 0.85; }
+    100% { transform: translate(calc(var(--sx,0) + var(--drift,30px)), -120vh) scale(2.4); opacity: 0; }
+  }
+  .animate-smoke-column { animation: smoke-column var(--dur,9s) linear infinite; }
+
+  @keyframes ember-rise {
+    0%   { transform: translate(0,0) scale(1); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate(var(--dx,20px), -90vh) scale(0.3); opacity: 0; }
+  }
+  .animate-ember-rise { animation: ember-rise var(--dur,5s) linear infinite; }
+
+  @keyframes fire-flicker {
+    0%,100% { opacity: 0.85; transform: scaleY(1) scaleX(1); }
+    25%     { opacity: 1;    transform: scaleY(1.08) scaleX(0.96); }
+    50%     { opacity: 0.7;  transform: scaleY(0.94) scaleX(1.04); }
+    75%     { opacity: 1;    transform: scaleY(1.05) scaleX(0.98); }
+  }
+  .animate-fire-flicker { animation: fire-flicker 0.35s ease-in-out infinite; }
+
+  @keyframes mushroom-stem {
+    0%   { transform: translate(-50%, 100%) scaleY(0.1); opacity: 0; }
+    20%  { opacity: 1; }
+    100% { transform: translate(-50%, -20%) scaleY(1.2); opacity: 0.9; }
+  }
+  .animate-mushroom-stem { animation: mushroom-stem 1.6s ease-out forwards; }
+
+  @keyframes mushroom-cap {
+    0%   { transform: translate(-50%, 60%) scale(0.2); opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: translate(-50%, -120%) scale(2.8); opacity: 0; }
+  }
+  .animate-mushroom-cap { animation: mushroom-cap 2.4s cubic-bezier(.2,.6,.3,1) forwards; }
 }
 
 
@@ -327,3 +391,134 @@ button, a, [role="button"] {
   .animate-bird-fly { animation-duration: 60s !important; }
 }
 
+/* ===========================================================
+   Mobile-frame wrapper — keeps the app shaped like a phone UI
+   on every screen size. The `transform` on .mobile-frame-device
+   creates a containing block so descendants using `position: fixed`
+   are scoped to the frame instead of the viewport.
+   =========================================================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.mobile-frame-root {
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
+  background: var(--background, #0b1220);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  box-sizing: border-box;
+}
+
+
+.mobile-frame-stage {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.mobile-frame-device {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--background, #0b1220);
+  overflow: hidden;
+  transform: translateZ(0);
+  isolation: isolate;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.mobile-frame-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+
+
+.mobile-frame-notch { display: none; }
+
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+  .mobile-frame-root {
+    background: #000;
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+  .mobile-frame-stage {
+    min-height: 100dvh;
+    width: auto;
+    align-items: stretch;
+  }
+  .mobile-frame-device {
+    width: 390px;
+    min-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .mobile-frame-screen {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 0;
+  }
+  .mobile-frame-notch { display: none; }
+}
+
+
+
+
+/* ─────── Living frame animations (fire / earth / air / water) ─────── */
+@keyframes frame-flame {
+  0%, 100% { transform: scale(1) rotate(-0.5deg); filter: drop-shadow(0 0 6px rgba(251,146,60,0.85)) brightness(1.05) hue-rotate(0deg); }
+  25%      { transform: scale(1.04) rotate(0.6deg); filter: drop-shadow(0 0 14px rgba(244,63,94,1)) brightness(1.15) hue-rotate(-6deg); }
+  50%      { transform: scale(0.98) rotate(-0.4deg); filter: drop-shadow(0 0 10px rgba(251,191,36,0.95)) brightness(1.1) hue-rotate(4deg); }
+  75%      { transform: scale(1.05) rotate(0.5deg); filter: drop-shadow(0 0 16px rgba(239,68,68,1)) brightness(1.2) hue-rotate(-3deg); }
+}
+@keyframes frame-float {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4)); }
+  50%      { transform: translateY(-3px) scale(1.02); filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5)); }
+}
+@keyframes frame-sparkle {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(232,121,249,0.8)) brightness(1); }
+  50%      { filter: drop-shadow(0 0 18px rgba(168,85,247,1)) drop-shadow(0 0 28px rgba(232,121,249,0.7)) brightness(1.18); }
+}
+@keyframes frame-wave {
+  0%, 100% { transform: translateY(0) scaleX(1); filter: drop-shadow(0 0 10px rgba(103,232,249,0.8)) hue-rotate(0deg); }
+  50%      { transform: translateY(-2px) scaleX(1.02); filter: drop-shadow(0 0 18px rgba(59,130,246,1)) hue-rotate(8deg); }
+}
+@keyframes frame-leaf {
+  0%, 100% { transform: rotate(-1deg); filter: drop-shadow(0 0 8px rgba(132,204,22,0.7)); }
+  50%      { transform: rotate(1.2deg); filter: drop-shadow(0 0 14px rgba(16,185,129,0.95)); }
+}
+@keyframes frame-pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(244,63,94,0.7)) brightness(1); }
+  50%      { filter: drop-shadow(0 0 22px rgba(244,63,94,1)) drop-shadow(0 0 36px rgba(190,18,60,0.7)) brightness(1.15); }
+}
+
+.frame-anim-flame   { animation: frame-flame 1.6s ease-in-out infinite; transform-origin: 50% 70%; }
+.frame-anim-float   { animation: frame-float 3.2s ease-in-out infinite; }
+.frame-anim-sparkle { animation: frame-sparkle 2.2s ease-in-out infinite; }
+.frame-anim-wave    { animation: frame-wave 3s ease-in-out infinite; transform-origin: 50% 60%; }
+.frame-anim-leaf    { animation: frame-leaf 3.4s ease-in-out infinite; transform-origin: 50% 80%; }
+.frame-anim-pulse   { animation: frame-pulse-glow 1.8s ease-in-out infinite; }

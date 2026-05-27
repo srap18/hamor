@@ -1,17 +1,24 @@
 import { Link } from "@tanstack/react-router";
 import harborBg from "@/assets/harbor-bg.jpg";
+import harborVideo from "@/assets/harbor-bg.mp4.asset.json";
+import { SeamlessVideo } from "@/components/SeamlessVideo";
 
 export function Landing() {
   return (
-    <div
-      className="min-h-screen text-amber-100"
-      style={{
-        backgroundImage: `linear-gradient(rgba(5,10,20,0.75), rgba(5,10,20,0.9)), url(${harborBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      dir="rtl"
-    >
+    <div className="relative min-h-screen text-amber-100 overflow-hidden" dir="rtl">
+      {/* Live sea background */}
+      <div className="fixed inset-0 -z-10 bg-stone-950">
+        <SeamlessVideo
+          src={harborVideo.url}
+          poster={harborBg}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(rgba(5,10,20,0.65), rgba(5,10,20,0.85))" }}
+        />
+      </div>
+
       <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
           <span className="text-2xl">⛵</span>

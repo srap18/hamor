@@ -18,7 +18,7 @@ export const Route = createFileRoute("/inventory")({
 type Tab = "crew" | "weapon" | "fish";
 
 interface InvRow { item_type: string; item_id: string; quantity: number; }
-interface FishRow { fish_id: string; quantity: number; }
+interface FishRow { fish_id: string; quantity: number; total_caught: number; }
 
 function InventoryPage() {
   const [tab, setTab] = useState<Tab>("crew");
@@ -32,7 +32,7 @@ function InventoryPage() {
     if (!u.user) { setLoading(false); return; }
     const [{ data: i }, { data: f }] = await Promise.all([
       supabase.from("inventory").select("item_type,item_id,quantity").eq("user_id", u.user.id),
-      supabase.from("fish_caught").select("fish_id,quantity").eq("user_id", u.user.id),
+      supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
     ]);
     setInv(i ?? []);
     setFishRows(f ?? []);
@@ -43,6 +43,7 @@ function InventoryPage() {
 
   const qty = (type: string, id: string) => inv.find(r => r.item_type === type && r.item_id === id)?.quantity ?? 0;
   const fishQty = (id: string) => fishRows.find(r => r.fish_id === id)?.quantity ?? 0;
+  const fishDiscovered = (id: string) => (fishRows.find(r => r.fish_id === id)?.total_caught ?? 0) > 0;
 
   return (
     <div className="fixed inset-0 overflow-y-auto text-foreground" dir="rtl" style={{
@@ -135,7 +136,7 @@ function InventoryPage() {
                 <span className="text-xs font-bold text-sky-100">الأسماك المكتشفة</span>
               </div>
               <div className="text-sm font-extrabold text-amber-300">
-                {fishRows.filter(r => r.quantity > 0).length}
+                {fishRows.filter(r => (r.total_caught ?? 0) > 0).length}
                 <span className="text-muted-foreground mx-1">/</span>
                 <span className="text-sky-200">{FISH_TOTAL}</span>
               </div>
@@ -143,7 +144,7 @@ function InventoryPage() {
             <div className="grid grid-cols-3 gap-2">
             {Object.values(FISH).map(f => {
               const n = fishQty(f.id);
-              const discovered = n > 0;
+              const discovered = fishDiscovered(f.id);
               return (
                 <div key={f.id} className={`glass-hud rounded-xl p-2 border ${discovered?"border-sky-400/60":"border-border/40 opacity-50"}`}>
                   <div className="h-16 flex items-center justify-center">

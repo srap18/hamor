@@ -117,7 +117,12 @@ function Shop() {
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     const total = selected.price * qty;
     if (selected.currency === "gem" && gems < total) { flash("لا تملك جواهر كافيه"); return; }
-    if (selected.currency === "coin" && coins < total) { flash("لا تملك عملات كافيه"); return; }
+    if (selected.currency === "coin") {
+      const shortfall = Math.max(0, total - coins);
+      const gemsNeeded = Math.ceil(shortfall / 1000);
+      if (shortfall > 0 && gems < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
+      if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
+    }
 
     // Armor cooldown: only one armor purchase every 4 days
     if (tab === "protection") {

@@ -9,6 +9,8 @@ import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { buyWithCoins, buyWithGems } from "@/lib/economy";
 import { ProjectileFx } from "@/components/ProjectileFx";
+import { BurnedBgOverlay, burnTargetBg } from "@/components/BurnedBgOverlay";
+import { frameById } from "@/lib/frames";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -20,6 +22,8 @@ type Profile = {
   id: string; display_name: string; avatar_emoji: string; avatar_url: string | null;
   level: number; xp: number; coins: number; gems: number; online_at: string;
   selected_bg_id?: string | null;
+  bg_burned_until?: string | null;
+  avatar_frame?: string | null; name_frame?: string | null; profile_frame?: string | null;
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
@@ -344,6 +348,11 @@ function PlayerPage() {
     setBusy(false);
     // After a nuke, prompt the player to broadcast a global message
     if (weaponId === "nuke") {
+      // Scorch the target's background for 7 days (visible to everyone)
+      try {
+        await burnTargetBg(playerId);
+        setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
+      } catch { /* ignore */ }
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
@@ -566,12 +575,17 @@ function PlayerPage() {
       {/* Their actual scene background (animated video if available) */}
       {scene.video ? (
         <SeamlessVideo key={scene.id} src={scene.video} poster={scene.image}
-          className="absolute inset-0 w-full h-full object-cover object-center select-none pointer-events-none" />
+          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+          style={{ objectPosition: scene.objectPosition ?? "right center" }} />
       ) : (
-        <img src={scene.image} alt={scene.name} className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none" draggable={false} />
+        <img src={scene.image} alt={scene.name} className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style={{ objectPosition: scene.objectPosition ?? "right center" }} draggable={false} />
       )}
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
+
+      {/* Scorched background overlay if this player was nuked */}
+      <BurnedBgOverlay burnedUntil={p?.bg_burned_until} ownerName={p?.display_name} />
 
       {/* Scene name badge */}
       <div className="absolute top-[5.5rem] left-1/2 -translate-x-1/2 z-30 glass-hud rounded-full px-3 py-1 border border-amber-400/40 text-[10px] text-amber-200 font-bold whitespace-nowrap">
@@ -710,12 +724,17 @@ function PlayerPage() {
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
         <Link to="/" onClick={() => sound.play("click")} className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
-        <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex items-center gap-2 border border-amber-400/50">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden">
-            {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
+        <div className={`flex-1 glass-hud rounded-xl px-3 py-2 flex items-center gap-2 border border-amber-400/50 ${frameById(p?.profile_frame)?.kind === "profile" ? frameById(p?.profile_frame)?.profileClass : ""} ${frameById(p?.profile_frame)?.animClass ?? ""}`}>
+          <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden">
+              {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
+            </div>
+            {frameById(p?.avatar_frame)?.imageUrl && (
+              <img src={frameById(p?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p?.avatar_frame)?.animClass ?? ""}`} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-amber-200 truncate">{p?.display_name ?? "…"}</div>
+            <div className={`inline-flex max-w-full px-2 py-0.5 text-sm font-bold truncate ${frameById(p?.name_frame)?.kind === "name" ? frameById(p?.name_frame)?.nameClass : "text-amber-200"} ${frameById(p?.name_frame)?.animClass ?? ""}`}>{p?.display_name ?? "…"}</div>
             <div className="text-[10px] text-amber-300/70">المستوى {p?.level ?? "—"} · ⚓ {ships.length} سفن</div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import harborBg from "@/assets/harbor-bg.jpg";
-import { getShipByMarketLevel, catchPerTrip } from "@/lib/ships";
+import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { bgById, getSelectedBgId } from "@/lib/backgrounds";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { FISH, fishForShip } from "@/lib/fish";
@@ -19,7 +19,11 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
+import { BurnedBgOverlay, repairBurnedBg } from "@/components/BurnedBgOverlay";
 import birdImg from "@/assets/bird-realistic.png";
+import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
+import { BeachDaughter } from "@/components/BeachDaughter";
+import { frameById } from "@/lib/frames";
 
 
 
@@ -80,9 +84,9 @@ interface Ship {
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
 // so they never overlap on screen.
 const SLOTS = [
-  { scale: 1.12, top: "40%", dockLeft: 18 },
-  { scale: 1.28, top: "52%", dockLeft: 52 },
-  { scale: 1.08, top: "48%", dockLeft: 30 },
+  { scale: 1.12, top: "42%", dockLeft: 82 },
+  { scale: 1.28, top: "55%", dockLeft: 50 },
+  { scale: 1.08, top: "30%", dockLeft: 14 },
 ];
 
 const INITIAL_SHIPS: Ship[] = [
@@ -466,15 +470,27 @@ function Index() {
     };
   }, [modal, crewTick]);
 
-  const [bgId, setBgId] = useState<string>("harbor");
+  const [bgId, setBgId] = useState<string>(() => getSelectedBgId());
   useEffect(() => {
-    const current = getSelectedBgId();
-    setBgId(current);
-    // Sync the locally-stored background to the DB so other players see the real scene when visiting.
-    supabase.auth.getUser().then(({ data }) => {
+    // DB is the source of truth so the background stays consistent across devices
+    // and never flips back to a stale localStorage value after visiting another page.
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const uid = data.user?.id;
-      if (uid) supabase.from("profiles").update({ selected_bg_id: current }).eq("id", uid).then(() => {});
-    });
+      if (!uid) return;
+      const { data: prof } = await supabase
+        .from("profiles").select("selected_bg_id").eq("id", uid).maybeSingle();
+      const dbId = (prof as any)?.selected_bg_id as string | null | undefined;
+      const local = getSelectedBgId();
+      if (dbId) {
+        if (dbId !== local) {
+          if (typeof window !== "undefined") window.localStorage.setItem("ocean.bg.selected", dbId);
+          setBgId(dbId);
+        }
+      } else if (local) {
+        await supabase.from("profiles").update({ selected_bg_id: local }).eq("id", uid);
+      }
+    })();
     const onFocus = () => setBgId(getSelectedBgId());
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -482,7 +498,7 @@ function Index() {
   const scene = bgById(bgId);
 
   // Incoming raids: ships from other players currently stealing from me
-  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string };
+  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number };
   const [raids, setRaids] = useState<Raid[]>([]);
   const reloadRaids = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -490,10 +506,10 @@ function Index() {
     if (!uid) { setRaids([]); return; }
     const { data: ships } = await supabase
       .from("ships_owned")
-      .select("id,user_id,stealing_ends_at")
+      .select("id,user_id,stealing_ends_at,template_id")
       .eq("stealing_target_user_id", uid)
       .not("stealing_target_user_id", "is", null);
-    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null }[];
+    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null }[];
     if (list.length === 0) { setRaids([]); return; }
     const ids = Array.from(new Set(list.map((s) => s.user_id)));
     const { data: profs } = await supabase
@@ -505,6 +521,7 @@ function Index() {
       attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
       ends_at: s.stealing_ends_at || new Date().toISOString(),
+      template_id: s.template_id ?? 1,
     })));
   };
   useEffect(() => {
@@ -725,14 +742,16 @@ function Index() {
             key={scene.id}
             src={scene.video}
             poster={scene.image}
-            className="absolute inset-0 w-full h-full object-cover object-center select-none"
+            className="absolute inset-0 w-full h-full object-cover select-none"
+            style={{ objectPosition: scene.objectPosition ?? "right center" }}
           />
         </div>
       ) : (
         <img
           src={scene.image}
           alt={scene.name}
-          className="absolute inset-0 w-full h-full object-cover object-center select-none pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+          style={{ objectPosition: scene.objectPosition ?? "right center" }}
           draggable={false}
         />
       )}
@@ -744,6 +763,30 @@ function Index() {
             "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)",
         }}
       />
+
+      {/* Burned background (after being nuked) — clickable to repair for 100 gems */}
+      {(profile as any)?.bg_burned_until && new Date((profile as any).bg_burned_until).getTime() > now && (
+        <>
+          <BurnedBgOverlay burnedUntil={(profile as any).bg_burned_until} />
+          <button
+            onClick={async () => {
+              const showToast = (v: string) => {
+                setPop({ id: Date.now(), x: window.innerWidth / 2, y: 120, v });
+                setTimeout(() => setPop(null), 1800);
+              };
+              if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+              if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+              const { error } = await repairBurnedBg();
+              if (error) { showToast("تعذّر الإصلاح"); return; }
+              sound.play("success");
+              showToast("✨ تم إصلاح الخلفية!");
+            }}
+            className="absolute top-[10rem] left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-2xl active:scale-95 flex items-center gap-1"
+          >
+            🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
+          </button>
+        </>
+      )}
 
       {/* Incoming raids — pirates stealing from me */}
       {raids.length > 0 && (
@@ -851,46 +894,33 @@ function Index() {
       {/* TOP HUD — pirate luxury */}
       <div className="absolute top-0 left-0 right-0 p-2.5 z-20 flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          {/* Avatar plaque — real avatar + name + lvl + xp */}
-          <Link to="/profile" className="relative active:scale-95 flex items-center gap-2 rounded-2xl pl-2 pr-1 py-1.5 border-2 border-amber-400/80 bg-gradient-to-r from-[#3a1f0a]/95 via-[#2a1606]/95 to-[#1a0d04]/95 shadow-[0_4px_12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(252,191,73,0.4)]">
-            {/* Decorative gold rivets */}
-            <span className="absolute -top-0.5 left-2 text-amber-300/80 text-[10px]">⚜</span>
-            <span className="absolute -top-0.5 right-2 text-amber-300/80 text-[10px]">⚜</span>
-            <div className="flex-1 text-right pr-1 min-w-0">
-              <div className="text-[13px] font-black text-amber-100 truncate max-w-[120px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                {profile?.display_name || "قبطان"}
+          {/* Avatar + name only — no plaque */}
+          <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1 shrink-0">
+            <div className="relative w-20 h-20 flex items-center justify-center">
+              <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
+                {(profile as any)?.avatar_url ? (
+                  <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
+                )}
               </div>
-              <div className="flex items-center gap-1 justify-end mt-1">
-                <span className="text-[10px] font-black text-amber-300 drop-shadow">LVL {profile?.level ?? 1}</span>
-                <div className="w-16 h-2 rounded-full bg-black/70 border border-amber-700/70 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 shadow-[0_0_6px_rgba(252,191,73,0.7)]"
-                    style={{ width: `${Math.min(100, ((profile?.xp ?? 0) % 1000) / 10)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="relative w-14 h-14 rounded-xl border-2 border-amber-300 bg-gradient-to-b from-amber-900 to-amber-950 overflow-hidden shadow-[0_0_14px_rgba(252,191,73,0.6)]">
-              {(profile as any)?.avatar_url ? (
-                <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
+              {frameById((profile as any)?.avatar_frame)?.imageUrl && (
+                <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
               )}
+            </div>
+            <div className={`inline-flex max-w-[110px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
+              {profile?.display_name || "قبطان"}
             </div>
           </Link>
 
           {/* Treasury — gold + gems */}
           <div className="flex-1 flex flex-col gap-1.5">
-            <div className="rounded-xl border-2 border-amber-400/80 bg-gradient-to-r from-[#3a1f0a]/95 to-[#1a0d04]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(252,191,73,0.3)]">
-              <span className="text-lg drop-shadow">🪙</span>
+          <div className="rounded-xl border-2 border-amber-400/80 bg-gradient-to-r from-[#3a1f0a]/95 to-[#1a0d04]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(252,191,73,0.3)]">
+              <CoinIcon size={22} />
               <span className="text-sm font-black text-amber-200 tabular-nums drop-shadow">{coins.toLocaleString()}</span>
-              <button
-                onClick={() => sound.play("click")}
-                className="w-6 h-6 rounded-full bg-amber-400 text-amber-950 text-xs font-black border border-amber-200 active:scale-90 shadow"
-              >+</button>
             </div>
             <div className="rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-[#0a1f3a]/95 to-[#04101a]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(125,211,252,0.3)]">
-              <span className="text-lg drop-shadow">💎</span>
+              <GemIcon size={22} />
               <span className="text-sm font-black text-cyan-200 tabular-nums drop-shadow">{gems.toLocaleString()}</span>
               <Link
                 to="/recharge"
@@ -911,13 +941,6 @@ function Index() {
               <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-200 rounded-full shadow-[0_0_8px_rgba(110,231,183,0.6)]" style={{ width: "62%" }} />
             </div>
           </div>
-          <div className="flex gap-1">
-            {["🍖", "⚡", "🛡️"].map((e, i) => (
-              <div key={i} className="w-10 h-10 rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 flex items-center justify-center text-lg shadow">
-                {e}
-              </div>
-            ))}
-          </div>
           <div className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow">
             <span className="text-lg">🐟</span>
             <span className="text-sm font-black text-amber-200 tabular-nums">{fish}</span>
@@ -933,7 +956,7 @@ function Index() {
             </Link>
           )}
         </div>
-        <div className="flex items-center justify-end px-1">
+        <div className="flex items-center justify-between px-1">
           <ShieldBadge />
         </div>
       </div>
@@ -961,14 +984,14 @@ function Index() {
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
         // Keep the third ship higher so it doesn't stick to the bottom nav on mobile.
-        const ts = [0, 0.4, 0.68];
+        const ts = [0.15, 0.45, 0.05];
         const vRange = Math.max(14, 74 - (wTop + 4));
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i] * vRange}%`;
 
         const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
         // Dock on the LEFT half of the water band so each ship always has
         // room to sail rightward when fishing (and visibly return to dock when recalled).
-        const hOffsets = [0.05, 0.3, 0.55];
+        const hOffsets = [0.05, 0.3, 0.6];
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
 
 
@@ -988,6 +1011,61 @@ function Index() {
           />
         );
       })}
+
+      {/* Incoming raider ships — render attacker pirate ships sailing in our harbor */}
+      {raids.map((r, i) => {
+        const wTop = scene.waterTop ?? 45;
+        const wLeft = scene.waterLeft ?? 30;
+        const wRight = scene.waterRight ?? 75;
+        const wWidth = Math.max(15, wRight - wLeft);
+        const slot = i % 3;
+        const top = `${wTop + 6 + slot * 8}%`;
+        const left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
+        const img = getShipByMarketLevel(r.template_id || 1).image;
+        const nativeRight = shipBowFacesRight(r.template_id || 1);
+        // Raider bow faces shore (left)
+        const flipX = nativeRight ? -1 : 1;
+        const t = Date.now() / 1000;
+        const bob = Math.sin((t + i) * 1.2) * 1.8;
+        return (
+          <Link
+            key={`raid-${r.ship_id}`}
+            to="/players/$playerId"
+            params={{ playerId: r.attacker_id }}
+            className="absolute z-10 active:scale-95"
+            style={{ left, top, width: "18%" }}
+          >
+            <div
+              className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-rose-900/90 border border-rose-400/70 text-rose-100 text-[10px] font-extrabold whitespace-nowrap shadow-lg animate-pulse"
+            >
+              🏴‍☠️ {r.attacker_emoji} {r.attacker_name}
+            </div>
+            <div
+              className="relative w-full"
+              style={{
+                transform: `translateY(${bob}px) scaleX(${flipX})`,
+                filter: "drop-shadow(0 12px 8px rgba(0,0,0,0.6)) hue-rotate(-15deg) saturate(1.2)",
+                transition: "transform 0.2s ease-out",
+              }}
+            >
+              <img src={img} alt="raider" className="w-full block select-none animate-sail-flap" draggable={false} />
+              <div
+                className="absolute pointer-events-none"
+                style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
+              >
+                <div
+                  className="w-full h-full animate-flag-wave"
+                  style={{
+                    background: "linear-gradient(180deg, #1f2937 0%, #1f2937 100%)",
+                    clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
+                  }}
+                />
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+
 
 
 
@@ -1396,6 +1474,7 @@ function Index() {
           {pop.v}
         </div>
       )}
+      <BeachDaughter ships={ships.map(s => ({ id: s.id, dockLeft: s.dockLeft, fishing: !!s.fishing, sail: s.sail }))} />
     </div>
   );
 }
@@ -1403,6 +1482,7 @@ function Index() {
 type LbProfile = {
   id: string; display_name: string; avatar_emoji: string; avatar_url: string | null;
   level: number; xp: number; coins: number; gems: number;
+  avatar_frame?: string | null; name_frame?: string | null;
 };
 
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
@@ -1452,7 +1532,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     supabase.from("profiles")
-      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems")
+      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
       .order(col, { ascending: false }).limit(30)
       .then(({ data }) => { setRows((data as LbProfile[]) || []); setLoading(false); });
   }, [tab]);
@@ -1461,7 +1541,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (!q.trim()) return;
     setLoading(true);
     const { data } = await supabase.from("profiles")
-      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems")
+      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
       .ilike("display_name", `%${q.trim()}%`).limit(30);
     setRows((data as LbProfile[]) || []);
     setLoading(false);
@@ -1549,11 +1629,16 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               {tab !== "search" && (
                 <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
               )}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-base overflow-hidden">
-                {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+              <div className="relative w-[72px] h-[72px] shrink-0 flex items-center justify-center">
+                <div className="w-[50px] h-[50px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)]">
+                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                </div>
+                {frameById(p.avatar_frame)?.imageUrl && (
+                  <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />
+                )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold text-accent truncate">{p.display_name}</div>
+                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}</div>
                 <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
               </div>
               <div className="text-xs font-bold text-accent tabular-nums">
@@ -1687,8 +1772,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const moving = Math.abs(v) > 0.0005;
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
-  // Idle ships face the shore (-1); fishing ships face out to sea (+1).
-  const facing = ship.fishing ? 1 : -1;
+  // Fishing → bow points right (out to sea). Idle → bow points left toward the marina.
+  const facing = ship.fishing ? -1 : 1;
 
 
   const pct = (ship.progress / ship.max) * 100;
@@ -1730,7 +1815,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > Date.now();
   const atSea = ship.sail > 0.85 && !destroyed;
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
-  const flipX = facing === -1 ? -1 : 1;
+  // Ship art is drawn facing LEFT natively (with per-level overrides for art
+  // that ships bow-right). Normalize so every ship shows the same on-screen
+  // direction: bow toward SEA (right) while fishing, bow toward SHORE (left) when docked.
+  const nativeRight = shipBowFacesRight(ship.level);
+  // Desired on-screen bow direction: +1 = right (sea), -1 = left (shore).
+  // flipX inverts the art when its native direction doesn't match the desired one.
+  const desiredRight = facing === 1;
+  const flipX = (desiredRight !== nativeRight) ? -1 : 1;
   const bankRoll = 0;
   const bankPitch = 0;
   const turnLift = 0;
@@ -1871,7 +1963,15 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             alt="Ship"
             className={`w-full block select-none ${destroyed ? "" : "animate-sail-flap"}`}
             draggable={false}
-            style={{ WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden" }}
+            decoding="async"
+            loading="eager"
+            style={{
+              WebkitBackfaceVisibility: "hidden",
+              backfaceVisibility: "hidden",
+              imageRendering: "auto",
+              willChange: "transform",
+              transform: "translateZ(0)",
+            }}
           />
 
 

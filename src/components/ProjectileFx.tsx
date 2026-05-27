@@ -106,40 +106,122 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
             height: boomSize,
           }}
         >
+          {/* Flashbang — bright white screen punch */}
           <div
-            className="absolute inset-0 rounded-full animate-pulse"
+            className="absolute rounded-full animate-flash-bang"
             style={{
-              background: isNuke
-                ? "radial-gradient(circle, #fff 0%, #fef08a 30%, #fb923c 60%, transparent 80%)"
-                : "radial-gradient(circle, #fff 0%, #fde047 35%, #f97316 65%, transparent 85%)",
+              left: -boomSize * 0.6,
+              top: -boomSize * 0.6,
+              width: boomSize * 2.2,
+              height: boomSize * 2.2,
+              background:
+                "radial-gradient(circle, #ffffff 0%, rgba(255,240,200,0.8) 25%, transparent 60%)",
+              mixBlendMode: "screen",
             }}
           />
+
+          {/* Core fireball — white hot center, yellow, orange, deep red */}
+          <div
+            className={`absolute inset-0 rounded-full ${isNuke ? "animate-fireball-nuke" : "animate-fireball"}`}
+            style={{
+              background:
+                "radial-gradient(circle, #ffffff 0%, #fff3a0 18%, #ffb347 38%, #ff5a1f 60%, #8b1a00 82%, transparent 100%)",
+              boxShadow:
+                "0 0 80px rgba(255,160,40,0.95), 0 0 160px rgba(255,80,0,0.7)",
+              filter: "blur(0.5px)",
+            }}
+          />
+
+          {/* Inner blast disk */}
+          <div
+            className={`absolute inset-[15%] rounded-full ${isNuke ? "animate-fireball-nuke" : "animate-fireball"}`}
+            style={{
+              background:
+                "radial-gradient(circle, #fff 0%, #ffe066 30%, #ff7a00 70%, transparent 100%)",
+              mixBlendMode: "screen",
+            }}
+          />
+
+          {/* Shockwave rings */}
           <div className={`absolute inset-0 rounded-full border-white/90 ${isNuke ? "animate-shockwave-nuke" : "animate-shockwave"}`} />
           {(isNuke || isLarge) && (
             <div
               className={`absolute inset-0 rounded-full border-orange-300/70 ${isNuke ? "animate-shockwave-nuke" : "animate-shockwave"}`}
-              style={{ animationDelay: "0.15s" }}
+              style={{ animationDelay: "0.18s" }}
             />
           )}
+          {isNuke && (
+            <div
+              className="absolute inset-0 rounded-full border-yellow-200/60 animate-shockwave-nuke"
+              style={{ animationDelay: "0.36s" }}
+            />
+          )}
+
+          {/* Arcing debris with gravity */}
           {debris.map((d) => (
             <div
               key={d.key}
-              className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full bg-amber-300 animate-debris"
+              className="absolute left-1/2 top-1/2 w-2 h-2 rounded-sm bg-amber-300 animate-debris-arc"
               style={{
                 ["--dx" as never]: `${d.dx}px`,
                 ["--dy" as never]: `${d.dy}px`,
-                boxShadow: "0 0 8px rgba(255,180,80,0.9)",
+                boxShadow:
+                  "0 0 10px rgba(255,180,80,0.95), 0 0 18px rgba(255,90,0,0.7)",
+                background:
+                  "linear-gradient(135deg, #fff5b0, #ff8a1f 60%, #6b1a00)",
               }}
             />
           ))}
+
+          {/* Lingering smoke puff */}
+          <div
+            className="absolute inset-[-20%] rounded-full opacity-0 animate-fireball"
+            style={{
+              animationDelay: "0.5s",
+              animationDuration: isNuke ? "2.4s" : "1.6s",
+              background:
+                "radial-gradient(circle, rgba(60,45,35,0.85) 0%, rgba(30,20,15,0.55) 45%, transparent 75%)",
+              filter: "blur(8px)",
+            }}
+          />
+
+          {/* Nuke: mushroom stem + cap + dust ring */}
           {isNuke && (
-            <div className="absolute left-1/2 bottom-1/2 text-8xl animate-mushroom" style={{ filter: "drop-shadow(0 0 20px rgba(0,0,0,0.6))" }}>
-              ☁️
-            </div>
+            <>
+              <div
+                className="absolute left-1/2 bottom-0 animate-mushroom-stem"
+                style={{
+                  width: boomSize * 0.35,
+                  height: boomSize * 1.1,
+                  background:
+                    "linear-gradient(180deg, rgba(80,60,50,0.95) 0%, rgba(50,35,28,0.85) 60%, rgba(30,20,15,0.7) 100%)",
+                  filter: "blur(4px)",
+                  borderRadius: "40% 40% 20% 20%",
+                  transform: "translateX(-50%)",
+                  transformOrigin: "bottom center",
+                }}
+              />
+              <div
+                className="absolute left-1/2 top-0 animate-mushroom-cap"
+                style={{
+                  width: boomSize * 1.1,
+                  height: boomSize * 0.7,
+                  background:
+                    "radial-gradient(ellipse at 50% 60%, rgba(255,200,120,0.9) 0%, rgba(180,90,40,0.85) 35%, rgba(60,40,30,0.9) 70%, transparent 100%)",
+                  filter: "blur(6px)",
+                  borderRadius: "50%",
+                }}
+              />
+              <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-amber-200/60 animate-shockwave-nuke"
+                style={{
+                  width: boomSize * 1.6,
+                  height: boomSize * 0.4,
+                  animationDelay: "0.1s",
+                }}
+              />
+            </>
           )}
-          <div className="absolute inset-0 flex items-center justify-center animate-pulse" style={{ fontSize: boomSize * 0.4 }}>
-            💥
-          </div>
         </div>
       )}
 

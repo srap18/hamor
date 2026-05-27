@@ -10,6 +10,7 @@ import {
 } from "@/lib/backgrounds";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/backgrounds-shop")({
   head: () => ({
@@ -49,16 +50,15 @@ function BackgroundsShop() {
       setSelectedBgId(b.id); setSelected(b.id); flash(`تم تركيب ${b.name}`); return;
     }
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
-    if (coins < b.price) { flash("لا تملك عملات كافيه"); return; }
+    const shortfall = Math.max(0, b.price - coins);
+    const gemsNeeded = Math.ceil(shortfall / 1000);
+    if (shortfall > 0 && (profile.gems ?? 0) < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
+    if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
     if (busy) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ coins: coins - b.price })
-      .eq("id", user.id);
+    const { error } = await supabase.rpc("buy_background", { _bg_id: b.id, _price: b.price });
     setBusy(false);
-    if (error) { flash("فشل الشراء"); return; }
-    // profile auto-refreshes via realtime subscription
+    if (error) { flash(error.message || "فشل الشراء"); return; }
     const next = [...owned, b.id];
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
@@ -80,7 +80,7 @@ function BackgroundsShop() {
       <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
         <Link to="/shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">↩</Link>
         <div className="flex-1 glass-hud rounded-xl px-3 py-1.5 flex items-center justify-center gap-2">
-          <span className="text-base">🪙</span>
+          <CoinIcon size={18} />
           <span className="text-amber-300 font-bold tabular-nums">{coins.toLocaleString()}</span>
         </div>
         <Link to="/" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg">🏠</Link>
@@ -165,7 +165,7 @@ function BackgroundsShop() {
                     onClick={() => buy(b)}
                     className="mt-1 w-full py-1.5 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-xs font-extrabold active:scale-95 flex items-center justify-center gap-1"
                   >
-                    <span>🪙</span>
+                    <CoinIcon size={16} />
                     <span className="tabular-nums">{b.price.toLocaleString()}</span>
                   </button>
                 )}
