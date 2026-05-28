@@ -298,6 +298,7 @@ export type Database = {
           fish_id: string
           id: string
           quantity: number
+          total_caught: number
           updated_at: string
           user_id: string
         }
@@ -305,6 +306,7 @@ export type Database = {
           fish_id: string
           id?: string
           quantity?: number
+          total_caught?: number
           updated_at?: string
           user_id: string
         }
@@ -312,6 +314,7 @@ export type Database = {
           fish_id?: string
           id?: string
           quantity?: number
+          total_caught?: number
           updated_at?: string
           user_id?: string
         }
@@ -770,11 +773,54 @@ export type Database = {
         }
         Relationships: []
       }
+      player_daughter: {
+        Row: {
+          created_at: string
+          feed_count_today: number
+          feed_day: string | null
+          feed_xp: number
+          last_fed_at: string | null
+          name: string
+          outfit: string
+          stage: number
+          total_fish_fed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feed_count_today?: number
+          feed_day?: string | null
+          feed_xp?: number
+          last_fed_at?: string | null
+          name?: string
+          outfit?: string
+          stage?: number
+          total_fish_fed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feed_count_today?: number
+          feed_day?: string | null
+          feed_xp?: number
+          last_fed_at?: string | null
+          name?: string
+          outfit?: string
+          stage?: number
+          total_fish_fed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_emoji: string
           avatar_frame: string | null
           avatar_url: string | null
+          bubble_frame: string | null
           coins: number
           created_at: string
           display_name: string
@@ -783,6 +829,7 @@ export type Database = {
           level: number
           name_frame: string | null
           online_at: string
+          profile_frame: string | null
           protection_until: string | null
           rubies: number
           selected_bg_id: string
@@ -794,6 +841,7 @@ export type Database = {
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
+          bubble_frame?: string | null
           coins?: number
           created_at?: string
           display_name: string
@@ -802,6 +850,7 @@ export type Database = {
           level?: number
           name_frame?: string | null
           online_at?: string
+          profile_frame?: string | null
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
@@ -813,6 +862,7 @@ export type Database = {
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
+          bubble_frame?: string | null
           coins?: number
           created_at?: string
           display_name?: string
@@ -821,6 +871,7 @@ export type Database = {
           level?: number
           name_frame?: string | null
           online_at?: string
+          profile_frame?: string | null
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
@@ -1600,6 +1651,115 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_room_messages: {
+        Row: {
+          created_at: string
+          id: string
+          preset: string | null
+          room_id: string
+          text: string | null
+          user_id: string
+          voice_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preset?: string | null
+          room_id: string
+          text?: string | null
+          user_id: string
+          voice_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preset?: string | null
+          room_id?: string
+          text?: string | null
+          user_id?: string
+          voice_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_room_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "voice_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_room_participants: {
+        Row: {
+          id: string
+          is_muted: boolean
+          is_speaker: boolean
+          joined_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_muted?: boolean
+          is_speaker?: boolean
+          joined_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_muted?: boolean
+          is_speaker?: boolean
+          joined_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "voice_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_rooms: {
+        Row: {
+          created_at: string
+          created_by: string
+          empty_since: string | null
+          id: string
+          is_active: boolean
+          max_users: number
+          name: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          empty_since?: string | null
+          id?: string
+          is_active?: boolean
+          max_users?: number
+          name: string
+          topic?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          empty_since?: string | null
+          id?: string
+          is_active?: boolean
+          max_users?: number
+          name?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       profiles_public: {
@@ -1699,6 +1859,8 @@ export type Database = {
       }
     }
     Functions: {
+      _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
+      _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _mutate_currency: {
         Args: {
           _coins?: number
@@ -1707,6 +1869,10 @@ export type Database = {
           _user: string
           _xp?: number
         }
+        Returns: undefined
+      }
+      _pay_coins_with_gem_fallback: {
+        Args: { _coins_needed: number; _uid: string }
         Returns: undefined
       }
       admin_grant_lootbox: {
@@ -1745,6 +1911,10 @@ export type Database = {
       }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
+        Returns: undefined
+      }
+      buy_background: {
+        Args: { _bg_id: string; _price: number }
         Returns: undefined
       }
       buy_catalog_item: {
@@ -1848,15 +2018,26 @@ export type Database = {
           total_value: number
         }[]
       }
+      cleanup_empty_voice_rooms: { Args: never; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
+      }
+      daughter_apply_purchase_bonus: {
+        Args: { _spent_coins: number; _spent_gems: number }
+        Returns: Json
+      }
+      daughter_gem_cost: { Args: { _from_stage: number }; Returns: number }
+      deduct_gems_for_voice_change: {
+        Args: { _amount?: number; _user_id: string }
+        Returns: Json
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
       donate_to_tribe: {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json
       }
+      feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
@@ -1888,6 +2069,28 @@ export type Database = {
           name_frame: string
           xp: number
         }[]
+      }
+      get_my_daughter: {
+        Args: never
+        Returns: {
+          created_at: string
+          feed_count_today: number
+          feed_day: string | null
+          feed_xp: number
+          last_fed_at: string | null
+          name: string
+          outfit: string
+          stage: number
+          total_fish_fed: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "player_daughter"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_my_ships: {
         Args: never
@@ -1932,12 +2135,14 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bubble_frame: string
           created_at: string
           display_name: string
           id: string
           level: number
           name_frame: string
           online_at: string
+          profile_frame: string
           selected_bg_id: string
           tribe_id: string
           xp: number
@@ -1956,16 +2161,22 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bubble_frame: string
           created_at: string
           display_name: string
           id: string
           level: number
           name_frame: string
           online_at: string
+          profile_frame: string
           selected_bg_id: string
           tribe_id: string
           xp: number
         }[]
+      }
+      gift_gems: {
+        Args: { _amount: number; _recipient: string }
+        Returns: Json
       }
       gift_gold: {
         Args: { _amount: number; _recipient: string }
@@ -2054,6 +2265,7 @@ export type Database = {
         }
         Returns: string
       }
+      rename_daughter: { Args: { _name: string }; Returns: undefined }
       rename_tribe: {
         Args: { _new_name: string; _tribe_id: string }
         Returns: Json
@@ -2069,12 +2281,14 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bubble_frame: string
           created_at: string
           display_name: string
           id: string
           level: number
           name_frame: string
           online_at: string
+          profile_frame: string
           selected_bg_id: string
           tribe_id: string
           xp: number
@@ -2093,6 +2307,28 @@ export type Database = {
           _ship_id: string
         }
         Returns: undefined
+      }
+      set_daughter_outfit: {
+        Args: { _outfit: string }
+        Returns: {
+          created_at: string
+          feed_count_today: number
+          feed_day: string | null
+          feed_xp: number
+          last_fed_at: string | null
+          name: string
+          outfit: string
+          stage: number
+          total_fish_fed: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "player_daughter"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       set_ship_at_sea: {
@@ -2142,6 +2378,7 @@ export type Database = {
         Args: { _banner: string; _description: string; _tribe_id: string }
         Returns: Json
       }
+      upgrade_daughter_with_gems: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
