@@ -9,8 +9,8 @@ export const getStorePurchaseStatus = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { userId } = context;
     const [{ data: shieldCount }, { data: starter }] = await Promise.all([
-      supabaseAdmin.rpc("shield_purchases_last_week", { _user_id: userId }),
-      supabaseAdmin.rpc("has_bought_starter", { _user_id: userId }),
+      supabaseAdmin.rpc("shield_purchases_last_week", { _user: userId }),
+      supabaseAdmin.rpc("has_bought_starter", { _user: userId }),
     ]);
     return {
       shieldsThisWeek: (shieldCount as number) ?? 0,
@@ -32,7 +32,7 @@ export const checkPackEligibility = createServerFn({ method: "POST" })
     if (pack.weeklyLimit && pack.category === "shield") {
       const { data: count, error } = await supabaseAdmin.rpc(
         "shield_purchases_last_week",
-        { _user_id: userId },
+        { _user: userId },
       );
       if (error) throw new Error(error.message);
       if (((count as number) ?? 0) >= pack.weeklyLimit) {
@@ -43,7 +43,7 @@ export const checkPackEligibility = createServerFn({ method: "POST" })
     }
     if (pack.oneTime) {
       const { data: bought } = await supabaseAdmin.rpc("has_bought_starter", {
-        _user_id: userId,
+        _user: userId,
       });
       if (bought) throw new Error("هذي الباقة لمرة وحدة فقط وقد اشتريتها.");
     }
