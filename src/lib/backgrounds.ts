@@ -53,32 +53,32 @@ const WIDE_WATER = { waterTop: 35, waterLeft: 8, waterRight: 92 } as const;
 // percentages of the mobile viewport AFTER applying the per-scene
 // objectPosition crop. Verified against each background image so no ship
 // touches shore, docks, rocks, bridges, icebergs, or buildings.
-// رسو السفن على يسار-وسط الماء (قريب من الميناء) بحيث تبحر يميناً نحو البحر.
-// مرتبة على شكل صف مائل بسيط ومتباعدة عمودياً حتى لا تتداخل، وبعيدة عن
-// حافة الشاطئ اليسرى لكي لا تبدو ملتصقة بالرمل.
+// السفن ترسو على ماء مفتوح بين الجزيرة (يسار) والبحر (يمين).
+// مرتبة في صف مائل متباعد عمودياً، بأحجام متدرجة (بعيد→قريب).
 const SLOTS = {
-  harbor:   [{ top: 40, left: 22, scale: 1.00 }, { top: 50, left: 36, scale: 1.10 }, { top: 60, left: 50, scale: 1.05 }],
-  sunset:   [{ top: 54, left: 22, scale: 1.00 }, { top: 62, left: 36, scale: 1.10 }, { top: 70, left: 50, scale: 1.05 }],
-  tropical: [{ top: 50, left: 22, scale: 1.00 }, { top: 58, left: 36, scale: 1.10 }, { top: 66, left: 50, scale: 1.05 }],
-  arctic:   [{ top: 60, left: 22, scale: 0.95 }, { top: 68, left: 36, scale: 1.05 }, { top: 76, left: 50, scale: 1.00 }],
-  night:    [{ top: 58, left: 22, scale: 1.00 }, { top: 66, left: 36, scale: 1.10 }, { top: 74, left: 50, scale: 1.05 }],
-  cursed:   [{ top: 56, left: 22, scale: 1.00 }, { top: 64, left: 36, scale: 1.10 }, { top: 72, left: 50, scale: 1.05 }],
-  volcano:  [{ top: 60, left: 22, scale: 1.00 }, { top: 68, left: 36, scale: 1.10 }, { top: 76, left: 50, scale: 1.05 }],
-  royal:    [{ top: 56, left: 22, scale: 1.00 }, { top: 64, left: 36, scale: 1.10 }, { top: 72, left: 50, scale: 1.05 }],
-  fantasy:  [{ top: 62, left: 24, scale: 0.92 }, { top: 70, left: 38, scale: 1.00 }, { top: 78, left: 52, scale: 0.95 }],
+  harbor:   [{ top: 46, left: 30, scale: 0.78 }, { top: 56, left: 46, scale: 0.92 }, { top: 68, left: 62, scale: 1.05 }],
+  sunset:   [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
+  tropical: [{ top: 52, left: 30, scale: 0.78 }, { top: 60, left: 46, scale: 0.92 }, { top: 70, left: 62, scale: 1.05 }],
+  arctic:   [{ top: 60, left: 30, scale: 0.75 }, { top: 68, left: 46, scale: 0.88 }, { top: 78, left: 62, scale: 1.00 }],
+  night:    [{ top: 58, left: 30, scale: 0.78 }, { top: 66, left: 46, scale: 0.92 }, { top: 76, left: 62, scale: 1.05 }],
+  cursed:   [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
+  volcano:  [{ top: 60, left: 30, scale: 0.78 }, { top: 68, left: 46, scale: 0.92 }, { top: 78, left: 62, scale: 1.05 }],
+  royal:    [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
+  fantasy:  [{ top: 60, left: 30, scale: 0.75 }, { top: 68, left: 46, scale: 0.88 }, { top: 78, left: 62, scale: 1.00 }],
 } as const;
 
 export const BACKGROUNDS: SceneBg[] = [
-  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: vurl(harborVideo),   animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.harbor],   ...WIDE_WATER },
-  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: vurl(sunsetVideo),   animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.sunset],   ...WIDE_WATER, waterTop: 50 },
-  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: vurl(tropicalVideo), animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.tropical], ...WIDE_WATER, waterTop: 45 },
+  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: vurl(harborVideo),   animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.harbor],   ...WIDE_WATER },
+  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: vurl(sunsetVideo),   animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.sunset],   ...WIDE_WATER, waterTop: 50 },
+  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: vurl(tropicalVideo), animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.tropical], ...WIDE_WATER, waterTop: 45 },
   { id: "arctic",   name: "بحر القطب ✨",         price: 150000,   rarity: "epic",      image: arcticBg,   video: vurl(arcticVideo),   animated: true, objectPosition: "center center", shipSlots: [...SLOTS.arctic],   ...WIDE_WATER, waterTop: 55 },
-  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: vurl(nightVideo),    animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.night],    ...WIDE_WATER, waterTop: 55 },
+  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: vurl(nightVideo),    animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.night],    ...WIDE_WATER, waterTop: 55 },
   { id: "cursed",   name: "الميناء الملعون ✨",   price: 500000,   rarity: "legendary", image: cursedBg,   video: vurl(cursedVideo),   animated: true, objectPosition: "center center", shipSlots: [...SLOTS.cursed],   ...WIDE_WATER, waterTop: 50 },
-  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: vurl(volcanoVideo),  animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.volcano],  ...WIDE_WATER, waterTop: 55 },
-  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: vurl(royalVideo),    animated: true, objectPosition: "left center",   shipSlots: [...SLOTS.royal],    ...WIDE_WATER, waterTop: 50 },
-  { id: "fantasy",  name: "كولوسيوم الأحلام ✨",  price: 5000000,  rarity: "legendary", image: fantasyBg,  video: vurl(fantasyVideo),  animated: true, objectPosition: "center center", shipSlots: [...SLOTS.fantasy], ...WIDE_WATER, waterTop: 55 },
+  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: vurl(volcanoVideo),  animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.volcano],  ...WIDE_WATER, waterTop: 55 },
+  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: vurl(royalVideo),    animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.royal],    ...WIDE_WATER, waterTop: 50 },
+  { id: "fantasy",  name: "كولوسيوم الأحلام ✨",  price: 5000000,  rarity: "legendary", image: fantasyBg,  video: vurl(fantasyVideo),  animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.fantasy], ...WIDE_WATER, waterTop: 55 },
 ];
+
 
 
 
