@@ -53,19 +53,20 @@ const WIDE_WATER = { waterTop: 35, waterLeft: 8, waterRight: 92 } as const;
 // percentages of the mobile viewport AFTER applying the per-scene
 // objectPosition crop. Verified against each background image so no ship
 // touches shore, docks, rocks, bridges, icebergs, or buildings.
-// السفن ترسو على ماء مفتوح بين الجزيرة (يسار) والبحر (يمين).
+// السفن ترسو على ماء مفتوح في الجهة اليمنى من المشهد (بعيدا عن الجزيرة/المباني).
 // مرتبة في صف مائل متباعد عمودياً، بأحجام متدرجة (بعيد→قريب).
 const SLOTS = {
-  harbor:   [{ top: 46, left: 30, scale: 0.78 }, { top: 56, left: 46, scale: 0.92 }, { top: 68, left: 62, scale: 1.05 }],
-  sunset:   [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
-  tropical: [{ top: 52, left: 30, scale: 0.78 }, { top: 60, left: 46, scale: 0.92 }, { top: 70, left: 62, scale: 1.05 }],
-  arctic:   [{ top: 60, left: 30, scale: 0.75 }, { top: 68, left: 46, scale: 0.88 }, { top: 78, left: 62, scale: 1.00 }],
-  night:    [{ top: 58, left: 30, scale: 0.78 }, { top: 66, left: 46, scale: 0.92 }, { top: 76, left: 62, scale: 1.05 }],
-  cursed:   [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
-  volcano:  [{ top: 60, left: 30, scale: 0.78 }, { top: 68, left: 46, scale: 0.92 }, { top: 78, left: 62, scale: 1.05 }],
-  royal:    [{ top: 56, left: 30, scale: 0.78 }, { top: 64, left: 46, scale: 0.92 }, { top: 74, left: 62, scale: 1.05 }],
-  fantasy:  [{ top: 60, left: 30, scale: 0.75 }, { top: 68, left: 46, scale: 0.88 }, { top: 78, left: 62, scale: 1.00 }],
+  harbor:   [{ top: 48, left: 60, scale: 0.85 }, { top: 60, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
+  sunset:   [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 76, left: 84, scale: 1.25 }],
+  tropical: [{ top: 50, left: 60, scale: 0.85 }, { top: 62, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
+  arctic:   [{ top: 58, left: 60, scale: 0.85 }, { top: 68, left: 72, scale: 1.00 }, { top: 78, left: 84, scale: 1.20 }],
+  night:    [{ top: 56, left: 60, scale: 0.85 }, { top: 66, left: 72, scale: 1.05 }, { top: 76, left: 84, scale: 1.25 }],
+  cursed:   [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
+  volcano:  [{ top: 58, left: 60, scale: 0.85 }, { top: 68, left: 72, scale: 1.05 }, { top: 78, left: 84, scale: 1.25 }],
+  royal:    [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
+  fantasy:  [{ top: 56, left: 60, scale: 0.85 }, { top: 66, left: 72, scale: 1.00 }, { top: 76, left: 84, scale: 1.20 }],
 } as const;
+
 
 export const BACKGROUNDS: SceneBg[] = [
   { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: vurl(harborVideo),   animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.harbor],   ...WIDE_WATER },
