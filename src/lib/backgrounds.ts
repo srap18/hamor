@@ -17,11 +17,13 @@ import tropicalVideo from "@/assets/bg-tropical.mp4.asset.json";
 import arcticVideo from "@/assets/bg-arctic.mp4.asset.json";
 import cursedVideo from "@/assets/bg-cursed.mp4.asset.json";
 
-// The harbor video was regenerated in this project, so it lives on the
-// current origin. Other backgrounds still point at the original asset project.
-const VIDEO_HOST = "https://id-preview--fc1f387e-db92-4515-a5c6-90044e4e7b7a.lovable.app";
-const vurl = (a: { url: string; project_id?: string }) =>
-  a.project_id === "8d4aa159-ae7c-40e3-828c-4457d68d9a07" ? a.url : `${VIDEO_HOST}${a.url}`;
+// Asset URLs are served from the asset's owning project preview origin.
+// Assets in the current project use a relative URL (served from same origin).
+const CURRENT_PROJECT_ID = "fc1f387e-db92-4515-a5c6-90044e4e7b7a";
+const vurl = (a: { url: string; project_id?: string }) => {
+  if (!a.project_id || a.project_id === CURRENT_PROJECT_ID) return a.url;
+  return `https://id-preview--${a.project_id}.lovable.app${a.url}`;
+};
 
 export type SceneBg = {
   id: string;
