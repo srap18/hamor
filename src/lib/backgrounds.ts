@@ -33,53 +33,50 @@ export type SceneBg = {
   image: string;
   video?: string;
   animated?: boolean;
-  /** CSS object-position for the bg image/video. Tuned per scene so the
-   *  visible mobile crop is dominated by OPEN WATER. */
+  /** CSS object-position for the bg image/video. Tuned so both the island
+   *  and open sea are visible side by side. */
   objectPosition?: string;
-  /** Open-water region (% of mobile viewport) where ships are allowed to sit. */
+  /** Which side of the visible viewport is OPEN SEA (and which side is the
+   *  shore/island). Ships dock near shore and sail toward seaSide when
+   *  fishing. */
+  seaSide: "left" | "right";
+  /** Open-water region (% of mobile viewport) for fallback calculations. */
   waterTop: number;
   waterLeft: number;
   waterRight: number;
-  /** Three calibrated ship docking positions on visible open water (no land,
-   *  no docks, no buildings, no bridges). Index 0 = far/small, 2 = near/big. */
+  /** Calibrated docked ship positions near the shore. Ships sail toward the
+   *  seaSide when fishing. Index 0 = far/small, 2 = near/big. */
   shipSlots?: { top: number; left: number; scale: number }[];
 };
 
-// Wide water region for fallback calculations — most scenes now use the
-// rightmost crop where the entire viewport is open sea.
 const WIDE_WATER = { waterTop: 35, waterLeft: 8, waterRight: 92 } as const;
 
-// Three ship slots placed deep in OPEN WATER for each scene. Coordinates are
-// percentages of the mobile viewport AFTER applying the per-scene
-// objectPosition crop. Verified against each background image so no ship
-// touches shore, docks, rocks, bridges, icebergs, or buildings.
-// السفن ترسو على ماء مفتوح في الجهة اليمنى من المشهد (بعيدا عن الجزيرة/المباني).
-// مرتبة في صف مائل متباعد عمودياً، بأحجام متدرجة (بعيد→قريب).
-// السفن موزّعة في الماء المفتوح (يمين المشهد) بأحجام كبيرة وواضحة
-// مرتبة قطرياً: بعيد/صغير في الأعلى → قريب/كبير في الأسفل
-const SLOTS = {
-  harbor:   [{ top: 42, left: 55, scale: 1.30 }, { top: 58, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
-  sunset:   [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
-  tropical: [{ top: 44, left: 55, scale: 1.30 }, { top: 58, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
-  arctic:   [{ top: 50, left: 55, scale: 1.25 }, { top: 64, left: 70, scale: 1.50 }, { top: 78, left: 82, scale: 1.80 }],
-  night:    [{ top: 48, left: 55, scale: 1.30 }, { top: 62, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
-  cursed:   [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
-  volcano:  [{ top: 50, left: 55, scale: 1.30 }, { top: 64, left: 70, scale: 1.55 }, { top: 78, left: 82, scale: 1.85 }],
-  royal:    [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
-  fantasy:  [{ top: 48, left: 55, scale: 1.25 }, { top: 62, left: 70, scale: 1.50 }, { top: 76, left: 82, scale: 1.80 }],
-} as const;
+// Per-scene ship docking positions near the SHORE (opposite of seaSide).
+// When fishing starts, ships sail across the open water toward seaSide.
+// "rightSea" scenes: shore on the LEFT  → dock left:10–26, sail toward right (sea)
+// "leftSea"  scenes: shore on the RIGHT → dock left:70–86, sail toward left (sea)
+const SLOTS_SHORE_LEFT = [
+  { top: 50, left: 14, scale: 1.20 },
+  { top: 62, left: 22, scale: 1.45 },
+  { top: 76, left: 28, scale: 1.70 },
+] as const;
+const SLOTS_SHORE_RIGHT = [
+  { top: 50, left: 78, scale: 1.20 },
+  { top: 62, left: 70, scale: 1.45 },
+  { top: 76, left: 64, scale: 1.70 },
+] as const;
 
 
 export const BACKGROUNDS: SceneBg[] = [
-  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: vurl(harborVideo),   animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.harbor],   ...WIDE_WATER },
-  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: vurl(sunsetVideo),   animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.sunset],   ...WIDE_WATER, waterTop: 50 },
-  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: vurl(tropicalVideo), animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.tropical], ...WIDE_WATER, waterTop: 45 },
-  { id: "arctic",   name: "بحر القطب ✨",         price: 150000,   rarity: "epic",      image: arcticBg,   video: vurl(arcticVideo),   animated: true, objectPosition: "center center", shipSlots: [...SLOTS.arctic],   ...WIDE_WATER, waterTop: 55 },
-  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: vurl(nightVideo),    animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.night],    ...WIDE_WATER, waterTop: 55 },
-  { id: "cursed",   name: "الميناء الملعون ✨",   price: 500000,   rarity: "legendary", image: cursedBg,   video: vurl(cursedVideo),   animated: true, objectPosition: "center center", shipSlots: [...SLOTS.cursed],   ...WIDE_WATER, waterTop: 50 },
-  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: vurl(volcanoVideo),  animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.volcano],  ...WIDE_WATER, waterTop: 55 },
-  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: vurl(royalVideo),    animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.royal],    ...WIDE_WATER, waterTop: 50 },
-  { id: "fantasy",  name: "كولوسيوم الأحلام ✨",  price: 5000000,  rarity: "legendary", image: fantasyBg,  video: vurl(fantasyVideo),  animated: true, objectPosition: "30% center", shipSlots: [...SLOTS.fantasy], ...WIDE_WATER, waterTop: 55 },
+  { id: "harbor",   name: "الميناء الكلاسيكي ✨", price: 0,        rarity: "common",    image: harborBg,   video: vurl(harborVideo),   animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER },
+  { id: "sunset",   name: "غروب ذهبي ✨",         price: 25000,    rarity: "rare",      image: sunsetBg,   video: vurl(sunsetVideo),   animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 50 },
+  { id: "tropical", name: "جنه استوائيه ✨",      price: 60000,    rarity: "rare",      image: tropicalBg, video: vurl(tropicalVideo), animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 45 },
+  { id: "arctic",   name: "بحر القطب ✨",         price: 150000,   rarity: "epic",      image: arcticBg,   video: vurl(arcticVideo),   animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 55 },
+  { id: "night",    name: "ليل القمر ✨",         price: 280000,   rarity: "epic",      image: nightBg,    video: vurl(nightVideo),    animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 55 },
+  { id: "cursed",   name: "الميناء الملعون ✨",   price: 500000,   rarity: "legendary", image: cursedBg,   video: vurl(cursedVideo),   animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 50 },
+  { id: "volcano",  name: "خليج البركان ✨",      price: 1200000,  rarity: "legendary", image: volcanoBg,  video: vurl(volcanoVideo),  animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 55 },
+  { id: "royal",    name: "ميناء الإمبراطور ✨",  price: 3500000,  rarity: "legendary", image: royalBg,    video: vurl(royalVideo),    animated: true, objectPosition: "center center", seaSide: "right", shipSlots: [...SLOTS_SHORE_LEFT],  ...WIDE_WATER, waterTop: 50 },
+  { id: "fantasy",  name: "كولوسيوم الأحلام ✨",  price: 5000000,  rarity: "legendary", image: fantasyBg,  video: vurl(fantasyVideo),  animated: true, objectPosition: "center center", seaSide: "left",  shipSlots: [...SLOTS_SHORE_RIGHT], ...WIDE_WATER, waterTop: 55 },
 ];
 
 
