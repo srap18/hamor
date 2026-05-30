@@ -79,6 +79,7 @@ interface Ship {
   repairEndsAt?: string | null;
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
+  seaSide?: "left" | "right";
 }
 
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
