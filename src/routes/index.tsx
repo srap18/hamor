@@ -1773,8 +1773,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const moving = Math.abs(v) > 0.0005;
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
-  // Fishing → bow points right (out to sea). Idle → bow points left toward the marina.
-  const facing = ship.fishing ? -1 : 1;
+  // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
+  // Fishing → bow points toward the sea edge of the scene; docked → toward shore.
+  const _seaSideForFacing = ship.seaSide ?? "right";
+  const facing: 1 | -1 = ship.fishing
+    ? (_seaSideForFacing === "right" ? 1 : -1)
+    : (_seaSideForFacing === "right" ? -1 : 1);
 
 
   const pct = (ship.progress / ship.max) * 100;
