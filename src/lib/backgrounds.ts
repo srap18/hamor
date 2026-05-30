@@ -55,16 +55,18 @@ const WIDE_WATER = { waterTop: 35, waterLeft: 8, waterRight: 92 } as const;
 // touches shore, docks, rocks, bridges, icebergs, or buildings.
 // السفن ترسو على ماء مفتوح في الجهة اليمنى من المشهد (بعيدا عن الجزيرة/المباني).
 // مرتبة في صف مائل متباعد عمودياً، بأحجام متدرجة (بعيد→قريب).
+// السفن موزّعة في الماء المفتوح (يمين المشهد) بأحجام كبيرة وواضحة
+// مرتبة قطرياً: بعيد/صغير في الأعلى → قريب/كبير في الأسفل
 const SLOTS = {
-  harbor:   [{ top: 48, left: 60, scale: 0.85 }, { top: 60, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
-  sunset:   [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 76, left: 84, scale: 1.25 }],
-  tropical: [{ top: 50, left: 60, scale: 0.85 }, { top: 62, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
-  arctic:   [{ top: 58, left: 60, scale: 0.85 }, { top: 68, left: 72, scale: 1.00 }, { top: 78, left: 84, scale: 1.20 }],
-  night:    [{ top: 56, left: 60, scale: 0.85 }, { top: 66, left: 72, scale: 1.05 }, { top: 76, left: 84, scale: 1.25 }],
-  cursed:   [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
-  volcano:  [{ top: 58, left: 60, scale: 0.85 }, { top: 68, left: 72, scale: 1.05 }, { top: 78, left: 84, scale: 1.25 }],
-  royal:    [{ top: 54, left: 60, scale: 0.85 }, { top: 64, left: 72, scale: 1.05 }, { top: 74, left: 84, scale: 1.25 }],
-  fantasy:  [{ top: 56, left: 60, scale: 0.85 }, { top: 66, left: 72, scale: 1.00 }, { top: 76, left: 84, scale: 1.20 }],
+  harbor:   [{ top: 42, left: 55, scale: 1.30 }, { top: 58, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
+  sunset:   [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
+  tropical: [{ top: 44, left: 55, scale: 1.30 }, { top: 58, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
+  arctic:   [{ top: 50, left: 55, scale: 1.25 }, { top: 64, left: 70, scale: 1.50 }, { top: 78, left: 82, scale: 1.80 }],
+  night:    [{ top: 48, left: 55, scale: 1.30 }, { top: 62, left: 70, scale: 1.55 }, { top: 76, left: 82, scale: 1.85 }],
+  cursed:   [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
+  volcano:  [{ top: 50, left: 55, scale: 1.30 }, { top: 64, left: 70, scale: 1.55 }, { top: 78, left: 82, scale: 1.85 }],
+  royal:    [{ top: 46, left: 55, scale: 1.30 }, { top: 60, left: 70, scale: 1.55 }, { top: 74, left: 82, scale: 1.85 }],
+  fantasy:  [{ top: 48, left: 55, scale: 1.25 }, { top: 62, left: 70, scale: 1.50 }, { top: 76, left: 82, scale: 1.80 }],
 } as const;
 
 
