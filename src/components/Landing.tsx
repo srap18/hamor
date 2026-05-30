@@ -5,7 +5,7 @@ import { SeamlessVideo } from "@/components/SeamlessVideo";
 
 export function Landing() {
   return (
-    <div className="relative min-h-screen text-amber-100 overflow-hidden" dir="rtl">
+    <div className="relative min-h-screen text-amber-100" dir="rtl">
       {/* Live sea background */}
       <div className="fixed inset-0 -z-10 bg-stone-950">
         <SeamlessVideo
