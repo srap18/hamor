@@ -1794,8 +1794,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
-  const maxLeft = 96 - shipW;
-  const computedLeft = dockLeft + ship.sail * (maxLeft - dockLeft);
+  // Sea direction: read from scene. When fishing, ship sails AWAY from shore
+  // toward the open sea edge of the viewport.
+  const seaSide = ship.seaSide ?? "right";
+  const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
+  const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
 
   // Pivot-in-place: when bow direction changes, hold position while the flip
   // animation plays, then release so the ship slides smoothly to its new spot.
@@ -1817,11 +1820,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   // Ship art is drawn facing LEFT natively (with per-level overrides for art
   // that ships bow-right). Normalize so every ship shows the same on-screen
-  // direction: bow toward SEA (right) while fishing, bow toward SHORE (left) when docked.
+  // direction: bow toward SEA when fishing, bow toward SHORE when docked.
   const nativeRight = shipBowFacesRight(ship.level);
-  // Desired on-screen bow direction: +1 = right (sea), -1 = left (shore).
-  // flipX inverts the art when its native direction doesn't match the desired one.
-  const desiredRight = facing === 1;
+  // Desired on-screen bow direction depends on which side is the sea.
+  // fishing → bow toward sea; docked → bow toward shore.
+  const seaIsRight = seaSide === "right";
+  const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
   const bankRoll = 0;
   const bankPitch = 0;
