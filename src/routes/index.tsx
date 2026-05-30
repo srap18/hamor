@@ -1005,7 +1005,7 @@ function Index() {
         return (
           <ShipSlot
             key={s.id}
-            ship={{ ...s, top, scale, dockLeft }}
+            ship={{ ...s, top, scale, dockLeft, seaSide: scene.seaSide }}
             crews={shipCrews}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
