@@ -34,8 +34,14 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Ocean Catch — محاكي صيد البحر" },
-      { name: "description", content: "محاكي صيد بحري عربي: ابنِ أسطولك، وظّف الطاقم، واصطد أنواع نادرة من الأسماك." },
+      { title: "ملوك القراصنة - لعبة المغامرات البحرية العربية | هامور شابك" },
+      { name: "description", content: "العب ملوك القراصنة الآن - لعبة قراصنة وصيد بحري عربية. ابنِ أسطولك، اصطد الأسماك النادرة، واغزُ البحار. تُعرف أيضاً بـ هامور شابك و هامور 360." },
+      { property: "og:title", content: "ملوك القراصنة - لعبة المغامرات البحرية" },
+      { property: "og:description", content: "العب ملوك القراصنة الآن. لعبة قراصنة عربية متعددة اللاعبين." },
+      { property: "og:url", content: "https://hamor.lovable.app/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://hamor.lovable.app/" },
     ],
   }),
 });

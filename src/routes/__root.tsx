@@ -79,34 +79,67 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "هامور شابك" },
-      { name: "description", content: "صيد سمك، هامور شابك، هامور 360، شابك 360." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "هامور شابك" },
-      { property: "og:description", content: "صيد سمك، هامور شابك، هامور 360، شابك 360." },
+      { title: "ملوك القراصنة - لعبة ملوك القراصنة | هامور شابك" },
+      { name: "description", content: "ملوك القراصنة - لعبة المغامرات البحرية العربية الأولى. اصطد، اغزُ، وكوّن إمبراطوريتك البحرية. تُعرف أيضاً باسم هامور شابك، هامور 360، شابك 360." },
+      { name: "keywords", content: "ملوك القراصنة, لعبة ملوك القراصنة, ملوك القراصنه, هامور شابك, هامور 360, شابك 360, لعبة قراصنة, لعبة صيد سمك, لعبة بحرية, pirates kings, mulook al qarasna" },
+      { name: "author", content: "ملوك القراصنة" },
+      { name: "application-name", content: "ملوك القراصنة" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { property: "og:site_name", content: "ملوك القراصنة" },
+      { property: "og:title", content: "ملوك القراصنة - لعبة المغامرات البحرية" },
+      { property: "og:description", content: "ملوك القراصنة (هامور شابك) - لعبة قراصنة وصيد بحري عربية. ابنِ أسطولك واغزُ البحار." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "هامور شابك" },
-      { name: "twitter:description", content: "صيد سمك، هامور شابك، هامور 360، شابك 360." },
+      { property: "og:url", content: "https://hamor.lovable.app/" },
+      { property: "og:locale", content: "ar_SA" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ملوك القراصنة - لعبة المغامرات البحرية" },
+      { name: "twitter:description", content: "ملوك القراصنة (هامور شابك) - لعبة قراصنة وصيد بحري عربية." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/28BjizFYbZY4r6R7g9uwXqykIuC2/social-images/social-1779659939703-598384.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/28BjizFYbZY4r6R7g9uwXqykIuC2/social-images/social-1779659939703-598384.webp" },
       { name: "theme-color", content: "#0a1929" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "هامور شابك" },
+      { name: "apple-mobile-web-app-title", content: "ملوك القراصنة" },
+      { name: "google-site-verification", content: "googlebc65e091428a2851" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
       { rel: "preconnect", href: "https://qjwbfkpudysxqtkeouwu.supabase.co", crossOrigin: "" },
       { rel: "dns-prefetch", href: "https://qjwbfkpudysxqtkeouwu.supabase.co" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "VideoGame",
+          name: "ملوك القراصنة",
+          alternateName: ["لعبة ملوك القراصنة", "ملوك القراصنه", "هامور شابك", "هامور 360", "شابك 360", "Mulook Al Qarasna", "Pirate Kings"],
+          url: "https://hamor.lovable.app/",
+          inLanguage: "ar",
+          genre: ["Adventure", "Strategy", "Multiplayer"],
+          gamePlatform: ["Web Browser"],
+          applicationCategory: "Game",
+          operatingSystem: "Any",
+          description: "ملوك القراصنة - لعبة المغامرات البحرية العربية الأولى. تُعرف أيضاً باسم هامور شابك.",
+          image: "https://hamor.lovable.app/icon-512.png",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "ملوك القراصنة",
+          alternateName: "هامور شابك",
+          url: "https://hamor.lovable.app/",
+          inLanguage: "ar",
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -117,7 +150,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
       </head>
