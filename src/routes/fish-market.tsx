@@ -867,10 +867,10 @@ function PriceChart({
 
 /* ───────────────── Shared ───────────────── */
 
-function ResChip({ icon, v, color }: { icon: string; v: number; color: string }) {
+function ResChip({ icon, v, color }: { icon: ReactNode; v: number; color: string }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-base">{icon}</span>
+      <span className="text-base inline-flex items-center">{icon}</span>
       <span className={`text-[11px] font-bold tabular-nums ${color}`}>{v.toLocaleString()}</span>
     </div>
   );
