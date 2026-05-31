@@ -1854,9 +1854,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turnSway = 0;
 
   return (
-    <button
-      onClick={onTap}
-      className="absolute z-10 active:scale-95"
+    <div
+      className="absolute z-10 pointer-events-none"
       style={{
         left: `${leftOffset}%`,
         top: ship.top,
