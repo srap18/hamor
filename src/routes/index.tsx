@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
