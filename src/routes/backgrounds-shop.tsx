@@ -34,10 +34,14 @@ function BackgroundsShop() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
+  const gems = profile?.gems ?? 0;
+  const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
+  const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > Date.now();
   const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
   const [selected, setSelected] = useState<string>("celestial_colosseum");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [repairing, setRepairing] = useState(false);
 
   useEffect(() => {
     setOwned(getOwnedBgIds());
@@ -45,6 +49,34 @@ function BackgroundsShop() {
   }, []);
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
+
+  // Live countdown for burned timer
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!isBurned) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [isBurned]);
+  const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;
+  const fmtLeft = () => {
+    const s = Math.max(0, Math.floor(msLeft / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return `${d}ي ${h}س ${m}د`;
+  };
+
+  const handleRepair = async () => {
+    if (repairing) return;
+    if (gems < 100) { flash("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+    if (!window.confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+    setRepairing(true);
+    const { error } = await repairBurnedBg();
+    setRepairing(false);
+    if (error) { flash("تعذّر الإصلاح"); return; }
+    flash("✨ رجعت الخلفية سليمة!");
+    refreshProfile();
+  };
 
   const buy = async (b: SceneBg) => {
     if (owned.includes(b.id)) {
