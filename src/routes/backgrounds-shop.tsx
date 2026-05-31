@@ -233,7 +233,7 @@ function BackgroundsShop() {
                     onClick={() => buy(b)}
                     className="mt-1 w-full py-1.5 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-xs font-extrabold active:scale-95 flex items-center justify-center gap-1"
                   >
-                    <CoinIcon size={16} />
+                    {b.currency === "gems" ? <GemIcon size={16} /> : <CoinIcon size={16} />}
                     <span className="tabular-nums">{b.price.toLocaleString()}</span>
                   </button>
                 )}
