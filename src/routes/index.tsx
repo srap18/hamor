@@ -372,13 +372,66 @@ function Index() {
 
   // Instant push: spectators viewing my harbor get a broadcast on every state change
   const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [incomingFx, setIncomingFx] = useState<{ id: number; emoji: string; fromX: number; fromY: number; toX: number; toY: number; phase: "fly" | "boom"; friendly?: boolean; weaponId?: string } | null>(null);
+  const [screenShake, setScreenShake] = useState<"" | "shake-sm" | "shake-md" | "shake-lg">("");
+
+  // Play incoming attack/support FX on the owner side, anchored to the targeted ship.
+  const playIncomingFx = useCallback((targetDbId: string, emoji: string, friendly: boolean, weaponId?: string) => {
+    const el = typeof document !== "undefined" ? document.querySelector(`[data-ship-dbid="${targetDbId}"]`) as HTMLElement | null : null;
+    let toX: number; let toY: number;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      toX = r.left + r.width / 2;
+      toY = r.top + r.height / 2;
+    } else {
+      toX = window.innerWidth / 2;
+      toY = window.innerHeight / 2;
+    }
+    const fromX = window.innerWidth - 40;
+    const fromY = 60;
+    const id = Date.now();
+    setIncomingFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
+    if (!friendly) sound.play("whoosh");
+    const flyMs = weaponId === "nuke" ? 1100 : 850;
+    window.setTimeout(() => {
+      setIncomingFx((f) => (f && f.id === id ? { ...f, phase: "boom" } : f));
+      if (!friendly) {
+        sound.play(weaponId === "nuke" ? "nuke" : "explosion");
+        const intensity =
+          weaponId === "nuke" ? "shake-lg" :
+          weaponId === "rocket_large" ? "shake-md" :
+          weaponId === "rocket_medium" ? "shake-md" :
+          "shake-sm";
+        setScreenShake(intensity);
+        if (weaponId === "nuke") {
+          window.setTimeout(() => sound.play("explosion"), 600);
+          window.setTimeout(() => sound.play("explosion"), 1200);
+          window.setTimeout(() => setScreenShake(""), 1800);
+        } else {
+          window.setTimeout(() => setScreenShake(""), 900);
+        }
+      } else {
+        sound.play("splash");
+      }
+    }, flyMs);
+    const totalMs = weaponId === "nuke" ? 2300 : 1700;
+    window.setTimeout(() => { setIncomingFx((f) => (f && f.id === id ? null : f)); }, totalMs);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     const ch = supabase.channel(`harbor:${user.id}`, { config: { broadcast: { self: false } } });
+    // Listen for attack / support FX broadcast by visitors in my harbor.
+    ch.on("broadcast", { event: "fx" }, ({ payload }) => {
+      const d = payload as { targetId?: string; emoji?: string; friendly?: boolean; weaponId?: string; toast?: string };
+      if (!d?.targetId || !d?.emoji) return;
+      playIncomingFx(d.targetId, d.emoji, !!d.friendly, d.weaponId);
+      if (d.toast) { setToast(d.toast); setTimeout(() => setToast(null), 1800); }
+    });
     ch.subscribe();
     myHarborChanRef.current = ch;
     return () => { supabase.removeChannel(ch); myHarborChanRef.current = null; };
-  }, [user?.id]);
+  }, [user?.id, playIncomingFx]);
   const pushHarborState = useCallback(() => {
     const ch = myHarborChanRef.current;
     if (!ch) return;
