@@ -127,8 +127,9 @@ function PlayerPage() {
       const myId = u.user?.id ?? null;
       setMe(myId);
       if (myId) {
-        const { data: myProf } = await supabase.from("profiles").select("display_name").eq("id", myId).maybeSingle();
+        const { data: myProf } = await supabase.from("profiles").select("display_name,protection_until").eq("id", myId).maybeSingle();
         setMyName((myProf as any)?.display_name ?? "");
+        setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
       const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
