@@ -1694,6 +1694,8 @@ function Index() {
         </div>
       )}
 
+      {/* Incoming attack / support FX — mirror what spectators see when they attack me */}
+      {incomingFx && <ProjectileFx fx={incomingFx} />}
     </div>
   );
 }
