@@ -127,7 +127,7 @@ export function SeamlessVideo({
           draggable={false}
           style={{
             ...style,
-            opacity: videoReady && !videoFailed ? 0 : 1,
+            opacity: videoVisible && !videoFailed ? 0 : 1,
             transition: "opacity 0.6s ease",
           }}
         />
