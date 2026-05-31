@@ -14,10 +14,10 @@ type Stats = {
   players: number;
   online: number;
   banned: number;
+  muted: number;
   ships: number;
   totalCoins: number;
   totalGems: number;
-  
   totalXp: number;
   txCount: number;
 };
