@@ -1455,13 +1455,13 @@ function Index() {
       <div className="absolute bottom-0 left-0 right-0 z-20 px-1.5 pb-2 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]">
         <div className="flex items-center justify-around">
           {[
-            { e: "💀", l: "تحدي", to: null, action: "challenge" as const },
-            { e: "🏆", l: "ترتيب", to: null, action: "boost" as const },
-            { e: "👥", l: "أصدقاء", to: "/friends" as const, action: null },
-            { e: "📦", l: "مخزن", to: "/inventory" as const, action: null },
-            { e: "🏛️", l: "متجر", to: "/shop" as const, action: null },
-            { e: "💬", l: "شات", to: "/chat" as const, action: null },
             { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const },
+            { e: "💬", l: "شات", to: "/chat" as const, action: null },
+            { e: "🏛️", l: "متجر", to: "/shop" as const, action: null },
+            { e: "📦", l: "مخزن", to: "/inventory" as const, action: null },
+            { e: "👥", l: "أصدقاء", to: "/friends" as const, action: null },
+            { e: "🏆", l: "ترتيب", to: null, action: "boost" as const },
+            { e: "💀", l: "تحدي", to: null, action: "challenge" as const },
           ].map((it, i) => {
             const inner = (
               <>
