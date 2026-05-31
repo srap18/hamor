@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
+import { showBanner } from "@/components/Banner";
 
 export const Route = createFileRoute("/backgrounds-shop")({
   head: () => ({
@@ -96,6 +97,7 @@ function BackgroundsShop() {
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
     flash(`اشتريت ${b.name}`);
+    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price} ذهب • خلفية`, image: b.image, emoji: "🖼️" });
     refreshProfile();
   };
 

@@ -11,6 +11,7 @@ import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
+import { showBanner } from "@/components/Banner";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ShieldBadge } from "@/components/ShieldBadge";
@@ -717,6 +718,12 @@ function Index() {
       v: caught
         ? `${caught.emoji} ${caught.name} ×${fishGained}`
         : `🐟 ×${fishGained}`,
+    });
+    showBanner({
+      kind: "catch",
+      title: caught ? `${caught.emoji} ${caught.name}` : "🐟 سمكة",
+      subtitle: `سفينة #${s.id} • مستوى ${s.level}`,
+      count: fishGained,
     });
 
     setTimeout(() => setPop(null), 1400);

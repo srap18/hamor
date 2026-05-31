@@ -6,6 +6,7 @@ import {
   FRAME_KIND_TO_ITEM_TYPE, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { buyWithGems } from "@/lib/economy";
+import { showBanner } from "@/components/Banner";
 
 export const Route = createFileRoute("/cosmetics")({
   ssr: false,
@@ -89,6 +90,7 @@ function CosmeticsShop() {
     setOwned(new Set([...owned, f.id]));
     setBusy(false);
     flash(`اشتريت ${f.name} ✓`);
+    showBanner({ kind: "purchase", title: f.name, subtitle: `${f.price} جوهرة • ${f.kind}`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
   };
 
   const list = LIST_BY_KIND[tab];

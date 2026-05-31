@@ -38,6 +38,7 @@ import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import nukeImg from "@/assets/weapons/nuke.png";
 import coinIcon from "@/assets/icons/icon-coins.png";
 import gemIcon from "@/assets/icons/icon-gems.png";
+import { showBanner } from "@/components/Banner";
 
 const WEAPON_IMAGES: Record<string, string> = {
   rocket_small: rocketSmallImg,
@@ -166,6 +167,14 @@ function Shop() {
     sound.play("coin");
     sound.play("success");
     flash(`✓ اشتريت ${qty} × ${selected.name}`, 1600);
+    showBanner({
+      kind: "purchase",
+      title: selected.name,
+      subtitle: `${total} ${selected.currency === "gem" ? "جوهرة" : "ذهب"}`,
+      emoji: selected.emoji,
+      image: selected.image,
+      count: qty,
+    });
     refreshProfile();
   };
 
