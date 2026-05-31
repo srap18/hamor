@@ -10,7 +10,8 @@ import {
 } from "@/lib/backgrounds";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-import { CoinIcon } from "@/components/CurrencyIcon";
+import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
+import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 
 export const Route = createFileRoute("/backgrounds-shop")({
   head: () => ({
@@ -33,10 +34,14 @@ function BackgroundsShop() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
+  const gems = profile?.gems ?? 0;
+  const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
+  const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > Date.now();
   const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
   const [selected, setSelected] = useState<string>("celestial_colosseum");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [repairing, setRepairing] = useState(false);
 
   useEffect(() => {
     setOwned(getOwnedBgIds());
@@ -44,6 +49,34 @@ function BackgroundsShop() {
   }, []);
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
+
+  // Live countdown for burned timer
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!isBurned) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [isBurned]);
+  const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;
+  const fmtLeft = () => {
+    const s = Math.max(0, Math.floor(msLeft / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return `${d}ي ${h}س ${m}د`;
+  };
+
+  const handleRepair = async () => {
+    if (repairing) return;
+    if (gems < 100) { flash("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+    if (!window.confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+    setRepairing(true);
+    const { error } = await repairBurnedBg();
+    setRepairing(false);
+    if (error) { flash("تعذّر الإصلاح"); return; }
+    flash("✨ رجعت الخلفية سليمة!");
+    refreshProfile();
+  };
 
   const buy = async (b: SceneBg) => {
     if (owned.includes(b.id)) {
@@ -93,8 +126,26 @@ function BackgroundsShop() {
         </div>
       </div>
 
+      {/* Burned repair banner — visible whenever profile bg is burned, regardless of selected bg */}
+      {isBurned && (
+        <div className="absolute top-[5.25rem] left-2 right-2 z-20 rounded-xl border-2 border-rose-400/70 bg-gradient-to-b from-rose-900/90 to-rose-950/90 px-3 py-2 shadow-2xl flex items-center gap-2">
+          <span className="text-2xl">🔥</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-rose-100 text-[12px] font-extrabold">خلفيتك محترقة</div>
+            <div className="text-rose-200/80 text-[10px]">تنتهي خلال {fmtLeft()} — أو أصلحها فوراً</div>
+          </div>
+          <button
+            onClick={handleRepair}
+            disabled={repairing}
+            className="px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-lg active:scale-95 flex items-center gap-1 disabled:opacity-60"
+          >
+            🛠️ إصلاح <GemIcon size={14} /><span className="tabular-nums">100</span>
+          </button>
+        </div>
+      )}
+
       {/* Grid */}
-      <div className="absolute top-24 left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden">
+      <div className={`absolute ${isBurned ? "top-[8.75rem]" : "top-24"} left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden`}>
         <div className="h-full overflow-y-auto p-3 grid grid-cols-2 gap-3">
           {BACKGROUNDS.map((b) => {
             const isOwned = owned.includes(b.id);
