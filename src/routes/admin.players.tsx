@@ -329,21 +329,45 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-md w-full my-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl">{player.avatar_emoji}</span>
-          <div>
-            <h2 className="text-lg font-bold">{player.display_name}</h2>
-            <div className="text-xs text-slate-500 font-mono">{player.id}</div>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
+          ) : (
+            <span className="text-3xl">{player.avatar_emoji}</span>
+          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold truncate">{player.display_name}</h2>
+            <div className="text-xs text-slate-500 font-mono truncate">{player.id}</div>
           </div>
+        </div>
+
+        {/* Account fields */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="text-sm font-semibold text-slate-300">👤 بيانات الحساب</div>
+          <div>
+            <label className="text-xs text-slate-400">الاسم</label>
+            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الإيميل (اتركه فارغاً لعدم التغيير)</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="new@email.com" className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الصورة الرمزية</label>
+            <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUploadAvatar(f); e.currentTarget.value = ""; }}
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2 file:py-1 file:text-white" />
+          </div>
+          <button onClick={saveProfile} disabled={savingProfile} className="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-semibold">
+            {savingProfile ? "جاري الحفظ..." : "💾 حفظ بيانات الحساب"}
+          </button>
         </div>
 
         <div className="space-y-3">
           {[
             { label: "🪙 العملات", value: coins, set: setCoins },
             { label: "💎 الجواهر", value: gems, set: setGems },
-            
             { label: "⭐ XP", value: xp, set: setXp },
             { label: "📈 المستوى", value: level, set: setLevel },
           ].map((f) => (
@@ -359,8 +383,18 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           <button onClick={onClose} className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إلغاء</button>
         </div>
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
-          {saving ? "جاري الحفظ..." : "💾 حفظ التعديلات"}
+          {saving ? "جاري الحفظ..." : "💾 حفظ العملات والمستوى"}
         </button>
+
+        {/* Danger zone */}
+        <div className="mt-4 pt-4 border-t border-red-900/50 space-y-2">
+          <div className="text-sm font-semibold text-red-300">⚠️ منطقة الخطر</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
+            <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
+          </div>
+          <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
+        </div>
 
         <div className="mt-4 pt-4 border-t border-slate-800">
           <h3 className="text-sm font-semibold text-slate-300 mb-2">📜 سجل العقوبات ({history.length})</h3>
