@@ -1363,7 +1363,7 @@ function Index() {
               <div className="text-4xl mb-2">⚓</div>
               <div className="text-accent font-bold text-base mb-1">بيع السفينة</div>
               <div className="text-xs text-accent/80 mb-3">هل أنت متأكد من بيع هذه السفينة؟</div>
-              <div className="text-amber-300 font-bold text-lg mb-4">+ {price.toLocaleString()} 🪙</div>
+              <div className="text-amber-300 font-bold text-lg mb-4 inline-flex items-center justify-center gap-1 w-full">+ {price.toLocaleString()} <CoinIcon size={20} /></div>
               <div className="flex gap-2">
                 <button
                   className="flex-1 py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
