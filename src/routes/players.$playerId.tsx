@@ -324,10 +324,27 @@ function PlayerPage() {
     else { setFriendStatus("pending"); sound.play("success"); flash("تم إرسال طلب الصداقة ✓"); }
   };
 
+  // If my armor is still active, warn before any offensive action.
+  // Confirming clears protection_until immediately (server-side).
+  const confirmDropArmorIfActive = async (): Promise<boolean> => {
+    if (!me) return true;
+    const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
+    if (until <= Date.now()) return true;
+    const ok = window.confirm(
+      "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
+    );
+    if (!ok) return false;
+    const { error } = await supabase.from("profiles").update({ protection_until: null } as any).eq("id", me);
+    if (error) { flash("تعذّر إزالة الدرع"); return false; }
+    setMyProtectionUntil(null);
+    return true;
+  };
+
   const fireWeapon = async (weaponId: string) => {
     if (!me || !selectedShip) return;
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
+    if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     setMode(null);
     await consumeItem(weaponId, "weapon");
