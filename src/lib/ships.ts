@@ -66,9 +66,9 @@ const IMG_BY_LEVEL: Record<number, string> = {
 // direction (toward shore when docked, toward sea when fishing, rightward in shop).
 // Verified against the local ship sprite sheet: everything not listed is bow-LEFT.
 const BOW_FACES_RIGHT: Record<number, boolean> = {
-  3: true, 4: true, 5: true, 6: true, 7: true,
-  10: true, 11: true, 12: true, 15: true, 16: true,
-  19: true, 24: true, 27: true, 31: true,
+  3: true, 4: true, 5: true, 6: true, 8: true,
+  11: true, 12: true, 13: true, 16: true,
+  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true,
 };
 
 export function shipBowFacesRight(level: number): boolean {
