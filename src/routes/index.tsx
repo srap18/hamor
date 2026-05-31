@@ -1820,7 +1820,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const TABS = [
     { id: "xp" as const, e: "⭐", l: "XP" },
     { id: "gems" as const, e: "💎", l: "جواهر" },
-    { id: "coins" as const, e: "🪙", l: "عملات" },
+    { id: "coins" as const, e: <CoinIcon size={18} />, l: "ذهب" },
     { id: "fish" as const, e: "🐟", l: "صيد" },
     { id: "ships" as const, e: "🏪", l: "سوق سفن" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
@@ -1829,7 +1829,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   const valueFor = (p: LbProfile) =>
     tab === "gems" ? p.gems : tab === "coins" ? p.coins : p.xp;
-  const valueIcon = tab === "gems" ? "💎" : tab === "coins" ? "🪙" : "⭐";
+  const valueIcon: React.ReactNode = tab === "gems" ? "💎" : tab === "coins" ? <CoinIcon size={14} /> : "⭐";
 
   const tribesFiltered = tribeQ.trim()
     ? tribes.filter(t => t.name.toLowerCase().includes(tribeQ.trim().toLowerCase()))
