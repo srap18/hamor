@@ -707,7 +707,7 @@ function PlayerPage() {
         const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
         let top: string; let left: string;
         if (tIdx >= 0) {
-          const t = ships[tIdx];
+          void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
