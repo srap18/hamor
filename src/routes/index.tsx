@@ -2236,7 +2236,7 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
             ? "from-amber-400 to-amber-300"
             : "from-rose-500 to-rose-400";
         return (
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-20">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-40">
             {/* Guide crew preview — show which fish this trip will catch */}
             {guideFish && ship.fishing && (
               <div className="mx-auto mb-0.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-sky-700/95 to-indigo-700/95 border border-sky-300/80 shadow-md whitespace-nowrap">
