@@ -687,9 +687,12 @@ function PlayerPage() {
         const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
         const shipW = 22 * scale;
-        const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
+        void shipW;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaEdge}%` : `${dockLeft}%`);
+        // Always render at the base slot position (same layout as owner's home view)
+        // so ships never clip off-screen on mobile when "at sea".
+        const left = `${dockLeft}%`;
+        void seaSide;
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
