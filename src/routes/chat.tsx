@@ -687,8 +687,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
               <div className="h-2 rounded bg-stone-800 overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-300" style={{ width: `${progress}%` }} />
               </div>
-              <div className="text-[10px] text-amber-300/70 mt-1 text-center">
-                {info.treasure_coins.toLocaleString()} / {goal.toLocaleString()} 🪙 للمستوى {info.level + 1}
+              <div className="text-[10px] text-amber-300/70 mt-1 text-center inline-flex items-center justify-center gap-1 w-full">
+                {info.treasure_coins.toLocaleString()} / {goal.toLocaleString()} <CoinIcon size={10} /> للمستوى {info.level + 1}
               </div>
               <div className="text-xs text-amber-200/90 mt-2 whitespace-pre-wrap break-words">
                 {info.description || "لا يوجد وصف للقبيلة بعد."}
