@@ -47,11 +47,19 @@ function AdminPlayers() {
 
   useEffect(() => { load(); }, [load]);
 
+  const notify = async (userId: string, title: string, body: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("notifications").insert({
+      recipient_id: userId, title, body, kind: "warning", created_by: userData.user?.id,
+    });
+  };
+
   const toggleBan = async (p: Player) => {
     const isBanned = banned.has(p.id);
     if (isBanned) {
       await supabase.from("bans").update({ active: false }).eq("user_id", p.id).eq("active", true);
       await logAudit("unban_user", p.id, { name: p.display_name });
+      await notify(p.id, "✅ تم رفع الحظر", "يمكنك الآن استخدام اللعبة بشكل طبيعي.");
       toast.success(`فُكّ الحظر عن ${p.display_name}`);
     } else {
       const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
@@ -61,6 +69,8 @@ function AdminPlayers() {
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id, expires_at });
       await logAudit("ban_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await notify(p.id, "🚫 تم حظرك", `تم حظرك ${dur}. السبب: ${reason || "غير محدد"}`);
       toast.success(hours > 0 ? `تم حظر ${p.display_name} لمدة ${hours} ساعة` : `تم حظر ${p.display_name} نهائياً`);
     }
     load();
@@ -71,6 +81,7 @@ function AdminPlayers() {
     if (isMuted) {
       await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
       await logAudit("unmute_user", p.id, { name: p.display_name });
+      await notify(p.id, "✅ تم رفع الكتم", "يمكنك الآن الكتابة في الدردشة.");
       toast.success(`أُلغي كتم ${p.display_name}`);
     } else {
       const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
@@ -80,6 +91,8 @@ function AdminPlayers() {
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
       await logAudit("mute_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await notify(p.id, "🔇 تم كتمك في الدردشة", `لا يمكنك الكتابة ${dur}. السبب: ${reason || "غير محدد"}`);
       toast.success(hours > 0 ? `تم كتم ${p.display_name} لمدة ${hours} ساعة` : `تم كتم ${p.display_name} نهائياً`);
     }
     load();
@@ -168,13 +181,30 @@ function AdminPlayers() {
   );
 }
 
+type HistoryEntry = { kind: "ban" | "mute"; reason: string; expires_at: string | null; created_at: string; active: boolean };
+
 function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => void }) {
   const [coins, setCoins] = useState(String(player.coins));
   const [gems, setGems] = useState(String(player.gems));
-  
+
   const [xp, setXp] = useState(String(player.xp));
   const [level, setLevel] = useState(String(player.level));
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: bans }, { data: mutes }] = await Promise.all([
+        supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
+        supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
+      ]);
+      const all: HistoryEntry[] = [
+        ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
+        ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
+      ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      setHistory(all);
+    })();
+  }, [player.id]);
 
   const save = async () => {
     setSaving(true);
@@ -244,6 +274,32 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
           {saving ? "جاري الحفظ..." : "💾 حفظ التعديلات"}
         </button>
+
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <h3 className="text-sm font-semibold text-slate-300 mb-2">📜 سجل العقوبات ({history.length})</h3>
+          {history.length === 0 ? (
+            <div className="text-xs text-slate-500">لا يوجد سجل عقوبات</div>
+          ) : (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {history.map((h, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs p-2 rounded bg-slate-800/50">
+                  <span className={`px-1.5 py-0.5 rounded shrink-0 ${h.kind === "ban" ? "bg-red-600/30 text-red-200" : "bg-amber-600/30 text-amber-200"}`}>
+                    {h.kind === "ban" ? "🚫" : "🔇"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-slate-300 truncate">{h.reason || "—"}</div>
+                    <div className="text-slate-500 text-[10px]">
+                      {new Date(h.created_at).toLocaleString("ar")}
+                      {h.expires_at && ` • ينتهي: ${new Date(h.expires_at).toLocaleString("ar")}`}
+                      {!h.expires_at && h.active && " • دائم"}
+                      {!h.active && " • مُلغى"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

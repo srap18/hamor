@@ -63,7 +63,20 @@ function ChatPage() {
   const [actionTarget, setActionTarget] = useState<Prof | null>(null);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set()); // people I blocked
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
+  const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) { setMyMute(null); return; }
+    const nowIso = new Date().toISOString();
+    supabase.from("chat_mutes").select("reason,expires_at").eq("user_id", user.id).eq("active", true)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!data) { setMyMute(null); return; }
+        if (data.expires_at && data.expires_at <= nowIso) { setMyMute(null); return; }
+        setMyMute(data as any);
+      });
+  }, [user]);
 
   const reloadBlocks = useCallback(async () => {
     if (!user) return;
@@ -245,17 +258,27 @@ function ChatPage() {
       </div>
 
       {tab !== "voice" && (
-        <ChatComposer
-          text={text}
-          setText={setText}
-          onSend={send}
-          disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
-          userId={user?.id || ""}
-          onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
-          channel={tab as "public" | "tribe" | "dm"}
-          tribeId={profile?.tribe_id || null}
-          dmWith={dmWith}
-        />
+        myMute && (tab === "public" || tab === "tribe") ? (
+          <div className="px-3 pb-3">
+            <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
+              🔇 أنت مكتوم من قِبل الإدارة
+              {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
+              {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
+            </div>
+          </div>
+        ) : (
+          <ChatComposer
+            text={text}
+            setText={setText}
+            onSend={send}
+            disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
+            userId={user?.id || ""}
+            onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
+            channel={tab as "public" | "tribe" | "dm"}
+            tribeId={profile?.tribe_id || null}
+            dmWith={dmWith}
+          />
+        )
       )}
 
 
