@@ -51,10 +51,13 @@ function AdminPlayers() {
       toast.success(`فُكّ الحظر عن ${p.display_name}`);
     } else {
       const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
+      const hoursStr = prompt("مدة الحظر بالساعات (اتركها فارغة للحظر الدائم):", "");
+      const hours = hoursStr ? Number(hoursStr) : 0;
+      const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
       const { data: userData } = await supabase.auth.getUser();
-      await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id });
-      await logAudit("ban_user", p.id, { name: p.display_name, reason });
-      toast.success(`تم حظر ${p.display_name}`);
+      await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id, expires_at });
+      await logAudit("ban_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      toast.success(hours > 0 ? `تم حظر ${p.display_name} لمدة ${hours} ساعة` : `تم حظر ${p.display_name} نهائياً`);
     }
     load();
   };
