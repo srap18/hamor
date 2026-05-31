@@ -1055,26 +1055,12 @@ function Index() {
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader" && c.id !== "guide");
 
-        // Guide crew: reveal the fish this trip will catch (deterministic per trip)
-        const { guide: hasGuide } = getCrewBonuses(s);
-        let guideFish: { emoji: string; name: string; img?: string } | null = null;
-        if (hasGuide && s.fishing) {
-          const pool = fishForShip(s.level, s.id);
-          const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
-          const storedGuide = getShipGuide(s.id);
-          const fid = storedGuide && fallbackPool.includes(storedGuide)
-            ? storedGuide
-            : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
-          const f = fid ? FISH[fid] : null;
-          if (f) guideFish = { emoji: f.emoji, name: f.name, img: f.img };
-        }
-
         return (
           <ShipSlot
             key={s.id}
             ship={{ ...s, top, scale, dockLeft, seaSide: scene.seaSide }}
             crews={shipCrews}
-            guideFish={guideFish}
+            guideFish={null}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
