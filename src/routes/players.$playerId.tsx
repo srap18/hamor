@@ -451,7 +451,7 @@ function PlayerPage() {
       console.error("[steal] error", missionErr);
       const msg = missionErr.message || "";
       if (msg.includes("attacker needs pvp fleet")) flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للسرقة");
-      else if (msg.includes("no pvp fleet")) flash("🛡️ اللاعب محمي — ما عنده 3 سفن مستوى 6");
+      else if (msg.includes("no pvp fleet") || msg.includes("market level under 6")) flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6");
       else if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
       else if (msg.includes("blocked")) {
         const m = msg.match(/until ([\d\-:.+T ]+)/);
