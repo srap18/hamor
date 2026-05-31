@@ -264,6 +264,12 @@ function PlayerPage() {
       if (d.toast) flash(d.toast);
     });
     harborChan.on("broadcast", { event: "raid" }, () => { loadRaiders(); });
+    // Instant state push from the harbor owner (fishing toggle, collect, etc.)
+    harborChan.on("broadcast", { event: "state" }, () => {
+      reloadShipsRef.current();
+      loadRaiders();
+      loadPlayerCrews();
+    });
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
