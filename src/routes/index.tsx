@@ -1041,7 +1041,7 @@ function Index() {
         const shipCrews = crewRows
           .filter((r) => isCrewAssignedToShip(r.meta, s))
           .map((r) => CREWS.find((c) => c.id === r.item_id))
-          .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
+          .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader" && c.id !== "guide");
 
         // Guide crew: reveal the fish this trip will catch (deterministic per trip)
         const { guide: hasGuide } = getCrewBonuses(s);
