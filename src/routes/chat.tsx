@@ -142,7 +142,13 @@ function ChatPage() {
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
     const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
-    if (error) { alert("تعذر الإرسال: " + error.message); return; }
+    if (error) {
+      const msg = /row-level security|policy/i.test(error.message)
+        ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
+        : "تعذر الإرسال: " + error.message;
+      alert(msg);
+      return;
+    }
     if (!override) setText("");
     if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
     if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
