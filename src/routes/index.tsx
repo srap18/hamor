@@ -158,6 +158,12 @@ function getShipGuide(shipId: number): string | null {
   return window.localStorage.getItem(`ship_guide_${shipId}`);
 }
 
+function setShipGuide(shipId: number, fishId: string | null) {
+  if (typeof window === "undefined") return;
+  if (fishId) window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
+  else window.localStorage.removeItem(`ship_guide_${shipId}`);
+}
+
 // Crew assignment + inventory (localStorage-backed for now)
 function getShipCrew(shipId: number): string | null {
   if (typeof window === "undefined") return null;
@@ -380,6 +386,7 @@ function Index() {
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
+  const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -444,6 +451,11 @@ function Index() {
     if (pool.length === 0) return null;
     const seed = (((startedAt ?? 0) >>> 0) ^ ((shipId * 2654435761) >>> 0)) >>> 0;
     return pool[seed % pool.length];
+  };
+
+  const fishPoolForShip = (ship: Ship) => {
+    const shipPool = getShipByMarketLevel(ship.level).fishPool.filter((fishId) => !!FISH[fishId]);
+    return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
   // 1-second tick for countdowns / expiry
@@ -679,18 +691,17 @@ function Index() {
     }
     // Compute time-based ratio so fishGained is strictly proportional to time at sea.
     const { luckMult, sailorMult, guide } = getCrewBonuses(s);
-    void guide;
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
     const rawRatio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
     // Strictly time-proportional: fish caught == (elapsed / duration) * capacity.
     // No minimum floor — stopping after 0s yields 0.
     const effRatio = rawRatio;
-    const pool = fishForShip(s.level, s.id);
+    const pool = fishPoolForShip(s);
     const storedGuide = getShipGuide(s.id);
     // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
     const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
-    const caughtId = storedGuide && fallbackPool.includes(storedGuide)
+    const caughtId = guide && storedGuide && fallbackPool.includes(storedGuide)
       ? storedGuide
       : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
@@ -1043,26 +1054,11 @@ function Index() {
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader" && c.id !== "guide");
 
-        // Guide crew: reveal the fish this trip will catch (deterministic per trip)
-        const { guide: hasGuide } = getCrewBonuses(s);
-        let guideFish: { emoji: string; name: string; img?: string } | null = null;
-        if (hasGuide && s.fishing) {
-          const pool = fishForShip(s.level, s.id);
-          const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
-          const storedGuide = getShipGuide(s.id);
-          const fid = storedGuide && fallbackPool.includes(storedGuide)
-            ? storedGuide
-            : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
-          const f = fid ? FISH[fid] : null;
-          if (f) guideFish = { emoji: f.emoji, name: f.name, img: f.img };
-        }
-
         return (
           <ShipSlot
             key={s.id}
             ship={{ ...s, top, scale, dockLeft, seaSide: scene.seaSide }}
             crews={shipCrews}
-            guideFish={guideFish}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
@@ -1212,6 +1208,10 @@ function Index() {
                       label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
                       onClick={(e: React.MouseEvent) => {
                         setMenuShipId(null);
+                        if (!ready && s.progress <= 0 && !s.fishing && getCrewBonuses(s).guide) {
+                          setFishPickerShipId(s.id);
+                          return;
+                        }
                         collect(s.id, e);
                       }}
                     />
@@ -1235,6 +1235,43 @@ function Index() {
                   </div>
                 );
               })()}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Guide fish picker */}
+      {fishPickerShipId !== null && (() => {
+        const s = ships.find((x) => x.id === fishPickerShipId);
+        if (!s) return null;
+        const choices = fishPoolForShip(s);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setFishPickerShipId(null)}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
+              <div className="text-3xl mb-2">🧭</div>
+              <div className="text-accent font-black text-base mb-1">اختر نوع الصيد</div>
+              <div className="text-xs text-accent/80 mb-3">الأنواع المتاحة لهذه السفينة فقط</div>
+              <div className="grid grid-cols-2 gap-2">
+                {choices.map((fishId) => {
+                  const f = FISH[fishId];
+                  if (!f) return null;
+                  return (
+                    <button
+                      key={fishId}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-secondary/70 px-3 py-2 text-xs font-black text-accent active:scale-95"
+                      onClick={(e) => {
+                        setShipGuide(s.id, fishId);
+                        setFishPickerShipId(null);
+                        collect(s.id, e);
+                      }}
+                    >
+                      {f.img ? <img src={f.img} alt={f.name} className="h-7 w-7 object-contain" loading="lazy" /> : <span className="text-xl">{f.emoji}</span>}
+                      <span>{f.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="mt-3 w-full rounded-lg bg-secondary/70 py-2 text-xs font-bold text-accent active:scale-95" onClick={() => setFishPickerShipId(null)}>إلغاء</button>
             </div>
           </div>
         );
@@ -1903,7 +1940,7 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
   );
 }
 
-function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS; guideFish?: { emoji: string; name: string; img?: string } | null }) {
+function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
@@ -2237,17 +2274,6 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
             : "from-rose-500 to-rose-400";
         return (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-40">
-            {/* Guide crew preview — show which fish this trip will catch */}
-            {guideFish && ship.fishing && (
-              <div className="mx-auto mb-0.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-sky-700/95 to-indigo-700/95 border border-sky-300/80 shadow-md whitespace-nowrap">
-                {guideFish.img ? (
-                  <img src={guideFish.img} alt={guideFish.name} className="w-3 h-3 object-contain" draggable={false} />
-                ) : (
-                  <span className="text-[10px] leading-none">{guideFish.emoji}</span>
-                )}
-                <span className="text-[8px] font-extrabold text-sky-50 leading-none">{guideFish.name}</span>
-              </div>
-            )}
             {/* HP bar — slim */}
             <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
