@@ -159,7 +159,7 @@ function BackgroundsShop() {
 
       {/* Grid */}
       <div className={`absolute ${isBurned ? "top-[8.75rem]" : "top-24"} left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden`}>
-        <div className="h-full overflow-y-auto p-3 grid grid-cols-2 gap-3">
+        <div className="h-full overflow-y-auto p-3 grid grid-cols-2 auto-rows-min content-start gap-3">
           {BACKGROUNDS.map((b) => {
             const isOwned = owned.includes(b.id);
             const isEquipped = selected === b.id;
