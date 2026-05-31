@@ -166,6 +166,14 @@ function Shop() {
     sound.play("coin");
     sound.play("success");
     flash(`✓ اشتريت ${qty} × ${selected.name}`, 1600);
+    showBanner({
+      kind: "purchase",
+      title: selected.name,
+      subtitle: `${total} ${selected.currency === "gem" ? "جوهرة" : "ذهب"}`,
+      emoji: selected.emoji,
+      image: selected.image,
+      count: qty,
+    });
     refreshProfile();
   };
 
