@@ -1986,7 +1986,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                 <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
               </div>
-              <div className="text-xs font-bold text-accent tabular-nums">
+              <div className="text-xs font-bold text-accent tabular-nums inline-flex items-center gap-1">
                 {valueIcon} {valueFor(p).toLocaleString()}
               </div>
               </>
