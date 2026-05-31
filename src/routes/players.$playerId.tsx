@@ -815,10 +815,24 @@ function PlayerPage() {
             {mode === "menu" && (() => {
               const targetDead = !!selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0;
               const targetFishing = selectedShip.at_sea && !targetDead;
+              const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
+              const myPvpReady = myPvpCount >= 3;
+              const targetPvpCount = ships.filter((s) => (s.template_id ?? 0) >= 6).length;
+              const targetProtected = targetPvpCount < 3;
+              const blockReason = !myPvpReady
+                ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
+                : targetProtected
+                  ? "🛡️ الخصم محمي — أقل من 3 سفن مستوى 6+"
+                  : null;
+              const attackDisabled = busy || targetDead || !!blockReason;
+              const stealDisabled = busy || !targetFishing || !!blockReason;
               return (
               <>
-                <button disabled={busy || targetDead} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95 disabled:opacity-40">⚔️ هجوم {targetDead && <span className="text-[10px] opacity-80">(مدمّرة)</span>}</button>
-                <button disabled={busy || !targetFishing} onClick={() => targetFishing ? setMode("myship") : flash(targetDead ? "💥 السفينة مدمّرة — لا يمكن سرقتها" : "🎣 السرقة فقط من سفينة تصيد بالبحر")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40">🗡️ سرقة {!targetFishing && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
+                {blockReason && (
+                  <div className="text-center text-[11px] text-rose-200 bg-rose-900/40 border border-rose-700/40 rounded-lg py-2 px-2">{blockReason}</div>
+                )}
+                <button disabled={attackDisabled} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95 disabled:opacity-40">⚔️ هجوم {targetDead && <span className="text-[10px] opacity-80">(مدمّرة)</span>}</button>
+                <button disabled={stealDisabled} onClick={() => setMode("myship")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40">🗡️ سرقة {!targetFishing && !blockReason && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
                 <button disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
               </>
