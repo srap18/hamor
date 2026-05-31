@@ -725,6 +725,12 @@ function SellView({
         <div className="text-[10px] font-bold text-emerald-950">{traderActive ? "التاجر يعمل" : "توقع السعر"}</div>
       </button>
 
+      {traderError && (
+        <div className="absolute top-[52%] left-3 right-3 z-30 rounded-lg bg-rose-900/90 border-2 border-rose-300 px-3 py-2 text-rose-100 text-xs font-bold shadow-lg text-center">
+          {traderError}
+        </div>
+      )}
+
       {/* Quality + freeze bar */}
       <div className="absolute top-[55%] left-2 right-2 z-20 h-7 rounded-md bg-gradient-to-r from-lime-400 to-emerald-500 border border-lime-200 flex items-center justify-between px-2 shadow">
         <button className="text-[10px] font-bold text-sky-100 bg-sky-700/70 px-2 py-0.5 rounded">تجميد</button>
