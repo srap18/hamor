@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
+import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
+import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
 import { CREWS } from "@/lib/crews";
@@ -67,6 +68,7 @@ function GuardedIndex() {
 interface Ship {
   id: number;
   dbId?: string; // ships_owned.id when this ship came from DB
+  catalogCode?: string | null; // specific catalog ship variant (matches spectator view)
   img: string;
   progress: number;
   max: number;
@@ -212,10 +214,10 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
       .eq("user_id", uid)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -269,7 +271,7 @@ function Index() {
               setShipAtSea(s.dbId!, true).catch(() => {});
             });
           }
-          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
+          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -286,7 +288,7 @@ function Index() {
         usedIds.add(nextId);
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
-        const shipDef = getShipByMarketLevel(lvl);
+        const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
         const maxProg = catchPerTrip(shipDef);
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
@@ -296,8 +298,9 @@ function Index() {
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
+          catalogCode: dbShip.catalog_code,
           level: lvl,
-          img: getShipByMarketLevel(lvl).image,
+          img: shipDef.image,
           progress: 0,
           max: maxProg,
           timeLeft: duration,
@@ -369,13 +372,66 @@ function Index() {
 
   // Instant push: spectators viewing my harbor get a broadcast on every state change
   const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [incomingFx, setIncomingFx] = useState<{ id: number; emoji: string; fromX: number; fromY: number; toX: number; toY: number; phase: "fly" | "boom"; friendly?: boolean; weaponId?: string } | null>(null);
+  const [screenShake, setScreenShake] = useState<"" | "shake-sm" | "shake-md" | "shake-lg">("");
+
+  // Play incoming attack/support FX on the owner side, anchored to the targeted ship.
+  const playIncomingFx = useCallback((targetDbId: string, emoji: string, friendly: boolean, weaponId?: string) => {
+    const el = typeof document !== "undefined" ? document.querySelector(`[data-ship-dbid="${targetDbId}"]`) as HTMLElement | null : null;
+    let toX: number; let toY: number;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      toX = r.left + r.width / 2;
+      toY = r.top + r.height / 2;
+    } else {
+      toX = window.innerWidth / 2;
+      toY = window.innerHeight / 2;
+    }
+    const fromX = window.innerWidth - 40;
+    const fromY = 60;
+    const id = Date.now();
+    setIncomingFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
+    if (!friendly) sound.play("whoosh");
+    const flyMs = weaponId === "nuke" ? 1100 : 850;
+    window.setTimeout(() => {
+      setIncomingFx((f) => (f && f.id === id ? { ...f, phase: "boom" } : f));
+      if (!friendly) {
+        sound.play(weaponId === "nuke" ? "nuke" : "explosion");
+        const intensity =
+          weaponId === "nuke" ? "shake-lg" :
+          weaponId === "rocket_large" ? "shake-md" :
+          weaponId === "rocket_medium" ? "shake-md" :
+          "shake-sm";
+        setScreenShake(intensity);
+        if (weaponId === "nuke") {
+          window.setTimeout(() => sound.play("explosion"), 600);
+          window.setTimeout(() => sound.play("explosion"), 1200);
+          window.setTimeout(() => setScreenShake(""), 1800);
+        } else {
+          window.setTimeout(() => setScreenShake(""), 900);
+        }
+      } else {
+        sound.play("splash");
+      }
+    }, flyMs);
+    const totalMs = weaponId === "nuke" ? 2300 : 1700;
+    window.setTimeout(() => { setIncomingFx((f) => (f && f.id === id ? null : f)); }, totalMs);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     const ch = supabase.channel(`harbor:${user.id}`, { config: { broadcast: { self: false } } });
+    // Listen for attack / support FX broadcast by visitors in my harbor.
+    ch.on("broadcast", { event: "fx" }, ({ payload }) => {
+      const d = payload as { targetId?: string; emoji?: string; friendly?: boolean; weaponId?: string; toast?: string };
+      if (!d?.targetId || !d?.emoji) return;
+      playIncomingFx(d.targetId, d.emoji, !!d.friendly, d.weaponId);
+      if (d.toast) { setToast(d.toast); setTimeout(() => setToast(null), 1800); }
+    });
     ch.subscribe();
     myHarborChanRef.current = ch;
     return () => { supabase.removeChannel(ch); myHarborChanRef.current = null; };
-  }, [user?.id]);
+  }, [user?.id, playIncomingFx]);
   const pushHarborState = useCallback(() => {
     const ch = myHarborChanRef.current;
     if (!ch) return;
@@ -800,7 +856,7 @@ function Index() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0d2236]">
+    <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${screenShake}`}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {scene.displayVideo ? (
           <SeamlessVideo
@@ -1638,6 +1694,8 @@ function Index() {
         </div>
       )}
 
+      {/* Incoming attack / support FX — mirror what spectators see when they attack me */}
+      {incomingFx && <ProjectileFx fx={incomingFx} />}
     </div>
   );
 }
@@ -2148,6 +2206,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   return (
     <div
+      data-ship-dbid={ship.dbId || undefined}
       className="absolute z-10 pointer-events-none"
       style={{
         left: `${leftOffset}%`,
