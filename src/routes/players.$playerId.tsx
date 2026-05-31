@@ -133,7 +133,7 @@ function PlayerPage() {
       }
       const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
-        supabase.from("ships_owned").select("*").eq("user_id", playerId),
+        supabase.from("ships_owned").select("*").eq("user_id", playerId).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
