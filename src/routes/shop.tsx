@@ -19,7 +19,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews";
+type Tab = "protection" | "weapons" | "crews" | "ships";
 
 type Item = {
   id: string;
@@ -38,6 +38,7 @@ import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import nukeImg from "@/assets/weapons/nuke.png";
 import coinIcon from "@/assets/icons/icon-coins.png";
 import gemIcon from "@/assets/icons/icon-gems.png";
+import phoenixShipImg from "@/assets/ships/ship-phoenix.png";
 import { showBanner } from "@/components/Banner";
 
 const WEAPON_IMAGES: Record<string, string> = {
@@ -55,6 +56,7 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "protection", label: "حمايه", banner: "Protection" },
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
+  { id: "ships", label: "سفن", banner: "Special Ships" },
 ];
 
 // Max armor duration capped at 2 days. Higher tiers removed.
@@ -89,6 +91,20 @@ const CREWS: Item[] = LIB_CREWS.map((c) => ({
   rarity: c.rarity,
 }));
 
+const SHIPS_FOR_SALE: Item[] = [
+  {
+    id: "phoenix",
+    name: "سفينة العنقاء 🐉",
+    emoji: "🐉",
+    image: phoenixShipImg,
+    price: 10000,
+    currency: "gem",
+    desc: "حصرية للمتجر • تصيد عنقاء النار 🔥 فقط • صيد 20 دقيقة",
+    rarity: "legendary",
+  },
+];
+
+
 
 function Shop() {
   const { user } = useAuth();
@@ -106,7 +122,8 @@ function Shop() {
 
   const items =
     tab === "protection" ? PROTECTION :
-    tab === "weapons" ? WEAPONS : CREWS;
+    tab === "weapons" ? WEAPONS :
+    tab === "ships" ? SHIPS_FOR_SALE : CREWS;
 
   const tabMeta = TABS.find((t) => t.id === tab)!;
 
