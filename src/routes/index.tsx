@@ -1866,18 +1866,20 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         transition: "left 0.5s ease-in-out",
       }}
     >
-      {/* Wake ripples behind — stronger when moving */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-4"
-        style={{
-          width: `${60 + ship.sail * 40}%`,
-          opacity: 0.2 + Math.min(1, Math.abs(v) * 200) * 0.6 + ship.sail * 0.3,
-        }}
-      >
-        <div className="w-full h-full rounded-[50%] border-t-2 border-white/70" />
-        <div className="absolute inset-x-2 top-1 h-full rounded-[50%] border-t border-white/40" />
-        <div className="absolute inset-x-6 top-2 h-full rounded-[50%] border-t border-white/30" />
-      </div>
+      {/* Wake ripples behind — only while actually moving */}
+      {moving && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-4"
+          style={{
+            width: `${60 + ship.sail * 40}%`,
+            opacity: Math.min(1, Math.abs(v) * 200) * 0.6 + ship.sail * 0.3,
+          }}
+        >
+          <div className="w-full h-full rounded-[50%] border-t-2 border-white/70" />
+          <div className="absolute inset-x-2 top-1 h-full rounded-[50%] border-t border-white/40" />
+          <div className="absolute inset-x-6 top-2 h-full rounded-[50%] border-t border-white/30" />
+        </div>
+      )}
 
       {/* Foamy water trail behind ship when actually moving */}
       {moving && (
@@ -2086,56 +2088,72 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             >
               <NetSvg />
             </div>
-            {/* Splash ring */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 border-white/70"
-              style={{
-                bottom: "-18%",
-                width: "70%",
-                aspectRatio: "3 / 1",
-                animation: "splash-ring 2.6s ease-out infinite",
-              }}
-            />
           </>
         )}
       </div>
 
 
 
-      {/* Progress bar — only show when ship is tapped */}
-      {active && (
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-[75%] glass-hud rounded-md px-1 py-0.5 border border-accent/40">
-        <div className="relative h-3 bg-black/40 rounded-sm overflow-hidden">
-          <div
-            className={`h-full rounded-sm transition-all duration-300 ${
-              ready
-                ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
-                : ship.fishing
-                ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
-                : "bg-gradient-to-r from-slate-400 to-slate-300"
-            }`}
-            style={{ width: `${pct}%` }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-white text-glow whitespace-nowrap gap-1">
-            <span>🐟</span>
-            <span className="tabular-nums">{caughtNow}/{capacity}</span>
+      {/* Always-visible HUD above each ship: HP + fill counter */}
+      {(() => {
+        const maxHp = ship.maxHp ?? 100;
+        const curHp = ship.hp ?? maxHp;
+        const hpPct = Math.max(0, Math.min(100, (curHp / maxHp) * 100));
+        const hpColor =
+          hpPct > 60
+            ? "from-emerald-400 to-emerald-300"
+            : hpPct > 30
+            ? "from-amber-400 to-amber-300"
+            : "from-rose-500 to-rose-400";
+        return (
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-[80%] flex flex-col gap-0.5 pointer-events-none">
+            {/* HP bar */}
+            <div className="relative h-2 bg-black/60 rounded-sm overflow-hidden border border-white/20">
+              <div
+                className={`h-full rounded-sm bg-gradient-to-r ${hpColor} transition-all duration-300`}
+                style={{ width: `${hpPct}%` }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-extrabold text-white text-glow whitespace-nowrap gap-0.5">
+                <span>❤</span>
+                <span className="tabular-nums">{Math.round(curHp)}/{maxHp}</span>
+              </div>
+            </div>
+            {/* Fill counter */}
+            <div className="relative h-2.5 bg-black/60 rounded-sm overflow-hidden border border-accent/40">
+              <div
+                className={`h-full rounded-sm transition-all duration-300 ${
+                  ready
+                    ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
+                    : ship.fishing
+                    ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
+                    : "bg-gradient-to-r from-slate-400 to-slate-300"
+                }`}
+                style={{ width: `${pct}%` }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-white text-glow whitespace-nowrap gap-0.5">
+                <span>{ready ? "✦" : "🐟"}</span>
+                <span className="tabular-nums">{caughtNow}/{capacity}</span>
+                {ready && <span className="animate-pulse">✦</span>}
+              </div>
+            </div>
+            {active && (
+              ready ? (
+                <div className="text-center text-[9px] text-amber-200 font-bold animate-pulse">
+                  ✦ جاهز للجمع ✦
+                </div>
+              ) : ship.fishing ? (
+                <div className="text-center text-[9px] text-emerald-200 font-bold tabular-nums">
+                  🎣 يصطاد · {timeStr}
+                </div>
+              ) : (
+                <div className="text-center text-[9px] text-slate-200 font-bold">
+                  ⏸ متوقف — اضغط للإبحار
+                </div>
+              )
+            )}
           </div>
-        </div>
-        {ready ? (
-          <div className="text-center text-[9px] text-amber-200 font-bold mt-0.5 animate-pulse">
-            ✦ جاهز للجمع ✦
-          </div>
-        ) : ship.fishing ? (
-          <div className="text-center text-[9px] text-emerald-200 font-bold tabular-nums mt-0.5">
-            🎣 يصطاد · {timeStr}
-          </div>
-        ) : (
-          <div className="text-center text-[9px] text-slate-200 font-bold mt-0.5">
-            ⏸ متوقف — اضغط للإبحار
-          </div>
-        )}
-      </div>
-      )}
+        );
+      })()}
       </div>
     </button>
   );
