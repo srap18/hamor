@@ -238,7 +238,14 @@ function ChatPage() {
         {!(tab === "tribe" && profile?.tribe_id) && <div className="w-10" />}
       </div>
 
+      {notice && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-stone-900/95 border-2 border-amber-400/70 text-amber-100 text-sm font-bold shadow-lg pointer-events-none">
+          {notice}
+        </div>
+      )}
+
       <div className="absolute top-14 left-2 right-2 z-20 flex gap-1">
+
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
