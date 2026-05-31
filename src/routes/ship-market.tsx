@@ -123,6 +123,13 @@ function ShipyardPage() {
 
   const startUpgrade = async () => {
     if (!user || !profile || !market || market.upgrading_to) return;
+    const preview = await nextUpgradePreview();
+    const ok = await confirmDialog({
+      title: "ترقية سوق السفن",
+      message: `هل تريد بدء الترقية إلى المستوى ${marketLevel + 1}؟\nالتكلفة: ${preview.cost_coins} عملة\nالمدة: ${Math.ceil((preview.seconds || 0) / 60)} دقيقة`,
+      confirmText: "ترقية",
+    });
+    if (!ok) return;
     setBusy("upgrade");
     const { error } = await marketStartUpgrade();
     setBusy(null);
@@ -134,6 +141,12 @@ function ShipyardPage() {
 
   const finishWithGems = async () => {
     if (!user || !profile || !market?.upgrading_to || secondsLeft <= 0) return;
+    const ok = await confirmDialog({
+      title: "إنهاء الترقية فورًا",
+      message: "هل تريد إنهاء الترقية الآن باستخدام الجواهر؟",
+      confirmText: "إنهاء بالجواهر",
+    });
+    if (!ok) return;
     setBusy("boost");
     const { error } = await marketFinishUpgradeWithGems();
     setBusy(null);
