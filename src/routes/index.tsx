@@ -1632,8 +1632,10 @@ type LbProfile = {
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
 
 function LeaderboardModal({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<"xp" | "gems" | "coins" | "tribes" | "search">("xp");
+  const [tab, setTab] = useState<"xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("xp");
   const [rows, setRows] = useState<LbProfile[]>([]);
+  const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
+  const [shipRows, setShipRows] = useState<Array<LbProfile & { market_level: number }>>([]);
   const [tribes, setTribes] = useState<TribeLb[]>([]);
   const [q, setQ] = useState("");
   const [tribeQ, setTribeQ] = useState("");
@@ -1685,6 +1687,36 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
       })();
       return;
     }
+    if (tab === "fish") {
+      setLoading(true);
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 60 });
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
+        }));
+        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setLoading(false);
+      })();
+      return;
+    }
+    if (tab === "ships") {
+      setLoading(true);
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 60 });
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          market_level: r.market_level,
+        }));
+        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setLoading(false);
+      })();
+      return;
+    }
     setLoading(true);
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     supabase.from("profiles")
@@ -1712,6 +1744,8 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     { id: "xp" as const, e: "⭐", l: "XP" },
     { id: "gems" as const, e: "💎", l: "جواهر" },
     { id: "coins" as const, e: "🪙", l: "عملات" },
+    { id: "fish" as const, e: "🐟", l: "صيد" },
+    { id: "ships" as const, e: "🏪", l: "سوق سفن" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
     { id: "search" as const, e: "🔍", l: "بحث" },
   ];
@@ -1724,6 +1758,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     ? tribes.filter(t => t.name.toLowerCase().includes(tribeQ.trim().toLowerCase()))
     : tribes;
 
+
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
       onClick={onClose}>
@@ -1731,15 +1766,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <div className="grid grid-cols-5 gap-1 mb-3">
+        <div className="grid grid-cols-7 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
-              onClick={() => { sound.play("click"); setTab(t.id); setRows([]); }}
-              className={`py-2 rounded-lg text-[10px] font-bold border transition ${
+              onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
+              className={`py-1.5 rounded-lg text-[9px] font-bold border transition ${
                 tab === t.id ? "bg-accent text-secondary border-accent" : "bg-secondary/60 text-accent/80 border-accent/30"
               }`}>
-              <div className="text-base">{t.e}</div>
-              <div>{t.l}</div>
+              <div className="text-sm">{t.e}</div>
+              <div className="leading-tight">{t.l}</div>
             </button>
           ))}
         </div>
@@ -1779,6 +1814,72 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-bold text-accent tabular-nums">⚡ {t.power.toLocaleString()}</div>
               </button>
             ))
+          ) : tab === "fish" ? (
+            fishRows.length === 0 ? (
+              <div className="text-center text-accent/60 py-6 text-sm">لا يوجد صيادون بعد</div>
+            ) : fishRows.map((p, i) => {
+              const isMe = meId === p.id;
+              const Inner = (
+                <>
+                  <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                  <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
+                    <div className="w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ring-2 ring-amber-300/50">
+                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                    </div>
+                    {frameById(p.avatar_frame)?.imageUrl && (
+                      <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
+                    <div className="text-[10px] text-accent/70">إجمالي {p.total_fish.toLocaleString()} سمكة</div>
+                  </div>
+                  <div className="text-xs font-bold text-cyan-300 tabular-nums">🐟 {p.unique_fish} نوع</div>
+                </>
+              );
+              return isMe ? (
+                <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+              ) : (
+                <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                  onClick={() => { sound.play("click"); onClose(); }}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                  {Inner}
+                </Link>
+              );
+            })
+          ) : tab === "ships" ? (
+            shipRows.length === 0 ? (
+              <div className="text-center text-accent/60 py-6 text-sm">لا يوجد لاعبون بعد</div>
+            ) : shipRows.map((p, i) => {
+              const isMe = meId === p.id;
+              const Inner = (
+                <>
+                  <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                  <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
+                    <div className="w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ring-2 ring-amber-300/50">
+                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                    </div>
+                    {frameById(p.avatar_frame)?.imageUrl && (
+                      <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
+                    <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
+                  </div>
+                  <div className="text-xs font-bold text-amber-300 tabular-nums">🏪 مستوى {p.market_level}</div>
+                </>
+              );
+              return isMe ? (
+                <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+              ) : (
+                <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                  onClick={() => { sound.play("click"); onClose(); }}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                  {Inner}
+                </Link>
+              );
+            })
           ) : rows.length === 0 ? (
             <div className="text-center text-accent/60 py-6 text-sm">
               {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
