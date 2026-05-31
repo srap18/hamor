@@ -1733,10 +1733,9 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
 
             <div className="flex-1 overflow-y-auto space-y-1">
               <div className="text-xs font-bold text-accent mb-1">👥 الأعضاء</div>
-              {members.map((m, i) => (
-                <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
-                  onClick={() => { sound.play("click"); onClose(); }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+              {members.map((m, i) => {
+                const row = (
+                  <>
                   <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
                   <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
                   <div className="flex-1 min-w-0">
@@ -1744,8 +1743,18 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                     <div className="text-[10px] text-accent/70">المستوى {m.level}</div>
                   </div>
                   <div className="text-xs font-bold text-accent tabular-nums">⚡ {(m.level * 100 + Math.floor(m.xp / 10)).toLocaleString()}</div>
-                </Link>
-              ))}
+                  </>
+                );
+                return meTribeId === m.user_id ? (
+                  <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{row}</div>
+                ) : (
+                  <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
+                    onClick={() => { sound.play("click"); onClose(); }}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                    {row}
+                  </Link>
+                );
+              })}
             </div>
           </>
         )}
