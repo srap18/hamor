@@ -84,6 +84,29 @@ function ProfilePage() {
     if (!userId) return;
     if (file.size > 3 * 1024 * 1024) { flash("الصورة كبيرة (الحد 3 ميجا)"); return; }
     setSaving(true);
+    // Content moderation: block NSFW / explicit images before upload.
+    try {
+      flash("جاري فحص الصورة...");
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const s = String(r.result || "");
+          const i = s.indexOf(",");
+          resolve(i >= 0 ? s.slice(i + 1) : s);
+        };
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const { moderateImage } = await import("@/lib/moderation.functions");
+      const verdict = await moderateImage({ data: { imageBase64: b64, mimeType: file.type || "image/jpeg" } });
+      if (!verdict.safe) {
+        setSaving(false);
+        flash("⚠️ الصورة مرفوضة: محتوى غير لائق");
+        return;
+      }
+    } catch {
+      // fail open
+    }
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const path = `${userId}/avatar.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "0" });

@@ -122,6 +122,30 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_emails: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          email: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: []
+      }
       bans: {
         Row: {
           active: boolean
@@ -2369,6 +2393,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_email_banned: { Args: { _email: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_tribe_member: {

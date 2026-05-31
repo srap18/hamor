@@ -189,22 +189,109 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   const [xp, setXp] = useState(String(player.xp));
   const [level, setLevel] = useState(String(player.level));
+  const [displayName, setDisplayName] = useState(player.display_name);
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [{ data: bans }, { data: mutes }] = await Promise.all([
+      const [{ data: bans }, { data: mutes }, { data: prof }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("profiles").select("avatar_url").eq("id", player.id).maybeSingle(),
       ]);
       const all: HistoryEntry[] = [
         ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
         ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
+      setAvatarUrl((prof as any)?.avatar_url ?? null);
     })();
   }, [player.id]);
+
+  const saveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const { adminUpdateUser } = await import("@/lib/admin-users.functions");
+      const payload: { userId: string; email?: string; display_name?: string; avatar_url?: string | null } = { userId: player.id };
+      if (displayName.trim() !== player.display_name) payload.display_name = displayName.trim();
+      if (email.trim()) payload.email = email.trim();
+      await adminUpdateUser({ data: payload });
+      toast.success("تم حفظ بيانات الحساب");
+      setEmail("");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+    setSavingProfile(false);
+  };
+
+  const onUploadAvatar = async (file: File) => {
+    if (file.size > 3 * 1024 * 1024) { toast.error("الصورة كبيرة (الحد 3 ميجا)"); return; }
+    try {
+      toast("جاري فحص الصورة...");
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => { const s = String(r.result || ""); const i = s.indexOf(","); resolve(i >= 0 ? s.slice(i + 1) : s); };
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const { moderateImage } = await import("@/lib/moderation.functions");
+      const verdict = await moderateImage({ data: { imageBase64: b64, mimeType: file.type || "image/jpeg" } });
+      if (!verdict.safe) { toast.error("⚠️ الصورة مرفوضة: محتوى غير لائق"); return; }
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
+      const path = `${player.id}/avatar.${ext}`;
+      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "0" });
+      if (error) { toast.error("فشل الرفع"); return; }
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { adminUpdateUser } = await import("@/lib/admin-users.functions");
+      await adminUpdateUser({ data: { userId: player.id, avatar_url: url } });
+      setAvatarUrl(url);
+      toast.success("تم تحديث الصورة");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const deleteAccount = async () => {
+    if (!confirm(`⚠️ حذف حساب ${player.display_name} نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    const banEmail = confirm("هل تريد أيضاً منع نفس البريد من إنشاء حساب جديد؟");
+    const reason = prompt("سبب الحذف (اختياري):", "") ?? "";
+    try {
+      const { adminDeleteUser } = await import("@/lib/admin-users.functions");
+      await adminDeleteUser({ data: { userId: player.id, banEmail, reason } });
+      toast.success("تم حذف الحساب");
+      onClose();
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const blockLogin = async () => {
+    const hoursStr = prompt("منع تسجيل الدخول لكم ساعة؟ (اتركه فارغاً للمنع الدائم)", "");
+    const hours = hoursStr ? Number(hoursStr) : 87600;
+    if (!confirm(`منع ${player.display_name} من تسجيل الدخول ${hoursStr ? `${hours} ساعة` : "نهائياً"}؟`)) return;
+    try {
+      const { adminBlockLogin } = await import("@/lib/admin-users.functions");
+      await adminBlockLogin({ data: { userId: player.id, hours } });
+      toast.success("تم منع تسجيل الدخول");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const unblockLogin = async () => {
+    try {
+      const { adminBlockLogin } = await import("@/lib/admin-users.functions");
+      await adminBlockLogin({ data: { userId: player.id, unblock: true } });
+      toast.success("تم رفع منع الدخول");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -242,21 +329,45 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-md w-full my-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl">{player.avatar_emoji}</span>
-          <div>
-            <h2 className="text-lg font-bold">{player.display_name}</h2>
-            <div className="text-xs text-slate-500 font-mono">{player.id}</div>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
+          ) : (
+            <span className="text-3xl">{player.avatar_emoji}</span>
+          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold truncate">{player.display_name}</h2>
+            <div className="text-xs text-slate-500 font-mono truncate">{player.id}</div>
           </div>
+        </div>
+
+        {/* Account fields */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="text-sm font-semibold text-slate-300">👤 بيانات الحساب</div>
+          <div>
+            <label className="text-xs text-slate-400">الاسم</label>
+            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الإيميل (اتركه فارغاً لعدم التغيير)</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="new@email.com" className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الصورة الرمزية</label>
+            <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUploadAvatar(f); e.currentTarget.value = ""; }}
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs file:mr-2 file:rounded file:border-0 file:bg-indigo-600 file:px-2 file:py-1 file:text-white" />
+          </div>
+          <button onClick={saveProfile} disabled={savingProfile} className="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-semibold">
+            {savingProfile ? "جاري الحفظ..." : "💾 حفظ بيانات الحساب"}
+          </button>
         </div>
 
         <div className="space-y-3">
           {[
             { label: "🪙 العملات", value: coins, set: setCoins },
             { label: "💎 الجواهر", value: gems, set: setGems },
-            
             { label: "⭐ XP", value: xp, set: setXp },
             { label: "📈 المستوى", value: level, set: setLevel },
           ].map((f) => (
@@ -272,8 +383,18 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           <button onClick={onClose} className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إلغاء</button>
         </div>
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
-          {saving ? "جاري الحفظ..." : "💾 حفظ التعديلات"}
+          {saving ? "جاري الحفظ..." : "💾 حفظ العملات والمستوى"}
         </button>
+
+        {/* Danger zone */}
+        <div className="mt-4 pt-4 border-t border-red-900/50 space-y-2">
+          <div className="text-sm font-semibold text-red-300">⚠️ منطقة الخطر</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
+            <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
+          </div>
+          <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
+        </div>
 
         <div className="mt-4 pt-4 border-t border-slate-800">
           <h3 className="text-sm font-semibold text-slate-300 mb-2">📜 سجل العقوبات ({history.length})</h3>

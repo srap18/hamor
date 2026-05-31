@@ -19,6 +19,15 @@ function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setLoading(true);
+    // Check email blocklist (admin-managed)
+    try {
+      const { data: blocked } = await (supabase as any).rpc("is_email_banned", { _email: email });
+      if (blocked === true) {
+        setLoading(false);
+        setErr("هذا البريد محظور من إنشاء حساب");
+        return;
+      }
+    } catch {}
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
