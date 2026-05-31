@@ -29,6 +29,7 @@ function AdminPlayers() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Player | null>(null);
   const [banned, setBanned] = useState<Set<string>>(new Set());
+  const [muted, setMuted] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +39,9 @@ function AdminPlayers() {
     setPlayers((data ?? []) as Player[]);
     const { data: bans } = await supabase.from("bans").select("user_id").eq("active", true);
     setBanned(new Set((bans ?? []).map((b) => b.user_id)));
+    const nowIso = new Date().toISOString();
+    const { data: mutes } = await supabase.from("chat_mutes").select("user_id,expires_at").eq("active", true);
+    setMuted(new Set((mutes ?? []).filter((m) => !m.expires_at || m.expires_at > nowIso).map((m) => m.user_id)));
     setLoading(false);
   }, [search]);
 
