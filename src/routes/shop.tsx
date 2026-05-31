@@ -171,6 +171,11 @@ function Shop() {
       setBusy(false);
       if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       localStorage.setItem(ARMOR_LAST_KEY(user.id), String(Date.now()));
+    } else if (tab === "ships") {
+      // Phoenix shop ship — calls dedicated RPC, ignores qty (always 1)
+      const { error } = await supabase.rpc("buy_phoenix_ship");
+      if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
+      setBusy(false);
     } else {
       // Buy inventory item — one RPC call adds N to inventory and charges N × price
       const itemType = tab === "weapons" ? "weapon" : "crew";
