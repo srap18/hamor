@@ -33,8 +33,8 @@ function BackgroundsShop() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
-  const [owned, setOwned] = useState<string[]>(["harbor"]);
-  const [selected, setSelected] = useState<string>("harbor");
+  const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
+  const [selected, setSelected] = useState<string>("celestial_colosseum");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -106,24 +106,28 @@ function BackgroundsShop() {
               >
                 {/* Real scene preview */}
                 <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border border-white/30 bg-black">
-                  {b.video ? (
-                    <video
-                      src={b.video}
-                      poster={b.image}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  ) : (
+                  <div className="absolute inset-y-0 right-0 w-1/2 overflow-hidden border-r border-white/20">
                     <img
                       src={b.image}
                       alt={b.name}
                       loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover animate-bg-drift"
                     />
-                  )}
+                    <div className="absolute right-1 bottom-1 px-1.5 py-0.5 rounded bg-emerald-700/90 border border-emerald-200 text-[9px] font-bold">
+                      سليمة
+                    </div>
+                  </div>
+                  <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+                    <img
+                      src={b.burnedImage}
+                      alt={b.burnedName}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover animate-bg-drift animate-bg-burned-pulse"
+                    />
+                    <div className="absolute left-1 bottom-1 px-1.5 py-0.5 rounded bg-rose-700/90 border border-rose-200 text-[9px] font-bold">
+                      محترقة
+                    </div>
+                  </div>
 
                   {b.animated && (
                     <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-fuchsia-600/90 border border-fuchsia-200 text-[9px] font-bold">

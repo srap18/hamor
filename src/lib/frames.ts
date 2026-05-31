@@ -362,8 +362,8 @@ export const GEM_PACKS: Pack[] = [
   {
     id: "bd_starter", category: "bundle", label: "باقة المبتدئ",  emoji: "⚓",
     amount: 0, currency: "gem", priceUSD: 2.99, tag: "لمرة واحدة فقط",
-    description: "500 💎 + 25,000 🪙 + خلفية الميناء",
-    reward: { gems: 500, coins: 25_000, bgIds: ["harbor"] },
+    description: "500 💎 + 25,000 🪙 + الكولوسيوم السماوي",
+    reward: { gems: 500, coins: 25_000, bgIds: ["celestial_colosseum"] },
   },
   {
     id: "bd_captain", category: "bundle", label: "باقة القبطان",  emoji: "🧭",
@@ -374,22 +374,22 @@ export const GEM_PACKS: Pack[] = [
   {
     id: "bd_admiral", category: "bundle", label: "باقة الأميرال", emoji: "⚔️",
     amount: 0, currency: "gem", priceUSD: 24.99,
-    description: "4000 💎 + 300,000 🪙 + خلفيتان + إطار ياقوتي",
-    reward: { gems: 4000, coins: 300_000, bgIds: ["sunset", "tropical"], frameIds: ["af_taurus"] },
+    description: "4000 💎 + 300,000 🪙 + الخلفيتين الجديدتين + إطار ياقوتي",
+    reward: { gems: 4000, coins: 300_000, bgIds: ["celestial_colosseum", "eiffel_night"], frameIds: ["af_taurus"] },
   },
   {
     id: "bd_legend", category: "bundle", label: "باقة الأسطورة",  emoji: "🐉",
     amount: 0, currency: "gem", priceUSD: 49.99, tag: "محدود",
-    description: "9000 💎 + 700,000 🪙 + 3 خلفيات + إطار التنين + لوحة الأسطورة",
-    reward: { gems: 9000, coins: 700_000, bgIds: ["volcano", "arctic", "cursed"], frameIds: ["af_scorpio", "nf_leo"] },
+    description: "9000 💎 + 700,000 🪙 + الخلفيتين الجديدتين + إطار التنين + لوحة الأسطورة",
+    reward: { gems: 9000, coins: 700_000, bgIds: ["celestial_colosseum", "eiffel_night"], frameIds: ["af_scorpio", "nf_leo"] },
   },
   {
     id: "bd_emperor", category: "bundle", label: "باقة الإمبراطور", emoji: "👑",
     amount: 0, currency: "gem", priceUSD: 99.99, tag: "أفضل قيمة",
-    description: "20000 💎 + 1,500,000 🪙 + كل الخلفيات + إطار الإمبراطور + جميع لوحات الأسماء",
+    description: "20000 💎 + 1,500,000 🪙 + كل الخلفيات الجديدة + إطار الإمبراطور + جميع لوحات الأسماء",
     reward: {
       gems: 20_000, coins: 1_500_000,
-      bgIds: ["harbor", "sunset", "tropical", "volcano", "arctic", "cursed", "night", "royal"],
+      bgIds: ["celestial_colosseum", "eiffel_night"],
       frameIds: ["af_pisces", "nf_scorpio", "nf_pisces"],
       rubies: 50,
     },
@@ -406,6 +406,6 @@ export const GEM_PACKS: Pack[] = [
     id: "vip_monthly", category: "vip", label: "VIP شهري", emoji: "🌟",
     amount: 0, currency: "gem", priceUSD: 14.99, popular: true,
     description: "300 💎 يومياً + ضعف XP والذهب + خلفية حصرية + إطار VIP",
-    reward: { gems: 9000, frameIds: ["af_phoenix"], bgIds: ["royal"] },
+    reward: { gems: 9000, frameIds: ["af_phoenix"], bgIds: ["eiffel_night"] },
   },
 ];
