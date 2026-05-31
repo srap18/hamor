@@ -1183,7 +1183,7 @@ function Index() {
                   );
                 }
                 return (
-                  <div className="flex gap-3">
+                  <div className="flex gap-3" dir="ltr">
                     <ActionBtn
                       emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
                       label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
@@ -2328,6 +2328,7 @@ function ActionBtn({ emoji, label, onClick }: { emoji: string; label: string; on
     <button
       onClick={onClick}
       className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-b from-amber-700/80 to-amber-900/80 border border-accent/60 active:scale-95 min-w-[68px]"
+      dir="rtl"
     >
       <div className="w-12 h-12 rounded-full glass-hud border border-accent/40 flex items-center justify-center text-2xl">
         {emoji}
