@@ -90,6 +90,7 @@ function CosmeticsShop() {
     setOwned(new Set([...owned, f.id]));
     setBusy(false);
     flash(`اشتريت ${f.name} ✓`);
+    showBanner({ kind: "purchase", title: f.name, subtitle: `${f.price} جوهرة • ${f.kind}`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
   };
 
   const list = LIST_BY_KIND[tab];
