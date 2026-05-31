@@ -719,6 +719,12 @@ function Index() {
         ? `${caught.emoji} ${caught.name} ×${fishGained}`
         : `🐟 ×${fishGained}`,
     });
+    showBanner({
+      kind: "catch",
+      title: caught ? `${caught.emoji} ${caught.name}` : "🐟 سمكة",
+      subtitle: `سفينة #${s.id} • مستوى ${s.level}`,
+      count: fishGained,
+    });
 
     setTimeout(() => setPop(null), 1400);
   };
