@@ -708,7 +708,8 @@ function PlayerPage() {
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const seaLeft = wLeft + seaOffsets[tIdx % seaOffsets.length] * wWidth;
+          const tShipW = 22 * (fixedSlot?.scale ?? 1);
+          const seaLeft = seaSide === "right" ? (96 - tShipW) : 2;
           const tLeft = t.at_sea ? seaLeft : dockLeft;
           top = `${tTop + 2}%`;
           // Place to the right of the target ship on screen (+10% of width)
