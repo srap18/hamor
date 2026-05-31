@@ -330,7 +330,12 @@ function PlayerPage() {
       // Tell every spectator in this harbor to play the same rocket FX
       broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
       await playProjectile(t.id, w.emoji, false, w.id);
-      const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
+      const { data: dmgRes, error: dmgErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
+      if (dmgErr) {
+        const m = String(dmgErr.message || "");
+        if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
+        sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
+      }
       const row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
       const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - w.damage);
       const repEnds = row?.repair_ends_at ?? null;
