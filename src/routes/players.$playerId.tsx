@@ -1144,7 +1144,6 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
       className="absolute z-10 active:scale-95 cursor-pointer"
       style={{
         top, left, width: `${22 * scale}%`,
-        transform: "translate(-50%, -50%)",
         transition: "left 1.2s ease-in-out",
       }}
     >
