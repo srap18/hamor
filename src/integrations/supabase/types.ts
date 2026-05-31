@@ -1113,6 +1113,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           expires_at: string | null
+          extra_rewards: Json
           id: string
           item_id: string | null
           item_kind: string | null
@@ -1131,6 +1132,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          extra_rewards?: Json
           id?: string
           item_id?: string | null
           item_kind?: string | null
@@ -1149,6 +1151,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          extra_rewards?: Json
           id?: string
           item_id?: string | null
           item_kind?: string | null
