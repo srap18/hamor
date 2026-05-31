@@ -70,6 +70,7 @@ export function NotificationsBell() {
         if (n.kind === "nuke") return; // skip nuke alerts; shown via GlobalBanner
         if (n.recipient_id === null || n.recipient_id === user.id) {
           setItems(s => [n, ...s].slice(0, 30));
+          if (n.created_by) loadActors([n]);
           sound.play("click");
         }
       })
