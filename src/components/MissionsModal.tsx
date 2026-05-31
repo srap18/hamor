@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimQuest, buyLootbox, openLootbox } from "@/lib/economy";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 type Tab = "missions" | "achievements" | "boxes" | "notifs" | "events";
 
