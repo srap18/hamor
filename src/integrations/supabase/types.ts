@@ -2396,6 +2396,10 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_display_name_taken: {
+        Args: { p_except?: string; p_name: string }
+        Returns: boolean
+      }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
       is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
