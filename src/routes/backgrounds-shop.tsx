@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
+import { showBanner } from "@/components/Banner";
 
 export const Route = createFileRoute("/backgrounds-shop")({
   head: () => ({
