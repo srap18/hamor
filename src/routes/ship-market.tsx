@@ -219,7 +219,7 @@ function ShipyardPage() {
               <p className="mt-1 text-xs text-muted-foreground">واجهة عرض بحرية احترافية للسفن الواقعية، الترقية، والتسريع بالـ Gems.</p>
             </div>
             <div className="grid shrink-0 gap-2 text-right">
-              <Res icon={iconCoins} label="Coins" value={profile?.coins ?? 0} />
+              <Res icon={iconCoins} label="ذهب" value={profile?.coins ?? 0} />
               <Res icon={iconGems} label="Gems" value={profile?.gems ?? 0} />
             </div>
           </div>
