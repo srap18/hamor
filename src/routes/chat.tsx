@@ -1080,9 +1080,25 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   const startRec = async () => {
     if (disabled || recording || uploading) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
-      const rec = new MediaRecorder(stream, { mimeType: mime });
+      // High-quality mic capture: 48kHz mono with noise suppression
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 1,
+        } as MediaTrackConstraints,
+      });
+      // Prefer Opus in WebM for best quality/size ratio
+      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
+            ? "audio/mp4;codecs=mp4a.40.2"
+            : "audio/mp4";
+      const rec = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 128000 });
       chunksRef.current = [];
       cancelledRef.current = false;
       rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
@@ -1122,7 +1138,8 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
           stopRec(false);
         }
       }, 250);
-      rec.start();
+      // Collect data every 250ms for smoother chunking
+      rec.start(250);
       setRecording(true);
     } catch (e: any) {
       alert("لا يمكن الوصول إلى الميكروفون: " + (e?.message || ""));
