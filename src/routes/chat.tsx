@@ -157,6 +157,7 @@ function ChatPage() {
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
   const [sending, setSending] = useState(false);
+  const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
   const send = useCallback(async (override?: string) => {
     if (!user || sending) return;
     const raw = override ?? text;
@@ -164,6 +165,20 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
+
+    // Anti-spam: 1.2s cooldown between sends + block exact duplicate within 10s in same chat
+    const now = Date.now();
+    const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
+    const last = lastSendRef.current;
+    if (now - last.at < 1200) {
+      alert("على مهلك — لا ترسل بسرعة كبيرة");
+      return;
+    }
+    if (last.body === body && last.channel === tab && last.target === target && now - last.at < 10000) {
+      alert("لا تكرر نفس الرسالة");
+      return;
+    }
+
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
@@ -185,6 +200,7 @@ function ChatPage() {
         alert(msg);
         return;
       }
+      lastSendRef.current = { body, at: now, channel: tab, target };
       if (!override) setText("");
       if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
       if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
@@ -192,6 +208,7 @@ function ChatPage() {
       setSending(false);
     }
   }, [user, text, tab, profile, dmWith, sending]);
+
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
 
@@ -1055,6 +1072,8 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   const chunksRef = useRef<BlobPart[]>([]);
   const startedAtRef = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
+  const cancelledRef = useRef<boolean>(false);
+  const MAX_REC_SECONDS = 30;
 
   const stopTimer = () => { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; } };
 
@@ -1065,11 +1084,18 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
       const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
       const rec = new MediaRecorder(stream, { mimeType: mime });
       chunksRef.current = [];
+      cancelledRef.current = false;
       rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
       rec.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
+        // If user cancelled, drop the recording entirely — never upload or send
+        if (cancelledRef.current) {
+          chunksRef.current = [];
+          return;
+        }
         const duration = Date.now() - startedAtRef.current;
         const blob = new Blob(chunksRef.current, { type: mime });
+        chunksRef.current = [];
         if (blob.size < 500) return;
         setUploading(true);
         const ext = mime.includes("webm") ? "webm" : "m4a";
@@ -1077,7 +1103,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
         const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: mime, upsert: false });
         if (upErr) { setUploading(false); alert("فشل رفع التسجيل: " + upErr.message); return; }
         const { data: pub } = supabase.storage.from("chat-audio").getPublicUrl(path);
-        const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: duration };
+        const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: Math.min(duration, MAX_REC_SECONDS * 1000) };
         if (channel === "tribe") row.tribe_id = tribeId;
         if (channel === "dm") row.recipient_id = dmWith;
         const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
@@ -1088,7 +1114,14 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
       recRef.current = rec;
       startedAtRef.current = Date.now();
       setElapsed(0);
-      timerRef.current = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAtRef.current) / 1000)), 250);
+      timerRef.current = window.setInterval(() => {
+        const sec = Math.floor((Date.now() - startedAtRef.current) / 1000);
+        setElapsed(sec);
+        // Auto-stop & send at the max recording length
+        if (sec >= MAX_REC_SECONDS) {
+          stopRec(false);
+        }
+      }, 250);
       rec.start();
       setRecording(true);
     } catch (e: any) {
@@ -1100,6 +1133,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
     if (!recording || !recRef.current) return;
     stopTimer();
     setRecording(false);
+    cancelledRef.current = cancel;
     if (cancel) chunksRef.current = [];
     try { recRef.current.stop(); } catch {}
   };
@@ -1110,9 +1144,9 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
     <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute bottom-[76px] left-2 right-2 z-40 flex gap-2">
       {recording ? (
         <>
-          <div className="flex-1 px-3 py-2 rounded-lg bg-red-900/60 border border-red-500/60 text-sm text-white flex items-center gap-2">
+          <div className={`flex-1 px-3 py-2 rounded-lg border text-sm text-white flex items-center gap-2 ${elapsed >= MAX_REC_SECONDS - 5 ? "bg-red-900/80 border-red-400/80" : "bg-red-900/60 border-red-500/60"}`}>
             <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-            🎤 جاري التسجيل... {elapsed}ث
+            🎤 جاري التسجيل... {elapsed}ث / {MAX_REC_SECONDS}ث
           </div>
           <button type="button" onClick={() => stopRec(true)} className="px-3 rounded-lg bg-stone-700 text-white font-bold">إلغاء</button>
           <button type="button" onClick={() => stopRec(false)} className="px-4 rounded-lg bg-emerald-500 text-emerald-950 font-bold">إرسال</button>
