@@ -1001,10 +1001,10 @@ function Index() {
         const wLeft = scene.waterLeft ?? 30;
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
-        // Keep all ships floating in the mid-water band (not glued to the bottom).
-        const ts = [0.25, 0.5, 0.15];
-        const vRange = Math.max(10, 60 - (wTop + 4));
-        const top = `${fixedSlot?.top ?? wTop + 4 + ts[i] * vRange}%`;
+        // Keep ships sitting low on the water surface (not floating high above it).
+        const ts = [0.55, 0.75, 0.4];
+        const vRange = Math.max(10, 60 - (wTop + 10));
+        const top = `${fixedSlot?.top ?? wTop + 10 + ts[i] * vRange}%`;
 
         const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
         // Dock on the LEFT half of the water band so each ship always has
