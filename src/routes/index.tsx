@@ -1632,8 +1632,10 @@ type LbProfile = {
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
 
 function LeaderboardModal({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<"xp" | "gems" | "coins" | "tribes" | "search">("xp");
+  const [tab, setTab] = useState<"xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("xp");
   const [rows, setRows] = useState<LbProfile[]>([]);
+  const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
+  const [shipRows, setShipRows] = useState<Array<LbProfile & { market_level: number }>>([]);
   const [tribes, setTribes] = useState<TribeLb[]>([]);
   const [q, setQ] = useState("");
   const [tribeQ, setTribeQ] = useState("");
@@ -1685,6 +1687,36 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
       })();
       return;
     }
+    if (tab === "fish") {
+      setLoading(true);
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 60 });
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
+        }));
+        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setLoading(false);
+      })();
+      return;
+    }
+    if (tab === "ships") {
+      setLoading(true);
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 60 });
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          market_level: r.market_level,
+        }));
+        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setLoading(false);
+      })();
+      return;
+    }
     setLoading(true);
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     supabase.from("profiles")
@@ -1712,6 +1744,8 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     { id: "xp" as const, e: "⭐", l: "XP" },
     { id: "gems" as const, e: "💎", l: "جواهر" },
     { id: "coins" as const, e: "🪙", l: "عملات" },
+    { id: "fish" as const, e: "🐟", l: "صيد" },
+    { id: "ships" as const, e: "🏪", l: "سوق سفن" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
     { id: "search" as const, e: "🔍", l: "بحث" },
   ];
@@ -1723,6 +1757,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const tribesFiltered = tribeQ.trim()
     ? tribes.filter(t => t.name.toLowerCase().includes(tribeQ.trim().toLowerCase()))
     : tribes;
+
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
