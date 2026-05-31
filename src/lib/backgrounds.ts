@@ -72,6 +72,7 @@ export const BACKGROUNDS: SceneBg[] = [
     rarity: "legendary",
     image: eiffelNightBg,
     burnedImage: eiffelNightBurnedBg,
+    video: eiffelNightVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
