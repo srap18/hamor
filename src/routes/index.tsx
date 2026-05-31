@@ -782,8 +782,8 @@ function Index() {
       x: rect.left + rect.width / 2,
       y: rect.top,
       v: caught
-        ? `${caught.emoji} ${caught.name} ×${fishGained}`
-        : `🐟 ×${fishGained}`,
+        ? `${caught.name} ×${fishGained}`
+        : `سمكة ×${fishGained}`,
     });
     setCatchResult({
       img: caught?.img,
