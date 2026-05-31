@@ -265,19 +265,55 @@ function LootboxesTab() {
 
 /* ============== Events ============== */
 type Evt = { id: string; title: string; description: string; banner: string; starts_at: string; ends_at: string; xp_multiplier: number; coin_multiplier: number; active: boolean };
+type EvtForm = {
+  id?: string;
+  title: string;
+  description: string;
+  banner: string;
+  startD: number; startH: number;
+  endD: number; endH: number;
+  xp_multiplier: number;
+  coin_multiplier: number;
+  active: boolean;
+};
 function EventsTab() {
   const [list, setList] = useState<Evt[]>([]);
-  const now = new Date().toISOString().slice(0, 16);
-  const week = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16);
-  const empty = { title: "", description: "", banner: "🎉", starts_at: now, ends_at: week, xp_multiplier: 2, coin_multiplier: 2, active: true };
-  const [form, setForm] = useState<Partial<Evt>>(empty);
+  const empty: EvtForm = { title: "", description: "", banner: "🎉", startD: 0, startH: 0, endD: 7, endH: 0, xp_multiplier: 2, coin_multiplier: 2, active: true };
+  const [form, setForm] = useState<EvtForm>(empty);
   const load = async () => { const { data } = await supabase.from("events").select("*").order("starts_at", { ascending: false }); setList((data ?? []) as Evt[]); };
   useEffect(() => { load(); }, []);
   const save = async () => {
-    if (!form.title?.trim()) return;
-    if (form.id) await supabase.from("events").update(form).eq("id", form.id);
-    else await supabase.from("events").insert(form as never);
+    if (!form.title.trim()) return;
+    const startMs = (form.startD * 24 + form.startH) * 3600_000;
+    const endMs = (form.endD * 24 + form.endH) * 3600_000;
+    if (endMs <= startMs) { alert("النهاية يجب أن تكون أكبر من البداية"); return; }
+    const now = Date.now();
+    const payload = {
+      title: form.title.trim(),
+      description: form.description,
+      banner: form.banner,
+      starts_at: new Date(now + startMs).toISOString(),
+      ends_at: new Date(now + endMs).toISOString(),
+      xp_multiplier: form.xp_multiplier,
+      coin_multiplier: form.coin_multiplier,
+      active: form.active,
+    };
+    if (form.id) await supabase.from("events").update(payload).eq("id", form.id);
+    else await supabase.from("events").insert(payload as never);
     setForm(empty); load();
+  };
+  const editEvt = (e: Evt) => {
+    // Convert remaining time back to days+hours for editing
+    const startMs = Math.max(0, new Date(e.starts_at).getTime() - Date.now());
+    const endMs = Math.max(0, new Date(e.ends_at).getTime() - Date.now());
+    const startH = Math.round(startMs / 3600_000);
+    const endH = Math.round(endMs / 3600_000);
+    setForm({
+      id: e.id, title: e.title, description: e.description, banner: e.banner,
+      startD: Math.floor(startH / 24), startH: startH % 24,
+      endD: Math.floor(endH / 24), endH: endH % 24,
+      xp_multiplier: e.xp_multiplier, coin_multiplier: e.coin_multiplier, active: e.active,
+    });
   };
   const del = async (id: string) => { if (confirm("حذف؟")) { await supabase.from("events").delete().eq("id", id); load(); } };
   return (
@@ -290,12 +326,12 @@ function EventsTab() {
                 <div className="text-lg font-semibold">{e.banner} {e.title}</div>
                 <div className="text-sm text-slate-400 mt-1">{e.description}</div>
                 <div className="text-xs text-slate-500 mt-2">
-                  من {new Date(e.starts_at).toLocaleString("ar")} إلى {new Date(e.ends_at).toLocaleString("ar")}
+                  ينتهي خلال: <b className="text-slate-300">{formatTimeLeft(e.ends_at)}</b>
                 </div>
                 <div className="text-xs mt-1">⭐×{e.xp_multiplier} · 🪙×{e.coin_multiplier} · {e.active ? "🟢 نشط" : "⏸ معطّل"}</div>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => setForm({ ...e, starts_at: e.starts_at.slice(0, 16), ends_at: e.ends_at.slice(0, 16) })} className="text-indigo-300 text-xs">تعديل</button>
+                <button onClick={() => editEvt(e)} className="text-indigo-300 text-xs">تعديل</button>
                 <button onClick={() => del(e.id)} className="text-red-400 text-xs">حذف</button>
               </div>
             </div>
@@ -305,16 +341,18 @@ function EventsTab() {
       </div>
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-3 h-fit">
         <h3 className="font-semibold">{form.id ? "تعديل فعالية" : "فعالية جديدة"}</h3>
-        <Field label="العنوان"><input className={inp} value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
-        <Field label="الوصف"><textarea rows={3} className={inp + " resize-none"} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
-        <Field label="الأيقونة/البانر"><input className={inp} value={form.banner ?? ""} onChange={(e) => setForm({ ...form, banner: e.target.value })} /></Field>
-        <Field label="البداية"><input type="datetime-local" className={inp} value={form.starts_at ?? ""} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} /></Field>
-        <Field label="النهاية"><input type="datetime-local" className={inp} value={form.ends_at ?? ""} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} /></Field>
+        <Field label="العنوان"><input className={inp} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+        <Field label="الوصف"><textarea rows={3} className={inp + " resize-none"} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+        <Field label="الأيقونة/البانر"><input className={inp} value={form.banner} onChange={(e) => setForm({ ...form, banner: e.target.value })} /></Field>
+        <DurationPicker label="يبدأ بعد" days={form.startD} hours={form.startH}
+          onChange={(d, h) => setForm({ ...form, startD: d, startH: h })} allowZero zeroLabel="يبدأ فوراً"/>
+        <DurationPicker label="ينتهي بعد" days={form.endD} hours={form.endH}
+          onChange={(d, h) => setForm({ ...form, endD: d, endH: h })}/>
         <div className="grid grid-cols-2 gap-2">
-          <Field label="مضاعف ⭐"><input type="number" step="0.1" className={inp} value={form.xp_multiplier ?? 1} onChange={(e) => setForm({ ...form, xp_multiplier: Number(e.target.value) })} /></Field>
-          <Field label="مضاعف 🪙"><input type="number" step="0.1" className={inp} value={form.coin_multiplier ?? 1} onChange={(e) => setForm({ ...form, coin_multiplier: Number(e.target.value) })} /></Field>
+          <Field label="مضاعف ⭐"><input type="number" step="0.1" className={inp} value={form.xp_multiplier} onChange={(e) => setForm({ ...form, xp_multiplier: Number(e.target.value) })} /></Field>
+          <Field label="مضاعف 🪙"><input type="number" step="0.1" className={inp} value={form.coin_multiplier} onChange={(e) => setForm({ ...form, coin_multiplier: Number(e.target.value) })} /></Field>
         </div>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active ?? true} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> نشط</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> نشط</label>
         <div className="flex gap-2">
           <button onClick={save} className="flex-1 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold">حفظ</button>
           {form.id && <button onClick={() => setForm(empty)} className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">جديد</button>}
