@@ -22,6 +22,36 @@ function AdminBroadcasts() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [kind, setKind] = useState("info");
+
+  // On-screen banner (shows as overlay for all players)
+  const [bnTitle, setBnTitle] = useState("");
+  const [bnMessage, setBnMessage] = useState("");
+  const [bnEmoji, setBnEmoji] = useState("📢");
+  const [bnSending, setBnSending] = useState(false);
+  const [bnDone, setBnDone] = useState(false);
+
+  const sendBanner = async () => {
+    const msg = bnMessage.trim();
+    const ttl = bnTitle.trim();
+    if (!ttl && !msg) { alert("اكتب عنواناً أو رسالة"); return; }
+    if (msg.length > 200) { alert("الرسالة طويلة (الحد 200 حرف)"); return; }
+    setBnSending(true);
+    const channel = supabase.channel("global:admin");
+    await new Promise<void>((resolve) => {
+      channel.subscribe((status) => { if (status === "SUBSCRIBED") resolve(); });
+      setTimeout(resolve, 2000);
+    });
+    await channel.send({
+      type: "broadcast",
+      event: "admin_banner",
+      payload: { title: ttl, message: msg, emoji: bnEmoji || "📢" },
+    });
+    await logAudit("admin_banner", null, { title: ttl, message: msg, emoji: bnEmoji });
+    setTimeout(() => { void supabase.removeChannel(channel); }, 1500);
+    setBnSending(false);
+    setBnDone(true);
+    setTimeout(() => setBnDone(false), 2500);
+  };
   const [sending, setSending] = useState(false);
 
   const load = async () => {
