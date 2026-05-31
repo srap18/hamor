@@ -274,6 +274,36 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
           {saving ? "جاري الحفظ..." : "💾 حفظ التعديلات"}
         </button>
+
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <h3 className="text-sm font-semibold text-slate-300 mb-2">📜 سجل العقوبات ({history.length})</h3>
+          {history.length === 0 ? (
+            <div className="text-xs text-slate-500">لا يوجد سجل عقوبات</div>
+          ) : (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {history.map((h, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs p-2 rounded bg-slate-800/50">
+                  <span className={`px-1.5 py-0.5 rounded shrink-0 ${h.kind === "ban" ? "bg-red-600/30 text-red-200" : "bg-amber-600/30 text-amber-200"}`}>
+                    {h.kind === "ban" ? "🚫" : "🔇"}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-slate-300 truncate">{h.reason || "—"}</div>
+                    <div className="text-slate-500 text-[10px]">
+                      {new Date(h.created_at).toLocaleString("ar")}
+                      {h.expires_at && ` • ينتهي: ${new Date(h.expires_at).toLocaleString("ar")}`}
+                      {!h.expires_at && h.active && " • دائم"}
+                      {!h.active && " • مُلغى"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
       </div>
     </div>
   );
