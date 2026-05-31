@@ -687,9 +687,12 @@ function PlayerPage() {
         const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
         const shipW = 22 * scale;
-        const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
+        void shipW;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaEdge}%` : `${dockLeft}%`);
+        // Always render at the base slot position (same layout as owner's home view)
+        // so ships never clip off-screen on mobile when "at sea".
+        const left = `${dockLeft}%`;
+        void seaSide;
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
@@ -704,16 +707,14 @@ function PlayerPage() {
         const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
         let top: string; let left: string;
         if (tIdx >= 0) {
-          const t = ships[tIdx];
+          void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
-          const seaLeft = seaSide === "right" ? (96 - tShipW) : 2;
-          const tLeft = t.at_sea ? seaLeft : dockLeft;
           top = `${tTop + 2}%`;
-          // Place to the right of the target ship on screen (+10% of width)
-          left = `${Math.min(95, tLeft + 12)}%`;
+          // Place next to the target ship's base slot, clamped on-screen.
+          left = `${Math.max(2, Math.min(96 - tShipW, dockLeft + 12))}%`;
         } else {
           top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
