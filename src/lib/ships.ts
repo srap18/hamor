@@ -64,9 +64,11 @@ const IMG_BY_LEVEL: Record<number, string> = {
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
 // Listed here so the renderer can normalize them all to the same on-screen
 // direction (toward shore when docked, toward sea when fishing).
+// Verified via image inspection — these market levels ship art that natively
+// has the bow pointing RIGHT. Everything else is bow-LEFT.
 const BOW_FACES_RIGHT: Record<number, boolean> = {
-  3: true, 5: true, 6: true, 12: true, 14: true,
-  17: true, 18: true, 20: true, 27: true, 28: true, 30: true,
+  1: true, 4: true, 5: true, 6: true, 8: true, 11: true, 12: true,
+  13: true, 16: true, 19: true, 27: true, 28: true, 30: true, 31: true,
 };
 
 export function shipBowFacesRight(level: number): boolean {
