@@ -97,6 +97,7 @@ function BackgroundsShop() {
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
     flash(`اشتريت ${b.name}`);
+    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price} ذهب • خلفية`, image: b.image, emoji: "🖼️" });
     refreshProfile();
   };
 
