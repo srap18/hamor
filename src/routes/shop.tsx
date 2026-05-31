@@ -174,7 +174,8 @@ function Shop() {
     } else if (tab === "ships") {
       // Phoenix shop ship — calls dedicated RPC once per quantity
       for (let i = 0; i < qty; i++) {
-        const { error } = await supabase.rpc("buy_phoenix_ship");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)("buy_phoenix_ship");
         if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       }
       setBusy(false);
