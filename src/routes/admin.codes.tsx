@@ -151,7 +151,7 @@ function AdminCodesPage() {
   useEffect(() => {
     loadCodes();
     supabase.from("items_catalog").select("code, name, kind").eq("active", true).order("sort_order").then(({ data }) => {
-      setItemsCatalog((data ?? []) as Array<{ code: string; name: string; kind: string }>);
+      setDbItems((data ?? []) as Array<{ code: string; name: string; kind: string }>);
     });
     supabase.from("ship_catalog").select("code, name").eq("active", true).order("sort_order").then(({ data }) => {
       setShipsCatalog((data ?? []) as Array<{ code: string; name: string }>);
