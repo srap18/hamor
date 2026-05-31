@@ -116,14 +116,15 @@ function ChatPage() {
 
   useEffect(() => {
     if (!user) return;
-    let q = supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(100);
+    // Load the NEWEST 100 (was loading oldest 100 — caused new messages to disappear on reload)
+    let q = supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(100);
     if (tab === "public") q = q.eq("channel", "public");
     else if (tab === "tribe" && profile?.tribe_id) q = q.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
     else if (tab === "dm" && dmWith) q = q.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
     else { setMsgs([]); return; }
 
     q.then(async ({ data }) => {
-      const list = (data || []) as Msg[];
+      const list = ((data || []) as Msg[]).slice().reverse(); // oldest -> newest for display
       setMsgs(list);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
@@ -155,8 +156,9 @@ function ChatPage() {
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
+  const [sending, setSending] = useState(false);
   const send = useCallback(async (override?: string) => {
-    if (!user) return;
+    if (!user || sending) return;
     const raw = override ?? text;
     const body = raw.trim().slice(0, 500);
     if (!body) return;
@@ -165,18 +167,31 @@ function ChatPage() {
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
-    const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
-    if (error) {
-      const msg = /row-level security|policy/i.test(error.message)
-        ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
-        : "تعذر الإرسال: " + error.message;
-      alert(msg);
-      return;
+    setSending(true);
+    // Hard timeout so the button never gets stuck (e.g. flaky network)
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: "انتهت المهلة، حاول مرة أخرى" } }), 12000)
+    );
+    try {
+      const res = await Promise.race([
+        supabase.from("messages").insert(row).select("*").maybeSingle(),
+        timeoutPromise,
+      ]);
+      const { data, error } = res as any;
+      if (error) {
+        const msg = /row-level security|policy/i.test(error.message)
+          ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
+          : "تعذر الإرسال: " + error.message;
+        alert(msg);
+        return;
+      }
+      if (!override) setText("");
+      if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
+      if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
+    } finally {
+      setSending(false);
     }
-    if (!override) setText("");
-    if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
-    if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
-  }, [user, text, tab, profile?.tribe_id, dmWith]);
+  }, [user, text, tab, profile, dmWith, sending]);
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
 
@@ -282,6 +297,7 @@ function ChatPage() {
             text={text}
             setText={setText}
             onSend={send}
+            sending={sending}
             disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
             userId={user?.id || ""}
             onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
@@ -1028,8 +1044,8 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ text, setText, onSend, disabled, userId, onAudioSent, channel, tribeId, dmWith }: {
-  text: string; setText: (v: string) => void; onSend: (override?: string) => void; disabled: boolean; userId: string;
+function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith }: {
+  text: string; setText: (v: string) => void; onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
 }) {
   const [recording, setRecording] = useState(false);
@@ -1114,7 +1130,7 @@ function ChatComposer({ text, setText, onSend, disabled, userId, onAudioSent, ch
           />
           <button type="button" onClick={startRec} disabled={disabled || uploading}
             className="px-3 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50" title="تسجيل صوتي">🎤</button>
-          <button type="submit" disabled={disabled || uploading} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">إرسال</button>
+          <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
     </form>
