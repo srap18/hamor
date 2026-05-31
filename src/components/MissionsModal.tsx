@@ -146,7 +146,7 @@ function AchievementsTab() {
                 <div className="mt-1.5 h-1 bg-stone-700 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="text-xs text-amber-200/70 mt-1">{p?.progress ?? 0}/{a.goal_count} · 🪙{a.reward_coins} ⭐{a.reward_xp}</div>
+                <div className="text-xs text-amber-200/70 mt-1 inline-flex items-center gap-1">{p?.progress ?? 0}/{a.goal_count} · <CoinIcon size={12} />{a.reward_coins} ⭐{a.reward_xp}</div>
               </div>
             </div>
           </div>
