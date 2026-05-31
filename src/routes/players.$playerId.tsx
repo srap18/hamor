@@ -620,7 +620,7 @@ function PlayerPage() {
   const ts = [0.25, 0.5, 0.15];
   const vRange = Math.max(10, 60 - (wTop + 4));
   const hOffsets = [0.05, 0.3, 0.6];
-  const seaOffsets = [0.85, 0.9, 0.8];
+  const seaSide = scene.seaSide ?? "right";
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
@@ -686,15 +686,16 @@ function PlayerPage() {
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i % ts.length] * vRange}%`;
         const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
-        const seaLeft = wLeft + seaOffsets[i % seaOffsets.length] * wWidth;
+        const shipW = 22 * scale;
+        const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaLeft}%` : `${dockLeft}%`);
+        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaEdge}%` : `${dockLeft}%`);
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
@@ -707,7 +708,8 @@ function PlayerPage() {
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const seaLeft = wLeft + seaOffsets[tIdx % seaOffsets.length] * wWidth;
+          const tShipW = 22 * (fixedSlot?.scale ?? 1);
+          const seaLeft = seaSide === "right" ? (96 - tShipW) : 2;
           const tLeft = t.at_sea ? seaLeft : dockLeft;
           top = `${tTop + 2}%`;
           // Place to the right of the target ship on screen (+10% of width)
@@ -1140,7 +1142,7 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
   );
 }
 
-function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [] }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS }) {
+function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [], seaSide = "right" }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS; seaSide?: "left" | "right" }) {
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -1241,7 +1243,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
           opacity: destroyed ? 0.75 : 1,
         }}
       >
-        <img src={img} alt="" className="w-full block select-none" style={{ transform: "scaleX(-1)" }} draggable={false} />
+        <img src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
         {/* Flag (hide when destroyed) */}
         {!destroyed && (
           <div className="absolute pointer-events-none" style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}>
