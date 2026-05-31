@@ -203,6 +203,35 @@ export type Database = {
         }
         Relationships: []
       }
+      code_redemptions: {
+        Row: {
+          code_id: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "redemption_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_login_streaks: {
         Row: {
           current_streak: number
@@ -956,6 +985,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      redemption_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          item_id: string | null
+          item_kind: string | null
+          max_uses: number
+          note: string
+          quantity: number
+          reward_coins: number
+          reward_gems: number
+          reward_type: string
+          reward_xp: number
+          uses_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_kind?: string | null
+          max_uses?: number
+          note?: string
+          quantity?: number
+          reward_coins?: number
+          reward_gems?: number
+          reward_type: string
+          reward_xp?: number
+          uses_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_kind?: string | null
+          max_uses?: number
+          note?: string
+          quantity?: number
+          reward_coins?: number
+          reward_gems?: number
+          reward_type?: string
+          reward_xp?: number
+          uses_count?: number
+        }
+        Relationships: []
       }
       ship_catalog: {
         Row: {
@@ -2307,6 +2393,7 @@ export type Database = {
         }
         Returns: string
       }
+      redeem_code: { Args: { p_code: string }; Returns: Json }
       rename_daughter: { Args: { _name: string }; Returns: undefined }
       rename_tribe: {
         Args: { _new_name: string; _tribe_id: string }
