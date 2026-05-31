@@ -947,6 +947,15 @@ function NoTribePanel({ userId }: { userId: string }) {
     setBusy(false); loadTribes();
   };
 
+  const joinOpen = async (tribeId: string) => {
+    if (!userId) return;
+    setBusy(true); setErr(null);
+    const { error } = await supabase.rpc("join_tribe_open" as never, { _tribe_id: tribeId } as never);
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    window.location.reload();
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-3">
       <div className="flex gap-1 mb-3">
