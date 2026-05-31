@@ -137,6 +137,32 @@
     100% { background-position: 80px 0; }
   }
 
+  @keyframes bg-drift {
+    0%, 100% { transform: scale(var(--bg-scale, 1.06)) translate3d(0, 0, 0); }
+    50% { transform: scale(calc(var(--bg-scale, 1.06) + 0.02)) translate3d(var(--bg-shift-x, -1%), var(--bg-shift-y, -0.8%), 0); }
+  }
+  .animate-bg-drift { animation: bg-drift var(--bg-dur, 18s) ease-in-out infinite; will-change: transform; transform-origin: center center; }
+
+  @keyframes bg-burned-pulse {
+    0%, 100% { filter: saturate(1) brightness(0.96) contrast(1.02); }
+    50% { filter: saturate(1.06) brightness(1.03) contrast(1.08); }
+  }
+  .animate-bg-burned-pulse { animation: bg-burned-pulse 4.5s ease-in-out infinite; }
+
+  @keyframes burned-glow {
+    0%, 100% { opacity: 0.22; }
+    50% { opacity: 0.36; }
+  }
+  .animate-burned-glow {
+    animation: burned-glow 3.8s ease-in-out infinite;
+    background:
+      radial-gradient(ellipse at 22% 32%, rgba(255, 120, 50, 0.22) 0%, transparent 34%),
+      radial-gradient(ellipse at 72% 18%, rgba(255, 80, 20, 0.16) 0%, transparent 28%),
+      linear-gradient(180deg, rgba(30, 10, 8, 0.12) 0%, rgba(60, 18, 10, 0.18) 100%);
+    mix-blend-mode: screen;
+  }
+
+
   @keyframes fish-steal {
     0%   { transform: translateX(0) translateY(0) scale(0.6); opacity: 0; }
     20%  { opacity: 1; }
