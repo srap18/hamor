@@ -453,6 +453,11 @@ function Index() {
     return pool[seed % pool.length];
   };
 
+  const fishPoolForShip = (ship: Ship) => {
+    const shipPool = getShipByMarketLevel(ship.level).fishPool.filter((fishId) => !!FISH[fishId]);
+    return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
+  };
+
   // 1-second tick for countdowns / expiry
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -693,7 +698,7 @@ function Index() {
     // Strictly time-proportional: fish caught == (elapsed / duration) * capacity.
     // No minimum floor — stopping after 0s yields 0.
     const effRatio = rawRatio;
-    const pool = fishForShip(s.level, s.id);
+    const pool = fishPoolForShip(s);
     const storedGuide = getShipGuide(s.id);
     // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
     const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
