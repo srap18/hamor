@@ -189,7 +189,11 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   const [xp, setXp] = useState(String(player.xp));
   const [level, setLevel] = useState(String(player.level));
+  const [displayName, setDisplayName] = useState(player.display_name);
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
