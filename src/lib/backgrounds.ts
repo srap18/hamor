@@ -54,7 +54,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterLeft: 40,
     waterRight: 95,
     shipSlots: [...CELESTIAL_SLOTS],
-    motion: { scale: 1.08, x: "-1.2%", y: "-1%", duration: "18s" },
+    motion: { scale: 1.18, x: "-1.2%", y: "-1%", duration: "8s" },
   },
   {
     id: "eiffel_night",
@@ -71,7 +71,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterLeft: 42,
     waterRight: 96,
     shipSlots: [...EIFFEL_SLOTS],
-    motion: { scale: 1.07, x: "-1%", y: "-0.6%", duration: "20s" },
+    motion: { scale: 1.18, x: "-1%", y: "-0.6%", duration: "8s" },
   },
 ];
 
