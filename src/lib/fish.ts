@@ -125,6 +125,9 @@ const FISH_DEFS: Record<string, FishDef> = {
   poseidon:   { id: "poseidon",   name: "حارس بوسيدون",  emoji: "🔱", price: 40,   tier: 6, rarity: "mythic" },
   black_pearl:{ id: "black_pearl",name: "اللؤلؤة السوداء",emoji: "⚫", price: 40,   tier: 6, rarity: "mythic" },
   golden_koi: { id: "golden_koi", name: "كوي ذهبي خالد", emoji: "🌟", price: 40,  tier: 6, rarity: "mythic" },
+
+  // ========== EXCLUSIVE — حصرية لسفينة العنقاء ==========
+  phoenix:    { id: "phoenix",    name: "عنقاء النار",   emoji: "🔥", price: 11,  tier: 6, rarity: "mythic" },
 };
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
@@ -136,9 +139,11 @@ export const FISH_TOTAL = FISH_LIST.length;
 
 
 // Each ship tier catches 2 fish from its tier (rotated based on ship id).
+// Phoenix ship (level 31) is exclusive — only catches phoenix fish.
 export function fishForShip(shipLevel: number, shipId: number): string[] {
+  if (shipLevel >= 31) return ["phoenix"];
   const tier = Math.min(6, Math.max(1, Math.ceil(shipLevel / 5))) as 1|2|3|4|5|6;
-  const pool = FISH_LIST.filter(f => f.tier === tier);
+  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix");
   if (pool.length === 0) return [];
   const a = pool[shipId % pool.length].id;
   const b = pool[(shipId + 3) % pool.length].id;
