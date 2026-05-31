@@ -53,7 +53,8 @@ function AdminCodesPage() {
   const [quantity, setQuantity] = useState(1);
   const [distMode, setDistMode] = useState<DistMode>("limited");
   const [maxUses, setMaxUses] = useState(1);
-  const [expiresAt, setExpiresAt] = useState("");
+  const [expD, setExpD] = useState(0);
+  const [expH, setExpH] = useState(0);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
