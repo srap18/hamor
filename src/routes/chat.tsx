@@ -504,7 +504,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
 
   const load = useCallback(async () => {
     const { data: t } = await supabase.from("tribes")
-      .select("name,emblem,description,banner,level,treasure_coins,total_donations")
+      .select("name,emblem,description,banner,level,treasure_coins,total_donations,join_mode")
       .eq("id", tribeId).maybeSingle();
     if (t) {
       const ti = t as any as TribeInfo;
