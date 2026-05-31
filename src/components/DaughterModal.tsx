@@ -243,8 +243,12 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
                       className={`relative p-2 rounded-lg border text-center ${n > 0 ? "bg-amber-600/40 border-amber-400" : "bg-stone-800/40 border-stone-700"}`}
                       title={fish?.name || f.fish_id}
                     >
-                      <button onClick={() => addOne(f.fish_id)} className="w-full text-2xl">
-                        {fish?.emoji || "🐟"}
+                      <button onClick={() => addOne(f.fish_id)} className="w-full flex items-center justify-center">
+                        {fish?.img ? (
+                          <img src={fish.img} alt={fish.name} className="w-10 h-10 object-contain drop-shadow"/>
+                        ) : (
+                          <span className="text-2xl">🐟</span>
+                        )}
                       </button>
                       <div className="text-[10px] text-amber-200 mt-0.5">x{f.quantity}</div>
                       {n > 0 && (

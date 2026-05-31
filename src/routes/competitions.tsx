@@ -9,6 +9,14 @@ export const Route = createFileRoute("/competitions")({
   head: () => ({ meta: [{ title: "الفعاليات والمسابقات" }] }),
 });
 
+type PrizeTier = {
+  rank: number;
+  coins: number;
+  gems: number;
+  xp: number;
+  text: string;
+};
+
 type Comp = {
   id: string;
   title: string;
@@ -23,6 +31,7 @@ type Comp = {
   reward_gems: number;
   reward_xp: number;
   reward_text: string;
+  prize_tiers: PrizeTier[] | null;
   starts_at: string;
   ends_at: string;
 };
@@ -49,7 +58,19 @@ const THEME_CLASS: Record<string, string> = {
   inferno: "from-red-600 via-orange-500 to-yellow-500 shadow-red-500/50",
   ocean: "from-cyan-500 via-blue-500 to-indigo-600 shadow-cyan-500/40",
   emerald: "from-emerald-500 via-green-500 to-teal-600 shadow-emerald-500/40",
+  diamond: "from-sky-300 via-cyan-200 to-indigo-400 shadow-cyan-300/40",
+  obsidian: "from-slate-800 via-zinc-700 to-slate-900 shadow-amber-500/30",
 };
+
+const RANK_MEDAL = (r: number) => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : `#${r}`;
+const RANK_NAME = (r: number) => r === 1 ? "المركز الأول" : r === 2 ? "المركز الثاني" : r === 3 ? "المركز الثالث" : `المركز ${r}`;
+
+const RANK_TIER_STYLE: Record<number, string> = {
+  1: "from-amber-400 via-yellow-300 to-amber-600 text-amber-950 border-amber-300 shadow-amber-400/50",
+  2: "from-slate-300 via-zinc-200 to-slate-400 text-slate-900 border-slate-200 shadow-slate-300/50",
+  3: "from-orange-500 via-amber-600 to-orange-700 text-orange-50 border-orange-400 shadow-orange-500/50",
+};
+const DEFAULT_TIER_STYLE = "from-indigo-600 via-purple-600 to-fuchsia-600 text-white border-purple-400 shadow-purple-500/40";
 
 function timeLeft(iso: string) {
   const ms = new Date(iso).getTime() - Date.now();
@@ -60,6 +81,75 @@ function timeLeft(iso: string) {
   if (d > 0) return `${d}ي ${h}س`;
   if (h > 0) return `${h}س ${m}د`;
   return `${m}د`;
+}
+
+function tiersOf(c: Comp): PrizeTier[] {
+  if (Array.isArray(c.prize_tiers) && c.prize_tiers.length > 0) {
+    return c.prize_tiers.map((t, i) => ({ ...t, rank: t.rank ?? i + 1 }));
+  }
+  if (c.reward_coins || c.reward_gems || c.reward_xp || c.reward_text) {
+    return [{ rank: 1, coins: c.reward_coins, gems: c.reward_gems, xp: c.reward_xp, text: c.reward_text }];
+  }
+  return [];
+}
+
+function PrizeBanner({ tiers }: { tiers: PrizeTier[] }) {
+  if (tiers.length === 0) return null;
+  return (
+    <div className="rounded-xl bg-gradient-to-b from-slate-950/80 to-slate-900/80 border border-amber-500/30 p-3 md:p-4 space-y-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">🏆</span>
+        <span className="text-sm font-black text-amber-200 tracking-wider">قائمة الجوائز</span>
+        <span className="text-[10px] text-slate-500 mr-auto">{tiers.length} مرتبة</span>
+      </div>
+      <ol className="space-y-2">
+        {tiers.map((t) => {
+          const style = RANK_TIER_STYLE[t.rank] ?? DEFAULT_TIER_STYLE;
+          return (
+            <li key={t.rank}
+                className={`relative overflow-hidden rounded-xl border-2 bg-gradient-to-l ${style} p-3 shadow-xl`}>
+              <div className="absolute inset-0 opacity-20" style={{
+                backgroundImage: "radial-gradient(circle at 90% 50%, rgba(255,255,255,0.5) 0%, transparent 60%)"
+              }}/>
+              <div className="relative flex items-center gap-3">
+                <div className="text-3xl md:text-4xl drop-shadow font-black shrink-0 w-12 text-center">
+                  {RANK_MEDAL(t.rank)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-black uppercase tracking-wider opacity-80">{RANK_NAME(t.rank)}</div>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {t.coins > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black">
+                        🪙 {t.coins.toLocaleString()}
+                      </span>
+                    )}
+                    {t.gems > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black">
+                        💎 {t.gems}
+                      </span>
+                    )}
+                    {t.xp > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black">
+                        ⭐ {t.xp} XP
+                      </span>
+                    )}
+                    {t.text && (
+                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black">
+                        🎁 {t.text}
+                      </span>
+                    )}
+                    {!t.coins && !t.gems && !t.xp && !t.text && (
+                      <span className="text-xs opacity-70">—</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
 }
 
 function CompetitionsPage() {
@@ -79,7 +169,6 @@ function CompetitionsPage() {
       const list = (data ?? []) as Comp[];
       setComps(list);
       setLoading(false);
-      // Load leaderboards in parallel
       const entries = await Promise.all(list.map(async (c) => {
         const { data: lb } = await supabase.rpc("get_competition_leaderboard" as never, { _competition_id: c.id } as never);
         return [c.id, (lb ?? []) as LbRow[]] as const;
@@ -88,7 +177,6 @@ function CompetitionsPage() {
     })();
   }, []);
 
-  // tick every minute for countdown
   const [, setTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setTick(x => x + 1), 60000);
@@ -119,6 +207,8 @@ function CompetitionsPage() {
           const fish = c.target_fish_id ? FISH[c.target_fish_id] : null;
           const board = boards[c.id] ?? [];
           const myRank = me ? board.findIndex(r => r.user_id === me) : -1;
+          const tiers = tiersOf(c);
+          const winnerCount = tiers.length;
 
           return (
             <article key={c.id} className="rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-900/80 shadow-2xl">
@@ -145,6 +235,13 @@ function CompetitionsPage() {
                     <div className="text-lg font-black text-white drop-shadow">⏳ {timeLeft(c.ends_at)}</div>
                   </div>
                 </div>
+                {winnerCount > 0 && (
+                  <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur border border-white/30">
+                    <span className="text-xs font-black text-white drop-shadow">
+                      🏆 {winnerCount === 1 ? "جائزة للفائز الأول فقط" : `جوائز لأفضل ${winnerCount} لاعبين`}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 md:p-5 space-y-4">
@@ -164,9 +261,9 @@ function CompetitionsPage() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <img src={fish.img} alt={fish.name} className="w-14 h-14 object-contain"/>
+                        <img src={fish.img} alt={fish.name} className="w-16 h-16 object-contain drop-shadow-lg"/>
                         <div>
-                          <div className="font-bold">{fish.emoji} {fish.name}</div>
+                          <div className="font-bold text-base">{fish.name}</div>
                           <div className="text-xs text-slate-400">اصطدها أكبر عدد ممكن!</div>
                         </div>
                       </div>
@@ -174,15 +271,8 @@ function CompetitionsPage() {
                   </div>
                 )}
 
-                {/* Rewards */}
-                {(c.reward_coins > 0 || c.reward_gems > 0 || c.reward_xp > 0 || c.reward_text) && (
-                  <div className="flex flex-wrap gap-2">
-                    {c.reward_coins > 0 && <span className="px-3 py-1.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-200 text-sm font-bold">🪙 {c.reward_coins.toLocaleString()}</span>}
-                    {c.reward_gems > 0 && <span className="px-3 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-200 text-sm font-bold">💎 {c.reward_gems}</span>}
-                    {c.reward_xp > 0 && <span className="px-3 py-1.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-200 text-sm font-bold">⭐ {c.reward_xp} XP</span>}
-                    {c.reward_text && <span className="px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-200 text-sm font-bold">🎁 {c.reward_text}</span>}
-                  </div>
-                )}
+                {/* Prize tiers banner */}
+                <PrizeBanner tiers={tiers}/>
 
                 {/* Leaderboard */}
                 <div>
@@ -198,9 +288,14 @@ function CompetitionsPage() {
                     <ol className="space-y-1.5">
                       {board.map((r, i) => {
                         const isMe = r.user_id === me;
+                        const isWinner = i < winnerCount;
                         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
                         return (
-                          <li key={r.user_id} className={`flex items-center gap-3 p-2 rounded-lg ${isMe ? "bg-amber-500/15 border border-amber-500/40" : "bg-slate-950/40 border border-slate-800"}`}>
+                          <li key={r.user_id} className={`flex items-center gap-3 p-2 rounded-lg ${
+                            isMe ? "bg-amber-500/15 border border-amber-500/40" :
+                            isWinner ? "bg-emerald-500/10 border border-emerald-500/30" :
+                            "bg-slate-950/40 border border-slate-800"
+                          }`}>
                             <div className="w-10 text-center font-black text-sm">{medal}</div>
                             {r.avatar_url ? (
                               <img src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-700"/>
@@ -208,7 +303,10 @@ function CompetitionsPage() {
                               <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-lg">{r.avatar_emoji || "🧑‍✈️"}</div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-bold truncate">{r.display_name || "—"}</div>
+                              <div className="text-sm font-bold truncate flex items-center gap-1.5">
+                                {r.display_name || "—"}
+                                {isWinner && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">فائز 🏆</span>}
+                              </div>
                               <div className="text-[10px] text-slate-500">Lv {r.level}</div>
                             </div>
                             <div className="text-end shrink-0">
