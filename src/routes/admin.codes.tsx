@@ -1,14 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DurationPicker } from "@/components/admin/DurationPicker";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
   ssr: false,
   head: () => ({ meta: [{ title: "أكواد الاستعمال — الإدارة" }] }),
 });
+
+// Shield options — granted via redeem_code as item_kind='shield' with quantity = hours
+const SHIELD_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  { code: "shield_4h",  name: "🛡️ درع 4 ساعات", kind: "shield" },
+  { code: "shield_1d",  name: "🛡️ درع يوم",      kind: "shield" },
+  { code: "shield_2d",  name: "🛡️ درع يومين",    kind: "shield" },
+  { code: "shield_7d",  name: "🛡️ درع أسبوع",    kind: "shield" },
+  { code: "shield_30d", name: "🛡️ درع شهر",      kind: "shield" },
+];
+
+// Local TS catalogs merged in so admin can bundle crews/weapons/frames/shields
+// directly with proper Arabic names — without needing entries in items_catalog.
+const KIND_LABEL: Record<string, string> = {
+  crew: "👥 طواقم",
+  weapon: "💥 أسلحة",
+  shield: "🛡️ دروع",
+  frame: "🖼️ إطارات صورة",
+  name_frame: "🏷️ إطارات اسم",
+  bubble_frame: "💬 إطارات رسالة",
+  profile_frame: "🪪 إطارات بطاقة",
+  misc: "📦 متفرقات",
+};
+
+const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  ...CREWS.map((c) => ({ code: c.id, name: `${c.emoji} ${c.name}`, kind: "crew" })),
+  ...WEAPONS.map((w) => ({ code: w.id, name: `${w.emoji} ${w.name}`, kind: "weapon" })),
+  ...SHIELD_ITEMS,
+  ...ALL_FRAMES.map((f) => ({
+    code: f.id,
+    name: `${f.preview ?? "🖼️"} ${f.name}`,
+    kind: FRAME_KIND_TO_ITEM_TYPE[f.kind],
+  })),
+];
 
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
