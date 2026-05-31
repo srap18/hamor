@@ -439,6 +439,13 @@ function Index() {
     };
   };
 
+  // Deterministic per-trip fish pick so the Guide crew's preview matches the actual catch.
+  const predictTripFish = (pool: string[], shipId: number, startedAt?: number): string | null => {
+    if (pool.length === 0) return null;
+    const seed = (((startedAt ?? 0) >>> 0) ^ ((shipId * 2654435761) >>> 0)) >>> 0;
+    return pool[seed % pool.length];
+  };
+
   // 1-second tick for countdowns / expiry
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
