@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShipsShopRouteImport } from './routes/ships-shop'
@@ -45,6 +46,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/ships-shop'
     | '/shop'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -432,6 +444,7 @@ export interface RootRouteChildren {
   ShipsShopRoute: typeof ShipsShopRoute
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -712,6 +732,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShipsShopRoute: ShipsShopRoute,
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
