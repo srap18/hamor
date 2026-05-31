@@ -19,6 +19,18 @@ function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setLoading(true);
+    const finalName = (name || email.split("@")[0]).trim();
+    // Check display name uniqueness (Arabic + English, case-insensitive)
+    if (finalName.length >= 2) {
+      try {
+        const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: finalName });
+        if (taken === true) {
+          setLoading(false);
+          setErr("هذا الاسم محجوز، اختر اسماً آخر");
+          return;
+        }
+      } catch {}
+    }
     // Check email blocklist (admin-managed)
     try {
       const { data: blocked } = await (supabase as any).rpc("is_email_banned", { _email: email });
@@ -32,7 +44,7 @@ function SignupPage() {
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: name || email.split("@")[0] },
+        data: { display_name: finalName },
       },
     });
     setLoading(false);
