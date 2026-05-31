@@ -29,6 +29,7 @@ function AdminPlayers() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Player | null>(null);
   const [banned, setBanned] = useState<Set<string>>(new Set());
+  const [muted, setMuted] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +39,9 @@ function AdminPlayers() {
     setPlayers((data ?? []) as Player[]);
     const { data: bans } = await supabase.from("bans").select("user_id").eq("active", true);
     setBanned(new Set((bans ?? []).map((b) => b.user_id)));
+    const nowIso = new Date().toISOString();
+    const { data: mutes } = await supabase.from("chat_mutes").select("user_id,expires_at").eq("active", true);
+    setMuted(new Set((mutes ?? []).filter((m) => !m.expires_at || m.expires_at > nowIso).map((m) => m.user_id)));
     setLoading(false);
   }, [search]);
 
@@ -58,6 +62,25 @@ function AdminPlayers() {
       await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id, expires_at });
       await logAudit("ban_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
       toast.success(hours > 0 ? `تم حظر ${p.display_name} لمدة ${hours} ساعة` : `تم حظر ${p.display_name} نهائياً`);
+    }
+    load();
+  };
+
+  const toggleMute = async (p: Player) => {
+    const isMuted = muted.has(p.id);
+    if (isMuted) {
+      await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
+      await logAudit("unmute_user", p.id, { name: p.display_name });
+      toast.success(`أُلغي كتم ${p.display_name}`);
+    } else {
+      const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
+      const hoursStr = prompt("مدة الكتم بالساعات (اتركها فارغة للكتم الدائم):", "24");
+      const hours = hoursStr ? Number(hoursStr) : 0;
+      const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
+      await logAudit("mute_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      toast.success(hours > 0 ? `تم كتم ${p.display_name} لمدة ${hours} ساعة` : `تم كتم ${p.display_name} نهائياً`);
     }
     load();
   };
@@ -97,16 +120,18 @@ function AdminPlayers() {
             {!loading && players.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد نتائج</td></tr>}
             {players.map((p) => {
               const isBanned = banned.has(p.id);
+              const isMuted = muted.has(p.id);
               return (
                 <tr key={p.id} className={`border-t border-slate-800/50 ${isBanned ? "bg-red-900/10" : ""}`}>
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-lg">{p.avatar_emoji}</span>
                       <div>
                         <div className="font-medium">{p.display_name}</div>
                         <div className="text-xs text-slate-500 font-mono">{p.id.slice(0, 8)}</div>
                       </div>
                       {isBanned && <span className="px-2 py-0.5 rounded text-xs bg-red-600/30 text-red-300 border border-red-500/40">محظور</span>}
+                      {isMuted && <span className="px-2 py-0.5 rounded text-xs bg-amber-600/30 text-amber-300 border border-amber-500/40">مكتوم</span>}
                     </div>
                   </td>
                   <td className="p-3">{p.level}</td>
@@ -115,8 +140,14 @@ function AdminPlayers() {
                   <td className="p-3">{p.gems}</td>
                   <td className="p-3 text-xs text-slate-400">{new Date(p.online_at).toLocaleString("ar")}</td>
                   <td className="p-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap">
                       <button onClick={() => setEditing(p)} className="px-2 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 text-xs">تعديل</button>
+                      <button
+                        onClick={() => toggleMute(p)}
+                        className={`px-2 py-1 rounded text-xs ${isMuted ? "bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200" : "bg-amber-600/30 hover:bg-amber-600/50 text-amber-200"}`}
+                      >
+                        {isMuted ? "فك كتم" : "كتم"}
+                      </button>
                       <button
                         onClick={() => toggleBan(p)}
                         className={`px-2 py-1 rounded text-xs ${isBanned ? "bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200" : "bg-red-600/30 hover:bg-red-600/50 text-red-200"}`}
