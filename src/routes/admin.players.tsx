@@ -47,11 +47,19 @@ function AdminPlayers() {
 
   useEffect(() => { load(); }, [load]);
 
+  const notify = async (userId: string, title: string, body: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("notifications").insert({
+      recipient_id: userId, title, body, kind: "warning", created_by: userData.user?.id,
+    });
+  };
+
   const toggleBan = async (p: Player) => {
     const isBanned = banned.has(p.id);
     if (isBanned) {
       await supabase.from("bans").update({ active: false }).eq("user_id", p.id).eq("active", true);
       await logAudit("unban_user", p.id, { name: p.display_name });
+      await notify(p.id, "✅ تم رفع الحظر", "يمكنك الآن استخدام اللعبة بشكل طبيعي.");
       toast.success(`فُكّ الحظر عن ${p.display_name}`);
     } else {
       const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
@@ -61,6 +69,8 @@ function AdminPlayers() {
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id, expires_at });
       await logAudit("ban_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await notify(p.id, "🚫 تم حظرك", `تم حظرك ${dur}. السبب: ${reason || "غير محدد"}`);
       toast.success(hours > 0 ? `تم حظر ${p.display_name} لمدة ${hours} ساعة` : `تم حظر ${p.display_name} نهائياً`);
     }
     load();
@@ -71,6 +81,7 @@ function AdminPlayers() {
     if (isMuted) {
       await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
       await logAudit("unmute_user", p.id, { name: p.display_name });
+      await notify(p.id, "✅ تم رفع الكتم", "يمكنك الآن الكتابة في الدردشة.");
       toast.success(`أُلغي كتم ${p.display_name}`);
     } else {
       const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
@@ -80,6 +91,8 @@ function AdminPlayers() {
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
       await logAudit("mute_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await notify(p.id, "🔇 تم كتمك في الدردشة", `لا يمكنك الكتابة ${dur}. السبب: ${reason || "غير محدد"}`);
       toast.success(hours > 0 ? `تم كتم ${p.display_name} لمدة ${hours} ساعة` : `تم كتم ${p.display_name} نهائياً`);
     }
     load();
