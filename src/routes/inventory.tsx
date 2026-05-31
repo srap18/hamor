@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/inventory")({
   head: () => ({
