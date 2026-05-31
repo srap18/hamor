@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalFooter } from "@/components/LegalFooter";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "إنشاء حساب — Ocean Catch" }] }),
@@ -60,7 +61,7 @@ function SignupPage() {
         <div className="text-center mb-5">
           <div className="text-5xl mb-1">⚓</div>
           <div className="text-xl font-extrabold text-amber-300">حساب جديد</div>
-          <div className="text-xs text-amber-100/70">ابدأ رحلتك من 500 🪙</div>
+          <div className="text-xs text-amber-100/70 inline-flex items-center justify-center gap-1 w-full">ابدأ رحلتك من 500 <CoinIcon size={12} /></div>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <input required placeholder="اسم القبطان" value={name} onChange={(e) => setName(e.target.value)}

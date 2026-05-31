@@ -8,6 +8,7 @@ import {
 } from "@/lib/paddle-checkout.functions";
 import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
 
 export const Route = createFileRoute("/recharge")({
@@ -139,7 +140,7 @@ function RechargePage() {
         </Link>
         <h1 className="flex-1 text-base font-bold text-glow">🛒 متجر العروض</h1>
         <div className="flex items-center gap-1 glass-hud px-2 py-1 rounded-lg border border-amber-400/40">
-          <span className="text-sm">🪙</span>
+          <CoinIcon size={14} />
           <span className="text-amber-200 font-bold tabular-nums text-[11px]">
             {coins.toLocaleString()}
           </span>
@@ -250,8 +251,8 @@ function RechargePage() {
                       </span>
                     ) : null}
                     {r.coins ? (
-                      <span className="text-[11px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded">
-                        +{r.coins.toLocaleString()} 🪙
+                      <span className="text-[11px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        +{r.coins.toLocaleString()} <CoinIcon size={12} />
                       </span>
                     ) : null}
                     {r.rubies ? (

@@ -329,7 +329,7 @@ function Shop() {
 
           <div className="mt-2 flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 px-3 py-1.5 flex items-center gap-1">
-              <span className="text-base">{selected.currency === "gem" ? "💎" : "🪙"}</span>
+              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-5 h-5 object-contain" />}</span>
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
@@ -427,7 +427,7 @@ function ShopCard({
       </div>
       <div className="mt-1 px-3 py-1 rounded bg-gradient-to-b from-amber-300 to-amber-500 border border-amber-200 flex items-center gap-1 shadow text-amber-950 text-[11px] font-extrabold">
         {item.price.toLocaleString()}
-        <span>{item.currency === "gem" ? "💎" : "🪙"}</span>
+        <span className="inline-flex items-center">{item.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-4 h-4 object-contain" />}</span>
       </div>
     </button>
   );

@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import piratesBg from "@/assets/pirates-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { FISH, type Fish as CatalogFish } from "@/lib/fish";
 import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -274,7 +275,7 @@ function FishMarket() {
 
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
-    setPop(`+${earned.toLocaleString()} 🪙`);
+    setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
 
     // Atomic server-side sale: decrements fish_caught and credits coins
@@ -314,7 +315,7 @@ function FishMarket() {
         <div className="flex-1 glass-hud rounded-xl px-3 py-1.5 flex items-center justify-around gap-2">
           <ResChip icon="💎" v={gems} color="text-rose-300" />
           <ResChip icon="🔷" v={rubies} color="text-cyan-200" />
-          <ResChip icon="🪙" v={coins} color="text-amber-300" />
+          <ResChip icon={<CoinIcon size={16} />} v={coins} color="text-amber-300" />
         </div>
       </div>
 
@@ -494,7 +495,7 @@ function StorageView({
           <>
             <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
               <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
-                🪙 <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
+                <CoinIcon size={16} /> <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-1 text-cyan-200 text-xs font-bold">
                 ⏱ <span>{formatDur(upPreview?.seconds ?? 0)}</span>
@@ -781,7 +782,7 @@ function SellView({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            🪙 <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
           </div>
           <button
             onClick={() => onSell(amount)} disabled={amount === 0}
@@ -866,10 +867,10 @@ function PriceChart({
 
 /* ───────────────── Shared ───────────────── */
 
-function ResChip({ icon, v, color }: { icon: string; v: number; color: string }) {
+function ResChip({ icon, v, color }: { icon: ReactNode; v: number; color: string }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-base">{icon}</span>
+      <span className="text-base inline-flex items-center">{icon}</span>
       <span className={`text-[11px] font-bold tabular-nums ${color}`}>{v.toLocaleString()}</span>
     </div>
   );

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimQuest, buyLootbox, openLootbox } from "@/lib/economy";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 type Tab = "missions" | "achievements" | "boxes" | "notifs" | "events";
 
@@ -98,7 +99,7 @@ function MissionsTab() {
                 </div>
                 <div className="flex items-center justify-between mt-2 text-xs">
                   <span className="text-amber-200/70">{p.progress}/{q.goal_count}</span>
-                  <span className="text-amber-300">🪙{q.reward_coins} ⭐{q.reward_xp} {q.reward_gems > 0 && `💎${q.reward_gems}`}</span>
+                  <span className="text-amber-300 inline-flex items-center gap-1"><CoinIcon size={12} />{q.reward_coins} ⭐{q.reward_xp} {q.reward_gems > 0 && `💎${q.reward_gems}`}</span>
                 </div>
               </div>
               {done && !p.claimed && (
@@ -145,7 +146,7 @@ function AchievementsTab() {
                 <div className="mt-1.5 h-1 bg-stone-700 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="text-xs text-amber-200/70 mt-1">{p?.progress ?? 0}/{a.goal_count} · 🪙{a.reward_coins} ⭐{a.reward_xp}</div>
+                <div className="text-xs text-amber-200/70 mt-1 inline-flex items-center gap-1">{p?.progress ?? 0}/{a.goal_count} · <CoinIcon size={12} />{a.reward_coins} ⭐{a.reward_xp}</div>
               </div>
             </div>
           </div>
@@ -197,7 +198,7 @@ function BoxesTab() {
           <div className="bg-gradient-to-b from-amber-700 to-amber-900 border border-amber-300 rounded-2xl p-6 text-center animate-pulse">
             <div className="text-6xl mb-3">🎉</div>
             <div className="text-amber-100 font-bold text-lg mb-2">مبروك!</div>
-            <div className="text-amber-50">🪙 {reward.coins} · 💎 {reward.gems} · ⭐ {reward.xp}</div>
+            <div className="text-amber-50 inline-flex items-center gap-1"><CoinIcon size={14} /> {reward.coins} · 💎 {reward.gems} · ⭐ {reward.xp}</div>
           </div>
         </div>
       )}
@@ -221,10 +222,10 @@ function BoxesTab() {
               <span className="text-2xl">{t.icon}</span>
               <div className="flex-1">
                 <div className="text-sm font-semibold">{t.name}</div>
-                <div className="text-xs text-amber-200/60">🪙 {t.min_coins}-{t.max_coins} · ⭐ {t.min_xp}-{t.max_xp}</div>
+                <div className="text-xs text-amber-200/60 inline-flex items-center gap-1"><CoinIcon size={12} /> {t.min_coins}-{t.max_coins} · ⭐ {t.min_xp}-{t.max_xp}</div>
               </div>
-              <button onClick={() => buyBox(t)} className="px-3 py-1 rounded bg-amber-700 hover:bg-amber-600 text-xs font-semibold">
-                🪙 {t.cost_coins}{t.cost_gems > 0 && ` 💎${t.cost_gems}`}
+              <button onClick={() => buyBox(t)} className="px-3 py-1 rounded bg-amber-700 hover:bg-amber-600 text-xs font-semibold inline-flex items-center gap-1">
+                <CoinIcon size={12} /> {t.cost_coins}{t.cost_gems > 0 && ` 💎${t.cost_gems}`}
               </button>
             </div>
           ))}
@@ -286,7 +287,7 @@ function EventsTab() {
             <div className="font-bold mt-1">{e.title}</div>
             <div className="text-xs text-amber-100/80 mt-1">{e.description}</div>
             <div className="flex items-center justify-between mt-2 text-xs">
-              <span>⭐×{e.xp_multiplier} · 🪙×{e.coin_multiplier}</span>
+              <span className="inline-flex items-center gap-1">⭐×{e.xp_multiplier} · <CoinIcon size={12} />×{e.coin_multiplier}</span>
               <span className="text-amber-300">⏱ {days}ي {hrs}س متبقية</span>
             </div>
           </div>

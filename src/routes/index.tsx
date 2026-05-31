@@ -1363,7 +1363,7 @@ function Index() {
               <div className="text-4xl mb-2">⚓</div>
               <div className="text-accent font-bold text-base mb-1">بيع السفينة</div>
               <div className="text-xs text-accent/80 mb-3">هل أنت متأكد من بيع هذه السفينة؟</div>
-              <div className="text-amber-300 font-bold text-lg mb-4">+ {price.toLocaleString()} 🪙</div>
+              <div className="text-amber-300 font-bold text-lg mb-4 inline-flex items-center justify-center gap-1 w-full">+ {price.toLocaleString()} <CoinIcon size={20} /></div>
               <div className="flex gap-2">
                 <button
                   className="flex-1 py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
@@ -1820,7 +1820,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const TABS = [
     { id: "xp" as const, e: "⭐", l: "XP" },
     { id: "gems" as const, e: "💎", l: "جواهر" },
-    { id: "coins" as const, e: "🪙", l: "عملات" },
+    { id: "coins" as const, e: <CoinIcon size={18} />, l: "ذهب" },
     { id: "fish" as const, e: "🐟", l: "صيد" },
     { id: "ships" as const, e: "🏪", l: "سوق سفن" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
@@ -1829,7 +1829,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   const valueFor = (p: LbProfile) =>
     tab === "gems" ? p.gems : tab === "coins" ? p.coins : p.xp;
-  const valueIcon = tab === "gems" ? "💎" : tab === "coins" ? "🪙" : "⭐";
+  const valueIcon: React.ReactNode = tab === "gems" ? "💎" : tab === "coins" ? <CoinIcon size={14} /> : "⭐";
 
   const tribesFiltered = tribeQ.trim()
     ? tribes.filter(t => t.name.toLowerCase().includes(tribeQ.trim().toLowerCase()))
@@ -1986,7 +1986,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                 <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
               </div>
-              <div className="text-xs font-bold text-accent tabular-nums">
+              <div className="text-xs font-bold text-accent tabular-nums inline-flex items-center gap-1">
                 {valueIcon} {valueFor(p).toLocaleString()}
               </div>
               </>
@@ -2061,11 +2061,11 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
               <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px]">
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{info.treasure_coins.toLocaleString()}</div>
-                  <div className="text-accent/60">خزنة 🪙</div>
+                  <div className="text-accent/60 inline-flex items-center justify-center gap-1 w-full">خزنة <CoinIcon size={10} /></div>
                 </div>
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{info.total_donations.toLocaleString()}</div>
-                  <div className="text-accent/60">تبرعات 🪙</div>
+                  <div className="text-accent/60 inline-flex items-center justify-center gap-1 w-full">تبرعات <CoinIcon size={10} /></div>
                 </div>
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{members.length}</div>
