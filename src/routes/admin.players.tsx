@@ -181,13 +181,30 @@ function AdminPlayers() {
   );
 }
 
+type HistoryEntry = { kind: "ban" | "mute"; reason: string; expires_at: string | null; created_at: string; active: boolean };
+
 function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => void }) {
   const [coins, setCoins] = useState(String(player.coins));
   const [gems, setGems] = useState(String(player.gems));
-  
+
   const [xp, setXp] = useState(String(player.xp));
   const [level, setLevel] = useState(String(player.level));
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: bans }, { data: mutes }] = await Promise.all([
+        supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
+        supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
+      ]);
+      const all: HistoryEntry[] = [
+        ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
+        ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
+      ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      setHistory(all);
+    })();
+  }, [player.id]);
 
   const save = async () => {
     setSaving(true);
