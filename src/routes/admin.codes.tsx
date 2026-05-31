@@ -13,6 +13,16 @@ export const Route = createFileRoute("/admin/codes")({
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
 
+type ExtraReward = {
+  type: RewardType;
+  item_id?: string | null;
+  item_kind?: string | null;
+  quantity?: number;
+  coins?: number;
+  gems?: number;
+  xp?: number;
+};
+
 type CodeRow = {
   id: string;
   code: string;
@@ -29,6 +39,7 @@ type CodeRow = {
   active: boolean;
   note: string;
   created_at: string;
+  extra_rewards: ExtraReward[] | null;
 };
 
 function randomCode(len = 8): string {
@@ -66,6 +77,18 @@ function AdminCodesPage() {
   const [itemsCatalog, setItemsCatalog] = useState<Array<{ code: string; name: string; kind: string }>>([]);
   const [shipsCatalog, setShipsCatalog] = useState<Array<{ code: string; name: string }>>([]);
 
+  // إنشاء مجمّع: اختر عدة أشياء + عملات في كود واحد
+  const [bundleSelItems, setBundleSelItems] = useState<Record<string, number>>({}); // item code -> qty
+  const [bundleSelShips, setBundleSelShips] = useState<Record<string, number>>({}); // ship code -> qty
+  const [bundleCoins, setBundleCoins] = useState(0);
+  const [bundleGems, setBundleGems] = useState(0);
+  const [bundleXp, setBundleXp] = useState(0);
+  const [bundleDist, setBundleDist] = useState<DistMode>("limited");
+  const [bundleMaxUses, setBundleMaxUses] = useState(1);
+  const [bundleNote, setBundleNote] = useState("");
+  const [bundleCustomCode, setBundleCustomCode] = useState("");
+  const [bundleSaving, setBundleSaving] = useState(false);
+
   const loadCodes = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -99,6 +122,7 @@ function AdminCodesPage() {
     max_uses: number;
     expires_at: string | null;
     note: string;
+    extra_rewards?: ExtraReward[];
   }) => {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase.from("redemption_codes").insert({
@@ -113,6 +137,7 @@ function AdminCodesPage() {
       max_uses: payload.max_uses,
       expires_at: payload.expires_at,
       note: payload.note,
+      extra_rewards: payload.extra_rewards ?? [],
       created_by: user?.id,
     });
   };
@@ -208,6 +233,89 @@ function AdminCodesPage() {
     if (error) { toast.error(error.message); return; }
     try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
     toast.success(`✅ ${finalCode} — تم النسخ`);
+    loadCodes();
+  };
+
+  const toggleBundleItem = (code: string) => {
+    setBundleSelItems((prev) => {
+      const next = { ...prev };
+      if (next[code] != null) delete next[code];
+      else next[code] = 1;
+      return next;
+    });
+  };
+  const toggleBundleShip = (code: string) => {
+    setBundleSelShips((prev) => {
+      const next = { ...prev };
+      if (next[code] != null) delete next[code];
+      else next[code] = 1;
+      return next;
+    });
+  };
+
+  const selectAllItemsByKind = (kind: string | null) => {
+    setBundleSelItems((prev) => {
+      const next = { ...prev };
+      const target = kind ? itemsCatalog.filter((i) => i.kind === kind) : itemsCatalog;
+      for (const it of target) if (next[it.code] == null) next[it.code] = 1;
+      return next;
+    });
+  };
+  const selectAllShips = () => {
+    setBundleSelShips((prev) => {
+      const next = { ...prev };
+      for (const s of shipsCatalog) if (next[s.code] == null) next[s.code] = 1;
+      return next;
+    });
+  };
+  const clearBundleSelection = () => {
+    setBundleSelItems({});
+    setBundleSelShips({});
+  };
+
+  const createBundleCode = async () => {
+    const itemsList = Object.entries(bundleSelItems);
+    const shipsList = Object.entries(bundleSelShips);
+    const hasCurrency = bundleCoins > 0 || bundleGems > 0 || bundleXp > 0;
+    if (itemsList.length === 0 && shipsList.length === 0 && !hasCurrency) {
+      toast.error("اختر شيئاً واحداً على الأقل أو أدخل ذهب/جواهر/خبرة");
+      return;
+    }
+    const finalCode = (bundleCustomCode.trim() || randomCode()).toUpperCase();
+    if (!/^[A-Z0-9_-]{4,32}$/.test(finalCode)) {
+      toast.error("الكود يجب أن يكون 4–32 حرف/رقم");
+      return;
+    }
+    const extras: ExtraReward[] = [];
+    for (const [code, qty] of itemsList) {
+      const meta = itemsCatalog.find((x) => x.code === code);
+      extras.push({ type: "item", item_id: code, item_kind: meta?.kind ?? "misc", quantity: Math.max(1, qty) });
+    }
+    for (const [code, qty] of shipsList) {
+      extras.push({ type: "ship", item_id: code, quantity: Math.max(1, qty) });
+    }
+    setBundleSaving(true);
+    const { error } = await insertCode({
+      finalCode,
+      reward_type: "bundle", // عنصر رئيسي = الذهب/الجواهر/الخبرة (قد تكون صفرًا)
+      item_id: null,
+      item_kind: null,
+      coins: bundleCoins,
+      gems: bundleGems,
+      xp: bundleXp,
+      quantity: 1,
+      max_uses: bundleDist === "public" ? 0 : Math.max(1, bundleMaxUses),
+      expires_at: null,
+      note: bundleNote || `كود مجمّع: ${extras.length} عنصر${hasCurrency ? " + عملات" : ""}`,
+      extra_rewards: extras,
+    });
+    setBundleSaving(false);
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    setBundleCustomCode(""); setBundleNote("");
+    setBundleCoins(0); setBundleGems(0); setBundleXp(0);
+    clearBundleSelection();
     loadCodes();
   };
 
@@ -322,6 +430,139 @@ function AdminCodesPage() {
           </div>
         </div>
       </div>
+
+      {/* ───────── الإنشاء المجمّع (كود واحد = عدة عناصر) ───────── */}
+      <div className="rounded-xl border border-fuchsia-800/60 bg-fuchsia-950/30 p-3 md:p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="text-sm font-bold text-fuchsia-200">🎁 إنشاء كود مجمّع — اختر عدة عناصر/سفن في كود واحد</div>
+          <div className="text-[11px] text-fuchsia-300/80">
+            محدد: {Object.keys(bundleSelItems).length} عنصر • {Object.keys(bundleSelShips).length} سفينة
+          </div>
+        </div>
+
+        {/* عملات/جواهر/خبرة (اختياري) */}
+        <div className="grid grid-cols-3 gap-2">
+          <NumField label="ذهب 🪙" value={bundleCoins} onChange={setBundleCoins} />
+          <NumField label="جواهر 💎" value={bundleGems} onChange={setBundleGems} />
+          <NumField label="خبرة ✨" value={bundleXp} onChange={setBundleXp} />
+        </div>
+
+        {/* عناصر المتجر — متعدد الاختيار */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="text-[11px] text-fuchsia-300/80">📦 عناصر المتجر — اضغط للاختيار</div>
+            <div className="flex gap-1 flex-wrap">
+              <button onClick={() => selectAllItemsByKind(null)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ الكل</button>
+              {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((k) => (
+                <button key={k} onClick={() => selectAllItemsByKind(k)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل {k}</button>
+              ))}
+              <button onClick={clearBundleSelection} className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 hover:bg-red-900/60 text-red-200">مسح الكل</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {itemsCatalog.map((it) => {
+              const sel = bundleSelItems[it.code] != null;
+              return (
+                <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                  <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
+                    {sel ? "✅" : "📦"} {it.name}
+                  </button>
+                  {sel && (
+                    <div className="mt-1 flex items-center gap-1">
+                      <span className="text-[10px] text-fuchsia-200">×</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={bundleSelItems[it.code]}
+                        onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* السفن — متعدد الاختيار */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="text-[11px] text-fuchsia-300/80">⛵ السفن — اضغط للاختيار</div>
+            <button onClick={selectAllShips} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل السفن</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {shipsCatalog.map((s) => {
+              const sel = bundleSelShips[s.code] != null;
+              return (
+                <div key={s.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                  <button onClick={() => toggleBundleShip(s.code)} className="w-full text-right text-slate-100 truncate" title={s.name}>
+                    {sel ? "✅" : "⛵"} {s.name}
+                  </button>
+                  {sel && (
+                    <div className="mt-1 flex items-center gap-1">
+                      <span className="text-[10px] text-fuchsia-200">×</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={bundleSelShips[s.code]}
+                        onChange={(e) => setBundleSelShips((p) => ({ ...p, [s.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* إعدادات الكود */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <label className="text-xs text-fuchsia-200 space-y-1">
+            <span>الكود (فارغ = توليد تلقائي)</span>
+            <input
+              value={bundleCustomCode}
+              onChange={(e) => setBundleCustomCode(e.target.value.toUpperCase())}
+              placeholder="مثال: ALLSHIPS"
+              className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 font-mono tracking-wider"
+            />
+          </label>
+          <label className="text-xs text-fuchsia-200 space-y-1">
+            <span>نوع التوزيع</span>
+            <select
+              value={bundleDist}
+              onChange={(e) => setBundleDist(e.target.value as DistMode)}
+              className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+            >
+              <option value="limited">🔒 محدود</option>
+              <option value="public">🌍 للجميع — كل لاعب مرة واحدة</option>
+            </select>
+          </label>
+          {bundleDist === "limited" && (
+            <NumField label="عدد الاستخدامات الإجمالي" value={bundleMaxUses} onChange={setBundleMaxUses} min={1} />
+          )}
+        </div>
+
+        <label className="block text-xs text-fuchsia-200 space-y-1">
+          <span>ملاحظة (اختيارية)</span>
+          <input
+            value={bundleNote}
+            onChange={(e) => setBundleNote(e.target.value)}
+            placeholder="مثلاً: هدية كل السفن للمؤسسين"
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+          />
+        </label>
+
+        <button
+          disabled={bundleSaving}
+          onClick={createBundleCode}
+          className="w-full md:w-auto px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold disabled:opacity-50"
+        >
+          {bundleSaving ? "جاري الإنشاء..." : "🎁 إنشاء الكود المجمّع ونسخه"}
+        </button>
+      </div>
+
 
       {/* ───────── الإنشاء المفصّل ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 md:p-4 space-y-3">
@@ -510,6 +751,17 @@ function AdminCodesPage() {
                     </span>
                     {c.expires_at && <span>ينتهي: {new Date(c.expires_at).toLocaleString("ar")}</span>}
                   </div>
+                  {Array.isArray(c.extra_rewards) && c.extra_rewards.length > 0 && (
+                    <div className="text-[11px] text-fuchsia-300 mt-1 flex flex-wrap gap-1">
+                      <span className="font-bold">🎁 مجمّع ({c.extra_rewards.length}):</span>
+                      {c.extra_rewards.slice(0, 8).map((r, idx) => (
+                        <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800">
+                          {r.type === "ship" ? "⛵" : r.type === "item" ? "📦" : "💰"} {r.item_id ?? `${r.coins ?? 0}🪙`} {r.quantity && r.quantity > 1 ? `×${r.quantity}` : ""}
+                        </span>
+                      ))}
+                      {c.extra_rewards.length > 8 && <span>… +{c.extra_rewards.length - 8}</span>}
+                    </div>
+                  )}
                   {c.note && <div className="text-[11px] text-slate-500 mt-0.5">📝 {c.note}</div>}
                 </div>
                 <div className="flex gap-2">

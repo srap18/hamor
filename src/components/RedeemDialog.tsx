@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
+type ExtraReward = {
+  type: "bundle" | "item" | "ship";
+  item_id?: string | null;
+  quantity?: number;
+  coins?: number;
+  gems?: number;
+  xp?: number;
+};
+
 type RedeemResult = {
   ok: boolean;
   reward_type: "bundle" | "item" | "ship";
@@ -11,6 +20,7 @@ type RedeemResult = {
   reward_gems: number;
   reward_xp: number;
   quantity: number;
+  extra_rewards?: ExtraReward[] | null;
 };
 
 const ERR_MSG: Record<string, string> = {
@@ -73,6 +83,25 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
               )}
               {result.reward_type === "ship" && (
                 <div>⛵ سفينة جديدة: {result.item_id}</div>
+              )}
+              {Array.isArray(result.extra_rewards) && result.extra_rewards.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-emerald-700/40 space-y-1 text-right">
+                  {result.extra_rewards.map((r, i) => (
+                    <div key={i}>
+                      {r.type === "bundle" ? (
+                        <>
+                          {(r.coins ?? 0) > 0 && <span>💰 {(r.coins ?? 0).toLocaleString()} ذهب </span>}
+                          {(r.gems ?? 0) > 0 && <span>💎 {(r.gems ?? 0).toLocaleString()} جوهرة </span>}
+                          {(r.xp ?? 0) > 0 && <span>✨ {(r.xp ?? 0).toLocaleString()} خبرة</span>}
+                        </>
+                      ) : r.type === "ship" ? (
+                        <span>⛵ {r.item_id}{(r.quantity ?? 1) > 1 ? ` × ${r.quantity}` : ""}</span>
+                      ) : (
+                        <span>📦 {r.item_id} × {r.quantity ?? 1}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
             <button
