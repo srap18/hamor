@@ -51,6 +51,7 @@ function PlayerPage() {
   const [nukeMsgOpen, setNukeMsgOpen] = useState(false);
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
+  const [targetIsStaff, setTargetIsStaff] = useState(false);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 1800); };
 
