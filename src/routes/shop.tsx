@@ -308,7 +308,7 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              {tab !== "ships" && (
+              {tab !== "ships" && tab !== "protection" && (
                 <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
               )}
             </div>
