@@ -66,6 +66,25 @@ function AdminPlayers() {
     load();
   };
 
+  const toggleMute = async (p: Player) => {
+    const isMuted = muted.has(p.id);
+    if (isMuted) {
+      await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
+      await logAudit("unmute_user", p.id, { name: p.display_name });
+      toast.success(`أُلغي كتم ${p.display_name}`);
+    } else {
+      const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
+      const hoursStr = prompt("مدة الكتم بالساعات (اتركها فارغة للكتم الدائم):", "24");
+      const hours = hoursStr ? Number(hoursStr) : 0;
+      const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
+      await logAudit("mute_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
+      toast.success(hours > 0 ? `تم كتم ${p.display_name} لمدة ${hours} ساعة` : `تم كتم ${p.display_name} نهائياً`);
+    }
+    load();
+  };
+
 
   return (
     <div className="p-3 md:p-6">
