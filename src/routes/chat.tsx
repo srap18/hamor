@@ -478,7 +478,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 // ===================== Tribe Management Modal =====================
 type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number };
 type JoinReq = { id: string; user_id: string; display_name: string; avatar_emoji: string; level: number };
-type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number };
+type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string };
 
 const RENAME_COST_GEMS = 100;
 const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
