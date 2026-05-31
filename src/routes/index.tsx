@@ -11,7 +11,7 @@ import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
-import { showBanner } from "@/components/Banner";
+
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ShieldBadge } from "@/components/ShieldBadge";
