@@ -1019,9 +1019,22 @@ function Index() {
         const wLeft = scene.waterLeft ?? 30;
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
-        const slot = i % 3;
-        const top = `${wTop + 6 + slot * 8}%`;
-        const left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
+        // Try to find the targeted ship in MY fleet and dock the raider beside it.
+        const tIdx = ships.findIndex((sh) => sh.dbId === r.target_ship_id);
+        let top: string; let left: string;
+        if (tIdx >= 0) {
+          const tgt = ships[tIdx];
+          const tgtLeft = typeof tgt.dockLeft === "number" ? tgt.dockLeft : wLeft + 0.3 * wWidth;
+          const tgtTop = typeof tgt.top === "string" ? tgt.top : `${wTop + 10}%`;
+          top = tgtTop;
+          // place raider slightly to the SEA side of the victim ship
+          const seaIsRight = (scene.seaSide ?? "right") === "right";
+          left = `${Math.max(2, Math.min(92, tgtLeft + (seaIsRight ? 12 : -12)))}%`;
+        } else {
+          const slot = i % 3;
+          top = `${wTop + 6 + slot * 8}%`;
+          left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
+        }
         const img = getShipByMarketLevel(r.template_id || 1).image;
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
