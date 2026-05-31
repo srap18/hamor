@@ -35,7 +35,7 @@ export type SceneBg = {
 // where docked ships form a clean vertical column at the marina.
 const UNIFIED_SHIP_SLOTS = [
   { top: 46, left: 44, scale: 0.9 },
-  { top: 52, left: 44, scale: 1.4 },
+  { top: 52, left: 38, scale: 1.4 },
   { top: 63, left: 44, scale: 1.4 },
 ] as const;
 
