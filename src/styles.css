@@ -518,6 +518,7 @@ html, body {
     width: 390px;
     min-height: 100dvh;
     height: 100dvh;
+    overflow: hidden;
     border-radius: 0;
     box-shadow: none;
   }
