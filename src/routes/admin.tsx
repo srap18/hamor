@@ -3,6 +3,19 @@ import { useEffect } from "react";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/components/ConfirmDialog";
+
+async function confirmSignOut(after: () => void) {
+  const ok = await confirmDialog({
+    title: "تسجيل الخروج",
+    message: "هل أنت متأكد من تسجيل الخروج؟",
+    confirmText: "خروج",
+    danger: true,
+  });
+  if (!ok) return;
+  await supabase.auth.signOut();
+  after();
+}
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -60,7 +73,7 @@ function AdminLayout() {
           <div className="flex md:hidden items-center gap-1.5">
             <Link to="/" className="text-xs px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700">🎮</Link>
             <button
-              onClick={async () => { await supabase.auth.signOut(); nav({ to: "/login" }); }}
+              onClick={() => confirmSignOut(() => nav({ to: "/login" }))}
               className="text-xs px-2.5 py-1.5 rounded-md bg-red-900/40 hover:bg-red-900/60 text-red-200"
             >خروج</button>
           </div>
@@ -89,10 +102,7 @@ function AdminLayout() {
             🎮 الذهاب للعبة
           </Link>
           <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              nav({ to: "/login" });
-            }}
+            onClick={() => confirmSignOut(() => nav({ to: "/login" }))}
             className="w-full text-center text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/60 text-red-200"
           >
             تسجيل خروج

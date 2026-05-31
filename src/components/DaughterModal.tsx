@@ -9,6 +9,7 @@ import { useDaughter } from "@/hooks/use-daughter";
 import { renameDaughter, bonusesFor, nextThreshold, STAGE_LABELS, OUTFITS, outfitImage, setDaughterOutfit, gemCostFor, remainingTodayFor, upgradeDaughterWithGems, DAILY_FISH_LIMIT, MAX_STAGE, type OutfitId } from "@/lib/daughter";
 import { FISH } from "@/lib/fish";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 type CaughtRow = { fish_id: string; quantity: number };
 
@@ -92,6 +93,12 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
 
   const handleGemUpgrade = async () => {
     if (!gemCost) return;
+    const ok = await confirmDialog({
+      title: "ترقية الابنة",
+      message: `هل تريد ترقيتها إلى المرحلة التالية مقابل ${gemCost} جوهرة؟`,
+      confirmText: "ترقية بالجواهر",
+    });
+    if (!ok) return;
     setBusy(true);
     const { data, error } = await upgradeDaughterWithGems();
     setBusy(false);

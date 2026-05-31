@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
@@ -63,6 +64,13 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   };
 
   const signOut = async () => {
+    const ok = await confirmDialog({
+      title: "تسجيل الخروج",
+      message: "هل أنت متأكد من تسجيل الخروج؟",
+      confirmText: "خروج",
+      danger: true,
+    });
+    if (!ok) return;
     await supabase.auth.signOut();
     onClose();
     nav({ to: "/login" });
