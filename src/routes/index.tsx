@@ -2204,6 +2204,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   return (
     <div
+      data-ship-dbid={ship.dbId || undefined}
       className="absolute z-10 pointer-events-none"
       style={{
         left: `${leftOffset}%`,
