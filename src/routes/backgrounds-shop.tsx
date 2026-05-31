@@ -126,8 +126,26 @@ function BackgroundsShop() {
         </div>
       </div>
 
+      {/* Burned repair banner — visible whenever profile bg is burned, regardless of selected bg */}
+      {isBurned && (
+        <div className="absolute top-[5.25rem] left-2 right-2 z-20 rounded-xl border-2 border-rose-400/70 bg-gradient-to-b from-rose-900/90 to-rose-950/90 px-3 py-2 shadow-2xl flex items-center gap-2">
+          <span className="text-2xl">🔥</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-rose-100 text-[12px] font-extrabold">خلفيتك محترقة</div>
+            <div className="text-rose-200/80 text-[10px]">تنتهي خلال {fmtLeft()} — أو أصلحها فوراً</div>
+          </div>
+          <button
+            onClick={handleRepair}
+            disabled={repairing}
+            className="px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-lg active:scale-95 flex items-center gap-1 disabled:opacity-60"
+          >
+            🛠️ إصلاح <GemIcon size={14} /><span className="tabular-nums">100</span>
+          </button>
+        </div>
+      )}
+
       {/* Grid */}
-      <div className="absolute top-24 left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden">
+      <div className={`absolute ${isBurned ? "top-[8.75rem]" : "top-24"} left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden`}>
         <div className="h-full overflow-y-auto p-3 grid grid-cols-2 gap-3">
           {BACKGROUNDS.map((b) => {
             const isOwned = owned.includes(b.id);
