@@ -396,6 +396,7 @@ function PlayerPage() {
     if (!me || !selectedShip) return;
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
+    if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     const { error } = w.currency === "gems"
       ? await buyWithGems(w.id, "weapon", w.price)
