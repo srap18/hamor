@@ -622,29 +622,31 @@ function PlayerPage() {
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <img
-          key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
-          src={scene.displayImage}
-          alt={scene.displayName}
-          className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
-          style={{
-            objectPosition: scene.objectPosition ?? "center center",
-            ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
-            ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
-            ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
-            ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
-          }}
-          draggable={false}
-        />
-        <div
-          className="absolute pointer-events-none animate-sea-flow"
-          style={{
-            top: `${Math.max(0, scene.waterTop - 2)}%`,
-            left: `${Math.max(0, scene.waterLeft - 8)}%`,
-            width: `${Math.min(100, scene.waterRight + 8) - Math.max(0, scene.waterLeft - 8)}%`,
-            height: `${Math.max(18, 96 - scene.waterTop)}%`,
-          }}
-        />
+        {scene.displayVideo ? (
+          <SeamlessVideo
+            key={`vid-${scene.id}-${scene.burned ? "b" : "c"}`}
+            src={scene.displayVideo}
+            poster={scene.displayImage}
+            className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            style={{ objectPosition: scene.objectPosition ?? "center center" }}
+            playbackRate={0.7}
+          />
+        ) : (
+          <img
+            key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
+            src={scene.displayImage}
+            alt={scene.displayName}
+            className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            style={{
+              objectPosition: scene.objectPosition ?? "center center",
+              ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
+              ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
+              ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
+              ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
+            }}
+            draggable={false}
+          />
+        )}
         {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
       </div>
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
