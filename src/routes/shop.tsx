@@ -308,7 +308,9 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
+              {tab !== "ships" && (
+                <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
+              )}
             </div>
             <div className="flex-1 text-right">
               <div className="text-sm font-bold">{selected.name}</div>
@@ -327,17 +329,21 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            <div className="flex-1 flex items-center justify-center gap-2">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
-              >−</button>
-              <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
-              <button
-                onClick={() => setQty((q) => Math.min(99, q + 1))}
-                className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
-              >+</button>
-            </div>
+            {tab !== "ships" ? (
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
+                >−</button>
+                <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
+                <button
+                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
+                >+</button>
+              </div>
+            ) : (
+              <div className="flex-1" />
+            )}
 
             <button
               onClick={buy}
