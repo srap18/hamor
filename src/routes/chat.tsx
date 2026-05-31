@@ -297,6 +297,7 @@ function ChatPage() {
             text={text}
             setText={setText}
             onSend={send}
+            sending={sending}
             disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
             userId={user?.id || ""}
             onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
