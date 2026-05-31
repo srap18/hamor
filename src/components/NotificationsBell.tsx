@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import { getProfilesPublic, type PublicProfile } from "@/lib/profiles-public";
 
 type Notif = {
   id: string;
@@ -9,6 +11,7 @@ type Notif = {
   body: string;
   kind: string;
   recipient_id: string | null;
+  created_by: string | null;
   created_at: string;
 };
 
