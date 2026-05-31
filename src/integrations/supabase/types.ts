@@ -152,6 +152,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_mutes: {
+        Row: {
+          active: boolean
+          created_at: string
+          expires_at: string | null
+          id: string
+          muted_by: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          muted_by?: string | null
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          muted_by?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       client_item_prices: {
         Row: {
           item_id: string
@@ -2235,6 +2265,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_muted: { Args: { _user: string }; Returns: boolean }
       is_tribe_member: {
         Args: { _tribe_id: string; _user_id: string }
         Returns: boolean
