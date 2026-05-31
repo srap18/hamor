@@ -892,7 +892,7 @@ function NoTribePanel({ userId }: { userId: string }) {
   const [myRequests, setMyRequests] = useState<Set<string>>(new Set());
 
   const loadTribes = async () => {
-    const { data: ts } = await supabase.from("tribes").select("id,name,emblem").limit(200);
+    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,join_mode").limit(200);
     if (!ts) { setTribes([]); return; }
     const ids = ts.map((t) => t.id);
     if (ids.length === 0) { setTribes([]); return; }
