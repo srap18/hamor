@@ -363,7 +363,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
     await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: me });
   };
   const logAudit = async (action: string, details: Record<string, unknown>) => {
-    await supabase.from("admin_audit").insert({ admin_id: me, action, target_user_id: target.id, details });
+    await supabase.from("admin_audit").insert({ admin_id: me, action, target_user_id: target.id, details: details as never });
   };
 
   const adminToggleBan = async () => {
