@@ -138,11 +138,8 @@
   }
 
   @keyframes bg-drift {
-    0%   { transform: scale(var(--bg-scale, 1.15)) translate3d(-2.5%, -1.5%, 0); }
-    25%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.04)) translate3d(2%, -2.2%, 0); }
-    50%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.02)) translate3d(2.8%, 2%, 0); }
-    75%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.05)) translate3d(-2%, 2.4%, 0); }
-    100% { transform: scale(var(--bg-scale, 1.15)) translate3d(-2.5%, -1.5%, 0); }
+    0%, 100% { transform: scale(var(--bg-scale, 1.06)); }
+    50%      { transform: scale(calc(var(--bg-scale, 1.06) + 0.015)); }
   }
   .animate-bg-drift {
     animation: bg-drift var(--bg-dur, 14s) ease-in-out infinite;
@@ -151,17 +148,18 @@
   }
 
   @keyframes sea-shimmer {
-    0%   { transform: translate3d(-4%, 0, 0); opacity: 0.18; }
-    50%  { transform: translate3d(4%, 0.6%, 0); opacity: 0.32; }
-    100% { transform: translate3d(-4%, 0, 0); opacity: 0.18; }
+    0%   { background-position: 0 0, 0 0, 0 0; opacity: 0.55; }
+    50%  { background-position: 220px 6px, -180px -4px, 90px 3px; opacity: 0.85; }
+    100% { background-position: 440px 0, -360px 0, 180px 0; opacity: 0.55; }
   }
   .animate-sea-flow {
-    animation: sea-shimmer 6s ease-in-out infinite;
+    animation: sea-shimmer 7s linear infinite;
     background:
-      radial-gradient(ellipse 60% 40% at 30% 50%, rgba(255,255,255,0.18) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 35% at 70% 55%, rgba(140,220,255,0.16) 0%, transparent 65%);
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 26px),
+      repeating-linear-gradient(65deg,  rgba(160,220,255,0.09) 0 2px, transparent 2px 34px),
+      radial-gradient(ellipse 60% 30% at 50% 60%, rgba(255,255,255,0.14) 0%, transparent 70%);
     mix-blend-mode: screen;
-    will-change: transform, opacity;
+    will-change: background-position, opacity;
   }
 
   @keyframes bg-burned-pulse {
