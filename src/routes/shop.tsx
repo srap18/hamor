@@ -49,7 +49,7 @@ const WEAPON_IMAGES: Record<string, string> = {
 };
 
 // Cooldown after buying any armor: 4 days
-const ARMOR_COOLDOWN_MS = 4 * 24 * 60 * 60 * 1000;
+const ARMOR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const ARMOR_LAST_KEY = (uid: string) => `armor-last-buy:${uid}`;
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
