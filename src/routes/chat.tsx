@@ -258,17 +258,27 @@ function ChatPage() {
       </div>
 
       {tab !== "voice" && (
-        <ChatComposer
-          text={text}
-          setText={setText}
-          onSend={send}
-          disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
-          userId={user?.id || ""}
-          onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
-          channel={tab as "public" | "tribe" | "dm"}
-          tribeId={profile?.tribe_id || null}
-          dmWith={dmWith}
-        />
+        myMute && (tab === "public" || tab === "tribe") ? (
+          <div className="px-3 pb-3">
+            <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
+              🔇 أنت مكتوم من قِبل الإدارة
+              {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
+              {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
+            </div>
+          </div>
+        ) : (
+          <ChatComposer
+            text={text}
+            setText={setText}
+            onSend={send}
+            disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
+            userId={user?.id || ""}
+            onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
+            channel={tab as "public" | "tribe" | "dm"}
+            tribeId={profile?.tribe_id || null}
+            dmWith={dmWith}
+          />
+        )
       )}
 
 
