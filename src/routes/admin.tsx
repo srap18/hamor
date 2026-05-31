@@ -3,6 +3,19 @@ import { useEffect } from "react";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/components/ConfirmDialog";
+
+async function confirmSignOut(after: () => void) {
+  const ok = await confirmDialog({
+    title: "تسجيل الخروج",
+    message: "هل أنت متأكد من تسجيل الخروج؟",
+    confirmText: "خروج",
+    danger: true,
+  });
+  if (!ok) return;
+  await supabase.auth.signOut();
+  after();
+}
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
