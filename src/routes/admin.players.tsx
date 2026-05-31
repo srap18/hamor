@@ -198,17 +198,100 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   useEffect(() => {
     (async () => {
-      const [{ data: bans }, { data: mutes }] = await Promise.all([
+      const [{ data: bans }, { data: mutes }, { data: prof }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("profiles").select("avatar_url").eq("id", player.id).maybeSingle(),
       ]);
       const all: HistoryEntry[] = [
         ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
         ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
+      setAvatarUrl((prof as any)?.avatar_url ?? null);
     })();
   }, [player.id]);
+
+  const saveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const { adminUpdateUser } = await import("@/lib/admin-users.functions");
+      const payload: { userId: string; email?: string; display_name?: string; avatar_url?: string | null } = { userId: player.id };
+      if (displayName.trim() !== player.display_name) payload.display_name = displayName.trim();
+      if (email.trim()) payload.email = email.trim();
+      await adminUpdateUser({ data: payload });
+      toast.success("تم حفظ بيانات الحساب");
+      setEmail("");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+    setSavingProfile(false);
+  };
+
+  const onUploadAvatar = async (file: File) => {
+    if (file.size > 3 * 1024 * 1024) { toast.error("الصورة كبيرة (الحد 3 ميجا)"); return; }
+    try {
+      toast("جاري فحص الصورة...");
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => { const s = String(r.result || ""); const i = s.indexOf(","); resolve(i >= 0 ? s.slice(i + 1) : s); };
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const { moderateImage } = await import("@/lib/moderation.functions");
+      const verdict = await moderateImage({ data: { imageBase64: b64, mimeType: file.type || "image/jpeg" } });
+      if (!verdict.safe) { toast.error("⚠️ الصورة مرفوضة: محتوى غير لائق"); return; }
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
+      const path = `${player.id}/avatar.${ext}`;
+      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "0" });
+      if (error) { toast.error("فشل الرفع"); return; }
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { adminUpdateUser } = await import("@/lib/admin-users.functions");
+      await adminUpdateUser({ data: { userId: player.id, avatar_url: url } });
+      setAvatarUrl(url);
+      toast.success("تم تحديث الصورة");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const deleteAccount = async () => {
+    if (!confirm(`⚠️ حذف حساب ${player.display_name} نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
+    const banEmail = confirm("هل تريد أيضاً منع نفس البريد من إنشاء حساب جديد؟");
+    const reason = prompt("سبب الحذف (اختياري):", "") ?? "";
+    try {
+      const { adminDeleteUser } = await import("@/lib/admin-users.functions");
+      await adminDeleteUser({ data: { userId: player.id, banEmail, reason } });
+      toast.success("تم حذف الحساب");
+      onClose();
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const blockLogin = async () => {
+    const hoursStr = prompt("منع تسجيل الدخول لكم ساعة؟ (اتركه فارغاً للمنع الدائم)", "");
+    const hours = hoursStr ? Number(hoursStr) : 87600;
+    if (!confirm(`منع ${player.display_name} من تسجيل الدخول ${hoursStr ? `${hours} ساعة` : "نهائياً"}؟`)) return;
+    try {
+      const { adminBlockLogin } = await import("@/lib/admin-users.functions");
+      await adminBlockLogin({ data: { userId: player.id, hours } });
+      toast.success("تم منع تسجيل الدخول");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const unblockLogin = async () => {
+    try {
+      const { adminBlockLogin } = await import("@/lib/admin-users.functions");
+      await adminBlockLogin({ data: { userId: player.id, unblock: true } });
+      toast.success("تم رفع منع الدخول");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
 
   const save = async () => {
     setSaving(true);
