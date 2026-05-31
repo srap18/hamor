@@ -20,7 +20,7 @@ import cloudImg from "@/assets/cloud-realistic.png";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
-import { BeachDaughter } from "@/components/BeachDaughter";
+
 import { frameById } from "@/lib/frames";
 
 
