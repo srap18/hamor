@@ -9,6 +9,7 @@ import { useDaughter } from "@/hooks/use-daughter";
 import { renameDaughter, bonusesFor, nextThreshold, STAGE_LABELS, OUTFITS, outfitImage, setDaughterOutfit, gemCostFor, remainingTodayFor, upgradeDaughterWithGems, DAILY_FISH_LIMIT, MAX_STAGE, type OutfitId } from "@/lib/daughter";
 import { FISH } from "@/lib/fish";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 type CaughtRow = { fish_id: string; quantity: number };
 
