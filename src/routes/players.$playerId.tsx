@@ -1243,7 +1243,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
           opacity: destroyed ? 0.75 : 1,
         }}
       >
-        <img src={img} alt="" className="w-full block select-none" style={{ transform: "scaleX(-1)" }} draggable={false} />
+        <img src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
         {/* Flag (hide when destroyed) */}
         {!destroyed && (
           <div className="absolute pointer-events-none" style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}>
