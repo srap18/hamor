@@ -329,19 +329,21 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            <div className="flex-1 flex items-center justify-center gap-2">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
-              >−</button>
-              <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
-              <button
-                onClick={() => setQty((q) => Math.min(99, q + 1))}
-                className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
-              >+</button>
-            </div>
-
-            <button
+            {tab !== "ships" ? (
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
+                >−</button>
+                <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
+                <button
+                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
+                >+</button>
+              </div>
+            ) : (
+              <div className="flex-1" />
+            )}
               onClick={buy}
               className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95"
             >
