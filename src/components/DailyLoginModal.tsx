@@ -103,80 +103,31 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     setBusy(true);
     sound.play("coin");
 
-    // Award the reward. Coins/gems go to profiles; crew/weapon go to inventory.
-    try {
-      if (todaysReward.item_type === "coins" || todaysReward.item_type === "gems") {
-        const col = todaysReward.item_type;
-        const { data: prof, error: profErr } = await supabase
-          .from("profiles").select(col).eq("id", user.id).maybeSingle();
-        if (profErr) throw profErr;
-        const current = Number((prof as Record<string, unknown> | null)?.[col] ?? 0);
-        const patch = col === "coins"
-          ? { coins: current + todaysReward.qty }
-          : { gems: current + todaysReward.qty };
-        const { error: updErr } = await supabase
-          .from("profiles")
-          .update(patch)
-          .eq("id", user.id);
-        if (updErr) throw updErr;
-      } else {
-        const { data: existing, error: selErr } = await supabase
-          .from("inventory")
-          .select("id,quantity")
-          .eq("user_id", user.id)
-          .eq("item_type", todaysReward.item_type)
-          .eq("item_id", todaysReward.item_id)
-          .maybeSingle();
-        if (selErr) throw selErr;
-
-        if (existing) {
-          const { error: updErr } = await supabase
-            .from("inventory")
-            .update({ quantity: existing.quantity + todaysReward.qty })
-            .eq("id", existing.id);
-          if (updErr) throw updErr;
-        } else {
-          const { error: insErr } = await supabase
-            .from("inventory")
-            .insert({
-              user_id: user.id,
-              item_type: todaysReward.item_type,
-              item_id: todaysReward.item_id,
-              quantity: todaysReward.qty,
-            });
-          if (insErr) throw insErr;
-        }
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "خطأ";
-      setToast(`❌ فشل الاستلام: ${msg}`);
+    // Atomic server-side claim: enforces one-claim-per-day, awards reward, updates streak.
+    const { data, error } = await (supabase as any).rpc("claim_daily_login_pirate");
+    if (error) {
+      const msg = String(error.message || "").includes("already claimed")
+        ? "✅ تم استلام هدية اليوم بالفعل"
+        : `❌ ${error.message || "فشل الاستلام"}`;
+      setToast(msg);
       setBusy(false);
-      setTimeout(() => setToast(null), 3000);
+      setTimeout(() => setToast(null), 2800);
+      // Reload streak state from DB so UI reflects truth
+      const { data: row } = await supabase
+        .from("daily_login_streaks")
+        .select("current_streak,last_claim_date")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setStreak(row?.current_streak ?? streak);
+      setLastDate(row?.last_claim_date ?? lastDate);
       return;
     }
 
-    // Update streak
-    const gap = lastDate ? daysBetween(lastDate, today) : null;
-    const newStreak = gap === 1 ? streak + 1 : 1;
-    const { error: streakErr } = await supabase
-      .from("daily_login_streaks")
-      .upsert({
-        user_id: user.id,
-        current_streak: newStreak,
-        last_claim_date: today,
-        total_claims: newStreak,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-    if (streakErr) {
-      setToast(`❌ فشل تحديث المتتالية: ${streakErr.message}`);
-      setBusy(false);
-      setTimeout(() => setToast(null), 3000);
-      return;
-    }
-
-    setStreak(newStreak);
+    const row = Array.isArray(data) ? data[0] : data;
+    const reward = row ? REWARDS[row.day_index] : todaysReward;
+    setStreak(row?.new_streak ?? streak + 1);
     setLastDate(today);
-    setToast(`+${todaysReward.qty} ${todaysReward.emoji} ${todaysReward.name}`);
+    setToast(`+${reward.qty} ${reward.emoji} ${reward.name}`);
     setBusy(false);
     setTimeout(() => setToast(null), 2400);
   };

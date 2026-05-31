@@ -2007,6 +2007,16 @@ export type Database = {
           xp_awarded: number
         }[]
       }
+      claim_daily_login_pirate: {
+        Args: never
+        Returns: {
+          day_index: number
+          new_streak: number
+          reward_id: string
+          reward_qty: number
+          reward_type: string
+        }[]
+      }
       claim_quest: {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
@@ -2295,6 +2305,14 @@ export type Database = {
         }[]
       }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
+      sell_fish_caught: {
+        Args: { _fish_id: string; _qty: number; _unit_price: number }
+        Returns: {
+          coins_earned: number
+          new_coins: number
+          remaining: number
+        }[]
+      }
       sell_ship: {
         Args: { _refund_coins: number; _ship_id: string }
         Returns: undefined

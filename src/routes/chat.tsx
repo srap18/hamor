@@ -455,8 +455,15 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   });
   const donate = () => wrap(async () => {
     if (!donateAmount || donateAmount < 100) throw new Error("الحد الأدنى 100 عملة");
+    if (donateAmount > 10000) throw new Error("الحد الأقصى للتبرع 10,000 عملة في اليوم");
     const { error } = await supabase.rpc("donate_to_tribe" as never, { _tribe_id: tribeId, _amount: donateAmount } as never);
-    if (error) throw error;
+    if (error) {
+      const msg = String(error.message || "");
+      if (msg.includes("daily cap exceeded")) {
+        throw new Error("تجاوزت حد التبرع اليومي (10,000 عملة). جرّب غداً.");
+      }
+      throw error;
+    }
     await load();
   });
 

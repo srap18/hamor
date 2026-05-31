@@ -250,38 +250,25 @@ function FishMarket() {
     if (qty <= 0) return;
     const earned = Math.round(qty * price);
 
-
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
     setPop(`+${earned.toLocaleString()} 🪙`);
     setTimeout(() => setPop(null), 1500);
 
-    // Persist: decrement fish_caught + add coins to profile
-    const remaining = Math.max(0, (qtyMap[sel.id] ?? 0) - qty);
-    if (remaining > 0) {
-      await supabase
-        .from("fish_caught")
-        .update({ quantity: remaining, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id)
-        .eq("fish_id", sel.id);
-    } else {
-      await supabase
-        .from("fish_caught")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("fish_id", sel.id);
+    // Atomic server-side sale: decrements fish_caught and credits coins
+    // in one transaction so concurrent clicks can't race and "return" fish.
+    const { error } = await (supabase as any).rpc("sell_fish_caught", {
+      _fish_id: sel.id,
+      _qty: qty,
+      _unit_price: price,
+    });
+    if (error) {
+      // Rollback optimistic update on failure
+      setQtyMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? 0) + qty }));
+      setPop(`❌ ${error.message || "تعذر البيع"}`);
+      setTimeout(() => setPop(null), 2500);
+      return;
     }
-    // Re-read coins from DB to avoid overwriting concurrent updates
-    const { data: freshProfile } = await supabase
-      .from("profiles")
-      .select("coins")
-      .eq("id", user.id)
-      .maybeSingle();
-    const baseCoins = freshProfile?.coins ?? coins;
-    await supabase
-      .from("profiles")
-      .update({ coins: baseCoins + earned })
-      .eq("id", user.id);
     loadFish();
     refreshProfile();
   };
