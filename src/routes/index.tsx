@@ -11,7 +11,7 @@ import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
-import { showBanner } from "@/components/Banner";
+
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ShieldBadge } from "@/components/ShieldBadge";
@@ -371,6 +371,7 @@ function Index() {
 
   const [fish, setFish] = useState(34);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
+  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number } | null>(null);
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -741,11 +742,13 @@ function Index() {
         ? `${caught.emoji} ${caught.name} ×${fishGained}`
         : `🐟 ×${fishGained}`,
     });
-    showBanner({
-      kind: "catch",
-      title: caught ? `${caught.emoji} ${caught.name}` : "🐟 سمكة",
-      subtitle: `سفينة #${s.id} • مستوى ${s.level}`,
+    setCatchResult({
+      img: caught?.img,
+      emoji: caught?.emoji ?? "🐟",
+      name: caught?.name ?? "سمكة",
       count: fishGained,
+      shipId: s.id,
+      shipLevel: s.level,
     });
 
     setTimeout(() => setPop(null), 1400);
@@ -1505,7 +1508,39 @@ function Index() {
           {pop.v}
         </div>
       )}
-      
+
+      {/* Catch result modal — requires موافق to dismiss */}
+      {catchResult && (
+        <div
+          dir="rtl"
+          onClick={() => setCatchResult(null)}
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mx-4 w-full max-w-xs rounded-2xl border-2 border-cyan-300/60 bg-gradient-to-b from-sky-700 to-sky-950 p-5 shadow-2xl text-center"
+          >
+            <div className="text-xs font-black text-cyan-200 mb-2">🎣 نتيجة الصيد</div>
+            <div className="mx-auto w-24 h-24 rounded-2xl bg-white/15 border-2 border-cyan-200/40 flex items-center justify-center overflow-hidden shadow-inner">
+              {catchResult.img ? (
+                <img src={catchResult.img} alt={catchResult.name} className="w-full h-full object-contain p-1 drop-shadow" />
+              ) : (
+                <span className="text-5xl">{catchResult.emoji}</span>
+              )}
+            </div>
+            <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
+            <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            <div className="mt-1 text-[11px] font-bold text-cyan-100/80">سفينة #{catchResult.shipId} • مستوى {catchResult.shipLevel}</div>
+            <button
+              onClick={() => setCatchResult(null)}
+              className="mt-4 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-200 py-2.5 text-sm font-black text-white active:scale-95 shadow-lg"
+            >
+              موافق
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
