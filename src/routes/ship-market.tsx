@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { SHIPS, catchPerTrip, shipMarketCapacity, type ShipDef } from "@/lib/ships";
+import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, type ShipDef } from "@/lib/ships";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import iconArmor from "@/assets/icons/icon-armor.png";
@@ -74,6 +74,7 @@ function ShipyardPage() {
   const MAX_SHIPS = 3;
   const shipsCount = owned.length;
   const fleetFull = fleetStorageUsed >= fleetStorageMax || shipsCount >= MAX_SHIPS;
+  const selectedShipFlip = shipBowFacesRight(selectedShip.marketLevel) ? 1 : -1;
 
   const showToast = (message: string) => {
     setToast(message);
@@ -245,7 +246,9 @@ function ShipyardPage() {
                 <div className="relative grid flex-1 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-card/60 px-4 py-6">
                   <div className="absolute bottom-10 left-1/2 h-8 w-3/4 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
                   <div className="absolute bottom-4 left-1/2 h-6 w-4/5 -translate-x-1/2 rounded-full border border-white/10 bg-white/5" />
-                  <img src={selectedShip.image} alt={selectedShip.title} className="animate-[float-up_12s_ease-in-out_infinite] relative z-10 max-h-[320px] w-full object-contain drop-shadow-[0_28px_45px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-[1.03]" width={1280} height={960} />
+                  <div className="relative z-10 w-full" style={{ transform: `scaleX(${selectedShipFlip})` }}>
+                    <img src={selectedShip.image} alt={selectedShip.title} className="animate-[float-up_12s_ease-in-out_infinite] max-h-[320px] w-full object-contain drop-shadow-[0_28px_45px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-[1.03]" width={1280} height={960} />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
@@ -315,11 +318,14 @@ function ShipyardPage() {
               const locked = ship.marketLevel > marketLevel;
               const count = ownedCount[ship.code] ?? 0;
               const selected = selectedCode === ship.code;
+              const shipFlip = shipBowFacesRight(ship.marketLevel) ? 1 : -1;
               return (
                 <button key={ship.code} onClick={() => setSelectedCode(ship.code)} className={`group rounded-2xl border p-3 text-right transition-all ${selected ? "border-primary bg-primary/10 shadow-[0_0_0_1px_var(--color-primary)]" : "border-border bg-card/70 hover:border-primary/40 hover:bg-card"}`}>
                   <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/20 p-2">
                     <div className="absolute inset-x-6 bottom-2 h-5 rounded-full bg-primary/15 blur-2xl" />
-                    <img src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
+                    <div style={{ transform: `scaleX(${shipFlip})` }}>
+                      <img src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
+                    </div>
                     <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {ship.marketLevel}</span>
                   </div>
 
