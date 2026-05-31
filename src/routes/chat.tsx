@@ -914,7 +914,7 @@ function NoTribePanel({ userId }: { userId: string }) {
     const rows: TribeRow[] = ts.map((t: any) => {
       const uids = memberByTribe.get(t.id) || [];
       const power = uids.reduce((sum, uid) => sum + (levelMap.get(uid) || 0), 0);
-      return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power };
+      return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power, join_mode: t.join_mode || "request" };
     }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
     setTribes(rows);
 
