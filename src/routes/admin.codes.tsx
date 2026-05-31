@@ -431,6 +431,139 @@ function AdminCodesPage() {
         </div>
       </div>
 
+      {/* ───────── الإنشاء المجمّع (كود واحد = عدة عناصر) ───────── */}
+      <div className="rounded-xl border border-fuchsia-800/60 bg-fuchsia-950/30 p-3 md:p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="text-sm font-bold text-fuchsia-200">🎁 إنشاء كود مجمّع — اختر عدة عناصر/سفن في كود واحد</div>
+          <div className="text-[11px] text-fuchsia-300/80">
+            محدد: {Object.keys(bundleSelItems).length} عنصر • {Object.keys(bundleSelShips).length} سفينة
+          </div>
+        </div>
+
+        {/* عملات/جواهر/خبرة (اختياري) */}
+        <div className="grid grid-cols-3 gap-2">
+          <NumField label="ذهب 🪙" value={bundleCoins} onChange={setBundleCoins} />
+          <NumField label="جواهر 💎" value={bundleGems} onChange={setBundleGems} />
+          <NumField label="خبرة ✨" value={bundleXp} onChange={setBundleXp} />
+        </div>
+
+        {/* عناصر المتجر — متعدد الاختيار */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="text-[11px] text-fuchsia-300/80">📦 عناصر المتجر — اضغط للاختيار</div>
+            <div className="flex gap-1 flex-wrap">
+              <button onClick={() => selectAllItemsByKind(null)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ الكل</button>
+              {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((k) => (
+                <button key={k} onClick={() => selectAllItemsByKind(k)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل {k}</button>
+              ))}
+              <button onClick={clearBundleSelection} className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 hover:bg-red-900/60 text-red-200">مسح الكل</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {itemsCatalog.map((it) => {
+              const sel = bundleSelItems[it.code] != null;
+              return (
+                <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                  <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
+                    {sel ? "✅" : "📦"} {it.name}
+                  </button>
+                  {sel && (
+                    <div className="mt-1 flex items-center gap-1">
+                      <span className="text-[10px] text-fuchsia-200">×</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={bundleSelItems[it.code]}
+                        onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* السفن — متعدد الاختيار */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="text-[11px] text-fuchsia-300/80">⛵ السفن — اضغط للاختيار</div>
+            <button onClick={selectAllShips} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل السفن</button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {shipsCatalog.map((s) => {
+              const sel = bundleSelShips[s.code] != null;
+              return (
+                <div key={s.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                  <button onClick={() => toggleBundleShip(s.code)} className="w-full text-right text-slate-100 truncate" title={s.name}>
+                    {sel ? "✅" : "⛵"} {s.name}
+                  </button>
+                  {sel && (
+                    <div className="mt-1 flex items-center gap-1">
+                      <span className="text-[10px] text-fuchsia-200">×</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={bundleSelShips[s.code]}
+                        onChange={(e) => setBundleSelShips((p) => ({ ...p, [s.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* إعدادات الكود */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <label className="text-xs text-fuchsia-200 space-y-1">
+            <span>الكود (فارغ = توليد تلقائي)</span>
+            <input
+              value={bundleCustomCode}
+              onChange={(e) => setBundleCustomCode(e.target.value.toUpperCase())}
+              placeholder="مثال: ALLSHIPS"
+              className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 font-mono tracking-wider"
+            />
+          </label>
+          <label className="text-xs text-fuchsia-200 space-y-1">
+            <span>نوع التوزيع</span>
+            <select
+              value={bundleDist}
+              onChange={(e) => setBundleDist(e.target.value as DistMode)}
+              className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+            >
+              <option value="limited">🔒 محدود</option>
+              <option value="public">🌍 للجميع — كل لاعب مرة واحدة</option>
+            </select>
+          </label>
+          {bundleDist === "limited" && (
+            <NumField label="عدد الاستخدامات الإجمالي" value={bundleMaxUses} onChange={setBundleMaxUses} min={1} />
+          )}
+        </div>
+
+        <label className="block text-xs text-fuchsia-200 space-y-1">
+          <span>ملاحظة (اختيارية)</span>
+          <input
+            value={bundleNote}
+            onChange={(e) => setBundleNote(e.target.value)}
+            placeholder="مثلاً: هدية كل السفن للمؤسسين"
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+          />
+        </label>
+
+        <button
+          disabled={bundleSaving}
+          onClick={createBundleCode}
+          className="w-full md:w-auto px-4 py-2 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold disabled:opacity-50"
+        >
+          {bundleSaving ? "جاري الإنشاء..." : "🎁 إنشاء الكود المجمّع ونسخه"}
+        </button>
+      </div>
+
+
       {/* ───────── الإنشاء المفصّل ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 md:p-4 space-y-3">
         <div className="text-sm font-bold text-indigo-200">🛠️ إنشاء مفصّل — تحكم كامل بكل تفصيل</div>
