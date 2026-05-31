@@ -1566,6 +1566,11 @@ function Index() {
             </div>
             <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
             <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            {catchResult.luckBonus && catchResult.luckBonus > 0 ? (
+              <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border border-yellow-200 text-[10px] font-black text-black shadow">
+                🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
+              </div>
+            ) : null}
             <div className="mt-1 text-[11px] font-bold text-cyan-100/80">سفينة #{catchResult.shipId} • مستوى {catchResult.shipLevel}</div>
             <button
               onClick={() => setCatchResult(null)}
