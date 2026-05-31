@@ -359,10 +359,12 @@ function PlayerPage() {
     // After a nuke, prompt the player to broadcast a global message
     if (weaponId === "nuke") {
       // Scorch the target's background for 7 days (visible to everyone)
-      try {
-        await burnTargetBg(playerId);
-        setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
-      } catch { /* ignore */ }
+      const burnRes = await burnTargetBg(playerId).catch((e) => ({ error: e }));
+      if ((burnRes as any)?.error) {
+        console.error("burn_target_bg failed", (burnRes as any).error);
+      }
+      // Always update local view so attacker sees burned bg immediately
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
