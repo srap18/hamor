@@ -77,10 +77,10 @@ class SoundEngine {
   startMusic() {
     this.init();
     if (!this.musicOn) return;
+    if (this.pausedForChat) return;
     const el = this.ensureMusicEl();
     if (!el) return;
     this.musicPlaying = true;
-    this.pausedForChat = false;
     void el.play().catch(() => { /* will retry on next user gesture */ });
   }
 
