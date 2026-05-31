@@ -102,10 +102,7 @@ function AdminLayout() {
             🎮 الذهاب للعبة
           </Link>
           <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              nav({ to: "/login" });
-            }}
+            onClick={() => confirmSignOut(() => nav({ to: "/login" }))}
             className="w-full text-center text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/60 text-red-200"
           >
             تسجيل خروج
