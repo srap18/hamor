@@ -33,8 +33,8 @@ function BackgroundsShop() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
-  const [owned, setOwned] = useState<string[]>(["harbor"]);
-  const [selected, setSelected] = useState<string>("harbor");
+  const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
+  const [selected, setSelected] = useState<string>("celestial_colosseum");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
