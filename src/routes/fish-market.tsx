@@ -315,7 +315,7 @@ function FishMarket() {
         <div className="flex-1 glass-hud rounded-xl px-3 py-1.5 flex items-center justify-around gap-2">
           <ResChip icon="💎" v={gems} color="text-rose-300" />
           <ResChip icon="🔷" v={rubies} color="text-cyan-200" />
-          <ResChip icon="🪙" v={coins} color="text-amber-300" />
+          <ResChip icon={<CoinIcon size={16} />} v={coins} color="text-amber-300" />
         </div>
       </div>
 
