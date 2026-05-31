@@ -2154,7 +2154,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         );
       })()}
       </div>
-    </button>
+    </div>
   );
 }
 
