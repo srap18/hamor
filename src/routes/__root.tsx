@@ -12,6 +12,7 @@ import { GlobalBanner } from "@/components/GlobalBanner";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
+import { sound } from "@/lib/sound";
 
 import appCss from "../styles.css?url";
 
@@ -133,6 +134,22 @@ function RootComponent() {
 
   useEffect(() => {
     loadEconomyOverrides();
+  }, []);
+
+  // Bootstrap background sea music on the first user gesture, on every page
+  useEffect(() => {
+    const start = () => {
+      sound.resume();
+      if (sound.getMusic()) sound.startMusic();
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
+    window.addEventListener("pointerdown", start, { once: true });
+    window.addEventListener("keydown", start, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", start);
+      window.removeEventListener("keydown", start);
+    };
   }, []);
 
   return (

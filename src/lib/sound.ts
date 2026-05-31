@@ -16,11 +16,11 @@ type SfxKind =
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
-  private musicGain: GainNode | null = null;
-  private musicNodes: AudioNode[] = [];
+  private musicEl: HTMLAudioElement | null = null;
   private musicOn = true;
   private sfxOn = true;
   private musicPlaying = false;
+  private pausedForChat = false;
   private inited = false;
 
   init() {
@@ -40,11 +40,18 @@ class SoundEngine {
     this.masterGain = this.ctx.createGain();
     this.masterGain.gain.value = 0.5;
     this.masterGain.connect(this.ctx.destination);
-    this.musicGain = this.ctx.createGain();
-    // Keep ambient/music subtle so it never overpowers any background
-    this.musicGain.gain.value = 0.06;
-    this.musicGain.connect(this.masterGain);
     return this.ctx;
+  }
+
+  private ensureMusicEl() {
+    if (typeof window === "undefined") return null;
+    if (this.musicEl) return this.musicEl;
+    const el = new Audio("/sea-music.mp3");
+    el.loop = true;
+    el.preload = "auto";
+    el.volume = 0.35;
+    this.musicEl = el;
+    return el;
   }
 
   getSfx() { this.init(); return this.sfxOn; }
@@ -62,7 +69,6 @@ class SoundEngine {
     if (v) this.startMusic(); else this.stopMusic();
   }
 
-  // Must be called inside a user gesture for autoplay
   resume() {
     const c = this.ensureCtx();
     if (c && c.state === "suspended") void c.resume();
@@ -70,58 +76,35 @@ class SoundEngine {
 
   startMusic() {
     this.init();
-    const c = this.ensureCtx();
-    if (!c || !this.musicGain || this.musicPlaying || !this.musicOn) return;
+    if (!this.musicOn) return;
+    const el = this.ensureMusicEl();
+    if (!el) return;
     this.musicPlaying = true;
-    const t = c.currentTime;
-    // Soft ambient pad — C minor triad with slow detune LFO
-    const freqs = [130.81, 196.0, 261.63, 311.13]; // C3, G3, C4, Eb4
-    freqs.forEach((f, i) => {
-      const osc = c.createOscillator();
-      osc.type = i === 0 ? "sine" : i === 3 ? "sine" : "triangle";
-      osc.frequency.value = f;
-      const g = c.createGain();
-      g.gain.value = 0;
-      g.gain.linearRampToValueAtTime(0.12, t + 3);
-      const lfo = c.createOscillator();
-      lfo.frequency.value = 0.08 + i * 0.04;
-      const lfoGain = c.createGain();
-      lfoGain.gain.value = 3;
-      lfo.connect(lfoGain).connect(osc.detune);
-      lfo.start(t);
-      osc.connect(g).connect(this.musicGain!);
-      osc.start(t);
-      this.musicNodes.push(osc, lfo, g, lfoGain);
-    });
-    // Very subtle wave wash (filtered noise) — kept low so it doesn't clash with backgrounds
-    const bufSize = c.sampleRate * 4;
-    const buf = c.createBuffer(1, bufSize, c.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
-    const noise = c.createBufferSource();
-    noise.buffer = buf;
-    noise.loop = true;
-    const nf = c.createBiquadFilter();
-    nf.type = "bandpass";
-    nf.frequency.value = 500;
-    nf.Q.value = 0.7;
-    const ng = c.createGain();
-    ng.gain.value = 0.012;
-    noise.connect(nf).connect(ng).connect(this.musicGain);
-    noise.start(t);
-    this.musicNodes.push(noise, nf, ng);
+    this.pausedForChat = false;
+    void el.play().catch(() => { /* will retry on next user gesture */ });
   }
 
   stopMusic() {
     this.musicPlaying = false;
-    this.musicNodes.forEach((n) => {
-      try {
-        if ((n as OscillatorNode).stop) (n as OscillatorNode).stop();
-        if ((n as AudioBufferSourceNode).stop) (n as AudioBufferSourceNode).stop();
-      } catch {/* noop */}
-      try { n.disconnect(); } catch {/* noop */}
-    });
-    this.musicNodes = [];
+    if (this.musicEl) {
+      try { this.musicEl.pause(); } catch { /* noop */ }
+      try { this.musicEl.currentTime = 0; } catch { /* noop */ }
+    }
+  }
+
+  // Temporary pause for screens like chat. Does NOT change saved music
+  // preference — resumeForChat() resumes only if music is still enabled.
+  pauseForChat() {
+    this.pausedForChat = true;
+    if (this.musicEl) { try { this.musicEl.pause(); } catch { /* noop */ } }
+  }
+
+  resumeForChat() {
+    if (!this.pausedForChat) return;
+    this.pausedForChat = false;
+    if (this.musicOn && this.musicPlaying && this.musicEl) {
+      void this.musicEl.play().catch(() => { /* noop */ });
+    }
   }
 
   play(kind: SfxKind) {
