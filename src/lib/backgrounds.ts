@@ -34,9 +34,9 @@ export type SceneBg = {
 // spaced top-to-bottom, identical scale. Matches the reference layout
 // where docked ships form a clean vertical column at the marina.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 34, left: 48, scale: 1.7 },
-  { top: 46, left: 48, scale: 1.7 },
-  { top: 58, left: 48, scale: 1.7 },
+  { top: 40, left: 52, scale: 2.0 },
+  { top: 52, left: 52, scale: 2.0 },
+  { top: 64, left: 52, scale: 2.0 },
 ] as const;
 
 const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
