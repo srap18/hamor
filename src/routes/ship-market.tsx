@@ -290,7 +290,10 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
+            <div className="flex items-center gap-2">
+              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${shipsCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>السفن: {shipsCount} / {MAX_SHIPS}</div>
+              <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
