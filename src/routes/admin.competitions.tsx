@@ -217,14 +217,10 @@ function AdminCompetitions() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-3">
-          <label className="block">
-            <span className="text-xs text-slate-400">يبدأ في</span>
-            <input type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700"/>
-          </label>
-          <label className="block">
-            <span className="text-xs text-slate-400">ينتهي في</span>
-            <input type="datetime-local" value={endsAt} onChange={e=>setEndsAt(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700"/>
-          </label>
+          <DurationPicker label="يبدأ بعد" days={startD} hours={startH}
+            onChange={(d, h) => { setStartD(d); setStartH(h); }} allowZero zeroLabel="يبدأ فوراً"/>
+          <DurationPicker label="ينتهي بعد" days={endD} hours={endH}
+            onChange={(d, h) => { setEndD(d); setEndH(h); }}/>
         </div>
 
         <button onClick={create} disabled={saving} className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold disabled:opacity-50">
