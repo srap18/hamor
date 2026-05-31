@@ -236,6 +236,89 @@ function AdminCodesPage() {
     loadCodes();
   };
 
+  const toggleBundleItem = (code: string) => {
+    setBundleSelItems((prev) => {
+      const next = { ...prev };
+      if (next[code] != null) delete next[code];
+      else next[code] = 1;
+      return next;
+    });
+  };
+  const toggleBundleShip = (code: string) => {
+    setBundleSelShips((prev) => {
+      const next = { ...prev };
+      if (next[code] != null) delete next[code];
+      else next[code] = 1;
+      return next;
+    });
+  };
+
+  const selectAllItemsByKind = (kind: string | null) => {
+    setBundleSelItems((prev) => {
+      const next = { ...prev };
+      const target = kind ? itemsCatalog.filter((i) => i.kind === kind) : itemsCatalog;
+      for (const it of target) if (next[it.code] == null) next[it.code] = 1;
+      return next;
+    });
+  };
+  const selectAllShips = () => {
+    setBundleSelShips((prev) => {
+      const next = { ...prev };
+      for (const s of shipsCatalog) if (next[s.code] == null) next[s.code] = 1;
+      return next;
+    });
+  };
+  const clearBundleSelection = () => {
+    setBundleSelItems({});
+    setBundleSelShips({});
+  };
+
+  const createBundleCode = async () => {
+    const itemsList = Object.entries(bundleSelItems);
+    const shipsList = Object.entries(bundleSelShips);
+    const hasCurrency = bundleCoins > 0 || bundleGems > 0 || bundleXp > 0;
+    if (itemsList.length === 0 && shipsList.length === 0 && !hasCurrency) {
+      toast.error("اختر شيئاً واحداً على الأقل أو أدخل ذهب/جواهر/خبرة");
+      return;
+    }
+    const finalCode = (bundleCustomCode.trim() || randomCode()).toUpperCase();
+    if (!/^[A-Z0-9_-]{4,32}$/.test(finalCode)) {
+      toast.error("الكود يجب أن يكون 4–32 حرف/رقم");
+      return;
+    }
+    const extras: ExtraReward[] = [];
+    for (const [code, qty] of itemsList) {
+      const meta = itemsCatalog.find((x) => x.code === code);
+      extras.push({ type: "item", item_id: code, item_kind: meta?.kind ?? "misc", quantity: Math.max(1, qty) });
+    }
+    for (const [code, qty] of shipsList) {
+      extras.push({ type: "ship", item_id: code, quantity: Math.max(1, qty) });
+    }
+    setBundleSaving(true);
+    const { error } = await insertCode({
+      finalCode,
+      reward_type: "bundle", // عنصر رئيسي = الذهب/الجواهر/الخبرة (قد تكون صفرًا)
+      item_id: null,
+      item_kind: null,
+      coins: bundleCoins,
+      gems: bundleGems,
+      xp: bundleXp,
+      quantity: 1,
+      max_uses: bundleDist === "public" ? 0 : Math.max(1, bundleMaxUses),
+      expires_at: null,
+      note: bundleNote || `كود مجمّع: ${extras.length} عنصر${hasCurrency ? " + عملات" : ""}`,
+      extra_rewards: extras,
+    });
+    setBundleSaving(false);
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    setBundleCustomCode(""); setBundleNote("");
+    setBundleCoins(0); setBundleGems(0); setBundleXp(0);
+    clearBundleSelection();
+    loadCodes();
+  };
+
   const bundlePresets: Array<{ label: string; coins?: number; gems?: number; xp?: number; icon: string }> = [
     { label: "1,000 ذهب", coins: 1000, icon: "🪙" },
     { label: "5,000 ذهب", coins: 5000, icon: "🪙" },
