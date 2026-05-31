@@ -1766,6 +1766,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
+        <a href="/competitions"
+          className="block mb-3 p-2.5 rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 text-center font-bold text-sm text-amber-200 transition">
+          ✨ الفعاليات والبطولات ✨
+        </a>
+
+
         <div className="grid grid-cols-7 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
