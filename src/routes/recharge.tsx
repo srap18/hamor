@@ -140,7 +140,7 @@ function RechargePage() {
         </Link>
         <h1 className="flex-1 text-base font-bold text-glow">🛒 متجر العروض</h1>
         <div className="flex items-center gap-1 glass-hud px-2 py-1 rounded-lg border border-amber-400/40">
-          <span className="text-sm">🪙</span>
+          <CoinIcon size={14} />
           <span className="text-amber-200 font-bold tabular-nums text-[11px]">
             {coins.toLocaleString()}
           </span>
