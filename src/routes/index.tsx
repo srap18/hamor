@@ -1866,18 +1866,20 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         transition: "left 0.5s ease-in-out",
       }}
     >
-      {/* Wake ripples behind — stronger when moving */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-4"
-        style={{
-          width: `${60 + ship.sail * 40}%`,
-          opacity: 0.2 + Math.min(1, Math.abs(v) * 200) * 0.6 + ship.sail * 0.3,
-        }}
-      >
-        <div className="w-full h-full rounded-[50%] border-t-2 border-white/70" />
-        <div className="absolute inset-x-2 top-1 h-full rounded-[50%] border-t border-white/40" />
-        <div className="absolute inset-x-6 top-2 h-full rounded-[50%] border-t border-white/30" />
-      </div>
+      {/* Wake ripples behind — only while actually moving */}
+      {moving && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -bottom-3 h-4"
+          style={{
+            width: `${60 + ship.sail * 40}%`,
+            opacity: Math.min(1, Math.abs(v) * 200) * 0.6 + ship.sail * 0.3,
+          }}
+        >
+          <div className="w-full h-full rounded-[50%] border-t-2 border-white/70" />
+          <div className="absolute inset-x-2 top-1 h-full rounded-[50%] border-t border-white/40" />
+          <div className="absolute inset-x-6 top-2 h-full rounded-[50%] border-t border-white/30" />
+        </div>
+      )}
 
       {/* Foamy water trail behind ship when actually moving */}
       {moving && (
