@@ -49,7 +49,7 @@ const WEAPON_IMAGES: Record<string, string> = {
 };
 
 // Cooldown after buying any armor: 4 days
-const ARMOR_COOLDOWN_MS = 4 * 24 * 60 * 60 * 1000;
+const ARMOR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const ARMOR_LAST_KEY = (uid: string) => `armor-last-buy:${uid}`;
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
@@ -154,7 +154,7 @@ function Shop() {
       if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
     }
 
-    // Armor cooldown: only one armor purchase every 4 days
+    // Armor cooldown: only one armor purchase every 7 days
     if (tab === "protection") {
       const lastStr = localStorage.getItem(ARMOR_LAST_KEY(user.id));
       const last = lastStr ? parseInt(lastStr, 10) : 0;
@@ -308,7 +308,7 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              {tab !== "ships" && (
+              {tab !== "ships" && tab !== "protection" && (
                 <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
               )}
             </div>
@@ -329,7 +329,7 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            {tab !== "ships" ? (
+            {tab !== "ships" && tab !== "protection" ? (
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}

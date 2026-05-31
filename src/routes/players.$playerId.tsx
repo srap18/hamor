@@ -32,6 +32,7 @@ function PlayerPage() {
   const { playerId } = useParams({ from: "/players/$playerId" });
   const [me, setMe] = useState<string | null>(null);
   const [myName, setMyName] = useState<string>("");
+  const [myProtectionUntil, setMyProtectionUntil] = useState<string | null>(null);
   const [p, setP] = useState<Profile | null>(null);
   const [ships, setShips] = useState<Ship[]>([]);
   const [friendStatus, setFriendStatus] = useState<"none" | "pending" | "accepted" | "self">("none");
@@ -126,8 +127,9 @@ function PlayerPage() {
       const myId = u.user?.id ?? null;
       setMe(myId);
       if (myId) {
-        const { data: myProf } = await supabase.from("profiles").select("display_name").eq("id", myId).maybeSingle();
+        const { data: myProf } = await supabase.from("profiles").select("display_name,protection_until").eq("id", myId).maybeSingle();
         setMyName((myProf as any)?.display_name ?? "");
+        setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
       const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
@@ -322,10 +324,27 @@ function PlayerPage() {
     else { setFriendStatus("pending"); sound.play("success"); flash("تم إرسال طلب الصداقة ✓"); }
   };
 
+  // If my armor is still active, warn before any offensive action.
+  // Confirming clears protection_until immediately (server-side).
+  const confirmDropArmorIfActive = async (): Promise<boolean> => {
+    if (!me) return true;
+    const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
+    if (until <= Date.now()) return true;
+    const ok = window.confirm(
+      "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
+    );
+    if (!ok) return false;
+    const { error } = await supabase.from("profiles").update({ protection_until: null } as any).eq("id", me);
+    if (error) { flash("تعذّر إزالة الدرع"); return false; }
+    setMyProtectionUntil(null);
+    return true;
+  };
+
   const fireWeapon = async (weaponId: string) => {
     if (!me || !selectedShip) return;
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
+    if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     setMode(null);
     await consumeItem(weaponId, "weapon");
@@ -377,6 +396,7 @@ function PlayerPage() {
     if (!me || !selectedShip) return;
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
+    if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     const { error } = w.currency === "gems"
       ? await buyWithGems(w.id, "weapon", w.price)
@@ -438,6 +458,7 @@ function PlayerPage() {
   const stealWithShip = async (myShipId: string) => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
     if (!selectedShip) { flash("اختر سفينة الخصم أولاً"); return; }
+    if (!(await confirmDropArmorIfActive())) return;
     const targetShipId = selectedShip.id;
     setBusy(true); sound.play("click");
     console.log("[steal] start", { myShipId, targetUser: playerId, targetShip: targetShipId });
