@@ -993,17 +993,30 @@ function NoTribePanel({ userId }: { userId: string }) {
           {filtered.length === 0 && <div className="text-center text-amber-100/40 text-sm py-4">لا توجد قبائل</div>}
           {filtered.map(t => {
             const pending = myRequests.has(t.id);
+            const isOpen = t.join_mode === "open";
             return (
               <div key={t.id} className="flex items-center gap-2 p-2 rounded-lg bg-stone-900/70 border border-amber-700/40">
                 <div className="w-10 h-10 rounded-full bg-sky-800 flex items-center justify-center text-lg">{t.emblem}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-amber-100 truncate">{t.name}</div>
+                  <div className="text-sm font-bold text-amber-100 truncate flex items-center gap-1">
+                    {t.name}
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded ${isOpen ? "bg-emerald-700 text-emerald-100" : "bg-sky-800 text-sky-200"}`}>
+                      {isOpen ? "🌍 مفتوحة" : "📩 بطلب"}
+                    </span>
+                  </div>
                   <div className="text-[10px] text-amber-300/70">👥 {t.members} • ⚡ {t.power.toLocaleString()}</div>
                 </div>
-                <button onClick={() => requestJoin(t.id)} disabled={busy || pending}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-amber-950 font-bold text-xs disabled:opacity-50">
-                  {pending ? "بانتظار القبول" : "طلب انضمام"}
-                </button>
+                {isOpen ? (
+                  <button onClick={() => joinOpen(t.id)} disabled={busy}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-xs disabled:opacity-50">
+                    🚀 انضمام
+                  </button>
+                ) : (
+                  <button onClick={() => requestJoin(t.id)} disabled={busy || pending}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-amber-950 font-bold text-xs disabled:opacity-50">
+                    {pending ? "بانتظار القبول" : "طلب انضمام"}
+                  </button>
+                )}
               </div>
             );
           })}
