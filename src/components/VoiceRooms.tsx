@@ -46,6 +46,8 @@ export function VoiceRooms({ userId }: { userId: string }) {
   const [activeRoom, setActiveRoom] = useState<Room | null>(null);
 
   const loadRooms = useCallback(async () => {
+    // Best-effort: delete rooms that have been empty for over 1 hour
+    supabase.rpc("cleanup_idle_voice_rooms" as never).then(() => {}, () => {});
     const { data: rs } = await supabase.from("voice_rooms").select("*").eq("is_active", true).order("created_at", { ascending: false });
     setRooms((rs || []) as Room[]);
     const { data: ps } = await supabase.from("voice_room_participants").select("room_id");

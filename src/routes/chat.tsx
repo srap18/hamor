@@ -269,10 +269,10 @@ function ChatPage() {
       </div>
 
       {tab !== "voice" && (
-        myMute && (tab === "public" || tab === "tribe") ? (
+        myMute ? (
           <div className="px-3 pb-3">
             <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
-              🔇 أنت مكتوم من قِبل الإدارة
+              🔇 أنت مكتوم من قِبل الإدارة — لا تقدر ترسل في أي محادثة (عام/قبيلة/خاص/صوتي)
               {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
               {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
@@ -478,7 +478,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 // ===================== Tribe Management Modal =====================
 type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number };
 type JoinReq = { id: string; user_id: string; display_name: string; avatar_emoji: string; level: number };
-type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number };
+type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string };
 
 const RENAME_COST_GEMS = 100;
 const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
@@ -504,7 +504,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
 
   const load = useCallback(async () => {
     const { data: t } = await supabase.from("tribes")
-      .select("name,emblem,description,banner,level,treasure_coins,total_donations")
+      .select("name,emblem,description,banner,level,treasure_coins,total_donations,join_mode")
       .eq("id", tribeId).maybeSingle();
     if (t) {
       const ti = t as any as TribeInfo;
@@ -685,6 +685,40 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                   </div>
                 </div>
               )}
+
+              {/* Join mode toggle */}
+              <div className="p-2 rounded-lg bg-stone-900 border border-sky-700/40 space-y-2">
+                <div className="text-xs font-bold text-sky-300">🚪 طريقة الانضمام</div>
+                <div className="flex gap-2">
+                  {(["open","request"] as const).map(m => (
+                    <button key={m} disabled={busy}
+                      onClick={() => wrap(async () => {
+                        const { error } = await supabase.rpc("set_tribe_join_mode" as never, { _tribe_id: tribeId, _mode: m } as never);
+                        if (error) throw error;
+                        await load();
+                      })}
+                      className={`flex-1 py-1.5 rounded text-[11px] font-bold border-2 ${info?.join_mode === m ? "bg-sky-600 border-sky-300 text-white" : "bg-stone-800 border-sky-700/40 text-sky-200"}`}>
+                      {m === "open" ? "🌍 الجميع ينضم مباشرة" : "📩 بطلب انضمام"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delete tribe */}
+              <button disabled={busy}
+                onClick={async () => {
+                  const ok = await confirmDialog({ title: "حذف القبيلة", message: "متأكد تبي تحذف القبيلة نهائياً؟ كل الأعضاء راح يطلعون والخزنة راح تروح.", confirmText: "احذف نهائياً", danger: true });
+                  if (!ok) return;
+                  wrap(async () => {
+                    const { error } = await supabase.from("tribes").delete().eq("id", tribeId);
+                    if (error) throw error;
+                    onClose();
+                    window.location.reload();
+                  });
+                }}
+                className="w-full py-2 rounded-lg bg-red-900 border-2 border-red-500 text-white font-bold text-sm">
+                🗑️ حذف القبيلة نهائياً
+              </button>
             </div>
           )}
 
@@ -845,7 +879,7 @@ function WarModal({ sender, senderTribe, target, onClose }: { sender: string; se
 }
 
 // ===================== No Tribe Panel (join/create) =====================
-type TribeRow = { id: string; name: string; emblem: string; members: number; power: number; };
+type TribeRow = { id: string; name: string; emblem: string; members: number; power: number; join_mode: string; };
 
 function NoTribePanel({ userId }: { userId: string }) {
   const [name, setName] = useState("");
@@ -858,7 +892,7 @@ function NoTribePanel({ userId }: { userId: string }) {
   const [myRequests, setMyRequests] = useState<Set<string>>(new Set());
 
   const loadTribes = async () => {
-    const { data: ts } = await supabase.from("tribes").select("id,name,emblem").limit(200);
+    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,join_mode").limit(200);
     if (!ts) { setTribes([]); return; }
     const ids = ts.map((t) => t.id);
     if (ids.length === 0) { setTribes([]); return; }
@@ -880,7 +914,7 @@ function NoTribePanel({ userId }: { userId: string }) {
     const rows: TribeRow[] = ts.map((t: any) => {
       const uids = memberByTribe.get(t.id) || [];
       const power = uids.reduce((sum, uid) => sum + (levelMap.get(uid) || 0), 0);
-      return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power };
+      return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power, join_mode: t.join_mode || "request" };
     }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
     setTribes(rows);
 
@@ -911,6 +945,15 @@ function NoTribePanel({ userId }: { userId: string }) {
     const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: userId, status: "pending" });
     if (error) setErr(error.message);
     setBusy(false); loadTribes();
+  };
+
+  const joinOpen = async (tribeId: string) => {
+    if (!userId) return;
+    setBusy(true); setErr(null);
+    const { error } = await supabase.rpc("join_tribe_open" as never, { _tribe_id: tribeId } as never);
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    window.location.reload();
   };
 
   return (
@@ -950,17 +993,30 @@ function NoTribePanel({ userId }: { userId: string }) {
           {filtered.length === 0 && <div className="text-center text-amber-100/40 text-sm py-4">لا توجد قبائل</div>}
           {filtered.map(t => {
             const pending = myRequests.has(t.id);
+            const isOpen = t.join_mode === "open";
             return (
               <div key={t.id} className="flex items-center gap-2 p-2 rounded-lg bg-stone-900/70 border border-amber-700/40">
                 <div className="w-10 h-10 rounded-full bg-sky-800 flex items-center justify-center text-lg">{t.emblem}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-amber-100 truncate">{t.name}</div>
+                  <div className="text-sm font-bold text-amber-100 truncate flex items-center gap-1">
+                    {t.name}
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded ${isOpen ? "bg-emerald-700 text-emerald-100" : "bg-sky-800 text-sky-200"}`}>
+                      {isOpen ? "🌍 مفتوحة" : "📩 بطلب"}
+                    </span>
+                  </div>
                   <div className="text-[10px] text-amber-300/70">👥 {t.members} • ⚡ {t.power.toLocaleString()}</div>
                 </div>
-                <button onClick={() => requestJoin(t.id)} disabled={busy || pending}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-amber-950 font-bold text-xs disabled:opacity-50">
-                  {pending ? "بانتظار القبول" : "طلب انضمام"}
-                </button>
+                {isOpen ? (
+                  <button onClick={() => joinOpen(t.id)} disabled={busy}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500 text-emerald-950 font-bold text-xs disabled:opacity-50">
+                    🚀 انضمام
+                  </button>
+                ) : (
+                  <button onClick={() => requestJoin(t.id)} disabled={busy || pending}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-amber-950 font-bold text-xs disabled:opacity-50">
+                    {pending ? "بانتظار القبول" : "طلب انضمام"}
+                  </button>
+                )}
               </div>
             );
           })}

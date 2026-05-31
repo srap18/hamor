@@ -1613,6 +1613,7 @@ export type Database = {
           description: string
           emblem: string
           id: string
+          join_mode: string
           level: number
           name: string
           owner_id: string
@@ -1625,6 +1626,7 @@ export type Database = {
           description?: string
           emblem?: string
           id?: string
+          join_mode?: string
           level?: number
           name: string
           owner_id: string
@@ -1637,6 +1639,7 @@ export type Database = {
           description?: string
           emblem?: string
           id?: string
+          join_mode?: string
           level?: number
           name?: string
           owner_id?: string
@@ -2028,6 +2031,11 @@ export type Database = {
         Args: { _pts: number; _user: string }
         Returns: undefined
       }
+      admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
+      admin_delete_voice_room: {
+        Args: { _room_id: string }
+        Returns: undefined
+      }
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
         Returns: string
@@ -2186,6 +2194,7 @@ export type Database = {
       }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
+      cleanup_idle_voice_rooms: { Args: never; Returns: number }
       compute_vip_level: { Args: { _points: number }; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
@@ -2412,6 +2421,7 @@ export type Database = {
         Args: { _tribe_id: string; _user_id: string }
         Returns: boolean
       }
+      join_tribe_open: { Args: { _tribe_id: string }; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {
         Args: never
@@ -2522,6 +2532,10 @@ export type Database = {
       set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       set_ship_at_sea: {
         Args: { _at_sea: boolean; _ship_id: string }
+        Returns: undefined
+      }
+      set_tribe_join_mode: {
+        Args: { _mode: string; _tribe_id: string }
         Returns: undefined
       }
       shield_purchases_last_week: { Args: { _user: string }; Returns: number }
