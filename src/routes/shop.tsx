@@ -182,10 +182,11 @@ function Shop() {
       if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       localStorage.setItem(ARMOR_LAST_KEY(user.id), String(Date.now()));
     } else if (tab === "ships") {
-      // Phoenix shop ship — calls dedicated RPC once per quantity
+      // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity
+      const rpcName = selected.id === "phoenix-pack-3" ? "buy_phoenix_pack_3" : "buy_phoenix_pack_1";
       for (let i = 0; i < qty; i++) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase.rpc as any)("buy_phoenix_ship");
+        const { error } = await (supabase.rpc as any)(rpcName);
         if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       }
       setBusy(false);
