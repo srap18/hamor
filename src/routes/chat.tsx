@@ -1044,8 +1044,8 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ text, setText, onSend, disabled, userId, onAudioSent, channel, tribeId, dmWith }: {
-  text: string; setText: (v: string) => void; onSend: (override?: string) => void; disabled: boolean; userId: string;
+function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith }: {
+  text: string; setText: (v: string) => void; onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
 }) {
   const [recording, setRecording] = useState(false);
