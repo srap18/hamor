@@ -27,7 +27,7 @@ export const CREWS: Crew[] = [
   { id: "sailor",  name: "بحار",            emoji: "⛵", image: sailorImg, price: 600000, currency: "coins", bonus: "يزيد سرعة الصيد بنسبة 40%",                              rarity: "common" },
   { id: "trader",  name: "التاجر",          emoji: "💰", image: traderImg, price: 250,    currency: "gems",  bonus: "يكشف لك أسعار السمك المستقبلية خلال 10 ساعات القادمة",    rarity: "epic" },
   { id: "police",  name: "شرطي",            emoji: "👮", image: policeImg, price: 250,    currency: "gems",  bonus: "يقبض على السارق ويحمي ذهبك",                              rarity: "rare" },
-  { id: "fixer_1", name: "مصلح مبتدئ",      emoji: "🔧", image: fixer1Img, price: 250,    currency: "gems",  bonus: "يقلل وقت الإصلاح بنسبة 30%",  rarity: "common" },
-  { id: "fixer_2", name: "مصلح متقدم",      emoji: "🛠️", image: fixer2Img, price: 250,    currency: "gems",  bonus: "يقلل وقت الإصلاح بنسبة 70%",  rarity: "rare" },
-  { id: "fixer_3", name: "مصلح أسطوري",     emoji: "⚒️", image: fixer3Img, price: 250,    currency: "gems",  bonus: "يصلح السفينة فوراً 100%",     rarity: "legendary" },
+  { id: "fixer_1", name: "مصلح مبتدئ",      emoji: "🔧", image: fixer1Img, price: 500000,  currency: "coins", bonus: "يقلل وقت الإصلاح بنسبة 30%",  rarity: "common" },
+  { id: "fixer_2", name: "مصلح متقدم",      emoji: "🛠️", image: fixer2Img, price: 1000000, currency: "coins", bonus: "يقلل وقت الإصلاح بنسبة 70%",  rarity: "rare" },
+  { id: "fixer_3", name: "مصلح أسطوري",     emoji: "⚒️", image: fixer3Img, price: 60,      currency: "gems",  bonus: "يصلح السفينة فوراً 100%",     rarity: "legendary" },
 ];
