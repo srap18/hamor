@@ -31,6 +31,19 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<TabKey>("all");
+  const [actors, setActors] = useState<Record<string, PublicProfile>>({});
+
+  const loadActors = useCallback(async (notifs: Notif[]) => {
+    const ids = Array.from(new Set(notifs.map(n => n.created_by).filter((x): x is string => !!x)));
+    const missing = ids.filter(id => !actors[id]);
+    if (!missing.length) return;
+    const profs = await getProfilesPublic(missing);
+    setActors(prev => {
+      const next = { ...prev };
+      for (const p of profs) next[p.id] = p;
+      return next;
+    });
+  }, [actors]);
 
   const load = useCallback(async () => {
     if (!user) return;
