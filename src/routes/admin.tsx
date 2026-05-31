@@ -73,7 +73,7 @@ function AdminLayout() {
           <div className="flex md:hidden items-center gap-1.5">
             <Link to="/" className="text-xs px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700">🎮</Link>
             <button
-              onClick={async () => { await supabase.auth.signOut(); nav({ to: "/login" }); }}
+              onClick={() => confirmSignOut(() => nav({ to: "/login" }))}
               className="text-xs px-2.5 py-1.5 rounded-md bg-red-900/40 hover:bg-red-900/60 text-red-200"
             >خروج</button>
           </div>
