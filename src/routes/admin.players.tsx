@@ -304,7 +304,3 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     </div>
   );
 }
-      </div>
-    </div>
-  );
-}
