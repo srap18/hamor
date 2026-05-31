@@ -620,7 +620,7 @@ function PlayerPage() {
   const ts = [0.25, 0.5, 0.15];
   const vRange = Math.max(10, 60 - (wTop + 4));
   const hOffsets = [0.05, 0.3, 0.6];
-  const seaOffsets = [0.85, 0.9, 0.8];
+  const seaSide = scene.seaSide ?? "right";
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
