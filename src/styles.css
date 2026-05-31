@@ -166,6 +166,9 @@
     50% { filter: saturate(1.06) brightness(1.03) contrast(1.08); }
   }
   .animate-bg-burned-pulse { animation: bg-burned-pulse 4.5s ease-in-out infinite; }
+  .animate-bg-drift.animate-bg-burned-pulse {
+    animation: bg-drift var(--bg-dur, 8s) ease-in-out infinite, bg-burned-pulse 4.5s ease-in-out infinite;
+  }
 
   @keyframes burned-glow {
     0%, 100% { opacity: 0.22; }
