@@ -774,6 +774,8 @@ function Index() {
         setShipAtSea(s.dbId!, false).catch(() => {});
       });
     }
+    // Instant push to spectators
+    pushHarborState();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
       id: Date.now(),
