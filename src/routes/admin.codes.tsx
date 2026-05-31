@@ -751,6 +751,17 @@ function AdminCodesPage() {
                     </span>
                     {c.expires_at && <span>ينتهي: {new Date(c.expires_at).toLocaleString("ar")}</span>}
                   </div>
+                  {Array.isArray(c.extra_rewards) && c.extra_rewards.length > 0 && (
+                    <div className="text-[11px] text-fuchsia-300 mt-1 flex flex-wrap gap-1">
+                      <span className="font-bold">🎁 مجمّع ({c.extra_rewards.length}):</span>
+                      {c.extra_rewards.slice(0, 8).map((r, idx) => (
+                        <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800">
+                          {r.type === "ship" ? "⛵" : r.type === "item" ? "📦" : "💰"} {r.item_id ?? `${r.coins ?? 0}🪙`} {r.quantity && r.quantity > 1 ? `×${r.quantity}` : ""}
+                        </span>
+                      ))}
+                      {c.extra_rewards.length > 8 && <span>… +{c.extra_rewards.length - 8}</span>}
+                    </div>
+                  )}
                   {c.note && <div className="text-[11px] text-slate-500 mt-0.5">📝 {c.note}</div>}
                 </div>
                 <div className="flex gap-2">
