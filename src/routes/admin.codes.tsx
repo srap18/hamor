@@ -77,6 +77,18 @@ function AdminCodesPage() {
   const [itemsCatalog, setItemsCatalog] = useState<Array<{ code: string; name: string; kind: string }>>([]);
   const [shipsCatalog, setShipsCatalog] = useState<Array<{ code: string; name: string }>>([]);
 
+  // إنشاء مجمّع: اختر عدة أشياء + عملات في كود واحد
+  const [bundleSelItems, setBundleSelItems] = useState<Record<string, number>>({}); // item code -> qty
+  const [bundleSelShips, setBundleSelShips] = useState<Record<string, number>>({}); // ship code -> qty
+  const [bundleCoins, setBundleCoins] = useState(0);
+  const [bundleGems, setBundleGems] = useState(0);
+  const [bundleXp, setBundleXp] = useState(0);
+  const [bundleDist, setBundleDist] = useState<DistMode>("limited");
+  const [bundleMaxUses, setBundleMaxUses] = useState(1);
+  const [bundleNote, setBundleNote] = useState("");
+  const [bundleCustomCode, setBundleCustomCode] = useState("");
+  const [bundleSaving, setBundleSaving] = useState(false);
+
   const loadCodes = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
