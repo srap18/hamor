@@ -154,9 +154,21 @@ function ChatPage() {
     return () => { supabase.removeChannel(ch); };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
+  // Smart auto-scroll: only stick to bottom if user is already near it (smoother UX, doesn't fight scroll)
+  useEffect(() => {
+    const el = scrollRef.current; if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
+    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [msgs]);
 
   const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<number | null>(null);
+  const showNotice = useCallback((m: string) => {
+    setNotice(m);
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = window.setTimeout(() => setNotice(null), 2500);
+  }, []);
   const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
   const send = useCallback(async (override?: string) => {
     if (!user || sending) return;
@@ -171,11 +183,11 @@ function ChatPage() {
     const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
     const last = lastSendRef.current;
     if (now - last.at < 1200) {
-      alert("على مهلك — لا ترسل بسرعة كبيرة");
+      showNotice("على مهلك — لا ترسل بسرعة");
       return;
     }
     if (last.body === body && last.channel === tab && last.target === target && now - last.at < 10000) {
-      alert("لا تكرر نفس الرسالة");
+      showNotice("لا تكرر نفس الرسالة");
       return;
     }
 
@@ -183,6 +195,9 @@ function ChatPage() {
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
     setSending(true);
+    // Clear input immediately for snappy UX (restore on failure)
+    const prevText = text;
+    if (!override) setText("");
     // Hard timeout so the button never gets stuck (e.g. flaky network)
     const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
       setTimeout(() => resolve({ data: null, error: { message: "انتهت المهلة، حاول مرة أخرى" } }), 12000)
@@ -195,19 +210,19 @@ function ChatPage() {
       const { data, error } = res as any;
       if (error) {
         const msg = /row-level security|policy/i.test(error.message)
-          ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
+          ? "أنت مكتوم حالياً من قِبل الإدارة"
           : "تعذر الإرسال: " + error.message;
-        alert(msg);
+        showNotice(msg);
+        if (!override) setText(prevText);
         return;
       }
       lastSendRef.current = { body, at: now, channel: tab, target };
-      if (!override) setText("");
       if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
       if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
     } finally {
       setSending(false);
     }
-  }, [user, text, tab, profile, dmWith, sending]);
+  }, [user, text, tab, profile, dmWith, sending, showNotice]);
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
@@ -223,7 +238,14 @@ function ChatPage() {
         {!(tab === "tribe" && profile?.tribe_id) && <div className="w-10" />}
       </div>
 
+      {notice && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-stone-900/95 border-2 border-amber-400/70 text-amber-100 text-sm font-bold shadow-lg pointer-events-none">
+          {notice}
+        </div>
+      )}
+
       <div className="absolute top-14 left-2 right-2 z-20 flex gap-1">
+
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
@@ -1080,9 +1102,25 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   const startRec = async () => {
     if (disabled || recording || uploading) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
-      const rec = new MediaRecorder(stream, { mimeType: mime });
+      // High-quality mic capture: 48kHz mono with noise suppression
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 1,
+        } as MediaTrackConstraints,
+      });
+      // Prefer Opus in WebM for best quality/size ratio
+      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
+            ? "audio/mp4;codecs=mp4a.40.2"
+            : "audio/mp4";
+      const rec = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 128000 });
       chunksRef.current = [];
       cancelledRef.current = false;
       rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
@@ -1122,7 +1160,8 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
           stopRec(false);
         }
       }, 250);
-      rec.start();
+      // Collect data every 250ms for smoother chunking
+      rec.start(250);
       setRecording(true);
     } catch (e: any) {
       alert("لا يمكن الوصول إلى الميكروفون: " + (e?.message || ""));
