@@ -70,7 +70,9 @@ function ShipyardPage() {
     [owned],
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
-  const fleetFull = fleetStorageUsed >= fleetStorageMax;
+  const MAX_SHIPS = 3;
+  const shipsCount = owned.length;
+  const fleetFull = fleetStorageUsed >= fleetStorageMax || shipsCount >= MAX_SHIPS;
 
   const showToast = (message: string) => {
     setToast(message);
