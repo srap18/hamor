@@ -45,6 +45,7 @@ import sea_dragon from "@/assets/fish/sea_dragon.png";
 import poseidon from "@/assets/fish/poseidon.png";
 import black_pearl from "@/assets/fish/black_pearl.png";
 import golden_koi from "@/assets/fish/golden_koi.png";
+import phoenix from "@/assets/fish/phoenix.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
@@ -53,6 +54,7 @@ export const FISH_IMG: Record<string, string> = {
   marlin, swordfish, sailfish, barracuda, stingray, shark, tang_blue, koi,
   manta, hammerhead, whale, orca, arowana, goldfish, pearl,
   kraken, leviathan, megalodon, sea_dragon, poseidon, black_pearl, golden_koi,
+  phoenix,
 };
 
 export type Fish = {
