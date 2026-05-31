@@ -1130,7 +1130,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
           />
           <button type="button" onClick={startRec} disabled={disabled || uploading}
             className="px-3 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50" title="تسجيل صوتي">🎤</button>
-          <button type="submit" disabled={disabled || uploading} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">إرسال</button>
+          <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
     </form>
