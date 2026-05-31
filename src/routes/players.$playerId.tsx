@@ -686,15 +686,16 @@ function PlayerPage() {
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i % ts.length] * vRange}%`;
         const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
-        const seaLeft = wLeft + seaOffsets[i % seaOffsets.length] * wWidth;
+        const shipW = 22 * scale;
+        const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaLeft}%` : `${dockLeft}%`);
+        const left = destroyed ? `${dockLeft}%` : (s.at_sea ? `${seaEdge}%` : `${dockLeft}%`);
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
