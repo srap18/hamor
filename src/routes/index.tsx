@@ -1766,15 +1766,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <div className="grid grid-cols-5 gap-1 mb-3">
+        <div className="grid grid-cols-7 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
-              onClick={() => { sound.play("click"); setTab(t.id); setRows([]); }}
-              className={`py-2 rounded-lg text-[10px] font-bold border transition ${
+              onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
+              className={`py-1.5 rounded-lg text-[9px] font-bold border transition ${
                 tab === t.id ? "bg-accent text-secondary border-accent" : "bg-secondary/60 text-accent/80 border-accent/30"
               }`}>
-              <div className="text-base">{t.e}</div>
-              <div>{t.l}</div>
+              <div className="text-sm">{t.e}</div>
+              <div className="leading-tight">{t.l}</div>
             </button>
           ))}
         </div>
