@@ -21,94 +21,133 @@ export type Profile = {
   protection_until?: string | null;
 };
 
+/* ─────────────── Global session singleton ─────────────── */
+let sessionCache: Session | null = null;
+let sessionInitialized = false;
+let sessionLoadingFlag = true;
+const sessionSubs = new Set<() => void>();
+const notifySession = () => sessionSubs.forEach((fn) => { try { fn(); } catch {} });
+
+function ensureSessionBootstrap() {
+  if (sessionInitialized) return;
+  sessionInitialized = true;
+  supabase.auth.onAuthStateChange((_e, s) => {
+    sessionCache = s;
+    sessionLoadingFlag = false;
+    notifySession();
+    // When the user changes, drop the cached profile so we refetch
+    if (s?.user?.id !== profileCache?.id) {
+      profileCache = null;
+      notifyProfile();
+    }
+  });
+  supabase.auth.getSession().then(({ data }) => {
+    sessionCache = data.session;
+    sessionLoadingFlag = false;
+    notifySession();
+  });
+}
+
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  ensureSessionBootstrap();
+  const [, force] = useState(0);
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => subscription.unsubscribe();
+    const fn = () => force((x) => x + 1);
+    sessionSubs.add(fn);
+    return () => { sessionSubs.delete(fn); };
   }, []);
+  return {
+    session: sessionCache,
+    user: sessionCache?.user as User | undefined,
+    loading: sessionLoadingFlag,
+  };
+}
 
-  return { session, user: session?.user as User | undefined, loading };
+/* ─────────────── Global profile singleton ─────────────── */
+let profileCache: Profile | null = null;
+let profileLoadingFlag = false;
+let profileChannelUserId: string | null = null;
+let profilePingTimer: ReturnType<typeof setInterval> | null = null;
+const profileSubs = new Set<() => void>();
+const notifyProfile = () => profileSubs.forEach((fn) => { try { fn(); } catch {} });
+
+async function fetchProfileNow(userId: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
+  if (data) {
+    profileCache = data as Profile;
+    profileLoadingFlag = false;
+    notifyProfile();
+  }
+}
+
+function ensureProfileBootstrap(userId: string) {
+  if (profileChannelUserId === userId) return;
+  // Tear down old channel/ping for previous user
+  if (profileChannelUserId) {
+    if (profilePingTimer) { clearInterval(profilePingTimer); profilePingTimer = null; }
+    // realtime channels are auto-cleaned when we swap; not strictly removing
+  }
+  profileChannelUserId = userId;
+  if (!profileCache || profileCache.id !== userId) {
+    profileLoadingFlag = true;
+    notifyProfile();
+  }
+  fetchProfileNow(userId);
+
+  // Ping online_at every minute, plus one initial
+  supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", userId);
+  profilePingTimer = setInterval(() => {
+    supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", userId);
+  }, 60_000);
+
+  // Realtime subscription
+  supabase
+    .channel(`profile:${userId}:${Math.random().toString(36).slice(2)}`)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
+      (payload) => {
+        profileCache = payload.new as Profile;
+        notifyProfile();
+      },
+    )
+    .subscribe();
 }
 
 export function useProfile() {
   const { user, loading: authLoading } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, force] = useState(0);
 
   useEffect(() => {
-    if (!user) {
-      setProfile(null);
-      setLoading(authLoading);
-      return;
-    }
-    let cancelled = false;
-    const load = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (!cancelled) {
-        setProfile(data as Profile | null);
-        setLoading(false);
-      }
-    };
-    load();
+    const fn = () => force((x) => x + 1);
+    profileSubs.add(fn);
+    return () => { profileSubs.delete(fn); };
+  }, []);
 
-    // Bump online_at every minute
-    const ping = setInterval(() => {
-      supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", user.id);
-    }, 60_000);
-    // Initial ping
-    supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", user.id);
-
-    // Subscribe to my own profile changes (unique channel per effect run to
-    // avoid Supabase "cannot add postgres_changes after subscribe()" on remounts)
-    const ch = supabase
-      .channel(`profile:${user.id}:${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        (payload) => setProfile(payload.new as Profile))
-      .subscribe();
-
-
-    return () => {
-      cancelled = true;
-      clearInterval(ping);
-      supabase.removeChannel(ch);
-    };
-  }, [user, authLoading]);
-
-  // Lightweight global refresh: any code can dispatch `profile:refresh` to
-  // force a re-fetch (used as a safety net after purchases in case realtime
-  // is lagging or disabled).
   useEffect(() => {
-    if (!user) return;
-    const onRefresh = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (data) setProfile(data as Profile);
-    };
-    window.addEventListener("profile:refresh", onRefresh);
-    return () => window.removeEventListener("profile:refresh", onRefresh);
-  }, [user]);
+    if (user?.id) ensureProfileBootstrap(user.id);
+  }, [user?.id]);
 
-  return { profile, loading };
+  const loading = !!user && (profileLoadingFlag && !profileCache);
+  return {
+    profile: user ? profileCache : null,
+    loading: user ? loading : authLoading,
+  };
 }
 
 /** Trigger a one-shot refetch of the current user's profile (use after writes). */
 export function refreshProfile() {
+  if (profileChannelUserId) fetchProfileNow(profileChannelUserId);
   if (typeof window !== "undefined") window.dispatchEvent(new Event("profile:refresh"));
+}
+
+// Listen to the legacy event in case any code still dispatches it
+if (typeof window !== "undefined") {
+  window.addEventListener("profile:refresh", () => {
+    if (profileChannelUserId) fetchProfileNow(profileChannelUserId);
+  });
 }
