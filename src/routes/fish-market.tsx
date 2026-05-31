@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import piratesBg from "@/assets/pirates-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { FISH, type Fish as CatalogFish } from "@/lib/fish";
 import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
