@@ -442,15 +442,10 @@ function AdminCodesPage() {
           {distMode === "limited" && (
             <NumField label="عدد الاستخدامات الإجمالي" value={maxUses} onChange={setMaxUses} min={1} />
           )}
-          <label className="text-xs text-slate-400 space-y-1">
-            <span>ينتهي في (اختياري)</span>
-            <input
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
-            />
-          </label>
+          <DurationPicker label="ينتهي بعد (اختياري)" days={expD} hours={expH}
+            onChange={(d, h) => { setExpD(d); setExpH(h); }}
+            allowZero zeroLabel="بدون انتهاء" />
+
         </div>
 
         <label className="block text-xs text-slate-400 space-y-1">
