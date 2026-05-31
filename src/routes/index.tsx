@@ -742,11 +742,13 @@ function Index() {
         ? `${caught.emoji} ${caught.name} ×${fishGained}`
         : `🐟 ×${fishGained}`,
     });
-    showBanner({
-      kind: "catch",
-      title: caught ? `${caught.emoji} ${caught.name}` : "🐟 سمكة",
-      subtitle: `سفينة #${s.id} • مستوى ${s.level}`,
+    setCatchResult({
+      img: caught?.img,
+      emoji: caught?.emoji ?? "🐟",
+      name: caught?.name ?? "سمكة",
       count: fishGained,
+      shipId: s.id,
+      shipLevel: s.level,
     });
 
     setTimeout(() => setPop(null), 1400);
