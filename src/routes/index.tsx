@@ -2088,16 +2088,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             >
               <NetSvg />
             </div>
-            {/* Splash ring */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 border-white/70"
-              style={{
-                bottom: "-18%",
-                width: "70%",
-                aspectRatio: "3 / 1",
-                animation: "splash-ring 2.6s ease-out infinite",
-              }}
-            />
           </>
         )}
       </div>
