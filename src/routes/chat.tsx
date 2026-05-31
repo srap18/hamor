@@ -162,6 +162,13 @@ function ChatPage() {
   }, [msgs]);
 
   const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimerRef = useRef<number | null>(null);
+  const showNotice = useCallback((m: string) => {
+    setNotice(m);
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = window.setTimeout(() => setNotice(null), 2500);
+  }, []);
   const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
   const send = useCallback(async (override?: string) => {
     if (!user || sending) return;
@@ -176,11 +183,11 @@ function ChatPage() {
     const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
     const last = lastSendRef.current;
     if (now - last.at < 1200) {
-      alert("على مهلك — لا ترسل بسرعة كبيرة");
+      showNotice("على مهلك — لا ترسل بسرعة");
       return;
     }
     if (last.body === body && last.channel === tab && last.target === target && now - last.at < 10000) {
-      alert("لا تكرر نفس الرسالة");
+      showNotice("لا تكرر نفس الرسالة");
       return;
     }
 
@@ -188,6 +195,9 @@ function ChatPage() {
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
     setSending(true);
+    // Clear input immediately for snappy UX (restore on failure)
+    const prevText = text;
+    if (!override) setText("");
     // Hard timeout so the button never gets stuck (e.g. flaky network)
     const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
       setTimeout(() => resolve({ data: null, error: { message: "انتهت المهلة، حاول مرة أخرى" } }), 12000)
@@ -200,19 +210,19 @@ function ChatPage() {
       const { data, error } = res as any;
       if (error) {
         const msg = /row-level security|policy/i.test(error.message)
-          ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
+          ? "أنت مكتوم حالياً من قِبل الإدارة"
           : "تعذر الإرسال: " + error.message;
-        alert(msg);
+        showNotice(msg);
+        if (!override) setText(prevText);
         return;
       }
       lastSendRef.current = { body, at: now, channel: tab, target };
-      if (!override) setText("");
       if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
       if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
     } finally {
       setSending(false);
     }
-  }, [user, text, tab, profile, dmWith, sending]);
+  }, [user, text, tab, profile, dmWith, sending, showNotice]);
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
