@@ -692,7 +692,7 @@ function Index() {
     const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
     const caughtId = storedGuide && fallbackPool.includes(storedGuide)
       ? storedGuide
-      : fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+      : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
     const baseFish = Math.floor(fullAmount * effRatio);
