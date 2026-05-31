@@ -109,13 +109,18 @@ function loadFleet(): Ship[] {
     if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
+      const def = getShipByMarketLevel(s.level);
+      const realMax = catchPerTrip(def);
+      const realDuration = def.fishingSeconds;
       return {
-        id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
-        duration: s.duration ?? s.timeLeft ?? Math.round(s.max / 30),
+        id: s.id, dbId: s.dbId, level: s.level,
+        max: realMax,
+        timeLeft: realDuration,
+        duration: realDuration,
         startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
-        img: getShipByMarketLevel(s.level).image,
-        progress: s.progress ?? 0,
+        img: def.image,
+        progress: Math.min(s.progress ?? 0, realMax),
         fishing: s.fishing ?? false,
         sail: s.sail ?? 0,
       };
