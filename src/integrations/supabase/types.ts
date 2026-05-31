@@ -2079,6 +2079,10 @@ export type Database = {
         Args: { _bg_id: string; _price: number }
         Returns: undefined
       }
+      buy_background_gems: {
+        Args: { _bg_id: string; _gems: number }
+        Returns: undefined
+      }
       buy_catalog_item: {
         Args: { _item_id: string; _item_type: string }
         Returns: undefined
