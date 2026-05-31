@@ -44,12 +44,6 @@ const THEMES = [
   { id: "emerald", label: "💚 زمرد" },
 ];
 
-function defaultEnds() {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d.toISOString().slice(0, 16);
-}
-
 function AdminCompetitions() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,8 +60,11 @@ function AdminCompetitions() {
   const [rwGems, setRwGems] = useState(0);
   const [rwXp, setRwXp] = useState(0);
   const [rwText, setRwText] = useState("");
-  const [startsAt, setStartsAt] = useState(new Date().toISOString().slice(0, 16));
-  const [endsAt, setEndsAt] = useState(defaultEnds());
+  // Relative duration: starts in X days/hours from now, ends after Y days/hours from now
+  const [startD, setStartD] = useState(0);
+  const [startH, setStartH] = useState(0);
+  const [endD, setEndD] = useState(7);
+  const [endH, setEndH] = useState(0);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -84,9 +81,13 @@ function AdminCompetitions() {
 
   const create = async () => {
     if (!title.trim()) { setMsg("اكتب عنوان الفعالية"); return; }
+    const startOffset = startD * 24 + startH;
+    const endOffset = endD * 24 + endH;
+    if (endOffset <= startOffset) { setMsg("مدة النهاية يجب أن تكون أكبر من البداية"); return; }
     setSaving(true);
     setMsg(null);
     const { data: { user } } = await supabase.auth.getUser();
+    const now = Date.now();
     const payload = {
       title: title.trim(),
       description: desc.trim(),
@@ -100,8 +101,8 @@ function AdminCompetitions() {
       reward_gems: Math.max(0, rwGems | 0),
       reward_xp: Math.max(0, rwXp | 0),
       reward_text: rwText.trim(),
-      starts_at: new Date(startsAt).toISOString(),
-      ends_at: new Date(endsAt).toISOString(),
+      starts_at: new Date(now + startOffset * 3600_000).toISOString(),
+      ends_at: new Date(now + endOffset * 3600_000).toISOString(),
       active: true,
       created_by: user?.id ?? null,
     };
@@ -111,6 +112,7 @@ function AdminCompetitions() {
     setMsg("✓ تم إنشاء الفعالية");
     setTitle(""); setDesc(""); setBannerText("بطولة عظمى"); setRwText("");
     setRwCoins(0); setRwGems(0); setRwXp(0);
+    setStartD(0); setStartH(0); setEndD(7); setEndH(0);
     load();
   };
 
