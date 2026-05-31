@@ -495,7 +495,7 @@ function Index() {
   const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
 
   // Incoming raids: ships from other players currently stealing from me
-  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number };
+  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; target_ship_id: string | null };
   const [raids, setRaids] = useState<Raid[]>([]);
   const reloadRaids = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -503,10 +503,10 @@ function Index() {
     if (!uid) { setRaids([]); return; }
     const { data: ships } = await supabase
       .from("ships_owned")
-      .select("id,user_id,stealing_ends_at,template_id")
+      .select("id,user_id,stealing_ends_at,template_id,stealing_target_ship_id")
       .eq("stealing_target_user_id", uid)
       .not("stealing_target_user_id", "is", null);
-    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null }[];
+    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaids([]); return; }
     const ids = Array.from(new Set(list.map((s) => s.user_id)));
     const { data: profs } = await supabase
@@ -519,6 +519,7 @@ function Index() {
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
       ends_at: s.stealing_ends_at || new Date().toISOString(),
       template_id: s.template_id ?? 1,
+      target_ship_id: s.stealing_target_ship_id,
     })));
   };
   useEffect(() => {
@@ -1018,9 +1019,22 @@ function Index() {
         const wLeft = scene.waterLeft ?? 30;
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
-        const slot = i % 3;
-        const top = `${wTop + 6 + slot * 8}%`;
-        const left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
+        // Try to find the targeted ship in MY fleet and dock the raider beside it.
+        const tIdx = ships.findIndex((sh) => sh.dbId === r.target_ship_id);
+        let top: string; let left: string;
+        if (tIdx >= 0) {
+          const tgt = ships[tIdx];
+          const tgtLeft = typeof tgt.dockLeft === "number" ? tgt.dockLeft : wLeft + 0.3 * wWidth;
+          const tgtTop = typeof tgt.top === "string" ? tgt.top : `${wTop + 10}%`;
+          top = tgtTop;
+          // place raider slightly to the SEA side of the victim ship
+          const seaIsRight = (scene.seaSide ?? "right") === "right";
+          left = `${Math.max(2, Math.min(92, tgtLeft + (seaIsRight ? 12 : -12)))}%`;
+        } else {
+          const slot = i % 3;
+          top = `${wTop + 6 + slot * 8}%`;
+          left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
+        }
         const img = getShipByMarketLevel(r.template_id || 1).image;
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
