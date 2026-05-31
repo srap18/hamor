@@ -222,10 +222,10 @@ function BoxesTab() {
               <span className="text-2xl">{t.icon}</span>
               <div className="flex-1">
                 <div className="text-sm font-semibold">{t.name}</div>
-                <div className="text-xs text-amber-200/60">🪙 {t.min_coins}-{t.max_coins} · ⭐ {t.min_xp}-{t.max_xp}</div>
+                <div className="text-xs text-amber-200/60 inline-flex items-center gap-1"><CoinIcon size={12} /> {t.min_coins}-{t.max_coins} · ⭐ {t.min_xp}-{t.max_xp}</div>
               </div>
-              <button onClick={() => buyBox(t)} className="px-3 py-1 rounded bg-amber-700 hover:bg-amber-600 text-xs font-semibold">
-                🪙 {t.cost_coins}{t.cost_gems > 0 && ` 💎${t.cost_gems}`}
+              <button onClick={() => buyBox(t)} className="px-3 py-1 rounded bg-amber-700 hover:bg-amber-600 text-xs font-semibold inline-flex items-center gap-1">
+                <CoinIcon size={12} /> {t.cost_coins}{t.cost_gems > 0 && ` 💎${t.cost_gems}`}
               </button>
             </div>
           ))}
