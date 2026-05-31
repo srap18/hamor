@@ -439,6 +439,13 @@ function Index() {
     };
   };
 
+  // Deterministic per-trip fish pick so the Guide crew's preview matches the actual catch.
+  const predictTripFish = (pool: string[], shipId: number, startedAt?: number): string | null => {
+    if (pool.length === 0) return null;
+    const seed = (((startedAt ?? 0) >>> 0) ^ ((shipId * 2654435761) >>> 0)) >>> 0;
+    return pool[seed % pool.length];
+  };
+
   // 1-second tick for countdowns / expiry
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -685,7 +692,7 @@ function Index() {
     const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
     const caughtId = storedGuide && fallbackPool.includes(storedGuide)
       ? storedGuide
-      : fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+      : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
     const baseFish = Math.floor(fullAmount * effRatio);
@@ -1034,12 +1041,26 @@ function Index() {
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
+        // Guide crew: reveal the fish this trip will catch (deterministic per trip)
+        const { guide: hasGuide } = getCrewBonuses(s);
+        let guideFish: { emoji: string; name: string; img?: string } | null = null;
+        if (hasGuide && s.fishing) {
+          const pool = fishForShip(s.level, s.id);
+          const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
+          const storedGuide = getShipGuide(s.id);
+          const fid = storedGuide && fallbackPool.includes(storedGuide)
+            ? storedGuide
+            : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
+          const f = fid ? FISH[fid] : null;
+          if (f) guideFish = { emoji: f.emoji, name: f.name, img: f.img };
+        }
 
         return (
           <ShipSlot
             key={s.id}
             ship={{ ...s, top, scale, dockLeft, seaSide: scene.seaSide }}
             crews={shipCrews}
+            guideFish={guideFish}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
@@ -1875,7 +1896,7 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
   );
 }
 
-function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
+function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS; guideFish?: { emoji: string; name: string; img?: string } | null }) {
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
@@ -2209,6 +2230,17 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             : "from-rose-500 to-rose-400";
         return (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-20">
+            {/* Guide crew preview — show which fish this trip will catch */}
+            {guideFish && ship.fishing && (
+              <div className="mx-auto mb-0.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-sky-700/95 to-indigo-700/95 border border-sky-300/80 shadow-md whitespace-nowrap">
+                {guideFish.img ? (
+                  <img src={guideFish.img} alt={guideFish.name} className="w-3 h-3 object-contain" draggable={false} />
+                ) : (
+                  <span className="text-[10px] leading-none">{guideFish.emoji}</span>
+                )}
+                <span className="text-[8px] font-extrabold text-sky-50 leading-none">{guideFish.name}</span>
+              </div>
+            )}
             {/* HP bar — slim */}
             <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
