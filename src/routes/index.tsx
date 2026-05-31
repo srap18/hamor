@@ -762,6 +762,8 @@ function Index() {
       count: fishGained,
       shipId: s.id,
       shipLevel: s.level,
+      baseCount: baseFish,
+      luckBonus: luckMult > 1 ? fishGained - baseFish : 0,
     });
 
     setTimeout(() => setPop(null), 1400);
