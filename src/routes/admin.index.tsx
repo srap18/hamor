@@ -14,10 +14,10 @@ type Stats = {
   players: number;
   online: number;
   banned: number;
+  muted: number;
   ships: number;
   totalCoins: number;
   totalGems: number;
-  
   totalXp: number;
   txCount: number;
 };
@@ -45,10 +45,12 @@ function AdminDashboard() {
   const loadStats = useCallback(async () => {
     setRefreshing(true);
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const nowIso = new Date().toISOString();
     const [
       { count: players },
       { count: online },
       { count: banned },
+      { count: muted },
       { count: ships },
       { data: agg },
       { count: txCount },
@@ -57,6 +59,7 @@ function AdminDashboard() {
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("*", { count: "exact", head: true }).gte("online_at", tenMinAgo),
       supabase.from("bans").select("*", { count: "exact", head: true }).eq("active", true),
+      supabase.from("chat_mutes").select("*", { count: "exact", head: true }).eq("active", true).or(`expires_at.is.null,expires_at.gt.${nowIso}`),
       supabase.from("ships_owned").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("coins, gems, xp"),
       supabase.from("transactions").select("*", { count: "exact", head: true }),
@@ -76,6 +79,7 @@ function AdminDashboard() {
       players: players ?? 0,
       online: online ?? 0,
       banned: banned ?? 0,
+      muted: muted ?? 0,
       ships: ships ?? 0,
       totalCoins: totals.coins,
       totalGems: totals.gems,
@@ -117,10 +121,11 @@ function AdminDashboard() {
         <div className="text-slate-400">جاري تحميل الإحصائيات...</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <StatCard label="إجمالي اللاعبين" value={stats.players} icon="👥" color="border-indigo-500/30 bg-indigo-500/10" />
             <StatCard label="متصلون الآن" value={stats.online} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
             <StatCard label="محظورون" value={stats.banned} icon="🚫" color="border-red-500/30 bg-red-500/10" />
+            <StatCard label="مكتومون" value={stats.muted} icon="🔇" color="border-amber-500/30 bg-amber-500/10" />
             <StatCard label="السفن في اللعبة" value={stats.ships} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
           </div>
 
