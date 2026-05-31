@@ -2124,6 +2124,16 @@ export type Database = {
             }
             Returns: undefined
           }
+      buy_with_coins_gem_fallback: {
+        Args: {
+          _coins_cost: number
+          _count?: number
+          _item_id: string
+          _item_type: string
+          _meta?: Json
+        }
+        Returns: undefined
+      }
       buy_with_gems:
         | {
             Args: {

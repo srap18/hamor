@@ -12,6 +12,10 @@ export async function buyWithCoins(itemId: string, itemType: string, coinsCost: 
   return supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
 }
 
+export async function buyWithCoinsGemFallback(itemId: string, itemType: string, coinsCost: number, meta?: unknown, count: number = 1) {
+  return supabase.rpc("buy_with_coins_gem_fallback" as never, { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
+}
+
 export async function buyProtection(days: number, coinsCost: number, gemsCost: number) {
   return supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost });
 }

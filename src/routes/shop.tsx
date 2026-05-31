@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { buyWithCoins, buyWithGems, buyProtection } from "@/lib/economy";
+import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyProtection } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CREWS as LIB_CREWS } from "@/lib/crews";
 import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
@@ -147,9 +147,13 @@ function Shop() {
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     const total = selected.price * qty;
     if (selected.currency === "gem" && gems < total) { flash("لا تملك جواهر كافيه"); return; }
+    let useGemFallback = false;
     if (selected.currency === "coin" && coins < total) {
-      flash("لا تملك ذهب كافي");
-      return;
+      const shortfall = total - coins;
+      const gemsNeeded = Math.ceil(shortfall / 1000);
+      if (gems < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
+      if (!window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
+      useGemFallback = true;
     }
 
     // Armor cooldown: only one armor purchase every 7 days
@@ -193,6 +197,8 @@ function Shop() {
       const itemType = tab === "weapons" ? "weapon" : "crew";
       const { error } = selected.currency === "gem"
         ? await buyWithGems(selected.id, itemType, selected.price, undefined, qty)
+        : useGemFallback
+        ? await buyWithCoinsGemFallback(selected.id, itemType, selected.price, undefined, qty)
         : await buyWithCoins(selected.id, itemType, selected.price, undefined, qty);
       if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       setBusy(false);
