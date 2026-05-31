@@ -73,7 +73,7 @@ function ShipyardPage() {
   const fleetStorageMax = shipMarketCapacity(marketLevel);
   const MAX_SHIPS = 3;
   const shipsCount = owned.length;
-  const fleetFull = fleetStorageUsed >= fleetStorageMax || shipsCount >= MAX_SHIPS;
+  const fleetFull = shipsCount >= MAX_SHIPS;
   const selectedShipFlip = shipBowFacesRight(selectedShip.marketLevel) ? 1 : -1;
 
   const showToast = (message: string) => {
