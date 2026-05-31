@@ -2106,7 +2106,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             ? "from-amber-400 to-amber-300"
             : "from-rose-500 to-rose-400";
         return (
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-[60%] flex flex-col gap-[1px] pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-20">
             {/* HP bar — slim */}
             <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
