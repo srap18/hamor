@@ -94,6 +94,7 @@ function Shop() {
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
   const [tab, setTab] = useState<Tab>("protection");
+  const [redeemOpen, setRedeemOpen] = useState(false);
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
