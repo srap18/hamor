@@ -142,7 +142,7 @@ function AdminCodesPage() {
       xp: rewardType === "bundle" ? xp : 0,
       quantity: Math.max(1, quantity),
       max_uses: distMode === "public" ? 0 : Math.max(1, maxUses),
-      expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+      expires_at: (expD * 24 + expH) > 0 ? new Date(Date.now() + (expD * 24 + expH) * 3600_000).toISOString() : null,
       note,
     });
     setSaving(false);
