@@ -148,18 +148,15 @@
   }
 
   @keyframes sea-shimmer {
-    0%   { background-position: 0 0, 0 0, 0 0; opacity: 0.55; }
-    50%  { background-position: 220px 6px, -180px -4px, 90px 3px; opacity: 0.85; }
-    100% { background-position: 440px 0, -360px 0, 180px 0; opacity: 0.55; }
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 0.45; }
   }
   .animate-sea-flow {
-    animation: sea-shimmer 7s linear infinite;
+    animation: sea-shimmer 6s ease-in-out infinite;
     background:
-      repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 26px),
-      repeating-linear-gradient(65deg,  rgba(160,220,255,0.09) 0 2px, transparent 2px 34px),
-      radial-gradient(ellipse 60% 30% at 50% 60%, rgba(255,255,255,0.14) 0%, transparent 70%);
+      radial-gradient(ellipse 60% 30% at 50% 60%, rgba(255,255,255,0.10) 0%, transparent 70%);
     mix-blend-mode: screen;
-    will-change: background-position, opacity;
+    will-change: opacity;
   }
 
   @keyframes bg-burned-pulse {
