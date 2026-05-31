@@ -879,7 +879,7 @@ function WarModal({ sender, senderTribe, target, onClose }: { sender: string; se
 }
 
 // ===================== No Tribe Panel (join/create) =====================
-type TribeRow = { id: string; name: string; emblem: string; members: number; power: number; };
+type TribeRow = { id: string; name: string; emblem: string; members: number; power: number; join_mode: string; };
 
 function NoTribePanel({ userId }: { userId: string }) {
   const [name, setName] = useState("");
