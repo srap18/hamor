@@ -1789,11 +1789,13 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = Date.now() / 1000;
-  const bobAmp = moving ? 2.5 : 1.2;
-  const bob = Math.sin((t + ship.id) * 1.4) * bobAmp;
-  const sway = moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0;
+  // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
+  const docked = ship.sail < 0.05 && !moving;
+  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
+  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
+  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
   const baseTilt = direction * 2.5;
-  const rockTilt = Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
+  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
   const tilt = baseTilt + rockTilt;
 
   const shipW = 22 * ship.scale;
