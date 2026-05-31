@@ -16,6 +16,7 @@ export type SceneBg = {
   image: string;
   burnedImage: string;
   video?: string;
+  burnedVideo?: string;
   animated?: boolean;
   objectPosition?: string;
   seaSide: "left" | "right";
