@@ -392,7 +392,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span className="font-black text-primary">{Math.min(30, level + 1)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
-        <span>تكلفة Coins</span>
+        <span>تكلفة الذهب</span>
         <span className="font-black">{preview?.cost_coins?.toLocaleString?.() ?? "..."}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
