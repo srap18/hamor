@@ -12,6 +12,7 @@ export type SceneBg = {
   name: string;
   burnedName: string;
   price: number;
+  currency?: "coins" | "gems";
   rarity: "common" | "rare" | "epic" | "legendary";
   image: string;
   burnedImage: string;
