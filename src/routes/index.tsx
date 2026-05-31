@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
@@ -367,6 +367,21 @@ function Index() {
   const gems = profile?.gems ?? 0;
   const [dailyOpen, setDailyOpen] = useState(false);
 
+  // Instant push: spectators viewing my harbor get a broadcast on every state change
+  const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase.channel(`harbor:${user.id}`, { config: { broadcast: { self: false } } });
+    ch.subscribe();
+    myHarborChanRef.current = ch;
+    return () => { supabase.removeChannel(ch); myHarborChanRef.current = null; };
+  }, [user?.id]);
+  const pushHarborState = useCallback(() => {
+    const ch = myHarborChanRef.current;
+    if (!ch) return;
+    try { ch.send({ type: "broadcast", event: "state", payload: { t: Date.now() } }); } catch {}
+  }, []);
+
   // Auto-open the daily login once per day per device
   useEffect(() => {
     if (!user) return;
@@ -679,6 +694,8 @@ function Index() {
         setShipAtSea(dbIdToSync!, nextAtSea).catch(() => {});
       });
     }
+    // Instant push to spectators
+    pushHarborState();
   };
 
   const collect = (shipId: number, e: React.MouseEvent) => {
@@ -757,6 +774,8 @@ function Index() {
         setShipAtSea(s.dbId!, false).catch(() => {});
       });
     }
+    // Instant push to spectators
+    pushHarborState();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
       id: Date.now(),

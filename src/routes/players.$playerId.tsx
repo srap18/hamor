@@ -247,9 +247,8 @@ function PlayerPage() {
       )
       .subscribe();
 
-    // Backstop: poll every 4s + refresh on tab visibility/focus so visitors
-    // always see live state even if a realtime event is missed.
-    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); }, 4000);
+    // Backstop: poll every 1.2s + refresh on tab visibility/focus so visitors
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 1200);
     const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
     const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
     document.addEventListener("visibilitychange", onVis);
@@ -265,6 +264,12 @@ function PlayerPage() {
       if (d.toast) flash(d.toast);
     });
     harborChan.on("broadcast", { event: "raid" }, () => { loadRaiders(); });
+    // Instant state push from the harbor owner (fishing toggle, collect, etc.)
+    harborChan.on("broadcast", { event: "state" }, () => {
+      reloadShipsRef.current();
+      loadRaiders();
+      loadPlayerCrews();
+    });
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
