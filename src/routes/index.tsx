@@ -1498,7 +1498,17 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
+  const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any).rpc("get_staff_user_ids");
+      const ids = Array.isArray(data)
+        ? data.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean)
+        : [];
+      setStaffIds(new Set(ids as string[]));
+    })();
+  }, []);
 
   useEffect(() => {
     if (tab === "search") return;
@@ -1537,17 +1547,22 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .order(col, { ascending: false }).limit(30)
-      .then(({ data }) => { setRows((data as LbProfile[]) || []); setLoading(false); });
-  }, [tab]);
+      .order(col, { ascending: false }).limit(60)
+      .then(({ data }) => {
+        const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 30);
+        setRows(filtered);
+        setLoading(false);
+      });
+  }, [tab, staffIds]);
 
   const runSearch = async () => {
     if (!q.trim()) return;
     setLoading(true);
     const { data } = await supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .ilike("display_name", `%${q.trim()}%`).limit(30);
-    setRows((data as LbProfile[]) || []);
+      .ilike("display_name", `%${q.trim()}%`).limit(60);
+    const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 30);
+    setRows(filtered);
     setLoading(false);
   };
 

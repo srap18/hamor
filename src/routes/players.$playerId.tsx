@@ -51,6 +51,7 @@ function PlayerPage() {
   const [nukeMsgOpen, setNukeMsgOpen] = useState(false);
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
+  const [targetIsStaff, setTargetIsStaff] = useState(false);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 1800); };
 
@@ -127,12 +128,14 @@ function PlayerPage() {
         const { data: myProf } = await supabase.from("profiles").select("display_name").eq("id", myId).maybeSingle();
         setMyName((myProf as any)?.display_name ?? "");
       }
-      const [{ data: prof }, { data: sh }] = await Promise.all([
+      const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId),
+        (supabase as any).rpc("is_staff", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
+      setTargetIsStaff(!!staffRes);
 
       if (myId === playerId) setFriendStatus("self");
       else if (myId) {
@@ -562,6 +565,43 @@ function PlayerPage() {
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-950 text-amber-300 gap-3">
         <div>لم يتم العثور على اللاعب</div>
         <Link to="/" className="px-4 py-2 rounded-lg bg-amber-600 text-amber-950 font-bold">عودة</Link>
+      </div>
+    );
+  }
+
+  // Privacy: if the visited player is an admin/moderator, render a minimal page
+  // (no level, xp, ships, harbor, attack/steal UI). Only name + add friend / message.
+  if (!loading && p && targetIsStaff && friendStatus !== "self") {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
+        <div className="p-3 flex items-center gap-2">
+          <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-5xl overflow-hidden border-4 border-amber-400/60 shadow-2xl">
+            {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
+          </div>
+          <div className="text-2xl font-extrabold text-amber-200">{p?.display_name ?? "—"}</div>
+          <div className="text-[11px] text-amber-300/70">حساب خاص</div>
+        </div>
+        <div className="p-3 flex gap-2 border-t border-amber-400/30 bg-stone-900/70">
+          {friendStatus === "accepted" ? (
+            <>
+              <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+              <button className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">✓ صديق</button>
+            </>
+          ) : friendStatus === "pending" ? (
+            <button disabled className="flex-1 py-3 rounded-xl bg-stone-600 text-white font-bold opacity-70">⏳ طلب صداقة مُرسل</button>
+          ) : (
+            <>
+              <button onClick={addFriend} className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">+ إضافة صديق</button>
+              <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+            </>
+          )}
+        </div>
+        {toast && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-amber-900/95 border border-amber-400 text-amber-100 text-sm font-bold z-50 shadow-xl">{toast}</div>
+        )}
       </div>
     );
   }
@@ -1144,7 +1184,6 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
       className="absolute z-10 active:scale-95 cursor-pointer"
       style={{
         top, left, width: `${22 * scale}%`,
-        transform: "translate(-50%, -50%)",
         transition: "left 1.2s ease-in-out",
       }}
     >

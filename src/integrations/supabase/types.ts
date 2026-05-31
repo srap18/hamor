@@ -2312,6 +2312,7 @@ export type Database = {
           xp: number
         }[]
       }
+      get_staff_user_ids: { Args: never; Returns: string[] }
       gift_gems: {
         Args: { _amount: number; _recipient: string }
         Returns: Json
@@ -2365,6 +2366,7 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_tribe_member: {
         Args: { _tribe_id: string; _user_id: string }
         Returns: boolean
