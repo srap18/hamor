@@ -1142,7 +1142,7 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
   );
 }
 
-function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [] }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS }) {
+function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [], seaSide = "right" }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS; seaSide?: "left" | "right" }) {
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
