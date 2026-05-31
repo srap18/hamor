@@ -150,7 +150,7 @@ function AdminCodesPage() {
     toast.success(`✅ تم إنشاء الكود ${finalCode}`);
     try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
     setCode(""); setNote("");
-    setCoins(0); setGems(0); setXp(0); setQuantity(1); setMaxUses(1); setExpiresAt(""); setItemId("");
+    setCoins(0); setGems(0); setXp(0); setQuantity(1); setMaxUses(1); setExpD(0); setExpH(0); setItemId("");
     loadCodes();
   };
 
