@@ -31,9 +31,9 @@ export type SceneBg = {
 // Ships float centered horizontally and slightly above the lower third
 // to stay clearly visible without overlapping the bottom UI.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 50, left: 8,  scale: 1.35 },
-  { top: 58, left: 34, scale: 1.65 },
-  { top: 50, left: 60, scale: 1.35 },
+  { top: 48, left: 18, scale: 1.3 },
+  { top: 55, left: 40, scale: 1.55 },
+  { top: 48, left: 62, scale: 1.3 },
 ] as const;
 
 const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
