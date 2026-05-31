@@ -30,10 +30,12 @@ export type SceneBg = {
 // share the exact same on-screen positions, scale, and motion behavior.
 // Ships float centered horizontally and slightly above the lower third
 // to stay clearly visible without overlapping the bottom UI.
+// Spread out so the three ships never overlap each other on screen,
+// while staying centered around the mid-water band and clearly visible.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 48, left: 18, scale: 1.3 },
-  { top: 55, left: 40, scale: 1.55 },
-  { top: 48, left: 62, scale: 1.3 },
+  { top: 46, left: 8,  scale: 1.05 },
+  { top: 58, left: 34, scale: 1.25 },
+  { top: 44, left: 62, scale: 1.05 },
 ] as const;
 
 const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
