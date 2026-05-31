@@ -813,18 +813,18 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
         </div>
       )}
 
-      <div className="p-2 border-t border-amber-700/40 bg-stone-900/80 flex items-center gap-2">
+      <div className="p-2 border-t border-amber-700/40 bg-stone-900/80 flex items-center gap-1.5 flex-wrap">
         <div className="shrink-0 flex flex-col items-center gap-0.5">
           <div className="text-[10px] text-cyan-200 font-bold leading-none">💎{gems}</div>
           <div className="text-[9px] text-amber-200/60 leading-none">جواهر</div>
         </div>
         {localStreamRef.current && (
           <>
-            <button onClick={toggleMute} className={`w-11 h-11 shrink-0 rounded-full text-xl font-bold border-2 ${muted ? "bg-red-600 border-red-300" : "bg-emerald-600 border-emerald-300"}`}>
+            <button onClick={toggleMute} title={muted ? "إلغاء الكتم" : "كتم الميكروفون"} className={`w-10 h-10 shrink-0 rounded-full text-lg font-bold border-2 ${muted ? "bg-red-600 border-red-300" : "bg-emerald-600 border-emerald-300"}`}>
               {muted ? "🔇" : "🎤"}
             </button>
             <button onClick={toggleFxPanel} title={voiceFeaturesUnlocked ? "تغيير الصوت اللايف" : "🔒 200 جوهرة لفتح"}
-              className={`relative w-11 h-11 shrink-0 rounded-full text-lg font-bold border-2 ${showFx || fx !== "none" ? "bg-purple-600 border-purple-300" : "bg-stone-700 border-amber-700/40"}`}>
+              className={`relative w-10 h-10 shrink-0 rounded-full text-base font-bold border-2 ${showFx || fx !== "none" ? "bg-purple-600 border-purple-300" : "bg-stone-700 border-amber-700/40"}`}>
               {!voiceFeaturesUnlocked && <span className="absolute -top-1 -right-1 text-[10px]">🔒</span>}
               🎚️
             </button>
@@ -848,18 +848,18 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); sendChat(); } }}
               maxLength={300}
               placeholder="اكتب أو سجل صوت..."
-              className="flex-1 px-3 py-2 rounded-full bg-stone-950 border border-amber-700/60 text-white text-sm focus:outline-none focus:border-amber-400"
+              className="flex-1 min-w-[100px] px-3 py-2 rounded-full bg-stone-950 border border-amber-700/60 text-white text-sm focus:outline-none focus:border-amber-400"
             />
             {chatInput.trim() ? (
-              <button onClick={sendChat} className="px-4 py-2 rounded-full bg-emerald-600 text-sm font-bold">إرسال</button>
+              <button onClick={sendChat} className="px-3 py-2 rounded-full bg-emerald-600 text-sm font-bold shrink-0">إرسال</button>
             ) : (
               <>
                 <button onClick={() => setShowVoicePicker(s => !s)} title="اختر الصوت"
-                  className="w-11 h-11 shrink-0 rounded-full bg-pink-700 border-2 border-pink-300 text-base font-bold">
+                  className="w-10 h-10 shrink-0 rounded-full bg-pink-700 border-2 border-pink-300 text-base font-bold">
                   🎭
                 </button>
                 <button onClick={startRecording} title={voiceFeaturesUnlocked ? `سجل رسالة صوتية بصوت ${VOICE_PRESET_LABEL[voicePreset] || voicePreset}` : "🔒 200 جوهرة لتسجيل صوت محوّل"}
-                  className="relative w-11 h-11 shrink-0 rounded-full bg-rose-600 border-2 border-rose-300 text-xl font-bold">
+                  className="relative w-10 h-10 shrink-0 rounded-full bg-rose-600 border-2 border-rose-300 text-lg font-bold">
                   {!voiceFeaturesUnlocked && <span className="absolute -top-1 -right-1 text-[10px]">🔒</span>}
                   🎙️
                 </button>
