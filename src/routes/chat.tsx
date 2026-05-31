@@ -116,14 +116,15 @@ function ChatPage() {
 
   useEffect(() => {
     if (!user) return;
-    let q = supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(100);
+    // Load the NEWEST 100 (was loading oldest 100 — caused new messages to disappear on reload)
+    let q = supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(100);
     if (tab === "public") q = q.eq("channel", "public");
     else if (tab === "tribe" && profile?.tribe_id) q = q.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
     else if (tab === "dm" && dmWith) q = q.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
     else { setMsgs([]); return; }
 
     q.then(async ({ data }) => {
-      const list = (data || []) as Msg[];
+      const list = ((data || []) as Msg[]).slice().reverse(); // oldest -> newest for display
       setMsgs(list);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
