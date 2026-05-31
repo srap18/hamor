@@ -1626,10 +1626,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             <div className="text-center text-accent/60 py-6 text-sm">
               {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
             </div>
-          ) : rows.map((p, i) => (
-            <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
-              onClick={() => { sound.play("click"); onClose(); }}
-              className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+          ) : rows.map((p, i) => {
+            const isMe = meId === p.id;
+            const Inner = (
+              <>
               {tab !== "search" && (
                 <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
               )}
@@ -1642,14 +1642,24 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}</div>
+                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                 <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
               </div>
               <div className="text-xs font-bold text-accent tabular-nums">
                 {valueIcon} {valueFor(p).toLocaleString()}
               </div>
-            </Link>
-          ))}
+              </>
+            );
+            return isMe ? (
+              <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+            ) : (
+              <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                onClick={() => { sound.play("click"); onClose(); }}
+                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                {Inner}
+              </Link>
+            );
+          })}
         </div>
 
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
