@@ -685,6 +685,40 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                   </div>
                 </div>
               )}
+
+              {/* Join mode toggle */}
+              <div className="p-2 rounded-lg bg-stone-900 border border-sky-700/40 space-y-2">
+                <div className="text-xs font-bold text-sky-300">🚪 طريقة الانضمام</div>
+                <div className="flex gap-2">
+                  {(["open","request"] as const).map(m => (
+                    <button key={m} disabled={busy}
+                      onClick={() => wrap(async () => {
+                        const { error } = await supabase.rpc("set_tribe_join_mode" as never, { _tribe_id: tribeId, _mode: m } as never);
+                        if (error) throw error;
+                        await load();
+                      })}
+                      className={`flex-1 py-1.5 rounded text-[11px] font-bold border-2 ${info?.join_mode === m ? "bg-sky-600 border-sky-300 text-white" : "bg-stone-800 border-sky-700/40 text-sky-200"}`}>
+                      {m === "open" ? "🌍 الجميع ينضم مباشرة" : "📩 بطلب انضمام"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delete tribe */}
+              <button disabled={busy}
+                onClick={async () => {
+                  const ok = await confirmDialog({ title: "حذف القبيلة", message: "متأكد تبي تحذف القبيلة نهائياً؟ كل الأعضاء راح يطلعون والخزنة راح تروح.", confirmText: "احذف نهائياً", danger: true });
+                  if (!ok) return;
+                  wrap(async () => {
+                    const { error } = await supabase.from("tribes").delete().eq("id", tribeId);
+                    if (error) throw error;
+                    onClose();
+                    window.location.reload();
+                  });
+                }}
+                className="w-full py-2 rounded-lg bg-red-900 border-2 border-red-500 text-white font-bold text-sm">
+                🗑️ حذف القبيلة نهائياً
+              </button>
             </div>
           )}
 
