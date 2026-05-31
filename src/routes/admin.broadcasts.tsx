@@ -89,6 +89,44 @@ function AdminBroadcasts() {
       <h1 className="text-xl md:text-2xl font-bold mb-1">الإشعارات والرسائل الجماعية</h1>
       <p className="text-slate-400 text-xs md:text-sm mb-4 md:mb-6">أرسل إشعاراً يصل كل اللاعبين فوراً</p>
 
+      {/* Live on-screen banner — appears as overlay for every online player */}
+      <div className="rounded-xl border-2 border-amber-500/40 bg-gradient-to-b from-amber-950/40 to-slate-900/40 p-4 mb-6">
+        <h2 className="font-semibold mb-1 text-amber-200">📣 شعار مباشر على الشاشة</h2>
+        <p className="text-amber-100/60 text-xs mb-3">يظهر فوراً لكل لاعب أونلاين كبانر علوي لمدة 8 ثوان (بدون حفظ في الإشعارات).</p>
+        <div className="grid md:grid-cols-[80px_1fr] gap-3">
+          <input
+            value={bnEmoji}
+            onChange={(e) => setBnEmoji(e.target.value.slice(0, 4))}
+            placeholder="📢"
+            className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-center text-2xl focus:outline-none focus:border-amber-500"
+          />
+          <input
+            value={bnTitle}
+            onChange={(e) => setBnTitle(e.target.value.slice(0, 60))}
+            placeholder="العنوان (اختياري)"
+            className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-500"
+          />
+        </div>
+        <textarea
+          value={bnMessage}
+          onChange={(e) => setBnMessage(e.target.value.slice(0, 200))}
+          rows={2}
+          placeholder="نص الرسالة (حتى 200 حرف)"
+          className="mt-3 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-amber-500 resize-none"
+        />
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs text-slate-500">{bnMessage.length}/200</span>
+          <button
+            onClick={sendBanner}
+            disabled={bnSending}
+            className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 font-semibold text-sm"
+          >
+            {bnSending ? "جاري البث..." : bnDone ? "✓ تم البث" : "🚀 بث الشعار الآن"}
+          </button>
+        </div>
+      </div>
+
+
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
