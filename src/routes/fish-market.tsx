@@ -328,6 +328,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
+          forecast={forecastMap[sel.id] ?? []}
           onBack={() => setSelected(null)}
           onSell={sell}
         />
@@ -565,11 +566,13 @@ function hourLabel(d: Date) {
 function SellView({
   fish,
   userId,
+  forecast,
   onBack,
   onSell,
 }: {
   fish: Fish;
   userId: string;
+  forecast: number[];
   onBack: () => void;
   onSell: (amount: number) => void;
 }) {
@@ -585,6 +588,7 @@ function SellView({
   // Trader countdown
   const [traderEndsAt, setTraderEndsAt] = useState<number>(() => getTraderEndsAt(userId));
   const [now, setNow] = useState<number>(() => Date.now());
+  const [traderError, setTraderError] = useState<string | null>(null);
   const traderActive = traderEndsAt > now;
   const msLeft = Math.max(0, traderEndsAt - now);
 
@@ -622,12 +626,14 @@ function SellView({
     return () => { cancelled = true; };
   }, [userId]);
 
-  // Forecast (blue) — only visible when trader is active. Seeded by activation bucket so it's stable.
+  // Forecast (blue) — comes from the DB so the predictions actually
+  // materialize when the hour ticks over.
   const future = useMemo(() => {
     if (!traderActive) return [] as number[];
+    if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
     const bucket = Math.floor(traderEndsAt / (60 * 1000));
     return forecastPrices(fish, currentPrice, bucket, FUTURE_HOURS);
-  }, [traderActive, traderEndsAt, fish.id, currentPrice]);
+  }, [traderActive, traderEndsAt, fish.id, currentPrice, forecast]);
 
   const allPoints = traderActive ? [...past, ...future] : past;
   const minP = Math.min(...allPoints);
@@ -654,9 +660,31 @@ function SellView({
   const [amount, setAmount] = useState(fish.qty);
   useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
 
-  const handleTrader = () => {
+  const handleTrader = async () => {
     if (traderActive) return;
-    const ends = activateTrader(userId);
+    setTraderError(null);
+    // Verify the player actually owns and has assigned an active "trader" crew
+    const { data } = await (supabase as any)
+      .from("inventory")
+      .select("meta")
+      .eq("user_id", userId)
+      .eq("item_type", "crew")
+      .eq("item_id", "trader");
+    let best = 0;
+    for (const r of (data ?? []) as any[]) {
+      const exp = r?.meta?.expires_at;
+      const assigned = r?.meta?.assigned_ship_id;
+      if (!assigned || !exp) continue;
+      const t = new Date(exp).getTime();
+      if (t > Date.now() && t > best) best = t;
+    }
+    if (best <= 0) {
+      setTraderError("تحتاج إلى تعيين تاجر فعّال على إحدى السفن لتفعيل التوقعات");
+      window.setTimeout(() => setTraderError(null), 3500);
+      return;
+    }
+    const ends = Math.max(best, activateTrader(userId));
+    try { localStorage.setItem(traderKey(userId), String(ends)); } catch {}
     setTraderEndsAt(ends);
     setNow(Date.now());
   };
