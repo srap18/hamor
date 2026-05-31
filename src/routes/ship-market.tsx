@@ -5,6 +5,7 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { SHIPS, catchPerTrip, shipMarketCapacity, type ShipDef } from "@/lib/ships";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
+import { confirmDialog } from "@/components/ConfirmDialog";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
 import iconFishing from "@/assets/icons/icon-fishing.png";
