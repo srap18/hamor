@@ -747,6 +747,15 @@ function Index() {
           }}
           draggable={false}
         />
+        <div
+          className="absolute pointer-events-none animate-sea-flow"
+          style={{
+            top: `${Math.max(0, scene.waterTop - 2)}%`,
+            left: `${Math.max(0, scene.waterLeft - 8)}%`,
+            width: `${Math.min(100, scene.waterRight + 8) - Math.max(0, scene.waterLeft - 8)}%`,
+            height: `${Math.max(18, 96 - scene.waterTop)}%`,
+          }}
+        />
         {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
       </div>
 
