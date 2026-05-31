@@ -12,11 +12,22 @@ type Notif = {
   created_at: string;
 };
 
+type TabKey = "all" | "attack" | "support" | "ship" | "friend" | "info";
+const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: "all", label: "الكل", icon: "📋" },
+  { key: "attack", label: "هجمات", icon: "⚔️" },
+  { key: "support", label: "دعم", icon: "🛠️" },
+  { key: "ship", label: "سفن", icon: "⛵" },
+  { key: "friend", label: "أصدقاء", icon: "🤝" },
+  { key: "info", label: "إعلانات", icon: "📢" },
+];
+
 export function NotificationsBell() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notif[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [tab, setTab] = useState<TabKey>("all");
 
   const load = useCallback(async () => {
     if (!user) return;
