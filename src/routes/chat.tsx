@@ -9,6 +9,8 @@ import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { VoiceRooms } from "@/components/VoiceRooms";
 import { sound } from "@/lib/sound";
+import { useIsAdmin } from "@/hooks/use-admin";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
@@ -320,6 +322,20 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   { me: string; target: Prof; isBlocked: boolean; onClose: () => void; onBlocksChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const { isAdmin } = useIsAdmin();
+  const [isBanned, setIsBanned] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const nowIso = new Date().toISOString();
+      const { data: b } = await supabase.from("bans").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
+      setIsBanned(!!b && (!b.expires_at || b.expires_at > nowIso));
+      const { data: m } = await supabase.from("chat_mutes").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
+      setIsMuted(!!m && (!m.expires_at || m.expires_at > nowIso));
+    })();
+  }, [isAdmin, target.id]);
 
   const addFriend = async () => {
     setBusy(true); setMsg(null);
@@ -343,15 +359,83 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
     onBlocksChanged();
   };
 
+  const notify = async (title: string, body: string) => {
+    await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: me });
+  };
+  const logAudit = async (action: string, details: Record<string, unknown>) => {
+    await supabase.from("admin_audit").insert({ admin_id: me, action, target_user_id: target.id, details: details as never });
+  };
+
+  const adminToggleBan = async () => {
+    if (isBanned) {
+      const ok = await confirmDialog({ title: "رفع الحظر", message: `رفع الحظر عن ${target.display_name}؟` });
+      if (!ok) return;
+      setBusy(true);
+      await supabase.from("bans").update({ active: false }).eq("user_id", target.id).eq("active", true);
+      await logAudit("unban_user", { name: target.display_name, via: "chat" });
+      await notify("✅ تم رفع الحظر", "يمكنك استخدام اللعبة بشكل طبيعي.");
+      setIsBanned(false); setMsg("فُكّ الحظر");
+      setBusy(false);
+      return;
+    }
+    const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
+    const hoursStr = prompt("مدة الحظر بالساعات (فارغ = دائم):", "24");
+    const hours = hoursStr ? Number(hoursStr) : 0;
+    const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+    setBusy(true);
+    await supabase.from("bans").insert({ user_id: target.id, reason, banned_by: me, expires_at });
+    await logAudit("ban_user", { name: target.display_name, reason, hours: hours || "permanent", via: "chat" });
+    const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+    await notify("🚫 تم حظرك", `تم حظرك ${dur}. السبب: ${reason || "غير محدد"}`);
+    setIsBanned(true); setMsg(hours > 0 ? `حُظر لمدة ${hours} ساعة` : "حُظر نهائياً");
+    setBusy(false);
+  };
+
+  const adminToggleMute = async () => {
+    if (isMuted) {
+      const ok = await confirmDialog({ title: "رفع الكتم", message: `رفع الكتم عن ${target.display_name}؟` });
+      if (!ok) return;
+      setBusy(true);
+      await supabase.from("chat_mutes").update({ active: false }).eq("user_id", target.id).eq("active", true);
+      await logAudit("unmute_user", { name: target.display_name, via: "chat" });
+      await notify("✅ تم رفع الكتم", "يمكنك الكتابة في الدردشة الآن.");
+      setIsMuted(false); setMsg("فُكّ الكتم");
+      setBusy(false);
+      return;
+    }
+    const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
+    const hoursStr = prompt("مدة الكتم بالساعات (فارغ = دائم):", "24");
+    const hours = hoursStr ? Number(hoursStr) : 0;
+    const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+    setBusy(true);
+    await supabase.from("chat_mutes").insert({ user_id: target.id, reason, muted_by: me, expires_at });
+    await logAudit("mute_user", { name: target.display_name, reason, hours: hours || "permanent", via: "chat" });
+    const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+    await notify("🔇 تم كتمك", `لا يمكنك الكتابة ${dur}. السبب: ${reason || "غير محدد"}`);
+    setIsMuted(true); setMsg(hours > 0 ? `كُتم لمدة ${hours} ساعة` : "كُتم نهائياً");
+    setBusy(false);
+  };
+
+  const adminDeleteAllMsgs = async () => {
+    const ok = await confirmDialog({ title: "حذف رسائل اللاعب", message: `حذف كل رسائل ${target.display_name}؟`, danger: true });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabase.from("messages").delete().eq("sender_id", target.id);
+    setBusy(false);
+    setMsg(error ? error.message : "تم حذف الرسائل");
+    await logAudit("delete_user_messages", { name: target.display_name });
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl" onClick={onClose}>
-      <div className="w-full max-w-xs bg-stone-950 border-2 border-amber-600 rounded-2xl p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-xs bg-stone-950 border-2 border-amber-600 rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3">
           <Avatar p={target} size={56} />
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-amber-200 truncate">{target.display_name}</div>
             {typeof target.level === "number" && <div className="text-xs text-amber-300/70">المستوى {target.level}</div>}
           </div>
+          {isAdmin && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600 text-white">أدمن</span>}
         </div>
         <Link to="/players/$playerId" params={{ playerId: target.id }} onClick={onClose}
           className="block w-full py-2 rounded-lg bg-sky-600 text-white text-center font-bold text-sm">
@@ -365,6 +449,25 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
           className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBlocked ? "bg-stone-700" : "bg-red-700"}`}>
           {isBlocked ? "🔓 إلغاء الحظر" : "🚫 حظر"}
         </button>
+
+        {isAdmin && (
+          <div className="pt-2 mt-2 border-t border-rose-500/30 space-y-2">
+            <div className="text-[11px] font-black text-rose-300 text-center">⚙️ أوامر الإدارة</div>
+            <button onClick={adminToggleMute} disabled={busy}
+              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
+              {isMuted ? "🔊 رفع الكتم" : "🔇 كتم في الشات"}
+            </button>
+            <button onClick={adminToggleBan} disabled={busy}
+              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBanned ? "bg-stone-700" : "bg-rose-700"}`}>
+              {isBanned ? "🔓 رفع الحظر" : "🚫 حظر من اللعبة"}
+            </button>
+            <button onClick={adminDeleteAllMsgs} disabled={busy}
+              className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
+              🗑️ حذف كل رسائله
+            </button>
+          </div>
+        )}
+
         {msg && <div className="text-xs text-amber-300 text-center">{msg}</div>}
         <button onClick={onClose} className="w-full py-2 rounded-lg bg-stone-800 text-amber-200 font-bold text-sm">إغلاق</button>
       </div>
