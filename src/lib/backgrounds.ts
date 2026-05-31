@@ -12,6 +12,7 @@ export type SceneBg = {
   name: string;
   burnedName: string;
   price: number;
+  currency?: "coins" | "gems";
   rarity: "common" | "rare" | "epic" | "legendary";
   image: string;
   burnedImage: string;
@@ -72,7 +73,8 @@ export const BACKGROUNDS: SceneBg[] = [
     id: "eiffel_night",
     name: "برج الليل الباريسي ✨",
     burnedName: "برج الليل الباريسي المحترق 🔥",
-    price: 25000,
+    price: 10000,
+    currency: "gems",
     rarity: "legendary",
     image: eiffelNightBg,
     burnedImage: eiffelNightBurnedBg,

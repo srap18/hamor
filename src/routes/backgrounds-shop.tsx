@@ -84,20 +84,31 @@ function BackgroundsShop() {
       setSelectedBgId(b.id); setSelected(b.id); flash(`تم تركيب ${b.name}`); return;
     }
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
-    const shortfall = Math.max(0, b.price - coins);
-    const gemsNeeded = Math.ceil(shortfall / 1000);
-    if (shortfall > 0 && (profile.gems ?? 0) < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
-    if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
     if (busy) return;
-    setBusy(true);
-    const { error } = await supabase.rpc("buy_background", { _bg_id: b.id, _price: b.price });
-    setBusy(false);
-    if (error) { flash(error.message || "فشل الشراء"); return; }
+
+    if (b.currency === "gems") {
+      if ((profile.gems ?? 0) < b.price) { flash(`💎 تحتاج ${b.price.toLocaleString()} جوهرة`); return; }
+      if (!window.confirm(`شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`)) return;
+      setBusy(true);
+      const { error } = await supabase.rpc("buy_background_gems", { _bg_id: b.id, _gems: b.price });
+      setBusy(false);
+      if (error) { flash(error.message || "فشل الشراء"); return; }
+    } else {
+      const shortfall = Math.max(0, b.price - coins);
+      const gemsNeeded = Math.ceil(shortfall / 1000);
+      if (shortfall > 0 && (profile.gems ?? 0) < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
+      if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
+      setBusy(true);
+      const { error } = await supabase.rpc("buy_background", { _bg_id: b.id, _price: b.price });
+      setBusy(false);
+      if (error) { flash(error.message || "فشل الشراء"); return; }
+    }
+
     const next = [...owned, b.id];
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
     flash(`اشتريت ${b.name}`);
-    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price} ذهب • خلفية`, image: b.image, emoji: "🖼️" });
+    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price.toLocaleString()} ${b.currency === "gems" ? "جوهرة" : "ذهب"} • خلفية`, image: b.image, emoji: "🖼️" });
     refreshProfile();
   };
 
@@ -148,7 +159,7 @@ function BackgroundsShop() {
 
       {/* Grid */}
       <div className={`absolute ${isBurned ? "top-[8.75rem]" : "top-24"} left-2 right-2 bottom-2 z-10 rounded-2xl bg-gradient-to-b from-[#0e2240]/90 to-[#04101e]/95 border-2 border-sky-900/70 shadow-2xl overflow-hidden`}>
-        <div className="h-full overflow-y-auto p-3 grid grid-cols-2 gap-3">
+        <div className="h-full overflow-y-auto p-3 grid grid-cols-2 auto-rows-min content-start gap-3">
           {BACKGROUNDS.map((b) => {
             const isOwned = owned.includes(b.id);
             const isEquipped = selected === b.id;
@@ -222,7 +233,7 @@ function BackgroundsShop() {
                     onClick={() => buy(b)}
                     className="mt-1 w-full py-1.5 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-xs font-extrabold active:scale-95 flex items-center justify-center gap-1"
                   >
-                    <CoinIcon size={16} />
+                    {b.currency === "gems" ? <GemIcon size={16} /> : <CoinIcon size={16} />}
                     <span className="tabular-nums">{b.price.toLocaleString()}</span>
                   </button>
                 )}
