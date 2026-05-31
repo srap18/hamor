@@ -878,18 +878,6 @@ function Index() {
       </div>
 
 
-      {/* Animated sea waves shimmer */}
-      <div className="absolute inset-0 pointer-events-none z-[4]"
-        style={{
-          background:
-            "repeating-linear-gradient(115deg, transparent 0px, transparent 40px, rgba(255,255,255,0.06) 41px, rgba(255,255,255,0.06) 43px)",
-          maskImage:
-            "linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)",
-          WebkitMaskImage:
-            "linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)",
-          animation: "wave-slide 8s linear infinite",
-        }}
-      />
 
 
       {/* TOP HUD — pirate luxury */}
