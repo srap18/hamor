@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
