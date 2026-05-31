@@ -406,6 +406,6 @@ export const GEM_PACKS: Pack[] = [
     id: "vip_monthly", category: "vip", label: "VIP شهري", emoji: "🌟",
     amount: 0, currency: "gem", priceUSD: 14.99, popular: true,
     description: "300 💎 يومياً + ضعف XP والذهب + خلفية حصرية + إطار VIP",
-    reward: { gems: 9000, frameIds: ["af_phoenix"], bgIds: ["royal"] },
+    reward: { gems: 9000, frameIds: ["af_phoenix"], bgIds: ["eiffel_night"] },
   },
 ];
