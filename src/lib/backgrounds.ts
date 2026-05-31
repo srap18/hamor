@@ -26,17 +26,18 @@ export type SceneBg = {
   };
 };
 
-const CELESTIAL_SLOTS = [
-  { top: 52, left: 58, scale: 1.12 },
-  { top: 64, left: 68, scale: 1.34 },
-  { top: 76, left: 78, scale: 1.6 },
+// Unified ship slots — same layout for every background so all 30 ships
+// share the exact same on-screen positions, scale, and motion behavior.
+// Ships float centered horizontally and slightly above the lower third
+// to stay clearly visible without overlapping the bottom UI.
+const UNIFIED_SHIP_SLOTS = [
+  { top: 48, left: 18, scale: 1.3 },
+  { top: 55, left: 40, scale: 1.55 },
+  { top: 48, left: 62, scale: 1.3 },
 ] as const;
 
-const EIFFEL_SLOTS = [
-  { top: 50, left: 62, scale: 1.08 },
-  { top: 62, left: 72, scale: 1.3 },
-  { top: 74, left: 82, scale: 1.56 },
-] as const;
+const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
+const EIFFEL_SLOTS = UNIFIED_SHIP_SLOTS;
 
 export const BACKGROUNDS: SceneBg[] = [
   {
