@@ -2261,6 +2261,20 @@ export type Database = {
           xp: number
         }[]
       }
+      get_fish_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          display_name: string
+          level: number
+          name_frame: string
+          total_fish: number
+          unique_fish: number
+          user_id: string
+        }[]
+      }
       get_my_daughter: {
         Args: never
         Returns: {
@@ -2363,6 +2377,19 @@ export type Database = {
           selected_bg_id: string
           tribe_id: string
           xp: number
+        }[]
+      }
+      get_ship_market_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          display_name: string
+          level: number
+          market_level: number
+          name_frame: string
+          user_id: string
         }[]
       }
       get_staff_user_ids: { Args: never; Returns: string[] }
