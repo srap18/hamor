@@ -2039,6 +2039,7 @@ export type Database = {
         Args: { _message: string; _target_id: string }
         Returns: undefined
       }
+      burn_target_bg: { Args: { _target_id: string }; Returns: string }
       buy_background: {
         Args: { _bg_id: string; _price: number }
         Returns: undefined
