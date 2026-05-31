@@ -251,7 +251,7 @@ function AdminCompetitions() {
                   {fishName && <> — <b className="text-slate-200">{fishName}</b></>}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  ينتهي: {new Date(r.ends_at).toLocaleString("ar")}
+                  ينتهي خلال: <b className="text-slate-300">{formatTimeLeft(r.ends_at)}</b>
                 </div>
                 <div className="text-xs text-amber-300 mt-1">
                   🪙 {r.reward_coins} · 💎 {r.reward_gems} · ⭐ {r.reward_xp}{r.reward_text ? ` · ${r.reward_text}` : ""}
