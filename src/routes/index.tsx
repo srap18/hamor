@@ -1497,6 +1497,8 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [tribeQ, setTribeQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
 
   useEffect(() => {
     if (tab === "search") return;
@@ -1624,10 +1626,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             <div className="text-center text-accent/60 py-6 text-sm">
               {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
             </div>
-          ) : rows.map((p, i) => (
-            <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
-              onClick={() => { sound.play("click"); onClose(); }}
-              className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+          ) : rows.map((p, i) => {
+            const isMe = meId === p.id;
+            const Inner = (
+              <>
               {tab !== "search" && (
                 <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
               )}
@@ -1640,14 +1642,24 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}</div>
+                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                 <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
               </div>
               <div className="text-xs font-bold text-accent tabular-nums">
                 {valueIcon} {valueFor(p).toLocaleString()}
               </div>
-            </Link>
-          ))}
+              </>
+            );
+            return isMe ? (
+              <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+            ) : (
+              <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                onClick={() => { sound.play("click"); onClose(); }}
+                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                {Inner}
+              </Link>
+            );
+          })}
         </div>
 
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
@@ -1662,6 +1674,8 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
   const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number } | null>(null);
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; xp: number }>>([]);
   const [loading, setLoading] = useState(true);
+  const [meId, setMeId] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
 
   useEffect(() => {
     (async () => {
@@ -1721,10 +1735,9 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
 
             <div className="flex-1 overflow-y-auto space-y-1">
               <div className="text-xs font-bold text-accent mb-1">👥 الأعضاء</div>
-              {members.map((m, i) => (
-                <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
-                  onClick={() => { sound.play("click"); onClose(); }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+              {members.map((m, i) => {
+                const row = (
+                  <>
                   <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
                   <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
                   <div className="flex-1 min-w-0">
@@ -1732,8 +1745,18 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                     <div className="text-[10px] text-accent/70">المستوى {m.level}</div>
                   </div>
                   <div className="text-xs font-bold text-accent tabular-nums">⚡ {(m.level * 100 + Math.floor(m.xp / 10)).toLocaleString()}</div>
-                </Link>
-              ))}
+                  </>
+                );
+                return m.user_id === meId ? (
+                  <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{row}</div>
+                ) : (
+                  <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
+                    onClick={() => { sound.play("click"); onClose(); }}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                    {row}
+                  </Link>
+                );
+              })}
             </div>
           </>
         )}
