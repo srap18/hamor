@@ -154,7 +154,7 @@ function Shop() {
       if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
     }
 
-    // Armor cooldown: only one armor purchase every 4 days
+    // Armor cooldown: only one armor purchase every 7 days
     if (tab === "protection") {
       const lastStr = localStorage.getItem(ARMOR_LAST_KEY(user.id));
       const last = lastStr ? parseInt(lastStr, 10) : 0;
