@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
+import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
+import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
 import { CREWS } from "@/lib/crews";
@@ -67,6 +68,7 @@ function GuardedIndex() {
 interface Ship {
   id: number;
   dbId?: string; // ships_owned.id when this ship came from DB
+  catalogCode?: string | null; // specific catalog ship variant (matches spectator view)
   img: string;
   progress: number;
   max: number;
@@ -212,10 +214,10 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
       .eq("user_id", uid)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -269,7 +271,7 @@ function Index() {
               setShipAtSea(s.dbId!, true).catch(() => {});
             });
           }
-          return { ...s, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
+          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -286,7 +288,7 @@ function Index() {
         usedIds.add(nextId);
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
-        const shipDef = getShipByMarketLevel(lvl);
+        const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
         const maxProg = catchPerTrip(shipDef);
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
@@ -296,8 +298,9 @@ function Index() {
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
+          catalogCode: dbShip.catalog_code,
           level: lvl,
-          img: getShipByMarketLevel(lvl).image,
+          img: shipDef.image,
           progress: 0,
           max: maxProg,
           timeLeft: duration,
