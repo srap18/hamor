@@ -644,7 +644,7 @@ function PlayerPage() {
         const img = s.catalog_code ? getShipByCode(s.catalog_code).image : getShipByMarketLevel(s.template_id || 1).image;
         const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i % ts.length] * vRange}%`;
-        const scale = fixedSlot?.scale ?? 0.85 + ts[i % ts.length] * 0.42;
+        const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
         const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
         const seaLeft = wLeft + seaOffsets[i % seaOffsets.length] * wWidth;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
