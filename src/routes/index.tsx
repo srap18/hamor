@@ -856,7 +856,7 @@ function Index() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0d2236]">
+    <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${screenShake}`}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {scene.displayVideo ? (
           <SeamlessVideo
