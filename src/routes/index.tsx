@@ -690,7 +690,7 @@ function Index() {
       return;
     }
     // Compute time-based ratio so fishGained is strictly proportional to time at sea.
-    const { luckMult, sailorMult } = getCrewBonuses(s);
+    const { luckMult, sailorMult, guide } = getCrewBonuses(s);
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
     const rawRatio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
@@ -701,7 +701,7 @@ function Index() {
     const storedGuide = getShipGuide(s.id);
     // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
     const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
-    const caughtId = storedGuide && fallbackPool.includes(storedGuide)
+    const caughtId = guide && storedGuide && fallbackPool.includes(storedGuide)
       ? storedGuide
       : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
