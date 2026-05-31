@@ -333,6 +333,8 @@ function PlayerPage() {
       const { data: dmgRes, error: dmgErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
       if (dmgErr) {
         const m = String(dmgErr.message || "");
+        if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
+        if (m.includes("no pvp fleet")) { sound.play("error"); flash("🛡️ اللاعب محمي — ما عنده 3 سفن مستوى 6"); setBusy(false); return; }
         if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
         sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
       }
