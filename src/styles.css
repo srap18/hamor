@@ -138,36 +138,39 @@
   }
 
   @keyframes bg-drift {
-    0%   { transform: scale(calc(var(--bg-scale, 1.14) + 0.02)) translate3d(-3.5%, -2%, 0); }
-    25%  { transform: scale(calc(var(--bg-scale, 1.14) + 0.05)) translate3d(2.5%, -3%, 0); }
-    50%  { transform: scale(calc(var(--bg-scale, 1.14) + 0.03)) translate3d(3.5%, 2.5%, 0); }
-    75%  { transform: scale(calc(var(--bg-scale, 1.14) + 0.06)) translate3d(-2.5%, 3%, 0); }
-    100% { transform: scale(calc(var(--bg-scale, 1.14) + 0.02)) translate3d(-3.5%, -2%, 0); }
+    0%   { transform: scale(var(--bg-scale, 1.15)) translate3d(-2.5%, -1.5%, 0); }
+    25%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.04)) translate3d(2%, -2.2%, 0); }
+    50%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.02)) translate3d(2.8%, 2%, 0); }
+    75%  { transform: scale(calc(var(--bg-scale, 1.15) + 0.05)) translate3d(-2%, 2.4%, 0); }
+    100% { transform: scale(var(--bg-scale, 1.15)) translate3d(-2.5%, -1.5%, 0); }
   }
-  .animate-bg-drift { animation: bg-drift var(--bg-dur, 8s) ease-in-out infinite; will-change: transform; transform-origin: center center; }
+  .animate-bg-drift {
+    animation: bg-drift var(--bg-dur, 14s) ease-in-out infinite;
+    will-change: transform;
+    transform-origin: center center;
+  }
 
-  @keyframes sea-flow {
-    0% { transform: translate3d(-8%, 0, 0) skewX(-10deg); background-position: 0 0, 0 0; opacity: 0.24; }
-    50% { transform: translate3d(6%, 1.5%, 0) skewX(-10deg); background-position: 150px 24px, -90px 12px; opacity: 0.42; }
-    100% { transform: translate3d(-8%, 0, 0) skewX(-10deg); background-position: 300px 0, -180px 0; opacity: 0.24; }
+  @keyframes sea-shimmer {
+    0%   { transform: translate3d(-4%, 0, 0); opacity: 0.18; }
+    50%  { transform: translate3d(4%, 0.6%, 0); opacity: 0.32; }
+    100% { transform: translate3d(-4%, 0, 0); opacity: 0.18; }
   }
   .animate-sea-flow {
-    animation: sea-flow 2.6s linear infinite;
+    animation: sea-shimmer 6s ease-in-out infinite;
     background:
-      repeating-linear-gradient(100deg, transparent 0 22px, rgba(255,255,255,0.22) 23px 25px, transparent 26px 54px),
-      repeating-linear-gradient(78deg, transparent 0 30px, rgba(80,220,255,0.18) 31px 34px, transparent 35px 70px);
-    filter: blur(0.4px);
+      radial-gradient(ellipse 60% 40% at 30% 50%, rgba(255,255,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 70% 55%, rgba(140,220,255,0.16) 0%, transparent 65%);
     mix-blend-mode: screen;
-    will-change: transform, background-position, opacity;
+    will-change: transform, opacity;
   }
 
   @keyframes bg-burned-pulse {
     0%, 100% { filter: saturate(1) brightness(0.96) contrast(1.02); }
-    50% { filter: saturate(1.06) brightness(1.03) contrast(1.08); }
+    50% { filter: saturate(1.08) brightness(1.04) contrast(1.08); }
   }
   .animate-bg-burned-pulse { animation: bg-burned-pulse 4.5s ease-in-out infinite; }
   .animate-bg-drift.animate-bg-burned-pulse {
-    animation: bg-drift var(--bg-dur, 8s) ease-in-out infinite, bg-burned-pulse 4.5s ease-in-out infinite;
+    animation: bg-drift var(--bg-dur, 14s) ease-in-out infinite, bg-burned-pulse 4.5s ease-in-out infinite;
   }
 
   @keyframes burned-glow {
