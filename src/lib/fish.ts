@@ -54,6 +54,7 @@ export const FISH_IMG: Record<string, string> = {
   marlin, swordfish, sailfish, barracuda, stingray, shark, tang_blue, koi,
   manta, hammerhead, whale, orca, arowana, goldfish, pearl,
   kraken, leviathan, megalodon, sea_dragon, poseidon, black_pearl, golden_koi,
+  phoenix,
 };
 
 export type Fish = {
