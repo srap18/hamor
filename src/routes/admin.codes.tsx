@@ -149,10 +149,105 @@ function AdminCodesPage() {
     }
   };
 
+  const quickCreate = async (opts: {
+    rewardType: RewardType;
+    itemId?: string;
+    itemKind?: string;
+    coins?: number;
+    gems?: number;
+    xp?: number;
+    quantity?: number;
+    label: string;
+  }) => {
+    const finalCode = randomCode();
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("redemption_codes").insert({
+      code: finalCode,
+      reward_type: opts.rewardType,
+      item_id: opts.rewardType === "bundle" ? null : (opts.itemId ?? null),
+      item_kind: opts.rewardType === "item" ? (opts.itemKind ?? null) : null,
+      reward_coins: opts.coins ?? 0,
+      reward_gems: opts.gems ?? 0,
+      reward_xp: opts.xp ?? 0,
+      quantity: Math.max(1, opts.quantity ?? 1),
+      max_uses: 1,
+      expires_at: null,
+      note: opts.label,
+      created_by: user?.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch {}
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    loadCodes();
+  };
+
+  const bundlePresets: Array<{ label: string; coins?: number; gems?: number; xp?: number; icon: string }> = [
+    { label: "1,000 ذهب", coins: 1000, icon: "🪙" },
+    { label: "5,000 ذهب", coins: 5000, icon: "🪙" },
+    { label: "25,000 ذهب", coins: 25000, icon: "🪙" },
+    { label: "100,000 ذهب", coins: 100000, icon: "💰" },
+    { label: "10 جواهر", gems: 10, icon: "💎" },
+    { label: "50 جواهر", gems: 50, icon: "💎" },
+    { label: "200 جواهر", gems: 200, icon: "💎" },
+    { label: "1,000 خبرة", xp: 1000, icon: "✨" },
+  ];
+
   return (
     <div className="p-3 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl md:text-2xl font-bold">🎟️ أكواد الاستعمال</h1>
+      </div>
+
+      {/* Quick create — click any product to generate a one-use code */}
+      <div className="rounded-xl border border-emerald-800/60 bg-emerald-950/30 p-3 md:p-4 space-y-3">
+        <div className="text-sm font-bold text-emerald-200">⚡ إنشاء سريع — اضغط على أي منتج لإنشاء كود تلقائي (استخدام واحد، يُنسخ مباشرة)</div>
+
+        <div className="space-y-1">
+          <div className="text-[11px] text-emerald-300/80">💰 باقات الذهب والجواهر والخبرة</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {bundlePresets.map((b) => (
+              <button
+                key={b.label}
+                onClick={() => quickCreate({ rewardType: "bundle", coins: b.coins, gems: b.gems, xp: b.xp, label: b.label })}
+                className="px-2 py-2 rounded-lg bg-slate-800/70 hover:bg-emerald-800/40 border border-slate-700 hover:border-emerald-500 text-sm text-slate-100 text-right transition"
+              >
+                <span className="mr-1">{b.icon}</span>{b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[11px] text-emerald-300/80">📦 عناصر المتجر ({itemsCatalog.length})</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {itemsCatalog.map((it) => (
+              <button
+                key={it.code}
+                onClick={() => quickCreate({ rewardType: "item", itemId: it.code, itemKind: it.kind, quantity: 1, label: it.name })}
+                className="px-2 py-2 rounded-lg bg-slate-800/70 hover:bg-emerald-800/40 border border-slate-700 hover:border-emerald-500 text-xs text-slate-100 text-right transition truncate"
+                title={it.name}
+              >
+                📦 {it.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[11px] text-emerald-300/80">⛵ السفن ({shipsCatalog.length})</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {shipsCatalog.map((s) => (
+              <button
+                key={s.code}
+                onClick={() => quickCreate({ rewardType: "ship", itemId: s.code, label: s.name })}
+                className="px-2 py-2 rounded-lg bg-slate-800/70 hover:bg-emerald-800/40 border border-slate-700 hover:border-emerald-500 text-xs text-slate-100 text-right transition truncate"
+                title={s.name}
+              >
+                ⛵ {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Create form */}
