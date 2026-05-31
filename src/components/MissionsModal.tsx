@@ -198,7 +198,7 @@ function BoxesTab() {
           <div className="bg-gradient-to-b from-amber-700 to-amber-900 border border-amber-300 rounded-2xl p-6 text-center animate-pulse">
             <div className="text-6xl mb-3">🎉</div>
             <div className="text-amber-100 font-bold text-lg mb-2">مبروك!</div>
-            <div className="text-amber-50">🪙 {reward.coins} · 💎 {reward.gems} · ⭐ {reward.xp}</div>
+            <div className="text-amber-50 inline-flex items-center gap-1"><CoinIcon size={14} /> {reward.coins} · 💎 {reward.gems} · ⭐ {reward.xp}</div>
           </div>
         </div>
       )}
