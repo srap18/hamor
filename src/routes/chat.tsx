@@ -8,6 +8,7 @@ import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { VoiceRooms } from "@/components/VoiceRooms";
+import { sound } from "@/lib/sound";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
@@ -65,6 +66,14 @@ function ChatPage() {
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
   const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Pause background music while on the chat screen, resume on leave
+  useEffect(() => {
+    sound.pauseForChat();
+    return () => { sound.resumeForChat(); };
+  }, []);
+
+
 
   useEffect(() => {
     if (!user) { setMyMute(null); return; }
