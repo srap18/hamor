@@ -141,6 +141,7 @@ export function getSceneVisual(bgId: string, burnedUntil?: string | null) {
     ...bg,
     displayName: burned ? bg.burnedName : bg.name,
     displayImage: burned ? bg.burnedImage : bg.image,
+    displayVideo: burned ? undefined : bg.video,
     burned,
   };
 }
