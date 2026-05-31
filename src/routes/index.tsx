@@ -2042,8 +2042,8 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
       {/* Crew characters standing on the ship deck */}
       {crews.length > 0 && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20 flex items-end justify-center gap-1"
-          style={{ top: "-18%", width: "120%", height: "40%" }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 flex items-end justify-center gap-1"
+          style={{ top: "-6%", width: "120%", height: "32%" }}
         >
           {crews.map((c, i) => (
             <div
