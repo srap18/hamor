@@ -116,7 +116,7 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   28: { ar: "سفينة ملك المحيط",        rarity: "Mythic",    flavor: "سفينة ملك المحيط بلا منازع.",                         storage: 220000, price: 2000000000,  fishingMinutes: 115,  fishPool: ["shark","stingray","tuna","grouper","squid","snapper","carp"] },
   29: { ar: "سفينة التنين البحري",     rarity: "Mythic",    flavor: "تنين بحري ينفث الرعب في الأمواج.",                    storage: 260000, price: 500000000,   fishingMinutes: 125,  fishPool: ["shark","tuna","stingray","grouper","squid"] },
   30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 140,  fishPool: ["shark","tuna","grouper","carp","squid","stingray","snapper","eel"] },
-  31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار فقط.", storage: 8000,   price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
+  31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
 };
 
 function buildShip(level: number): ShipDef {
@@ -131,7 +131,7 @@ function buildShip(level: number): ShipDef {
       price: d.price,
       marketLevel: 31,
       rarity: d.rarity,
-      maxHp: 6000,
+      maxHp: 13000,
       armor: 80,
       speed: 60,
       storage: d.storage,

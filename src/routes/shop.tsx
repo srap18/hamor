@@ -93,13 +93,23 @@ const CREWS: Item[] = LIB_CREWS.map((c) => ({
 
 const SHIPS_FOR_SALE: Item[] = [
   {
-    id: "phoenix",
-    name: "سفينة العنقاء 🐉",
+    id: "phoenix-pack-3",
+    name: "حزمة 3 سفن عنقاء 🐉",
     emoji: "🐉",
     image: phoenixShipImg,
-    price: 10000,
+    price: 3800,
     currency: "gem",
-    desc: "حصرية للمتجر • تصيد عنقاء النار 🔥 فقط • صيد 20 دقيقة",
+    desc: "ثلاث سفن عنقاء دفعة واحدة • كل سفينة بدمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • صيد 20 دقيقة. أفضل قيمة للقادة الطموحين!",
+    rarity: "legendary",
+  },
+  {
+    id: "phoenix-pack-1",
+    name: "سفينة عنقاء واحدة 🐉",
+    emoji: "🐉",
+    image: phoenixShipImg,
+    price: 1500,
+    currency: "gem",
+    desc: "سفينة عنقاء فردية • دمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • صيد 20 دقيقة. مثالية لتجربة قوة العنقاء.",
     rarity: "legendary",
   },
 ];
@@ -172,10 +182,11 @@ function Shop() {
       if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       localStorage.setItem(ARMOR_LAST_KEY(user.id), String(Date.now()));
     } else if (tab === "ships") {
-      // Phoenix shop ship — calls dedicated RPC once per quantity
+      // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity
+      const rpcName = selected.id === "phoenix-pack-3" ? "buy_phoenix_pack_3" : "buy_phoenix_pack_1";
       for (let i = 0; i < qty; i++) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase.rpc as any)("buy_phoenix_ship");
+        const { error } = await (supabase.rpc as any)(rpcName);
         if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       }
       setBusy(false);
