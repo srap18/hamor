@@ -287,7 +287,7 @@ function EventsTab() {
             <div className="font-bold mt-1">{e.title}</div>
             <div className="text-xs text-amber-100/80 mt-1">{e.description}</div>
             <div className="flex items-center justify-between mt-2 text-xs">
-              <span>⭐×{e.xp_multiplier} · 🪙×{e.coin_multiplier}</span>
+              <span className="inline-flex items-center gap-1">⭐×{e.xp_multiplier} · <CoinIcon size={12} />×{e.coin_multiplier}</span>
               <span className="text-amber-300">⏱ {days}ي {hrs}س متبقية</span>
             </div>
           </div>
