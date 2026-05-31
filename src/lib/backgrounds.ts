@@ -30,12 +30,13 @@ export type SceneBg = {
 // share the exact same on-screen positions, scale, and motion behavior.
 // Ships float centered horizontally and slightly above the lower third
 // to stay clearly visible without overlapping the bottom UI.
-// Spread out so the three ships never overlap each other on screen,
-// while staying centered around the mid-water band and clearly visible.
+// When docked (fishing stopped) the three ships line up along the shore:
+// same vertical position, evenly spaced horizontally, similar scale —
+// so the harbor looks tidy instead of scattered.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 46, left: 8,  scale: 1.05 },
-  { top: 58, left: 34, scale: 1.25 },
-  { top: 44, left: 62, scale: 1.05 },
+  { top: 56, left: 10, scale: 1.1 },
+  { top: 56, left: 32, scale: 1.1 },
+  { top: 56, left: 54, scale: 1.1 },
 ] as const;
 
 const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
