@@ -93,21 +93,30 @@ function FishMarket() {
     window.setTimeout(() => setUpToast(null), 1800);
   };
 
+  const [forecastMap, setForecastMap] = useState<Record<string, number[]>>({});
+
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
     const loadPrices = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("fish_market_prices")
-        .select("fish_id, current_price, min_price, max_price");
+        .select("fish_id, current_price, min_price, max_price, forecast");
       const m: Record<string, { current: number; min: number; max: number }> = {};
-      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number }>) {
+      const fm: Record<string, number[]> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number; forecast?: unknown }>) {
         m[row.fish_id] = {
           current: Number(row.current_price) || 0,
           min: Number(row.min_price) || 0,
           max: Number(row.max_price) || 0,
         };
+        if (Array.isArray(row.forecast)) {
+          fm[row.fish_id] = (row.forecast as unknown[])
+            .map((v) => Number(v))
+            .filter((n) => Number.isFinite(n));
+        }
       }
       setPriceMap(m);
+      setForecastMap(fm);
     };
     loadPrices();
     const ch = supabase
