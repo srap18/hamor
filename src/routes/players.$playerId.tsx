@@ -200,7 +200,8 @@ function PlayerPage() {
     const { data } = await supabase
       .from("ships_owned")
       .select("*")
-      .eq("user_id", playerId);
+      .eq("user_id", playerId)
+      .order("acquired_at", { ascending: true });
     const fresh = (data as Ship[]) || [];
     setShips(fresh);
     setSelectedShip((cur) => (cur ? (fresh.find((s) => s.id === cur.id) ?? null) : cur));
