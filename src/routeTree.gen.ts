@@ -28,6 +28,7 @@ import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
+import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as BackgroundsShopRouteImport } from './routes/backgrounds-shop'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -37,6 +38,7 @@ import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
@@ -138,6 +140,11 @@ const CosmeticsRoute = CosmeticsRouteImport.update({
   path: '/cosmetics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompetitionsRoute = CompetitionsRouteImport.update({
+  id: '/competitions',
+  path: '/competitions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -183,6 +190,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCompetitionsRoute = AdminCompetitionsRouteImport.update({
+  id: '/competitions',
+  path: '/competitions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCommunityRoute = AdminCommunityRouteImport.update({
   id: '/community',
   path: '/community',
@@ -215,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/chat': typeof ChatRoute
+  '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -238,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -249,6 +263,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/chat': typeof ChatRoute
+  '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -285,6 +301,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/chat': typeof ChatRoute
+  '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -308,6 +325,7 @@ export interface FileRoutesById {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -322,6 +340,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/backgrounds-shop'
     | '/chat'
+    | '/competitions'
     | '/cosmetics'
     | '/fish-market'
     | '/forgot-password'
@@ -345,6 +364,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/codes'
     | '/admin/community'
+    | '/admin/competitions'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -356,6 +376,7 @@ export interface FileRouteTypes {
     | '/'
     | '/backgrounds-shop'
     | '/chat'
+    | '/competitions'
     | '/cosmetics'
     | '/fish-market'
     | '/forgot-password'
@@ -379,6 +400,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/codes'
     | '/admin/community'
+    | '/admin/competitions'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -391,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/backgrounds-shop'
     | '/chat'
+    | '/competitions'
     | '/cosmetics'
     | '/fish-market'
     | '/forgot-password'
@@ -414,6 +437,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/codes'
     | '/admin/community'
+    | '/admin/competitions'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -427,6 +451,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BackgroundsShopRoute: typeof BackgroundsShopRoute
   ChatRoute: typeof ChatRoute
+  CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -585,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CosmeticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/competitions': {
+      id: '/competitions'
+      path: '/competitions'
+      fullPath: '/competitions'
+      preLoaderRoute: typeof CompetitionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat': {
       id: '/chat'
       path: '/chat'
@@ -648,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/competitions': {
+      id: '/admin/competitions'
+      path: '/competitions'
+      fullPath: '/admin/competitions'
+      preLoaderRoute: typeof AdminCompetitionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/community': {
       id: '/admin/community'
       path: '/community'
@@ -691,6 +730,7 @@ interface AdminRouteChildren {
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCodesRoute: typeof AdminCodesRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
+  AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
@@ -702,6 +742,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCodesRoute: AdminCodesRoute,
   AdminCommunityRoute: AdminCommunityRoute,
+  AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContentRoute: AdminContentRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
@@ -715,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   BackgroundsShopRoute: BackgroundsShopRoute,
   ChatRoute: ChatRoute,
+  CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
