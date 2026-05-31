@@ -45,10 +45,12 @@ function AdminDashboard() {
   const loadStats = useCallback(async () => {
     setRefreshing(true);
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const nowIso = new Date().toISOString();
     const [
       { count: players },
       { count: online },
       { count: banned },
+      { count: muted },
       { count: ships },
       { data: agg },
       { count: txCount },
@@ -57,6 +59,7 @@ function AdminDashboard() {
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("*", { count: "exact", head: true }).gte("online_at", tenMinAgo),
       supabase.from("bans").select("*", { count: "exact", head: true }).eq("active", true),
+      supabase.from("chat_mutes").select("*", { count: "exact", head: true }).eq("active", true).or(`expires_at.is.null,expires_at.gt.${nowIso}`),
       supabase.from("ships_owned").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("coins, gems, xp"),
       supabase.from("transactions").select("*", { count: "exact", head: true }),
@@ -76,6 +79,7 @@ function AdminDashboard() {
       players: players ?? 0,
       online: online ?? 0,
       banned: banned ?? 0,
+      muted: muted ?? 0,
       ships: ships ?? 0,
       totalCoins: totals.coins,
       totalGems: totals.gems,
