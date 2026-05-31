@@ -120,8 +120,8 @@ function PrizeBanner({ tiers }: { tiers: PrizeTier[] }) {
                   <div className="text-xs font-black uppercase tracking-wider opacity-80">{RANK_NAME(t.rank)}</div>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {t.coins > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black">
-                        🪙 {t.coins.toLocaleString()}
+                      <span className="px-2 py-0.5 rounded-full bg-black/25 backdrop-blur text-xs font-black inline-flex items-center gap-1">
+                        <CoinIcon size={14} /> {t.coins.toLocaleString()}
                       </span>
                     )}
                     {t.gems > 0 && (
