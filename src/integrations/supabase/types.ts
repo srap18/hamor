@@ -2059,6 +2059,7 @@ export type Database = {
         }[]
       }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
+      cleanup_expired_sanctions: { Args: never; Returns: undefined }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
