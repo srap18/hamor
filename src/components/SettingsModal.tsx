@@ -64,6 +64,13 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   };
 
   const signOut = async () => {
+    const ok = await confirmDialog({
+      title: "تسجيل الخروج",
+      message: "هل أنت متأكد من تسجيل الخروج؟",
+      confirmText: "خروج",
+      danger: true,
+    });
+    if (!ok) return;
     await supabase.auth.signOut();
     onClose();
     nav({ to: "/login" });
