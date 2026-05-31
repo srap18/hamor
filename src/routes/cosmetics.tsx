@@ -6,6 +6,7 @@ import {
   FRAME_KIND_TO_ITEM_TYPE, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { buyWithGems } from "@/lib/economy";
+import { showBanner } from "@/components/Banner";
 
 export const Route = createFileRoute("/cosmetics")({
   ssr: false,
