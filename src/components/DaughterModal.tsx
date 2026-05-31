@@ -93,6 +93,12 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
 
   const handleGemUpgrade = async () => {
     if (!gemCost) return;
+    const ok = await confirmDialog({
+      title: "ترقية الابنة",
+      message: `هل تريد ترقيتها إلى المرحلة التالية مقابل ${gemCost} جوهرة؟`,
+      confirmText: "ترقية بالجواهر",
+    });
+    if (!ok) return;
     setBusy(true);
     const { data, error } = await upgradeDaughterWithGems();
     setBusy(false);
