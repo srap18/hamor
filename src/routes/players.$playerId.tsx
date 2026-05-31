@@ -128,12 +128,14 @@ function PlayerPage() {
         const { data: myProf } = await supabase.from("profiles").select("display_name").eq("id", myId).maybeSingle();
         setMyName((myProf as any)?.display_name ?? "");
       }
-      const [{ data: prof }, { data: sh }] = await Promise.all([
+      const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId),
+        (supabase as any).rpc("is_staff", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
+      setTargetIsStaff(!!staffRes);
 
       if (myId === playerId) setFriendStatus("self");
       else if (myId) {
