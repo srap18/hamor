@@ -678,7 +678,13 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
       });
     } catch (err: any) {
       console.error("voice note error", err);
-      alert("فشل تحويل الصوت: " + (err?.message || ""));
+      const m = String(err?.message || "");
+      let userMsg = "فشل تحويل الصوت، حاول مرة ثانية";
+      if (m.includes("voice_quota")) userMsg = "⚠️ انتهى رصيد خدمة الصوت — تواصل مع الإدارة";
+      else if (m.includes("voice_auth") || m.includes("voice_unavailable")) userMsg = "⚠️ خدمة الصوت غير مفعّلة حالياً";
+      else if (m.includes("voice_network")) userMsg = "⚠️ فشل الاتصال بخدمة الصوت — تحقق من الإنترنت";
+      else if (m.includes("voice_server")) userMsg = "⚠️ خدمة الصوت غير متاحة الآن، حاول لاحقاً";
+      alert(userMsg);
     } finally {
       setTransforming(false);
     }
