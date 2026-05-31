@@ -377,7 +377,7 @@ function Index() {
 
   const [fish, setFish] = useState(34);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
-  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number } | null>(null);
+  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -762,6 +762,8 @@ function Index() {
       count: fishGained,
       shipId: s.id,
       shipLevel: s.level,
+      baseCount: baseFish,
+      luckBonus: luckMult > 1 ? fishGained - baseFish : 0,
     });
 
     setTimeout(() => setPop(null), 1400);
@@ -1564,6 +1566,11 @@ function Index() {
             </div>
             <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
             <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            {catchResult.luckBonus && catchResult.luckBonus > 0 ? (
+              <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border border-yellow-200 text-[10px] font-black text-black shadow">
+                🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
+              </div>
+            ) : null}
             <div className="mt-1 text-[11px] font-bold text-cyan-100/80">سفينة #{catchResult.shipId} • مستوى {catchResult.shipLevel}</div>
             <button
               onClick={() => setCatchResult(null)}
@@ -2035,8 +2042,8 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
       {/* Crew characters standing on the ship deck */}
       {crews.length > 0 && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20 flex items-end justify-center gap-1"
-          style={{ top: "-18%", width: "120%", height: "40%" }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 flex items-end justify-center gap-1"
+          style={{ top: "-6%", width: "120%", height: "32%" }}
         >
           {crews.map((c, i) => (
             <div
@@ -2229,7 +2236,7 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
             ? "from-amber-400 to-amber-300"
             : "from-rose-500 to-rose-400";
         return (
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-20">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-40">
             {/* Guide crew preview — show which fish this trip will catch */}
             {guideFish && ship.fishing && (
               <div className="mx-auto mb-0.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-sky-700/95 to-indigo-700/95 border border-sky-300/80 shadow-md whitespace-nowrap">
