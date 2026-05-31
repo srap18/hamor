@@ -371,6 +371,7 @@ function Index() {
 
   const [fish, setFish] = useState(34);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
+  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number } | null>(null);
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
