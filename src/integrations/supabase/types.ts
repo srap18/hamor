@@ -2379,6 +2379,7 @@ export type Database = {
         Returns: Json
       }
       has_bought_starter: { Args: { _user: string }; Returns: boolean }
+      has_fishing_ship: { Args: { _user_id: string }; Returns: boolean }
       has_pvp_fleet: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2394,6 +2395,7 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
+      is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_tribe_member: {
