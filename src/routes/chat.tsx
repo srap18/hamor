@@ -9,6 +9,8 @@ import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { VoiceRooms } from "@/components/VoiceRooms";
 import { sound } from "@/lib/sound";
+import { useIsAdmin } from "@/hooks/use-admin";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
