@@ -63,15 +63,18 @@ function AdminPlayers() {
       toast.success(`فُكّ الحظر عن ${p.display_name}`);
     } else {
       const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
-      const hoursStr = prompt("مدة الحظر بالساعات (اتركها فارغة للحظر الدائم):", "");
-      const hours = hoursStr ? Number(hoursStr) : 0;
-      const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+      const daysStr = prompt("مدة الحظر — كم يوم؟ (اتركه فارغ للدائم):", "");
+      const hoursStr = prompt("مدة الحظر — كم ساعة إضافية؟", "0");
+      const days = daysStr ? Math.max(0, Number(daysStr) | 0) : 0;
+      const hours = hoursStr ? Math.max(0, Number(hoursStr) | 0) : 0;
+      const totalH = days * 24 + hours;
+      const expires_at = totalH > 0 ? new Date(Date.now() + totalH * 3600_000).toISOString() : null;
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("bans").insert({ user_id: p.id, reason, banned_by: userData.user?.id, expires_at });
-      await logAudit("ban_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
-      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await logAudit("ban_user", p.id, { name: p.display_name, reason, days, hours, permanent: totalH === 0 });
+      const dur = totalH > 0 ? `لمدة ${days ? `${days}ي ` : ""}${hours ? `${hours}س` : ""}`.trim() : "نهائياً";
       await notify(p.id, "🚫 تم حظرك", `تم حظرك ${dur}. السبب: ${reason || "غير محدد"}`);
-      toast.success(hours > 0 ? `تم حظر ${p.display_name} لمدة ${hours} ساعة` : `تم حظر ${p.display_name} نهائياً`);
+      toast.success(`تم حظر ${p.display_name} ${dur}`);
     }
     load();
   };
@@ -85,15 +88,18 @@ function AdminPlayers() {
       toast.success(`أُلغي كتم ${p.display_name}`);
     } else {
       const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
-      const hoursStr = prompt("مدة الكتم بالساعات (اتركها فارغة للكتم الدائم):", "24");
-      const hours = hoursStr ? Number(hoursStr) : 0;
-      const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+      const daysStr = prompt("مدة الكتم — كم يوم؟ (اتركه فارغ للدائم):", "1");
+      const hoursStr = prompt("مدة الكتم — كم ساعة إضافية؟", "0");
+      const days = daysStr ? Math.max(0, Number(daysStr) | 0) : 0;
+      const hours = hoursStr ? Math.max(0, Number(hoursStr) | 0) : 0;
+      const totalH = days * 24 + hours;
+      const expires_at = totalH > 0 ? new Date(Date.now() + totalH * 3600_000).toISOString() : null;
       const { data: userData } = await supabase.auth.getUser();
       await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
-      await logAudit("mute_user", p.id, { name: p.display_name, reason, hours: hours || "permanent" });
-      const dur = hours > 0 ? `لمدة ${hours} ساعة` : "نهائياً";
+      await logAudit("mute_user", p.id, { name: p.display_name, reason, days, hours, permanent: totalH === 0 });
+      const dur = totalH > 0 ? `لمدة ${days ? `${days}ي ` : ""}${hours ? `${hours}س` : ""}`.trim() : "نهائياً";
       await notify(p.id, "🔇 تم كتمك في الدردشة", `لا يمكنك الكتابة ${dur}. السبب: ${reason || "غير محدد"}`);
-      toast.success(hours > 0 ? `تم كتم ${p.display_name} لمدة ${hours} ساعة` : `تم كتم ${p.display_name} نهائياً`);
+      toast.success(`تم كتم ${p.display_name} ${dur}`);
     }
     load();
   };

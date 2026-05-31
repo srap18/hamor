@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FISH_LIST, FISH } from "@/lib/fish";
+import { DurationPicker, formatTimeLeft } from "@/components/admin/DurationPicker";
 
 export const Route = createFileRoute("/admin/competitions")({
   component: AdminCompetitions,
@@ -43,12 +44,6 @@ const THEMES = [
   { id: "emerald", label: "💚 زمرد" },
 ];
 
-function defaultEnds() {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d.toISOString().slice(0, 16);
-}
-
 function AdminCompetitions() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,8 +60,11 @@ function AdminCompetitions() {
   const [rwGems, setRwGems] = useState(0);
   const [rwXp, setRwXp] = useState(0);
   const [rwText, setRwText] = useState("");
-  const [startsAt, setStartsAt] = useState(new Date().toISOString().slice(0, 16));
-  const [endsAt, setEndsAt] = useState(defaultEnds());
+  // Relative duration: starts in X days/hours from now, ends after Y days/hours from now
+  const [startD, setStartD] = useState(0);
+  const [startH, setStartH] = useState(0);
+  const [endD, setEndD] = useState(7);
+  const [endH, setEndH] = useState(0);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -83,9 +81,13 @@ function AdminCompetitions() {
 
   const create = async () => {
     if (!title.trim()) { setMsg("اكتب عنوان الفعالية"); return; }
+    const startOffset = startD * 24 + startH;
+    const endOffset = endD * 24 + endH;
+    if (endOffset <= startOffset) { setMsg("مدة النهاية يجب أن تكون أكبر من البداية"); return; }
     setSaving(true);
     setMsg(null);
     const { data: { user } } = await supabase.auth.getUser();
+    const now = Date.now();
     const payload = {
       title: title.trim(),
       description: desc.trim(),
@@ -99,8 +101,8 @@ function AdminCompetitions() {
       reward_gems: Math.max(0, rwGems | 0),
       reward_xp: Math.max(0, rwXp | 0),
       reward_text: rwText.trim(),
-      starts_at: new Date(startsAt).toISOString(),
-      ends_at: new Date(endsAt).toISOString(),
+      starts_at: new Date(now + startOffset * 3600_000).toISOString(),
+      ends_at: new Date(now + endOffset * 3600_000).toISOString(),
       active: true,
       created_by: user?.id ?? null,
     };
@@ -110,6 +112,7 @@ function AdminCompetitions() {
     setMsg("✓ تم إنشاء الفعالية");
     setTitle(""); setDesc(""); setBannerText("بطولة عظمى"); setRwText("");
     setRwCoins(0); setRwGems(0); setRwXp(0);
+    setStartD(0); setStartH(0); setEndD(7); setEndH(0);
     load();
   };
 
@@ -214,14 +217,10 @@ function AdminCompetitions() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-3">
-          <label className="block">
-            <span className="text-xs text-slate-400">يبدأ في</span>
-            <input type="datetime-local" value={startsAt} onChange={e=>setStartsAt(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700"/>
-          </label>
-          <label className="block">
-            <span className="text-xs text-slate-400">ينتهي في</span>
-            <input type="datetime-local" value={endsAt} onChange={e=>setEndsAt(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700"/>
-          </label>
+          <DurationPicker label="يبدأ بعد" days={startD} hours={startH}
+            onChange={(d, h) => { setStartD(d); setStartH(h); }} allowZero zeroLabel="يبدأ فوراً"/>
+          <DurationPicker label="ينتهي بعد" days={endD} hours={endH}
+            onChange={(d, h) => { setEndD(d); setEndH(h); }}/>
         </div>
 
         <button onClick={create} disabled={saving} className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold disabled:opacity-50">
@@ -252,7 +251,7 @@ function AdminCompetitions() {
                   {fishName && <> — <b className="text-slate-200">{fishName}</b></>}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
-                  ينتهي: {new Date(r.ends_at).toLocaleString("ar")}
+                  ينتهي خلال: <b className="text-slate-300">{formatTimeLeft(r.ends_at)}</b>
                 </div>
                 <div className="text-xs text-amber-300 mt-1">
                   🪙 {r.reward_coins} · 💎 {r.reward_gems} · ⭐ {r.reward_xp}{r.reward_text ? ` · ${r.reward_text}` : ""}

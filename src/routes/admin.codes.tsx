@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DurationPicker } from "@/components/admin/DurationPicker";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
@@ -52,7 +53,8 @@ function AdminCodesPage() {
   const [quantity, setQuantity] = useState(1);
   const [distMode, setDistMode] = useState<DistMode>("limited");
   const [maxUses, setMaxUses] = useState(1);
-  const [expiresAt, setExpiresAt] = useState("");
+  const [expD, setExpD] = useState(0);
+  const [expH, setExpH] = useState(0);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -140,7 +142,7 @@ function AdminCodesPage() {
       xp: rewardType === "bundle" ? xp : 0,
       quantity: Math.max(1, quantity),
       max_uses: distMode === "public" ? 0 : Math.max(1, maxUses),
-      expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+      expires_at: (expD * 24 + expH) > 0 ? new Date(Date.now() + (expD * 24 + expH) * 3600_000).toISOString() : null,
       note,
     });
     setSaving(false);
@@ -148,7 +150,7 @@ function AdminCodesPage() {
     toast.success(`✅ تم إنشاء الكود ${finalCode}`);
     try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
     setCode(""); setNote("");
-    setCoins(0); setGems(0); setXp(0); setQuantity(1); setMaxUses(1); setExpiresAt(""); setItemId("");
+    setCoins(0); setGems(0); setXp(0); setQuantity(1); setMaxUses(1); setExpD(0); setExpH(0); setItemId("");
     loadCodes();
   };
 
@@ -440,15 +442,10 @@ function AdminCodesPage() {
           {distMode === "limited" && (
             <NumField label="عدد الاستخدامات الإجمالي" value={maxUses} onChange={setMaxUses} min={1} />
           )}
-          <label className="text-xs text-slate-400 space-y-1">
-            <span>ينتهي في (اختياري)</span>
-            <input
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
-            />
-          </label>
+          <DurationPicker label="ينتهي بعد (اختياري)" days={expD} hours={expH}
+            onChange={(d, h) => { setExpD(d); setExpH(h); }}
+            allowZero zeroLabel="بدون انتهاء" />
+
         </div>
 
         <label className="block text-xs text-slate-400 space-y-1">
