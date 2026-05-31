@@ -251,8 +251,8 @@ function RechargePage() {
                       </span>
                     ) : null}
                     {r.coins ? (
-                      <span className="text-[11px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded">
-                        +{r.coins.toLocaleString()} 🪙
+                      <span className="text-[11px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        +{r.coins.toLocaleString()} <CoinIcon size={12} />
                       </span>
                     ) : null}
                     {r.rubies ? (
