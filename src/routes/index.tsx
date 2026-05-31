@@ -1745,7 +1745,7 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                   <div className="text-xs font-bold text-accent tabular-nums">⚡ {(m.level * 100 + Math.floor(m.xp / 10)).toLocaleString()}</div>
                   </>
                 );
-                return meTribeId === m.user_id ? (
+                return m.user_id === (typeof window !== "undefined" ? (window as any).__meId : null) ? (
                   <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{row}</div>
                 ) : (
                   <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
