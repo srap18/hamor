@@ -36,6 +36,7 @@ import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
@@ -176,6 +177,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCommunityRoute = AdminCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCodesRoute = AdminCodesRouteImport.update({
   id: '/codes',
   path: '/codes',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
+  '/admin/community': typeof AdminCommunityRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
+  '/admin/community': typeof AdminCommunityRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
+  '/admin/community': typeof AdminCommunityRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
+    | '/admin/community'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
+    | '/admin/community'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
+    | '/admin/community'
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
@@ -616,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/community': {
+      id: '/admin/community'
+      path: '/community'
+      fullPath: '/admin/community'
+      preLoaderRoute: typeof AdminCommunityRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/codes': {
       id: '/admin/codes'
       path: '/codes'
@@ -651,6 +670,7 @@ interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCodesRoute: typeof AdminCodesRoute
+  AdminCommunityRoute: typeof AdminCommunityRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
@@ -661,6 +681,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCodesRoute: AdminCodesRoute,
+  AdminCommunityRoute: AdminCommunityRoute,
   AdminContentRoute: AdminContentRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,

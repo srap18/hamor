@@ -30,6 +30,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/broadcasts", label: "الإشعارات", icon: "📢" },
   { to: "/admin/content", label: "محتوى اللعبة", icon: "🎮" },
   { to: "/admin/codes", label: "أكواد الاستعمال", icon: "🎟️" },
+  { to: "/admin/community", label: "القبائل والغرف", icon: "🏴‍☠️" },
   { to: "/admin/audit", label: "سجل العمليات", icon: "📋" },
 ];
 
