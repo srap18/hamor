@@ -1,14 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DurationPicker } from "@/components/admin/DurationPicker";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
   ssr: false,
   head: () => ({ meta: [{ title: "أكواد الاستعمال — الإدارة" }] }),
 });
+
+// Shield options — granted via redeem_code as item_kind='shield' with quantity = hours
+const SHIELD_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  { code: "shield_4h",  name: "🛡️ درع 4 ساعات", kind: "shield" },
+  { code: "shield_1d",  name: "🛡️ درع يوم",      kind: "shield" },
+  { code: "shield_2d",  name: "🛡️ درع يومين",    kind: "shield" },
+  { code: "shield_7d",  name: "🛡️ درع أسبوع",    kind: "shield" },
+  { code: "shield_30d", name: "🛡️ درع شهر",      kind: "shield" },
+];
+
+// Local TS catalogs merged in so admin can bundle crews/weapons/frames/shields
+// directly with proper Arabic names — without needing entries in items_catalog.
+const KIND_LABEL: Record<string, string> = {
+  crew: "👥 طواقم",
+  weapon: "💥 أسلحة",
+  shield: "🛡️ دروع",
+  frame: "🖼️ إطارات صورة",
+  name_frame: "🏷️ إطارات اسم",
+  bubble_frame: "💬 إطارات رسالة",
+  profile_frame: "🪪 إطارات بطاقة",
+  misc: "📦 متفرقات",
+};
+
+const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  ...CREWS.map((c) => ({ code: c.id, name: `${c.emoji} ${c.name}`, kind: "crew" })),
+  ...WEAPONS.map((w) => ({ code: w.id, name: `${w.emoji} ${w.name}`, kind: "weapon" })),
+  ...SHIELD_ITEMS,
+  ...ALL_FRAMES.map((f) => ({
+    code: f.id,
+    name: `${f.preview ?? "🖼️"} ${f.name}`,
+    kind: FRAME_KIND_TO_ITEM_TYPE[f.kind],
+  })),
+];
 
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
@@ -74,8 +110,20 @@ function AdminCodesPage() {
   const [quickDist, setQuickDist] = useState<DistMode>("limited");
 
   // كتالوجات
-  const [itemsCatalog, setItemsCatalog] = useState<Array<{ code: string; name: string; kind: string }>>([]);
+  const [dbItems, setDbItems] = useState<Array<{ code: string; name: string; kind: string }>>([]);
   const [shipsCatalog, setShipsCatalog] = useState<Array<{ code: string; name: string }>>([]);
+
+  // الكتالوج الموحّد: عناصر قاعدة البيانات + الطواقم/الأسلحة/الدروع/الإطارات من الكود
+  const itemsCatalog = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ code: string; name: string; kind: string }> = [];
+    for (const it of [...LOCAL_ITEMS, ...dbItems]) {
+      if (seen.has(it.code)) continue;
+      seen.add(it.code);
+      out.push(it);
+    }
+    return out;
+  }, [dbItems]);
 
   // إنشاء مجمّع: اختر عدة أشياء + عملات في كود واحد
   const [bundleSelItems, setBundleSelItems] = useState<Record<string, number>>({}); // item code -> qty
@@ -103,7 +151,7 @@ function AdminCodesPage() {
   useEffect(() => {
     loadCodes();
     supabase.from("items_catalog").select("code, name, kind").eq("active", true).order("sort_order").then(({ data }) => {
-      setItemsCatalog((data ?? []) as Array<{ code: string; name: string; kind: string }>);
+      setDbItems((data ?? []) as Array<{ code: string; name: string; kind: string }>);
     });
     supabase.from("ship_catalog").select("code, name").eq("active", true).order("sort_order").then(({ data }) => {
       setShipsCatalog((data ?? []) as Array<{ code: string; name: string }>);
@@ -447,42 +495,57 @@ function AdminCodesPage() {
           <NumField label="خبرة ✨" value={bundleXp} onChange={setBundleXp} />
         </div>
 
-        {/* عناصر المتجر — متعدد الاختيار */}
-        <div className="space-y-1">
+        {/* عناصر متعددة الاختيار — مجموعة حسب النوع */}
+        <div className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="text-[11px] text-fuchsia-300/80">📦 عناصر المتجر — اضغط للاختيار</div>
+            <div className="text-[11px] text-fuchsia-300/80">📦 العناصر — اضغط للاختيار (مجمّعة حسب النوع)</div>
             <div className="flex gap-1 flex-wrap">
               <button onClick={() => selectAllItemsByKind(null)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ الكل</button>
-              {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((k) => (
-                <button key={k} onClick={() => selectAllItemsByKind(k)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل {k}</button>
-              ))}
               <button onClick={clearBundleSelection} className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 hover:bg-red-900/60 text-red-200">مسح الكل</button>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {itemsCatalog.map((it) => {
-              const sel = bundleSelItems[it.code] != null;
-              return (
-                <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
-                  <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
-                    {sel ? "✅" : "📦"} {it.name}
-                  </button>
-                  {sel && (
-                    <div className="mt-1 flex items-center gap-1">
-                      <span className="text-[10px] text-fuchsia-200">×</span>
-                      <input
-                        type="number"
-                        min={1}
-                        value={bundleSelItems[it.code]}
-                        onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
-                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
-                      />
-                    </div>
-                  )}
+
+          {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((kind) => {
+            const group = itemsCatalog.filter((i) => i.kind === kind);
+            if (group.length === 0) return null;
+            return (
+              <div key={kind} className="space-y-1 rounded-lg border border-fuchsia-900/40 bg-black/20 p-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="text-[12px] font-bold text-fuchsia-200">
+                    {KIND_LABEL[kind] ?? kind} <span className="text-fuchsia-400/70 text-[10px]">({group.length})</span>
+                  </div>
+                  <button
+                    onClick={() => selectAllItemsByKind(kind)}
+                    className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100"
+                  >+ كل {KIND_LABEL[kind] ?? kind}</button>
                 </div>
-              );
-            })}
-          </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {group.map((it) => {
+                    const sel = bundleSelItems[it.code] != null;
+                    return (
+                      <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                        <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
+                          {sel ? "✅" : "•"} {it.name}
+                        </button>
+                        {sel && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="text-[10px] text-fuchsia-200">×</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={bundleSelItems[it.code]}
+                              onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                              className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* السفن — متعدد الاختيار */}
