@@ -681,7 +681,7 @@ function Index() {
       : fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
-    const baseFish = Math.max(1, Math.round(fullAmount * effRatio));
+    const baseFish = Math.floor(fullAmount * effRatio);
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
