@@ -894,6 +894,8 @@ export type Database = {
           selected_bg_id: string
           steal_blocked_until: string | null
           tribe_id: string | null
+          vip_level: number
+          vip_points: number
           xp: number
         }
         Insert: {
@@ -915,6 +917,8 @@ export type Database = {
           selected_bg_id?: string
           steal_blocked_until?: string | null
           tribe_id?: string | null
+          vip_level?: number
+          vip_points?: number
           xp?: number
         }
         Update: {
@@ -936,6 +940,8 @@ export type Database = {
           selected_bg_id?: string
           steal_blocked_until?: string | null
           tribe_id?: string | null
+          vip_level?: number
+          vip_points?: number
           xp?: number
         }
         Relationships: [
@@ -1991,6 +1997,10 @@ export type Database = {
         Args: { _coins_needed: number; _uid: string }
         Returns: undefined
       }
+      add_vip_points: {
+        Args: { _pts: number; _user: string }
+        Returns: undefined
+      }
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
         Returns: string
@@ -2146,6 +2156,7 @@ export type Database = {
       }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
+      compute_vip_level: { Args: { _points: number }; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
