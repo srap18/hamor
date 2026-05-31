@@ -983,9 +983,9 @@ function Index() {
         const wLeft = scene.waterLeft ?? 30;
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
-        // Keep the third ship higher so it doesn't stick to the bottom nav on mobile.
-        const ts = [0.15, 0.45, 0.05];
-        const vRange = Math.max(14, 74 - (wTop + 4));
+        // Keep all ships floating in the mid-water band (not glued to the bottom).
+        const ts = [0.25, 0.5, 0.15];
+        const vRange = Math.max(10, 60 - (wTop + 4));
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i] * vRange}%`;
 
         const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
