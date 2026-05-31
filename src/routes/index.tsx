@@ -1987,7 +1987,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           <img
             src={ship.img}
             alt="Ship"
-            className={`w-full block select-none ${destroyed ? "" : "animate-sail-flap"}`}
+            onClick={onTap}
+            className={`w-full block select-none cursor-pointer pointer-events-auto active:scale-95 ${destroyed ? "" : "animate-sail-flap"}`}
             draggable={false}
             decoding="async"
             loading="eager"
