@@ -73,7 +73,7 @@ function ShipyardPage() {
   const fleetStorageMax = shipMarketCapacity(marketLevel);
   const MAX_SHIPS = 3;
   const shipsCount = owned.length;
-  const fleetFull = fleetStorageUsed >= fleetStorageMax || shipsCount >= MAX_SHIPS;
+  const fleetFull = shipsCount >= MAX_SHIPS;
   const selectedShipFlip = shipBowFacesRight(selectedShip.marketLevel) ? 1 : -1;
 
   const showToast = (message: string) => {
@@ -351,8 +351,8 @@ function ShipyardPage() {
                       <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : shipsCount >= MAX_SHIPS ? `الحد ${MAX_SHIPS}` : fleetFull ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
+                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull || (fleetStorageUsed + ship.storage > fleetStorageMax)} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
+                      {locked ? `يتطلب ${ship.marketLevel}` : shipsCount >= MAX_SHIPS ? `الحد ${MAX_SHIPS}` : (fleetStorageUsed + ship.storage > fleetStorageMax) ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
                     </button>
                   </div>
                 </button>
