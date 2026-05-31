@@ -274,8 +274,9 @@ function Index() {
         usedIds.add(nextId);
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
-        const maxProg = 35000 + (lvl - 1) * 9000;
-        const duration = Math.round(maxProg / 30);
+        const shipDef = getShipByMarketLevel(lvl);
+        const maxProg = catchPerTrip(shipDef);
+        const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
         const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
