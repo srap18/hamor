@@ -158,6 +158,12 @@ function getShipGuide(shipId: number): string | null {
   return window.localStorage.getItem(`ship_guide_${shipId}`);
 }
 
+function setShipGuide(shipId: number, fishId: string | null) {
+  if (typeof window === "undefined") return;
+  if (fishId) window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
+  else window.localStorage.removeItem(`ship_guide_${shipId}`);
+}
+
 // Crew assignment + inventory (localStorage-backed for now)
 function getShipCrew(shipId: number): string | null {
   if (typeof window === "undefined") return null;
@@ -380,6 +386,7 @@ function Index() {
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
+  const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -1212,6 +1219,10 @@ function Index() {
                       label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
                       onClick={(e: React.MouseEvent) => {
                         setMenuShipId(null);
+                        if (!ready && s.progress <= 0 && !s.fishing && getCrewBonuses(s).guide) {
+                          setFishPickerShipId(s.id);
+                          return;
+                        }
                         collect(s.id, e);
                       }}
                     />
