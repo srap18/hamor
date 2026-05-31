@@ -660,23 +660,10 @@ function Index() {
     void guide;
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
-    const ratio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
-    if (ratio <= 0) {
-      // Nothing caught yet but ship is out → just recall
-      setShips((curr) =>
-        curr.map((x) =>
-          x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x
-        )
-      );
-      if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
-      }
-      sound.play("whoosh");
-      return;
-    }
-    const effRatio = ratio;
+    const rawRatio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
+    // Guarantee every recall yields at least a small catch so no ship comes
+    // back empty-handed, even when stopped immediately after sailing out.
+    const effRatio = Math.max(rawRatio, 0.05);
     const pool = fishForShip(s.level, s.id);
     const storedGuide = getShipGuide(s.id);
     // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
