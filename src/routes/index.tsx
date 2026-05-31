@@ -20,7 +20,7 @@ import cloudImg from "@/assets/cloud-realistic.png";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
-import { BeachDaughter } from "@/components/BeachDaughter";
+
 import { frameById } from "@/lib/frames";
 
 
@@ -1463,7 +1463,7 @@ function Index() {
           {pop.v}
         </div>
       )}
-      <BeachDaughter ships={ships.map(s => ({ id: s.id, dockLeft: s.dockLeft, fishing: !!s.fishing, sail: s.sail }))} />
+      
     </div>
   );
 }
