@@ -338,7 +338,8 @@ function PlayerPage() {
       if (dmgErr) {
         const m = String(dmgErr.message || "");
         if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
-        if (m.includes("no pvp fleet")) { sound.play("error"); flash("🛡️ اللاعب محمي — ما عنده 3 سفن مستوى 6"); setBusy(false); return; }
+        if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم تكون عندك سفينة في وضع الصيد قبل الهجوم"); setBusy(false); return; }
+        if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
         if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
         sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
       }
