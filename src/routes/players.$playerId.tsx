@@ -3,13 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
-import { bgById } from "@/lib/backgrounds";
-import { SeamlessVideo } from "@/components/SeamlessVideo";
+import { getSceneVisual } from "@/lib/backgrounds";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { buyWithCoins, buyWithGems } from "@/lib/economy";
 import { ProjectileFx } from "@/components/ProjectileFx";
-import { BurnedBgOverlay, burnTargetBg } from "@/components/BurnedBgOverlay";
+import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { frameById } from "@/lib/frames";
 
 export const Route = createFileRoute("/players/$playerId")({
@@ -558,9 +557,8 @@ function PlayerPage() {
   }
 
 
-  const scene = bgById(p?.selected_bg_id || "harbor");
+  const scene = getSceneVisual(p?.selected_bg_id || "celestial_colosseum", p?.bg_burned_until);
 
-  // Match index.tsx ship placement so visiting a player feels identical to playing.
   const wTop = scene.waterTop ?? 45;
   const wLeft = scene.waterLeft ?? 30;
   const wRight = scene.waterRight ?? 75;
@@ -572,24 +570,28 @@ function PlayerPage() {
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
-      {/* Their actual scene background (animated video if available) */}
-      {scene.video ? (
-        <SeamlessVideo key={scene.id} src={scene.video} poster={scene.image}
-          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-          style={{ objectPosition: scene.objectPosition ?? "right center" }} />
-      ) : (
-        <img src={scene.image} alt={scene.name} className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-          style={{ objectPosition: scene.objectPosition ?? "right center" }} draggable={false} />
-      )}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <img
+          key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
+          src={scene.displayImage}
+          alt={scene.displayName}
+          className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+          style={{
+            objectPosition: scene.objectPosition ?? "center center",
+            ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
+            ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
+            ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
+            ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
+          }}
+          draggable={false}
+        />
+        {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
+      </div>
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
 
-      {/* Scorched background overlay if this player was nuked */}
-      <BurnedBgOverlay burnedUntil={p?.bg_burned_until} ownerName={p?.display_name} />
-
-      {/* Scene name badge */}
       <div className="absolute top-[5.5rem] left-1/2 -translate-x-1/2 z-30 glass-hud rounded-full px-3 py-1 border border-amber-400/40 text-[10px] text-amber-200 font-bold whitespace-nowrap">
-        🌅 {scene.name}
+        🌅 {scene.displayName}
       </div>
 
 

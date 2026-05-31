@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import harborBg from "@/assets/harbor-bg.jpg";
 import { getShipByMarketLevel, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
-import { bgById, getSelectedBgId } from "@/lib/backgrounds";
-import { SeamlessVideo } from "@/components/SeamlessVideo";
+import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
 import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +17,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
-import { BurnedBgOverlay, repairBurnedBg } from "@/components/BurnedBgOverlay";
+import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { BeachDaughter } from "@/components/BeachDaughter";
@@ -473,8 +471,6 @@ function Index() {
 
   const [bgId, setBgId] = useState<string>(() => getSelectedBgId());
   useEffect(() => {
-    // DB is the source of truth so the background stays consistent across devices
-    // and never flips back to a stale localStorage value after visiting another page.
     (async () => {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id;
@@ -496,7 +492,7 @@ function Index() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
-  const scene = bgById(bgId);
+  const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
 
   // Incoming raids: ships from other players currently stealing from me
   type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number };
@@ -736,28 +732,24 @@ function Index() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0d2236]">
-      {/* Selected scene background — all variants share the same shore-left / sea-right composition */}
-      {scene.video ? (
-        <div className="absolute inset-0 pointer-events-none">
-          <SeamlessVideo
-            key={scene.id}
-            src={scene.video}
-            poster={scene.image}
-            className="absolute inset-0 w-full h-full object-cover select-none"
-            style={{ objectPosition: scene.objectPosition ?? "right center" }}
-          />
-        </div>
-      ) : (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <img
-          src={scene.image}
-          alt={scene.name}
-          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-          style={{ objectPosition: scene.objectPosition ?? "right center" }}
+          key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
+          src={scene.displayImage}
+          alt={scene.displayName}
+          className={`absolute inset-0 h-full w-full object-cover select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+          style={{
+            objectPosition: scene.objectPosition ?? "center center",
+            ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
+            ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
+            ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
+            ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
+          }}
           draggable={false}
         />
-      )}
+        {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
+      </div>
 
-      {/* Soft water shimmer overlay */}
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{
           background:
@@ -765,28 +757,24 @@ function Index() {
         }}
       />
 
-      {/* Burned background (after being nuked) — clickable to repair for 100 gems */}
-      {(profile as any)?.bg_burned_until && new Date((profile as any).bg_burned_until).getTime() > now && (
-        <>
-          <BurnedBgOverlay burnedUntil={(profile as any).bg_burned_until} />
-          <button
-            onClick={async () => {
-              const showToast = (v: string) => {
-                setPop({ id: Date.now(), x: window.innerWidth / 2, y: 120, v });
-                setTimeout(() => setPop(null), 1800);
-              };
-              if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
-              if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
-              const { error } = await repairBurnedBg();
-              if (error) { showToast("تعذّر الإصلاح"); return; }
-              sound.play("success");
-              showToast("✨ تم إصلاح الخلفية!");
-            }}
-            className="absolute top-[10rem] left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-2xl active:scale-95 flex items-center gap-1"
-          >
-            🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
-          </button>
-        </>
+      {scene.burned && (
+        <button
+          onClick={async () => {
+            const showToast = (v: string) => {
+              setPop({ id: Date.now(), x: window.innerWidth / 2, y: 120, v });
+              setTimeout(() => setPop(null), 1800);
+            };
+            if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+            if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+            const { error } = await repairBurnedBg();
+            if (error) { showToast("تعذّر الإصلاح"); return; }
+            sound.play("success");
+            showToast("✨ رجعت الخلفية سليمة!");
+          }}
+          className="absolute top-[10rem] left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-2xl active:scale-95 flex items-center gap-1"
+        >
+          🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
+        </button>
       )}
 
       {/* Incoming raids — pirates stealing from me */}
