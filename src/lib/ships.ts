@@ -208,14 +208,6 @@ export function getShipByMarketLevel(level: number): ShipDef {
   return SHIPS[clamped - 1];
 }
 
-// Map a market level (1..31) to the ship definition.
-// Level 31 = the special phoenix shop ship.
-export function getShipByMarketLevel(level: number): ShipDef {
-  if (level >= 31) return PHOENIX_SHIP;
-  const clamped = Math.max(1, Math.min(30, Math.round(level)));
-  return SHIPS[clamped - 1];
-}
-
 export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
 }
