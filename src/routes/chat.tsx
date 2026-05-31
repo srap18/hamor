@@ -154,7 +154,12 @@ function ChatPage() {
     return () => { supabase.removeChannel(ch); };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
+  // Smart auto-scroll: only stick to bottom if user is already near it (smoother UX, doesn't fight scroll)
+  useEffect(() => {
+    const el = scrollRef.current; if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
+    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [msgs]);
 
   const [sending, setSending] = useState(false);
   const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
