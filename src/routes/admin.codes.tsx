@@ -13,6 +13,16 @@ export const Route = createFileRoute("/admin/codes")({
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
 
+type ExtraReward = {
+  type: RewardType;
+  item_id?: string | null;
+  item_kind?: string | null;
+  quantity?: number;
+  coins?: number;
+  gems?: number;
+  xp?: number;
+};
+
 type CodeRow = {
   id: string;
   code: string;
@@ -29,6 +39,7 @@ type CodeRow = {
   active: boolean;
   note: string;
   created_at: string;
+  extra_rewards: ExtraReward[] | null;
 };
 
 function randomCode(len = 8): string {
