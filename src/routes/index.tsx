@@ -695,7 +695,23 @@ function Index() {
       }
       return;
     }
-    const fishGained = Math.max(1, Math.floor(baseFish * luckMult));
+    const fishGained = Math.floor(baseFish * luckMult);
+    if (fishGained <= 0) {
+      // Nothing caught yet — just dock the ship without rewarding/spamming.
+      setShips((curr) =>
+        curr.map((x) =>
+          x.id === shipId
+            ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined }
+            : x
+        )
+      );
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
+      return;
+    }
     // Fishing yields only fish — sell them at the fish market to earn gold.
     setFish((f) => f + fishGained);
     if (user && caught) {
