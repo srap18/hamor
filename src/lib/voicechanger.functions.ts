@@ -36,7 +36,7 @@ export const transformVoice = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) throw new Error("ELEVENLABS_API_KEY missing");
+    if (!apiKey) throw new Error("voice_unavailable: المفتاح غير مهيّأ");
 
     const cfg = PRESETS[data.preset];
     const bin = Buffer.from(data.audioB64, "base64");
@@ -48,14 +48,28 @@ export const transformVoice = createServerFn({ method: "POST" })
     form.append("remove_background_noise", "true");
     form.append("voice_settings", JSON.stringify(cfg.settings));
 
-    const res = await fetch(
-      `https://api.elevenlabs.io/v1/speech-to-speech/${cfg.voiceId}?output_format=mp3_44100_128`,
-      { method: "POST", headers: { "xi-api-key": apiKey }, body: form }
-    );
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://api.elevenlabs.io/v1/speech-to-speech/${cfg.voiceId}?output_format=mp3_44100_128`,
+        { method: "POST", headers: { "xi-api-key": apiKey }, body: form }
+      );
+    } catch {
+      throw new Error("voice_network: تعذّر الاتصال بخدمة الصوت");
+    }
 
     if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`ElevenLabs ${res.status}: ${txt.slice(0, 300)}`);
+      const txt = (await res.text().catch(() => "")).toLowerCase();
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("voice_auth: مفتاح ElevenLabs غير صالح");
+      }
+      if (res.status === 429 || txt.includes("quota") || txt.includes("credit") || txt.includes("exceed")) {
+        throw new Error("voice_quota: انتهى رصيد ElevenLabs");
+      }
+      if (res.status >= 500) {
+        throw new Error("voice_server: خدمة الصوت غير متاحة مؤقتاً");
+      }
+      throw new Error(`voice_error: ${res.status}`);
     }
     const out = await res.arrayBuffer();
     const outB64 = Buffer.from(out).toString("base64");
