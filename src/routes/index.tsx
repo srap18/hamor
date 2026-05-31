@@ -109,13 +109,18 @@ function loadFleet(): Ship[] {
     if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
+      const def = getShipByMarketLevel(s.level);
+      const realMax = catchPerTrip(def);
+      const realDuration = def.fishingSeconds;
       return {
-        id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
-        duration: s.duration ?? s.timeLeft ?? Math.round(s.max / 30),
+        id: s.id, dbId: s.dbId, level: s.level,
+        max: realMax,
+        timeLeft: realDuration,
+        duration: realDuration,
         startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
-        img: getShipByMarketLevel(s.level).image,
-        progress: s.progress ?? 0,
+        img: def.image,
+        progress: Math.min(s.progress ?? 0, realMax),
         fishing: s.fishing ?? false,
         sail: s.sail ?? 0,
       };
@@ -269,8 +274,9 @@ function Index() {
         usedIds.add(nextId);
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
-        const maxProg = 35000 + (lvl - 1) * 9000;
-        const duration = Math.round(maxProg / 30);
+        const shipDef = getShipByMarketLevel(lvl);
+        const maxProg = catchPerTrip(shipDef);
+        const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
         const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
@@ -663,9 +669,9 @@ function Index() {
     const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
     const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
     const rawRatio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
-    // Guarantee every recall yields at least a small catch so no ship comes
-    // back empty-handed, even when stopped immediately after sailing out.
-    const effRatio = Math.max(rawRatio, 0.05);
+    // Strictly time-proportional: fish caught == (elapsed / duration) * capacity.
+    // No minimum floor — stopping after 0s yields 0.
+    const effRatio = rawRatio;
     const pool = fishForShip(s.level, s.id);
     const storedGuide = getShipGuide(s.id);
     // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
@@ -675,7 +681,7 @@ function Index() {
       : fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
     const caught = caughtId ? FISH[caughtId] : null;
     const fullAmount = catchAmountForLevel(s.level);
-    const baseFish = Math.max(1, Math.round(fullAmount * effRatio));
+    const baseFish = Math.floor(fullAmount * effRatio);
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
@@ -689,7 +695,23 @@ function Index() {
       }
       return;
     }
-    const fishGained = Math.max(1, Math.floor(baseFish * luckMult));
+    const fishGained = Math.floor(baseFish * luckMult);
+    if (fishGained <= 0) {
+      // Nothing caught yet — just dock the ship without rewarding/spamming.
+      setShips((curr) =>
+        curr.map((x) =>
+          x.id === shipId
+            ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined }
+            : x
+        )
+      );
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
+      return;
+    }
     // Fishing yields only fish — sell them at the fish market to earn gold.
     setFish((f) => f + fishGained);
     if (user && caught) {
