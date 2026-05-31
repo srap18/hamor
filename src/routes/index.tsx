@@ -694,6 +694,8 @@ function Index() {
         setShipAtSea(dbIdToSync!, nextAtSea).catch(() => {});
       });
     }
+    // Instant push to spectators
+    pushHarborState();
   };
 
   const collect = (shipId: number, e: React.MouseEvent) => {
