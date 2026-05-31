@@ -63,7 +63,20 @@ function ChatPage() {
   const [actionTarget, setActionTarget] = useState<Prof | null>(null);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set()); // people I blocked
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
+  const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) { setMyMute(null); return; }
+    const nowIso = new Date().toISOString();
+    supabase.from("chat_mutes").select("reason,expires_at").eq("user_id", user.id).eq("active", true)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!data) { setMyMute(null); return; }
+        if (data.expires_at && data.expires_at <= nowIso) { setMyMute(null); return; }
+        setMyMute(data as any);
+      });
+  }, [user]);
 
   const reloadBlocks = useCallback(async () => {
     if (!user) return;
