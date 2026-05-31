@@ -329,7 +329,7 @@ function Shop() {
 
           <div className="mt-2 flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 px-3 py-1.5 flex items-center gap-1">
-              <span className="text-base">{selected.currency === "gem" ? "💎" : "🪙"}</span>
+              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-5 h-5 object-contain" />}</span>
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
