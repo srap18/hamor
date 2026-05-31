@@ -1463,7 +1463,7 @@ function Index() {
           {pop.v}
         </div>
       )}
-      <BeachDaughter ships={ships.map(s => ({ id: s.id, dockLeft: s.dockLeft, fishing: !!s.fishing, sail: s.sail }))} />
+      
     </div>
   );
 }
