@@ -367,6 +367,21 @@ function Index() {
   const gems = profile?.gems ?? 0;
   const [dailyOpen, setDailyOpen] = useState(false);
 
+  // Instant push: spectators viewing my harbor get a broadcast on every state change
+  const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase.channel(`harbor:${user.id}`, { config: { broadcast: { self: false } } });
+    ch.subscribe();
+    myHarborChanRef.current = ch;
+    return () => { supabase.removeChannel(ch); myHarborChanRef.current = null; };
+  }, [user?.id]);
+  const pushHarborState = useCallback(() => {
+    const ch = myHarborChanRef.current;
+    if (!ch) return;
+    try { ch.send({ type: "broadcast", event: "state", payload: { t: Date.now() } }); } catch {}
+  }, []);
+
   // Auto-open the daily login once per day per device
   useEffect(() => {
     if (!user) return;
