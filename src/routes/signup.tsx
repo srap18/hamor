@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalFooter } from "@/components/LegalFooter";
+import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "إنشاء حساب — Ocean Catch" }] }),
