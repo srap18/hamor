@@ -131,7 +131,7 @@ function buildShip(level: number): ShipDef {
       price: d.price,
       marketLevel: 31,
       rarity: d.rarity,
-      maxHp: 6000,
+      maxHp: 13000,
       armor: 80,
       speed: 60,
       storage: d.storage,
