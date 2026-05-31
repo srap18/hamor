@@ -40,7 +40,7 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    const profileUpdate: Record<string, unknown> = {};
+    const profileUpdate: { display_name?: string; avatar_url?: string | null } = {};
     if (data.display_name !== undefined) profileUpdate.display_name = data.display_name.trim();
     if (data.avatar_url !== undefined) profileUpdate.avatar_url = data.avatar_url;
     if (Object.keys(profileUpdate).length > 0) {
