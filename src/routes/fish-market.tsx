@@ -275,7 +275,7 @@ function FishMarket() {
 
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
-    setPop(`+${earned.toLocaleString()} 🪙`);
+    setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
 
     // Atomic server-side sale: decrements fish_caught and credits coins
