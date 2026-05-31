@@ -495,42 +495,57 @@ function AdminCodesPage() {
           <NumField label="خبرة ✨" value={bundleXp} onChange={setBundleXp} />
         </div>
 
-        {/* عناصر المتجر — متعدد الاختيار */}
-        <div className="space-y-1">
+        {/* عناصر متعددة الاختيار — مجموعة حسب النوع */}
+        <div className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="text-[11px] text-fuchsia-300/80">📦 عناصر المتجر — اضغط للاختيار</div>
+            <div className="text-[11px] text-fuchsia-300/80">📦 العناصر — اضغط للاختيار (مجمّعة حسب النوع)</div>
             <div className="flex gap-1 flex-wrap">
               <button onClick={() => selectAllItemsByKind(null)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ الكل</button>
-              {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((k) => (
-                <button key={k} onClick={() => selectAllItemsByKind(k)} className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100">+ كل {k}</button>
-              ))}
               <button onClick={clearBundleSelection} className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 hover:bg-red-900/60 text-red-200">مسح الكل</button>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {itemsCatalog.map((it) => {
-              const sel = bundleSelItems[it.code] != null;
-              return (
-                <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
-                  <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
-                    {sel ? "✅" : "📦"} {it.name}
-                  </button>
-                  {sel && (
-                    <div className="mt-1 flex items-center gap-1">
-                      <span className="text-[10px] text-fuchsia-200">×</span>
-                      <input
-                        type="number"
-                        min={1}
-                        value={bundleSelItems[it.code]}
-                        onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
-                        className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
-                      />
-                    </div>
-                  )}
+
+          {Array.from(new Set(itemsCatalog.map((i) => i.kind))).map((kind) => {
+            const group = itemsCatalog.filter((i) => i.kind === kind);
+            if (group.length === 0) return null;
+            return (
+              <div key={kind} className="space-y-1 rounded-lg border border-fuchsia-900/40 bg-black/20 p-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="text-[12px] font-bold text-fuchsia-200">
+                    {KIND_LABEL[kind] ?? kind} <span className="text-fuchsia-400/70 text-[10px]">({group.length})</span>
+                  </div>
+                  <button
+                    onClick={() => selectAllItemsByKind(kind)}
+                    className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-800/40 hover:bg-fuchsia-700/50 text-fuchsia-100"
+                  >+ كل {KIND_LABEL[kind] ?? kind}</button>
                 </div>
-              );
-            })}
-          </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {group.map((it) => {
+                    const sel = bundleSelItems[it.code] != null;
+                    return (
+                      <div key={it.code} className={`px-2 py-2 rounded-lg border text-xs text-right transition ${sel ? "bg-fuchsia-700/40 border-fuchsia-400" : "bg-slate-800/70 border-slate-700"}`}>
+                        <button onClick={() => toggleBundleItem(it.code)} className="w-full text-right text-slate-100 truncate" title={it.name}>
+                          {sel ? "✅" : "•"} {it.name}
+                        </button>
+                        {sel && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="text-[10px] text-fuchsia-200">×</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={bundleSelItems[it.code]}
+                              onChange={(e) => setBundleSelItems((p) => ({ ...p, [it.code]: Math.max(1, Number(e.target.value) || 1) }))}
+                              className="w-14 bg-slate-900 border border-fuchsia-700 rounded px-1 py-0.5 text-xs text-slate-100"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* السفن — متعدد الاختيار */}
