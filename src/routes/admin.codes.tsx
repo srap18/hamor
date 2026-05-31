@@ -110,6 +110,7 @@ function AdminCodesPage() {
     max_uses: number;
     expires_at: string | null;
     note: string;
+    extra_rewards?: ExtraReward[];
   }) => {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase.from("redemption_codes").insert({
@@ -124,6 +125,7 @@ function AdminCodesPage() {
       max_uses: payload.max_uses,
       expires_at: payload.expires_at,
       note: payload.note,
+      extra_rewards: payload.extra_rewards ?? [],
       created_by: user?.id,
     });
   };
