@@ -99,7 +99,7 @@ function MissionsTab() {
                 </div>
                 <div className="flex items-center justify-between mt-2 text-xs">
                   <span className="text-amber-200/70">{p.progress}/{q.goal_count}</span>
-                  <span className="text-amber-300">🪙{q.reward_coins} ⭐{q.reward_xp} {q.reward_gems > 0 && `💎${q.reward_gems}`}</span>
+                  <span className="text-amber-300 inline-flex items-center gap-1"><CoinIcon size={12} />{q.reward_coins} ⭐{q.reward_xp} {q.reward_gems > 0 && `💎${q.reward_gems}`}</span>
                 </div>
               </div>
               {done && !p.claimed && (
