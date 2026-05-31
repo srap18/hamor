@@ -157,6 +157,7 @@ function ChatPage() {
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
   const [sending, setSending] = useState(false);
+  const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
   const send = useCallback(async (override?: string) => {
     if (!user || sending) return;
     const raw = override ?? text;
@@ -164,6 +165,20 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
+
+    // Anti-spam: 1.2s cooldown between sends + block exact duplicate within 10s in same chat
+    const now = Date.now();
+    const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
+    const last = lastSendRef.current;
+    if (now - last.at < 1200) {
+      alert("على مهلك — لا ترسل بسرعة كبيرة");
+      return;
+    }
+    if (last.body === body && last.channel === tab && last.target === target && now - last.at < 10000) {
+      alert("لا تكرر نفس الرسالة");
+      return;
+    }
+
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
@@ -185,6 +200,7 @@ function ChatPage() {
         alert(msg);
         return;
       }
+      lastSendRef.current = { body, at: now, channel: tab, target };
       if (!override) setText("");
       if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
       if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
@@ -192,6 +208,7 @@ function ChatPage() {
       setSending(false);
     }
   }, [user, text, tab, profile, dmWith, sending]);
+
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
 
