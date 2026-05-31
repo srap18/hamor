@@ -195,10 +195,13 @@ function Shop() {
           <ResChip icon={gemIcon} v={gems} color="text-cyan-200" />
           <ResChip icon={coinIcon} v={coins} color="text-amber-300" />
         </div>
+        <button onClick={() => setRedeemOpen(true)} className="w-10 h-10 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="استبدال كود">🎟️</button>
         <Link to="/backgrounds-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-800 border-2 border-indigo-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="متجر الخلفيات">🖼️</Link>
         <Link to="/ships-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
 
       </div>
+
+      {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
       <div className="absolute top-12 left-0 right-0 z-20 text-center text-lg font-extrabold text-glow">
