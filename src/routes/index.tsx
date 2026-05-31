@@ -1242,6 +1242,43 @@ function Index() {
         );
       })()}
 
+      {/* Guide fish picker */}
+      {fishPickerShipId !== null && (() => {
+        const s = ships.find((x) => x.id === fishPickerShipId);
+        if (!s) return null;
+        const choices = fishPoolForShip(s);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setFishPickerShipId(null)}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
+              <div className="text-3xl mb-2">🧭</div>
+              <div className="text-accent font-black text-base mb-1">اختر نوع الصيد</div>
+              <div className="text-xs text-accent/80 mb-3">الأنواع المتاحة لهذه السفينة فقط</div>
+              <div className="grid grid-cols-2 gap-2">
+                {choices.map((fishId) => {
+                  const f = FISH[fishId];
+                  if (!f) return null;
+                  return (
+                    <button
+                      key={fishId}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-secondary/70 px-3 py-2 text-xs font-black text-accent active:scale-95"
+                      onClick={(e) => {
+                        setShipGuide(s.id, fishId);
+                        setFishPickerShipId(null);
+                        collect(s.id, e);
+                      }}
+                    >
+                      {f.img ? <img src={f.img} alt={f.name} className="h-7 w-7 object-contain" loading="lazy" /> : <span className="text-xl">{f.emoji}</span>}
+                      <span>{f.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="mt-3 w-full rounded-lg bg-secondary/70 py-2 text-xs font-bold text-accent active:scale-95" onClick={() => setFishPickerShipId(null)}>إلغاء</button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Sell confirmation */}
       {modal?.kind === "sell" && (() => {
         const s = ships.find((x) => x.id === modal.shipId);
