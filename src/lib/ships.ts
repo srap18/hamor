@@ -188,7 +188,24 @@ export const STARTER_SHIP = SHIPS[0];
 
 export function getShipByCode(code: string | null | undefined): ShipDef {
   if (!code) return STARTER_SHIP;
-  return ALL_SHIPS.find((s) => s.code === code) ?? STARTER_SHIP;
+  const direct = ALL_SHIPS.find((s) => s.code === code);
+  if (direct) return direct;
+  // Fallback: codes like "ship-lvl-31" (phoenix in DB) or other catalog codes
+  // map back to a market level so spectators always see the real ship art.
+  const m = code.match(/(\d+)\s*$/);
+  if (m) {
+    const lvl = parseInt(m[1], 10);
+    if (lvl >= 1) return getShipByMarketLevel(lvl);
+  }
+  return STARTER_SHIP;
+}
+
+// Map a market level (1..31) to the ship definition.
+// Level 31 = the special phoenix shop ship.
+export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 31) return PHOENIX_SHIP;
+  const clamped = Math.max(1, Math.min(30, Math.round(level)));
+  return SHIPS[clamped - 1];
 }
 
 // Map a market level (1..31) to the ship definition.
