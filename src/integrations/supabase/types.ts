@@ -2076,7 +2076,8 @@ export type Database = {
         Returns: undefined
       }
       buy_lootbox: { Args: { _type_id: string }; Returns: string }
-      buy_phoenix_ship: { Args: never; Returns: string }
+      buy_phoenix_pack_1: { Args: never; Returns: string }
+      buy_phoenix_pack_3: { Args: never; Returns: string[] }
       buy_protection: {
         Args: { _coins_cost: number; _days: number; _gems_cost: number }
         Returns: string
