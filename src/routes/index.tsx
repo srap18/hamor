@@ -11,6 +11,7 @@ import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
+import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
@@ -724,20 +725,31 @@ function Index() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0d2236]">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <img
-          key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
-          src={scene.displayImage}
-          alt={scene.displayName}
-          className={`absolute inset-0 h-full w-full object-cover select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
-          style={{
-            objectPosition: scene.objectPosition ?? "center center",
-            ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
-            ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
-            ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
-            ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
-          }}
-          draggable={false}
-        />
+        {scene.displayVideo ? (
+          <SeamlessVideo
+            key={`vid-${scene.id}`}
+            src={scene.displayVideo}
+            poster={scene.displayImage}
+            className={`absolute inset-0 h-full w-full object-cover select-none ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            style={{ objectPosition: scene.objectPosition ?? "center center" }}
+            playbackRate={0.7}
+          />
+        ) : (
+          <img
+            key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
+            src={scene.displayImage}
+            alt={scene.displayName}
+            className={`absolute inset-0 h-full w-full object-cover select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            style={{
+              objectPosition: scene.objectPosition ?? "center center",
+              ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
+              ["--bg-shift-x" as never]: scene.motion?.x ?? "-1%",
+              ["--bg-shift-y" as never]: scene.motion?.y ?? "-0.8%",
+              ["--bg-dur" as never]: scene.motion?.duration ?? "18s",
+            }}
+            draggable={false}
+          />
+        )}
         <div
           className="absolute pointer-events-none animate-sea-flow"
           style={{

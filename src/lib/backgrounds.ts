@@ -2,6 +2,8 @@ import celestialColosseumBg from "@/assets/bg-celestial-colosseum.png";
 import celestialColosseumBurnedBg from "@/assets/bg-celestial-colosseum-burned.png";
 import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
+import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.json";
+import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 
 export type SceneBg = {
   id: string;
@@ -11,6 +13,7 @@ export type SceneBg = {
   rarity: "common" | "rare" | "epic" | "legendary";
   image: string;
   burnedImage: string;
+  video?: string;
   animated?: boolean;
   objectPosition?: string;
   seaSide: "left" | "right";
@@ -51,6 +54,7 @@ export const BACKGROUNDS: SceneBg[] = [
     rarity: "legendary",
     image: celestialColosseumBg,
     burnedImage: celestialColosseumBurnedBg,
+    video: celestialColosseumVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
@@ -68,6 +72,7 @@ export const BACKGROUNDS: SceneBg[] = [
     rarity: "legendary",
     image: eiffelNightBg,
     burnedImage: eiffelNightBurnedBg,
+    video: eiffelNightVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
@@ -136,6 +141,7 @@ export function getSceneVisual(bgId: string, burnedUntil?: string | null) {
     ...bg,
     displayName: burned ? bg.burnedName : bg.name,
     displayImage: burned ? bg.burnedImage : bg.image,
+    displayVideo: burned ? undefined : bg.video,
     burned,
   };
 }
