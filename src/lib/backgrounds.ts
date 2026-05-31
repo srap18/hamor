@@ -13,6 +13,7 @@ export type SceneBg = {
   rarity: "common" | "rare" | "epic" | "legendary";
   image: string;
   burnedImage: string;
+  video?: string;
   animated?: boolean;
   objectPosition?: string;
   seaSide: "left" | "right";
