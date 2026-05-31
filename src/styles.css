@@ -524,7 +524,9 @@ html, body {
   .mobile-frame-screen {
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     border-radius: 0;
   }
   .mobile-frame-notch { display: none; }
