@@ -21,19 +21,18 @@ export function SeamlessVideo({
 }) {
   const aRef = useRef<HTMLVideoElement | null>(null);
   const bRef = useRef<HTMLVideoElement | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
-    setVideoReady(false);
+    setVideoVisible(false);
     setVideoFailed(false);
     const a = aRef.current;
     const b = bRef.current;
     if (!a || !b) return;
 
     let raf = 0;
-    // Crossfade window — sized as a fraction of the clip length so even very
-    // short loops fully hide the seam.
+    let bOffset = false;
     let FADE = 1.6;
 
     const applyRate = () => {
@@ -44,23 +43,28 @@ export function SeamlessVideo({
       if (!dur || !isFinite(dur)) return;
       FADE = Math.max(0.8, Math.min(2.5, dur * 0.35));
       try { b.currentTime = dur / 2; } catch {}
+      bOffset = true;
     };
     const onLoaded = () => {
       offsetB();
       applyRate();
-      setVideoReady(true);
       a.play().catch(() => {});
     };
     a.addEventListener("loadedmetadata", onLoaded);
     b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
     b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
-    const onCanPlay = () => { applyRate(); setVideoReady(true); };
-    a.addEventListener("canplay", onCanPlay);
+    const onPlaying = () => { applyRate(); setVideoVisible(true); };
+    a.addEventListener("playing", onPlaying);
+    b.addEventListener("playing", onPlaying);
     const onError = () => setVideoFailed(true);
     a.addEventListener("error", onError);
     b.addEventListener("error", onError);
 
-    // Retry play on visibility change (some mobile browsers pause when tab hidden)
+    // Kick playback explicitly on mount in case autoplay was deferred
+    applyRate();
+    a.play().catch(() => {});
+    b.play().catch(() => {});
+
     const onVis = () => {
       if (document.visibilityState === "visible") {
         applyRate();
@@ -71,8 +75,8 @@ export function SeamlessVideo({
     document.addEventListener("visibilitychange", onVis);
 
     const tick = () => {
-      const dur = a.duration || 5;
-      if (dur > 0) {
+      const dur = a.duration || 0;
+      if (dur > 0 && bOffset) {
         const ta = a.currentTime;
         const tb = b.currentTime;
         const da = Math.min(ta, dur - ta);
@@ -83,9 +87,17 @@ export function SeamlessVideo({
         };
         const wa = ease(da / FADE);
         const wb = ease(db / FADE);
-        const total = wa + wb || 1;
-        a.style.opacity = String(wa / total);
-        b.style.opacity = String(wb / total);
+        const total = wa + wb;
+        if (total > 0.001) {
+          a.style.opacity = String(wa / total);
+          b.style.opacity = String(wb / total);
+        } else {
+          a.style.opacity = "1";
+          b.style.opacity = "0";
+        }
+      } else {
+        a.style.opacity = "1";
+        b.style.opacity = "0";
       }
       raf = requestAnimationFrame(tick);
     };
@@ -93,7 +105,8 @@ export function SeamlessVideo({
 
     return () => {
       a.removeEventListener("loadedmetadata", onLoaded);
-      a.removeEventListener("canplay", onCanPlay);
+      a.removeEventListener("playing", onPlaying);
+      b.removeEventListener("playing", onPlaying);
       a.removeEventListener("error", onError);
       b.removeEventListener("error", onError);
       document.removeEventListener("visibilitychange", onVis);
