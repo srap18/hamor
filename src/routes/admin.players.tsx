@@ -120,16 +120,18 @@ function AdminPlayers() {
             {!loading && players.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد نتائج</td></tr>}
             {players.map((p) => {
               const isBanned = banned.has(p.id);
+              const isMuted = muted.has(p.id);
               return (
                 <tr key={p.id} className={`border-t border-slate-800/50 ${isBanned ? "bg-red-900/10" : ""}`}>
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-lg">{p.avatar_emoji}</span>
                       <div>
                         <div className="font-medium">{p.display_name}</div>
                         <div className="text-xs text-slate-500 font-mono">{p.id.slice(0, 8)}</div>
                       </div>
                       {isBanned && <span className="px-2 py-0.5 rounded text-xs bg-red-600/30 text-red-300 border border-red-500/40">محظور</span>}
+                      {isMuted && <span className="px-2 py-0.5 rounded text-xs bg-amber-600/30 text-amber-300 border border-amber-500/40">مكتوم</span>}
                     </div>
                   </td>
                   <td className="p-3">{p.level}</td>
@@ -138,8 +140,14 @@ function AdminPlayers() {
                   <td className="p-3">{p.gems}</td>
                   <td className="p-3 text-xs text-slate-400">{new Date(p.online_at).toLocaleString("ar")}</td>
                   <td className="p-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap">
                       <button onClick={() => setEditing(p)} className="px-2 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 text-xs">تعديل</button>
+                      <button
+                        onClick={() => toggleMute(p)}
+                        className={`px-2 py-1 rounded text-xs ${isMuted ? "bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200" : "bg-amber-600/30 hover:bg-amber-600/50 text-amber-200"}`}
+                      >
+                        {isMuted ? "فك كتم" : "كتم"}
+                      </button>
                       <button
                         onClick={() => toggleBan(p)}
                         className={`px-2 py-1 rounded text-xs ${isBanned ? "bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200" : "bg-red-600/30 hover:bg-red-600/50 text-red-200"}`}
