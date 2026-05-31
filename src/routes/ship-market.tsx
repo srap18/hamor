@@ -70,7 +70,9 @@ function ShipyardPage() {
     [owned],
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
-  const fleetFull = fleetStorageUsed >= fleetStorageMax;
+  const MAX_SHIPS = 3;
+  const shipsCount = owned.length;
+  const fleetFull = fleetStorageUsed >= fleetStorageMax || shipsCount >= MAX_SHIPS;
 
   const showToast = (message: string) => {
     setToast(message);
@@ -142,6 +144,10 @@ function ShipyardPage() {
 
   const buyShip = async (ship: ShipDef) => {
     if (!user || !profile) return;
+    if (shipsCount >= MAX_SHIPS) {
+      showToast(`🚫 الحد الأقصى ${MAX_SHIPS} سفن — بِع سفينة قبل الشراء`);
+      return;
+    }
     if (fleetFull || fleetStorageUsed + ship.storage > fleetStorageMax) {
       showToast("سعة الأسطول ممتلئة — بِع سفينة أو رقِّ السوق أولًا");
       return;
@@ -284,7 +290,10 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
+            <div className="flex items-center gap-2">
+              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${shipsCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>السفن: {shipsCount} / {MAX_SHIPS}</div>
+              <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -323,7 +332,7 @@ function ShipyardPage() {
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : fleetFull ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
+                      {locked ? `يتطلب ${ship.marketLevel}` : shipsCount >= MAX_SHIPS ? `الحد ${MAX_SHIPS}` : fleetFull ? "السعة ممتلئة" : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
                     </button>
                   </div>
                 </button>
