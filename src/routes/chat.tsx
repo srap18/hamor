@@ -156,8 +156,9 @@ function ChatPage() {
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs]);
 
+  const [sending, setSending] = useState(false);
   const send = useCallback(async (override?: string) => {
-    if (!user) return;
+    if (!user || sending) return;
     const raw = override ?? text;
     const body = raw.trim().slice(0, 500);
     if (!body) return;
@@ -166,18 +167,31 @@ function ChatPage() {
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
-    const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
-    if (error) {
-      const msg = /row-level security|policy/i.test(error.message)
-        ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
-        : "تعذر الإرسال: " + error.message;
-      alert(msg);
-      return;
+    setSending(true);
+    // Hard timeout so the button never gets stuck (e.g. flaky network)
+    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: "انتهت المهلة، حاول مرة أخرى" } }), 12000)
+    );
+    try {
+      const res = await Promise.race([
+        supabase.from("messages").insert(row).select("*").maybeSingle(),
+        timeoutPromise,
+      ]);
+      const { data, error } = res as any;
+      if (error) {
+        const msg = /row-level security|policy/i.test(error.message)
+          ? "أنت مكتوم حالياً من قِبل الإدارة ولا يمكنك إرسال رسائل في الدردشة."
+          : "تعذر الإرسال: " + error.message;
+        alert(msg);
+        return;
+      }
+      if (!override) setText("");
+      if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
+      if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
+    } finally {
+      setSending(false);
     }
-    if (!override) setText("");
-    if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
-    if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
-  }, [user, text, tab, profile?.tribe_id, dmWith]);
+  }, [user, text, tab, profile, dmWith, sending]);
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
 
