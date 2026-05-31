@@ -32,6 +32,7 @@ function PlayerPage() {
   const { playerId } = useParams({ from: "/players/$playerId" });
   const [me, setMe] = useState<string | null>(null);
   const [myName, setMyName] = useState<string>("");
+  const [myProtectionUntil, setMyProtectionUntil] = useState<string | null>(null);
   const [p, setP] = useState<Profile | null>(null);
   const [ships, setShips] = useState<Ship[]>([]);
   const [friendStatus, setFriendStatus] = useState<"none" | "pending" | "accepted" | "self">("none");
