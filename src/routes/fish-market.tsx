@@ -93,21 +93,30 @@ function FishMarket() {
     window.setTimeout(() => setUpToast(null), 1800);
   };
 
+  const [forecastMap, setForecastMap] = useState<Record<string, number[]>>({});
+
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
     const loadPrices = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("fish_market_prices")
-        .select("fish_id, current_price, min_price, max_price");
+        .select("fish_id, current_price, min_price, max_price, forecast");
       const m: Record<string, { current: number; min: number; max: number }> = {};
-      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number }>) {
+      const fm: Record<string, number[]> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number; forecast?: unknown }>) {
         m[row.fish_id] = {
           current: Number(row.current_price) || 0,
           min: Number(row.min_price) || 0,
           max: Number(row.max_price) || 0,
         };
+        if (Array.isArray(row.forecast)) {
+          fm[row.fish_id] = (row.forecast as unknown[])
+            .map((v) => Number(v))
+            .filter((n) => Number.isFinite(n));
+        }
       }
       setPriceMap(m);
+      setForecastMap(fm);
     };
     loadPrices();
     const ch = supabase
@@ -319,6 +328,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
+          forecast={forecastMap[sel.id] ?? []}
           onBack={() => setSelected(null)}
           onSell={sell}
         />
@@ -556,11 +566,13 @@ function hourLabel(d: Date) {
 function SellView({
   fish,
   userId,
+  forecast,
   onBack,
   onSell,
 }: {
   fish: Fish;
   userId: string;
+  forecast: number[];
   onBack: () => void;
   onSell: (amount: number) => void;
 }) {
@@ -576,6 +588,7 @@ function SellView({
   // Trader countdown
   const [traderEndsAt, setTraderEndsAt] = useState<number>(() => getTraderEndsAt(userId));
   const [now, setNow] = useState<number>(() => Date.now());
+  const [traderError, setTraderError] = useState<string | null>(null);
   const traderActive = traderEndsAt > now;
   const msLeft = Math.max(0, traderEndsAt - now);
 
@@ -613,12 +626,14 @@ function SellView({
     return () => { cancelled = true; };
   }, [userId]);
 
-  // Forecast (blue) — only visible when trader is active. Seeded by activation bucket so it's stable.
+  // Forecast (blue) — comes from the DB so the predictions actually
+  // materialize when the hour ticks over.
   const future = useMemo(() => {
     if (!traderActive) return [] as number[];
+    if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
     const bucket = Math.floor(traderEndsAt / (60 * 1000));
     return forecastPrices(fish, currentPrice, bucket, FUTURE_HOURS);
-  }, [traderActive, traderEndsAt, fish.id, currentPrice]);
+  }, [traderActive, traderEndsAt, fish.id, currentPrice, forecast]);
 
   const allPoints = traderActive ? [...past, ...future] : past;
   const minP = Math.min(...allPoints);
@@ -645,9 +660,31 @@ function SellView({
   const [amount, setAmount] = useState(fish.qty);
   useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
 
-  const handleTrader = () => {
+  const handleTrader = async () => {
     if (traderActive) return;
-    const ends = activateTrader(userId);
+    setTraderError(null);
+    // Verify the player actually owns and has assigned an active "trader" crew
+    const { data } = await (supabase as any)
+      .from("inventory")
+      .select("meta")
+      .eq("user_id", userId)
+      .eq("item_type", "crew")
+      .eq("item_id", "trader");
+    let best = 0;
+    for (const r of (data ?? []) as any[]) {
+      const exp = r?.meta?.expires_at;
+      const assigned = r?.meta?.assigned_ship_id;
+      if (!assigned || !exp) continue;
+      const t = new Date(exp).getTime();
+      if (t > Date.now() && t > best) best = t;
+    }
+    if (best <= 0) {
+      setTraderError("تحتاج إلى تعيين تاجر فعّال على إحدى السفن لتفعيل التوقعات");
+      window.setTimeout(() => setTraderError(null), 3500);
+      return;
+    }
+    const ends = Math.max(best, activateTrader(userId));
+    try { localStorage.setItem(traderKey(userId), String(ends)); } catch {}
     setTraderEndsAt(ends);
     setNow(Date.now());
   };
@@ -687,6 +724,12 @@ function SellView({
         <div className="text-base font-extrabold text-emerald-950">9H</div>
         <div className="text-[10px] font-bold text-emerald-950">{traderActive ? "التاجر يعمل" : "توقع السعر"}</div>
       </button>
+
+      {traderError && (
+        <div className="absolute top-[52%] left-3 right-3 z-30 rounded-lg bg-rose-900/90 border-2 border-rose-300 px-3 py-2 text-rose-100 text-xs font-bold shadow-lg text-center">
+          {traderError}
+        </div>
+      )}
 
       {/* Quality + freeze bar */}
       <div className="absolute top-[55%] left-2 right-2 z-20 h-7 rounded-md bg-gradient-to-r from-lime-400 to-emerald-500 border border-lime-200 flex items-center justify-between px-2 shadow">

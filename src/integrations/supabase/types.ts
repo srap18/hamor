@@ -383,6 +383,7 @@ export type Database = {
         Row: {
           current_price: number
           fish_id: string
+          forecast: Json
           last_updated: string
           max_price: number
           min_price: number
@@ -391,6 +392,7 @@ export type Database = {
         Insert: {
           current_price?: number
           fish_id: string
+          forecast?: Json
           last_updated?: string
           max_price?: number
           min_price?: number
@@ -399,6 +401,7 @@ export type Database = {
         Update: {
           current_price?: number
           fish_id?: string
+          forecast?: Json
           last_updated?: string
           max_price?: number
           min_price?: number
