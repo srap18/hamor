@@ -54,9 +54,11 @@ export function NotificationsBell() {
         .limit(30),
       supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
     ]);
-    setItems((ns || []) as Notif[]);
+    const list = (ns || []) as Notif[];
+    setItems(list);
     setReadIds(new Set((rs || []).map((r: any) => r.notification_id)));
-  }, [user]);
+    loadActors(list);
+  }, [user, loadActors]);
 
   useEffect(() => {
     if (!user) return;
