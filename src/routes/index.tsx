@@ -2230,6 +2230,17 @@ function ShipSlot({ ship, onTap, active, crews = [], guideFish }: { ship: Ship; 
             : "from-rose-500 to-rose-400";
         return (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-20">
+            {/* Guide crew preview — show which fish this trip will catch */}
+            {guideFish && ship.fishing && (
+              <div className="mx-auto mb-0.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-sky-700/95 to-indigo-700/95 border border-sky-300/80 shadow-md whitespace-nowrap">
+                {guideFish.img ? (
+                  <img src={guideFish.img} alt={guideFish.name} className="w-3 h-3 object-contain" draggable={false} />
+                ) : (
+                  <span className="text-[10px] leading-none">{guideFish.emoji}</span>
+                )}
+                <span className="text-[8px] font-extrabold text-sky-50 leading-none">{guideFish.name}</span>
+              </div>
+            )}
             {/* HP bar — slim */}
             <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
