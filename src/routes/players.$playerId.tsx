@@ -443,6 +443,7 @@ function PlayerPage() {
         const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
+      else if (msg.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — ممنوع السرقة"); }
       else if (msg.includes("not fishing")) flash("🎣 لازم سفينة الخصم تكون تصيد فعلاً");
       else if (msg.includes("caught by police")) { sound.play("explosion"); flash("👮 قبض عليك الشرطي! ممنوع من السرقة ساعة"); }
       else if (msg.includes("busy")) flash("⚓ سفينتك مشغولة — اختر سفينة بالميناء");
