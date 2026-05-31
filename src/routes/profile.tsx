@@ -121,11 +121,21 @@ function ProfilePage() {
 
   const save = async () => {
     if (!userId) return;
-    if (displayName.trim().length < 2) { flash("الاسم قصير جداً"); return; }
-    if (displayName.length > 24) { flash("الاسم طويل جداً"); return; }
+    const trimmed = displayName.trim();
+    if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
+    if (trimmed.length > 24) { flash("الاسم طويل جداً"); return; }
     setSaving(true);
+    // Check name uniqueness (Arabic + English, case-insensitive)
+    try {
+      const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: trimmed, p_except: userId });
+      if (taken === true) {
+        setSaving(false);
+        flash("هذا الاسم محجوز");
+        return;
+      }
+    } catch {}
     const { error } = await supabase.from("profiles").update({
-      display_name: displayName.trim(),
+      display_name: trimmed,
       avatar_emoji: avatarEmoji,
       avatar_frame: avatarFrame,
       name_frame: nameFrame,
