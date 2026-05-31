@@ -592,7 +592,9 @@ function Index() {
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
-          const sail = s.sail + (target - s.sail) * 0.12;
+          // Faster return (target=0) so recalled ships visibly speed back to dock.
+          const smoothing = target === 0 ? 0.25 : 0.12;
+          const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
           }
