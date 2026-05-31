@@ -2106,22 +2106,18 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             ? "from-amber-400 to-amber-300"
             : "from-rose-500 to-rose-400";
         return (
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-[80%] flex flex-col gap-0.5 pointer-events-none">
-            {/* HP bar */}
-            <div className="relative h-2 bg-black/60 rounded-sm overflow-hidden border border-white/20">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-[60%] flex flex-col gap-[1px] pointer-events-none">
+            {/* HP bar — slim */}
+            <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
-                className={`h-full rounded-sm bg-gradient-to-r ${hpColor} transition-all duration-300`}
+                className={`h-full rounded-full bg-gradient-to-r ${hpColor} transition-all duration-300`}
                 style={{ width: `${hpPct}%` }}
               />
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-extrabold text-white text-glow whitespace-nowrap gap-0.5">
-                <span>❤</span>
-                <span className="tabular-nums">{Math.round(curHp)}/{maxHp}</span>
-              </div>
             </div>
-            {/* Fill counter */}
-            <div className="relative h-2.5 bg-black/60 rounded-sm overflow-hidden border border-accent/40">
+            {/* Fill counter — slim with tiny label */}
+            <div className="relative h-2 bg-black/70 rounded-full overflow-hidden border border-accent/40 shadow-md">
               <div
-                className={`h-full rounded-sm transition-all duration-300 ${
+                className={`h-full rounded-full transition-all duration-300 ${
                   ready
                     ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
                     : ship.fishing
@@ -2130,10 +2126,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 }`}
                 style={{ width: `${pct}%` }}
               />
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-white text-glow whitespace-nowrap gap-0.5">
-                <span>{ready ? "✦" : "🐟"}</span>
+              <div className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-extrabold text-white whitespace-nowrap"
+                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
                 <span className="tabular-nums">{caughtNow}/{capacity}</span>
-                {ready && <span className="animate-pulse">✦</span>}
+                {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
             {active && (
