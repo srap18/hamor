@@ -782,7 +782,7 @@ function SellView({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            🪙 <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
           </div>
           <button
             onClick={() => onSell(amount)} disabled={amount === 0}
