@@ -2400,6 +2400,7 @@ export type Database = {
         Returns: undefined
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      purge_old_messages: { Args: never; Returns: undefined }
       recompute_fish_prices: { Args: never; Returns: undefined }
       record_attack: {
         Args: {
