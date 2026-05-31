@@ -110,8 +110,20 @@ function AdminCodesPage() {
   const [quickDist, setQuickDist] = useState<DistMode>("limited");
 
   // كتالوجات
-  const [itemsCatalog, setItemsCatalog] = useState<Array<{ code: string; name: string; kind: string }>>([]);
+  const [dbItems, setDbItems] = useState<Array<{ code: string; name: string; kind: string }>>([]);
   const [shipsCatalog, setShipsCatalog] = useState<Array<{ code: string; name: string }>>([]);
+
+  // الكتالوج الموحّد: عناصر قاعدة البيانات + الطواقم/الأسلحة/الدروع/الإطارات من الكود
+  const itemsCatalog = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ code: string; name: string; kind: string }> = [];
+    for (const it of [...LOCAL_ITEMS, ...dbItems]) {
+      if (seen.has(it.code)) continue;
+      seen.add(it.code);
+      out.push(it);
+    }
+    return out;
+  }, [dbItems]);
 
   // إنشاء مجمّع: اختر عدة أشياء + عملات في كود واحد
   const [bundleSelItems, setBundleSelItems] = useState<Record<string, number>>({}); // item code -> qty
