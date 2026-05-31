@@ -592,7 +592,9 @@ function Index() {
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
-          const sail = s.sail + (target - s.sail) * 0.12;
+          // Faster return (target=0) so recalled ships visibly speed back to dock.
+          const smoothing = target === 0 ? 0.25 : 0.12;
+          const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
           }
@@ -981,9 +983,9 @@ function Index() {
         const wLeft = scene.waterLeft ?? 30;
         const wRight = scene.waterRight ?? 75;
         const wWidth = Math.max(15, wRight - wLeft);
-        // Keep the third ship higher so it doesn't stick to the bottom nav on mobile.
-        const ts = [0.15, 0.45, 0.05];
-        const vRange = Math.max(14, 74 - (wTop + 4));
+        // Keep all ships floating in the mid-water band (not glued to the bottom).
+        const ts = [0.25, 0.5, 0.15];
+        const vRange = Math.max(10, 60 - (wTop + 4));
         const top = `${fixedSlot?.top ?? wTop + 4 + ts[i] * vRange}%`;
 
         const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
@@ -1787,11 +1789,13 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = Date.now() / 1000;
-  const bobAmp = moving ? 2.5 : 1.2;
-  const bob = Math.sin((t + ship.id) * 1.4) * bobAmp;
-  const sway = moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0;
+  // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
+  const docked = ship.sail < 0.05 && !moving;
+  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
+  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
+  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
   const baseTilt = direction * 2.5;
-  const rockTilt = Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
+  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
   const tilt = baseTilt + rockTilt;
 
   const shipW = 22 * ship.scale;
