@@ -308,7 +308,9 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
+              {tab !== "ships" && (
+                <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
+              )}
             </div>
             <div className="flex-1 text-right">
               <div className="text-sm font-bold">{selected.name}</div>
