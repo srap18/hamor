@@ -495,7 +495,7 @@ function StorageView({
           <>
             <div className="flex-1 glass-hud rounded-xl px-3 py-2 flex flex-col gap-1">
               <div className="flex items-center gap-1 text-amber-300 text-sm font-bold">
-                🪙 <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
+                <CoinIcon size={16} /> <span className="text-rose-300">{(upPreview?.cost_coins ?? 0).toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-1 text-cyan-200 text-xs font-bold">
                 ⏱ <span>{formatDur(upPreview?.seconds ?? 0)}</span>
