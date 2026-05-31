@@ -166,6 +166,12 @@ function FishMarket() {
 
   const startFishUpgrade = async () => {
     if (!user || upgradingTo) return;
+    const ok = await confirmDialog({
+      title: "ترقية سوق السمك",
+      message: "هل تريد بدء ترقية سوق السمك إلى المستوى التالي؟",
+      confirmText: "ترقية",
+    });
+    if (!ok) return;
     setUpBusy("start");
     const { error } = await supabase.rpc("fish_market_start_upgrade" as never);
     setUpBusy(null);
@@ -177,6 +183,12 @@ function FishMarket() {
 
   const finishFishUpgrade = async () => {
     if (!user || !upgradingTo || secondsLeft <= 0) return;
+    const ok = await confirmDialog({
+      title: "إنهاء الترقية فورًا",
+      message: "هل تريد إنهاء الترقية الآن باستخدام الجواهر؟",
+      confirmText: "إنهاء بالجواهر",
+    });
+    if (!ok) return;
     setUpBusy("boost");
     const { error } = await supabase.rpc("fish_market_finish_upgrade_with_gems" as never);
     setUpBusy(null);
