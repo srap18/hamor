@@ -2061,11 +2061,11 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
               <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[10px]">
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{info.treasure_coins.toLocaleString()}</div>
-                  <div className="text-accent/60">خزنة 🪙</div>
+                  <div className="text-accent/60 inline-flex items-center justify-center gap-1 w-full">خزنة <CoinIcon size={10} /></div>
                 </div>
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{info.total_donations.toLocaleString()}</div>
-                  <div className="text-accent/60">تبرعات 🪙</div>
+                  <div className="text-accent/60 inline-flex items-center justify-center gap-1 w-full">تبرعات <CoinIcon size={10} /></div>
                 </div>
                 <div className="rounded bg-stone-900/60 p-1.5">
                   <div className="text-amber-300 font-bold">{members.length}</div>
