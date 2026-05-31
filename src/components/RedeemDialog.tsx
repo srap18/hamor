@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
+type ExtraReward = {
+  type: "bundle" | "item" | "ship";
+  item_id?: string | null;
+  quantity?: number;
+  coins?: number;
+  gems?: number;
+  xp?: number;
+};
+
 type RedeemResult = {
   ok: boolean;
   reward_type: "bundle" | "item" | "ship";
@@ -11,6 +20,7 @@ type RedeemResult = {
   reward_gems: number;
   reward_xp: number;
   quantity: number;
+  extra_rewards?: ExtraReward[] | null;
 };
 
 const ERR_MSG: Record<string, string> = {
