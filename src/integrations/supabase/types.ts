@@ -290,6 +290,7 @@ export type Database = {
           hide_target: boolean
           id: string
           metric: string
+          prize_tiers: Json
           reward_coins: number
           reward_gems: number
           reward_text: string
@@ -310,6 +311,7 @@ export type Database = {
           hide_target?: boolean
           id?: string
           metric: string
+          prize_tiers?: Json
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
@@ -330,6 +332,7 @@ export type Database = {
           hide_target?: boolean
           id?: string
           metric?: string
+          prize_tiers?: Json
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
