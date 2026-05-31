@@ -256,6 +256,90 @@ export type Database = {
           },
         ]
       }
+      competition_catches: {
+        Row: {
+          caught_at: string
+          fish_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          caught_at?: string
+          fish_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          caught_at?: string
+          fish_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      competitions: {
+        Row: {
+          active: boolean
+          banner_emoji: string
+          banner_text: string
+          banner_theme: string
+          created_at: string
+          created_by: string | null
+          description: string
+          ends_at: string
+          hide_target: boolean
+          id: string
+          metric: string
+          reward_coins: number
+          reward_gems: number
+          reward_text: string
+          reward_xp: number
+          starts_at: string
+          target_fish_id: string | null
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          banner_emoji?: string
+          banner_text?: string
+          banner_theme?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at: string
+          hide_target?: boolean
+          id?: string
+          metric: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_text?: string
+          reward_xp?: number
+          starts_at?: string
+          target_fish_id?: string | null
+          title: string
+        }
+        Update: {
+          active?: boolean
+          banner_emoji?: string
+          banner_text?: string
+          banner_theme?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at?: string
+          hide_target?: boolean
+          id?: string
+          metric?: string
+          reward_coins?: number
+          reward_gems?: number
+          reward_text?: string
+          reward_xp?: number
+          starts_at?: string
+          target_fish_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       daily_login_streaks: {
         Row: {
           current_streak: number
@@ -2246,6 +2330,37 @@ export type Database = {
         Returns: {
           cost_coins: number
           seconds: number
+        }[]
+      }
+      get_active_competitions: {
+        Args: never
+        Returns: {
+          banner_emoji: string
+          banner_text: string
+          banner_theme: string
+          description: string
+          ends_at: string
+          hide_target: boolean
+          id: string
+          metric: string
+          reward_coins: number
+          reward_gems: number
+          reward_text: string
+          reward_xp: number
+          starts_at: string
+          target_fish_id: string
+          title: string
+        }[]
+      }
+      get_competition_leaderboard: {
+        Args: { _competition_id: string }
+        Returns: {
+          avatar_emoji: string
+          avatar_url: string
+          display_name: string
+          level: number
+          score: number
+          user_id: string
         }[]
       }
       get_currency_leaderboard: {
