@@ -1497,6 +1497,8 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [tribeQ, setTribeQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
 
   useEffect(() => {
     if (tab === "search") return;
