@@ -276,7 +276,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     const reason = prompt("سبب الحذف (اختياري):", "") ?? "";
     try {
       const { adminDeleteUser } = await import("@/lib/admin-users.functions");
-      await adminDeleteUser({ data: { userId: player.id, banEmail, reason } });
+      await adminDeleteUser({ data: { userId: player.id, banEmail, banDevices: true, reason } });
       toast.success("تم حذف الحساب");
       onClose();
     } catch (e: any) {
@@ -307,25 +307,60 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     }
   };
 
+  const permanentBan = async () => {
+    const reason = prompt("سبب الحظر النهائي القوي:", "غش أو استغلال قلتش") ?? "";
+    if (!confirm(`حظر ${player.display_name} نهائياً مع حظر أجهزته المعروفة؟`)) return;
+    try {
+      const { adminPermanentBan } = await import("@/lib/admin-users.functions");
+      await adminPermanentBan({ data: { userId: player.id, reason } });
+      toast.success("تم تطبيق الحظر النهائي القوي");
+      onClose();
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
   const save = async () => {
     setSaving(true);
     const updates = {
       coins: Number(coins),
       gems: Number(gems),
+      rubies: Number(rubies),
       xp: Number(xp),
       level: Number(level),
     };
-    const { error } = await supabase.rpc("admin_set_player_currency", {
-      _player: player.id, _coins: updates.coins, _gems: updates.gems, _xp: updates.xp, _level: updates.level,
+    const { error } = await (supabase as any).rpc("admin_set_player_full", {
+      _player: player.id, _coins: updates.coins, _gems: updates.gems, _rubies: updates.rubies, _xp: updates.xp, _level: updates.level,
     });
     if (error) {
       toast.error("خطأ: " + error.message);
       setSaving(false);
       return;
     }
-    await logAudit("edit_player", player.id, { name: player.display_name, before: { coins: player.coins, gems: player.gems, xp: player.xp, level: player.level }, after: updates });
+    await logAudit("edit_player", player.id, { name: player.display_name, before: { coins: player.coins, gems: player.gems, rubies: player.rubies, xp: player.xp, level: player.level }, after: updates });
     toast.success("تم حفظ التعديلات");
     onClose();
+  };
+
+  const setFishValue = (fishId: string, key: "quantity" | "total_caught", value: string) => {
+    const n = Math.max(0, Number(value) || 0);
+    setFishRows((rows) => {
+      const cur = rows.find((r) => r.fish_id === fishId) ?? { fish_id: fishId, quantity: 0, total_caught: 0 };
+      const next = { ...cur, [key]: n } as FishAdminRow;
+      return [...rows.filter((r) => r.fish_id !== fishId), next];
+    });
+  };
+
+  const saveFishRow = async (fishId: string) => {
+    const row = fishMap.get(fishId) ?? { fish_id: fishId, quantity: 0, total_caught: 0 };
+    const { error } = await (supabase as any).rpc("admin_set_player_fish", {
+      _player: player.id,
+      _fish_id: fishId,
+      _quantity: row.quantity,
+      _total_caught: Math.max(row.total_caught, row.quantity),
+    });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success("تم حفظ السمك");
   };
 
 
