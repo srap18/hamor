@@ -740,7 +740,9 @@ function PlayerPage() {
         const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
         const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
         // Stack multiple raiders that share the same target ship vertically
-        const siblings = raiders.filter((x) => x.stealing_target_ship_id && x.stealing_target_ship_id === r.stealing_target_ship_id);
+        const siblings = raiders.filter(
+          (x) => x.stealing_target_ship_id && x.stealing_target_ship_id === r.stealing_target_ship_id,
+        );
         const sibIdx = Math.max(0, siblings.findIndex((x) => x.id === r.id));
         let top: string; let left: string;
         if (tIdx >= 0) {
@@ -749,9 +751,9 @@ function PlayerPage() {
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
-          // Hug the right edge of the target ship and stack siblings vertically downward
-          top = `${tTop + sibIdx * 8}%`;
-          left = `${Math.max(2, Math.min(96 - 10, dockLeft + tShipW * 0.55))}%`;
+          // Keep the raider attached to the target ship, but clamp it inside the visible water band.
+          top = `${Math.max(50, Math.min(74, tTop + tShipW * 0.22 + sibIdx * 5))}%`;
+          left = `${Math.max(8, Math.min(82, dockLeft + tShipW * 0.58))}%`;
         } else {
           top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;

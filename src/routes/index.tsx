@@ -1190,15 +1190,26 @@ function Index() {
         const wWidth = Math.max(15, wRight - wLeft);
         // Try to find the targeted ship in MY fleet and dock the raider beside it.
         const tIdx = ships.findIndex((sh) => sh.dbId === r.target_ship_id);
+        const siblings = raids.filter(
+          (x) => x.target_ship_id && x.target_ship_id === r.target_ship_id,
+        );
+        const sibIdx = Math.max(0, siblings.findIndex((x) => x.ship_id === r.ship_id));
         let top: string; let left: string;
         if (tIdx >= 0) {
-          const tgt = ships[tIdx];
-          const tgtLeft = typeof tgt.dockLeft === "number" ? tgt.dockLeft : wLeft + 0.3 * wWidth;
-          const tgtTop = typeof tgt.top === "string" ? tgt.top : `${wTop + 10}%`;
-          top = tgtTop;
-          // place raider slightly to the SEA side of the victim ship
+          const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
+          const ts = [0.55, 0.75, 0.4];
+          const hOffsets = [0.05, 0.3, 0.6];
+          const vRange = Math.max(10, 60 - (wTop + 10));
+          const tgtTop = fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
+          const tgtLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
+          const tgtScale = fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
+          const tgtShipW = 22 * tgtScale;
           const seaIsRight = (scene.seaSide ?? "right") === "right";
-          left = `${Math.max(2, Math.min(92, tgtLeft + (seaIsRight ? 12 : -12)))}%`;
+          top = `${Math.max(50, Math.min(74, tgtTop + tgtShipW * 0.22 + sibIdx * 5))}%`;
+          left = `${Math.max(
+            8,
+            Math.min(82, tgtLeft + (seaIsRight ? tgtShipW * 0.58 : -10)),
+          )}%`;
         } else {
           const slot = i % 3;
           top = `${wTop + 6 + slot * 8}%`;
