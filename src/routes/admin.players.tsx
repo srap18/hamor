@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
+import { FISH_LIST } from "@/lib/fish";
 
 
 export const Route = createFileRoute("/admin/players")({
@@ -18,6 +19,7 @@ type Player = {
   xp: number;
   coins: number;
   gems: number;
+  rubies: number;
   
   online_at: string;
   created_at: string;
@@ -188,10 +190,12 @@ function AdminPlayers() {
 }
 
 type HistoryEntry = { kind: "ban" | "mute"; reason: string; expires_at: string | null; created_at: string; active: boolean };
+type FishAdminRow = { fish_id: string; quantity: number; total_caught: number };
 
 function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => void }) {
   const [coins, setCoins] = useState(String(player.coins));
   const [gems, setGems] = useState(String(player.gems));
+  const [rubies, setRubies] = useState(String(player.rubies ?? 0));
 
   const [xp, setXp] = useState(String(player.xp));
   const [level, setLevel] = useState(String(player.level));
@@ -201,13 +205,16 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [saving, setSaving] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [fishRows, setFishRows] = useState<FishAdminRow[]>([]);
+  const fishMap = new Map(fishRows.map((r) => [r.fish_id, r]));
 
   useEffect(() => {
     (async () => {
-      const [{ data: bans }, { data: mutes }, { data: prof }] = await Promise.all([
+      const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("profiles").select("avatar_url").eq("id", player.id).maybeSingle(),
+        (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
       ]);
       const all: HistoryEntry[] = [
         ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
@@ -215,6 +222,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
       setAvatarUrl((prof as any)?.avatar_url ?? null);
+      setFishRows(((fish ?? []) as FishAdminRow[]).map((r) => ({ fish_id: r.fish_id, quantity: r.quantity ?? 0, total_caught: r.total_caught ?? 0 })));
     })();
   }, [player.id]);
 
