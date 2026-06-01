@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useSecurityEnforcement } from "@/hooks/use-security-enforcement";
+
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, loading, user } = useAuth();
