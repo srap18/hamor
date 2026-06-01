@@ -76,6 +76,7 @@ type CodeRow = {
   note: string;
   created_at: string;
   extra_rewards: ExtraReward[] | null;
+  archived_at?: string | null;
 };
 
 function randomCode(len = 8): string {
