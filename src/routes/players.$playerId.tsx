@@ -749,9 +749,9 @@ function PlayerPage() {
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
-          // Hug the right edge of the target ship and stack siblings vertically downward
-          top = `${tTop + sibIdx * 8}%`;
-          left = `${Math.max(2, Math.min(96 - 10, dockLeft + tShipW * 0.55))}%`;
+          // Keep the raider attached to the target ship, but clamp it inside the visible water band.
+          top = `${Math.max(36, Math.min(68, tTop + sibIdx * 5))}%`;
+          left = `${Math.max(8, Math.min(82, dockLeft + tShipW * 0.58))}%`;
         } else {
           top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
