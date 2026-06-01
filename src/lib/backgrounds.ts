@@ -95,7 +95,7 @@ export const BACKGROUNDS: SceneBg[] = [
     id: "crystal_kingdom",
     name: "مملكة البلور الذهبية ✨",
     burnedName: "مملكة البلور المحترقة 🔥",
-    price: 1000,
+    price: 10000,
     currency: "gems",
     rarity: "legendary",
     image: crystalKingdomBg.url,
