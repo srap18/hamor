@@ -7,6 +7,7 @@ import { CREWS as LIB_CREWS } from "@/lib/crews";
 import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
 import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
+import { RechargePanel } from "@/components/RechargePanel";
 
 
 export const Route = createFileRoute("/shop")({
