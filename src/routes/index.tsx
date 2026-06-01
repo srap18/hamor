@@ -27,6 +27,7 @@ import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 
 import { frameById } from "@/lib/frames";
+import { rankTier } from "@/lib/rank-tiers";
 
 
 
@@ -1924,30 +1925,36 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد صيادون بعد</div>
             ) : fishRows.map((p, i) => {
               const isMe = meId === p.id;
+              const tier = rankTier(i);
+              const hasNameFrame = frameById(p.name_frame)?.kind === "name";
+              const hasAvatarFrame = !!frameById(p.avatar_frame)?.imageUrl;
               const Inner = (
                 <>
-                  <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                  <div className={`w-7 text-center text-sm font-extrabold ${tier ? "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" : "text-accent"}`}>{tier ? tier.badge : i + 1}</div>
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
-                    <div className="w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ring-2 ring-amber-300/50">
+                    <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
+                      style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
                       {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
-                    {frameById(p.avatar_frame)?.imageUrl && (
+                    {hasAvatarFrame && (
                       <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
+                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${hasNameFrame ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : tier ? tier.nameClass : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                     <div className="text-[10px] text-accent/70">إجمالي {p.total_fish.toLocaleString()} سمكة</div>
                   </div>
                   <div className="text-xs font-bold text-cyan-300 tabular-nums">🐟 {p.unique_fish} نوع</div>
                 </>
               );
+              const baseRow = tier ? `${tier.rowClass} border` : "bg-secondary/60 border border-accent/30";
+              const meRow = tier ? `${tier.rowClass} border opacity-90` : "bg-secondary/40 border border-accent/20 opacity-80";
               return isMe ? (
-                <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+                <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
                 <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
                   onClick={() => { sound.play("click"); onClose(); }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                  className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
                 </Link>
               );
@@ -1957,30 +1964,36 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد لاعبون بعد</div>
             ) : shipRows.map((p, i) => {
               const isMe = meId === p.id;
+              const tier = rankTier(i);
+              const hasNameFrame = frameById(p.name_frame)?.kind === "name";
+              const hasAvatarFrame = !!frameById(p.avatar_frame)?.imageUrl;
               const Inner = (
                 <>
-                  <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                  <div className={`w-7 text-center text-sm font-extrabold ${tier ? "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" : "text-accent"}`}>{tier ? tier.badge : i + 1}</div>
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
-                    <div className="w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ring-2 ring-amber-300/50">
+                    <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
+                      style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
                       {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
-                    {frameById(p.avatar_frame)?.imageUrl && (
+                    {hasAvatarFrame && (
                       <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
+                    <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${hasNameFrame ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : tier ? tier.nameClass : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
                     <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
                   </div>
                   <div className="text-xs font-bold text-amber-300 tabular-nums">🏪 مستوى {p.market_level}</div>
                 </>
               );
+              const baseRow = tier ? `${tier.rowClass} border` : "bg-secondary/60 border border-accent/30";
+              const meRow = tier ? `${tier.rowClass} border opacity-90` : "bg-secondary/40 border border-accent/20 opacity-80";
               return isMe ? (
-                <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+                <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
                 <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
                   onClick={() => { sound.play("click"); onClose(); }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                  className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
                 </Link>
               );
@@ -1991,34 +2004,40 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             </div>
           ) : rows.map((p, i) => {
             const isMe = meId === p.id;
+            const tier = tab !== "search" ? rankTier(i) : null;
+            const hasNameFrame = frameById(p.name_frame)?.kind === "name";
+            const hasAvatarFrame = !!frameById(p.avatar_frame)?.imageUrl;
             const Inner = (
               <>
               {tab !== "search" && (
-                <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                <div className={`w-7 text-center text-sm font-extrabold ${tier ? "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" : "text-accent"}`}>{tier ? tier.badge : i + 1}</div>
               )}
               <div className="relative w-[72px] h-[72px] shrink-0 flex items-center justify-center">
-                <div className="w-[50px] h-[50px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)]">
+                <div className={`w-[50px] h-[50px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden shadow-[0_0_10px_rgba(252,191,73,0.5)] ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
+                  style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
                   {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                 </div>
-                {frameById(p.avatar_frame)?.imageUrl && (
+                {hasAvatarFrame && (
                   <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${frameById(p.name_frame)?.kind === "name" ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
-                <div className="text-[10px] text-accent/70">المستوى {p.level}</div>
+                <div className={`inline-flex max-w-full px-2 py-0.5 text-[12px] font-bold truncate ${hasNameFrame ? `${frameById(p.name_frame)?.nameClass} ${frameById(p.name_frame)?.animClass ?? ""}` : tier ? tier.nameClass : "text-accent"}`}>{p.display_name}{isMe ? " (أنت)" : ""}</div>
+                <div className="text-[10px] text-accent/70">المستوى {p.level}{tier ? ` · ${tier.label}` : ""}</div>
               </div>
               <div className="text-xs font-bold text-accent tabular-nums inline-flex items-center gap-1">
                 {valueIcon} {valueFor(p).toLocaleString()}
               </div>
               </>
             );
+            const baseRow = tier ? `${tier.rowClass} border` : "bg-secondary/60 border border-accent/30";
+            const meRow = tier ? `${tier.rowClass} border opacity-90` : "bg-secondary/40 border border-accent/20 opacity-80";
             return isMe ? (
-              <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{Inner}</div>
+              <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
             ) : (
               <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
                 onClick={() => { sound.play("click"); onClose(); }}
-                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                 {Inner}
               </Link>
             );
