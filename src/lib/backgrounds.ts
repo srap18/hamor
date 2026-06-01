@@ -2,6 +2,8 @@ import celestialColosseumBg from "@/assets/bg-celestial-colosseum.png";
 import celestialColosseumBurnedBg from "@/assets/bg-celestial-colosseum-burned.png";
 import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
+import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
+import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.json";
 import celestialColosseumBurnedVideo from "@/assets/bg-celestial-colosseum-burned.mp4.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
@@ -88,6 +90,24 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...EIFFEL_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.6%", duration: "8s" },
+  },
+  {
+    id: "crystal_kingdom",
+    name: "مملكة البلور الذهبية ✨",
+    burnedName: "مملكة البلور المحترقة 🔥",
+    price: 1000,
+    currency: "gems",
+    rarity: "legendary",
+    image: crystalKingdomBg.url,
+    burnedImage: crystalKingdomBurnedBg.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 45,
+    waterLeft: 40,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
   },
 ];
 
