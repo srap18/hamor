@@ -1451,40 +1451,21 @@ function Index() {
             const row = availableRows.find((r) => r.item_id === itemId);
             if (!row) return;
 
-            const repairBy = async (ship: typeof s, amount: number) => {
+            const repairBy = async (ship: typeof s, crewId: string, amount: number) => {
               if (!ship.dbId) return 0;
               const maxHp = ship.maxHp ?? 100;
               const curHp = ship.hp ?? 0;
-              const newHp = Math.min(maxHp, curHp + amount);
-              const wasDestroyed = !!ship.destroyedAt || !!ship.repairEndsAt;
-              const patch: Record<string, unknown> = { hp: newHp };
-              let newRepairEnds: string | null = ship.repairEndsAt ?? null;
-              if (newHp >= maxHp) {
-                // Fully repaired → revive, clear timers, send home
-                patch.destroyed_at = null;
-                patch.repair_ends_at = null;
-                patch.at_sea = false;
-                patch.fishing_started_at = null;
-                newRepairEnds = null;
-              } else if (wasDestroyed) {
-                // Partial repair: shorten timer proportional to missing HP
-                const shipDef = getShipByMarketLevel(ship.level);
-                const totalRepairMs = (shipDef.repairSeconds || 3600) * 1000;
-                const missingFrac = (maxHp - newHp) / maxHp;
-                const remainingMs = Math.max(1000, Math.round(totalRepairMs * missingFrac));
-                newRepairEnds = new Date(Date.now() + remainingMs).toISOString();
-                patch.repair_ends_at = newRepairEnds;
-                patch.destroyed_at = ship.destroyedAt ?? new Date().toISOString();
-              }
-              const { error } = await (supabase as any)
-                .from("ships_owned")
-                .update(patch)
-                .eq("id", ship.dbId);
+              const optimisticHp = Math.min(maxHp, curHp + amount);
+              const { data, error } = await (supabase as any)
+                .rpc("repair_ship_with_crew", { _ship_id: ship.dbId, _crew_id: crewId });
               if (error) {
                 setToast(`فشل الإصلاح: ${error.message ?? "خطأ"}`);
                 sound.play("error");
                 return 0;
               }
+              const result = Array.isArray(data) ? data[0] : data;
+              const newHp = Number(result?.new_hp ?? optimisticHp);
+              const newRepairEnds = result?.repair_ends_at ?? null;
               setShips((arr) => arr.map((x) => x.id === ship.id
                 ? (newHp >= maxHp
                     ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
@@ -1509,9 +1490,7 @@ function Index() {
                 setModal(null);
                 // Fire repairs + consume in background
                 (async () => {
-                  for (const sh of needRepair) await repairBy(sh, Infinity);
-                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
-                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                  await repairBy(needRepair[0], itemId, Infinity);
                   reloadCrews();
                   syncFleetFromDb();
                   setCrewTick((t) => t + 1);
@@ -1529,10 +1508,8 @@ function Index() {
                 sound.play("success");
                 setModal(null);
                 (async () => {
-                  const healed = await repairBy(s, amount);
+                  const healed = await repairBy(s, itemId, amount);
                   setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
-                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
-                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
                   reloadCrews();
                   syncFleetFromDb();
                   setCrewTick((t) => t + 1);
