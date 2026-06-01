@@ -174,10 +174,12 @@ function VipPage() {
             />
           </div>
           <ul className="text-[12px] text-amber-100/90 mt-2 space-y-0.5 leading-relaxed">
-            <li>• 🎁 كل عضو VIP 5+ يستلم <b>3 غواصات</b> مجاناً</li>
-            <li>• 🔱 تصيد <b>تيتان الأعماق</b> النادر — حصري لها فقط (سعر السمكة 20–30 ذهب)</li>
+            <li>• 🎁 كل شحنة VIP 5+ تفتح <b>3 غواصات</b> مجاناً</li>
+            <li>• ⚡ <b>ترقية تلقائية:</b> غواصاتك الحالية يكبر دمها وسعتها تلقائياً كل ما يرتفع VIP — بدون بيع أو إعادة استلام</li>
+            <li>• 🔁 <b>لو بعت غواصة:</b> ما تقدر تستلم بدالها إلا بعد شحن VIP جديد (شحن جديد = 3 استلامات جديدة)</li>
+            <li>• 🔱 تصيد <b>تيتان الأعماق</b> النادر — حصري لها فقط (السعر 20–30 ذهب)</li>
             <li>• ⏱️ مدة الصيد 45 دقيقة، تصليح 24 ساعة، درع 150</li>
-            <li>• 💪 الدم والسعة يتدرّجان حسب مستوى VIP وقت الاستلام:</li>
+            <li>• 💪 جدول الدم/السعة حسب مستوى VIP:</li>
           </ul>
           <div className="mt-2 rounded-xl border border-amber-500/30 bg-stone-950/60 p-2.5 text-[11.5px] text-amber-100/95 grid grid-cols-2 gap-x-3 gap-y-1 tabular-nums">
             <div>VIP 5  →  <b>60,000</b></div>
@@ -188,7 +190,7 @@ function VipPage() {
             <div className="text-amber-300">VIP 10 → <b>350,000</b> 🌟</div>
           </div>
           <p className="text-[11px] text-stone-300/80 mt-2 leading-relaxed">
-            💡 كل استلام يثبّت الدم/السعة على مستوى VIP الحالي. ارفع VIP قبل الاستلام للحصول على غواصة أقوى. التحقق من المستوى والعدد يتم بالكامل في الخادم — لا يمكن التلاعب أو الاستلام أكثر من 3 مرات.
+            🛡️ كل التحقق يتم على الخادم: مستوى VIP، عدد الاستلامات في الدورة، والترقية التلقائية. لا يمكن لأي عميل أو تعديل تلاعب بها.
           </p>
           <button
             disabled={effectiveLevel < 5}
@@ -197,7 +199,7 @@ function VipPage() {
               if (error) {
                 const m = error.message || "";
                 if (m.includes("need_vip_5")) toast.error("تحتاج VIP 5 أو أعلى");
-                else if (m.includes("already_claimed")) toast.info("استلمت جميع الغواصات الثلاث");
+                else if (m.includes("already_claimed_recharge_required")) toast.info("استلمت 3 غواصات — اشحن VIP من جديد لفتح 3 جديدة");
                 else if (m.includes("vip_expired")) toast.error("انتهى اشتراك VIP");
                 else toast.error("تعذرت المطالبة");
                 return;
@@ -207,7 +209,7 @@ function VipPage() {
             }}
             className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 text-stone-950 font-extrabold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {effectiveLevel < 5 ? "🔒 يحتاج VIP 5+" : "🔱 استلم غواصة (حتى 3)"}
+            {effectiveLevel < 5 ? "🔒 يحتاج VIP 5+" : "🔱 استلم غواصة"}
           </button>
         </div>
 
