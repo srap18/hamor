@@ -103,6 +103,19 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     _env: env,
   });
   if (error) console.error("grant_paddle_purchase failed:", error);
+
+  // Grant inventory items (e.g. ad_bomb_pack → 1× ad_bomb)
+  if (reward.items?.length) {
+    for (const it of reward.items) {
+      const { error: invErr } = await getSupabase().rpc("grant_inventory_item", {
+        _user: userId,
+        _item_type: it.itemType,
+        _item_id: it.itemId,
+        _qty: it.qty,
+      });
+      if (invErr) console.error("grant_inventory_item failed:", invErr, it);
+    }
+  }
 }
 
 async function handleWebhook(req: Request, env: PaddleEnv) {
