@@ -182,6 +182,30 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_devices: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          device_id: string
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          device_id: string
+          reason?: string
+          user_id?: string | null
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          device_id?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       banned_emails: {
         Row: {
           banned_by: string | null
@@ -2368,6 +2392,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_get_player_fish: {
+        Args: { _player: string }
+        Returns: {
+          fish_id: string
+          quantity: number
+          total_caught: number
+        }[]
+      }
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
         Returns: string
@@ -2383,6 +2415,10 @@ export type Database = {
       }
       admin_mass_gift: {
         Args: { _coins: number; _gems: number; _xp: number }
+        Returns: number
+      }
+      admin_permanent_ban: {
+        Args: { _reason?: string; _uid: string }
         Returns: number
       }
       admin_redeem_code_for: {
@@ -2401,6 +2437,26 @@ export type Database = {
           _gems: number
           _level: number
           _player: string
+          _xp: number
+        }
+        Returns: undefined
+      }
+      admin_set_player_fish: {
+        Args: {
+          _fish_id: string
+          _player: string
+          _quantity: number
+          _total_caught: number
+        }
+        Returns: undefined
+      }
+      admin_set_player_full: {
+        Args: {
+          _coins: number
+          _gems: number
+          _level: number
+          _player: string
+          _rubies: number
           _xp: number
         }
         Returns: undefined
