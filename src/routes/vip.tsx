@@ -5,6 +5,7 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
+import submarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 
 export const Route = createFileRoute("/vip")({
   component: VipPage,
@@ -158,7 +159,26 @@ function VipPage() {
           )}
         </div>
 
+        {/* VIP Exclusive Submarine showcase */}
+        <div className="rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-slate-900 via-stone-950 to-slate-900 p-4 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950">حصري VIP</span>
+            <h3 className="text-lg font-extrabold text-amber-200">🚢 الغواصة الملكية</h3>
+          </div>
+          <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-sky-900/40 via-blue-950/60 to-stone-950 p-3">
+            <img
+              src={submarineAsset.url}
+              alt="الغواصة الملكية VIP"
+              className="w-full h-auto object-contain drop-shadow-[0_8px_30px_rgba(56,189,248,0.35)]"
+            />
+          </div>
+          <p className="text-[12px] text-amber-100/85 mt-2 leading-relaxed">
+            غواصة سوداء فاخرة تنزل لأعماق المحيط — سفينة حصرية لأعضاء VIP فقط، قريباً 🔱
+          </p>
+        </div>
+
         {/* All tiers */}
+
         <div>
           <h2 className="text-base font-bold mb-2 text-amber-200">📜 جميع المستويات والمميزات</h2>
           <div className="space-y-2">
