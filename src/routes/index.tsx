@@ -1577,44 +1577,97 @@ function Index() {
                 })}
               </div>
 
-              <div className="text-[11px] text-accent/80 font-bold mb-1">طواقمك في المخزن</div>
-              {availMap.size === 0 ? (
-                <div className="text-xs text-accent/60 text-center py-4">
-                  لا توجد طواقم متاحة. اشترِ من <Link to="/shop" className="text-amber-300 underline" onClick={() => setModal(null)}>المتجر</Link>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  {Array.from(availMap.entries()).map(([cid, qty]) => {
-                    const c = CREWS.find((x) => x.id === cid);
-                    if (!c) return null;
-                    const isFixer = cid.startsWith("fixer_");
-                    const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                    // Fixer crews bypass slot limits and are always usable (consumed instantly).
-                    const canAssign = isFixer ? true : (assignedRows.length < slots && !alreadyOnShip);
-                    return (
-                      <button
-                        key={cid}
-                        disabled={!canAssign}
-                        onClick={() => assignCrew(cid)}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg border text-right active:scale-[0.98] ${
-                          canAssign
-                            ? (isFixer ? "border-amber-400/50 bg-amber-900/20 hover:bg-amber-500/10" : "border-accent/30 bg-black/20 hover:bg-accent/10")
-                            : "border-accent/20 bg-black/10 opacity-50"
-                        }`}
-                      >
-                        {c.image ? <img src={c.image} alt={c.name} className="w-8 h-8 object-contain drop-shadow" /> : <span className="text-xl">{c.emoji}</span>}
-                        <div className="flex-1">
-                          <div className="text-xs font-bold text-accent">{c.name} <span className="text-amber-300">×{qty}</span></div>
-                          <div className="text-[10px] text-emerald-300">{c.bonus}</div>
+              <div className="text-[11px] text-accent/80 font-bold mb-1">جميع الطواقم</div>
+              <div className="space-y-1.5">
+                {CREWS.map((c) => {
+                  const cid = c.id;
+                  const qty = availMap.get(cid) ?? 0;
+                  const owned = qty > 0;
+                  const isFixer = cid.startsWith("fixer_");
+                  const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
+                  const canAssign = owned && (isFixer ? true : (assignedRows.length < slots && !alreadyOnShip));
+                  const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
+
+                  const buyCrew = async () => {
+                    if (crewBusyRef.current) return;
+                    if (!canAfford) {
+                      sound.play("error");
+                      setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
+                      return;
+                    }
+                    crewBusyRef.current = true;
+                    try {
+                      const { error } = c.currency === "gems"
+                        ? await buyWithGems(cid, "crew", c.price, undefined, 1)
+                        : await buyWithCoins(cid, "crew", c.price, undefined, 1);
+                      if (error) {
+                        sound.play("error");
+                        setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
+                        return;
+                      }
+                      sound.play("coin");
+                      sound.play("success");
+                      setToast(`✓ تم شراء ${c.name}`);
+                      refreshProfile();
+                      await reloadCrews();
+                      setCrewTick((t) => t + 1);
+                    } finally {
+                      crewBusyRef.current = false;
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={cid}
+                      className={`w-full flex items-center gap-2 p-2 rounded-lg border ${
+                        owned
+                          ? (canAssign
+                              ? (isFixer ? "border-amber-400/50 bg-amber-900/20" : "border-accent/40 bg-black/30")
+                              : "border-accent/20 bg-black/10 opacity-70")
+                          : "border-cyan-400/30 bg-cyan-950/20"
+                      }`}
+                    >
+                      {c.image ? <img src={c.image} alt={c.name} className="w-9 h-9 object-contain drop-shadow" /> : <span className="text-xl">{c.emoji}</span>}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-accent flex items-center gap-1">
+                          {c.name}
+                          {owned && <span className="text-amber-300">×{qty}</span>}
                         </div>
-                        <span className="text-[10px] text-accent/60">
-                          {isFixer ? "🛠️ إصلاح فوري" : alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل 24س" : "ممتلئ"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                        <div className="text-[10px] text-emerald-300 truncate">{c.bonus}</div>
+                      </div>
+                      {owned ? (
+                        <button
+                          disabled={!canAssign}
+                          onClick={() => assignCrew(cid)}
+                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 ${
+                            canAssign
+                              ? "bg-emerald-600/80 text-white"
+                              : "bg-secondary/40 text-accent/50"
+                          }`}
+                        >
+                          {isFixer ? "🛠️ استخدام" : alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل" : "ممتلئ"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={buyCrew}
+                          disabled={!canAfford}
+                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight ${
+                            canAfford
+                              ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white border border-amber-300"
+                              : "bg-secondary/40 text-accent/50"
+                          }`}
+                        >
+                          <span>شراء</span>
+                          <span className="text-[9px]">
+                            {c.price.toLocaleString()} {c.currency === "gems" ? "💎" : "🪙"}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
 
               <button
                 className="mt-3 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
