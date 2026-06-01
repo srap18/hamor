@@ -239,10 +239,10 @@ function AdminCodesPage() {
   };
 
   const deleteCode = async (row: CodeRow) => {
-    if (!confirm(`حذف الكود ${row.code}؟`)) return;
-    const { error } = await supabase.from("redemption_codes").delete().eq("id", row.id);
+    if (!confirm(`أرشفة الكود ${row.code}؟ سيختفي من القائمة، لكنك تقدر تجده من البحث وتسحب جوائزه من اللاعبين.`)) return;
+    const { error } = await (supabase as any).rpc("admin_archive_code", { _code_id: row.id });
     if (error) return toast.error(error.message);
-    toast.success("تم الحذف");
+    toast.success("📦 تم الأرشفة");
     loadCodes();
   };
 
@@ -254,14 +254,14 @@ function AdminCodesPage() {
       return expired || exhausted;
     });
     if (dead.length === 0) {
-      toast.info("لا يوجد أكواد منتهية أو مستنفدة للحذف");
+      toast.info("لا يوجد أكواد منتهية أو مستنفدة");
       return;
     }
-    if (!confirm(`حذف ${dead.length} كود منتهي/مستنفد؟ لا يمكن التراجع.`)) return;
-    const ids = dead.map((c) => c.id);
-    const { error } = await supabase.from("redemption_codes").delete().in("id", ids);
-    if (error) return toast.error(error.message);
-    toast.success(`✅ تم حذف ${dead.length} كود`);
+    if (!confirm(`أرشفة ${dead.length} كود منتهي/مستنفد؟ يقدر يرجع من البحث.`)) return;
+    for (const c of dead) {
+      await (supabase as any).rpc("admin_archive_code", { _code_id: c.id });
+    }
+    toast.success(`✅ تم أرشفة ${dead.length} كود`);
     loadCodes();
   };
 
