@@ -469,6 +469,21 @@ function Index() {
   const [fish, setFish] = useState(34);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
+  const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
+  const presentStealResult = (data: unknown, cancelled = false) => {
+    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number }[] }[])[0] : null;
+    const n = row?.stolen_count ?? 0;
+    const v = row?.total_value ?? 0;
+    const groups: Record<string, { id: string; name: string; emoji: string; img?: string; qty: number }> = {};
+    (row?.fish_summary ?? []).forEach((it) => {
+      const f = FISH[it.fish_id];
+      const id = it.fish_id;
+      if (!groups[id]) groups[id] = { id, name: f?.name ?? "سمكة", emoji: f?.emoji ?? "🐟", img: f?.img, qty: 0 };
+      groups[id].qty += 1;
+    });
+    setStealResult({ count: n, value: v, items: Object.values(groups), cancelled });
+    sound.play(n > 0 ? "catch" : "click");
+  };
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
@@ -689,13 +704,9 @@ function Index() {
     const id = setInterval(async () => {
       const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= Date.now() && s.dbId);
       for (const s of expired) {
-        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
-          const row = Array.isArray(data) && data[0] ? data[0] : null;
-          const n = row?.stolen_count ?? 0;
-          const v = row?.total_value ?? 0;
-          if (n > 0) { sound.play("catch"); showToast(`🏴‍☠️ سرقت ${n} سمكة (قيمتها ${v})`); }
-          else { showToast("🪶 سفينتك رجعت فاضية"); }
+          presentStealResult(data, false);
           syncFleetFromDb();
         }
       }
@@ -1269,18 +1280,28 @@ function Index() {
                       onClick={async () => {
                         setMenuShipId(null);
                         if (!s.dbId) return;
-                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
                         if (error) { showToast("تعذّر استلام الغنيمة"); return; }
-                        const row = Array.isArray(data) && data[0] ? data[0] : null;
-                        const n = row?.stolen_count ?? 0;
-                        const v = row?.total_value ?? 0;
-                        sound.play(n > 0 ? "catch" : "click");
-                        showToast(n > 0 ? `🐟 سرقت ${n} سمكة (قيمتها ${v})` : "السفينة رجعت فاضية 🪶");
+                        presentStealResult(data, false);
                         syncFleetFromDb();
                       }}
                     >🏴‍☠️ استلم الغنيمة</button>
                   ) : (
-                    <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                    <>
+                      <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                      <button
+                        className="mt-1 px-3 py-1.5 rounded-lg bg-gradient-to-b from-rose-500 to-rose-700 text-white text-[11px] font-bold active:scale-95 border border-rose-300/40"
+                        onClick={async () => {
+                          setMenuShipId(null);
+                          if (!s.dbId) return;
+                          if (!confirm("إيقاف السرقة الآن؟ ستأخذ الغنيمة الحالية فقط.")) return;
+                          const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: true });
+                          if (error) { showToast("تعذّر إيقاف السرقة"); return; }
+                          presentStealResult(data, true);
+                          syncFleetFromDb();
+                        }}
+                      >🛑 أوقف السرقة الآن</button>
+                    </>
                   )}
                 </div>
               )}
@@ -1806,6 +1827,57 @@ function Index() {
           </div>
         </div>
       )}
+
+      {/* Steal result modal — shows what was stolen, or empty result */}
+      {stealResult && (
+        <div
+          dir="rtl"
+          onClick={() => setStealResult(null)}
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mx-4 w-full max-w-xs rounded-2xl border-2 border-rose-300/60 bg-gradient-to-b from-rose-800 to-rose-950 p-5 shadow-2xl text-center"
+          >
+            <div className="text-xs font-black text-rose-200 mb-2">
+              {stealResult.cancelled ? "🛑 إيقاف السرقة" : "🏴‍☠️ نتيجة السرقة"}
+            </div>
+            {stealResult.count > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto p-1">
+                  {stealResult.items.map((it) => (
+                    <div key={it.id} className="rounded-xl bg-white/10 border border-rose-200/40 p-2 flex flex-col items-center">
+                      <div className="w-12 h-12 flex items-center justify-center">
+                        {it.img ? <img src={it.img} alt={it.name} className="w-full h-full object-contain" /> : <span className="text-3xl">{it.emoji}</span>}
+                      </div>
+                      <div className="text-[10px] text-white font-bold truncate w-full">{it.name}</div>
+                      <div className="text-[11px] font-black text-amber-300">×{it.qty}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-2xl font-black text-amber-300 text-glow">{stealResult.count} سمكة</div>
+                <div className="text-[12px] font-bold text-rose-100/90">قيمة الغنيمة: {stealResult.value.toLocaleString()} 🪙</div>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-24 h-24 rounded-2xl bg-white/10 border-2 border-rose-200/40 flex items-center justify-center">
+                  <span className="text-5xl">🪶</span>
+                </div>
+                <div className="mt-3 text-base font-black text-white">السفينة رجعت فاضية</div>
+                <div className="mt-1 text-[11px] font-bold text-rose-100/80">ما كان عند الهدف سمك في هذه السفينة</div>
+              </>
+            )}
+            <button
+              onClick={() => setStealResult(null)}
+              className="mt-4 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-200 py-2.5 text-sm font-black text-white active:scale-95 shadow-lg"
+            >
+              موافق
+            </button>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Incoming attack / support FX — mirror what spectators see when they attack me */}
       {incomingFx && <ProjectileFx fx={incomingFx} />}

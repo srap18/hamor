@@ -2675,8 +2675,9 @@ export type Database = {
       claim_royal_box: { Args: never; Returns: Json }
       claim_session: { Args: { _token: string }; Returns: undefined }
       claim_steal_mission: {
-        Args: { _attacker_ship_id: string }
+        Args: { _attacker_ship_id: string; _force?: boolean }
         Returns: {
+          fish_summary: Json
           stolen_count: number
           total_value: number
         }[]
