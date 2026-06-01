@@ -88,6 +88,7 @@ function randomCode(len = 8): string {
 function AdminCodesPage() {
   const [codes, setCodes] = useState<CodeRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [redemptionsFor, setRedemptionsFor] = useState<CodeRow | null>(null);
 
   // نموذج الإنشاء
   const [rewardType, setRewardType] = useState<RewardType>("bundle");
@@ -851,7 +852,12 @@ function AdminCodesPage() {
                   )}
                   {c.note && <div className="text-[11px] text-slate-500 mt-0.5">📝 {c.note}</div>}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setRedemptionsFor(c)}
+                    className="text-xs px-3 py-1.5 rounded-md bg-indigo-900/50 hover:bg-indigo-800/60 text-indigo-200"
+                    title="عرض من استخدم الكود وإلغاء الاستخدام"
+                  >👥 المستخدمون ({c.uses_count})</button>
                   <button
                     onClick={() => toggleActive(c)}
                     className="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200"
@@ -867,6 +873,92 @@ function AdminCodesPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {redemptionsFor && (
+        <RedemptionsModal
+          code={redemptionsFor}
+          onClose={() => setRedemptionsFor(null)}
+          onChanged={loadCodes}
+        />
+      )}
+    </div>
+  );
+}
+
+type Redemption = {
+  user_id: string;
+  redeemed_at: string;
+  display_name: string | null;
+  avatar_emoji: string | null;
+};
+
+function RedemptionsModal({ code, onClose, onChanged }: { code: CodeRow; onClose: () => void; onChanged: () => void }) {
+  const [rows, setRows] = useState<Redemption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await (supabase as any).rpc("admin_list_redemptions", { _code_id: code.id });
+    if (error) toast.error(error.message);
+    setRows((data ?? []) as Redemption[]);
+    setLoading(false);
+  }, [code.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const revoke = async (userId: string, name: string) => {
+    if (!confirm(`إلغاء استخدام الكود من ${name}؟ سيقدر يستخدمه مرة ثانية. (المكافآت التي حصل عليها لن تُسترد تلقائياً)`)) return;
+    setBusy(userId);
+    const { error } = await (supabase as any).rpc("admin_revoke_redemption", { _code_id: code.id, _user_id: userId });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("✅ تم إلغاء الاستخدام");
+    load();
+    onChanged();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={onClose}>
+      <div dir="rtl" onClick={(e) => e.stopPropagation()} className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col rounded-xl border border-indigo-700 bg-slate-950 text-slate-100">
+        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <div className="text-sm text-slate-400">مستخدمو الكود</div>
+            <div className="font-mono font-bold text-amber-200">{code.code}</div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700">✕</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          {loading ? (
+            <div className="text-center text-slate-400 text-sm p-4">جاري التحميل...</div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-slate-400 text-sm p-4">لم يستخدم أحد هذا الكود بعد</div>
+          ) : (
+            <div className="space-y-2">
+              {rows.map((r) => {
+                const name = r.display_name || r.user_id.slice(0, 8);
+                return (
+                  <div key={r.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800">
+                    <div className="text-2xl">{r.avatar_emoji || "🧑‍✈️"}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold truncate">{name}</div>
+                      <div className="text-[11px] text-slate-500">{new Date(r.redeemed_at).toLocaleString("ar")}</div>
+                    </div>
+                    <button
+                      disabled={busy === r.user_id}
+                      onClick={() => revoke(r.user_id, name)}
+                      className="text-xs px-3 py-1.5 rounded-md bg-rose-700 hover:bg-rose-600 text-white font-bold disabled:opacity-50"
+                    >↩️ إلغاء</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="px-4 py-2 border-t border-slate-800 text-[11px] text-slate-500">
+          إلغاء الاستخدام يمسح السجل ويرجع العدّاد، فيقدر اللاعب يستخدم الكود من جديد.
+        </div>
       </div>
     </div>
   );
