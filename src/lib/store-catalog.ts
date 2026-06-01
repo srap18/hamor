@@ -2,7 +2,13 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
-export type PackCategory = "bundle" | "vip" | "gems" | "shield";
+export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon";
+
+export type PackInventoryItem = {
+  itemType: string;
+  itemId: string;
+  qty: number;
+};
 
 export type StorePack = {
   id: string;
@@ -11,24 +17,20 @@ export type StorePack = {
   emoji: string;
   priceUSD: number;
   stripePriceId: string;
-  /** Stripe subscription? */
   subscription?: boolean;
-  /** Limited to N purchases per 7 days (e.g. shield = 2). */
   weeklyLimit?: number;
-  /** Limited to one purchase per lifetime. */
   oneTime?: boolean;
-  /** Marketing tag shown on card. */
   tag?: string;
   popular?: boolean;
   bonus?: string;
   description?: string;
-  // Rewards granted after Stripe confirms payment
   reward: {
     gems?: number;
     coins?: number;
     rubies?: number;
     shieldDays?: number;
     vipDays?: number;
+    items?: PackInventoryItem[];
   };
 };
 
