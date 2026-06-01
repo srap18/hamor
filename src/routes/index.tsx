@@ -1599,7 +1599,7 @@ function Index() {
                   const isFixer = cid.startsWith("fixer_");
                   const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
                   const canAssign = owned && (isFixer ? true : (assignedRows.length < slots && !alreadyOnShip));
-                  const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
+                  const canAfford = c.currency === "gems" ? gems >= c.price : (coins + gems * 1000) >= c.price;
 
                   const buyCrew = () => {
                     if (!canAfford) {
@@ -1614,7 +1614,7 @@ function Index() {
                     (async () => {
                       const { error } = c.currency === "gems"
                         ? await buyWithGems(cid, "crew", c.price, undefined, 1)
-                        : await buyWithCoins(cid, "crew", c.price, undefined, 1);
+                        : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
                       if (error) {
                         sound.play("error");
                         setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
