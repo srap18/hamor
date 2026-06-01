@@ -903,6 +903,8 @@ function Index() {
         }}
       />
 
+      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+
       {scene.burned && (
         <button
           onClick={async () => {
