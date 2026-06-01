@@ -92,6 +92,58 @@ function VipPage() {
               >
                 {claimedToday ? "✅ تم استلام جواهر اليوم" : claiming ? "جاري..." : `🎁 استلم ${currentTier.dailyGems} جوهرة يومية`}
               </button>
+
+              {effectiveLevel >= 5 && (
+                <button
+                  onClick={async () => {
+                    const { data, error } = await supabase.rpc("claim_vip_shield" as never);
+                    if (error) {
+                      const m = error.message || "";
+                      if (m.includes("already_claimed")) toast.info("استلمت درع اليوم بالفعل");
+                      else if (m.includes("need_vip")) toast.error("يحتاج VIP 5+");
+                      else toast.error("تعذر استلام الدرع");
+                      return;
+                    }
+                    const d = data as { count?: number } | null;
+                    toast.success(`🛡️ +${d?.count || 1} درع للمخزن!`);
+                  }}
+                  className="mt-2 w-full py-2 rounded-xl bg-gradient-to-b from-sky-500 to-sky-700 text-white font-extrabold"
+                >
+                  🛡️ استلم الدرع اليومي (للمخزن)
+                </button>
+              )}
+
+              {effectiveLevel >= 9 && (
+                <button
+                  onClick={async () => {
+                    const { error } = await supabase.rpc("claim_royal_box" as never);
+                    if (error) {
+                      const m = error.message || "";
+                      if (m.includes("already_claimed")) toast.info("استلمت الصندوق الملكي اليوم");
+                      else if (m.includes("need_vip")) toast.error("يحتاج VIP 9+");
+                      else toast.error("تعذر فتح الصندوق");
+                      return;
+                    }
+                    toast.success("👑 تم فتح الصندوق الملكي! جميع الطواقم والصواريخ ذهبت للمخزن");
+                  }}
+                  className="mt-2 w-full py-2 rounded-xl bg-gradient-to-b from-fuchsia-500 to-fuchsia-800 text-white font-extrabold"
+                >
+                  👑 افتح الصندوق الملكي اليومي
+                </button>
+              )}
+
+              {effectiveLevel >= 10 && (
+                <button
+                  onClick={async () => {
+                    const { error } = await supabase.rpc("grant_cosmic_frame" as never);
+                    if (error) { toast.error("تعذر منح الإطار"); return; }
+                    toast.success("🌌 الإطار الكوني الحصري في مخزنك!");
+                  }}
+                  className="mt-2 w-full py-2 rounded-xl bg-gradient-to-b from-violet-500 to-fuchsia-700 text-white font-extrabold"
+                >
+                  🌌 احصل على الإطار الكوني الحصري
+                </button>
+              )}
             </>
           ) : (
             <div className="text-center py-2">
