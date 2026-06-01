@@ -51,20 +51,8 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     const localToken = getOrCreateSessionToken();
 
     (async () => {
-      const deviceId = getOrCreateDeviceId();
+      // Device binding disabled — multi-account per device is allowed
 
-      // 1) Device binding check (non-blocking on failure to avoid lockouts)
-      const { error: devErr } = await (supabase as any).rpc("register_device", { _device_id: deviceId });
-      if (cancelled) return;
-      if (devErr) {
-        const msg = devErr.message || "";
-        // Only hard-block on explicit ban; ignore "already bound" to avoid locking real users out
-        if (msg.includes("device banned") || msg.includes("account banned")) {
-          setBlock({ kind: "device_taken", message: "هذا الحساب أو الجهاز محظور نهائياً من الدخول" });
-          return;
-        }
-        // Otherwise continue silently — protection is best-effort
-      }
 
       // 2) Claim active session (kicks any other session)
       const { error: sessErr } = await (supabase as any).rpc("claim_session", { _token: localToken });
