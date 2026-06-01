@@ -580,39 +580,13 @@ function StorageView({
 
 /* ───────────────── Sell view ───────────────── */
 
-const TRADER_DURATION_MS = 9 * 60 * 60 * 1000;
-const PAST_HOURS = 2; // past + current shown in red
-const FUTURE_HOURS = 9; // future shown in blue when trader is active
+const PAST_HOURS = 2;
+const FUTURE_HOURS = 9;
 
-function traderKey(userId: string) {
-  return `trader_active_until_${userId}`;
-}
-
-function getTraderEndsAt(userId: string): number {
-  try {
-    const v = localStorage.getItem(traderKey(userId));
-    if (!v) return 0;
-    const t = parseInt(v, 10);
-    return Number.isFinite(t) && t > Date.now() ? t : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function activateTrader(userId: string): number {
-  const ends = Date.now() + TRADER_DURATION_MS;
-  try { localStorage.setItem(traderKey(userId), String(ends)); } catch {}
-  return ends;
-}
-
-// Deterministic forecast seeded by fish + activation bucket so it doesn't change between renders
 function forecastPrices(fish: Fish, startPrice: number, bucketSeed: number, hours: number): number[] {
   let seed = bucketSeed >>> 0;
   for (const c of fish.id) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
-  const rand = () => {
-    seed = (seed * 1103515245 + 12345) >>> 0;
-    return (seed % 10000) / 10000;
-  };
+  const rand = () => { seed = (seed * 1103515245 + 12345) >>> 0; return (seed % 10000) / 10000; };
   const out: number[] = [];
   let p = startPrice;
   const minBound = Math.max(0.1, fish.basePrice * 0.25);
@@ -635,84 +609,52 @@ function formatHHMMSS(ms: number) {
 function hourLabel(d: Date) {
   let h = d.getHours();
   const ampm = h < 12 ? "am" : "pm";
-  h = h % 12;
-  if (h === 0) h = 12;
+  h = h % 12; if (h === 0) h = 12;
   return { h: String(h), ampm };
 }
 
 function SellView({
-  fish,
-  userId,
-  forecast,
-  onBack,
-  onSell,
+  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, rotPct, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
   forecast: number[];
+  freezeActive: boolean;
+  freezeUntil: string | null;
+  traderActive: boolean;
+  traderUntil: string | null;
+  rotPct: number;
   onBack: () => void;
   onSell: (amount: number) => void;
+  onPurchased: () => void;
 }) {
-  // Past series (red) — deterministic walk landing on the current live price
+  void userId;
   const past = useMemo(() => {
     const startBase = fish.basePrice * 0.9;
     const arr = forecastPrices(fish, startBase, 1337, PAST_HOURS);
-    arr.push(fish.basePrice); // ends at current price
+    arr.push(fish.basePrice);
     return arr;
   }, [fish.id, fish.basePrice]);
   const currentPrice = past[past.length - 1];
+  const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
 
-  // Trader countdown
-  const [traderEndsAt, setTraderEndsAt] = useState<number>(() => getTraderEndsAt(userId));
   const [now, setNow] = useState<number>(() => Date.now());
-  const [traderError, setTraderError] = useState<string | null>(null);
-  const traderActive = traderEndsAt > now;
-  const msLeft = Math.max(0, traderEndsAt - now);
-
   useEffect(() => {
-    if (!traderActive) return;
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, [traderActive]);
+  }, []);
 
-  // Auto-activate the 9H forecast when the user has an active assigned "trader" crew
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await (supabase as any)
-        .from("inventory")
-        .select("meta")
-        .eq("user_id", userId)
-        .eq("item_type", "crew")
-        .eq("item_id", "trader");
-      if (cancelled || !data) return;
-      let best = 0;
-      for (const r of data as any[]) {
-        const exp = r?.meta?.expires_at;
-        const assigned = r?.meta?.assigned_ship_id;
-        if (!assigned || !exp) continue;
-        const t = new Date(exp).getTime();
-        if (t > Date.now() && t > best) best = t;
-      }
-      if (best > 0) {
-        setTraderEndsAt((prev) => Math.max(prev, best));
-        try { localStorage.setItem(traderKey(userId), String(best)); } catch {}
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [userId]);
+  const traderMs = traderUntil ? Math.max(0, new Date(traderUntil).getTime() - now) : 0;
+  const freezeMs = freezeUntil ? Math.max(0, new Date(freezeUntil).getTime() - now) : 0;
 
-  // Forecast (blue) — comes from the DB so the predictions actually
-  // materialize when the hour ticks over.
   const future = useMemo(() => {
-    if (!traderActive) return [] as number[];
+    if (!traderActive && !freezeActive) return [] as number[];
     if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
-    const bucket = Math.floor(traderEndsAt / (60 * 1000));
-    return forecastPrices(fish, currentPrice, bucket, FUTURE_HOURS);
-  }, [traderActive, traderEndsAt, fish.id, currentPrice, forecast]);
+    return forecastPrices(fish, currentPrice, 42, FUTURE_HOURS);
+  }, [traderActive, freezeActive, fish.id, currentPrice, forecast]);
 
-  const allPoints = traderActive ? [...past, ...future] : past;
+  const showFuture = traderActive || freezeActive;
+  const allPoints = showFuture ? [...past, ...future] : past;
   const minP = Math.min(...allPoints);
   const maxP = Math.max(...allPoints);
   const range = Math.max(0.1, maxP - minP);
@@ -722,60 +664,42 @@ function SellView({
     return out;
   }, [minP, range]);
 
-  // Hour labels: past hours (now-PAST_HOURS … now) + future hours (now+1 … now+FUTURE_HOURS)
   const hourLabels = useMemo(() => {
     const base = new Date();
     base.setMinutes(0, 0, 0);
     const labels: { h: string; ampm: string }[] = [];
-    for (let i = -PAST_HOURS; i <= (traderActive ? FUTURE_HOURS : 0); i++) {
-      const d = new Date(base.getTime() + i * 60 * 60 * 1000);
-      labels.push(hourLabel(d));
+    for (let i = -PAST_HOURS; i <= (showFuture ? FUTURE_HOURS : 0); i++) {
+      labels.push(hourLabel(new Date(base.getTime() + i * 3600_000)));
     }
     return labels;
-  }, [traderActive, now]);
+  }, [showFuture, now]);
 
   const [amount, setAmount] = useState(fish.qty);
   useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
 
-  const handleTrader = async () => {
-    if (traderActive) return;
-    setTraderError(null);
-    // Verify the player actually owns and has assigned an active "trader" crew
-    const { data } = await (supabase as any)
-      .from("inventory")
-      .select("meta")
-      .eq("user_id", userId)
-      .eq("item_type", "crew")
-      .eq("item_id", "trader");
-    let best = 0;
-    for (const r of (data ?? []) as any[]) {
-      const exp = r?.meta?.expires_at;
-      const assigned = r?.meta?.assigned_ship_id;
-      if (!assigned || !exp) continue;
-      const t = new Date(exp).getTime();
-      if (t > Date.now() && t > best) best = t;
-    }
-    if (best <= 0) {
-      setTraderError("تحتاج إلى تعيين تاجر فعّال على إحدى السفن لتفعيل التوقعات");
-      window.setTimeout(() => setTraderError(null), 3500);
-      return;
-    }
-    const ends = Math.max(best, activateTrader(userId));
-    try { localStorage.setItem(traderKey(userId), String(ends)); } catch {}
-    setTraderEndsAt(ends);
-    setNow(Date.now());
+  const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const buyTrader = async () => {
+    setBusy(true); setErr(null);
+    const { error } = await (supabase as any).rpc("buy_trader_unlock");
+    setBusy(false);
+    if (error) { setErr(error.message || "تعذر الشراء"); return; }
+    setBuyOpen(null); onPurchased();
+  };
+  const buyFreeze = async (hours: number) => {
+    setBusy(true); setErr(null);
+    const { error } = await (supabase as any).rpc("buy_market_freeze", { _hours: hours });
+    setBusy(false);
+    if (error) { setErr(error.message || "تعذر الشراء"); return; }
+    setBuyOpen(null); onPurchased();
   };
 
   return (
     <>
-      <button
-        onClick={onBack}
-        className="absolute top-2 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95"
-      >
-        ✕
-      </button>
+      <button onClick={onBack} className="absolute top-2 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
 
-      {/* Fish header card */}
       <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
         <div className="relative w-24 h-28 rounded-xl bg-gradient-to-b from-emerald-300 to-emerald-600 border-2 border-emerald-200 shadow-xl p-2 flex flex-col items-center">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-emerald-200 rotate-45 border-r-2 border-b-2 border-emerald-100" />
@@ -784,80 +708,86 @@ function SellView({
         </div>
       </div>
 
-      {/* Trader countdown timer (visible while active) */}
       {traderActive && (
         <div className="absolute top-[42%] left-3 z-20 rounded-lg bg-black/70 border-2 border-amber-300/70 px-3 py-1.5 text-amber-200 font-extrabold tabular-nums shadow-lg">
-          {formatHHMMSS(msLeft)}
+          {formatHHMMSS(traderMs)}
         </div>
       )}
 
-      {/* Predict price button — activates the Trader for 9h */}
       <button
-        onClick={handleTrader}
+        onClick={() => { if (!traderActive) setBuyOpen("trader"); }}
         disabled={traderActive}
         className={`absolute top-[46%] left-3 z-20 rounded-lg border-2 shadow-lg px-4 py-2 text-center active:scale-95 ${traderActive ? "bg-gradient-to-b from-slate-300 to-slate-500 border-slate-200 opacity-70 cursor-not-allowed" : "bg-gradient-to-b from-emerald-300 to-emerald-500 border-emerald-200"}`}
         style={traderActive ? { marginTop: 36 } : undefined}
       >
-        <div className="text-base font-extrabold text-emerald-950">9H</div>
+        <div className="text-base font-extrabold text-emerald-950">10H</div>
         <div className="text-[10px] font-bold text-emerald-950">{traderActive ? "التاجر يعمل" : "توقع السعر"}</div>
       </button>
 
-      {traderError && (
-        <div className="absolute top-[52%] left-3 right-3 z-30 rounded-lg bg-rose-900/90 border-2 border-rose-300 px-3 py-2 text-rose-100 text-xs font-bold shadow-lg text-center">
-          {traderError}
-        </div>
-      )}
-
-      {/* Quality + freeze bar */}
       <div className="absolute top-[55%] left-2 right-2 z-20 h-7 rounded-md bg-gradient-to-r from-lime-400 to-emerald-500 border border-lime-200 flex items-center justify-between px-2 shadow">
-        <button className="text-[10px] font-bold text-sky-100 bg-sky-700/70 px-2 py-0.5 rounded">تجميد</button>
-        <div className="text-xs font-bold text-white text-glow">الجودة: 100%</div>
-        <button className="w-5 h-5 rounded-full bg-white/90 text-sky-700 text-xs font-bold flex items-center justify-center">i</button>
+        <button onClick={() => setBuyOpen("freeze")} className={`text-[10px] font-bold px-2 py-0.5 rounded ${freezeActive ? "bg-cyan-300 text-cyan-950" : "bg-sky-700/70 text-sky-100"}`}>
+          {freezeActive ? `🧊 ${formatHHMMSS(freezeMs)}` : "تجميد"}
+        </button>
+        <div className="text-xs font-bold text-white text-glow">الجودة: {rotPct}%</div>
+        <span className="w-5 h-5 rounded-full bg-white/90 text-sky-700 text-xs font-bold flex items-center justify-center">i</span>
       </div>
 
-      {/* Price chart */}
       <div className="absolute top-[60%] left-2 right-2 z-10 bottom-32 rounded-xl bg-gradient-to-b from-amber-100 to-amber-200 border-4 border-amber-700/70 shadow-2xl p-2">
-        <PriceChart
-          past={past}
-          future={future}
-          hourLabels={hourLabels}
-          yLabels={yLabels}
-          minP={minP}
-          range={range}
-          currentPrice={currentPrice}
-          traderActive={traderActive}
-        />
+        <PriceChart past={past} future={future} hourLabels={hourLabels} yLabels={yLabels} minP={minP} range={range} currentPrice={currentPrice} traderActive={showFuture} />
       </div>
 
       <div className="absolute bottom-16 left-2 right-2 z-20 flex flex-col gap-1.5">
         <div className="text-center text-white text-sm font-bold text-glow" dir="rtl">
-          السعر الحالي : <span className="text-amber-300">{currentPrice}</span>
+          السعر بعد التعفّن: <span className="text-amber-300">{effectivePrice}</span>
+          {rotPct < 100 && <span className="text-rose-300 text-[10px] mr-2">(من {currentPrice})</span>}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-white text-sm font-bold text-glow tabular-nums">
-            {amount.toLocaleString()}/{fish.qty.toLocaleString()}
-          </span>
-          <input
-            type="range" min={0} max={fish.qty} value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            className="flex-1 accent-amber-400 h-2"
-          />
+          <span className="text-white text-sm font-bold text-glow tabular-nums">{amount.toLocaleString()}/{fish.qty.toLocaleString()}</span>
+          <input type="range" min={0} max={fish.qty} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="flex-1 accent-amber-400 h-2" />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * currentPrice).toLocaleString()}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * effectivePrice).toLocaleString()}</span>
           </div>
-          <button
-            onClick={() => onSell(amount)} disabled={amount === 0}
-            className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
-          >
-            بيع
-          </button>
+          <button onClick={() => onSell(amount)} disabled={amount === 0} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">بيع</button>
         </div>
       </div>
+
+      {buyOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => !busy && setBuyOpen(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-amber-300/60 p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {buyOpen === "trader" ? (
+              <>
+                <div className="text-center text-amber-300 text-lg font-extrabold mb-1">🧑‍💼 التاجر</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يكشف لك توقّعات الأسعار لكامل السوق لمدة <b>10 ساعات</b> بدقة 100%.</div>
+                <button onClick={buyTrader} disabled={busy} className="w-full py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 text-rose-950 font-extrabold disabled:opacity-50">
+                  {busy ? "..." : "اشترِ الآن 💎 250"}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد السوق</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يجمّد أسعار كل السوق على القيم الحالية للمدة المختارة.</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[{ h: 2, p: 50 }, { h: 9, p: 100 }, { h: 24, p: 150 }].map((o) => (
+                    <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy || freezeActive} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
+                      <div className="text-sm">{o.h}س</div>
+                      <div className="text-[11px]">💎 {o.p}</div>
+                    </button>
+                  ))}
+                </div>
+                {freezeActive && <div className="text-center text-[11px] text-cyan-200 mt-2">التجميد فعّال — انتظر انتهاءه</div>}
+              </>
+            )}
+            {err && <div className="mt-3 text-center text-xs text-rose-300 font-bold">{err}</div>}
+            <button onClick={() => setBuyOpen(null)} disabled={busy} className="mt-3 w-full text-xs text-slate-300 underline">إلغاء</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
 
 function PriceChart({
   past, future, hourLabels, yLabels, minP, range, currentPrice, traderActive,
