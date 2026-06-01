@@ -21,6 +21,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
+import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 
