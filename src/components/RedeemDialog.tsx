@@ -38,14 +38,17 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
   const [result, setResult] = useState<RedeemResult | null>(null);
 
   const submit = async () => {
-    const c = code.trim().toUpperCase();
+    // Normalize: uppercase, trim, strip spaces and dashes so "abcd-1234" == "ABCD1234"
+    const c = code.toUpperCase().replace(/[\s-]+/g, "").trim();
     if (!c) return;
     setLoading(true);
     const { data, error } = await supabase.rpc("redeem_code", { p_code: c });
     setLoading(false);
     if (error) {
-      const key = (error.message || "").split(" ").pop() || "";
-      toast.error(ERR_MSG[key] || ERR_MSG[error.message] || "تعذر استبدال الكود");
+      const msg = (error.message || "").toLowerCase();
+      // Find first known error key that appears anywhere in the message
+      const matched = Object.keys(ERR_MSG).find((k) => msg.includes(k));
+      toast.error(matched ? ERR_MSG[matched] : `تعذر استبدال الكود: ${error.message || ""}`);
       return;
     }
     const r = data as unknown as RedeemResult;
