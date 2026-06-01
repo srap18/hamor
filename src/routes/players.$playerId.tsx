@@ -976,9 +976,13 @@ function PlayerPage() {
                       setBusy(false);
                       if (error) {
                         const m = error.message || "";
-                        if (m.includes("insufficient")) { sound.play("error"); flash("💎 جواهرك ما تكفي (500 جوهرة)"); return; }
+                        if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية — احصل عليها بكود شحن"); return; }
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
+                      // decrement local inventory
+                      setInv((arr) => arr
+                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+                        .filter((x) => x.quantity > 0));
                       sound.play("success");
                       flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                       closeMenu();
@@ -987,7 +991,6 @@ function PlayerPage() {
                   >
                     <span className="text-3xl">{v.emoji}</span>
                     <div className="flex-1 text-fuchsia-100 font-bold text-sm">{v.label}</div>
-                    <div className="text-[11px] text-fuchsia-200 font-extrabold">💎 500</div>
                   </button>
                 ))}
                 <button onClick={() => setMode("weapon")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
