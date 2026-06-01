@@ -56,7 +56,7 @@ function VipPage() {
   };
 
   return (
-    <div dir="rtl" className="absolute inset-0 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-stone-950 via-violet-950/30 to-stone-950 text-amber-50 p-3 pb-24" style={{ WebkitOverflowScrolling: "touch" }}>
+    <div dir="rtl" className="absolute inset-0 overflow-y-auto overflow-x-hidden bg-stone-950 text-amber-50 p-3 pb-24" style={{ WebkitOverflowScrolling: "touch" }}>
       {showRedeem && <RedeemDialog onClose={() => setShowRedeem(false)} />}
 
       <div className="max-w-3xl mx-auto space-y-4 pb-12">
