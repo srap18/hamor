@@ -376,7 +376,9 @@ function PlayerPage() {
       await (supabase as any).rpc("record_attack", {
         _defender_id: playerId, _target_ship_id: t.id,
         _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
+        _xp_gain: w.xp ?? 0,
       });
+
       setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? new Date().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
 
     }

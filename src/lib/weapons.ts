@@ -14,10 +14,12 @@ export type Weapon = {
   price: number;
   currency: "coins" | "gems";
   damage: number;
+  xp: number; // XP awarded to attacker per ship hit
   rarity: "common" | "rare" | "epic" | "legendary";
   aoe?: boolean; // true = hits every ship in the target fleet (nuke)
   desc?: string;
 };
+
 
 export const WEAPONS: Weapon[] = [
   {
@@ -28,8 +30,9 @@ export const WEAPONS: Weapon[] = [
     price: 1500,
     currency: "coins",
     damage: 120,
+    xp: 15,
     rarity: "common",
-    desc: "يدمّر سفن المستوى 1-2 فقط",
+    desc: "يدمّر سفن المستوى 1-2 فقط — يمنحك 15 خبرة",
   },
   {
     id: "rocket_medium",
@@ -39,8 +42,9 @@ export const WEAPONS: Weapon[] = [
     price: 15000,
     currency: "coins",
     damage: 500,
+    xp: 60,
     rarity: "rare",
-    desc: "يدمّر سفن المستوى 3-7",
+    desc: "يدمّر سفن المستوى 3-7 — يمنحك 60 خبرة",
   },
   {
     id: "rocket_large",
@@ -50,8 +54,9 @@ export const WEAPONS: Weapon[] = [
     price: 90000,
     currency: "coins",
     damage: 1500,
+    xp: 200,
     rarity: "epic",
-    desc: "يدمّر سفن المستوى 8-22",
+    desc: "يدمّر سفن المستوى 8-22 — يمنحك 200 خبرة",
   },
   {
     id: "nuke",
@@ -61,9 +66,10 @@ export const WEAPONS: Weapon[] = [
     price: 100,
     currency: "gems",
     damage: 70000,
+    xp: 500,
     rarity: "legendary",
     aoe: true,
-    desc: "تصيب جميع سفن الخصم بـ 70,000 ضرر لكل سفينة",
+    desc: "تصيب جميع سفن الخصم بـ 70,000 ضرر — 500 خبرة لكل سفينة",
   },
   {
     id: "ad_bomb",
@@ -72,8 +78,10 @@ export const WEAPONS: Weapon[] = [
     price: 0,
     currency: "gems",
     damage: 70000,
+    xp: 250,
     rarity: "epic",
     aoe: true,
-    desc: "تفجير فوري + إعلان ساعة على محيط الخصم. 70,000 ضرر على كل سفنه. تتوفر فقط عبر كود شحن.",
+    desc: "تفجير فوري + إعلان ساعة على محيط الخصم. 70,000 ضرر + 250 خبرة لكل سفينة. تتوفر فقط عبر كود شحن.",
   },
 ];
+
