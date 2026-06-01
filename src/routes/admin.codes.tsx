@@ -792,8 +792,13 @@ function AdminCodesPage() {
 
       {/* ───────── قائمة الأكواد ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-        <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800">
-          📜 الأكواد المنشأة ({codes.length})
+        <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800 flex items-center justify-between gap-2">
+          <span>📜 الأكواد المنشأة ({codes.length})</span>
+          <button
+            onClick={cleanupDeadCodes}
+            className="text-[11px] px-2.5 py-1 rounded-md bg-rose-700 hover:bg-rose-600 text-white font-bold"
+            title="حذف الأكواد المنتهية الصلاحية والمستنفدة"
+          >🧹 تنظيف المنتهية/المستنفدة</button>
         </div>
         {loading ? (
           <div className="p-4 text-center text-slate-400 text-sm">جاري التحميل...</div>
