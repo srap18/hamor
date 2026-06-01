@@ -822,6 +822,17 @@ function Index() {
     if (user && caught) {
       incrementFishCaught(caught.id, fishGained).catch((e) => console.error("[catch]", e));
     }
+    // Award XP for the fishing trip, scaled by ship level and catch size.
+    // Server caps via award_fishing_revenue (max = 50 + tpl*40).
+    if (s.dbId && fishGained > 0) {
+      const xpGain = Math.max(5, Math.floor(fishGained * 0.4) + s.level * 5);
+      (supabase as any).rpc("award_fishing_revenue", {
+        _ship_id: s.dbId, _coins: 0, _xp: xpGain,
+      }).then((res: any) => {
+        if (res?.error) console.warn("[fishing xp]", res.error.message);
+      });
+    }
+
     sound.play("splash");
     setTimeout(() => sound.play("coin"), 180);
     setTimeout(() => sound.play("catch"), 320);
