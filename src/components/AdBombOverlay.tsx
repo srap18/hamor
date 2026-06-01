@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdVideo } from "@/lib/ad-videos";
+import { sound } from "@/lib/sound";
 
 type AdBomb = {
   id: string;
@@ -12,8 +13,11 @@ type AdBomb = {
 };
 
 /**
- * Renders an ad-bomb video overlay above the harbor scene of `targetUserId`.
- * If `isOwner` is true, shows a "Remove for 100💎" button.
+ * Renders a fullscreen ad-bomb video overlay for `targetUserId`.
+ * - Fills the mobile frame (object-cover) with full opacity + sound.
+ * - Sits below UI controls (back, chat, nav) so they stay tappable.
+ * - Pauses background music while playing; restores on dismiss/expire.
+ * - If `isOwner` is true, shows a "Remove for 100💎" button.
  */
 export function AdBombOverlay({
   targetUserId,
@@ -28,6 +32,8 @@ export function AdBombOverlay({
   const [now, setNow] = useState(Date.now());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (!targetUserId) return;
@@ -67,15 +73,44 @@ export function AdBombOverlay({
     return () => clearInterval(t);
   }, []);
 
-  if (!bomb || dismissed) return null;
-  const expiresMs = new Date(bomb.expires_at).getTime();
-  if (expiresMs <= now) return null;
+  const expiresMs = bomb ? new Date(bomb.expires_at).getTime() : 0;
+  const isActive = !!bomb && !dismissed && expiresMs > now;
+
+  // Pause background music while the ad is on screen; restore when it goes away.
+  useEffect(() => {
+    if (!isActive) return;
+    sound.pauseForChat();
+    return () => sound.resumeForChat();
+  }, [isActive]);
+
+  // Try to autoplay with sound; fall back to a "tap to play" prompt if blocked.
+  useEffect(() => {
+    if (!isActive) return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.volume = 1;
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => setNeedsTap(true));
+    }
+  }, [isActive, bomb?.id]);
+
+  if (!isActive || !bomb) return null;
 
   const video = getAdVideo(bomb.video_key);
   if (!video) return null;
 
   const minsLeft = Math.max(0, Math.floor((expiresMs - now) / 60_000));
   const secsLeft = Math.max(0, Math.floor(((expiresMs - now) % 60_000) / 1000));
+
+  const handleTap = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.volume = 1;
+    v.play().then(() => setNeedsTap(false)).catch(() => {});
+  };
 
   const handleRemove = async () => {
     if (removing) return;
@@ -94,24 +129,23 @@ export function AdBombOverlay({
 
   return (
     <>
-      {/* Video overlay — covers harbor scene, ignores pointer events except button */}
-      <div className="absolute inset-0 pointer-events-none z-[55]">
+      {/* Fullscreen video — z-30 sits above the harbor scene (z-10/20)
+          but below UI controls (z-40+) like back, chat, bottom nav. */}
+      <div className="fixed inset-0 z-30 pointer-events-none bg-black">
         <video
+          ref={videoRef}
           key={bomb.id}
           src={video.src}
           autoPlay
           loop
-          muted
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-80"
-          style={{ mixBlendMode: "screen" }}
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-900/20 via-transparent to-black/30" />
       </div>
 
-      {/* Banner with countdown + remove button (owner only) */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/85 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
+      {/* Countdown + remove button (owner) — above the video, below dialogs */}
+      <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
           <div className="text-[11px] text-fuchsia-50 font-bold leading-tight">
             <div>قنبلة إعلانية!</div>
@@ -130,6 +164,16 @@ export function AdBombOverlay({
           )}
         </div>
       </div>
+
+      {/* If autoplay-with-sound was blocked, prompt the user to tap once */}
+      {needsTap && (
+        <button
+          onClick={handleTap}
+          className="fixed inset-x-0 bottom-24 mx-auto z-[46] w-fit px-4 py-2 rounded-full bg-white/90 text-black text-xs font-bold shadow-lg pointer-events-auto"
+        >
+          🔊 اضغط لتشغيل الصوت
+        </button>
+      )}
     </>
   );
 }
