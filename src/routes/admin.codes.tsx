@@ -910,9 +910,9 @@ function RedemptionsModal({ code, onClose, onChanged }: { code: CodeRow; onClose
   useEffect(() => { load(); }, [load]);
 
   const revoke = async (userId: string, name: string) => {
-    if (!confirm(`إلغاء استخدام الكود من ${name}؟ سيقدر يستخدمه مرة ثانية. (المكافآت التي حصل عليها لن تُسترد تلقائياً)`)) return;
+    if (!confirm(`إلغاء استخدام الكود من ${name}؟\n\nسيتم سحب كل الجوائز التي حصل عليها (ذهب/جواهر/خبرة/عناصر/سفن) ويصير الكود متاحاً له من جديد.`)) return;
     setBusy(userId);
-    const { error } = await (supabase as any).rpc("admin_revoke_redemption", { _code_id: code.id, _user_id: userId });
+    const { error } = await (supabase as any).rpc("admin_revoke_redemption", { _code_id: code.id, _user_id: userId, _reclaim: true });
     setBusy(null);
     if (error) return toast.error(error.message);
     toast.success("✅ تم إلغاء الاستخدام");
