@@ -2257,6 +2257,10 @@ export type Database = {
         Args: { _coins: number; _gems: number; _xp: number }
         Returns: number
       }
+      admin_redeem_code_for: {
+        Args: { p_code: string; p_target_user: string }
+        Returns: Json
+      }
       admin_revoke_redemption:
         | { Args: { _code_id: string; _user_id: string }; Returns: Json }
         | {
