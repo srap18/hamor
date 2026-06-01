@@ -394,7 +394,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-md w-full my-8" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-3xl w-full my-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 mb-4">
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
@@ -432,6 +432,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           {[
             { label: "🪙 العملات", value: coins, set: setCoins },
             { label: "💎 الجواهر", value: gems, set: setGems },
+            { label: "♦️ الياقوت", value: rubies, set: setRubies },
             { label: "⭐ XP", value: xp, set: setXp },
             { label: "📈 المستوى", value: level, set: setLevel },
           ].map((f) => (
@@ -449,6 +450,31 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
           {saving ? "جاري الحفظ..." : "💾 حفظ العملات والمستوى"}
         </button>
+
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="text-sm font-semibold text-slate-300 mb-2">🐟 السمك المكتشف والمخزون</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+            {FISH_LIST.map((f) => {
+              const row = fishMap.get(f.id) ?? { fish_id: f.id, quantity: 0, total_caught: 0 };
+              return (
+                <div key={f.id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-bold text-slate-200 truncate">{f.emoji} {f.name}</span>
+                    <button onClick={() => saveFishRow(f.id)} className="px-2 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-[11px]">حفظ</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-[10px] text-slate-400">المخزون
+                      <input type="number" min={0} value={row.quantity} onChange={(e) => setFishValue(f.id, "quantity", e.target.value)} className="w-full mt-1 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs" />
+                    </label>
+                    <label className="text-[10px] text-slate-400">المكتشف/المصطاد
+                      <input type="number" min={0} value={row.total_caught} onChange={(e) => setFishValue(f.id, "total_caught", e.target.value)} className="w-full mt-1 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs" />
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <button onClick={onClose} className="w-full mt-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إغلاق</button>
 
         {/* Anti-cheat: gold tracking */}
@@ -494,6 +520,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
             <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
           </div>
+          <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي قوي + الجهاز</button>
           <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
         </div>
 
