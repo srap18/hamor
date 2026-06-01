@@ -65,5 +65,25 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
+  if (securityBlock) {
+    const isKicked = securityBlock.kind === "kicked";
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-950 text-amber-100 p-6 gap-4 text-center">
+        <div className="text-6xl">{isKicked ? "👋" : "🔒"}</div>
+        <h1 className="text-2xl font-bold text-amber-300">
+          {isKicked ? "تم إنهاء الجلسة" : "جهاز مرتبط بحساب آخر"}
+        </h1>
+        <p className="text-amber-200/80 max-w-md">{securityBlock.message}</p>
+        <button
+          onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}
+          className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-amber-50 font-bold"
+        >
+          الذهاب لتسجيل الدخول
+        </button>
+      </div>
+    );
+  }
+
   return <>{children}</>;
+
 }
