@@ -1828,6 +1828,57 @@ function Index() {
         </div>
       )}
 
+      {/* Steal result modal — shows what was stolen, or empty result */}
+      {stealResult && (
+        <div
+          dir="rtl"
+          onClick={() => setStealResult(null)}
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mx-4 w-full max-w-xs rounded-2xl border-2 border-rose-300/60 bg-gradient-to-b from-rose-800 to-rose-950 p-5 shadow-2xl text-center"
+          >
+            <div className="text-xs font-black text-rose-200 mb-2">
+              {stealResult.cancelled ? "🛑 إيقاف السرقة" : "🏴‍☠️ نتيجة السرقة"}
+            </div>
+            {stealResult.count > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto p-1">
+                  {stealResult.items.map((it) => (
+                    <div key={it.id} className="rounded-xl bg-white/10 border border-rose-200/40 p-2 flex flex-col items-center">
+                      <div className="w-12 h-12 flex items-center justify-center">
+                        {it.img ? <img src={it.img} alt={it.name} className="w-full h-full object-contain" /> : <span className="text-3xl">{it.emoji}</span>}
+                      </div>
+                      <div className="text-[10px] text-white font-bold truncate w-full">{it.name}</div>
+                      <div className="text-[11px] font-black text-amber-300">×{it.qty}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-2xl font-black text-amber-300 text-glow">{stealResult.count} سمكة</div>
+                <div className="text-[12px] font-bold text-rose-100/90">قيمة الغنيمة: {stealResult.value.toLocaleString()} 🪙</div>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-24 h-24 rounded-2xl bg-white/10 border-2 border-rose-200/40 flex items-center justify-center">
+                  <span className="text-5xl">🪶</span>
+                </div>
+                <div className="mt-3 text-base font-black text-white">السفينة رجعت فاضية</div>
+                <div className="mt-1 text-[11px] font-bold text-rose-100/80">ما كان عند الهدف سمك في هذه السفينة</div>
+              </>
+            )}
+            <button
+              onClick={() => setStealResult(null)}
+              className="mt-4 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-200 py-2.5 text-sm font-black text-white active:scale-95 shadow-lg"
+            >
+              موافق
+            </button>
+          </div>
+        </div>
+      )}
+
+
+
       {/* Incoming attack / support FX — mirror what spectators see when they attack me */}
       {incomingFx && <ProjectileFx fx={incomingFx} />}
     </div>
