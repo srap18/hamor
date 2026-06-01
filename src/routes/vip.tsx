@@ -12,7 +12,8 @@ export const Route = createFileRoute("/vip")({
 });
 
 function VipPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [claimedToday, setClaimedToday] = useState(false);
   const [claiming, setClaiming] = useState(false);
