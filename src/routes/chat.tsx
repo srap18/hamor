@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { officerSetTribe, setMyTribe, giftGems } from "@/lib/economy";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -58,6 +58,7 @@ function ChatPage() {
   const { profile } = useProfile();
   const [tab, setTab] = useState<Channel>("public");
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [msgsKey, setMsgsKey] = useState("");
   const [profMap, setProfMap] = useState<Map<string, Prof>>(new Map());
   const [text, setText] = useState("");
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
@@ -118,19 +119,26 @@ function ChatPage() {
 
   useEffect(() => {
     if (!user) return;
+    const loadKey = `${tab}:${dmWith || ""}`;
+    let active = true;
+    setMsgs([]);
+    setMsgsKey("");
     // Load the NEWEST 100 (was loading oldest 100 — caused new messages to disappear on reload)
     let q = supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(100);
     if (tab === "public") q = q.eq("channel", "public");
     else if (tab === "tribe" && profile?.tribe_id) q = q.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
     else if (tab === "dm" && dmWith) q = q.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
-    else { setMsgs([]); return; }
+    else { setMsgsKey(loadKey); return; }
 
     q.then(async ({ data }) => {
+      if (!active) return;
       const list = ((data || []) as Msg[]).slice().reverse(); // oldest -> newest for display
       setMsgs(list);
+      setMsgsKey(loadKey);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
         const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame").in("id", ids);
+        if (!active) return;
         setProfMap(new Map((ps || []).map((p: any) => [p.id, p])));
       }
     });
@@ -153,25 +161,29 @@ function ChatPage() {
         });
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { active = false; supabase.removeChannel(ch); };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
   // Track first render per chat tab/conversation so we always land on the latest
   // messages when opening chat (instead of being stuck at the top).
   const firstScrollKey = useRef<string>("");
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = scrollRef.current; if (!el) return;
     const key = `${tab}:${dmWith || ""}`;
+    if (msgsKey !== key) return;
+    const jumpToBottom = () => { el.scrollTop = el.scrollHeight; };
     const isFirst = firstScrollKey.current !== key;
     if (isFirst) {
       firstScrollKey.current = key;
-      // Jump instantly to bottom on first paint
-      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+      // Jump instantly to bottom after the real messages for this chat are rendered.
+      jumpToBottom();
+      requestAnimationFrame(jumpToBottom);
+      window.setTimeout(jumpToBottom, 80);
       return;
     }
     const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
-    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [msgs, tab, dmWith]);
+    if (nearBottom) jumpToBottom();
+  }, [msgs.length, msgsKey, tab, dmWith]);
 
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
