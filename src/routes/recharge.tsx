@@ -27,6 +27,7 @@ const TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "vip", label: "VIP", emoji: "⭐" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "shield", label: "دروع", emoji: "🛡️" },
+  { id: "weapon", label: "أسلحة", emoji: "📺" },
 ];
 
 const TAG_STYLES: Record<string, string> = {
