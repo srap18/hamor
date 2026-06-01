@@ -278,7 +278,7 @@ function ChatPage() {
                 <button onClick={() => setDmWith(null)} className="text-amber-300 text-sm">←</button>
                 <Avatar p={dmFriendInfo} size={28} />
                 <div className="flex-1 text-sm font-bold">{dmFriendInfo.display_name}</div>
-                <button onClick={() => setSupportTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-cyan-600 text-xs font-bold">💎 دعم</button>
+                
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-red-700 text-xs font-bold">⚔️ حرب</button>
               </div>
             )}
