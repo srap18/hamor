@@ -59,6 +59,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_bombs: {
+        Row: {
+          active: boolean
+          attacker_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          started_at: string
+          target_user_id: string
+          video_key: string
+        }
+        Insert: {
+          active?: boolean
+          attacker_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          started_at?: string
+          target_user_id: string
+          video_key: string
+        }
+        Update: {
+          active?: boolean
+          attacker_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          started_at?: string
+          target_user_id?: string
+          video_key?: string
+        }
+        Relationships: []
+      }
       admin_audit: {
         Row: {
           action: string
@@ -2585,6 +2618,10 @@ export type Database = {
         Returns: boolean
       }
       join_tribe_open: { Args: { _tribe_id: string }; Returns: undefined }
+      launch_ad_bomb: {
+        Args: { _target_id: string; _video_key: string }
+        Returns: string
+      }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {
         Args: never
@@ -2619,6 +2656,7 @@ export type Database = {
         Returns: string
       }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      remove_ad_bombs: { Args: never; Returns: number }
       rename_daughter: { Args: { _name: string }; Returns: undefined }
       rename_tribe: {
         Args: { _new_name: string; _tribe_id: string }
