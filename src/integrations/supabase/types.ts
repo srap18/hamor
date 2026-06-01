@@ -3059,6 +3059,15 @@ export type Database = {
         Args: { _gems_cost: number; _ship_id: string }
         Returns: undefined
       }
+      repair_ship_with_crew: {
+        Args: { _crew_id: string; _ship_id: string }
+        Returns: {
+          max_hp: number
+          new_hp: number
+          repair_ends_at: string
+          repaired_count: number
+        }[]
+      }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
       search_profiles_public: {
