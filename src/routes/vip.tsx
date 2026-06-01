@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, refreshProfile } from "@/hooks/use-auth";
+import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
