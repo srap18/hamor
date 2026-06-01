@@ -91,6 +91,24 @@ export const BACKGROUNDS: SceneBg[] = [
     shipSlots: [...EIFFEL_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.6%", duration: "8s" },
   },
+  {
+    id: "crystal_kingdom",
+    name: "مملكة البلور الذهبية ✨",
+    burnedName: "مملكة البلور المحترقة 🔥",
+    price: 1000,
+    currency: "gems",
+    rarity: "legendary",
+    image: crystalKingdomBg.url,
+    burnedImage: crystalKingdomBurnedBg.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 45,
+    waterLeft: 40,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
+  },
 ];
 
 const STORE_KEY = "ocean.bg.selected";
