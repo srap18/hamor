@@ -1456,11 +1456,14 @@ function Index() {
               const maxHp = ship.maxHp ?? 100;
               const curHp = ship.hp ?? 0;
               const newHp = Math.min(maxHp, curHp + amount);
-              // Any successful heal revives a destroyed ship and cancels active repair timer.
+              // Any successful heal revives a destroyed ship, cancels active repair
+              // timer, and brings the ship home so it can fish/move again.
               const patch: Record<string, unknown> = {
                 hp: newHp,
                 destroyed_at: null,
                 repair_ends_at: null,
+                at_sea: false,
+                fishing_started_at: null,
               };
               const { error } = await (supabase as any)
                 .from("ships_owned")
@@ -1472,10 +1475,11 @@ function Index() {
                 return 0;
               }
               setShips((arr) => arr.map((x) => x.id === ship.id
-                ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null }
+                ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
                 : x));
               return newHp - curHp;
             };
+
 
 
 
