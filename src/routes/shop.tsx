@@ -8,6 +8,7 @@ import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
 import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
+import { BackgroundsPanel } from "@/components/BackgroundsPanel";
 
 
 export const Route = createFileRoute("/shop")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "recharge";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
 
 type Item = {
   id: string;
@@ -58,6 +59,7 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
   { id: "ships", label: "سفن", banner: "Special Ships" },
+  { id: "backgrounds", label: "🖼️ خلفيات", banner: "Backgrounds" },
   { id: "recharge", label: "💳 شحن", banner: "Recharge" },
 ];
 
