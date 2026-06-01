@@ -306,18 +306,80 @@ function FishMarket() {
 
   const sel = fish.find((f) => f.id === selected) || null;
 
-  // Auto-exit sell view if the fish ran out
+  // Load owned fish quantities + ages
+  const loadFish = async () => {
+    if (!user) { setQtyMap({}); setAgeMap({}); return; }
+    const { data } = await supabase
+      .from("fish_caught")
+      .select("fish_id, quantity, updated_at")
+      .eq("user_id", user.id);
+    const map: Record<string, number> = {};
+    const ages: Record<string, string> = {};
+    for (const row of (data ?? []) as Array<{ fish_id: string; quantity: number | null; updated_at: string }>) {
+      map[row.fish_id] = (map[row.fish_id] ?? 0) + (row.quantity ?? 0);
+      if (!ages[row.fish_id] || new Date(row.updated_at) < new Date(ages[row.fish_id])) {
+        ages[row.fish_id] = row.updated_at;
+      }
+    }
+    setQtyMap(map);
+    setAgeMap(ages);
+  };
+  useEffect(() => {
+    loadFish();
+    if (!user) return;
+    const onFocus = () => loadFish();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const ch = supabase
+      .channel(`fish_caught_${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "fish_caught", filter: `user_id=eq.${user.id}` },
+        () => loadFish()
+      )
+      .subscribe();
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      supabase.removeChannel(ch);
+    };
+  }, [user?.id]);
+
+  // Rot helpers: -1% per hour from oldest catch, floor 50%
+  const rotMult = (fishId: string): number => {
+    const t = ageMap[fishId];
+    if (!t) return 1;
+    const hours = Math.max(0, (Date.now() - new Date(t).getTime()) / 3_600_000);
+    return Math.max(0.5, 1 - 0.01 * hours);
+  };
+
+  // Only show fish the player owns (qty > 0)
+  const fish: Fish[] = Object.entries(qtyMap)
+    .map(([id, qty]): Fish | null => {
+      const meta = fishMeta(id);
+      if (!meta) return null;
+      const live = effPriceMap[id]?.current;
+      const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
+      return { ...meta, basePrice, qty };
+    })
+    .filter((f): f is Fish => !!f && f.qty > 0)
+    .sort((a, b) => b.basePrice - a.basePrice);
+
+  const capUsed = fish.reduce((s, f) => s + f.qty, 0);
+  const capMax = fishMarketCapacity(lvl);
+  
+
+  const sel = fish.find((f) => f.id === selected) || null;
+
   useEffect(() => {
     if (selected && (qtyMap[selected] ?? 0) <= 0) setSelected(null);
   }, [selected, qtyMap]);
 
   const sell = async (amount: number) => {
     if (!sel || !user) return;
-    // Use live DB price when available; fall back to local history
-    const livePrice = priceMap[sel.id]?.current;
-    const price = typeof livePrice === "number" && livePrice > 0
-      ? livePrice
-      : priceHistory(sel)[priceHistory(sel).length - 1];
+    const livePrice = effPriceMap[sel.id]?.current;
+    const rawPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : priceHistory(sel)[priceHistory(sel).length - 1];
+    const price = Math.max(0.1, Math.round(rawPrice * rotMult(sel.id) * 100) / 100);
     const qty = Math.min(amount, sel.qty);
     if (qty <= 0) return;
     const earned = Math.round(qty * price);
