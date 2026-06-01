@@ -153,7 +153,7 @@ export function AdBombOverlay({
 
   const handleRemove = async () => {
     if (removing) return;
-    if (!confirm("إزالة القنبلة الإعلانية مقابل 150 جوهرة؟")) return;
+    if (!confirm("إزالة القنبلة الإعلانية مقابل 100 جوهرة؟")) return;
     setRemoving(true);
     const { error } = await (supabase as never as { rpc: (n: string) => Promise<{ error: { message: string } | null }> }).rpc("remove_ad_bombs");
     setRemoving(false);
