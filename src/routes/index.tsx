@@ -4,7 +4,7 @@ import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } 
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
-import { CREWS } from "@/lib/crews";
+import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import { incrementFishCaught, sellShip, deleteInventoryRows, splitInventoryAssign, updateInventoryMeta } from "@/lib/economy";
 import { useAuth, useProfile } from "@/hooks/use-auth";
@@ -1430,54 +1430,54 @@ function Index() {
           if (crewBusyRef.current) return;
           crewBusyRef.current = true;
           try {
-          // Fixer crews: reduce remaining repair time (or instant full heal for legendary).
+          // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
+          // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
           if (itemId.startsWith("fixer_")) {
             if (!s.dbId) { sound.play("error"); return; }
             const row = availableRows.find((r) => r.item_id === itemId);
             if (!row) return;
 
-            // New rule (no percentages): tier maps to ship-level ranges, full instant repair.
-            // fixer_1 → levels 1-10, fixer_2 → levels 11-20, fixer_3 → repairs ALL 3 fleet ships at once (any level).
-            const repairOne = async (ship: typeof s) => {
-              if (!ship.dbId) return;
-              await (supabase as any)
-                .from("ships_owned")
-                .update({ hp: ship.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
-                .eq("id", ship.dbId);
-              setShips((arr) => arr.map((x) => x.id === ship.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+            const repairBy = async (ship: typeof s, amount: number) => {
+              if (!ship.dbId) return 0;
+              const maxHp = ship.maxHp ?? 100;
+              const curHp = ship.hp ?? 0;
+              const newHp = Math.min(maxHp, curHp + amount);
+              const fullyRepaired = newHp >= maxHp;
+              const patch: Record<string, unknown> = { hp: newHp };
+              if (fullyRepaired) {
+                patch.destroyed_at = null;
+                patch.repair_ends_at = null;
+              }
+              await (supabase as any).from("ships_owned").update(patch).eq("id", ship.dbId);
+              setShips((arr) => arr.map((x) => x.id === ship.id
+                ? { ...x, hp: newHp, destroyedAt: fullyRepaired ? null : x.destroyedAt, repairEndsAt: fullyRepaired ? null : x.repairEndsAt }
+                : x));
+              return newHp - curHp;
             };
 
             try {
-              if (itemId === "fixer_3") {
-                // Repair every ship in the fleet that actually needs repair.
+              if (itemId === "fixer_4") {
                 const needRepair = ships.filter((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt));
                 if (needRepair.length === 0) {
                   setToast("لا توجد سفن تحتاج إصلاحاً");
                   sound.play("error");
                   return;
                 }
-                for (const sh of needRepair) await repairOne(sh);
-                setToast(`⚒️ تم إصلاح ${needRepair.length} سفن فوراً`);
+                for (const sh of needRepair) await repairBy(sh, Infinity);
+                setToast(`🏆 تم تعبئة ${needRepair.length} سفن فلل فوراً`);
               } else {
-                const lvl = s.level ?? 1;
-                const minLvl = itemId === "fixer_1" ? 1 : 11;
-                const maxLvl = itemId === "fixer_1" ? 10 : 20;
-                if (lvl < minLvl || lvl > maxLvl) {
-                  setToast(`هذا المصلح يعمل فقط على سفن المستوى ${minLvl}-${maxLvl}`);
-                  sound.play("error");
-                  return;
-                }
+                const amount = FIXER_HEAL[itemId] ?? 0;
+                if (amount <= 0) { sound.play("error"); return; }
                 const needs = (s.hp ?? 0) < (s.maxHp ?? 100) || s.destroyedAt || s.repairEndsAt;
                 if (!needs) {
                   setToast("السفينة لا تحتاج إصلاحاً");
                   sound.play("error");
                   return;
                 }
-                await repairOne(s);
-                setToast("تم إصلاح السفينة فوراً ⚒️");
+                const healed = await repairBy(s, amount);
+                setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
               }
 
-              // consume one unit of the fixer crew
               if (row.quantity <= 1) {
                 await deleteInventoryRows([row.id]);
               } else {
