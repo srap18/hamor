@@ -1907,7 +1907,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 className="w-full text-right relative overflow-hidden flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
                 <img src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" />
                 <div className="relative w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
-                <div className="relative w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-800 flex items-center justify-center text-lg shadow-lg">{t.banner || t.emblem}</div>
+                <div className="relative w-11 h-11 shrink-0 flex items-center justify-center">
+                  <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+                  <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                </div>
                 <div className="relative flex-1 min-w-0">
                   <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
                   <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} عضو</div>
