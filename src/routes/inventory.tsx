@@ -172,6 +172,7 @@ function InventoryPage() {
             </div>
           );
         })()}
+        {!loading && tab === "fish" && (
           <>
             <div className="mb-3 glass-hud rounded-xl px-3 py-2 flex items-center justify-between border border-sky-300/40">
               <div className="flex items-center gap-2">

@@ -1824,14 +1824,16 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     }
     setLoading(true);
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
-    supabase.from("profiles")
-      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .order(col, { ascending: false }).limit(200)
-      .then(({ data }) => {
-        const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
-        setRows(filtered);
-        setLoading(false);
-      });
+    (async () => {
+      const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
+      const mapped = ((data as any[]) || []).map((r) => ({
+        id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
+        level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
+        avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+      })) as LbProfile[];
+      setRows(mapped);
+      setLoading(false);
+    })();
 
   }, [tab, staffIds]);
 
