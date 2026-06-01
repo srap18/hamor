@@ -12,6 +12,7 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { getTribeBanner } from "@/lib/tribe-banners";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
@@ -701,11 +702,27 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
       <div className="w-full max-w-md max-h-[90vh] bg-stone-950 border-2 border-amber-700 rounded-2xl flex flex-col overflow-hidden">
-        <div className="flex items-center gap-2 p-3 border-b border-amber-700/60 bg-stone-900">
-          <div className="text-2xl">{info?.banner || "🏴‍☠️"}</div>
-          <div className="flex-1 font-extrabold text-amber-300 truncate">⚙️ {info?.name || "..."}</div>
-          <button onClick={onClose} className="px-3 py-1 rounded bg-stone-800 text-amber-200">✕</button>
-        </div>
+        {info && (() => {
+          const tier = getTribeBanner(info.level);
+          return (
+            <div className="relative w-full h-24 bg-gradient-to-b from-stone-900 to-stone-950 border-b border-amber-700/60 flex items-center justify-center overflow-hidden">
+              <img src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.35)]" />
+              <div className="relative z-10 text-center">
+                <div className="text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{info.banner || "🏴‍☠️"}</div>
+                <div className="font-extrabold text-amber-100 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{info.name}</div>
+                <div className="text-[10px] text-amber-200/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⭐ {info.level} · {tier.name}</div>
+              </div>
+              <button onClick={onClose} className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded bg-black/60 text-amber-200 text-sm">✕</button>
+            </div>
+          );
+        })()}
+        {!info && (
+          <div className="flex items-center gap-2 p-3 border-b border-amber-700/60 bg-stone-900">
+            <div className="text-2xl">🏴‍☠️</div>
+            <div className="flex-1 font-extrabold text-amber-300 truncate">...</div>
+            <button onClick={onClose} className="px-3 py-1 rounded bg-stone-800 text-amber-200">✕</button>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
           {info && (
             <div className="rounded-xl border border-amber-700/40 bg-gradient-to-b from-stone-900 to-stone-950 p-3">

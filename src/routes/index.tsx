@@ -20,6 +20,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
+import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
@@ -1899,18 +1900,22 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           ) : tab === "tribes" ? (
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
-            ) : tribesFiltered.map((t, i) => (
+            ) : tribesFiltered.map((t, i) => {
+              const tier = getTribeBanner(t.level || 1);
+              return (
               <button key={t.id} onClick={() => { sound.play("click"); setOpenTribeId(t.id); }}
-                className="w-full text-right flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
-                <div className="w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-800 flex items-center justify-center text-lg">{t.banner || t.emblem}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-accent truncate">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
-                  <div className="text-[10px] text-accent/70">👥 {t.members} عضو • انقر للتفاصيل</div>
+                className="w-full text-right relative overflow-hidden flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                <img src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" />
+                <div className="relative w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                <div className="relative w-9 h-9 rounded-full bg-gradient-to-b from-amber-400 to-amber-800 flex items-center justify-center text-lg shadow-lg">{t.banner || t.emblem}</div>
+                <div className="relative flex-1 min-w-0">
+                  <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
+                  <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} عضو</div>
                 </div>
-                <div className="text-xs font-bold text-accent tabular-nums">⚡ {t.power.toLocaleString()}</div>
+                <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⚡ {t.power.toLocaleString()}</div>
               </button>
-            ))
+              );
+            })
           ) : tab === "fish" ? (
             fishRows.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد صيادون بعد</div>
@@ -2059,14 +2064,20 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
           <div className="text-center text-accent/70 py-10">جاري التحميل…</div>
         ) : (
           <>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="text-3xl">{info.banner || info.emblem}</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-lg font-extrabold text-accent truncate">{info.name}</div>
-                <div className="text-xs text-amber-300">⭐ المستوى {info.level} • ⚡ {totalPower.toLocaleString()}</div>
-              </div>
-              <button onClick={onClose} className="px-3 py-1 rounded bg-secondary/70 text-accent">✕</button>
-            </div>
+            {(() => {
+              const tier = getTribeBanner(info.level);
+              return (
+                <div className="relative w-full h-28 mb-2 rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 border border-accent/40">
+                  <img src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.4)]" />
+                  <button onClick={onClose} className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded bg-black/70 text-accent text-sm">✕</button>
+                  <div className="absolute inset-x-0 bottom-1 z-10 text-center">
+                    <div className="text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">{info.banner || info.emblem}</div>
+                    <div className="text-base font-extrabold text-accent drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] truncate px-10">{info.name}</div>
+                    <div className="text-[10px] text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">⭐ المستوى {info.level} · {tier.name} · ⚡ {totalPower.toLocaleString()}</div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="rounded-xl bg-secondary/50 border border-accent/30 p-2 mb-2">
               <div className="text-xs text-accent/90 whitespace-pre-wrap break-words">
