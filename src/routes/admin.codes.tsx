@@ -792,6 +792,9 @@ function AdminCodesPage() {
         </button>
       </div>
 
+      {/* ───────── البحث عن كود مؤرشف ───────── */}
+      <ArchivedLookup onOpenRedemptions={setRedemptionsFor} />
+
       {/* ───────── قائمة الأكواد ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
         <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800 flex items-center justify-between gap-2">
