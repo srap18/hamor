@@ -102,6 +102,8 @@ export const BACKGROUNDS: SceneBg[] = [
     rarity: "legendary",
     image: crystalKingdomBg.url,
     burnedImage: crystalKingdomBurnedBg.url,
+    video: crystalKingdomVideo.url,
+    burnedVideo: crystalKingdomBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
