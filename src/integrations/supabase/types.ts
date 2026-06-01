@@ -2413,6 +2413,19 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      audit_player_currency: {
+        Args: { _uid: string }
+        Returns: {
+          coins_diff: number
+          current_coins: number
+          current_gems: number
+          display_name: string
+          gems_diff: number
+          ledger_coins: number
+          ledger_gems: number
+          player_id: string
+        }[]
+      }
       award_fishing_revenue: {
         Args: { _coins: number; _ship_id: string; _xp: number }
         Returns: undefined
@@ -2924,6 +2937,7 @@ export type Database = {
         Args: { _gems_cost: number; _ship_id: string }
         Returns: undefined
       }
+      reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
       search_profiles_public: {
         Args: { _limit?: number; _q: string }
