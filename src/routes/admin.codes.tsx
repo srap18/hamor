@@ -244,6 +244,25 @@ function AdminCodesPage() {
     loadCodes();
   };
 
+  const cleanupDeadCodes = async () => {
+    const now = new Date();
+    const dead = codes.filter((c) => {
+      const expired = c.expires_at && new Date(c.expires_at) < now;
+      const exhausted = c.max_uses > 0 && c.uses_count >= c.max_uses;
+      return expired || exhausted;
+    });
+    if (dead.length === 0) {
+      toast.info("لا يوجد أكواد منتهية أو مستنفدة للحذف");
+      return;
+    }
+    if (!confirm(`حذف ${dead.length} كود منتهي/مستنفد؟ لا يمكن التراجع.`)) return;
+    const ids = dead.map((c) => c.id);
+    const { error } = await supabase.from("redemption_codes").delete().in("id", ids);
+    if (error) return toast.error(error.message);
+    toast.success(`✅ تم حذف ${dead.length} كود`);
+    loadCodes();
+  };
+
   const copyCode = async (c: string) => {
     try {
       await navigator.clipboard.writeText(c);
@@ -773,8 +792,13 @@ function AdminCodesPage() {
 
       {/* ───────── قائمة الأكواد ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-        <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800">
-          📜 الأكواد المنشأة ({codes.length})
+        <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800 flex items-center justify-between gap-2">
+          <span>📜 الأكواد المنشأة ({codes.length})</span>
+          <button
+            onClick={cleanupDeadCodes}
+            className="text-[11px] px-2.5 py-1 rounded-md bg-rose-700 hover:bg-rose-600 text-white font-bold"
+            title="حذف الأكواد المنتهية الصلاحية والمستنفدة"
+          >🧹 تنظيف المنتهية/المستنفدة</button>
         </div>
         {loading ? (
           <div className="p-4 text-center text-slate-400 text-sm">جاري التحميل...</div>
