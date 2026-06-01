@@ -57,6 +57,7 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
   { id: "ships", label: "سفن", banner: "Special Ships" },
+  { id: "recharge", label: "💳 شحن", banner: "Recharge" },
 ];
 
 // Max armor duration capped at 2 days. Higher tiers removed.
