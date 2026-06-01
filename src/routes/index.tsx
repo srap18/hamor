@@ -1786,14 +1786,14 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (tab === "fish") {
       setLoading(true);
       (async () => {
-        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 60 });
+        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
         const mapped = ((data as any[]) || []).map((r) => ({
           id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
           avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
           avatar_frame: r.avatar_frame, name_frame: r.name_frame,
           unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
         }));
-        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
         setLoading(false);
       })();
       return;
@@ -1801,14 +1801,14 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (tab === "ships") {
       setLoading(true);
       (async () => {
-        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 60 });
+        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
         const mapped = ((data as any[]) || []).map((r) => ({
           id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
           avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
           avatar_frame: r.avatar_frame, name_frame: r.name_frame,
           market_level: r.market_level,
         }));
-        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 30));
+        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
         setLoading(false);
       })();
       return;
@@ -1817,12 +1817,13 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .order(col, { ascending: false }).limit(60)
+      .order(col, { ascending: false }).limit(200)
       .then(({ data }) => {
-        const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 30);
+        const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
         setRows(filtered);
         setLoading(false);
       });
+
   }, [tab, staffIds]);
 
   const runSearch = async () => {
