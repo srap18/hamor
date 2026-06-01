@@ -19,7 +19,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews" | "ships";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "recharge";
 
 type Item = {
   id: string;
