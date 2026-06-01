@@ -143,6 +143,7 @@ function AdminCodesPage() {
     const { data, error } = await supabase
       .from("redemption_codes")
       .select("*")
+      .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (error) toast.error("فشل تحميل الأكواد");
     setCodes((data ?? []) as CodeRow[]);
