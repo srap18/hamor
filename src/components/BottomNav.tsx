@@ -14,17 +14,20 @@ const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends"
   { icon: "🐟", label: "السوق", to: "/fish-market" },
 ];
 
+const dmSeenKey = (uid: string) => `dm-last-seen:${uid}`;
+
 export function BottomNav({ active }: { active?: string }) {
   const nav = useNavigate();
   const { user } = useAuth();
   const [missionsOpen, setMissionsOpen] = useState(false);
   const [myShipsOpen, setMyShipsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [dmUnread, setDmUnread] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
+    const loadMissions = async () => {
       const [{ data: notifs }, { data: progress }, { data: quests }, { data: boxes }] = await Promise.all([
         supabase.from("notifications").select("id").or(`recipient_id.eq.${user.id},recipient_id.is.null`).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
         supabase.from("quest_progress").select("quest_id, progress, claimed").eq("user_id", user.id).eq("day_key", today),
@@ -39,13 +42,34 @@ export function BottomNav({ active }: { active?: string }) {
       });
       setUnread(count);
     };
-    load();
+    const loadDm = async () => {
+      if (active === "/chat") { setDmUnread(0); return; }
+      const lastSeen = localStorage.getItem(dmSeenKey(user.id)) || new Date(Date.now() - 30 * 86400000).toISOString();
+      const { count } = await supabase.from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("channel", "dm")
+        .eq("recipient_id", user.id)
+        .neq("sender_id", user.id)
+        .gt("created_at", lastSeen);
+      setDmUnread(count ?? 0);
+    };
+    loadMissions();
+    loadDm();
     const ch = supabase
       .channel("nav-notifs")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, load)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, loadMissions)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user]);
+  }, [user, active]);
+
+  // When user lands on /chat, mark DMs as seen
+  useEffect(() => {
+    if (!user || active !== "/chat") return;
+    localStorage.setItem(dmSeenKey(user.id), new Date().toISOString());
+    setDmUnread(0);
+  }, [user, active]);
+
 
   return (
     <>
