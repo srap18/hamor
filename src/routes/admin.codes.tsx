@@ -982,3 +982,70 @@ function NumField({ label, value, onChange, min = 0 }: { label: string; value: n
     </label>
   );
 }
+
+function ArchivedLookup({ onOpenRedemptions }: { onOpenRedemptions: (c: CodeRow) => void }) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<CodeRow[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const search = async () => {
+    const term = q.trim();
+    if (!term) return;
+    setSearching(true);
+    const { data, error } = await (supabase as any).rpc("admin_find_codes", { _q: term.toUpperCase() });
+    setSearching(false);
+    if (error) return toast.error(error.message);
+    setResults((data ?? []) as CodeRow[]);
+  };
+
+  return (
+    <div className="rounded-xl border border-amber-800/60 bg-amber-950/20 p-3 md:p-4 space-y-2">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between text-sm font-bold text-amber-200">
+        <span>🔍 البحث عن كود (يشمل المحذوفة/المؤرشفة)</span>
+        <span>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <>
+          <div className="flex gap-2">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && search()}
+              placeholder="ادخل الكود أو جزء منه..."
+              className="flex-1 bg-slate-900 border border-amber-700 rounded-md px-3 py-2 text-sm font-mono text-amber-100"
+            />
+            <button
+              onClick={search}
+              disabled={searching || !q.trim()}
+              className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm disabled:opacity-50"
+            >{searching ? "..." : "بحث"}</button>
+          </div>
+          {results.length > 0 && (
+            <div className="space-y-1.5 max-h-72 overflow-y-auto">
+              {results.map((c) => (
+                <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <code className="font-mono font-bold text-amber-200">{c.code}</code>
+                      {c.archived_at && <span className="text-[10px] px-2 py-0.5 rounded bg-stone-700 text-stone-200">📦 مؤرشف</span>}
+                      <span className="text-[11px] text-slate-400">استُخدم {c.uses_count}×</span>
+                    </div>
+                    {c.note && <div className="text-[11px] text-slate-500 truncate">{c.note}</div>}
+                  </div>
+                  <button
+                    onClick={() => onOpenRedemptions(c)}
+                    className="text-xs px-3 py-1.5 rounded-md bg-indigo-700 hover:bg-indigo-600 text-white font-bold"
+                  >👥 المستخدمون</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {q && !searching && results.length === 0 && (
+            <div className="text-xs text-slate-500 text-center p-2">لم يتم البحث بعد أو لا نتائج</div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
