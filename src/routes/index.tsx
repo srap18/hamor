@@ -152,7 +152,10 @@ function saveFleet(ships: Ship[]) {
 }
 
 // How many fish a ship hauls per successful catch — based on its storage stat.
-function catchAmountForLevel(level: number): number {
+// For VIP submarines (level 32) the per-instance storage equals its max_hp,
+// which the server scales by the player's VIP level at claim time.
+function catchAmountForLevel(level: number, maxHp?: number | null): number {
+  if (level === 32 && maxHp && maxHp > 0) return maxHp;
   return catchPerTrip(getShipByMarketLevel(level));
 }
 
@@ -782,7 +785,7 @@ function Index() {
       ? storedGuide
       : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
-    const fullAmount = catchAmountForLevel(s.level);
+    const fullAmount = catchAmountForLevel(s.level, s.maxHp);
     const baseFish = Math.floor(fullAmount * effRatio);
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
@@ -2213,7 +2216,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
   const pct = (ship.progress / ship.max) * 100;
-  const capacity = catchAmountForLevel(ship.level);
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;

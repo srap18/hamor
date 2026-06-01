@@ -161,8 +161,9 @@ function VipPage() {
 
         {/* VIP Exclusive Submarine showcase */}
         <div className="rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-slate-900 via-stone-950 to-slate-900 p-4 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950">حصري VIP 5+</span>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/40">3 غواصات</span>
             <h3 className="text-lg font-extrabold text-amber-200">🔱 الغواصة الملكية</h3>
           </div>
           <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-sky-900/40 via-blue-950/60 to-stone-950 p-3">
@@ -173,11 +174,22 @@ function VipPage() {
             />
           </div>
           <ul className="text-[12px] text-amber-100/90 mt-2 space-y-0.5 leading-relaxed">
-            <li>• 💪 سعة صيد <b>60,000</b> ودمّ <b>60,000</b></li>
-            <li>• 🔱 تصيد <b>تيتان الأعماق</b> النادر — حصري للغواصة فقط!</li>
-            <li>• ⏱️ مدة الصيد 45 دقيقة</li>
-            <li>• 🎁 منحة مجانية لمرة واحدة لكل عضو VIP 5+</li>
+            <li>• 🎁 كل عضو VIP 5+ يستلم <b>3 غواصات</b> مجاناً</li>
+            <li>• 🔱 تصيد <b>تيتان الأعماق</b> النادر — حصري لها فقط (سعر السمكة 20–30 ذهب)</li>
+            <li>• ⏱️ مدة الصيد 45 دقيقة، تصليح 24 ساعة، درع 150</li>
+            <li>• 💪 الدم والسعة يتدرّجان حسب مستوى VIP وقت الاستلام:</li>
           </ul>
+          <div className="mt-2 rounded-xl border border-amber-500/30 bg-stone-950/60 p-2.5 text-[11.5px] text-amber-100/95 grid grid-cols-2 gap-x-3 gap-y-1 tabular-nums">
+            <div>VIP 5  →  <b>60,000</b></div>
+            <div>VIP 6  →  <b>118,000</b></div>
+            <div>VIP 7  →  <b>176,000</b></div>
+            <div>VIP 8  →  <b>234,000</b></div>
+            <div>VIP 9  →  <b>292,000</b></div>
+            <div className="text-amber-300">VIP 10 → <b>350,000</b> 🌟</div>
+          </div>
+          <p className="text-[11px] text-stone-300/80 mt-2 leading-relaxed">
+            💡 كل استلام يثبّت الدم/السعة على مستوى VIP الحالي. ارفع VIP قبل الاستلام للحصول على غواصة أقوى. التحقق من المستوى والعدد يتم بالكامل في الخادم — لا يمكن التلاعب أو الاستلام أكثر من 3 مرات.
+          </p>
           <button
             disabled={effectiveLevel < 5}
             onClick={async () => {
@@ -185,17 +197,17 @@ function VipPage() {
               if (error) {
                 const m = error.message || "";
                 if (m.includes("need_vip_5")) toast.error("تحتاج VIP 5 أو أعلى");
-                else if (m.includes("already_claimed")) toast.info("استلمت الغواصة من قبل");
+                else if (m.includes("already_claimed")) toast.info("استلمت جميع الغواصات الثلاث");
                 else if (m.includes("vip_expired")) toast.error("انتهى اشتراك VIP");
                 else toast.error("تعذرت المطالبة");
                 return;
               }
-              toast.success("🔱 وصلت الغواصة الملكية إلى أسطولك!");
+              toast.success("🔱 وصلت غواصة ملكية جديدة إلى أسطولك!");
               void data;
             }}
             className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 text-stone-950 font-extrabold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {effectiveLevel < 5 ? "🔒 يحتاج VIP 5+" : "🔱 استلم الغواصة الملكية"}
+            {effectiveLevel < 5 ? "🔒 يحتاج VIP 5+" : "🔱 استلم غواصة (حتى 3)"}
           </button>
         </div>
 
