@@ -33,6 +33,7 @@ export function AdBombOverlay({
   onFlash?: (msg: string) => void;
 }) {
   const [bomb, setBomb] = useState<AdBomb | null>(null);
+  const [attackerName, setAttackerName] = useState<string>("");
   const [now, setNow] = useState(Date.now());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -40,6 +41,21 @@ export function AdBombOverlay({
   const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastBombId = useRef<string | null>(null);
+
+  // Look up attacker display name once per bomb
+  useEffect(() => {
+    if (!bomb?.attacker_id) { setAttackerName(""); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", bomb.attacker_id)
+        .maybeSingle();
+      if (!cancelled) setAttackerName((data as { display_name?: string } | null)?.display_name ?? "لاعب");
+    })();
+    return () => { cancelled = true; };
+  }, [bomb?.attacker_id]);
 
   useEffect(() => {
     if (!targetUserId) return;
