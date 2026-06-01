@@ -1456,15 +1456,26 @@ function Index() {
               const maxHp = ship.maxHp ?? 100;
               const curHp = ship.hp ?? 0;
               const newHp = Math.min(maxHp, curHp + amount);
-              // Any successful heal revives a destroyed ship, cancels active repair
-              // timer, and brings the ship home so it can fish/move again.
-              const patch: Record<string, unknown> = {
-                hp: newHp,
-                destroyed_at: null,
-                repair_ends_at: null,
-                at_sea: false,
-                fishing_started_at: null,
-              };
+              const wasDestroyed = !!ship.destroyedAt || !!ship.repairEndsAt;
+              const patch: Record<string, unknown> = { hp: newHp };
+              let newRepairEnds: string | null = ship.repairEndsAt ?? null;
+              if (newHp >= maxHp) {
+                // Fully repaired → revive, clear timers, send home
+                patch.destroyed_at = null;
+                patch.repair_ends_at = null;
+                patch.at_sea = false;
+                patch.fishing_started_at = null;
+                newRepairEnds = null;
+              } else if (wasDestroyed) {
+                // Partial repair: shorten timer proportional to missing HP
+                const shipDef = getShipByMarketLevel(ship.level);
+                const totalRepairMs = (shipDef.repairSeconds || 3600) * 1000;
+                const missingFrac = (maxHp - newHp) / maxHp;
+                const remainingMs = Math.max(1000, Math.round(totalRepairMs * missingFrac));
+                newRepairEnds = new Date(Date.now() + remainingMs).toISOString();
+                patch.repair_ends_at = newRepairEnds;
+                patch.destroyed_at = ship.destroyedAt ?? new Date().toISOString();
+              }
               const { error } = await (supabase as any)
                 .from("ships_owned")
                 .update(patch)
@@ -1475,7 +1486,9 @@ function Index() {
                 return 0;
               }
               setShips((arr) => arr.map((x) => x.id === ship.id
-                ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                ? (newHp >= maxHp
+                    ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                    : { ...x, hp: newHp, repairEndsAt: newRepairEnds })
                 : x));
               return newHp - curHp;
             };
@@ -1491,8 +1504,18 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                for (const sh of needRepair) await repairBy(sh, Infinity);
                 setToast(`🏆 تم تعبئة ${needRepair.length} سفن فلل فوراً`);
+                sound.play("success");
+                setModal(null);
+                // Fire repairs + consume in background
+                (async () => {
+                  for (const sh of needRepair) await repairBy(sh, Infinity);
+                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
+                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                  reloadCrews();
+                  syncFleetFromDb();
+                  setCrewTick((t) => t + 1);
+                })();
               } else {
                 const amount = FIXER_HEAL[itemId] ?? 0;
                 if (amount <= 0) { sound.play("error"); return; }
@@ -1502,21 +1525,20 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                const healed = await repairBy(s, amount);
-                setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
-              }
-
-              if (row.quantity <= 1) {
-                await deleteInventoryRows([row.id]);
-              } else {
-                await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                setToast(`⚒️ جاري إصلاح +${amount.toLocaleString()} دم`);
+                sound.play("success");
+                setModal(null);
+                (async () => {
+                  const healed = await repairBy(s, amount);
+                  setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
+                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
+                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                  reloadCrews();
+                  syncFleetFromDb();
+                  setCrewTick((t) => t + 1);
+                })();
               }
             } catch {}
-            sound.play("success");
-            await reloadCrews();
-            await syncFleetFromDb();
-            setCrewTick((t) => t + 1);
-            setModal(null);
             return;
           }
           // Prevent duplicates: max 1 crew per type per ship
@@ -1602,15 +1624,17 @@ function Index() {
                   const canAssign = owned && (isFixer ? true : (assignedRows.length < slots && !alreadyOnShip));
                   const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
 
-                  const buyCrew = async () => {
-                    if (crewBusyRef.current) return;
+                  const buyCrew = () => {
                     if (!canAfford) {
                       sound.play("error");
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
-                    crewBusyRef.current = true;
-                    try {
+                    // Instant feedback
+                    sound.play("coin");
+                    setToast(`✓ تم شراء ${c.name}`);
+                    // Fire-and-forget purchase
+                    (async () => {
                       const { error } = c.currency === "gems"
                         ? await buyWithGems(cid, "crew", c.price, undefined, 1)
                         : await buyWithCoins(cid, "crew", c.price, undefined, 1);
@@ -1619,15 +1643,10 @@ function Index() {
                         setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
                         return;
                       }
-                      sound.play("coin");
-                      sound.play("success");
-                      setToast(`✓ تم شراء ${c.name}`);
                       refreshProfile();
-                      await reloadCrews();
+                      reloadCrews();
                       setCrewTick((t) => t + 1);
-                    } finally {
-                      crewBusyRef.current = false;
-                    }
+                    })();
                   };
 
                   return (
