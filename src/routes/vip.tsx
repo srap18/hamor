@@ -5,6 +5,7 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
+import submarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 
 export const Route = createFileRoute("/vip")({
   component: VipPage,
