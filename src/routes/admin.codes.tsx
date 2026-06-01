@@ -244,6 +244,25 @@ function AdminCodesPage() {
     loadCodes();
   };
 
+  const cleanupDeadCodes = async () => {
+    const now = new Date();
+    const dead = codes.filter((c) => {
+      const expired = c.expires_at && new Date(c.expires_at) < now;
+      const exhausted = c.max_uses > 0 && c.uses_count >= c.max_uses;
+      return expired || exhausted;
+    });
+    if (dead.length === 0) {
+      toast.info("لا يوجد أكواد منتهية أو مستنفدة للحذف");
+      return;
+    }
+    if (!confirm(`حذف ${dead.length} كود منتهي/مستنفد؟ لا يمكن التراجع.`)) return;
+    const ids = dead.map((c) => c.id);
+    const { error } = await supabase.from("redemption_codes").delete().in("id", ids);
+    if (error) return toast.error(error.message);
+    toast.success(`✅ تم حذف ${dead.length} كود`);
+    loadCodes();
+  };
+
   const copyCode = async (c: string) => {
     try {
       await navigator.clipboard.writeText(c);
