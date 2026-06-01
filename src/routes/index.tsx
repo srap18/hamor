@@ -2216,7 +2216,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
   const pct = (ship.progress / ship.max) * 100;
-  const capacity = catchAmountForLevel(ship.level);
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
