@@ -19,7 +19,7 @@ function VipPage() {
   const [claiming, setClaiming] = useState(false);
   const [showRedeem, setShowRedeem] = useState(false);
 
-  const vipLevel = profile?.vip_level || 0;
+  const vipLevel = (profile as any)?.vip_level || 0;
   const isExpired = !!expiresAt && new Date(expiresAt) < new Date();
   const effectiveLevel = isExpired ? 0 : vipLevel;
   const currentTier = getVipTier(effectiveLevel);
