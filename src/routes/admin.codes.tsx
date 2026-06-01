@@ -958,7 +958,7 @@ function RedemptionsModal({ code, onClose, onChanged }: { code: CodeRow; onClose
           )}
         </div>
         <div className="px-4 py-2 border-t border-slate-800 text-[11px] text-slate-500">
-          إلغاء الاستخدام يمسح السجل ويرجع العدّاد، فيقدر اللاعب يستخدم الكود من جديد.
+          الإلغاء يسحب كل جوائز الكود من اللاعب (ذهب/جواهر/خبرة/عناصر/سفن) ويُعيد له حق الاستخدام.
         </div>
       </div>
     </div>
