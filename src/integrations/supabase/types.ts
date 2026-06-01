@@ -2163,9 +2163,22 @@ export type Database = {
         Args: { _player: string; _type_id: string }
         Returns: string
       }
+      admin_list_redemptions: {
+        Args: { _code_id: string }
+        Returns: {
+          avatar_emoji: string
+          display_name: string
+          redeemed_at: string
+          user_id: string
+        }[]
+      }
       admin_mass_gift: {
         Args: { _coins: number; _gems: number; _xp: number }
         Returns: number
+      }
+      admin_revoke_redemption: {
+        Args: { _code_id: string; _user_id: string }
+        Returns: Json
       }
       admin_set_player_currency: {
         Args: {
