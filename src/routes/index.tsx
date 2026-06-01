@@ -1456,18 +1456,19 @@ function Index() {
               const maxHp = ship.maxHp ?? 100;
               const curHp = ship.hp ?? 0;
               const newHp = Math.min(maxHp, curHp + amount);
-              const fullyRepaired = newHp >= maxHp;
-              const patch: Record<string, unknown> = { hp: newHp };
-              if (fullyRepaired) {
-                patch.destroyed_at = null;
-                patch.repair_ends_at = null;
-              }
+              // Any successful heal revives a destroyed ship and cancels active repair timer.
+              const patch: Record<string, unknown> = {
+                hp: newHp,
+                destroyed_at: null,
+                repair_ends_at: null,
+              };
               await (supabase as any).from("ships_owned").update(patch).eq("id", ship.dbId);
               setShips((arr) => arr.map((x) => x.id === ship.id
-                ? { ...x, hp: newHp, destroyedAt: fullyRepaired ? null : x.destroyedAt, repairEndsAt: fullyRepaired ? null : x.repairEndsAt }
+                ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null }
                 : x));
               return newHp - curHp;
             };
+
 
             try {
               if (itemId === "fixer_4") {
