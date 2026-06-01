@@ -1153,6 +1153,7 @@ export type Database = {
           vip_expires_at: string | null
           vip_level: number
           vip_points: number
+          vip_subs_claimed: number
           xp: number
         }
         Insert: {
@@ -1178,6 +1179,7 @@ export type Database = {
           vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
+          vip_subs_claimed?: number
           xp?: number
         }
         Update: {
@@ -1203,6 +1205,7 @@ export type Database = {
           vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
+          vip_subs_claimed?: number
           xp?: number
         }
         Relationships: [
@@ -3164,6 +3167,7 @@ export type Database = {
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
+      vip_submarine_hp: { Args: { _level: number }; Returns: number }
       warn_overfull_tribes: { Args: never; Returns: number }
     }
     Enums: {
