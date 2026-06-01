@@ -52,6 +52,11 @@ function FriendsPage() {
   };
   const accept = async (fid: string) => { await supabase.from("friends").update({ status: "accepted" }).eq("id", fid); reload(); };
   const reject = async (fid: string) => { await supabase.from("friends").delete().eq("id", fid); reload(); };
+  const removeFriend = async (fid: string) => {
+    if (!confirm("هل تريد إزالة هذا الصديق؟")) return;
+    await supabase.from("friends").delete().eq("id", fid);
+    reload();
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl" style={{ background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
@@ -99,7 +104,12 @@ function FriendsPage() {
 
         <section>
           <div className="text-sm font-bold text-amber-300 mb-1">أصدقائي ({friends.length})</div>
-          <div className="space-y-1">{friends.map(f => <Row key={f.id} p={f.profile} action={<Link to="/chat" className="text-xs bg-sky-600 px-2 py-1 rounded">💬</Link>} />)}</div>
+          <div className="space-y-1">{friends.map(f => <Row key={f.id} p={f.profile} action={
+            <div className="flex gap-1">
+              <Link to="/chat" className="text-xs bg-sky-600 px-2 py-1 rounded">💬</Link>
+              <button onClick={() => removeFriend(f.id)} className="text-xs bg-rose-600 px-2 py-1 rounded">إزالة</button>
+            </div>
+          } />)}</div>
         </section>
       </div>
       <BottomNav active="/friends" />
