@@ -2064,14 +2064,20 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
           <div className="text-center text-accent/70 py-10">جاري التحميل…</div>
         ) : (
           <>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="text-3xl">{info.banner || info.emblem}</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-lg font-extrabold text-accent truncate">{info.name}</div>
-                <div className="text-xs text-amber-300">⭐ المستوى {info.level} • ⚡ {totalPower.toLocaleString()}</div>
-              </div>
-              <button onClick={onClose} className="px-3 py-1 rounded bg-secondary/70 text-accent">✕</button>
-            </div>
+            {(() => {
+              const tier = getTribeBanner(info.level);
+              return (
+                <div className="relative w-full h-28 mb-2 rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 border border-accent/40">
+                  <img src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.4)]" />
+                  <button onClick={onClose} className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded bg-black/70 text-accent text-sm">✕</button>
+                  <div className="absolute inset-x-0 bottom-1 z-10 text-center">
+                    <div className="text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">{info.banner || info.emblem}</div>
+                    <div className="text-base font-extrabold text-accent drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] truncate px-10">{info.name}</div>
+                    <div className="text-[10px] text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">⭐ المستوى {info.level} · {tier.name} · ⚡ {totalPower.toLocaleString()}</div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="rounded-xl bg-secondary/50 border border-accent/30 p-2 mb-2">
               <div className="text-xs text-accent/90 whitespace-pre-wrap break-words">
