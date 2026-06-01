@@ -704,13 +704,9 @@ function Index() {
     const id = setInterval(async () => {
       const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= Date.now() && s.dbId);
       for (const s of expired) {
-        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
-          const row = Array.isArray(data) && data[0] ? data[0] : null;
-          const n = row?.stolen_count ?? 0;
-          const v = row?.total_value ?? 0;
-          if (n > 0) { sound.play("catch"); showToast(`🏴‍☠️ سرقت ${n} سمكة (قيمتها ${v})`); }
-          else { showToast("🪶 سفينتك رجعت فاضية"); }
+          presentStealResult(data, false);
           syncFleetFromDb();
         }
       }
