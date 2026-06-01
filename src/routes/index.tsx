@@ -1504,8 +1504,18 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                for (const sh of needRepair) await repairBy(sh, Infinity);
                 setToast(`🏆 تم تعبئة ${needRepair.length} سفن فلل فوراً`);
+                sound.play("success");
+                setModal(null);
+                // Fire repairs + consume in background
+                (async () => {
+                  for (const sh of needRepair) await repairBy(sh, Infinity);
+                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
+                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                  reloadCrews();
+                  syncFleetFromDb();
+                  setCrewTick((t) => t + 1);
+                })();
               } else {
                 const amount = FIXER_HEAL[itemId] ?? 0;
                 if (amount <= 0) { sound.play("error"); return; }
@@ -1515,21 +1525,20 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                const healed = await repairBy(s, amount);
-                setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
-              }
-
-              if (row.quantity <= 1) {
-                await deleteInventoryRows([row.id]);
-              } else {
-                await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                setToast(`⚒️ جاري إصلاح +${amount.toLocaleString()} دم`);
+                sound.play("success");
+                setModal(null);
+                (async () => {
+                  const healed = await repairBy(s, amount);
+                  setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
+                  if (row.quantity <= 1) await deleteInventoryRows([row.id]);
+                  else await (supabase as any).rpc("consume_inventory_item", { _item_id: itemId, _item_type: "crew", _count: 1 });
+                  reloadCrews();
+                  syncFleetFromDb();
+                  setCrewTick((t) => t + 1);
+                })();
               }
             } catch {}
-            sound.play("success");
-            await reloadCrews();
-            await syncFleetFromDb();
-            setCrewTick((t) => t + 1);
-            setModal(null);
             return;
           }
           // Prevent duplicates: max 1 crew per type per ship
