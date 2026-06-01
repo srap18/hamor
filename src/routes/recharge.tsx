@@ -271,6 +271,14 @@ function RechargePage() {
                         👑 VIP {r.vipDays}ي
                       </span>
                     ) : null}
+                    {r.items?.map((it) => (
+                      <span
+                        key={`${it.itemType}:${it.itemId}`}
+                        className="text-[11px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
+                      >
+                        📺 ×{it.qty} قنبلة إعلانية
+                      </span>
+                    ))}
                   </div>
 
                   {p.bonus && (
