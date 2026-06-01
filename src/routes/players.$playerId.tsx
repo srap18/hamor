@@ -985,6 +985,9 @@ function PlayerPage() {
                       setInv((arr) => arr
                         .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
                         .filter((x) => x.quantity > 0));
+                      // Scorch the target's background for 7 days (visible to everyone)
+                      burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
+                      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
                       sound.play("success");
                       flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                       closeMenu();
