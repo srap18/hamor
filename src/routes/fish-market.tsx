@@ -251,60 +251,6 @@ function FishMarket() {
   const accelCost = Math.max(1, Math.ceil(secondsLeft / 60));
 
 
-  // Load owned fish quantities from DB (only fish the player actually has)
-  const loadFish = async () => {
-    if (!user) { setQtyMap({}); return; }
-    const { data } = await supabase
-      .from("fish_caught")
-      .select("fish_id, quantity")
-      .eq("user_id", user.id);
-    const map: Record<string, number> = {};
-    for (const row of data ?? []) {
-      map[row.fish_id] = (map[row.fish_id] ?? 0) + (row.quantity ?? 0);
-    }
-    setQtyMap(map);
-  };
-  useEffect(() => {
-    loadFish();
-    if (!user) return;
-    // Refresh whenever the tab regains focus / becomes visible
-    const onFocus = () => loadFish();
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-    // Realtime: any change to this user's fish_caught rows → reload
-    const ch = supabase
-      .channel(`fish_caught_${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "fish_caught", filter: `user_id=eq.${user.id}` },
-        () => loadFish()
-      )
-      .subscribe();
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-      supabase.removeChannel(ch);
-    };
-  }, [user?.id]);
-
-  // Only show fish the player owns (qty > 0). basePrice is overridden by the
-  // live hourly price from the DB when available.
-  const fish: Fish[] = Object.entries(qtyMap)
-    .map(([id, qty]): Fish | null => {
-      const meta = fishMeta(id);
-      if (!meta) return null;
-      const live = priceMap[id]?.current;
-      const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
-      return { ...meta, basePrice, qty };
-    })
-    .filter((f): f is Fish => !!f && f.qty > 0)
-    .sort((a, b) => b.basePrice - a.basePrice);
-
-  const capUsed = fish.reduce((s, f) => s + f.qty, 0);
-  const capMax = fishMarketCapacity(lvl);
-  
-
-  const sel = fish.find((f) => f.id === selected) || null;
 
   // Load owned fish quantities + ages
   const loadFish = async () => {
