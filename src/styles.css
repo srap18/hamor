@@ -570,3 +570,24 @@ html, body {
 .frame-anim-wave    { animation: frame-wave 3s ease-in-out infinite; transform-origin: 50% 60%; }
 .frame-anim-leaf    { animation: frame-leaf 3.4s ease-in-out infinite; transform-origin: 50% 80%; }
 .frame-anim-pulse   { animation: frame-pulse-glow 1.8s ease-in-out infinite; }
+
+/* ─────── Native-app feel: smooth route transitions ─────── */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  ::view-transition-old(root) {
+    animation-name: lv-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation-name: lv-fade-in;
+  }
+  @keyframes lv-fade-out {
+    to { opacity: 0; transform: translateY(-2px); }
+  }
+  @keyframes lv-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+  }
+}
