@@ -515,8 +515,6 @@ function PlayerPage() {
     if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
     setBusy(true); sound.play("click");
     const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
-    broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
-    await playProjectile(selectedShip.id, fxEmoji, true);
     const { error } = await (supabase as any).rpc("send_support", {
       _recipient_id: playerId,
       _ship_id: selectedShip.id,
@@ -524,16 +522,18 @@ function PlayerPage() {
       _crew_id: kind === "crew" ? itemId : null,
     });
     if (!error) {
+      broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
+      await playProjectile(selectedShip.id, fxEmoji, true);
       // Refresh local inventory so the consumed crew updates immediately
       if (kind === "crew") {
         setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
       }
       // Refresh crew assignments so the new crew shows on the ship immediately
       if (kind === "crew") loadPlayerCrews();
-      // Refresh visited ships so the repaired ship shows full HP immediately
+      // Refresh visited ships from DB so repair shows the real HP, not fake full HP.
       const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
       if (kind === "repair" || isFixerCrew) {
-        setShips((arr) => arr.map((x) => x.id === selectedShip.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null } : x));
+        await reloadShipsRef.current();
       }
       sound.play("success");
       const isTrader = kind === "crew" && itemId === "trader";
