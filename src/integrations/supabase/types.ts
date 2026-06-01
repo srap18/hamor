@@ -3025,16 +3025,28 @@ export type Database = {
       process_tribe_overflow_kicks: { Args: never; Returns: number }
       purge_old_messages: { Args: never; Returns: undefined }
       recompute_fish_prices: { Args: never; Returns: undefined }
-      record_attack: {
-        Args: {
-          _attacker_won: boolean
-          _damage: number
-          _damage_dealt: number
-          _defender_id: string
-          _target_ship_id: string
-        }
-        Returns: string
-      }
+      record_attack:
+        | {
+            Args: {
+              _attacker_won: boolean
+              _damage: number
+              _damage_dealt: number
+              _defender_id: string
+              _target_ship_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _attacker_won: boolean
+              _damage: number
+              _damage_dealt: number
+              _defender_id: string
+              _target_ship_id: string
+              _xp_gain?: number
+            }
+            Returns: string
+          }
       redeem_code: { Args: { p_code: string }; Returns: Json }
       register_device: { Args: { _device_id: string }; Returns: Json }
       remove_ad_bombs: { Args: never; Returns: number }
