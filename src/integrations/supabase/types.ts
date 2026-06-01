@@ -1829,6 +1829,7 @@ export type Database = {
           join_mode: string
           level: number
           name: string
+          overflow_warning_until: string | null
           owner_id: string
           total_donations: number
           treasure_coins: number
@@ -1842,6 +1843,7 @@ export type Database = {
           join_mode?: string
           level?: number
           name: string
+          overflow_warning_until?: string | null
           owner_id: string
           total_donations?: number
           treasure_coins?: number
@@ -1855,6 +1857,7 @@ export type Database = {
           join_mode?: string
           level?: number
           name?: string
+          overflow_warning_until?: string | null
           owner_id?: string
           total_donations?: number
           treasure_coins?: number
@@ -2852,6 +2855,7 @@ export type Database = {
         Returns: undefined
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      process_tribe_overflow_kicks: { Args: never; Returns: number }
       purge_old_messages: { Args: never; Returns: undefined }
       recompute_fish_prices: { Args: never; Returns: undefined }
       record_attack: {
@@ -2994,6 +2998,7 @@ export type Database = {
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
+      warn_overfull_tribes: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
