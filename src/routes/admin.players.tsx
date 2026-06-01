@@ -333,6 +333,21 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     toast.success(`تم إرسال صندوق "${types[idx].name}"`);
   };
 
+  const grantVip = async () => {
+    const levelStr = prompt("مستوى VIP (1-10):", "1");
+    if (!levelStr) return;
+    const level = Math.max(1, Math.min(10, Number(levelStr) | 0));
+    const daysStr = prompt("المدة بالأيام (0 = دائم):", "30");
+    if (daysStr === null) return;
+    const days = Math.max(0, Number(daysStr) | 0);
+    const { error } = await supabase.rpc("grant_vip" as never, {
+      _user_id: player.id, _level: level, _days: days,
+    } as never);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("grant_vip", player.id, { name: player.display_name, level, days });
+    toast.success(`👑 تم منح VIP ${level} لـ ${player.display_name} ${days === 0 ? "دائم" : `(${days} يوم)`}`);
+  };
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
