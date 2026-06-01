@@ -64,7 +64,7 @@ function input_hasField<T extends object>(d: T, k: string) {
 
 export const adminDeleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; banEmail?: boolean; reason?: string }) => {
+  .inputValidator((input: { userId: string; banEmail?: boolean; banDevices?: boolean; reason?: string }) => {
     if (!input?.userId) throw new Error("userId required");
     return input;
   })
@@ -83,6 +83,49 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
       );
     }
 
+    if (data.banDevices) {
+      const { data: devices } = await supabaseAdmin
+        .from("device_accounts")
+        .select("device_id")
+        .eq("user_id", data.userId);
+      if (devices && devices.length > 0) {
+        await supabaseAdmin.from("banned_devices").upsert(
+          devices.map((d) => ({
+            device_id: d.device_id,
+            user_id: data.userId,
+            reason: data.reason || "حذف وحظر نهائي",
+            banned_by: context.userId,
+          })),
+          { onConflict: "device_id" },
+        );
+      }
+    }
+
+    await supabaseAdmin.from("bans").insert({
+      user_id: data.userId,
+      reason: data.reason || "حذف الحساب نهائياً",
+      banned_by: context.userId,
+      expires_at: null,
+      active: true,
+    });
+
+    await Promise.all([
+      supabaseAdmin.from("inventory").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("fish_caught").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("fish_stock").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("ships_owned").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("lootbox_owned").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("daily_login_streaks").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("quest_progress").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("transactions").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("device_accounts").delete().eq("user_id", data.userId),
+      supabaseAdmin.from("friends").delete().or(`requester_id.eq.${data.userId},addressee_id.eq.${data.userId}`),
+      supabaseAdmin.from("messages").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`),
+      supabaseAdmin.from("notifications").delete().or(`recipient_id.eq.${data.userId},created_by.eq.${data.userId}`),
+      supabaseAdmin.from("support_gifts").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`),
+      supabaseAdmin.from("profiles").delete().eq("id", data.userId),
+    ]);
+
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
 
@@ -90,10 +133,31 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
       admin_id: context.userId,
       action: "admin_delete_user",
       target_user_id: data.userId,
-      details: { email, banEmail: !!data.banEmail, reason: data.reason ?? "" } as never,
+      details: { email, banEmail: !!data.banEmail, banDevices: !!data.banDevices, reason: data.reason ?? "" } as never,
     });
 
     return { ok: true, email };
+  });
+
+export const adminPermanentBan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; reason?: string }) => {
+    if (!input?.userId) throw new Error("userId required");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
+
+    await supabaseAdmin.rpc("admin_permanent_ban", {
+      _uid: data.userId,
+      _reason: data.reason || "حظر نهائي",
+    } as never);
+
+    await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: "87600h" } as never);
+    await supabaseAdmin.from("profiles").update({ active_session_id: `banned-${Date.now()}` }).eq("id", data.userId);
+
+    return { ok: true };
   });
 
 export const adminBlockLogin = createServerFn({ method: "POST" })
