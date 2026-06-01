@@ -1,70 +1,47 @@
-# نظام منع الغش الشامل
+## الهدف
+التنقل بين الصفحات (البحر، المتجر، الأصدقاء، الشات، السوق…) يصير لحظي بدون شاشة تحميل، شبيه بتطبيقات الموبايل الأصلية.
 
-هدف الخطة: إغلاق ثغرات تعديل القيم من المتصفح، التدبيل بين الحسابات، وتكرار الطلبات (clutches/exploits)، مع كشف تلقائي وحظر للمتلاعبين.
+## الوضع الحالي
+- `defaultPreload: "render"` و`staleTime: 5min` مفعّلين (router.tsx). يعني الكود محمّل مسبقًا.
+- البطء الباقي مصدره: كل صفحة تعمل **mount جديد** عند الدخول → كل `useEffect` يجلب بيانات من Supabase من جديد + الفيديو/الخلفية تتعاد بناؤها.
 
-## 1) طبقة التحقق من السيرفر (الأهم)
-أي عملية تغيّر عملة/جواهر/سمك/سفن لازم تمر عبر RPC مع `SECURITY DEFINER`:
-- منع أي `UPDATE` مباشر من العميل على: `profiles.coins/gems/xp/level`, `fish_stock`, `inventory`, `ships_owned`.
-- سحب صلاحيات `UPDATE` على الأعمدة الحساسة من دور `authenticated` وترك التعديل فقط للـ RPCs.
-- كل RPC يتحقق: المستخدم مالك السجل، القيم ضمن الحد المنطقي، الحالة (سفينة ترجع/تصيد/مدمرة) صحيحة.
+## الخطة
 
-## 2) Rate limiting على السيرفر
-جدول `rate_limits(user_id, action, window_start, count)` + دالة `check_rate(action, max, window_seconds)`:
-- صيد: حد أقصى لكل سفينة حسب `fishing_seconds`.
-- بيع سمك/شراء/تفعيل أكواد/إرسال دعم/هجوم/رسائل: حد منطقي بالدقيقة والساعة.
-- تجاوز الحد → رفض الطلب وتسجيل محاولة.
+### 1) تحميل مسبق للتبويبات الرئيسية عند فتح التطبيق
+في `__root.tsx` بعد تسجيل الدخول، نستدعي `router.preloadRoute` لكل من: `/`, `/shop`, `/friends`, `/chat`, `/fish-market` مرة واحدة في الخلفية. النتيجة: أول كبسة على أي تبويب تكون فورية.
 
-## 3) كشف تلقائي للشذوذ (`cheat_flags`)
-جدول جديد + triggers تسجّل تلقائياً:
-- قفزة عملات/جواهر غير مبررة (بدون transaction مطابق).
-- صيد سمك أعلى من الحد النظري في فترة زمنية.
-- تكرار نفس الـ `device_id` بحسابات مختلفة (تدبيل).
-- إرسال دعم/هدايا متبادل بين نفس الحسابات بكثرة (farming).
-- استلام عملات من حساب دائماً يخسر معه في هجمات (gold trading).
+### 2) إبقاء الصفحات حيّة في الذاكرة (Keep-Alive)
+السبب الأول للبطء: عند التبديل بين تبويبين، الصفحة القديمة تُفكَّك والجديدة تُبنى من الصفر (إعادة fetch لكل البيانات، إعادة تركيب الفيديو، إعادة الاشتراك بـ realtime).
+الحل: نحوّل بيانات التبويبات الرئيسية لتستخدم **TanStack Query عبر loader + `useSuspenseQuery`** بدل `useState + useEffect`. هكذا:
+- البيانات تبقى في كاش Query لمدة 5 دقائق.
+- الرجوع للتبويب يعرض المحتوى **فورًا** من الكاش، ثم يحدّث في الخلفية.
+- لا توجد ومضة "Loading…".
 
-## 4) منع التدبيل بين الحسابات (موجود جزئياً + تقوية)
-- `device_accounts` موجود → نضيف فحص IP يومي وتسجيل في `account_links(user_a, user_b, reason)`.
-- منع تحويل قيمة عبر هجوم بين حسابات على نفس الجهاز/IP.
-- منع إرسال دعم لحساب على نفس الجهاز.
+نطبّقها على: `index.tsx` (البحر)، `shop.tsx`، `friends.tsx`، `fish-market.tsx`، و قائمة رسائل الشات.
 
-## 5) سجل وإجراء (`cheat_actions`)
-- 3 flags = تنبيه أدمن (إشعار).
-- 5 flags = mute تلقائي + تجميد المعاملات 24س.
-- 10 flags = bann تلقائي.
-- كل الإجراءات قابلة للمراجعة من الأدمن (إلغاء/تأكيد).
+### 3) View Transitions API للانتقال السلس
+نضيف `document.startViewTransition` حول التنقل (داخل `BottomNav.onClick`). هذا يعطي إحساس "slide/fade" أصلي بين التبويبات بدلًا من القطع المفاجئ، مع `<200ms` انتقال.
 
-## 6) لوحة أدمن
-صفحة `/admin/anti-cheat`:
-- قائمة الـ flags مع سبب وتاريخ ولاعب.
-- زر "تأكيد غش" → حظر، "خطأ إيجابي" → مسح الـ flag.
-- إحصائيات: أكثر الإجراءات المشبوهة، أكثر الأجهزة ربطاً بحسابات.
+### 4) إخفاء وميض التحميل
+- `defaultPendingMs: 2000` + `defaultPendingMinMs: 0` على الـ router → لا تظهر شاشة تحميل إلا لو الانتظار فعلًا طويل.
+- إضافة `viewTransition: true` على `<Link>` التبويبات.
 
-## التفاصيل التقنية
+### 5) نقل الخلفية المتحركة لمستوى الجذر (مرة واحدة)
+حاليًا كل صفحة فيها `SeamlessVideo` تبني الفيديو من جديد. ننقل الفيديو إلى `__root.tsx` خلف `<Outlet />` كطبقة ثابتة، فلا يُعاد تحميله أبدًا عند التنقل. الصفحات تصبح شفافة فوقه.
 
-**جداول جديدة:**
-- `rate_limits(user_id, action, window_start, count)` — sliding window.
-- `cheat_flags(user_id, kind, severity, details jsonb, resolved bool)`.
-- `account_links(user_a, user_b, link_type[device|ip|trade], created_at)`.
-- `user_ips(user_id, ip, last_seen)` لرصد التطابق.
+### 6) تقليل عمل الاشتراكات (realtime)
+حاليًا `BottomNav` يفتح قناة `nav-notifs` ويُعيد تنفيذ `load()` في كل صفحة. نخليه:
+- يفتح القناة مرة واحدة على مستوى الجذر.
+- يستخدم Query للعدّ، فيشاركه كل المكوّنات بدون تكرار طلبات.
 
-**دوال SQL:**
-- `check_rate(_action text, _max int, _seconds int) returns boolean`.
-- `flag_cheat(_user uuid, _kind text, _severity int, _details jsonb)`.
-- `apply_auto_action(_user uuid)` — يستدعى بعد كل flag.
-- Triggers على `profiles` لرصد قفزات coins/gems بدون transaction مطابق.
+## ملفات سيتم تعديلها
+- `src/router.tsx` — pendingMs، viewTransitions
+- `src/routes/__root.tsx` — preload التبويبات + نقل الفيديو + قناة الإشعارات المركزية
+- `src/components/BottomNav.tsx` — `startViewTransition` + إزالة الجلب المكرر
+- `src/routes/index.tsx`, `shop.tsx`, `friends.tsx`, `fish-market.tsx` — تحويل `useEffect+fetch` إلى `queryOptions + useSuspenseQuery`
+- `src/styles.css` — قواعد `::view-transition-*` للانتقال السلس
 
-**تعديل RPCs الموجودة:** إضافة `PERFORM check_rate(...)` في بداية كل من: `catch_fish`, `sell_fish`, `attack_player`, `send_support`, `redeem_code`, إرسال الرسائل.
-
-**سحب الصلاحيات:**
-```
-REVOKE UPDATE (coins, gems, xp, level, rubies) ON public.profiles FROM authenticated;
-```
-يبقى الـ UPDATE للحقول التجميلية فقط (avatar_emoji, display_name, selected_bg_id).
-
-**العميل:** يضيف header `x-client-version` ويتم رفض الإصدارات القديمة (لقفل الـ exploits المعروفة).
-
-## ما لن تُغطّيه هذه الخطة
-- Reverse engineering كامل للعميل (مستحيل في ويب).
-- كشف bots بشري vs آلي (نحتاج captcha منفصل لاحقاً).
-
-هل أبدأ التنفيذ؟ أو تبي أضيف/أحذف شي؟
+## النتيجة المتوقعة
+- أول كبسة على أي تبويب بعد فتح التطبيق: **فوري** (محمّل مسبقًا).
+- التبديل بين التبويبات بعد ذلك: **0ms** (كاش + keep-alive + view transition).
+- الخلفية المتحركة لا تتقطع أبدًا عند الانتقال.

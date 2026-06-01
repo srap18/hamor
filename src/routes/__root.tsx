@@ -164,10 +164,29 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     loadEconomyOverrides();
   }, []);
+
+  // Warm up the main tabs once the app is interactive — first tap on any
+  // bottom-nav tab is then instant (code + data already in memory).
+  useEffect(() => {
+    const idle = (cb: () => void) =>
+      (window as any).requestIdleCallback
+        ? (window as any).requestIdleCallback(cb, { timeout: 1500 })
+        : setTimeout(cb, 400);
+    const handle = idle(() => {
+      const tabs = ["/shop", "/friends", "/chat", "/fish-market", "/"] as const;
+      for (const to of tabs) {
+        router.preloadRoute({ to }).catch(() => {});
+      }
+    });
+    return () => {
+      try { (window as any).cancelIdleCallback?.(handle); } catch {}
+    };
+  }, [router]);
 
   // Bootstrap background sea music on the first user gesture, on every page
   useEffect(() => {

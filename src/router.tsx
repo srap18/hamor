@@ -7,7 +7,6 @@ export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Keep data fresh in the cache so revisits are instant
         staleTime: 5 * 60_000,
         gcTime: 30 * 60_000,
         refetchOnWindowFocus: false,
@@ -23,10 +22,13 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 5 * 60_000,
     defaultPreloadGcTime: 30 * 60_000,
-    // On weak networks: only preload on hover/tap so we don't waste data.
-    // On normal connections: preload aggressively so navigation feels instant.
     defaultPreload: isLowBandwidth ? "intent" : "render",
     defaultPreloadDelay: isLowBandwidth ? 50 : 0,
+    // Native-app feel: never flash a loading screen unless the wait is really long,
+    // and use the View Transitions API so swapping pages animates smoothly.
+    defaultPendingMs: 2000,
+    defaultPendingMinMs: 0,
+    defaultViewTransition: true,
   });
 
   return router;
