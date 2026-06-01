@@ -4,7 +4,7 @@ import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } 
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
-import { CREWS } from "@/lib/crews";
+import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import { incrementFishCaught, sellShip, deleteInventoryRows, splitInventoryAssign, updateInventoryMeta } from "@/lib/economy";
 import { useAuth, useProfile } from "@/hooks/use-auth";
