@@ -442,6 +442,27 @@ export type Database = {
         }
         Relationships: []
       }
+      device_accounts: {
+        Row: {
+          created_at: string
+          device_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       economy_settings: {
         Row: {
           key: string
@@ -1023,6 +1044,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_session_id: string | null
           avatar_emoji: string
           avatar_frame: string | null
           avatar_url: string | null
@@ -1046,6 +1068,7 @@ export type Database = {
           xp: number
         }
         Insert: {
+          active_session_id?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -1069,6 +1092,7 @@ export type Database = {
           xp?: number
         }
         Update: {
+          active_session_id?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -2396,6 +2420,7 @@ export type Database = {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
       }
+      claim_session: { Args: { _token: string }; Returns: undefined }
       claim_steal_mission: {
         Args: { _attacker_ship_id: string }
         Returns: {
@@ -2739,6 +2764,7 @@ export type Database = {
         Returns: string
       }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      register_device: { Args: { _device_id: string }; Returns: Json }
       remove_ad_bombs: { Args: never; Returns: number }
       rename_daughter: { Args: { _name: string }; Returns: undefined }
       rename_tribe: {
