@@ -56,10 +56,10 @@ function VipPage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-stone-950 via-violet-950/30 to-stone-950 text-amber-50 p-3">
+    <div dir="rtl" className="absolute inset-0 overflow-y-auto overflow-x-hidden bg-gradient-to-b from-stone-950 via-violet-950/30 to-stone-950 text-amber-50 p-3 pb-24" style={{ WebkitOverflowScrolling: "touch" }}>
       {showRedeem && <RedeemDialog onClose={() => setShowRedeem(false)} />}
 
-      <div className="max-w-3xl mx-auto space-y-4">
+      <div className="max-w-3xl mx-auto space-y-4 pb-12">
         <div className="flex items-center gap-2 mb-1">
           <Link to="/" className="px-2.5 py-1 rounded bg-stone-800/80 text-amber-200 text-sm">←</Link>
           <h1 className="text-2xl font-extrabold flex items-center gap-2">👑 نظام VIP</h1>
