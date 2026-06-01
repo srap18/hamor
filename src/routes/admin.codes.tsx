@@ -88,6 +88,7 @@ function randomCode(len = 8): string {
 function AdminCodesPage() {
   const [codes, setCodes] = useState<CodeRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [redemptionsFor, setRedemptionsFor] = useState<CodeRow | null>(null);
 
   // نموذج الإنشاء
   const [rewardType, setRewardType] = useState<RewardType>("bundle");
