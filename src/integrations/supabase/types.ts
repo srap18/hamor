@@ -3058,6 +3058,7 @@ export type Database = {
         Args: { _new_name: string; _tribe_id: string }
         Returns: Json
       }
+      repair_burned_bg: { Args: never; Returns: boolean }
       repair_ship_instant: {
         Args: { _gems_cost: number; _ship_id: string }
         Returns: undefined
