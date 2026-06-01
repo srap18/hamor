@@ -1190,7 +1190,9 @@ function Index() {
         const wWidth = Math.max(15, wRight - wLeft);
         // Try to find the targeted ship in MY fleet and dock the raider beside it.
         const tIdx = ships.findIndex((sh) => sh.dbId === r.target_ship_id);
-        const siblings = raids.filter((x) => x.target_ship_id && x.target_ship_id === r.target_ship_id);
+        const siblings = raids.filter(
+          (x) => x.target_ship_id && x.target_ship_id === r.target_ship_id,
+        );
         const sibIdx = Math.max(0, siblings.findIndex((x) => x.ship_id === r.ship_id));
         let top: string; let left: string;
         if (tIdx >= 0) {
@@ -1203,8 +1205,11 @@ function Index() {
           const tgtScale = fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
           const tgtShipW = 22 * tgtScale;
           const seaIsRight = (scene.seaSide ?? "right") === "right";
-          top = `${Math.max(36, Math.min(68, tgtTop + sibIdx * 5))}%`;
-          left = `${Math.max(8, Math.min(82, tgtLeft + (seaIsRight ? tgtShipW * 0.58 : -10)))}%`;
+          top = `${Math.max(50, Math.min(74, tgtTop + tgtShipW * 0.22 + sibIdx * 5))}%`;
+          left = `${Math.max(
+            8,
+            Math.min(82, tgtLeft + (seaIsRight ? tgtShipW * 0.58 : -10)),
+          )}%`;
         } else {
           const slot = i % 3;
           top = `${wTop + 6 + slot * 8}%`;
