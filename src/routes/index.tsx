@@ -1831,11 +1831,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     const { data } = await supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .ilike("display_name", `%${q.trim()}%`).limit(60);
-    const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 30);
+      .ilike("display_name", `%${q.trim()}%`).limit(200);
+    const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
     setRows(filtered);
     setLoading(false);
   };
+
 
   const TABS = [
     { id: "xp" as const, e: "⭐", l: "XP" },
