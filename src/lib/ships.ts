@@ -148,6 +148,9 @@ function buildShip(level: number): ShipDef {
     };
   }
   // Submarine VIP (level 32) — exclusive, premium stats.
+  // NOTE: per-instance HP/storage is scaled at claim time on the server based
+  // on the player's VIP level (60k @ VIP5 → 350k @ VIP10). The values here
+  // represent the MAX potential — actual per-ship storage comes from max_hp.
   if (level === 32) {
     return {
       code: "submarine",
@@ -157,7 +160,7 @@ function buildShip(level: number): ShipDef {
       price: d.price,
       marketLevel: 32,
       rarity: d.rarity,
-      maxHp: 60000,
+      maxHp: 350000,
       armor: 150,
       speed: 90,
       storage: d.storage,
