@@ -10,6 +10,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [banInfo, setBanInfo] = useState<{ reason: string } | null>(null);
   const [checking, setChecking] = useState(true);
+  const securityBlock = useSecurityEnforcement();
+
 
   useEffect(() => {
     if (!loading && !session) {
