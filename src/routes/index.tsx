@@ -152,7 +152,10 @@ function saveFleet(ships: Ship[]) {
 }
 
 // How many fish a ship hauls per successful catch — based on its storage stat.
-function catchAmountForLevel(level: number): number {
+// For VIP submarines (level 32) the per-instance storage equals its max_hp,
+// which the server scales by the player's VIP level at claim time.
+function catchAmountForLevel(level: number, maxHp?: number | null): number {
+  if (level === 32 && maxHp && maxHp > 0) return maxHp;
   return catchPerTrip(getShipByMarketLevel(level));
 }
 
