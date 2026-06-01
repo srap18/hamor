@@ -408,6 +408,42 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         </button>
         <button onClick={onClose} className="w-full mt-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إغلاق</button>
 
+        {/* Anti-cheat: gold tracking */}
+        <div className="mt-4 pt-4 border-t border-amber-900/50 space-y-2">
+          <div className="text-sm font-semibold text-amber-300">🛡️ تتبع الذهب (مكافحة الغش)</div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={async () => {
+                const { data, error } = await (supabase as any).rpc("audit_player_currency", { _uid: player.id });
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                const r = (data?.[0]) ?? {};
+                const cd = Number(r.coins_diff ?? 0);
+                const gd = Number(r.gems_diff ?? 0);
+                alert(
+                  `🪙 الذهب الحالي: ${Number(r.current_coins ?? 0).toLocaleString()}\n` +
+                  `   المتتبَّع: ${Number(r.ledger_coins ?? 0).toLocaleString()}\n` +
+                  `   فرق غير متتبَّع: ${cd.toLocaleString()}\n\n` +
+                  `💎 الجواهر الحالية: ${Number(r.current_gems ?? 0).toLocaleString()}\n` +
+                  `   المتتبَّع: ${Number(r.ledger_gems ?? 0).toLocaleString()}\n` +
+                  `   فرق غير متتبَّع: ${gd.toLocaleString()}`
+                );
+              }}
+              className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm"
+            >🔍 فحص الذهب</button>
+            <button
+              onClick={async () => {
+                if (!confirm(`حذف كل الذهب والجواهر غير المتتبَّعة لـ ${player.display_name}؟`)) return;
+                const { data, error } = await (supabase as any).rpc("reset_player_to_ledger", { _uid: player.id });
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                const d: any = data ?? {};
+                toast.success(`🧹 حُذف ${Number(d.removed_coins ?? 0).toLocaleString()} ذهب و ${Number(d.removed_gems ?? 0).toLocaleString()} جوهرة غير متتبَّعة`);
+                onClose();
+              }}
+              className="px-3 py-2 rounded-lg bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-sm font-bold"
+            >🧹 حذف غير المتتبَّع</button>
+          </div>
+        </div>
+
         {/* Danger zone */}
         <div className="mt-4 pt-4 border-t border-red-900/50 space-y-2">
           <div className="text-sm font-semibold text-red-300">⚠️ منطقة الخطر</div>
