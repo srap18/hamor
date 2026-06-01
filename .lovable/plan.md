@@ -1,45 +1,70 @@
+# نظام منع الغش الشامل
 
-## الفكرة
-سلاح جديد في قائمة الأسلحة اسمه **قنبلة إعلانية** 📺 سعره 500 جوهرة. لما المهاجم يستخدمها على ضحية:
-- يطلع له **مودال** فيه قائمة فيديوهات جاهزة (3 مقاطع نختارها أنا وأنت — تنحط من لوحة الأدمن أو ثابتة في الكود)
-- يختار مقطع → يبدأ الإعلان على محيط الضحية لمدة **ساعة**
-- يشوفه: الضحية في شاشته الرئيسية + أي زائر لبروفايل/محيط الضحية
-- الضحية يقدر يتفاعل عادي (شات/لعب) لكن الفيديو يظهر فوق الخلفية بشفافية
-- زر **"إزالة الإعلان (100 💎)"** يظهر للضحية فقط، يضغطه يدفع ويختفي
+هدف الخطة: إغلاق ثغرات تعديل القيم من المتصفح، التدبيل بين الحسابات، وتكرار الطلبات (clutches/exploits)، مع كشف تلقائي وحظر للمتلاعبين.
 
-## التغييرات
+## 1) طبقة التحقق من السيرفر (الأهم)
+أي عملية تغيّر عملة/جواهر/سمك/سفن لازم تمر عبر RPC مع `SECURITY DEFINER`:
+- منع أي `UPDATE` مباشر من العميل على: `profiles.coins/gems/xp/level`, `fish_stock`, `inventory`, `ships_owned`.
+- سحب صلاحيات `UPDATE` على الأعمدة الحساسة من دور `authenticated` وترك التعديل فقط للـ RPCs.
+- كل RPC يتحقق: المستخدم مالك السجل، القيم ضمن الحد المنطقي، الحالة (سفينة ترجع/تصيد/مدمرة) صحيحة.
 
-### 1. قاعدة البيانات (هجرة جديدة)
-- جدول جديد `ad_bombs`:
-  - `target_user_id` (الضحية)
-  - `attacker_id`
-  - `video_url` (المقطع المختار)
-  - `started_at`, `expires_at` (ساعة)
-  - `active` (افتراضي true)
-- GRANTs + RLS:
-  - الكل يقرأ الإعلانات الفعّالة (عشان أي زائر يشوفها)
-  - فقط الضحية + الأدمن يحدّثون (للإزالة)
-  - الإدراج عبر RPC فقط
-- RPC `launch_ad_bomb(target_id, video_key)`: تخصم 500 جوهرة من المهاجم، تنشئ صف، ترجع id
-- RPC `remove_ad_bomb()`: تخصم 100 جوهرة من الضحية وتلغي كل إعلاناتها النشطة
-- جدول صغير `ad_bomb_videos` (id, label, video_url, active, sort_order) عشان نقدر نضيف/نعدّل المقاطع من الأدمن لاحقًا
+## 2) Rate limiting على السيرفر
+جدول `rate_limits(user_id, action, window_start, count)` + دالة `check_rate(action, max, window_seconds)`:
+- صيد: حد أقصى لكل سفينة حسب `fishing_seconds`.
+- بيع سمك/شراء/تفعيل أكواد/إرسال دعم/هجوم/رسائل: حد منطقي بالدقيقة والساعة.
+- تجاوز الحد → رفض الطلب وتسجيل محاولة.
 
-### 2. كتالوج الأسلحة `src/lib/weapons.ts`
-- إضافة سلاح `ad_bomb`:
-  - name: "قنبلة إعلانية", emoji: 📺, price: 500, currency: "gems"
-  - damage: 0 (ما تسبب ضرر للسفينة)
-  - فلاغ خاص `kind: "ad_bomb"` عشان منطق الهجوم يميّزه
+## 3) كشف تلقائي للشذوذ (`cheat_flags`)
+جدول جديد + triggers تسجّل تلقائياً:
+- قفزة عملات/جواهر غير مبررة (بدون transaction مطابق).
+- صيد سمك أعلى من الحد النظري في فترة زمنية.
+- تكرار نفس الـ `device_id` بحسابات مختلفة (تدبيل).
+- إرسال دعم/هدايا متبادل بين نفس الحسابات بكثرة (farming).
+- استلام عملات من حساب دائماً يخسر معه في هجمات (gold trading).
 
-### 3. تدفّق الهجوم (`src/routes/players.$playerId.tsx` أو ملف الهجوم)
-- لما المستخدم يختار `ad_bomb` بدل صاروخ:
-  - يفتح **AdBombPickerModal** فيه قائمة المقاطع من `ad_bomb_videos`
-  - يختار → يستدعي `launch_ad_bomb`
-  - يطلع toast نجاح
+## 4) منع التدبيل بين الحسابات (موجود جزئياً + تقوية)
+- `device_accounts` موجود → نضيف فحص IP يومي وتسجيل في `account_links(user_a, user_b, reason)`.
+- منع تحويل قيمة عبر هجوم بين حسابات على نفس الجهاز/IP.
+- منع إرسال دعم لحساب على نفس الجهاز.
 
-### 4. عرض الإعلان (مكوّن جديد)
-- `src/components/AdBombOverlay.tsx`:
-  - يستعلم Supabase + realtime على `ad_bombs` لـ user محدد (`active=true` و `expires_at > now()`)
-  - لو فيه إعلان نشط → يعرض `<video>` بـ `playsInline autoPlay loop muted` فوق الخلفية، بشفافية (`mix-blend-screen` أو opacity) وفوق طبقة الـ video خلفية الشاطئ
-  - يظهر عدّاد للوقت المتبقي
-- يُحقن في:
-  - `src/routes/index.tsx` (شاشة الضحية الرئيسية) —
+## 5) سجل وإجراء (`cheat_actions`)
+- 3 flags = تنبيه أدمن (إشعار).
+- 5 flags = mute تلقائي + تجميد المعاملات 24س.
+- 10 flags = bann تلقائي.
+- كل الإجراءات قابلة للمراجعة من الأدمن (إلغاء/تأكيد).
+
+## 6) لوحة أدمن
+صفحة `/admin/anti-cheat`:
+- قائمة الـ flags مع سبب وتاريخ ولاعب.
+- زر "تأكيد غش" → حظر، "خطأ إيجابي" → مسح الـ flag.
+- إحصائيات: أكثر الإجراءات المشبوهة، أكثر الأجهزة ربطاً بحسابات.
+
+## التفاصيل التقنية
+
+**جداول جديدة:**
+- `rate_limits(user_id, action, window_start, count)` — sliding window.
+- `cheat_flags(user_id, kind, severity, details jsonb, resolved bool)`.
+- `account_links(user_a, user_b, link_type[device|ip|trade], created_at)`.
+- `user_ips(user_id, ip, last_seen)` لرصد التطابق.
+
+**دوال SQL:**
+- `check_rate(_action text, _max int, _seconds int) returns boolean`.
+- `flag_cheat(_user uuid, _kind text, _severity int, _details jsonb)`.
+- `apply_auto_action(_user uuid)` — يستدعى بعد كل flag.
+- Triggers على `profiles` لرصد قفزات coins/gems بدون transaction مطابق.
+
+**تعديل RPCs الموجودة:** إضافة `PERFORM check_rate(...)` في بداية كل من: `catch_fish`, `sell_fish`, `attack_player`, `send_support`, `redeem_code`, إرسال الرسائل.
+
+**سحب الصلاحيات:**
+```
+REVOKE UPDATE (coins, gems, xp, level, rubies) ON public.profiles FROM authenticated;
+```
+يبقى الـ UPDATE للحقول التجميلية فقط (avatar_emoji, display_name, selected_bg_id).
+
+**العميل:** يضيف header `x-client-version` ويتم رفض الإصدارات القديمة (لقفل الـ exploits المعروفة).
+
+## ما لن تُغطّيه هذه الخطة
+- Reverse engineering كامل للعميل (مستحيل في ويب).
+- كشف bots بشري vs آلي (نحتاج captcha منفصل لاحقاً).
+
+هل أبدأ التنفيذ؟ أو تبي أضيف/أحذف شي؟
