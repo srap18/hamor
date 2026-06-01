@@ -1135,6 +1135,7 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string | null
           avatar_url: string | null
+          bg_burned_until: string | null
           bubble_frame: string | null
           coins: number
           created_at: string
@@ -1161,6 +1162,7 @@ export type Database = {
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
+          bg_burned_until?: string | null
           bubble_frame?: string | null
           coins?: number
           created_at?: string
@@ -1187,6 +1189,7 @@ export type Database = {
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
+          bg_burned_until?: string | null
           bubble_frame?: string | null
           coins?: number
           created_at?: string
