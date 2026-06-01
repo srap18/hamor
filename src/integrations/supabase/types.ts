@@ -1322,6 +1322,27 @@ export type Database = {
         }
         Relationships: []
       }
+      royal_box_claims: {
+        Row: {
+          claim_date: string
+          contents: Json
+          id: string
+          user_id: string
+        }
+        Insert: {
+          claim_date: string
+          contents?: Json
+          id?: string
+          user_id: string
+        }
+        Update: {
+          claim_date?: string
+          contents?: Json
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ship_catalog: {
         Row: {
           active: boolean
@@ -2127,6 +2148,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_shield_claims: {
+        Row: {
+          claim_date: string
+          id: string
+          shields_awarded: number
+          user_id: string
+          vip_level: number
+        }
+        Insert: {
+          claim_date: string
+          id?: string
+          shields_awarded?: number
+          user_id: string
+          vip_level: number
+        }
+        Update: {
+          claim_date?: string
+          id?: string
+          shields_awarded?: number
+          user_id?: string
+          vip_level?: number
+        }
+        Relationships: []
+      }
       voice_room_messages: {
         Row: {
           created_at: string
@@ -2621,6 +2666,7 @@ export type Database = {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
       }
+      claim_royal_box: { Args: never; Returns: Json }
       claim_session: { Args: { _token: string }; Returns: undefined }
       claim_steal_mission: {
         Args: { _attacker_ship_id: string }
@@ -2630,6 +2676,7 @@ export type Database = {
         }[]
       }
       claim_vip_daily: { Args: never; Returns: Json }
+      claim_vip_shield: { Args: never; Returns: Json }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
@@ -2868,6 +2915,7 @@ export type Database = {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
       }
+      grant_cosmic_frame: { Args: never; Returns: Json }
       grant_inventory_item: {
         Args: {
           _item_id: string
@@ -3111,6 +3159,7 @@ export type Database = {
         Returns: Json
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
+      use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
       warn_overfull_tribes: { Args: never; Returns: number }
     }

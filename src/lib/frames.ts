@@ -12,6 +12,7 @@ import taurusImg from "@/assets/frames/taurus.png";
 import geminiImg from "@/assets/frames/gemini.png";
 import scorpioImg from "@/assets/frames/scorpio.png";
 import piscesImg from "@/assets/frames/pisces.png";
+import cosmicVipImg from "@/assets/frames/cosmic-vip.png";
 
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
@@ -71,6 +72,11 @@ export const AVATAR_FRAMES: Frame[] = [
     id: "af_pisces", name: "إطار الحوت 🐟", kind: "avatar",
     price: 75000, currency: "gem", rarity: "mythic", preview: "♓",
     imageUrl: piscesImg, animClass: "frame-anim-wave",
+  },
+  {
+    id: "af_cosmic_vip", name: "🌌 الإطار الكوني (VIP 10 حصري)", kind: "avatar",
+    price: 999999, currency: "gem", rarity: "mythic", preview: "🌌",
+    imageUrl: cosmicVipImg, animClass: "frame-anim-pulse",
   },
 ];
 

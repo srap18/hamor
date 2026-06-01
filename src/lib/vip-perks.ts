@@ -1,10 +1,10 @@
-// VIP tier configuration — must match server-side gem amounts in claim_vip_daily()
+// VIP tier configuration — gems values must match server-side claim_vip_daily()
 export type VipTier = {
   level: number;
   name: string;
   emoji: string;
-  color: string;       // tailwind text/border accent
-  bgGradient: string;  // tailwind bg gradient
+  color: string;
+  bgGradient: string;
   dailyGems: number;
   perks: string[];
 };
@@ -13,116 +13,118 @@ export const VIP_TIERS: VipTier[] = [
   {
     level: 1, name: "برونزي", emoji: "🥉",
     color: "amber-700", bgGradient: "from-amber-900/60 to-stone-950",
-    dailyGems: 50,
+    dailyGems: 100,
     perks: [
-      "💎 50 جوهرة يومياً مجاناً",
-      "🏷️ شارة VIP بجانب اسمك",
+      "💎 100 جوهرة يومياً مجاناً",
+      "🏷️ شارة VIP فخمة بجانب اسمك في الشات",
       "💬 لون مميز في الشات",
     ],
   },
   {
     level: 2, name: "فضي", emoji: "🥈",
     color: "slate-300", bgGradient: "from-slate-700/60 to-stone-950",
-    dailyGems: 100,
+    dailyGems: 250,
     perks: [
-      "💎 100 جوهرة يومياً",
-      "✨ خبرة +5% على كل سمكة",
-      "🪙 ذهب +5% عند البيع",
+      "💎 250 جوهرة يومياً",
+      "✨ خبرة +10% على كل سمكة",
+      "🪙 ذهب +10% عند البيع",
     ],
   },
   {
     level: 3, name: "ذهبي", emoji: "🥇",
     color: "amber-400", bgGradient: "from-amber-600/60 to-stone-950",
-    dailyGems: 200,
+    dailyGems: 500,
     perks: [
-      "💎 200 جوهرة يومياً",
-      "✨ خبرة +10%",
-      "🪙 ذهب +10%",
+      "💎 500 جوهرة يومياً",
+      "✨ خبرة +20%",
+      "🪙 ذهب +20%",
       "🎁 صندوق هدية أسبوعي",
     ],
   },
   {
     level: 4, name: "ياقوتي", emoji: "💠",
     color: "sky-300", bgGradient: "from-sky-700/60 to-stone-950",
-    dailyGems: 350,
+    dailyGems: 800,
     perks: [
-      "💎 350 جوهرة يومياً",
-      "✨ خبرة +15%",
-      "🪙 ذهب +15%",
-      "⚓ تصليح السفن أسرع بـ 10%",
+      "💎 800 جوهرة يومياً",
+      "✨ خبرة +30%",
+      "🪙 ذهب +30%",
+      "⚓ تصليح السفن أسرع بـ 20%",
     ],
   },
   {
     level: 5, name: "زمردي", emoji: "💚",
     color: "emerald-300", bgGradient: "from-emerald-700/60 to-stone-950",
-    dailyGems: 500,
+    dailyGems: 1200,
     perks: [
-      "💎 500 جوهرة يومياً",
-      "✨ خبرة +20%",
-      "🪙 ذهب +20%",
-      "⚓ تصليح أسرع 15%",
-      "🛡️ درع 4 ساعات يومياً",
+      "💎 1200 جوهرة يومياً",
+      "✨ خبرة +40%",
+      "🪙 ذهب +40%",
+      "⚓ تصليح أسرع 30%",
+      "🛡️ درع 1 ساعة يومياً للمخزن (قابل للتجميع)",
     ],
   },
   {
     level: 6, name: "مرجاني", emoji: "🪸",
     color: "rose-300", bgGradient: "from-rose-700/60 to-stone-950",
-    dailyGems: 750,
+    dailyGems: 1800,
     perks: [
-      "💎 750 جوهرة يومياً",
-      "✨ خبرة +25%",
-      "🪙 ذهب +25%",
+      "💎 1800 جوهرة يومياً",
+      "✨ خبرة +50%",
+      "🪙 ذهب +50%",
       "🎨 إطار حصري للصورة",
-      "🛡️ درع 8 ساعات يومياً",
+      "🛡️ درع 1 ساعة يومياً للمخزن",
     ],
   },
   {
     level: 7, name: "لؤلؤي", emoji: "🦪",
     color: "cyan-200", bgGradient: "from-cyan-700/60 to-stone-950",
-    dailyGems: 1000,
+    dailyGems: 2500,
     perks: [
-      "💎 1000 جوهرة يومياً",
-      "✨ خبرة +30%",
-      "🪙 ذهب +30%",
+      "💎 2500 جوهرة يومياً",
+      "✨ خبرة +60%",
+      "🪙 ذهب +60%",
       "⛵ خانة سفينة إضافية",
-      "🛡️ درع 12 ساعة يومياً",
+      "🛡️ درعان (2) ساعة يومياً للمخزن",
     ],
   },
   {
     level: 8, name: "ماسي", emoji: "💎",
     color: "indigo-300", bgGradient: "from-indigo-700/60 to-stone-950",
-    dailyGems: 1500,
+    dailyGems: 3500,
     perks: [
-      "💎 1500 جوهرة يومياً",
-      "✨ خبرة +35%",
-      "🪙 ذهب +35%",
+      "💎 3500 جوهرة يومياً",
+      "✨ خبرة +70%",
+      "🪙 ذهب +70%",
       "🌅 خلفية ملكية حصرية",
-      "🛡️ درع 24 ساعة يومياً",
+      "🛡️ درعان (2) ساعة يومياً للمخزن",
     ],
   },
   {
     level: 9, name: "ملكي", emoji: "👑",
     color: "fuchsia-300", bgGradient: "from-fuchsia-700/60 to-stone-950",
-    dailyGems: 2000,
+    dailyGems: 5000,
     perks: [
-      "💎 2000 جوهرة يومياً",
-      "✨ خبرة +40%",
-      "🪙 ذهب +40%",
+      "💎 5000 جوهرة يومياً",
+      "✨ خبرة +85%",
+      "🪙 ذهب +85%",
       "🏴‍☠️ شعار ذهبي حصري",
-      "🎁 صندوق ملكي يومي",
+      "🛡️ ثلاثة (3) دروع يومياً للمخزن",
+      "🎁 صندوق ملكي يومي — يحتوي جميع الطواقم + جميع الصواريخ تروح للمخزن!",
     ],
   },
   {
     level: 10, name: "كوني", emoji: "🌌",
     color: "violet-300", bgGradient: "from-violet-700/70 to-fuchsia-950",
-    dailyGems: 3000,
+    dailyGems: 8000,
     perks: [
-      "💎 3000 جوهرة يومياً (الأعلى!)",
-      "✨ خبرة +50%",
-      "🪙 ذهب +50%",
-      "🌠 إطار كوني نادر",
-      "👑 جميع المميزات السابقة",
-      "💬 أولوية في الدعم",
+      "💎 8000 جوهرة يومياً (الأعلى!)",
+      "✨ خبرة +100%",
+      "🪙 ذهب +100%",
+      "🌠 إطار كوني حصري نادر (لا يُباع في المتجر!)",
+      "🛡️ ثلاثة (3) دروع يومياً للمخزن",
+      "🎁 صندوق ملكي يومي",
+      "👑 جميع المميزات السابقة مفعّلة",
     ],
   },
 ];
