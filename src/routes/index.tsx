@@ -1435,39 +1435,48 @@ function Index() {
             if (!s.dbId) { sound.play("error"); return; }
             const row = availableRows.find((r) => r.item_id === itemId);
             if (!row) return;
-            const reducePct = itemId === "fixer_1" ? 0.30 : itemId === "fixer_2" ? 0.70 : 1.0;
-            const nowMs = Date.now();
-            const endMs = s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0;
-            const isDestroyed = !!s.destroyedAt && endMs > nowMs;
+
+            // New rule (no percentages): tier maps to ship-level ranges, full instant repair.
+            // fixer_1 → levels 1-10, fixer_2 → levels 11-20, fixer_3 → repairs ALL 3 fleet ships at once (any level).
+            const repairOne = async (ship: typeof s) => {
+              if (!ship.dbId) return;
+              await (supabase as any)
+                .from("ships_owned")
+                .update({ hp: ship.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
+                .eq("id", ship.dbId);
+              setShips((arr) => arr.map((x) => x.id === ship.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
+            };
+
             try {
-              if (!isDestroyed || reducePct >= 1) {
-                // Not destroyed, or legendary fixer → instant full repair
-                await (supabase as any)
-                  .from("ships_owned")
-                  .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
-                  .eq("id", s.dbId);
-                setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
-                if (isDestroyed) setToast("تم إصلاح السفينة فوراً ⚒️");
-              } else {
-                // Reduce remaining repair time by reducePct
-                const remaining = endMs - nowMs;
-                const newRemaining = Math.max(0, Math.floor(remaining * (1 - reducePct)));
-                if (newRemaining <= 0) {
-                  await (supabase as any)
-                    .from("ships_owned")
-                    .update({ hp: s.maxHp ?? 100, destroyed_at: null, repair_ends_at: null })
-                    .eq("id", s.dbId);
-                  setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null } : x));
-                } else {
-                  const newEnd = new Date(nowMs + newRemaining).toISOString();
-                  await (supabase as any)
-                    .from("ships_owned")
-                    .update({ repair_ends_at: newEnd })
-                    .eq("id", s.dbId);
-                  setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, repairEndsAt: newEnd } : x));
-                  setToast(`تم تقليل وقت الإصلاح بنسبة ${Math.round(reducePct * 100)}%`);
+              if (itemId === "fixer_3") {
+                // Repair every ship in the fleet that actually needs repair.
+                const needRepair = ships.filter((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt));
+                if (needRepair.length === 0) {
+                  setToast("لا توجد سفن تحتاج إصلاحاً");
+                  sound.play("error");
+                  return;
                 }
+                for (const sh of needRepair) await repairOne(sh);
+                setToast(`⚒️ تم إصلاح ${needRepair.length} سفن فوراً`);
+              } else {
+                const lvl = s.level ?? 1;
+                const minLvl = itemId === "fixer_1" ? 1 : 11;
+                const maxLvl = itemId === "fixer_1" ? 10 : 20;
+                if (lvl < minLvl || lvl > maxLvl) {
+                  setToast(`هذا المصلح يعمل فقط على سفن المستوى ${minLvl}-${maxLvl}`);
+                  sound.play("error");
+                  return;
+                }
+                const needs = (s.hp ?? 0) < (s.maxHp ?? 100) || s.destroyedAt || s.repairEndsAt;
+                if (!needs) {
+                  setToast("السفينة لا تحتاج إصلاحاً");
+                  sound.play("error");
+                  return;
+                }
+                await repairOne(s);
+                setToast("تم إصلاح السفينة فوراً ⚒️");
               }
+
               // consume one unit of the fixer crew
               if (row.quantity <= 1) {
                 await deleteInventoryRows([row.id]);
