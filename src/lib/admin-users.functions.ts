@@ -89,7 +89,7 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
         .select("device_id")
         .eq("user_id", data.userId);
       if (devices && devices.length > 0) {
-        await supabaseAdmin.from("banned_devices").upsert(
+        await (supabaseAdmin as any).from("banned_devices").upsert(
           devices.map((d) => ({
             device_id: d.device_id,
             user_id: data.userId,
@@ -149,7 +149,7 @@ export const adminPermanentBan = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
 
-    await supabaseAdmin.rpc("admin_permanent_ban", {
+    await (supabaseAdmin as any).rpc("admin_permanent_ban", {
       _uid: data.userId,
       _reason: data.reason || "حظر نهائي",
     } as never);
