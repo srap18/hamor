@@ -914,22 +914,25 @@ function PlayerPage() {
               <>
                 <div className="text-amber-200 text-xs font-bold">اختر صاروخ من مخزنك:</div>
                 {WEAPONS.map((w) => {
+                  const q = inv.find((x) => x.item_id === w.id && x.item_type === "weapon")?.quantity ?? 0;
                   if (w.id === "ad_bomb") {
+                    const canFire = q > 0;
                     return (
                       <div key={w.id} className="flex items-stretch gap-2">
-                        <button disabled={busy} onClick={() => setMode("ad_bomb")}
+                        <button disabled={busy || !canFire} onClick={() => setMode("ad_bomb")}
                           className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-fuchsia-900/80 to-purple-900/80 border border-fuchsia-500/40 active:scale-95 disabled:opacity-40 text-right">
                           <span className="text-3xl">{w.emoji}</span>
                           <div className="flex-1 min-w-0">
                             <div className="text-fuchsia-100 font-bold text-sm">{w.name}</div>
-                            <div className="text-[10px] text-fuchsia-300/80">{w.desc}</div>
+                            <div className="text-[10px] text-fuchsia-300/80">
+                              {canFire ? w.desc : "🎟️ تتوفر فقط عبر كود شحن من الإدارة"}
+                            </div>
                           </div>
-                          <div className="text-[11px] text-fuchsia-200 font-extrabold">💎 {w.price}</div>
+                          <div className="text-xs text-fuchsia-200 font-bold tabular-nums">×{q}</div>
                         </button>
                       </div>
                     );
                   }
-                  const q = inv.find((x) => x.item_id === w.id && x.item_type === "weapon")?.quantity ?? 0;
                   const canFire = q > 0;
                   return (
                     <div key={w.id} className="flex items-stretch gap-2">
@@ -973,9 +976,13 @@ function PlayerPage() {
                       setBusy(false);
                       if (error) {
                         const m = error.message || "";
-                        if (m.includes("insufficient")) { sound.play("error"); flash("💎 جواهرك ما تكفي (500 جوهرة)"); return; }
+                        if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية — احصل عليها بكود شحن"); return; }
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
+                      // decrement local inventory
+                      setInv((arr) => arr
+                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+                        .filter((x) => x.quantity > 0));
                       sound.play("success");
                       flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                       closeMenu();
@@ -984,7 +991,6 @@ function PlayerPage() {
                   >
                     <span className="text-3xl">{v.emoji}</span>
                     <div className="flex-1 text-fuchsia-100 font-bold text-sm">{v.label}</div>
-                    <div className="text-[11px] text-fuchsia-200 font-extrabold">💎 500</div>
                   </button>
                 ))}
                 <button onClick={() => setMode("weapon")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>

@@ -13,7 +13,7 @@ type AdBomb = {
   active: boolean;
 };
 
-const EXPLOSION_MS = 2200; // bomb FX duration before the video appears
+const EXPLOSION_MS = 700; // brief instant flash before the video loop starts
 
 /**
  * Renders a fullscreen ad-bomb overlay for `targetUserId`.
@@ -33,6 +33,7 @@ export function AdBombOverlay({
   onFlash?: (msg: string) => void;
 }) {
   const [bomb, setBomb] = useState<AdBomb | null>(null);
+  const [attackerName, setAttackerName] = useState<string>("");
   const [now, setNow] = useState(Date.now());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -40,6 +41,21 @@ export function AdBombOverlay({
   const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastBombId = useRef<string | null>(null);
+
+  // Look up attacker display name once per bomb
+  useEffect(() => {
+    if (!bomb?.attacker_id) { setAttackerName(""); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", bomb.attacker_id)
+        .maybeSingle();
+      if (!cancelled) setAttackerName((data as { display_name?: string } | null)?.display_name ?? "لاعب");
+    })();
+    return () => { cancelled = true; };
+  }, [bomb?.attacker_id]);
 
   useEffect(() => {
     if (!targetUserId) return;
@@ -189,9 +205,9 @@ export function AdBombOverlay({
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
           <div className="text-[11px] text-fuchsia-50 font-bold leading-tight">
-            <div>قنبلة إعلانية!</div>
+            <div>📺 قنبلة إعلانية من {attackerName || "لاعب"}</div>
             <div className="text-[10px] opacity-80 tabular-nums">
-              {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
+              متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
           {isOwner && (
