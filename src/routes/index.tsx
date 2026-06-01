@@ -487,6 +487,7 @@ function Index() {
   const [now, setNow] = useState(() => Date.now());
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
+  const crewBusyRef = useRef(false);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
 
@@ -1421,6 +1422,9 @@ function Index() {
         };
 
         const assignCrew = async (itemId: string) => {
+          if (crewBusyRef.current) return;
+          crewBusyRef.current = true;
+          try {
           // Fixer crews: reduce remaining repair time (or instant full heal for legendary).
           if (itemId.startsWith("fixer_")) {
             if (!s.dbId) { sound.play("error"); return; }
@@ -1480,17 +1484,24 @@ function Index() {
           }
           // find a row with this item_id that's unassigned
           const row = availableRows.find((r) => r.item_id === itemId);
-          if (!row) return;
+          if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
           const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
           const newMeta = { assigned_ship_id: s.dbId ?? s.id, expires_at: expiresAt };
-          if (row.quantity <= 1) {
-            await updateInventoryMeta(row.id, newMeta);
-          } else {
-            await splitInventoryAssign(row.id, newMeta);
+          const { error } = row.quantity <= 1
+            ? await updateInventoryMeta(row.id, newMeta)
+            : await splitInventoryAssign(row.id, newMeta);
+          if (error) {
+            sound.play("error");
+            setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
+            await reloadCrews();
+            return;
           }
           sound.play("success");
           await reloadCrews();
           setCrewTick((t) => t + 1);
+          } finally {
+            crewBusyRef.current = false;
+          }
         };
 
 
