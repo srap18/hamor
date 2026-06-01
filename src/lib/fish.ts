@@ -131,6 +131,9 @@ const FISH_DEFS: Record<string, FishDef> = {
 
   // ========== EXCLUSIVE — حصرية لسفينة العنقاء ==========
   phoenix:    { id: "phoenix",    name: "عنقاء النار",   emoji: "🔥", price: 11,  tier: 6, rarity: "mythic" },
+
+  // ========== EXCLUSIVE — حصرية للغواصة الملكية VIP ==========
+  abyss_titan:{ id: "abyss_titan",name: "تيتان الأعماق", emoji: "🔱", price: 60,  tier: 6, rarity: "mythic" },
 };
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
