@@ -6,8 +6,8 @@ import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
-import { incrementFishCaught, sellShip, deleteInventoryRows, splitInventoryAssign, updateInventoryMeta } from "@/lib/economy";
-import { useAuth, useProfile } from "@/hooks/use-auth";
+import { incrementFishCaught, sellShip, deleteInventoryRows, splitInventoryAssign, updateInventoryMeta, buyWithCoins, buyWithGems } from "@/lib/economy";
+import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
