@@ -150,6 +150,19 @@ export const STORE_PACKS: StorePack[] = [
     description: "حماية كاملة من الهجمات والسرقة لمدة يومين",
     reward: { shieldDays: 2 },
   },
+
+  // ───── Weapons ────────────────────────────────────────────
+  {
+    id: "ad_bomb_pack",
+    category: "weapon",
+    label: "📺 قنبلة إعلانية",
+    emoji: "📺",
+    priceUSD: 1.99,
+    stripePriceId: "ad_bomb_pack",
+    tag: "جديد",
+    description: "قنبلة واحدة — انفجار فوري + إعلان ساعة كاملة + 70,000 ضرر على كل سفنه",
+    reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 1 }] },
+  },
 ];
 
 export function getPack(id: string): StorePack | undefined {
