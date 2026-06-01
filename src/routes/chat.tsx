@@ -156,12 +156,22 @@ function ChatPage() {
     return () => { supabase.removeChannel(ch); };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
-  // Smart auto-scroll: only stick to bottom if user is already near it (smoother UX, doesn't fight scroll)
+  // Track first render per chat tab/conversation so we always land on the latest
+  // messages when opening chat (instead of being stuck at the top).
+  const firstScrollKey = useRef<string>("");
   useEffect(() => {
     const el = scrollRef.current; if (!el) return;
+    const key = `${tab}:${dmWith || ""}`;
+    const isFirst = firstScrollKey.current !== key;
+    if (isFirst) {
+      firstScrollKey.current = key;
+      // Jump instantly to bottom on first paint
+      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+      return;
+    }
     const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
     if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [msgs]);
+  }, [msgs, tab, dmWith]);
 
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
