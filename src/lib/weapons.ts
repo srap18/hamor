@@ -71,8 +71,9 @@ export const WEAPONS: Weapon[] = [
     emoji: "📺",
     price: 500,
     currency: "gems",
-    damage: 0,
+    damage: 70000,
     rarity: "epic",
-    desc: "تعرض إعلانًا فوق محيط الخصم لمدة ساعة — يراه الجميع",
+    aoe: true,
+    desc: "تفجير + إعلان: 70,000 ضرر على كل سفن الخصم، ويعرض إعلانًا فوق محيطه لمدة ساعة",
   },
 ];
