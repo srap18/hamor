@@ -72,8 +72,15 @@ function priceHistory(fish: Fish): number[] {
   return out;
 }
 
+type MarketState = {
+  trader_until: string | null;
+  freeze_until: string | null;
+  frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
+};
+
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
+  const [ageMap, setAgeMap] = useState<Record<string, string>>({});
   const [priceMap, setPriceMap] = useState<Record<string, { current: number; min: number; max: number }>>({});
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -89,6 +96,7 @@ function FishMarket() {
   const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -96,6 +104,25 @@ function FishMarket() {
   };
 
   const [forecastMap, setForecastMap] = useState<Record<string, number[]>>({});
+
+  const loadMarketState = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("user_market_state")
+      .select("trader_until, freeze_until, frozen_prices")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) {
+      setMarketState({
+        trader_until: data.trader_until,
+        freeze_until: data.freeze_until,
+        frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
+      });
+    } else {
+      setMarketState({ trader_until: null, freeze_until: null, frozen_prices: {} });
+    }
+  };
+  useEffect(() => { loadMarketState(); }, [user?.id]);
 
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
@@ -127,6 +154,28 @@ function FishMarket() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
+
+  // Effective price map: if freeze active, override with frozen snapshot
+  const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > Date.now());
+  const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > Date.now());
+  const effPriceMap = useMemo(() => {
+    if (!freezeActive) return priceMap;
+    const out: Record<string, { current: number; min: number; max: number }> = { ...priceMap };
+    for (const [fid, snap] of Object.entries(marketState.frozen_prices)) {
+      out[fid] = { current: Number(snap.current) || 0, min: Number(snap.min) || 0, max: Number(snap.max) || 0 };
+    }
+    return out;
+  }, [freezeActive, priceMap, marketState.frozen_prices]);
+  const effForecastMap = useMemo(() => {
+    if (!freezeActive) return forecastMap;
+    const out: Record<string, number[]> = { ...forecastMap };
+    for (const [fid, snap] of Object.entries(marketState.frozen_prices)) {
+      const arr = Array.isArray(snap.forecast) ? snap.forecast.map((v) => Number(v)).filter((n) => Number.isFinite(n)) : [];
+      // When frozen, "forecast" stays flat at current price
+      out[fid] = arr.length > 0 ? new Array(arr.length).fill(Number(snap.current) || 0) : out[fid] ?? [];
+    }
+    return out;
+  }, [freezeActive, forecastMap, marketState.frozen_prices]);
 
 
   const loadMarket = async () => {
