@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, refreshProfile } from "@/hooks/use-auth";
+import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
@@ -12,13 +12,14 @@ export const Route = createFileRoute("/vip")({
 });
 
 function VipPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [claimedToday, setClaimedToday] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [showRedeem, setShowRedeem] = useState(false);
 
-  const vipLevel = profile?.vip_level || 0;
+  const vipLevel = (profile as any)?.vip_level || 0;
   const isExpired = !!expiresAt && new Date(expiresAt) < new Date();
   const effectiveLevel = isExpired ? 0 : vipLevel;
   const currentTier = getVipTier(effectiveLevel);
