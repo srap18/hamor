@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import { isLowBandwidth, isLowPerfMode } from "@/lib/perf-mode";
 
 /**
- * Seamless looping background video.
- * Uses two stacked <video> elements offset by half the duration and
- * crossfades between them so the loop seam is never visible. Also slows the
- * playback rate by default so the short clip feels less repetitive.
+ * Seamless looping background video — bandwidth/CPU aware.
+ *
+ * - On low-bandwidth / save-data: skips the video entirely, shows the poster only.
+ * - On low-end devices: shows ONE video element instead of two (half the bandwidth,
+ *   no RAF crossfade loop).
+ * - When the tab is hidden: pauses the RAF and the videos.
  */
 export function SeamlessVideo({
   src,
@@ -24,21 +27,31 @@ export function SeamlessVideo({
   const [videoVisible, setVideoVisible] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
 
+  // On weak networks (or saveData), skip video entirely — poster only.
+  const skipVideo = isLowBandwidth;
+  // On low-end CPU/RAM, use single video instead of dual-video crossfade.
+  const singleVideo = isLowPerfMode && !skipVideo;
+
   useEffect(() => {
+    if (skipVideo) return;
     setVideoVisible(false);
     setVideoFailed(false);
     const a = aRef.current;
     const b = bRef.current;
-    if (!a || !b) return;
+    if (!a) return;
 
     let raf = 0;
     let bOffset = false;
     let FADE = 1.6;
 
     const applyRate = () => {
-      try { a.playbackRate = playbackRate; b.playbackRate = playbackRate; } catch {}
+      try {
+        a.playbackRate = playbackRate;
+        if (b) b.playbackRate = playbackRate;
+      } catch {}
     };
     const offsetB = () => {
+      if (!b) return;
       const dur = a.duration;
       if (!dur || !isFinite(dur)) return;
       FADE = Math.max(0.8, Math.min(2.5, dur * 0.35));
@@ -51,30 +64,37 @@ export function SeamlessVideo({
       a.play().catch(() => {});
     };
     a.addEventListener("loadedmetadata", onLoaded);
-    b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
-    b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
+    if (b) {
+      b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
+      b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
+    }
     const onPlaying = () => { applyRate(); setVideoVisible(true); };
     a.addEventListener("playing", onPlaying);
-    b.addEventListener("playing", onPlaying);
+    if (b) b.addEventListener("playing", onPlaying);
     const onError = () => setVideoFailed(true);
     a.addEventListener("error", onError);
-    b.addEventListener("error", onError);
+    if (b) b.addEventListener("error", onError);
 
-    // Kick playback explicitly on mount in case autoplay was deferred
     applyRate();
     a.play().catch(() => {});
-    b.play().catch(() => {});
+    if (b) b.play().catch(() => {});
 
     const onVis = () => {
       if (document.visibilityState === "visible") {
         applyRate();
         a.play().catch(() => {});
-        b.play().catch(() => {});
+        if (b) b.play().catch(() => {});
+        if (!raf && b) raf = requestAnimationFrame(tick);
+      } else {
+        // Pause and stop RAF when tab is hidden — saves CPU/battery.
+        try { a.pause(); b?.pause(); } catch {}
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
       }
     };
     document.addEventListener("visibilitychange", onVis);
 
     const tick = () => {
+      if (!b) { raf = 0; return; }
       const dur = a.duration || 0;
       if (dur > 0 && bOffset) {
         const ta = a.currentTime;
@@ -101,23 +121,21 @@ export function SeamlessVideo({
       }
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    if (b) raf = requestAnimationFrame(tick);
 
     return () => {
       a.removeEventListener("loadedmetadata", onLoaded);
       a.removeEventListener("playing", onPlaying);
-      b.removeEventListener("playing", onPlaying);
+      if (b) b.removeEventListener("playing", onPlaying);
       a.removeEventListener("error", onError);
-      b.removeEventListener("error", onError);
+      if (b) b.removeEventListener("error", onError);
       document.removeEventListener("visibilitychange", onVis);
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
     };
-  }, [src, playbackRate]);
+  }, [src, playbackRate, skipVideo]);
 
   return (
     <>
-      {/* Always-on poster image: shown immediately, hidden once video plays.
-          If video fails or net is slow, the poster stays visible permanently. */}
       {poster && (
         <img
           src={poster}
@@ -125,37 +143,47 @@ export function SeamlessVideo({
           aria-hidden
           className={className}
           draggable={false}
+          loading="eager"
+          decoding="async"
           style={{
             ...style,
-            opacity: videoVisible && !videoFailed ? 0 : 1,
+            opacity: !skipVideo && videoVisible && !videoFailed ? 0 : 1,
             transition: "opacity 0.6s ease",
           }}
         />
       )}
-      <video
-        ref={aRef}
-        src={src}
-        poster={poster}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className={className}
-        style={{ ...style, opacity: videoFailed ? 0 : 1, display: videoFailed ? "none" : undefined }}
-      />
-      <video
-        ref={bRef}
-        src={src}
-        poster={poster}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className={className}
-        style={{ ...style, opacity: 0, display: videoFailed ? "none" : undefined }}
-      />
+      {!skipVideo && (
+        <>
+          <video
+            ref={aRef}
+            src={src}
+            poster={poster}
+            autoPlay
+            loop
+            muted
+            playsInline
+            // metadata-only fetch; the player streams as it plays so we don't
+            // pre-download multi-MB on weak networks.
+            preload="metadata"
+            className={className}
+            style={{ ...style, opacity: videoFailed ? 0 : 1, display: videoFailed ? "none" : undefined }}
+          />
+          {!singleVideo && (
+            <video
+              ref={bRef}
+              src={src}
+              poster={poster}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              className={className}
+              style={{ ...style, opacity: 0, display: videoFailed ? "none" : undefined }}
+            />
+          )}
+        </>
+      )}
     </>
   );
 }
