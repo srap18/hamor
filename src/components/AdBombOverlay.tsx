@@ -8,13 +8,17 @@ type AdBomb = {
   target_user_id: string;
   attacker_id: string;
   video_key: string;
+  started_at: string;
   expires_at: string;
   active: boolean;
 };
 
+const EXPLOSION_MS = 2200; // bomb FX duration before the video appears
+
 /**
- * Renders a fullscreen ad-bomb video overlay for `targetUserId`.
- * - Fills the mobile frame (object-cover) with full opacity + sound.
+ * Renders a fullscreen ad-bomb overlay for `targetUserId`.
+ * Phase 1 — bomb explosion (CSS fireball + shockwave, ~2.2s).
+ * Phase 2 — semi-transparent looping video for the rest of the hour.
  * - Sits below UI controls (back, chat, nav) so they stay tappable.
  * - Pauses background music while playing; restores on dismiss/expire.
  * - If `isOwner` is true, shows a "Remove for 100💎" button.
@@ -33,7 +37,9 @@ export function AdBombOverlay({
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
+  const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const lastBombId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!targetUserId) return;
@@ -42,7 +48,7 @@ export function AdBombOverlay({
     const load = async () => {
       const { data } = await supabase
         .from("ad_bombs" as never)
-        .select("id,target_user_id,attacker_id,video_key,expires_at,active")
+        .select("id,target_user_id,attacker_id,video_key,started_at,expires_at,active")
         .eq("target_user_id", targetUserId)
         .eq("active", true)
         .gt("expires_at", new Date().toISOString())
@@ -74,9 +80,26 @@ export function AdBombOverlay({
   }, []);
 
   const expiresMs = bomb ? new Date(bomb.expires_at).getTime() : 0;
+  const startedMs = bomb ? new Date(bomb.started_at).getTime() : 0;
   const isActive = !!bomb && !dismissed && expiresMs > now;
 
-  // Pause background music while the ad is on screen; restore when it goes away.
+  // Trigger the bomb explosion phase whenever a *new* bomb appears.
+  // (Late visitors who join after the explosion finished skip straight to the video.)
+  useEffect(() => {
+    if (!bomb || !isActive) return;
+    if (lastBombId.current === bomb.id) return;
+    lastBombId.current = bomb.id;
+    const elapsed = Date.now() - startedMs;
+    if (elapsed < EXPLOSION_MS) {
+      setPhase("explosion");
+      try { sound.play("nuke"); } catch { /* noop */ }
+      const t = setTimeout(() => setPhase("video"), EXPLOSION_MS - elapsed);
+      return () => clearTimeout(t);
+    }
+    setPhase("video");
+  }, [bomb, isActive, startedMs]);
+
+  // Pause background music while the ad is on screen.
   useEffect(() => {
     if (!isActive) return;
     sound.pauseForChat();
@@ -85,7 +108,7 @@ export function AdBombOverlay({
 
   // Try to autoplay with sound; fall back to a "tap to play" prompt if blocked.
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
     v.muted = false;
@@ -94,7 +117,7 @@ export function AdBombOverlay({
     if (p && typeof p.catch === "function") {
       p.catch(() => setNeedsTap(true));
     }
-  }, [isActive, bomb?.id]);
+  }, [isActive, phase, bomb?.id]);
 
   if (!isActive || !bomb) return null;
 
@@ -129,19 +152,37 @@ export function AdBombOverlay({
 
   return (
     <>
-      {/* Fullscreen video — z-30 sits above the harbor scene (z-10/20)
-          but below UI controls (z-40+) like back, chat, bottom nav. */}
-      <div className="fixed inset-0 z-30 pointer-events-none bg-black">
-        <video
-          ref={videoRef}
-          key={bomb.id}
-          src={video.src}
-          autoPlay
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      </div>
+      {phase === "explosion" ? (
+        /* Bomb explosion — fullscreen flash + nuke fireball + shockwaves */
+        <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 bg-white animate-fireball-nuke" style={{ opacity: 0.85 }} />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="relative w-72 h-72">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-yellow-200 via-orange-500 to-red-700 animate-fireball-nuke shadow-[0_0_120px_60px_rgba(255,140,0,0.9)]" />
+              <div className="absolute inset-[15%] rounded-full bg-gradient-to-b from-white via-yellow-300 to-orange-500 animate-fireball-nuke" />
+              <div className="absolute inset-0 rounded-full border-4 border-white/90 animate-shockwave-nuke" />
+              <div className="absolute inset-0 rounded-full border-2 border-orange-300/70 animate-shockwave-nuke" style={{ animationDelay: "0.15s" }} />
+              <div className="absolute inset-0 rounded-full border-2 border-yellow-200/60 animate-shockwave-nuke" style={{ animationDelay: "0.3s" }} />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl animate-pulse drop-shadow-[0_0_20px_rgba(255,0,0,0.9)]">📺💥</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Semi-transparent looping video — harbor stays partly visible behind it */
+        <div className="fixed inset-0 z-30 pointer-events-none">
+          <video
+            ref={videoRef}
+            key={bomb.id}
+            src={video.src}
+            autoPlay
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ opacity: 0.55 }}
+          />
+          <div className="absolute inset-0 bg-fuchsia-900/10" />
+        </div>
+      )}
 
       {/* Countdown + remove button (owner) — above the video, below dialogs */}
       <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">
@@ -166,7 +207,7 @@ export function AdBombOverlay({
       </div>
 
       {/* If autoplay-with-sound was blocked, prompt the user to tap once */}
-      {needsTap && (
+      {needsTap && phase === "video" && (
         <button
           onClick={handleTap}
           className="fixed inset-x-0 bottom-24 mx-auto z-[46] w-fit px-4 py-2 rounded-full bg-white/90 text-black text-xs font-bold shadow-lg pointer-events-auto"
