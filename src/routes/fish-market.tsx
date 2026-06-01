@@ -399,9 +399,15 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={forecastMap[sel.id] ?? []}
+          forecast={effForecastMap[sel.id] ?? []}
+          freezeActive={freezeActive}
+          freezeUntil={marketState.freeze_until}
+          traderActive={traderActiveGlobal}
+          traderUntil={marketState.trader_until}
+          rotPct={Math.round(rotMult(sel.id) * 100)}
           onBack={() => setSelected(null)}
           onSell={sell}
+          onPurchased={() => { loadMarketState(); refreshProfile(); }}
         />
       )}
 
