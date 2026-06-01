@@ -296,7 +296,9 @@ function Shop() {
                   ? "blue"
                   : tab === "recharge"
                     ? "violet"
-                    : "green"
+                    : tab === "backgrounds"
+                      ? "indigo"
+                      : "green"
             }
           />
         </div>
@@ -305,6 +307,8 @@ function Shop() {
         <div className="flex-1 overflow-y-auto px-1 pb-3">
           {tab === "recharge" ? (
             <RechargePanel />
+          ) : tab === "backgrounds" ? (
+            <BackgroundsPanel />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
@@ -322,7 +326,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
@@ -393,12 +397,13 @@ function Shop() {
 
 /* ───────────────── Components ───────────────── */
 
-function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" }) {
+function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" | "indigo" }) {
   const colors = {
     green: "from-emerald-500 to-emerald-700 border-emerald-300",
     orange: "from-orange-500 to-orange-700 border-orange-300",
     blue: "from-sky-500 to-sky-700 border-sky-300",
     violet: "from-violet-500 to-violet-700 border-violet-300",
+    indigo: "from-indigo-500 to-indigo-700 border-indigo-300",
   }[color];
   return (
     <div className="relative h-12 flex items-center justify-center">
