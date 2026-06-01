@@ -18,8 +18,17 @@ function getOrCreateDeviceId(): string {
   }
 }
 
-function newSessionToken(): string {
-  return crypto.randomUUID() + "-" + Date.now().toString(36);
+function getOrCreateSessionToken(): string {
+  try {
+    let t = localStorage.getItem(SESSION_KEY);
+    if (!t) {
+      t = crypto.randomUUID() + "-" + Date.now().toString(36);
+      localStorage.setItem(SESSION_KEY, t);
+    }
+    return t;
+  } catch {
+    return crypto.randomUUID();
+  }
 }
 
 export type SecurityBlock =
