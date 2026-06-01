@@ -1142,6 +1142,7 @@ export type Database = {
       redemption_codes: {
         Row: {
           active: boolean
+          archived_at: string | null
           code: string
           created_at: string
           created_by: string | null
@@ -1161,6 +1162,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          archived_at?: string | null
           code: string
           created_at?: string
           created_by?: string | null
@@ -1180,6 +1182,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          archived_at?: string | null
           code?: string
           created_at?: string
           created_by?: string | null
@@ -2154,10 +2157,40 @@ export type Database = {
         Args: { _pts: number; _user: string }
         Returns: undefined
       }
+      admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       admin_delete_voice_room: {
         Args: { _room_id: string }
         Returns: undefined
+      }
+      admin_find_codes: {
+        Args: { _q: string }
+        Returns: {
+          active: boolean
+          archived_at: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          extra_rewards: Json
+          id: string
+          item_id: string | null
+          item_kind: string | null
+          max_uses: number
+          note: string
+          quantity: number
+          reward_coins: number
+          reward_gems: number
+          reward_type: string
+          reward_xp: number
+          uses_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "redemption_codes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
@@ -2176,10 +2209,12 @@ export type Database = {
         Args: { _coins: number; _gems: number; _xp: number }
         Returns: number
       }
-      admin_revoke_redemption: {
-        Args: { _code_id: string; _user_id: string }
-        Returns: Json
-      }
+      admin_revoke_redemption:
+        | { Args: { _code_id: string; _user_id: string }; Returns: Json }
+        | {
+            Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
+            Returns: Json
+          }
       admin_set_player_currency: {
         Args: {
           _coins: number

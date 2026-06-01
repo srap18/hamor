@@ -76,6 +76,7 @@ type CodeRow = {
   note: string;
   created_at: string;
   extra_rewards: ExtraReward[] | null;
+  archived_at?: string | null;
 };
 
 function randomCode(len = 8): string {
@@ -143,6 +144,7 @@ function AdminCodesPage() {
     const { data, error } = await supabase
       .from("redemption_codes")
       .select("*")
+      .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (error) toast.error("فشل تحميل الأكواد");
     setCodes((data ?? []) as CodeRow[]);
@@ -238,10 +240,10 @@ function AdminCodesPage() {
   };
 
   const deleteCode = async (row: CodeRow) => {
-    if (!confirm(`حذف الكود ${row.code}؟`)) return;
-    const { error } = await supabase.from("redemption_codes").delete().eq("id", row.id);
+    if (!confirm(`أرشفة الكود ${row.code}؟ سيختفي من القائمة، لكنك تقدر تجده من البحث وتسحب جوائزه من اللاعبين.`)) return;
+    const { error } = await (supabase as any).rpc("admin_archive_code", { _code_id: row.id });
     if (error) return toast.error(error.message);
-    toast.success("تم الحذف");
+    toast.success("📦 تم الأرشفة");
     loadCodes();
   };
 
@@ -253,14 +255,14 @@ function AdminCodesPage() {
       return expired || exhausted;
     });
     if (dead.length === 0) {
-      toast.info("لا يوجد أكواد منتهية أو مستنفدة للحذف");
+      toast.info("لا يوجد أكواد منتهية أو مستنفدة");
       return;
     }
-    if (!confirm(`حذف ${dead.length} كود منتهي/مستنفد؟ لا يمكن التراجع.`)) return;
-    const ids = dead.map((c) => c.id);
-    const { error } = await supabase.from("redemption_codes").delete().in("id", ids);
-    if (error) return toast.error(error.message);
-    toast.success(`✅ تم حذف ${dead.length} كود`);
+    if (!confirm(`أرشفة ${dead.length} كود منتهي/مستنفد؟ يقدر يرجع من البحث.`)) return;
+    for (const c of dead) {
+      await (supabase as any).rpc("admin_archive_code", { _code_id: c.id });
+    }
+    toast.success(`✅ تم أرشفة ${dead.length} كود`);
     loadCodes();
   };
 
@@ -791,6 +793,9 @@ function AdminCodesPage() {
         </button>
       </div>
 
+      {/* ───────── البحث عن كود مؤرشف ───────── */}
+      <ArchivedLookup onOpenRedemptions={setRedemptionsFor} />
+
       {/* ───────── قائمة الأكواد ───────── */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
         <div className="px-3 py-2 text-sm font-bold text-slate-300 border-b border-slate-800 flex items-center justify-between gap-2">
@@ -909,9 +914,9 @@ function RedemptionsModal({ code, onClose, onChanged }: { code: CodeRow; onClose
   useEffect(() => { load(); }, [load]);
 
   const revoke = async (userId: string, name: string) => {
-    if (!confirm(`إلغاء استخدام الكود من ${name}؟ سيقدر يستخدمه مرة ثانية. (المكافآت التي حصل عليها لن تُسترد تلقائياً)`)) return;
+    if (!confirm(`إلغاء استخدام الكود من ${name}؟\n\nسيتم سحب كل الجوائز التي حصل عليها (ذهب/جواهر/خبرة/عناصر/سفن) ويصير الكود متاحاً له من جديد.`)) return;
     setBusy(userId);
-    const { error } = await (supabase as any).rpc("admin_revoke_redemption", { _code_id: code.id, _user_id: userId });
+    const { error } = await (supabase as any).rpc("admin_revoke_redemption", { _code_id: code.id, _user_id: userId, _reclaim: true });
     setBusy(null);
     if (error) return toast.error(error.message);
     toast.success("✅ تم إلغاء الاستخدام");
@@ -957,7 +962,7 @@ function RedemptionsModal({ code, onClose, onChanged }: { code: CodeRow; onClose
           )}
         </div>
         <div className="px-4 py-2 border-t border-slate-800 text-[11px] text-slate-500">
-          إلغاء الاستخدام يمسح السجل ويرجع العدّاد، فيقدر اللاعب يستخدم الكود من جديد.
+          الإلغاء يسحب كل جوائز الكود من اللاعب (ذهب/جواهر/خبرة/عناصر/سفن) ويُعيد له حق الاستخدام.
         </div>
       </div>
     </div>
@@ -976,5 +981,72 @@ function NumField({ label, value, onChange, min = 0 }: { label: string; value: n
         className="w-full bg-slate-800 border border-slate-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
       />
     </label>
+  );
+}
+
+function ArchivedLookup({ onOpenRedemptions }: { onOpenRedemptions: (c: CodeRow) => void }) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<CodeRow[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const search = async () => {
+    const term = q.trim();
+    if (!term) return;
+    setSearching(true);
+    const { data, error } = await (supabase as any).rpc("admin_find_codes", { _q: term.toUpperCase() });
+    setSearching(false);
+    if (error) return toast.error(error.message);
+    setResults((data ?? []) as CodeRow[]);
+  };
+
+  return (
+    <div className="rounded-xl border border-amber-800/60 bg-amber-950/20 p-3 md:p-4 space-y-2">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between text-sm font-bold text-amber-200">
+        <span>🔍 البحث عن كود (يشمل المحذوفة/المؤرشفة)</span>
+        <span>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <>
+          <div className="flex gap-2">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && search()}
+              placeholder="ادخل الكود أو جزء منه..."
+              className="flex-1 bg-slate-900 border border-amber-700 rounded-md px-3 py-2 text-sm font-mono text-amber-100"
+            />
+            <button
+              onClick={search}
+              disabled={searching || !q.trim()}
+              className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm disabled:opacity-50"
+            >{searching ? "..." : "بحث"}</button>
+          </div>
+          {results.length > 0 && (
+            <div className="space-y-1.5 max-h-72 overflow-y-auto">
+              {results.map((c) => (
+                <div key={c.id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <code className="font-mono font-bold text-amber-200">{c.code}</code>
+                      {c.archived_at && <span className="text-[10px] px-2 py-0.5 rounded bg-stone-700 text-stone-200">📦 مؤرشف</span>}
+                      <span className="text-[11px] text-slate-400">استُخدم {c.uses_count}×</span>
+                    </div>
+                    {c.note && <div className="text-[11px] text-slate-500 truncate">{c.note}</div>}
+                  </div>
+                  <button
+                    onClick={() => onOpenRedemptions(c)}
+                    className="text-xs px-3 py-1.5 rounded-md bg-indigo-700 hover:bg-indigo-600 text-white font-bold"
+                  >👥 المستخدمون</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {q && !searching && results.length === 0 && (
+            <div className="text-xs text-slate-500 text-center p-2">لم يتم البحث بعد أو لا نتائج</div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
