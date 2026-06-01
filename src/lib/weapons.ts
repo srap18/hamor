@@ -65,4 +65,14 @@ export const WEAPONS: Weapon[] = [
     aoe: true,
     desc: "تصيب جميع سفن الخصم بـ 70,000 ضرر لكل سفينة",
   },
+  {
+    id: "ad_bomb",
+    name: "قنبلة إعلانية",
+    emoji: "📺",
+    price: 500,
+    currency: "gems",
+    damage: 0,
+    rarity: "epic",
+    desc: "تعرض إعلانًا فوق محيط الخصم لمدة ساعة — يراه الجميع",
+  },
 ];
