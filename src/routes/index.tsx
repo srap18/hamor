@@ -1280,18 +1280,28 @@ function Index() {
                       onClick={async () => {
                         setMenuShipId(null);
                         if (!s.dbId) return;
-                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId });
+                        const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
                         if (error) { showToast("تعذّر استلام الغنيمة"); return; }
-                        const row = Array.isArray(data) && data[0] ? data[0] : null;
-                        const n = row?.stolen_count ?? 0;
-                        const v = row?.total_value ?? 0;
-                        sound.play(n > 0 ? "catch" : "click");
-                        showToast(n > 0 ? `🐟 سرقت ${n} سمكة (قيمتها ${v})` : "السفينة رجعت فاضية 🪶");
+                        presentStealResult(data, false);
                         syncFleetFromDb();
                       }}
                     >🏴‍☠️ استلم الغنيمة</button>
                   ) : (
-                    <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                    <>
+                      <div className="text-rose-300/80 text-xs">ترجع بعد {Math.floor(stealSecsLeft / 60)}:{String(stealSecsLeft % 60).padStart(2, "0")}</div>
+                      <button
+                        className="mt-1 px-3 py-1.5 rounded-lg bg-gradient-to-b from-rose-500 to-rose-700 text-white text-[11px] font-bold active:scale-95 border border-rose-300/40"
+                        onClick={async () => {
+                          setMenuShipId(null);
+                          if (!s.dbId) return;
+                          if (!confirm("إيقاف السرقة الآن؟ ستأخذ الغنيمة الحالية فقط.")) return;
+                          const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: true });
+                          if (error) { showToast("تعذّر إيقاف السرقة"); return; }
+                          presentStealResult(data, true);
+                          syncFleetFromDb();
+                        }}
+                      >🛑 أوقف السرقة الآن</button>
+                    </>
                   )}
                 </div>
               )}
