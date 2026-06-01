@@ -1126,6 +1126,7 @@ export type Database = {
           selected_bg_id: string
           steal_blocked_until: string | null
           tribe_id: string | null
+          vip_expires_at: string | null
           vip_level: number
           vip_points: number
           xp: number
@@ -1150,6 +1151,7 @@ export type Database = {
           selected_bg_id?: string
           steal_blocked_until?: string | null
           tribe_id?: string | null
+          vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
           xp?: number
@@ -1174,6 +1176,7 @@ export type Database = {
           selected_bg_id?: string
           steal_blocked_until?: string | null
           tribe_id?: string | null
+          vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
           xp?: number
@@ -1244,6 +1247,8 @@ export type Database = {
           reward_coins: number
           reward_gems: number
           reward_type: string
+          reward_vip_days: number
+          reward_vip_level: number
           reward_xp: number
           uses_count: number
         }
@@ -1264,6 +1269,8 @@ export type Database = {
           reward_coins?: number
           reward_gems?: number
           reward_type: string
+          reward_vip_days?: number
+          reward_vip_level?: number
           reward_xp?: number
           uses_count?: number
         }
@@ -1284,6 +1291,8 @@ export type Database = {
           reward_coins?: number
           reward_gems?: number
           reward_type?: string
+          reward_vip_days?: number
+          reward_vip_level?: number
           reward_xp?: number
           uses_count?: number
         }
@@ -2067,6 +2076,33 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_daily_claims: {
+        Row: {
+          claim_date: string
+          claimed_at: string
+          gems_awarded: number
+          id: string
+          user_id: string
+          vip_level: number
+        }
+        Insert: {
+          claim_date: string
+          claimed_at?: string
+          gems_awarded: number
+          id?: string
+          user_id: string
+          vip_level: number
+        }
+        Update: {
+          claim_date?: string
+          claimed_at?: string
+          gems_awarded?: number
+          id?: string
+          user_id?: string
+          vip_level?: number
+        }
+        Relationships: []
+      }
       voice_room_messages: {
         Row: {
           created_at: string
@@ -2320,6 +2356,8 @@ export type Database = {
           reward_coins: number
           reward_gems: number
           reward_type: string
+          reward_vip_days: number
+          reward_vip_level: number
           reward_xp: number
           uses_count: number
         }[]
@@ -2522,6 +2560,7 @@ export type Database = {
           total_value: number
         }[]
       }
+      claim_vip_daily: { Args: never; Returns: Json }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
@@ -2545,6 +2584,7 @@ export type Database = {
         Returns: Json
       }
       drop_my_protection: { Args: never; Returns: undefined }
+      effective_vip_level: { Args: { _user: string }; Returns: number }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
@@ -2795,6 +2835,10 @@ export type Database = {
           _user: string
           _vip_days: number
         }
+        Returns: Json
+      }
+      grant_vip: {
+        Args: { _days: number; _level: number; _user: string }
         Returns: Json
       }
       has_bought_starter: { Args: { _user: string }; Returns: boolean }

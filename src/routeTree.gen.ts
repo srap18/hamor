@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VipRouteImport } from './routes/vip'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -46,6 +47,11 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const VipRoute = VipRouteImport.update({
+  id: '/vip',
+  path: '/vip',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
@@ -483,12 +495,20 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  VipRoute: typeof VipRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vip': {
+      id: '/vip'
+      path: '/vip'
+      fullPath: '/vip'
+      preLoaderRoute: typeof VipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -797,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  VipRoute: VipRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
