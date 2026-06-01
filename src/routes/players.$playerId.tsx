@@ -749,9 +749,9 @@ function PlayerPage() {
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
-          top = `${tTop + 2 + sibIdx * 7}%`;
-          // Place next to the target ship's base slot, clamped on-screen.
-          left = `${Math.max(2, Math.min(96 - tShipW, dockLeft + 12))}%`;
+          // Hug the right edge of the target ship and stack siblings vertically downward
+          top = `${tTop + sibIdx * 8}%`;
+          left = `${Math.max(2, Math.min(96 - 10, dockLeft + tShipW * 0.55))}%`;
         } else {
           top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
