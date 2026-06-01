@@ -21,7 +21,20 @@ export const Route = createFileRoute("/chat")({
 
 type Channel = "public" | "tribe" | "dm" | "voice";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null };
-type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null };
+type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null };
+
+function VipBadge({ level, expiresAt }: { level?: number | null; expiresAt?: string | null }) {
+  if (!level || level < 1) return null;
+  if (expiresAt && new Date(expiresAt) < new Date()) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold border shadow-[0_0_8px_rgba(251,191,36,0.55)] bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-700 text-stone-950 border-amber-200/80"
+      title={`VIP ${level}`}
+    >
+      <span>👑</span><span>VIP{level}</span>
+    </span>
+  );
+}
 
 function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   const style = { width: size, height: size };
@@ -45,6 +58,7 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
   const lvl = typeof p?.level === "number" ? p.level : null;
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
+      <VipBadge level={p?.vip_level} expiresAt={p?.vip_expires_at} />
       <span>{p?.display_name || "..."}</span>
       {lvl !== null && (
         <span className="text-[9px] px-1 rounded bg-black/40 text-amber-200 border border-amber-300/40">Lv {lvl}</span>
