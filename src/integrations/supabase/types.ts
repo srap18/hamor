@@ -2768,7 +2768,9 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          coins: number
           display_name: string
+          gems: number
           id: string
           level: number
           name_frame: string
