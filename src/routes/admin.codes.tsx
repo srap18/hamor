@@ -502,6 +502,10 @@ function AdminCodesPage() {
         </div>
       </div>
 
+      {/* ───────── إنشاء كود VIP ───────── */}
+      <VipCodeCreator onCreated={loadCodes} />
+
+
       {/* ───────── الإنشاء المجمّع (كود واحد = عدة عناصر) ───────── */}
       <div className="rounded-xl border border-fuchsia-800/60 bg-fuchsia-950/30 p-3 md:p-4 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
