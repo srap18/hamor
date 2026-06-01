@@ -739,6 +739,9 @@ function PlayerPage() {
       {raiders.map((r, i) => {
         const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
         const tIdx = ships.findIndex((s) => s.id === r.stealing_target_ship_id);
+        // Stack multiple raiders that share the same target ship vertically
+        const siblings = raiders.filter((x) => x.stealing_target_ship_id && x.stealing_target_ship_id === r.stealing_target_ship_id);
+        const sibIdx = Math.max(0, siblings.findIndex((x) => x.id === r.id));
         let top: string; let left: string;
         if (tIdx >= 0) {
           void ships[tIdx];
@@ -746,7 +749,7 @@ function PlayerPage() {
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
-          top = `${tTop + 2}%`;
+          top = `${tTop + 2 + sibIdx * 7}%`;
           // Place next to the target ship's base slot, clamped on-screen.
           left = `${Math.max(2, Math.min(96 - tShipW, dockLeft + 12))}%`;
         } else {
