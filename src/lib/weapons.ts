@@ -14,10 +14,12 @@ export type Weapon = {
   price: number;
   currency: "coins" | "gems";
   damage: number;
+  xp: number; // XP awarded to attacker per ship hit
   rarity: "common" | "rare" | "epic" | "legendary";
   aoe?: boolean; // true = hits every ship in the target fleet (nuke)
   desc?: string;
 };
+
 
 export const WEAPONS: Weapon[] = [
   {
