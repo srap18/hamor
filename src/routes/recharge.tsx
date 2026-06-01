@@ -155,7 +155,7 @@ function RechargePage() {
       </header>
 
       {/* Tabs */}
-      <div className="px-2 pt-2 grid grid-cols-4 gap-1.5">
+      <div className="px-2 pt-2 grid grid-cols-5 gap-1.5">
         {TABS.map((t) => (
           <button
             key={t.id}
