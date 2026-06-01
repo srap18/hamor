@@ -27,6 +27,7 @@ import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 
 import { frameById } from "@/lib/frames";
+import { rankTier } from "@/lib/rank-tiers";
 
 
 
