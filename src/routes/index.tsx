@@ -1615,15 +1615,17 @@ function Index() {
                   const canAssign = owned && (isFixer ? true : (assignedRows.length < slots && !alreadyOnShip));
                   const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
 
-                  const buyCrew = async () => {
-                    if (crewBusyRef.current) return;
+                  const buyCrew = () => {
                     if (!canAfford) {
                       sound.play("error");
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
-                    crewBusyRef.current = true;
-                    try {
+                    // Instant feedback
+                    sound.play("coin");
+                    setToast(`✓ تم شراء ${c.name}`);
+                    // Fire-and-forget purchase
+                    (async () => {
                       const { error } = c.currency === "gems"
                         ? await buyWithGems(cid, "crew", c.price, undefined, 1)
                         : await buyWithCoins(cid, "crew", c.price, undefined, 1);
@@ -1632,15 +1634,10 @@ function Index() {
                         setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
                         return;
                       }
-                      sound.play("coin");
-                      sound.play("success");
-                      setToast(`✓ تم شراء ${c.name}`);
                       refreshProfile();
-                      await reloadCrews();
+                      reloadCrews();
                       setCrewTick((t) => t + 1);
-                    } finally {
-                      crewBusyRef.current = false;
-                    }
+                    })();
                   };
 
                   return (
