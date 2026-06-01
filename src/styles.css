@@ -371,6 +371,56 @@
     100% { transform: translate(-50%, -120%) scale(2.8); opacity: 0; }
   }
   .animate-mushroom-cap { animation: mushroom-cap 2.4s cubic-bezier(.2,.6,.3,1) forwards; }
+
+  /* === 3D Cinematic explosion enhancements === */
+  @keyframes screen-shake {
+    0%,100% { transform: translate(0,0); }
+    10% { transform: translate(-6px, 4px); }
+    20% { transform: translate(7px, -5px); }
+    30% { transform: translate(-5px, -3px); }
+    40% { transform: translate(6px, 6px); }
+    50% { transform: translate(-4px, 3px); }
+    60% { transform: translate(5px, -4px); }
+    70% { transform: translate(-3px, 2px); }
+    80% { transform: translate(3px, -2px); }
+    90% { transform: translate(-1px, 1px); }
+  }
+  .animate-screen-shake { animation: screen-shake 0.55s cubic-bezier(.36,.07,.19,.97) both; }
+  .animate-screen-shake-nuke { animation: screen-shake 1.1s cubic-bezier(.36,.07,.19,.97) both; }
+
+  @keyframes ground-shock {
+    0%   { transform: translate(-50%,-50%) scale(0.1) rotateX(75deg); opacity: 0.95; border-width: 6px; }
+    100% { transform: translate(-50%,-50%) scale(4) rotateX(75deg);   opacity: 0;    border-width: 1px; }
+  }
+  .animate-ground-shock { animation: ground-shock 0.9s cubic-bezier(.2,.7,.3,1) forwards; transform-style: preserve-3d; }
+  .animate-ground-shock-nuke { animation: ground-shock 1.4s cubic-bezier(.2,.7,.3,1) forwards; transform-style: preserve-3d; }
+
+  @keyframes smoke-puff-3d {
+    0%   { transform: translate(var(--dx,0), var(--dy,0)) scale(0.3) rotate(0deg); opacity: 0; }
+    20%  { opacity: 0.85; }
+    100% { transform: translate(calc(var(--dx,0) * 1.6), calc(var(--dy,0) * 1.6 - 60px)) scale(2.2) rotate(180deg); opacity: 0; }
+  }
+  .animate-smoke-puff-3d { animation: smoke-puff-3d 1.6s ease-out forwards; }
+
+  @keyframes lens-flare {
+    0% { opacity: 0; transform: scale(0.3); }
+    10% { opacity: 1; transform: scale(1.1); }
+    50% { opacity: 0.7; transform: scale(1.3); }
+    100% { opacity: 0; transform: scale(1.8); }
+  }
+  .animate-lens-flare { animation: lens-flare 0.9s ease-out forwards; }
+
+  @keyframes rocket-thrust-pulse {
+    0%,100% { transform: scaleX(1) scaleY(1); opacity: 0.95; }
+    50%     { transform: scaleX(1.3) scaleY(0.75); opacity: 1; }
+  }
+  .animate-rocket-thrust { animation: rocket-thrust-pulse 0.08s ease-in-out infinite; }
+
+  @keyframes smoke-trail-fade {
+    0% { opacity: 0.85; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(2.4); }
+  }
+  .animate-smoke-trail-fade { animation: smoke-trail-fade 1.4s ease-out forwards; }
 }
 
 
