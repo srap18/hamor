@@ -342,7 +342,7 @@ function PlayerPage() {
       "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
     );
     if (!ok) return false;
-    const { error } = await supabase.from("profiles").update({ protection_until: null } as any).eq("id", me);
+    const { error } = await (supabase as any).rpc("drop_my_protection");
     if (error) { flash("تعذّر إزالة الدرع"); return false; }
     setMyProtectionUntil(null);
     return true;

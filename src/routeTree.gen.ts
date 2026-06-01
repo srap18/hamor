@@ -43,6 +43,7 @@ import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const TermsRoute = TermsRouteImport.update({
@@ -215,6 +216,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAntiCheatRoute = AdminAntiCheatRouteImport.update({
+  id: '/anti-cheat',
+  path: '/anti-cheat',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/anti-cheat'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -715,6 +727,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/anti-cheat': {
+      id: '/admin/anti-cheat'
+      path: '/anti-cheat'
+      fullPath: '/admin/anti-cheat'
+      preLoaderRoute: typeof AdminAntiCheatRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -726,6 +745,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAntiCheatRoute: typeof AdminAntiCheatRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCodesRoute: typeof AdminCodesRoute
@@ -738,6 +758,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAntiCheatRoute: AdminAntiCheatRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCodesRoute: AdminCodesRoute,
