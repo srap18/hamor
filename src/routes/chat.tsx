@@ -547,8 +547,13 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
               className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
               🗑️ حذف كل رسائله
             </button>
+            <button onClick={adminRedeemCodeFor} disabled={busy}
+              className="w-full py-2 rounded-lg bg-emerald-700 text-white font-bold text-sm disabled:opacity-50">
+              🎁 تفعيل كود لهذا اللاعب
+            </button>
           </div>
         )}
+
 
         {msg && <div className="text-xs text-amber-300 text-center">{msg}</div>}
         <button onClick={onClose} className="w-full py-2 rounded-lg bg-stone-800 text-amber-200 font-bold text-sm">إغلاق</button>
