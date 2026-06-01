@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_links: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          link_type: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          link_type: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          link_type?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           active: boolean
@@ -235,6 +262,42 @@ export type Database = {
           id?: string
           muted_by?: string | null
           reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cheat_flags: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: number
           user_id?: string
         }
         Relationships: []
@@ -1899,6 +1962,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_ips: {
+        Row: {
+          first_seen: string
+          hits: number
+          ip: string
+          last_seen: string
+          user_id: string
+        }
+        Insert: {
+          first_seen?: string
+          hits?: number
+          ip: string
+          last_seen?: string
+          user_id: string
+        }
+        Update: {
+          first_seen?: string
+          hits?: number
+          ip?: string
+          last_seen?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_market: {
         Row: {
           created_at: string
@@ -2454,6 +2541,7 @@ export type Database = {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json
       }
+      drop_my_protection: { Args: never; Returns: undefined }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
@@ -2473,6 +2561,15 @@ export type Database = {
           cost_coins: number
           seconds: number
         }[]
+      }
+      flag_cheat: {
+        Args: {
+          _details?: Json
+          _kind: string
+          _severity: number
+          _user: string
+        }
+        Returns: undefined
       }
       get_active_competitions: {
         Args: never
@@ -2896,6 +2993,7 @@ export type Database = {
         Returns: Json
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
+      users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
