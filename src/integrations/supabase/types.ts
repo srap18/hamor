@@ -1908,6 +1908,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_market_state: {
+        Row: {
+          freeze_until: string | null
+          frozen_prices: Json
+          trader_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          freeze_until?: string | null
+          frozen_prices?: Json
+          trader_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          freeze_until?: string | null
+          frozen_prices?: Json
+          trader_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -2259,6 +2283,7 @@ export type Database = {
         Returns: undefined
       }
       buy_lootbox: { Args: { _type_id: string }; Returns: string }
+      buy_market_freeze: { Args: { _hours: number }; Returns: string }
       buy_phoenix_pack_1: { Args: never; Returns: string }
       buy_phoenix_pack_3: { Args: never; Returns: string[] }
       buy_protection: {
@@ -2275,6 +2300,7 @@ export type Database = {
         }
         Returns: string
       }
+      buy_trader_unlock: { Args: never; Returns: string }
       buy_with_coins:
         | {
             Args: {
