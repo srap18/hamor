@@ -2,6 +2,8 @@ import celestialColosseumBg from "@/assets/bg-celestial-colosseum.png";
 import celestialColosseumBurnedBg from "@/assets/bg-celestial-colosseum-burned.png";
 import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
+import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
+import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.json";
 import celestialColosseumBurnedVideo from "@/assets/bg-celestial-colosseum-burned.mp4.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
