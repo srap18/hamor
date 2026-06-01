@@ -46,6 +46,7 @@ import poseidon from "@/assets/fish/poseidon.png";
 import black_pearl from "@/assets/fish/black_pearl.png";
 import golden_koi from "@/assets/fish/golden_koi.png";
 import phoenix from "@/assets/fish/phoenix.png";
+import abyss_titan from "@/assets/fish/abyss_titan.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
@@ -54,7 +55,7 @@ export const FISH_IMG: Record<string, string> = {
   marlin, swordfish, sailfish, barracuda, stingray, shark, tang_blue, koi,
   manta, hammerhead, whale, orca, arowana, goldfish, pearl,
   kraken, leviathan, megalodon, sea_dragon, poseidon, black_pearl, golden_koi,
-  phoenix,
+  phoenix, abyss_titan,
 };
 
 export type Fish = {
@@ -130,6 +131,9 @@ const FISH_DEFS: Record<string, FishDef> = {
 
   // ========== EXCLUSIVE — حصرية لسفينة العنقاء ==========
   phoenix:    { id: "phoenix",    name: "عنقاء النار",   emoji: "🔥", price: 11,  tier: 6, rarity: "mythic" },
+
+  // ========== EXCLUSIVE — حصرية للغواصة الملكية VIP ==========
+  abyss_titan:{ id: "abyss_titan",name: "تيتان الأعماق", emoji: "🔱", price: 60,  tier: 6, rarity: "mythic" },
 };
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
@@ -143,9 +147,10 @@ export const FISH_TOTAL = FISH_LIST.length;
 // Each ship tier catches 2 fish from its tier (rotated based on ship id).
 // Phoenix ship (level 31) is exclusive — only catches phoenix fish.
 export function fishForShip(shipLevel: number, shipId: number): string[] {
+  if (shipLevel >= 32) return ["abyss_titan"];
   if (shipLevel >= 31) return ["phoenix"];
   const tier = Math.min(6, Math.max(1, Math.ceil(shipLevel / 5))) as 1|2|3|4|5|6;
-  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix");
+  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan");
   if (pool.length === 0) return [];
   const a = pool[shipId % pool.length].id;
   const b = pool[(shipId + 3) % pool.length].id;
