@@ -8,6 +8,8 @@ import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.j
 import celestialColosseumBurnedVideo from "@/assets/bg-celestial-colosseum-burned.mp4.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
+import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
+import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
 
 export type SceneBg = {
   id: string;
