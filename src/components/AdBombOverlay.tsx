@@ -216,7 +216,7 @@ export function AdBombOverlay({
               disabled={removing}
               className="ms-1 px-2 py-1 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 text-white text-[10px] font-extrabold active:scale-95 disabled:opacity-50"
             >
-              إزالة 💎100
+              إزالة 💎150
             </button>
           )}
         </div>
