@@ -1462,12 +1462,21 @@ function Index() {
                 destroyed_at: null,
                 repair_ends_at: null,
               };
-              await (supabase as any).from("ships_owned").update(patch).eq("id", ship.dbId);
+              const { error } = await (supabase as any)
+                .from("ships_owned")
+                .update(patch)
+                .eq("id", ship.dbId);
+              if (error) {
+                setToast(`فشل الإصلاح: ${error.message ?? "خطأ"}`);
+                sound.play("error");
+                return 0;
+              }
               setShips((arr) => arr.map((x) => x.id === ship.id
                 ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null }
                 : x));
               return newHp - curHp;
             };
+
 
 
             try {
