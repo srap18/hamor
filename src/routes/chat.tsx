@@ -482,6 +482,32 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
     await logAudit("delete_user_messages", { name: target.display_name });
   };
 
+  const adminRedeemCodeFor = async () => {
+    const code = prompt(`تفعيل كود لـ ${target.display_name}\nأدخل الكود:`, "");
+    if (!code || !code.trim()) return;
+    setBusy(true); setMsg(null);
+    const { data, error } = await (supabase as any).rpc("admin_redeem_code_for", {
+      p_code: code.trim(),
+      p_target_user: target.id,
+    });
+    setBusy(false);
+    if (error) {
+      const map: Record<string, string> = {
+        invalid_code: "كود غير صحيح",
+        code_disabled: "الكود معطّل",
+        code_expired: "الكود منتهي",
+        code_exhausted: "الكود استنفد",
+        already_redeemed: "تم تفعيله مسبقاً لهذا اللاعب",
+        admin_only: "للأدمن فقط",
+      };
+      const key = (error.message || "").match(/[a-z_]+/)?.[0] || "";
+      setMsg(map[key] || error.message);
+    } else {
+      setMsg(`✅ تم تفعيل الكود "${(data as any)?.code || code}" لـ ${target.display_name}`);
+    }
+  };
+
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl" onClick={onClose}>
       <div className="w-full max-w-xs bg-stone-950 border-2 border-amber-600 rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
