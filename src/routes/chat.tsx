@@ -28,10 +28,14 @@ function VipBadge({ level, expiresAt }: { level?: number | null; expiresAt?: str
   if (expiresAt && new Date(expiresAt) < new Date()) return null;
   return (
     <span
-      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold border shadow-[0_0_8px_rgba(251,191,36,0.55)] bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-700 text-stone-950 border-amber-200/80"
+      className="relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide overflow-hidden border border-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.7),inset_0_1px_0_rgba(255,255,255,0.6)] bg-[linear-gradient(135deg,#7a4b00_0%,#f5c84b_25%,#fff3a8_50%,#f5c84b_75%,#7a4b00_100%)] text-stone-950"
+      style={{ backgroundSize: "200% 100%", animation: "vipShine 2.6s linear infinite" }}
       title={`VIP ${level}`}
     >
-      <span>👑</span><span>VIP{level}</span>
+      <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]">👑</span>
+      <span className="font-extrabold">VIP</span>
+      <span className="px-1 rounded-sm bg-stone-950/80 text-amber-300 text-[9px] leading-tight">{level}</span>
+      <style>{`@keyframes vipShine { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
     </span>
   );
 }
