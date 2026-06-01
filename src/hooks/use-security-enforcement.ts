@@ -50,6 +50,9 @@ export function useSecurityEnforcement(): SecurityBlock | null {
       if (devErr) {
         const msg = devErr.message || "";
         let friendly = "هذا الجهاز مرتبط بحساب آخر — لا يمكن استخدام أكثر من حساب على نفس الجهاز";
+        if (msg.includes("device banned") || msg.includes("account banned")) {
+          friendly = "هذا الحساب أو الجهاز محظور نهائياً من الدخول";
+        }
         if (msg.includes("account already bound")) {
           friendly = "حسابك مسجّل على جهاز آخر — لا يمكن الدخول من جهازين";
         }
@@ -63,7 +66,8 @@ export function useSecurityEnforcement(): SecurityBlock | null {
       const { error: sessErr } = await (supabase as any).rpc("claim_session", { _token: localToken });
       if (cancelled) return;
       if (sessErr) {
-        setBlock({ kind: "kicked", message: "فشل تأمين الجلسة — حاول مجدداً" });
+        const msg = sessErr.message || "";
+        setBlock({ kind: "kicked", message: msg.includes("banned") ? "هذا الحساب محظور نهائياً من الدخول" : "فشل تأمين الجلسة — حاول مجدداً" });
         return;
       }
 
