@@ -18,8 +18,17 @@ function getOrCreateDeviceId(): string {
   }
 }
 
-function newSessionToken(): string {
-  return crypto.randomUUID() + "-" + Date.now().toString(36);
+function getOrCreateSessionToken(): string {
+  try {
+    let t = localStorage.getItem(SESSION_KEY);
+    if (!t) {
+      t = crypto.randomUUID() + "-" + Date.now().toString(36);
+      localStorage.setItem(SESSION_KEY, t);
+    }
+    return t;
+  } catch {
+    return crypto.randomUUID();
+  }
 }
 
 export type SecurityBlock =
@@ -39,35 +48,33 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     if (!user) { setBlock(null); return; }
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    const localToken = newSessionToken();
+    const localToken = getOrCreateSessionToken();
 
     (async () => {
       const deviceId = getOrCreateDeviceId();
 
-      // 1) Device binding check
+      // 1) Device binding check (non-blocking on failure to avoid lockouts)
       const { error: devErr } = await (supabase as any).rpc("register_device", { _device_id: deviceId });
       if (cancelled) return;
       if (devErr) {
         const msg = devErr.message || "";
-        let friendly = "هذا الجهاز مرتبط بحساب آخر — لا يمكن استخدام أكثر من حساب على نفس الجهاز";
+        // Only hard-block on explicit ban; ignore "already bound" to avoid locking real users out
         if (msg.includes("device banned") || msg.includes("account banned")) {
-          friendly = "هذا الحساب أو الجهاز محظور نهائياً من الدخول";
+          setBlock({ kind: "device_taken", message: "هذا الحساب أو الجهاز محظور نهائياً من الدخول" });
+          return;
         }
-        if (msg.includes("account already bound")) {
-          friendly = "حسابك مسجّل على جهاز آخر — لا يمكن الدخول من جهازين";
-        }
-        setBlock({ kind: "device_taken", message: friendly });
-        await supabase.auth.signOut();
-        return;
+        // Otherwise continue silently — protection is best-effort
       }
 
       // 2) Claim active session (kicks any other session)
-      try { localStorage.setItem(SESSION_KEY, localToken); } catch {}
       const { error: sessErr } = await (supabase as any).rpc("claim_session", { _token: localToken });
       if (cancelled) return;
       if (sessErr) {
         const msg = sessErr.message || "";
-        setBlock({ kind: "kicked", message: msg.includes("banned") ? "هذا الحساب محظور نهائياً من الدخول" : "فشل تأمين الجلسة — حاول مجدداً" });
+        if (msg.includes("banned")) {
+          setBlock({ kind: "kicked", message: "هذا الحساب محظور نهائياً من الدخول" });
+        }
+        // Ignore other claim errors — don't block the user
         return;
       }
 
