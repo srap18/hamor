@@ -32,6 +32,8 @@ import ship28 from "@/assets/ships/ship-lvl-28.png";
 import ship29 from "@/assets/ships/ship-lvl-29.png";
 import ship30 from "@/assets/ships/ship-lvl-30.png";
 import shipPhoenix from "@/assets/ships/ship-phoenix.png";
+import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
+const shipSubmarine = shipSubmarineAsset.url;
 
 export type ShipDef = {
   code: string;
