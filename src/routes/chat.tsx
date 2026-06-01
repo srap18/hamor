@@ -707,8 +707,11 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
           return (
             <div className="relative w-full h-24 bg-gradient-to-b from-stone-900 to-stone-950 border-b border-amber-700/60 flex items-center justify-center overflow-hidden">
               <img src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.35)]" />
-              <div className="relative z-10 text-center">
-                <div className="text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{info.banner || "🏴‍☠️"}</div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="relative w-14 h-14">
+                  <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+                  <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                </div>
                 <div className="font-extrabold text-amber-100 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{info.name}</div>
                 <div className="text-[10px] text-amber-200/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⭐ {info.level} · {tier.name}</div>
               </div>
