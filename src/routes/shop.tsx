@@ -285,27 +285,42 @@ function Shop() {
       <div className="absolute top-32 left-2 right-2 bottom-32 z-10 rounded-2xl bg-gradient-to-b from-rose-950/90 to-stone-950/90 border-2 border-rose-900/60 shadow-2xl flex flex-col overflow-hidden">
         {/* Banner */}
         <div className="px-3 pt-3">
-          <Banner text={tabMeta.banner} color={tab === "weapons" ? "orange" : tab === "crews" ? "blue" : "green"} />
+          <Banner
+            text={tabMeta.banner}
+            color={
+              tab === "weapons"
+                ? "orange"
+                : tab === "crews"
+                  ? "blue"
+                  : tab === "recharge"
+                    ? "violet"
+                    : "green"
+            }
+          />
         </div>
 
-        {/* Scrollable grid */}
-        <div className="flex-1 overflow-y-auto px-3 pb-3">
-          <div className="grid grid-cols-3 gap-2 mt-3">
-            {items.map((it) => (
-              <ShopCard
-                key={it.id}
-                item={it}
-                tab={tab}
-                active={selected?.id === it.id}
-                onClick={() => pickItem(it)}
-              />
-            ))}
-          </div>
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-1 pb-3">
+          {tab === "recharge" ? (
+            <RechargePanel />
+          ) : (
+            <div className="grid grid-cols-3 gap-2 mt-3 px-2">
+              {items.map((it) => (
+                <ShopCard
+                  key={it.id}
+                  item={it}
+                  tab={tab}
+                  active={selected?.id === it.id}
+                  onClick={() => pickItem(it)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Footer: selected item detail + qty + buy */}
-      {selected && (
+      {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
+      {selected && tab !== "recharge" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
