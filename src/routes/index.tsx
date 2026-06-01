@@ -785,7 +785,7 @@ function Index() {
       ? storedGuide
       : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
     const caught = caughtId ? FISH[caughtId] : null;
-    const fullAmount = catchAmountForLevel(s.level);
+    const fullAmount = catchAmountForLevel(s.level, s.maxHp);
     const baseFish = Math.floor(fullAmount * effRatio);
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
