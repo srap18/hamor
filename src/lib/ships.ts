@@ -206,7 +206,8 @@ export const SHIPS: ShipDef[] = Array.from({ length: 30 }, (_, i) => buildShip(i
 
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
-const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP];
+export const SUBMARINE_SHIP: ShipDef = buildShip(32);
+const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
 
@@ -224,9 +225,10 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   return STARTER_SHIP;
 }
 
-// Map a market level (1..31) to the ship definition.
-// Level 31 = the special phoenix shop ship.
+// Map a market level (1..32) to the ship definition.
+// Level 31 = phoenix shop ship. Level 32 = VIP submarine.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
