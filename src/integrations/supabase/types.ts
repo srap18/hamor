@@ -2677,6 +2677,7 @@ export type Database = {
       }
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
+      claim_vip_submarine: { Args: never; Returns: string }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
