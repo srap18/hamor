@@ -13,7 +13,7 @@ type AdBomb = {
   active: boolean;
 };
 
-const EXPLOSION_MS = 2200; // bomb FX duration before the video appears
+const EXPLOSION_MS = 700; // brief instant flash before the video loop starts
 
 /**
  * Renders a fullscreen ad-bomb overlay for `targetUserId`.
