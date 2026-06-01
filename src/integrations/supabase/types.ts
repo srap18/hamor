@@ -2556,6 +2556,15 @@ export type Database = {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
       }
+      grant_inventory_item: {
+        Args: {
+          _item_id: string
+          _item_type: string
+          _qty: number
+          _user: string
+        }
+        Returns: undefined
+      }
       grant_paddle_purchase: {
         Args: {
           _amount_cents: number

@@ -27,6 +27,7 @@ const TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "vip", label: "VIP", emoji: "⭐" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "shield", label: "دروع", emoji: "🛡️" },
+  { id: "weapon", label: "أسلحة", emoji: "📺" },
 ];
 
 const TAG_STYLES: Record<string, string> = {
@@ -154,7 +155,7 @@ function RechargePage() {
       </header>
 
       {/* Tabs */}
-      <div className="px-2 pt-2 grid grid-cols-4 gap-1.5">
+      <div className="px-2 pt-2 grid grid-cols-5 gap-1.5">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -270,6 +271,14 @@ function RechargePage() {
                         👑 VIP {r.vipDays}ي
                       </span>
                     ) : null}
+                    {r.items?.map((it) => (
+                      <span
+                        key={`${it.itemType}:${it.itemId}`}
+                        className="text-[11px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
+                      >
+                        📺 ×{it.qty} قنبلة إعلانية
+                      </span>
+                    ))}
                   </div>
 
                   {p.bonus && (

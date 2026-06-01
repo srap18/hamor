@@ -2,7 +2,13 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
-export type PackCategory = "bundle" | "vip" | "gems" | "shield";
+export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon";
+
+export type PackInventoryItem = {
+  itemType: string;
+  itemId: string;
+  qty: number;
+};
 
 export type StorePack = {
   id: string;
@@ -11,24 +17,20 @@ export type StorePack = {
   emoji: string;
   priceUSD: number;
   stripePriceId: string;
-  /** Stripe subscription? */
   subscription?: boolean;
-  /** Limited to N purchases per 7 days (e.g. shield = 2). */
   weeklyLimit?: number;
-  /** Limited to one purchase per lifetime. */
   oneTime?: boolean;
-  /** Marketing tag shown on card. */
   tag?: string;
   popular?: boolean;
   bonus?: string;
   description?: string;
-  // Rewards granted after Stripe confirms payment
   reward: {
     gems?: number;
     coins?: number;
     rubies?: number;
     shieldDays?: number;
     vipDays?: number;
+    items?: PackInventoryItem[];
   };
 };
 
@@ -147,6 +149,19 @@ export const STORE_PACKS: StorePack[] = [
     tag: "محدود 2/أسبوع",
     description: "حماية كاملة من الهجمات والسرقة لمدة يومين",
     reward: { shieldDays: 2 },
+  },
+
+  // ───── Weapons ────────────────────────────────────────────
+  {
+    id: "ad_bomb_pack",
+    category: "weapon",
+    label: "📺 قنبلة إعلانية",
+    emoji: "📺",
+    priceUSD: 1.99,
+    stripePriceId: "ad_bomb_pack",
+    tag: "جديد",
+    description: "قنبلة واحدة — انفجار فوري + إعلان ساعة كاملة + 70,000 ضرر على كل سفنه",
+    reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 1 }] },
   },
 ];
 
