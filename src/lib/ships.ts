@@ -147,6 +147,26 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Submarine VIP (level 32) — exclusive, premium stats.
+  if (level === 32) {
+    return {
+      code: "submarine",
+      name: d.ar,
+      title: d.ar,
+      image: IMG_BY_LEVEL[32],
+      price: d.price,
+      marketLevel: 32,
+      rarity: d.rarity,
+      maxHp: 60000,
+      armor: 150,
+      speed: 90,
+      storage: d.storage,
+      repairSeconds: 86400, // 24h
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
