@@ -162,8 +162,8 @@ function VipPage() {
         {/* VIP Exclusive Submarine showcase */}
         <div className="rounded-2xl border-2 border-amber-400/60 bg-gradient-to-br from-slate-900 via-stone-950 to-slate-900 p-4 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950">حصري VIP</span>
-            <h3 className="text-lg font-extrabold text-amber-200">🚢 الغواصة الملكية</h3>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-stone-950">حصري VIP 5+</span>
+            <h3 className="text-lg font-extrabold text-amber-200">🔱 الغواصة الملكية</h3>
           </div>
           <div className="relative rounded-xl overflow-hidden bg-gradient-to-b from-sky-900/40 via-blue-950/60 to-stone-950 p-3">
             <img
@@ -172,12 +172,35 @@ function VipPage() {
               className="w-full h-auto object-contain drop-shadow-[0_8px_30px_rgba(56,189,248,0.35)]"
             />
           </div>
-          <p className="text-[12px] text-amber-100/85 mt-2 leading-relaxed">
-            غواصة سوداء فاخرة تنزل لأعماق المحيط — سفينة حصرية لأعضاء VIP فقط، قريباً 🔱
-          </p>
+          <ul className="text-[12px] text-amber-100/90 mt-2 space-y-0.5 leading-relaxed">
+            <li>• 💪 سعة صيد <b>60,000</b> ودمّ <b>60,000</b></li>
+            <li>• 🔱 تصيد <b>تيتان الأعماق</b> النادر — حصري للغواصة فقط!</li>
+            <li>• ⏱️ مدة الصيد 45 دقيقة</li>
+            <li>• 🎁 منحة مجانية لمرة واحدة لكل عضو VIP 5+</li>
+          </ul>
+          <button
+            disabled={effectiveLevel < 5}
+            onClick={async () => {
+              const { data, error } = await supabase.rpc("claim_vip_submarine" as never);
+              if (error) {
+                const m = error.message || "";
+                if (m.includes("need_vip_5")) toast.error("تحتاج VIP 5 أو أعلى");
+                else if (m.includes("already_claimed")) toast.info("استلمت الغواصة من قبل");
+                else if (m.includes("vip_expired")) toast.error("انتهى اشتراك VIP");
+                else toast.error("تعذرت المطالبة");
+                return;
+              }
+              toast.success("🔱 وصلت الغواصة الملكية إلى أسطولك!");
+              void data;
+            }}
+            className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-b from-amber-400 via-amber-500 to-amber-700 text-stone-950 font-extrabold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+          >
+            {effectiveLevel < 5 ? "🔒 يحتاج VIP 5+" : "🔱 استلم الغواصة الملكية"}
+          </button>
         </div>
 
         {/* All tiers */}
+
 
         <div>
           <h2 className="text-base font-bold mb-2 text-amber-200">📜 جميع المستويات والمميزات</h2>
