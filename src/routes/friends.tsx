@@ -52,6 +52,11 @@ function FriendsPage() {
   };
   const accept = async (fid: string) => { await supabase.from("friends").update({ status: "accepted" }).eq("id", fid); reload(); };
   const reject = async (fid: string) => { await supabase.from("friends").delete().eq("id", fid); reload(); };
+  const removeFriend = async (fid: string) => {
+    if (!confirm("هل تريد إزالة هذا الصديق؟")) return;
+    await supabase.from("friends").delete().eq("id", fid);
+    reload();
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl" style={{ background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
