@@ -223,6 +223,7 @@ function Index() {
   // any ship in ships_owned shows up here (up to MAX_FLEET), and placeholder
   // slots without a dbId are evicted to make room for real purchases.
   const syncFleetFromDb = async () => {
+    await syncServerTime();
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
@@ -741,6 +742,9 @@ function Index() {
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
           }
+          if (s.dbId && !isServerClockSynced()) {
+            return { ...s, sail, progress: 0, timeLeft: s.duration };
+          }
           const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
@@ -824,6 +828,10 @@ function Index() {
       showToast("حدّث الأسطول أولاً");
       syncFleetFromDb();
       return;
+    }
+
+    if (!isServerClockSynced()) {
+      await syncServerTime(true);
     }
 
     const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
