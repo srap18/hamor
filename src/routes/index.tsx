@@ -2658,8 +2658,10 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
   const totalPower = members.reduce((s, m) => s + (m.level * 100 + Math.floor(m.xp / 10)), 0) + ((info?.level || 1) - 1) * 500;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2" onClick={onClose}>
-      <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()} dir="rtl">
+    <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
+      style={{ paddingBottom: "calc(0.5rem + var(--keyboard-inset, 0px))" }} onClick={onClose}>
+      <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 flex flex-col"
+        style={{ maxHeight: "calc(var(--app-height, 100dvh) - var(--keyboard-inset, 0px) - 1rem)" }} onClick={(e) => e.stopPropagation()} dir="rtl">
         {loading || !info ? (
           <div className="text-center text-accent/70 py-10">جاري التحميل…</div>
         ) : (
