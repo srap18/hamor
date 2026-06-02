@@ -2090,6 +2090,7 @@ export type Database = {
       }
       user_market_state: {
         Row: {
+          freeze_started_at: string | null
           freeze_until: string | null
           frozen_prices: Json
           trader_until: string | null
@@ -2097,6 +2098,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
           trader_until?: string | null
@@ -2104,6 +2106,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
           trader_until?: string | null
@@ -3143,7 +3146,7 @@ export type Database = {
       }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
       sell_fish_caught: {
-        Args: { _fish_id: string; _qty: number; _unit_price: number }
+        Args: { _fish_id: string; _qty: number; _unit_price?: number }
         Returns: {
           coins_earned: number
           new_coins: number

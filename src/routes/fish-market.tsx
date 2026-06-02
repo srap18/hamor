@@ -76,6 +76,7 @@ function priceHistory(fish: Fish): number[] {
 type MarketState = {
   trader_until: string | null;
   freeze_until: string | null;
+  freeze_started_at: string | null;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
 
@@ -97,7 +98,7 @@ function FishMarket() {
   const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, frozen_prices: {} });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -110,17 +111,18 @@ function FishMarket() {
     if (!user) return;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, frozen_prices")
+      .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
       setMarketState({
         trader_until: data.trader_until,
         freeze_until: data.freeze_until,
+        freeze_started_at: data.freeze_started_at,
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
       });
     } else {
-      setMarketState({ trader_until: null, freeze_until: null, frozen_prices: {} });
+      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
     }
   };
   useEffect(() => { loadMarketState(); }, [user?.id]);
@@ -156,27 +158,9 @@ function FishMarket() {
     return () => { supabase.removeChannel(ch); };
   }, []);
 
-  // Effective price map: if freeze active, override with frozen snapshot
+  // Freeze protects freshness/rot only. Market price itself always stays live.
   const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > serverNowMs());
   const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > serverNowMs());
-  const effPriceMap = useMemo(() => {
-    if (!freezeActive) return priceMap;
-    const out: Record<string, { current: number; min: number; max: number }> = { ...priceMap };
-    for (const [fid, snap] of Object.entries(marketState.frozen_prices)) {
-      out[fid] = { current: Number(snap.current) || 0, min: Number(snap.min) || 0, max: Number(snap.max) || 0 };
-    }
-    return out;
-  }, [freezeActive, priceMap, marketState.frozen_prices]);
-  const effForecastMap = useMemo(() => {
-    if (!freezeActive) return forecastMap;
-    const out: Record<string, number[]> = { ...forecastMap };
-    for (const [fid, snap] of Object.entries(marketState.frozen_prices)) {
-      const arr = Array.isArray(snap.forecast) ? snap.forecast.map((v) => Number(v)).filter((n) => Number.isFinite(n)) : [];
-      // When frozen, "forecast" stays flat at current price
-      out[fid] = arr.length > 0 ? new Array(arr.length).fill(Number(snap.current) || 0) : out[fid] ?? [];
-    }
-    return out;
-  }, [freezeActive, forecastMap, marketState.frozen_prices]);
 
 
   const loadMarket = async () => {
@@ -296,7 +280,10 @@ function FishMarket() {
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
-    const hours = Math.max(0, (serverNowMs() - new Date(t).getTime()) / 3_600_000);
+    const caughtAt = new Date(t).getTime();
+    const freezeStart = freezeActive && marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
+    const ageEnd = freezeStart > 0 ? Math.max(caughtAt, freezeStart) : serverNowMs();
+    const hours = Math.max(0, (ageEnd - caughtAt) / 3_600_000);
     return Math.max(0.5, 1 - 0.01 * hours);
   };
 
@@ -305,7 +292,7 @@ function FishMarket() {
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
       if (!meta) return null;
-      const live = effPriceMap[id]?.current;
+      const live = priceMap[id]?.current;
       const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
       return { ...meta, basePrice, qty };
     })
@@ -324,7 +311,7 @@ function FishMarket() {
 
   const sell = async (amount: number) => {
     if (!sel || !user) return;
-    const livePrice = effPriceMap[sel.id]?.current;
+    const livePrice = priceMap[sel.id]?.current;
     const rawPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : priceHistory(sel)[priceHistory(sel).length - 1];
     const price = Math.max(0.1, Math.round(rawPrice * rotMult(sel.id) * 100) / 100);
     const qty = Math.min(amount, sel.qty);
@@ -338,7 +325,7 @@ function FishMarket() {
 
     // Atomic server-side sale: decrements fish_caught and credits coins
     // in one transaction so concurrent clicks can't race and "return" fish.
-    const { error } = await (supabase as any).rpc("sell_fish_caught", {
+    const { data, error } = await (supabase as any).rpc("sell_fish_caught", {
       _fish_id: sel.id,
       _qty: qty,
       _unit_price: price,
@@ -350,6 +337,9 @@ function FishMarket() {
       setTimeout(() => setPop(null), 2500);
       return;
     }
+    const serverEarned = Number((Array.isArray(data) ? data[0]?.coins_earned : data?.coins_earned) ?? earned);
+    setPop(`+${serverEarned.toLocaleString()} ذهب`);
+    setTimeout(() => setPop(null), 1500);
     loadFish();
     refreshProfile();
   };
@@ -400,7 +390,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={effForecastMap[sel.id] ?? []}
+          forecast={forecastMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
@@ -649,12 +639,12 @@ function SellView({
   const freezeMs = freezeUntil ? Math.max(0, new Date(freezeUntil).getTime() - now) : 0;
 
   const future = useMemo(() => {
-    if (!traderActive && !freezeActive) return [] as number[];
+    if (!traderActive) return [] as number[];
     if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
     return forecastPrices(fish, currentPrice, 42, FUTURE_HOURS);
-  }, [traderActive, freezeActive, fish.id, currentPrice, forecast]);
+  }, [traderActive, fish.id, currentPrice, forecast]);
 
-  const showFuture = traderActive || freezeActive;
+  const showFuture = traderActive;
   const allPoints = showFuture ? [...past, ...future] : past;
   const minP = Math.min(...allPoints);
   const maxP = Math.max(...allPoints);
@@ -767,8 +757,8 @@ function SellView({
               </>
             ) : (
               <>
-                <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد السوق</div>
-                <div className="text-center text-xs text-slate-200 mb-3">يجمّد أسعار كل السوق على القيم الحالية للمدة المختارة.</div>
+                <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد التعفّن</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي.</div>
                 <div className="grid grid-cols-3 gap-2">
                   {[{ h: 2, p: 50 }, { h: 9, p: 100 }, { h: 24, p: 150 }].map((o) => (
                     <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy || freezeActive} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
