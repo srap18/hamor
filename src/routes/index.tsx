@@ -2692,7 +2692,8 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
               })()}
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-1">
+            <div className="flex-1 overflow-y-auto space-y-1 pb-24">
+
               <div className="text-xs font-bold text-accent mb-1">👥 الأعضاء</div>
               {members.map((m, i) => {
                 const row = (
