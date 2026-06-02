@@ -10,6 +10,7 @@ import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
 import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
+import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
   id: string;
@@ -162,7 +163,7 @@ export function bgById(id: string): SceneBg {
 export function isBgBurned(burnedUntil?: string | null) {
   if (!burnedUntil) return false;
   const until = new Date(burnedUntil).getTime();
-  return Number.isFinite(until) && until > Date.now();
+  return Number.isFinite(until) && until > serverNowMs();
 }
 
 export function getSceneVisual(bgId: string, burnedUntil?: string | null) {
