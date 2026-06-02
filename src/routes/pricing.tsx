@@ -21,7 +21,7 @@ const CATEGORY_LABEL: Record<PackCategory, string> = {
   weapon: "الأسلحة",
 };
 
-const CATEGORIES: PackCategory[] = ["bundle", "vip", "gems", "shield", "weapon"];
+const CATEGORIES: PackCategory[] = ["bundle", "gems", "shield", "weapon"];
 
 function PricingPage() {
   return (
