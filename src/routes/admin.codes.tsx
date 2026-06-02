@@ -1156,3 +1156,128 @@ function VipCodeCreator({ onCreated }: { onCreated: () => void }) {
     </div>
   );
 }
+
+// ════════════════════════════════════════════════════════════════════
+// 🎁 Send a code to all online players (or those online within X minutes)
+// ════════════════════════════════════════════════════════════════════
+function GrantToOnlinePanel({ codes }: { codes: CodeRow[] }) {
+  const [selectedCode, setSelectedCode] = useState<string>("");
+  const [withinMin, setWithinMin] = useState<number>(0); // 0 = currently online only
+  const [previewCount, setPreviewCount] = useState<number | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const refreshPreview = useCallback(async (mins: number) => {
+    setLoadingPreview(true);
+    const { data, error } = await (supabase as any).rpc("admin_count_online", { _within_minutes: mins });
+    setLoadingPreview(false);
+    if (error) { setPreviewCount(null); return; }
+    setPreviewCount(Number(data ?? 0));
+  }, []);
+
+  useEffect(() => {
+    refreshPreview(withinMin);
+  }, [withinMin, refreshPreview]);
+
+  const activeCodes = useMemo(
+    () => codes.filter((c) => c.active && (!c.expires_at || new Date(c.expires_at) > new Date())),
+    [codes]
+  );
+
+  const send = async () => {
+    if (!selectedCode) { toast.error("اختر كوداً"); return; }
+    const target = previewCount ?? 0;
+    const label = withinMin === 0 ? "المتصلين الآن" : `المتصلين خلال آخر ${withinMin} دقيقة`;
+    if (!confirm(`إرسال الكود ${selectedCode} إلى ${target} لاعب (${label})؟`)) return;
+    setSending(true);
+    const { data, error } = await (supabase as any).rpc("admin_grant_code_to_online", {
+      _code: selectedCode,
+      _within_minutes: withinMin,
+    });
+    setSending(false);
+    if (error) { toast.error(error.message); return; }
+    const row = Array.isArray(data) ? data[0] : data;
+    toast.success(`✅ تم: ${row?.granted ?? 0} لاعب • فشل: ${row?.failed ?? 0} • الإجمالي: ${row?.targeted ?? 0}`);
+    refreshPreview(withinMin);
+  };
+
+  const presets = [
+    { label: "🟢 المتصلين الآن", mins: 0 },
+    { label: "🕐 آخر 10 دقائق", mins: 10 },
+    { label: "🕐 آخر 30 دقيقة", mins: 30 },
+    { label: "🕐 آخر ساعة", mins: 60 },
+    { label: "🕐 آخر 3 ساعات", mins: 180 },
+    { label: "🕐 آخر 24 ساعة", mins: 1440 },
+  ];
+
+  return (
+    <div className="rounded-xl border border-fuchsia-700/60 bg-fuchsia-950/30 p-3 md:p-4 space-y-3">
+      <div className="text-sm font-bold text-fuchsia-200">🎁 إرسال كود للاعبين المتصلين</div>
+      <div className="text-[12px] text-fuchsia-100/80">
+        اختر كوداً موجوداً وحدّد فترة آخر اتصال — راح يُسلّم لكل لاعب متصل خلال الفترة هدية الكود تلقائياً (يدخلها بدون ما يكتب أي شي).
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <label className="text-xs text-fuchsia-200 space-y-1">
+          <span>الكود</span>
+          <select
+            value={selectedCode}
+            onChange={(e) => setSelectedCode(e.target.value)}
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+          >
+            <option value="">— اختر كوداً —</option>
+            {activeCodes.map((c) => (
+              <option key={c.id} value={c.code}>
+                {c.code} {c.note ? `• ${c.note}` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-xs text-fuchsia-200 space-y-1">
+          <span>الفترة (بالدقائق) — 0 = المتصلين الآن</span>
+          <input
+            type="number"
+            min={0}
+            value={withinMin}
+            onChange={(e) => setWithinMin(Math.max(0, Number(e.target.value) || 0))}
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold"
+          />
+        </label>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {presets.map((p) => (
+          <button
+            key={p.mins}
+            onClick={() => setWithinMin(p.mins)}
+            className={`px-2 py-1 rounded-md text-[12px] border transition ${
+              withinMin === p.mins
+                ? "bg-fuchsia-700 border-fuchsia-400 text-white"
+                : "bg-slate-800/60 border-slate-700 text-slate-200 hover:border-fuchsia-500"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <div className="text-sm text-fuchsia-100">
+          🎯 المستهدفون:{" "}
+          <b className="text-white">
+            {loadingPreview ? "..." : (previewCount ?? "—")}
+          </b>{" "}
+          لاعب
+        </div>
+        <button
+          onClick={send}
+          disabled={sending || !selectedCode || (previewCount ?? 0) <= 0}
+          className="px-4 py-2 rounded-lg bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-400 hover:to-fuchsia-600 text-white font-extrabold disabled:opacity-50"
+        >
+          {sending ? "جاري الإرسال..." : "🎁 إرسال الكود الآن"}
+        </button>
+      </div>
+    </div>
+  );
+}
