@@ -729,7 +729,7 @@ function Index() {
   // Progress + sail animation ticker — strictly time-proportional.
   useEffect(() => {
     const id = setInterval(() => {
-      const now = Date.now();
+      const now = serverNowMs();
       setShips((curr) =>
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
@@ -756,7 +756,7 @@ function Index() {
 
   const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
 
-  const toggleFishing = (shipId: number) => {
+  const toggleFishing = async (shipId: number) => {
     let dbIdToSync: string | undefined;
     let nextAtSea = false;
     const target = ships.find((x) => x.id === shipId);
@@ -765,6 +765,10 @@ function Index() {
       sound.play("error");
       return;
     }
+    if (!target?.fishing && !isServerClockSynced()) {
+      await syncServerTime(true);
+    }
+    const startNow = serverNowMs();
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
@@ -775,7 +779,7 @@ function Index() {
         }
         nextAtSea = true;
         const ratio = x.max > 0 ? x.progress / x.max : 0;
-        const startedAt = Date.now() - Math.round(ratio * x.duration * 1000);
+        const startedAt = startNow - Math.round(ratio * x.duration * 1000);
         return { ...x, fishing: true, startedAt };
       })
     );
@@ -795,7 +799,7 @@ function Index() {
     if (!s) return;
     // Docked & empty → start fishing (sail out)
     if (s.progress <= 0 && !s.fishing) {
-      toggleFishing(shipId);
+      await toggleFishing(shipId);
       return;
     }
     const { guide } = getCrewBonuses(s);
