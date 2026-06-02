@@ -768,6 +768,36 @@ export type Database = {
           },
         ]
       }
+      global_last_attack: {
+        Row: {
+          at: string
+          attacker_id: string | null
+          attacker_name: string | null
+          id: boolean
+          kind: string | null
+          target_id: string | null
+          target_name: string | null
+        }
+        Insert: {
+          at?: string
+          attacker_id?: string | null
+          attacker_name?: string | null
+          id?: boolean
+          kind?: string | null
+          target_id?: string | null
+          target_name?: string | null
+        }
+        Update: {
+          at?: string
+          attacker_id?: string | null
+          attacker_name?: string | null
+          id?: boolean
+          kind?: string | null
+          target_id?: string | null
+          target_name?: string | null
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           acquired_at: string
@@ -3278,6 +3308,16 @@ export type Database = {
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string
+      }
+      stamp_global_last_attack: {
+        Args: {
+          _attacker_id: string
+          _attacker_name: string
+          _kind: string
+          _target_id: string
+          _target_name: string
+        }
+        Returns: undefined
       }
       start_steal_mission: {
         Args: {
