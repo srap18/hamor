@@ -2827,6 +2827,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_fish_stock_summary: {
+        Args: never
+        Returns: {
+          fish_id: string
+          oldest_caught_at: string
+          qty: number
+        }[]
+      }
       get_my_daughter: {
         Args: never
         Returns: {
