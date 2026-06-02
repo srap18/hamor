@@ -364,7 +364,7 @@ function ChatPage() {
                     key={m.id}
                     onReply={() => setReplyTo({ id: m.id, body: previewBody, name: senderName })}
                   >
-                    <div className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
+                    <div className={`flex gap-2 items-center ${mine ? "flex-row-reverse" : ""}`}>
                       <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
                         <Avatar p={p} size={56} />
                       </button>
@@ -397,6 +397,15 @@ function ChatPage() {
                           </div>
                         );
                       })()}
+                      <button
+                        type="button"
+                        onClick={() => setReplyTo({ id: m.id, body: previewBody, name: senderName })}
+                        className="shrink-0 w-9 h-9 rounded-full bg-amber-500/20 hover:bg-amber-500/40 active:scale-95 transition flex items-center justify-center text-amber-200 text-lg border border-amber-400/40"
+                        title="رد"
+                        aria-label="رد"
+                      >
+                        ↩︎
+                      </button>
                     </div>
                   </SwipeableRow>
                 );
