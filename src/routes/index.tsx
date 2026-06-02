@@ -2319,8 +2319,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
+      style={{ paddingBottom: "calc(0.5rem + var(--keyboard-inset, 0px))" }}
       onClick={onClose}>
-      <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 max-h-[85vh] flex flex-col"
+      <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 flex flex-col"
+        style={{ maxHeight: "calc(var(--app-height, 100dvh) - var(--keyboard-inset, 0px) - 1rem)" }}
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
