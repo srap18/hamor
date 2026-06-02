@@ -2553,29 +2553,64 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 }
 
 function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () => void }) {
-  const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number } | null>(null);
+  const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string } | null>(null);
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; xp: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string | null>(null);
+  const [myTribeId, setMyTribeId] = useState<string | null>(null);
+  const [pendingReq, setPendingReq] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [joinErr, setJoinErr] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations").eq("id", tribeId).maybeSingle();
-      if (t) setInfo(t as any);
-      const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
-      const ids = (ms || []).map((m: any) => m.user_id);
-      const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
-      const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
-      const merged = (ms || []).map((m: any) => {
-        const p: any = pmap.get(m.user_id) || {};
-        return { user_id: m.user_id, role: m.role, display_name: p.display_name || "...", avatar_emoji: p.avatar_emoji || "👤", level: p.level || 1, xp: p.xp || 0 };
-      }).sort((a, b) => (b.level * 100 + b.xp / 10) - (a.level * 100 + a.xp / 10));
-      setMembers(merged);
-      setLoading(false);
-    })();
+  const reload = useCallback(async () => {
+    setLoading(true);
+    const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations,join_mode").eq("id", tribeId).maybeSingle();
+    if (t) setInfo(t as any);
+
+    const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
+    const ids = (ms || []).map((m: any) => m.user_id);
+    const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
+    const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
+    const merged = (ms || []).map((m: any) => {
+      const p: any = pmap.get(m.user_id) || {};
+      return { user_id: m.user_id, role: m.role, display_name: p.display_name || "...", avatar_emoji: p.avatar_emoji || "👤", level: p.level || 1, xp: p.xp || 0 };
+    }).sort((a, b) => (b.level * 100 + b.xp / 10) - (a.level * 100 + a.xp / 10));
+    setMembers(merged);
+    const { data: u } = await supabase.auth.getUser();
+    const uid = u.user?.id ?? null;
+    if (uid) {
+      const { data: prof } = await supabase.from("profiles").select("tribe_id").eq("id", uid).maybeSingle();
+      setMyTribeId((prof as any)?.tribe_id ?? null);
+      const { data: rq } = await supabase.from("tribe_join_requests").select("id").eq("tribe_id", tribeId).eq("user_id", uid).eq("status", "pending").maybeSingle();
+      setPendingReq(!!rq);
+    }
+    setLoading(false);
   }, [tribeId]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const join = async () => {
+    setJoining(true); setJoinErr(null);
+    try {
+      if (info?.join_mode === "open") {
+        const { error } = await supabase.rpc("join_tribe_open" as never, { _tribe_id: tribeId } as never);
+        if (error) throw error;
+        onClose();
+        window.location.href = "/chat?tab=tribe";
+      } else {
+        const { data: u } = await supabase.auth.getUser();
+        const uid = u.user?.id;
+        if (!uid) throw new Error("سجل الدخول");
+        const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: uid, status: "pending" });
+        if (error) throw error;
+        setPendingReq(true);
+      }
+    } catch (e: any) {
+      setJoinErr(e?.message || "خطأ");
+    }
+    setJoining(false);
+  };
 
   const totalPower = members.reduce((s, m) => s + (m.level * 100 + Math.floor(m.xp / 10)), 0) + ((info?.level || 1) - 1) * 500;
 
@@ -2624,14 +2659,35 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
               </div>
               {(() => {
                 const myMembership = members.find(m => m.user_id === meId);
-                if (!myMembership) return null;
-                const isOfficer = myMembership.role === "owner" || myMembership.role === "moderator";
+                if (myMembership) {
+                  const isOfficer = myMembership.role === "owner" || myMembership.role === "moderator";
+                  return (
+                    <a href={`/chat?manage=${isOfficer ? "1" : "0"}&tab=tribe`}
+                       onClick={() => sound.play("click")}
+                       className="mt-2 block w-full text-center py-2 rounded-lg bg-amber-600 text-stone-900 font-extrabold text-xs">
+                      {isOfficer ? "⚙️ إدارة القبيلة" : "🏴‍☠️ افتح قبيلتي في الشات"}
+                    </a>
+                  );
+                }
+                if (!meId) return null;
+                if (myTribeId && myTribeId !== tribeId) {
+                  return (
+                    <div className="mt-2 text-center py-2 rounded-lg bg-stone-800 text-accent/60 text-[11px]">
+                      أنت بقبيلة أخرى — اخرج منها أولاً للانضمام
+                    </div>
+                  );
+                }
+                const isOpen = info.join_mode === "open";
                 return (
-                  <a href={`/chat?manage=${isOfficer ? "1" : "0"}&tab=tribe`}
-                     onClick={() => sound.play("click")}
-                     className="mt-2 block w-full text-center py-2 rounded-lg bg-amber-600 text-stone-900 font-extrabold text-xs">
-                    {isOfficer ? "⚙️ إدارة القبيلة" : "🏴‍☠️ افتح قبيلتي في الشات"}
-                  </a>
+                  <div className="mt-2 space-y-1">
+                    <button
+                      disabled={joining || pendingReq}
+                      onClick={() => { sound.play("click"); join(); }}
+                      className="block w-full text-center py-2 rounded-lg bg-emerald-600 text-white font-extrabold text-xs disabled:opacity-60">
+                      {pendingReq ? "⏳ بانتظار قبول الزعيم" : isOpen ? "🚀 انضمام مباشر" : "📩 طلب انضمام"}
+                    </button>
+                    {joinErr && <div className="text-[10px] text-red-400 text-center">{joinErr}</div>}
+                  </div>
                 );
               })()}
             </div>
