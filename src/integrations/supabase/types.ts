@@ -381,18 +381,21 @@ export type Database = {
           caught_at: string
           fish_id: string
           id: string
+          qty: number
           user_id: string
         }
         Insert: {
           caught_at?: string
           fish_id: string
           id?: string
+          qty?: number
           user_id: string
         }
         Update: {
           caught_at?: string
           fish_id?: string
           id?: string
+          qty?: number
           user_id?: string
         }
         Relationships: []
@@ -2688,6 +2691,18 @@ export type Database = {
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
+      collect_fishing_reward: {
+        Args: { _requested_fish_id?: string; _ship_id: string }
+        Returns: {
+          base_qty: number
+          duration_seconds: number
+          elapsed_seconds: number
+          fish_id: string
+          fish_qty: number
+          luck_bonus: number
+          xp_awarded: number
+        }[]
+      }
       compute_vip_level: { Args: { _points: number }; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
