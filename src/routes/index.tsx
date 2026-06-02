@@ -2553,17 +2553,21 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 }
 
 function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () => void }) {
-  const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number } | null>(null);
+  const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string } | null>(null);
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; xp: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string | null>(null);
+  const [myTribeId, setMyTribeId] = useState<string | null>(null);
+  const [pendingReq, setPendingReq] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [joinErr, setJoinErr] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations").eq("id", tribeId).maybeSingle();
-      if (t) setInfo(t as any);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations,join_mode").eq("id", tribeId).maybeSingle();
+    if (t) setInfo(t as any);
+
       const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
       const ids = (ms || []).map((m: any) => m.user_id);
       const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
