@@ -3275,6 +3275,10 @@ export type Database = {
         Returns: Json
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
+      use_crew_from_inventory: {
+        Args: { _inventory_id: string; _ship_id?: string }
+        Returns: Json
+      }
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
       vip_submarine_hp: { Args: { _level: number }; Returns: number }
