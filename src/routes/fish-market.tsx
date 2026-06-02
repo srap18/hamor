@@ -351,23 +351,29 @@ function FishMarket() {
     setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
 
-    // Atomic server-side sale: deletes rows from fish_stock and credits coins.
-    const { data, error } = await sellFish(fishStockIds);
-    if (error) {
-      // Rollback optimistic update on failure
-      setQtyMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? 0) + qty }));
-      setStockIdsMap((curr) => ({ ...curr, [sel.id]: [...fishStockIds, ...(curr[sel.id] ?? [])] }));
-      setPop(`❌ ${error.message || "تعذر البيع"}`);
-      setTimeout(() => setPop(null), 2500);
+    try {
+      // Atomic server-side sale: deletes rows from fish_stock and credits coins.
+      const { data, error } = await sellFish(fishStockIds);
+      if (error) {
+        setPop(`❌ ${error.message || "تعذر البيع"}`);
+        setTimeout(() => setPop(null), 2500);
+        await loadFish();
+        return;
+      }
+      const serverEarned = Number(data ?? earned);
+      if (serverEarned <= 0) {
+        setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
+        setTimeout(() => setPop(null), 1800);
+        await loadFish();
+        return;
+      }
+      setPop(`${qty < requestedQty ? "تم تحديث الكمية • " : ""}+${serverEarned.toLocaleString()} ذهب`);
+      setTimeout(() => setPop(null), 1500);
+      await loadFish();
+      refreshProfile();
+    } finally {
       setSelling(false);
-      return;
     }
-    const serverEarned = Number(data ?? earned);
-    setPop(`${qty < requestedQty ? "تم تحديث الكمية • " : ""}+${serverEarned.toLocaleString()} ذهب`);
-    setTimeout(() => setPop(null), 1500);
-    await loadFish();
-    refreshProfile();
-    setSelling(false);
   };
 
   return (
