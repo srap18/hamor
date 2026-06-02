@@ -639,9 +639,9 @@ function SellView({
   const currentPrice = past[past.length - 1];
   const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
 
-  const [now, setNow] = useState<number>(() => Date.now());
+  const [now, setNow] = useState<number>(() => serverNowMs());
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    const id = window.setInterval(() => setNow(serverNowMs()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -666,7 +666,7 @@ function SellView({
   }, [minP, range]);
 
   const hourLabels = useMemo(() => {
-    const base = new Date();
+    const base = serverNow();
     base.setMinutes(0, 0, 0);
     const labels: { h: string; ampm: string }[] = [];
     for (let i = -PAST_HOURS; i <= (showFuture ? FUTURE_HOURS : 0); i++) {
