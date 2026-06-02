@@ -1282,3 +1282,159 @@ function GrantToOnlinePanel({ codes }: { codes: CodeRow[] }) {
     </div>
   );
 }
+
+// ─── آخر من كتب في الشات العام ───
+type RecentSender = {
+  sender_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  last_body: string;
+  last_at: string;
+  msg_count: number;
+};
+
+function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
+  const [rows, setRows] = useState<RecentSender[]>([]);
+  const [limit, setLimit] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [selectedCode, setSelectedCode] = useState<string>("");
+  const [grantingId, setGrantingId] = useState<string | null>(null);
+  const [grantedIds, setGrantedIds] = useState<Set<string>>(new Set());
+
+  const activeCodes = useMemo(
+    () => codes.filter((c) => c.active && (!c.expires_at || new Date(c.expires_at) > new Date())),
+    [codes]
+  );
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await (supabase as any).rpc("admin_recent_chat_senders", { _limit: limit });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setRows((data ?? []) as RecentSender[]);
+  }, [limit]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Realtime: أي رسالة جديدة في الشات العام تحدّث القائمة فوراً
+  useEffect(() => {
+    const ch = supabase
+      .channel("admin-recent-senders")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: "channel=eq.public" },
+        () => { load(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [load]);
+
+  const grant = async (sender: RecentSender) => {
+    if (!selectedCode) { toast.error("اختر كوداً أولاً"); return; }
+    setGrantingId(sender.sender_id);
+    const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
+      _code: selectedCode,
+      _user_id: sender.sender_id,
+    });
+    setGrantingId(null);
+    if (error) { toast.error(error.message); return; }
+    setGrantedIds((s) => new Set(s).add(sender.sender_id));
+    toast.success(`✅ تم تفعيل ${selectedCode} لـ ${sender.display_name}`);
+  };
+
+  const timeAgo = (iso: string) => {
+    const s = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+    if (s < 60) return `${s}ث`;
+    const m = Math.floor(s / 60); if (m < 60) return `${m}د`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}س`;
+    return `${Math.floor(h / 24)}ي`;
+  };
+
+  return (
+    <div className="rounded-xl border border-cyan-700/60 bg-cyan-950/30 p-3 md:p-4 space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="text-sm font-bold text-cyan-200">💬 آخر من كتب في الشات العام</div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-cyan-200 flex items-center gap-1">
+            عدد:
+            <input
+              type="number" min={1} max={50}
+              value={limit}
+              onChange={(e) => setLimit(Math.max(1, Math.min(50, Number(e.target.value) || 10)))}
+              className="w-16 bg-slate-800 border border-cyan-700 rounded-md px-2 py-1 text-sm text-slate-100 text-center font-bold"
+            />
+          </label>
+          <button
+            onClick={load}
+            className="px-2 py-1 rounded-md bg-cyan-800 hover:bg-cyan-700 text-white text-xs"
+          >
+            🔄 تحديث
+          </button>
+        </div>
+      </div>
+
+      <div className="text-[12px] text-cyan-100/80">
+        تتحدّث القائمة فوريّاً عند كل رسالة جديدة. اختر كوداً، ثم اضغط «🎁 فعّل الكود» بجانب اللاعب لإرساله فوراً.
+      </div>
+
+      <label className="block text-xs text-cyan-200 space-y-1">
+        <span>الكود المُراد إرساله</span>
+        <select
+          value={selectedCode}
+          onChange={(e) => setSelectedCode(e.target.value)}
+          className="w-full bg-slate-800 border border-cyan-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+        >
+          <option value="">— اختر كوداً —</option>
+          {activeCodes.map((c) => (
+            <option key={c.id} value={c.code}>
+              {c.code} {c.note ? `• ${c.note}` : ""}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="space-y-1.5 max-h-[420px] overflow-y-auto">
+        {loading && rows.length === 0 ? (
+          <div className="text-center text-cyan-200/70 text-sm py-4">جارٍ التحميل…</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center text-cyan-200/70 text-sm py-4">لا توجد رسائل حديثة</div>
+        ) : rows.map((r) => {
+          const granted = grantedIds.has(r.sender_id);
+          return (
+            <div
+              key={r.sender_id}
+              className="flex items-center gap-2 bg-slate-900/60 border border-slate-700 rounded-lg px-2 py-1.5"
+            >
+              {r.avatar_url ? (
+                <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-cyan-700" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-700 grid place-items-center text-sm">⚓</div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <div className="text-sm font-bold text-white truncate">{r.display_name}</div>
+                  <div className="text-[10px] text-cyan-300/70 shrink-0">• {timeAgo(r.last_at)}</div>
+                  {r.msg_count > 1 && (
+                    <div className="text-[10px] bg-cyan-800/60 text-cyan-100 px-1.5 rounded shrink-0">×{r.msg_count}</div>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-300 truncate">{r.last_body}</div>
+              </div>
+              <button
+                onClick={() => grant(r)}
+                disabled={!selectedCode || grantingId === r.sender_id}
+                className={`shrink-0 px-2.5 py-1.5 rounded-md text-xs font-extrabold text-white disabled:opacity-50 ${
+                  granted
+                    ? "bg-emerald-700 hover:bg-emerald-600"
+                    : "bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-400 hover:to-fuchsia-600"
+                }`}
+              >
+                {grantingId === r.sender_id ? "..." : granted ? "✓ أُرسل" : "🎁 فعّل الكود"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
