@@ -427,6 +427,8 @@ function ChatPage() {
             channel={tab as "public" | "tribe" | "dm"}
             tribeId={profile?.tribe_id || null}
             dmWith={dmWith}
+            replyTo={replyTo}
+            onClearReply={() => setReplyTo(null)}
           />
         )
       )}
