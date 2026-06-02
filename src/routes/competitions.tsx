@@ -334,9 +334,11 @@ function CompetitionsPage() {
 
                 {/* Leaderboard */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-bold text-slate-300">🏅 الترتيب</div>
-                    {myRank >= 0 && <div className="text-xs text-amber-300">مركزك: #{myRank + 1}</div>}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm font-black bg-gradient-to-l from-amber-200 to-yellow-400 bg-clip-text text-transparent tracking-wider inline-flex items-center gap-1.5">
+                      <span className="text-amber-300">✦</span> لوحة الشرف <span className="text-amber-300">✦</span>
+                    </div>
+                    {myRank >= 0 && <div className="text-xs font-bold text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">مركزك: #{myRank + 1}</div>}
                   </div>
                   {board.length === 0 ? (
                     <div className="text-center text-sm text-slate-500 py-6 rounded-lg bg-slate-950/40 border border-slate-800">
