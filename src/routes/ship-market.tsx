@@ -244,6 +244,19 @@ function ShipyardPage() {
                     <div className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Featured Vessel</div>
                     <div className="mt-1 text-3xl font-black">{selectedShip.title}</div>
                     <div className="mt-1 text-sm text-muted-foreground">{selectedShip.flavor}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">يصطاد:</span>
+                      {selectedShip.fishPool.map((fid) => {
+                        const f = FISH[fid];
+                        if (!f) return null;
+                        return (
+                          <span key={fid} className="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-bold text-accent">
+                            <span>{f.emoji}</span>
+                            <span>{f.name}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                   <span className="rounded-md border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">{selectedShip.rarity}</span>
                 </div>
