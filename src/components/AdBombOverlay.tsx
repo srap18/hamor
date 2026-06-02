@@ -124,28 +124,55 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
-  // Always autoplay muted first (browsers allow it). Then try to unmute —
-  // if blocked, show a tap-to-unmute button so the video itself still shows.
+  // Autoplay muted (browser-allowed) then immediately try to unmute. If the
+  // browser still blocks sound, hook into the very first user gesture
+  // anywhere on the page to unmute — no visible button required.
   useEffect(() => {
     if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
-    v.muted = true;
-    setIsMuted(true);
-    const p = v.play();
-    const tryUnmute = () => {
+
+    const unmute = () => {
       v.muted = false;
       v.volume = 1;
       const up = v.play();
-      if (up && typeof up.catch === "function") {
-        up.then(() => { setIsMuted(false); setNeedsTap(false); })
-          .catch(() => { v.muted = true; setIsMuted(true); setNeedsTap(true); });
+      if (up && typeof up.then === "function") {
+        up.then(() => { setIsMuted(false); }).catch(() => { /* keep muted */ });
+      } else {
+        setIsMuted(false);
       }
     };
-    if (p && typeof p.catch === "function") {
-      p.then(() => { tryUnmute(); }).catch(() => { setNeedsTap(true); });
+
+    v.muted = true;
+    setIsMuted(true);
+    const p = v.play();
+    const tryUnmuteNow = () => {
+      v.muted = false;
+      v.volume = 1;
+      const up = v.play();
+      if (up && typeof up.then === "function") {
+        up.then(() => { setIsMuted(false); }).catch(() => {
+          v.muted = true;
+          setIsMuted(true);
+          // Wait for any gesture anywhere → unmute then
+          const onGesture = () => { unmute(); cleanup(); };
+          const cleanup = () => {
+            window.removeEventListener("pointerdown", onGesture, true);
+            window.removeEventListener("touchstart", onGesture, true);
+            window.removeEventListener("keydown", onGesture, true);
+            window.removeEventListener("click", onGesture, true);
+          };
+          window.addEventListener("pointerdown", onGesture, true);
+          window.addEventListener("touchstart", onGesture, true);
+          window.addEventListener("keydown", onGesture, true);
+          window.addEventListener("click", onGesture, true);
+        });
+      }
+    };
+    if (p && typeof p.then === "function") {
+      p.then(tryUnmuteNow).catch(tryUnmuteNow);
     } else {
-      tryUnmute();
+      tryUnmuteNow();
     }
   }, [isActive, phase, bomb?.id]);
 
