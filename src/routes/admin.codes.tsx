@@ -1295,10 +1295,14 @@ type RecentSender = {
 
 function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
   const [rows, setRows] = useState<RecentSender[]>([]);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState<number>(() => {
+    const v = Number(localStorage.getItem("contest:limit") || "10");
+    return Number.isFinite(v) && v > 0 ? Math.min(50, v) : 10;
+  });
+  const [since, setSince] = useState<string | null>(() => localStorage.getItem("contest:since"));
   const [loading, setLoading] = useState(false);
   const [selectedCode, setSelectedCode] = useState<string>("");
-  const [grantingId, setGrantingId] = useState<string | null>(null);
+  const [granting, setGranting] = useState(false);
   const [grantedIds, setGrantedIds] = useState<Set<string>>(new Set());
 
   const activeCodes = useMemo(
@@ -1308,11 +1312,14 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).rpc("admin_recent_chat_senders", { _limit: limit });
+    const { data, error } = await (supabase as any).rpc("admin_recent_chat_senders", {
+      _limit: limit,
+      _since: since,
+    });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     setRows((data ?? []) as RecentSender[]);
-  }, [limit]);
+  }, [limit, since]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -1329,17 +1336,46 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
     return () => { supabase.removeChannel(ch); };
   }, [load]);
 
-  const grant = async (sender: RecentSender) => {
+  const startContest = () => {
+    const now = new Date().toISOString();
+    setSince(now);
+    setGrantedIds(new Set());
+    localStorage.setItem("contest:since", now);
+    toast.success("🚩 بدأت المسابقة — اطلب من اللاعبين الكتابة الآن");
+  };
+
+  const resetContest = () => {
+    setSince(null);
+    setGrantedIds(new Set());
+    localStorage.removeItem("contest:since");
+    toast.info("تمت إعادة التعيين");
+  };
+
+  const updateLimit = (n: number) => {
+    const v = Math.max(1, Math.min(50, n || 10));
+    setLimit(v);
+    localStorage.setItem("contest:limit", String(v));
+  };
+
+  const grantAll = async () => {
     if (!selectedCode) { toast.error("اختر كوداً أولاً"); return; }
-    setGrantingId(sender.sender_id);
-    const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
-      _code: selectedCode,
-      _user_id: sender.sender_id,
-    });
-    setGrantingId(null);
-    if (error) { toast.error(error.message); return; }
-    setGrantedIds((s) => new Set(s).add(sender.sender_id));
-    toast.success(`✅ تم تفعيل ${selectedCode} لـ ${sender.display_name}`);
+    const targets = rows.filter((r) => !grantedIds.has(r.sender_id));
+    if (targets.length === 0) { toast.info("لا يوجد من يستلم"); return; }
+    if (!confirm(`تفعيل الكود ${selectedCode} لـ ${targets.length} لاعب؟`)) return;
+    setGranting(true);
+    let ok = 0, fail = 0;
+    const newGranted = new Set(grantedIds);
+    await Promise.all(targets.map(async (r) => {
+      const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
+        _code: selectedCode,
+        _user_id: r.sender_id,
+      });
+      if (error) fail++; else { ok++; newGranted.add(r.sender_id); }
+    }));
+    setGrantedIds(newGranted);
+    setGranting(false);
+    if (fail === 0) toast.success(`✅ تم تفعيل ${selectedCode} لـ ${ok} لاعب`);
+    else toast.warning(`✅ نجح: ${ok} • فشل: ${fail}`);
   };
 
   const timeAgo = (iso: string) => {
@@ -1353,58 +1389,91 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
   return (
     <div className="rounded-xl border border-cyan-700/60 bg-cyan-950/30 p-3 md:p-4 space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-sm font-bold text-cyan-200">💬 آخر من كتب في الشات العام</div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-cyan-200 flex items-center gap-1">
-            عدد:
-            <input
-              type="number" min={1} max={50}
-              value={limit}
-              onChange={(e) => setLimit(Math.max(1, Math.min(50, Number(e.target.value) || 10)))}
-              className="w-16 bg-slate-800 border border-cyan-700 rounded-md px-2 py-1 text-sm text-slate-100 text-center font-bold"
-            />
-          </label>
-          <button
-            onClick={load}
-            className="px-2 py-1 rounded-md bg-cyan-800 hover:bg-cyan-700 text-white text-xs"
+        <div className="text-sm font-bold text-cyan-200">🏁 مسابقة الشات العام — تفعيل كود فوري</div>
+        {since ? (
+          <div className="text-[11px] text-emerald-300">
+            🟢 المسابقة بدأت منذ {timeAgo(since)}
+          </div>
+        ) : (
+          <div className="text-[11px] text-slate-400">— لم تبدأ بعد —</div>
+        )}
+      </div>
+
+      <div className="text-[12px] text-cyan-100/80 leading-relaxed">
+        1) اختر الكود والعدد. 2) اضغط «ابدأ المسابقة» وقل في الشات «اكتبوا». 3) القائمة تتحدّث فورياً. 4) اضغط «🎁 فعّل لكل الكاتبين» لإرسال الكود لجميعهم دفعة واحدة.
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <label className="text-xs text-cyan-200 space-y-1">
+          <span>الكود</span>
+          <select
+            value={selectedCode}
+            onChange={(e) => setSelectedCode(e.target.value)}
+            className="w-full bg-slate-800 border border-cyan-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
           >
-            🔄 تحديث
+            <option value="">— اختر كوداً —</option>
+            {activeCodes.map((c) => (
+              <option key={c.id} value={c.code}>
+                {c.code} {c.note ? `• ${c.note}` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-xs text-cyan-200 space-y-1">
+          <span>عدد الفائزين (آخر من كتبوا)</span>
+          <input
+            type="number" min={1} max={50}
+            value={limit}
+            onChange={(e) => updateLimit(Number(e.target.value))}
+            className="w-full bg-slate-800 border border-cyan-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold"
+          />
+        </label>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {!since ? (
+          <button
+            onClick={startContest}
+            className="px-3 py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white font-extrabold text-sm"
+          >
+            🚩 ابدأ المسابقة الآن
           </button>
-        </div>
-      </div>
-
-      <div className="text-[12px] text-cyan-100/80">
-        تتحدّث القائمة فوريّاً عند كل رسالة جديدة. اختر كوداً، ثم اضغط «🎁 فعّل الكود» بجانب اللاعب لإرساله فوراً.
-      </div>
-
-      <label className="block text-xs text-cyan-200 space-y-1">
-        <span>الكود المُراد إرساله</span>
-        <select
-          value={selectedCode}
-          onChange={(e) => setSelectedCode(e.target.value)}
-          className="w-full bg-slate-800 border border-cyan-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+        ) : (
+          <button
+            onClick={resetContest}
+            className="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm"
+          >
+            ↺ إعادة تعيين
+          </button>
+        )}
+        <button
+          onClick={grantAll}
+          disabled={granting || !selectedCode || rows.length === 0}
+          className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-400 hover:to-fuchsia-600 text-white font-extrabold text-sm disabled:opacity-50"
         >
-          <option value="">— اختر كوداً —</option>
-          {activeCodes.map((c) => (
-            <option key={c.id} value={c.code}>
-              {c.code} {c.note ? `• ${c.note}` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
+          {granting ? "جارٍ التفعيل…" : `🎁 فعّل لكل الكاتبين (${rows.filter((r) => !grantedIds.has(r.sender_id)).length})`}
+        </button>
+      </div>
 
       <div className="space-y-1.5 max-h-[420px] overflow-y-auto">
-        {loading && rows.length === 0 ? (
-          <div className="text-center text-cyan-200/70 text-sm py-4">جارٍ التحميل…</div>
-        ) : rows.length === 0 ? (
-          <div className="text-center text-cyan-200/70 text-sm py-4">لا توجد رسائل حديثة</div>
-        ) : rows.map((r) => {
+        <div className="text-[11px] text-cyan-200/70 px-1">
+          {loading ? "…تحديث" : `${rows.length} لاعب${since ? " (منذ بداية المسابقة)" : " (آخر 7 أيام)"}`}
+        </div>
+        {rows.length === 0 ? (
+          <div className="text-center text-cyan-200/70 text-sm py-4">
+            {since ? "في انتظار الرسائل…" : "لا توجد رسائل حديثة"}
+          </div>
+        ) : rows.map((r, idx) => {
           const granted = grantedIds.has(r.sender_id);
           return (
             <div
               key={r.sender_id}
-              className="flex items-center gap-2 bg-slate-900/60 border border-slate-700 rounded-lg px-2 py-1.5"
+              className={`flex items-center gap-2 border rounded-lg px-2 py-1.5 ${
+                granted ? "bg-emerald-950/40 border-emerald-700" : "bg-slate-900/60 border-slate-700"
+              }`}
             >
+              <div className="w-6 text-center text-[11px] font-black text-cyan-300">#{idx + 1}</div>
               {r.avatar_url ? (
                 <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-cyan-700" />
               ) : (
@@ -1414,23 +1483,10 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
                 <div className="flex items-center gap-1.5">
                   <div className="text-sm font-bold text-white truncate">{r.display_name}</div>
                   <div className="text-[10px] text-cyan-300/70 shrink-0">• {timeAgo(r.last_at)}</div>
-                  {r.msg_count > 1 && (
-                    <div className="text-[10px] bg-cyan-800/60 text-cyan-100 px-1.5 rounded shrink-0">×{r.msg_count}</div>
-                  )}
+                  {granted && <div className="text-[10px] bg-emerald-700 text-white px-1.5 rounded shrink-0">✓ تم</div>}
                 </div>
                 <div className="text-[11px] text-slate-300 truncate">{r.last_body}</div>
               </div>
-              <button
-                onClick={() => grant(r)}
-                disabled={!selectedCode || grantingId === r.sender_id}
-                className={`shrink-0 px-2.5 py-1.5 rounded-md text-xs font-extrabold text-white disabled:opacity-50 ${
-                  granted
-                    ? "bg-emerald-700 hover:bg-emerald-600"
-                    : "bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 hover:from-fuchsia-400 hover:to-fuchsia-600"
-                }`}
-              >
-                {grantingId === r.sender_id ? "..." : granted ? "✓ أُرسل" : "🎁 فعّل الكود"}
-              </button>
             </div>
           );
         })}
