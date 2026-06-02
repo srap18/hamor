@@ -39,6 +39,7 @@ export function AdBombOverlay({
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastBombId = useRef<string | null>(null);
@@ -123,16 +124,28 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
-  // Try to autoplay with sound; fall back to a "tap to play" prompt if blocked.
+  // Always autoplay muted first (browsers allow it). Then try to unmute —
+  // if blocked, show a tap-to-unmute button so the video itself still shows.
   useEffect(() => {
     if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
-    v.muted = false;
-    v.volume = 1;
+    v.muted = true;
+    setIsMuted(true);
     const p = v.play();
+    const tryUnmute = () => {
+      v.muted = false;
+      v.volume = 1;
+      const up = v.play();
+      if (up && typeof up.catch === "function") {
+        up.then(() => { setIsMuted(false); setNeedsTap(false); })
+          .catch(() => { v.muted = true; setIsMuted(true); setNeedsTap(true); });
+      }
+    };
     if (p && typeof p.catch === "function") {
-      p.catch(() => setNeedsTap(true));
+      p.then(() => { tryUnmute(); }).catch(() => { setNeedsTap(true); });
+    } else {
+      tryUnmute();
     }
   }, [isActive, phase, bomb?.id]);
 
@@ -149,7 +162,7 @@ export function AdBombOverlay({
     if (!v) return;
     v.muted = false;
     v.volume = 1;
-    v.play().then(() => setNeedsTap(false)).catch(() => {});
+    v.play().then(() => { setIsMuted(false); setNeedsTap(false); }).catch(() => {});
   };
 
   const handleRemove = async () => {
@@ -193,7 +206,9 @@ export function AdBombOverlay({
             src={video.src}
             autoPlay
             loop
+            muted
             playsInline
+            preload="auto"
             className="absolute inset-0 h-full w-full object-cover"
             style={{ opacity: 0.55 }}
           />
@@ -223,8 +238,8 @@ export function AdBombOverlay({
         </div>
       </div>
 
-      {/* If autoplay-with-sound was blocked, prompt the user to tap once */}
-      {needsTap && phase === "video" && (
+      {/* If sound is muted (autoplay-with-sound blocked), prompt to unmute */}
+      {isMuted && phase === "video" && (
         <button
           onClick={handleTap}
           className="fixed inset-x-0 bottom-24 mx-auto z-[46] w-fit px-4 py-2 rounded-full bg-white/90 text-black text-xs font-bold shadow-lg pointer-events-auto"
