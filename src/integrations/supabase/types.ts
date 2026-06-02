@@ -3153,6 +3153,10 @@ export type Database = {
         }[]
       }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
+      sell_fish_by_qty: {
+        Args: { _fish_id: string; _qty: number }
+        Returns: number
+      }
       sell_fish_caught: {
         Args: { _fish_id: string; _qty: number; _unit_price?: number }
         Returns: {
