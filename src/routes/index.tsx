@@ -134,12 +134,12 @@ function loadFleet(): Ship[] {
         max: realMax,
         timeLeft: realDuration,
         duration: realDuration,
-        startedAt: s.dbId ? undefined : s.startedAt,
+        startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
         img: def.image,
-        progress: s.dbId ? 0 : Math.min(s.progress ?? 0, realMax),
-        fishing: s.dbId ? false : (s.fishing ?? false),
-        sail: s.dbId ? 0 : (s.sail ?? 0),
+        progress: Math.min(s.progress ?? 0, realMax),
+        fishing: s.fishing ?? false,
+        sail: s.sail ?? (s.fishing ? 1 : 0),
       };
     });
   } catch {
@@ -151,8 +151,8 @@ function saveFleet(ships: Ship[]) {
   if (typeof window === "undefined") return;
   const slots: FleetSlot[] = ships.map((s) => ({
     id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
-    duration: s.duration, progress: s.dbId ? 0 : s.progress, fishing: s.dbId ? false : s.fishing, sail: s.dbId ? 0 : s.sail,
-    startedAt: s.dbId ? undefined : s.startedAt,
+    duration: s.duration, progress: s.progress, fishing: s.fishing, sail: s.sail,
+    startedAt: s.startedAt,
   }));
   window.localStorage.setItem(FLEET_KEY, JSON.stringify(slots));
 }
