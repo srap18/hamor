@@ -527,18 +527,25 @@ function Index() {
   }, [user]);
 
   const [fish, setFish] = useState(0);
-  // Discovered fish species count (kept in sync with fish_caught table)
+  // Discovered fish species count (union of fish_caught history + current ship stock)
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
-      const { data } = await supabase
-        .from("fish_caught")
-        .select("fish_id,total_caught")
-        .eq("user_id", user.id);
+      const [{ data: caught }, { data: summary }] = await Promise.all([
+        supabase.from("fish_caught").select("fish_id,total_caught").eq("user_id", user.id),
+        supabase.rpc("get_fish_stock_summary" as never),
+      ]);
       if (cancelled) return;
-      const discovered = (data ?? []).filter((r: { total_caught: number | null }) => (r.total_caught ?? 0) > 0).length;
-      setFish(discovered);
+      const ids = new Set<string>();
+      ((caught ?? []) as Array<{ fish_id: string; total_caught: number | null }>).forEach((r) => {
+        if ((r.total_caught ?? 0) > 0) ids.add(r.fish_id);
+      });
+      ((summary ?? []) as Array<{ fish_id: string; qty: number | string }>).forEach((r) => {
+        const q = typeof r.qty === "string" ? parseInt(r.qty, 10) : r.qty;
+        if (q && q > 0) ids.add(r.fish_id);
+      });
+      setFish(ids.size);
     };
     load();
     const onChanged = () => load();
@@ -1157,7 +1164,7 @@ function Index() {
       <Link
         to="/ship-market"
         onClick={() => sound.play("click")}
-        className="absolute right-2 top-[22%] z-20 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-[#3a1f0a] via-[#5a2e0e] to-[#1a0d04] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_18px_rgba(252,191,73,0.4)] flex flex-col items-center justify-center text-amber-100 active:scale-95"
+        className="absolute right-2 top-[26%] z-20 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-[#3a1f0a] via-[#5a2e0e] to-[#1a0d04] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_18px_rgba(252,191,73,0.4)] flex flex-col items-center justify-center text-amber-100 active:scale-95"
       >
         <span className="text-2xl drop-shadow">⚓</span>
         <span className="text-[10px] font-black mt-0.5 drop-shadow whitespace-nowrap">سوق السفن</span>
