@@ -267,6 +267,9 @@ function Index() {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
+          } else if (row.at_sea && row.fishing_started_at) {
+            fishing = true;
+            startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing === false) {
             // Local says STOPPED — that's the source of truth.
             // If DB still says at_sea, push the stop again to fix the race.
@@ -277,9 +280,6 @@ function Index() {
                 setShipAtSea(s.dbId!, false).catch(() => {});
               });
             }
-          } else if (row.at_sea && row.fishing_started_at) {
-            fishing = true;
-            startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing && s.startedAt) {
             import("@/lib/economy").then(({ setShipAtSea }) => {
               setShipAtSea(s.dbId!, true).catch(() => {});
