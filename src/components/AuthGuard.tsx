@@ -22,22 +22,30 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) { setChecking(false); return; }
     let cancelled = false;
+    setChecking(true);
+    const fallback = window.setTimeout(() => {
+      if (!cancelled) setChecking(false);
+    }, 4000);
     (async () => {
-      const { data } = await supabase
-        .from("bans")
-        .select("reason, expires_at")
-        .eq("user_id", user.id)
-        .eq("active", true)
-        .order("banned_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (cancelled) return;
-      if (data && (!data.expires_at || new Date(data.expires_at) > new Date())) {
-        setBanInfo({ reason: data.reason });
+      try {
+        const { data } = await supabase
+          .from("bans")
+          .select("reason, expires_at")
+          .eq("user_id", user.id)
+          .eq("active", true)
+          .order("banned_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (cancelled) return;
+        if (data && (!data.expires_at || new Date(data.expires_at) > new Date())) {
+          setBanInfo({ reason: data.reason });
+        }
+      } finally {
+        window.clearTimeout(fallback);
+        if (!cancelled) setChecking(false);
       }
-      setChecking(false);
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; window.clearTimeout(fallback); };
   }, [user]);
 
   if (loading || checking) {
