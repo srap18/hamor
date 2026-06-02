@@ -2516,6 +2516,17 @@ export type Database = {
         Args: { _reason?: string; _uid: string }
         Returns: number
       }
+      admin_recent_chat_senders: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          last_at: string
+          last_body: string
+          msg_count: number
+          sender_id: string
+        }[]
+      }
       admin_redeem_code_for: {
         Args: { p_code: string; p_target_user: string }
         Returns: Json
