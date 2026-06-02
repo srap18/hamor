@@ -23,22 +23,10 @@ type Channel = "public" | "tribe" | "dm" | "voice";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null };
 type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null };
 
-function VipBadge({ level, expiresAt }: { level?: number | null; expiresAt?: string | null }) {
-  if (!level || level < 1) return null;
-  if (expiresAt && new Date(expiresAt) < new Date()) return null;
-  return (
-    <span
-      className="relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide overflow-hidden border border-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.7),inset_0_1px_0_rgba(255,255,255,0.6)] bg-[linear-gradient(135deg,#7a4b00_0%,#f5c84b_25%,#fff3a8_50%,#f5c84b_75%,#7a4b00_100%)] text-stone-950"
-      style={{ backgroundSize: "200% 100%", animation: "vipShine 2.6s linear infinite" }}
-      title={`VIP ${level}`}
-    >
-      <span className="drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]">👑</span>
-      <span className="font-extrabold">VIP</span>
-      <span className="px-1 rounded-sm bg-stone-950/80 text-amber-300 text-[9px] leading-tight">{level}</span>
-      <style>{`@keyframes vipShine { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
-    </span>
-  );
+function VipBadge(_: { level?: number | null; expiresAt?: string | null }) {
+  return null;
 }
+
 
 function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   const style = { width: size, height: size };
