@@ -443,7 +443,7 @@ function ChatPage() {
       )}
 
 
-      <BottomNav active="/chat" />
+      
 
       {showManage && profile?.tribe_id && user && (
         <TribeManageModal tribeId={profile.tribe_id} userId={user.id} onClose={() => setShowManage(false)} />
