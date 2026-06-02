@@ -9,6 +9,7 @@ import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
+import { serverNowMs } from "@/lib/server-time";
 
 
 export const Route = createFileRoute("/shop")({
@@ -50,9 +51,7 @@ const WEAPON_IMAGES: Record<string, string> = {
   nuke: nukeImg,
 };
 
-// Cooldown after buying any armor: 4 days
-const ARMOR_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
-const ARMOR_LAST_KEY = (uid: string) => `armor-last-buy:${uid}`;
+// Armor cooldown is enforced server-side in buy_protection.
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "protection", label: "حمايه", banner: "Protection" },
@@ -160,18 +159,6 @@ function Shop() {
       useGemFallback = true;
     }
 
-    // Armor cooldown: only one armor purchase every 7 days
-    if (tab === "protection") {
-      const lastStr = localStorage.getItem(ARMOR_LAST_KEY(user.id));
-      const last = lastStr ? parseInt(lastStr, 10) : 0;
-      const remainMs = last + ARMOR_COOLDOWN_MS - Date.now();
-      if (remainMs > 0) {
-        const days = Math.ceil(remainMs / (24 * 60 * 60 * 1000));
-        flash(`لا يمكن شراء درع جديد قبل ${days} يوم`, 2200);
-        return;
-      }
-    }
-
     setBusy(true);
 
     if (tab === "protection") {
@@ -185,8 +172,18 @@ function Shop() {
       const gemsCost = selected.currency === "gem" ? total : 0;
       const { error } = await buyProtection(daysInt, coinsCost, gemsCost);
       setBusy(false);
-      if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
-      localStorage.setItem(ARMOR_LAST_KEY(user.id), String(Date.now()));
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("armor_cooldown")) {
+          const m = msg.match(/until\s+(.+)$/);
+          const untilMs = m ? new Date(m[1]).getTime() : NaN;
+          const days = Number.isFinite(untilMs) ? Math.ceil(Math.max(0, untilMs - serverNowMs()) / 86400000) : 7;
+          flash(`لا يمكن شراء درع جديد قبل ${Math.max(1, days)} يوم`, 2200);
+        } else {
+          flash("فشل الشراء: " + msg, 2000);
+        }
+        return;
+      }
     } else if (tab === "ships") {
       // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity
       const rpcName = selected.id === "phoenix-pack-3" ? "buy_phoenix_pack_3" : "buy_phoenix_pack_1";
