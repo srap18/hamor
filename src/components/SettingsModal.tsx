@@ -22,6 +22,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
+    try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
