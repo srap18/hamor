@@ -710,7 +710,7 @@ function SellView({
 
   return (
     <>
-      <button onClick={onBack} className="absolute top-2 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
+      <button onClick={onBack} className="absolute top-12 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
 
       <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
         <div className="relative w-24 h-28 rounded-xl bg-gradient-to-b from-emerald-300 to-emerald-600 border-2 border-emerald-200 shadow-xl p-2 flex flex-col items-center">
