@@ -2526,6 +2526,13 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      assign_crew_to_ship: {
+        Args: { _crew_id: string; _ship_id: string }
+        Returns: {
+          expires_at: string
+          inventory_id: string
+        }[]
+      }
       audit_player_currency: {
         Args: { _uid: string }
         Returns: {
