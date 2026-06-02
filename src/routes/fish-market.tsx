@@ -289,7 +289,7 @@ function FishMarket() {
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
       if (!meta) return null;
-      const live = effPriceMap[id]?.current;
+      const live = priceMap[id]?.current;
       const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
       return { ...meta, basePrice, qty };
     })
@@ -308,7 +308,7 @@ function FishMarket() {
 
   const sell = async (amount: number) => {
     if (!sel || !user) return;
-    const livePrice = effPriceMap[sel.id]?.current;
+    const livePrice = priceMap[sel.id]?.current;
     const rawPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : priceHistory(sel)[priceHistory(sel).length - 1];
     const price = Math.max(0.1, Math.round(rawPrice * rotMult(sel.id) * 100) / 100);
     const qty = Math.min(amount, sel.qty);
@@ -384,7 +384,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={effForecastMap[sel.id] ?? []}
+          forecast={forecastMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
