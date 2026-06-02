@@ -24,7 +24,6 @@ export function BottomNav({ active }: { active?: string }) {
   const [myShipsOpen, setMyShipsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
-  const [friendReqCount, setFriendReqCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -56,24 +55,12 @@ export function BottomNav({ active }: { active?: string }) {
         .gt("created_at", lastSeen);
       setDmUnread(count ?? 0);
     };
-    const loadFriendReqs = async () => {
-      if (active === "/friends") { setFriendReqCount(0); return; }
-      const { count } = await supabase.from("friends")
-        .select("id", { count: "exact", head: true })
-        .eq("addressee_id", user.id)
-        .eq("status", "pending");
-      setFriendReqCount(count ?? 0);
-    };
     loadMissions();
     loadDm();
-    loadFriendReqs();
     const ch = supabase
       .channel("nav-notifs")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, loadMissions)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriendReqs)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriendReqs)
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "friends" }, loadFriendReqs)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user, active]);
@@ -84,10 +71,6 @@ export function BottomNav({ active }: { active?: string }) {
     localStorage.setItem(dmSeenKey(user.id), serverNow().toISOString());
     setDmUnread(0);
   }, [user, active]);
-
-  useEffect(() => {
-    if (active === "/friends") setFriendReqCount(0);
-  }, [active]);
 
 
   return (
@@ -117,8 +100,11 @@ export function BottomNav({ active }: { active?: string }) {
                 >
                   <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{it.icon}</span>
                 </div>
-                {it.to === "/chat" && dmUnread > 0 && <FancyBadge count={dmUnread} />}
-                {it.to === "/friends" && friendReqCount > 0 && <FancyBadge count={friendReqCount} />}
+                {it.to === "/chat" && dmUnread > 0 && (
+                  <span className="absolute -top-1 -right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                    {dmUnread > 9 ? "9+" : dmUnread}
+                  </span>
+                )}
                 <span className={`text-[9px] font-black ${isActive ? "text-amber-200 drop-shadow" : "text-amber-400/70"}`}>{it.label}</span>
               </button>
             );
@@ -155,18 +141,6 @@ export function BottomNav({ active }: { active?: string }) {
   );
 }
 
-function FancyBadge({ count }: { count: number }) {
-  return (
-    <span className="absolute -top-1.5 -right-1.5 pointer-events-none">
-      <span className="absolute inset-0 rounded-full bg-red-500/60 blur-md animate-pulse" />
-      <span className="relative min-w-[20px] h-[20px] px-1.5 rounded-full bg-gradient-to-b from-red-400 via-red-600 to-red-900 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow-[0_0_10px_rgba(252,191,73,0.8),inset_0_1px_0_rgba(255,255,255,0.5)]">
-        {count > 9 ? "9+" : count}
-      </span>
-    </span>
-  );
-}
-
 // keep Link import used for tree-shaking detection in case future refactor needs it
 export const _LinkAlias = Link;
-
 
