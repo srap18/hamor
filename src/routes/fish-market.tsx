@@ -337,13 +337,14 @@ function FishMarket() {
     setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
 
-    // Atomic server-side sale: decrements fish_caught and credits coins
-    // in one transaction so concurrent clicks can't race and "return" fish.
-    const { data, error } = await (supabase as any).rpc("sell_fish_caught", {
-      _fish_id: sel.id,
-      _qty: qty,
-      _unit_price: price,
-    });
+    const fishStockIds = (stockIdsMap[sel.id] ?? []).slice(0, qty);
+    if (fishStockIds.length <= 0) {
+      await loadFish();
+      return;
+    }
+
+    // Atomic server-side sale: deletes rows from fish_stock and credits coins.
+    const { data, error } = await sellFish(fishStockIds);
     if (error) {
       // Rollback optimistic update on failure
       setQtyMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? 0) + qty }));
@@ -351,7 +352,7 @@ function FishMarket() {
       setTimeout(() => setPop(null), 2500);
       return;
     }
-    const serverEarned = Number((Array.isArray(data) ? data[0]?.coins_earned : data?.coins_earned) ?? earned);
+    const serverEarned = Number(data ?? earned);
     setPop(`+${serverEarned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
     loadFish();
