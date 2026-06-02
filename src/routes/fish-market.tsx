@@ -375,7 +375,7 @@ function FishMarket() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
       {/* TOP HUD */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] mt-10 flex items-center gap-2">
         <Link to="/" className="w-10 h-10 rounded-xl glass-hud border border-accent/40 flex items-center justify-center text-lg active:scale-95">
           ←
         </Link>
@@ -488,7 +488,7 @@ function StorageView({
   return (
     <>
       {/* Title banner */}
-      <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20">
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20">
         <div className="relative px-8 py-1.5 rounded-md bg-gradient-to-b from-sky-500 to-sky-700 border-2 border-cyan-200 shadow-lg">
           <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-700 rotate-45 border-l-2 border-b-2 border-cyan-200" />
           <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-700 rotate-45 border-r-2 border-t-2 border-cyan-200" />
@@ -503,7 +503,7 @@ function StorageView({
       </div>
 
       {/* Fish storage panel */}
-      <div className="absolute top-32 left-2 right-2 bottom-28 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
+      <div className="absolute top-44 left-2 right-2 bottom-28 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
         {fish.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center text-cyan-100 gap-2">
             <div className="text-5xl opacity-70">🎣</div>
@@ -710,9 +710,9 @@ function SellView({
 
   return (
     <>
-      <button onClick={onBack} className="absolute top-2 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
+      <button onClick={onBack} className="absolute top-12 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
 
-      <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
         <div className="relative w-24 h-28 rounded-xl bg-gradient-to-b from-emerald-300 to-emerald-600 border-2 border-emerald-200 shadow-xl p-2 flex flex-col items-center">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-emerald-200 rotate-45 border-r-2 border-b-2 border-emerald-100" />
           <img src={FISH[fish.id]?.img} alt={fish.name} loading="lazy" width={56} height={56} className="mt-2 h-14 w-14 object-contain drop-shadow" />
