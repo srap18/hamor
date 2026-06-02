@@ -187,15 +187,26 @@ function CompetitionsPage() {
   }, []);
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <header className="sticky top-0 z-20 bg-slate-950/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="text-sm text-slate-400 hover:text-slate-200">← رجوع</Link>
-        <h1 className="text-lg font-bold">🏆 الفعاليات</h1>
+    <div dir="rtl" className="relative min-h-screen text-slate-100 overflow-hidden bg-[radial-gradient(ellipse_at_top,#1a1330_0%,#0a0816_55%,#050309_100%)]">
+      {/* Luxury ambient glow */}
+      <div className="pointer-events-none absolute inset-0 opacity-60" style={{
+        backgroundImage: "radial-gradient(circle at 15% 10%, rgba(212,175,55,0.18) 0%, transparent 45%), radial-gradient(circle at 85% 90%, rgba(168,85,247,0.15) 0%, transparent 50%)"
+      }}/>
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{
+        backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M0 0h40v40H0z' fill='none'/><path d='M20 0l5 15 15 5-15 5-5 15-5-15-15-5 15-5z' fill='%23d4af37'/></svg>\")",
+        backgroundSize: "60px 60px"
+      }}/>
+
+      <header className="relative sticky top-0 z-20 bg-gradient-to-b from-slate-950/95 to-slate-950/70 backdrop-blur-xl border-b border-amber-500/20 px-4 py-3 flex items-center justify-between shadow-[0_4px_20px_-8px_rgba(212,175,55,0.4)]">
+        <Link to="/" className="text-sm text-amber-200/70 hover:text-amber-200 transition-colors">← رجوع</Link>
+        <h1 className="text-lg font-black bg-gradient-to-b from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-transparent tracking-wider drop-shadow-[0_2px_8px_rgba(212,175,55,0.5)]">
+          ✦ الفعاليات الفخمة ✦
+        </h1>
         <div className="w-12"/>
       </header>
 
-      <main className="max-w-3xl mx-auto p-3 md:p-5 space-y-6">
-        {loading && <div className="text-center text-slate-400 py-10">جاري التحميل...</div>}
+      <main className="relative max-w-3xl mx-auto p-3 md:p-5 space-y-7">
+        {loading && <div className="text-center text-amber-200/60 py-10">جاري التحميل...</div>}
         {!loading && comps.length === 0 && (
           <div className="text-center py-16 text-slate-400">
             <div className="text-6xl mb-3">🎪</div>
@@ -212,44 +223,79 @@ function CompetitionsPage() {
           const myRank = me ? board.findIndex(r => r.user_id === me) : -1;
           const tiers = tiersOf(c);
           const winnerCount = tiers.length;
+          const isEnded = new Date(c.ends_at).getTime() <= serverNow().getTime();
 
           return (
-            <article key={c.id} className="rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-900/80 shadow-2xl">
+            <article key={c.id} className="group relative rounded-[1.75rem] overflow-hidden shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),0_0_0_1px_rgba(212,175,55,0.25)] bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-black/95 backdrop-blur-xl">
+              {/* Gold double border frame */}
+              <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] ring-1 ring-amber-400/40"/>
+              <div className="pointer-events-none absolute inset-[3px] rounded-[1.6rem] ring-1 ring-amber-300/15"/>
+              {/* Ornate corners */}
+              <div className="pointer-events-none absolute top-2 right-2 text-amber-300/70 text-lg drop-shadow-[0_0_6px_rgba(212,175,55,0.8)] z-10">❖</div>
+              <div className="pointer-events-none absolute top-2 left-2 text-amber-300/70 text-lg drop-shadow-[0_0_6px_rgba(212,175,55,0.8)] z-10">❖</div>
+              <div className="pointer-events-none absolute bottom-2 right-2 text-amber-300/70 text-lg drop-shadow-[0_0_6px_rgba(212,175,55,0.8)] z-10">❖</div>
+              <div className="pointer-events-none absolute bottom-2 left-2 text-amber-300/70 text-lg drop-shadow-[0_0_6px_rgba(212,175,55,0.8)] z-10">❖</div>
+
               {/* Fancy banner */}
-              <div className={`relative bg-gradient-to-br ${themeClass} p-5 md:p-7 shadow-2xl overflow-hidden`}>
-                <div className="absolute inset-0 opacity-30" style={{
-                  backgroundImage: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3) 0%, transparent 50%)"
+              <div className={`relative bg-gradient-to-br ${themeClass} p-6 md:p-8 shadow-2xl overflow-hidden`}>
+                <div className="absolute inset-0 opacity-40" style={{
+                  backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.55) 0%, transparent 45%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.35) 0%, transparent 50%)"
                 }}/>
-                <div className="absolute top-2 left-2 text-4xl opacity-20">✨</div>
-                <div className="absolute bottom-2 right-2 text-4xl opacity-20">✨</div>
+                <div className="absolute inset-0 opacity-30 mix-blend-overlay animate-pulse" style={{
+                  backgroundImage: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%)"
+                }}/>
+                <div className="absolute inset-0 opacity-[0.12]" style={{
+                  backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='1.5' fill='white'/><circle cx='0' cy='0' r='1.5' fill='white'/><circle cx='60' cy='60' r='1.5' fill='white'/><circle cx='60' cy='0' r='1.5' fill='white'/><circle cx='0' cy='60' r='1.5' fill='white'/></svg>\")"
+                }}/>
+                <div className="pointer-events-none absolute inset-2 rounded-2xl border border-white/40"/>
+                <div className="pointer-events-none absolute inset-3 rounded-xl border border-white/15"/>
+
+                <div className="absolute top-3 right-3 text-2xl text-white/50 drop-shadow">✦</div>
+                <div className="absolute top-3 left-3 text-2xl text-white/50 drop-shadow">✦</div>
+                <div className="absolute bottom-3 right-3 text-2xl text-white/50 drop-shadow">✦</div>
+                <div className="absolute bottom-3 left-3 text-2xl text-white/50 drop-shadow">✦</div>
+
+                {isEnded && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 px-4 py-1 rounded-b-xl bg-black/70 border-x border-b border-white/30 backdrop-blur text-[10px] font-black tracking-[0.3em] text-white/90 z-10">
+                    ENDED
+                  </div>
+                )}
+
                 <div className="relative flex items-center gap-4">
-                  <div className="text-6xl md:text-7xl drop-shadow-lg">{c.banner_emoji}</div>
+                  <div className="relative shrink-0">
+                    <div className="absolute -inset-2 rounded-full bg-white/20 blur-xl"/>
+                    <div className="relative text-6xl md:text-7xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">{c.banner_emoji}</div>
+                  </div>
                   <div className="flex-1 min-w-0">
                     {c.banner_text && (
-                      <div className="text-xs font-black tracking-widest text-white/90 uppercase drop-shadow">{c.banner_text}</div>
+                      <div className="inline-block text-[10px] font-black tracking-[0.35em] text-white/95 uppercase drop-shadow px-2 py-0.5 rounded bg-black/25 border border-white/30 mb-1">
+                        {c.banner_text}
+                      </div>
                     )}
-                    <div className="text-2xl md:text-3xl font-black text-white drop-shadow-lg leading-tight">{c.title}</div>
-                    <div className="text-xs md:text-sm font-bold text-white/90 mt-1 drop-shadow">
+                    <div className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.6)] leading-tight" style={{ textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
+                      {c.title}
+                    </div>
+                    <div className="text-xs md:text-sm font-bold text-white/95 mt-1.5 drop-shadow inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/25 border border-white/25">
                       {meta.icon} {meta.name}
                     </div>
                   </div>
                   <div className="text-end shrink-0">
-                    {new Date(c.ends_at).getTime() <= serverNow().getTime() ? (
+                    {isEnded ? (
                       <>
-                        <div className="text-[10px] text-white/80">الحالة</div>
-                        <div className="text-lg font-black text-white drop-shadow px-2 py-0.5 rounded-md bg-black/30 border border-white/30">⛔ انتهت</div>
+                        <div className="text-[10px] text-white/80 tracking-widest">الحالة</div>
+                        <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">⛔ انتهت</div>
                       </>
                     ) : (
                       <>
-                        <div className="text-[10px] text-white/80">ينتهي خلال</div>
-                        <div className="text-lg font-black text-white drop-shadow">⏳ {timeLeft(c.ends_at)}</div>
+                        <div className="text-[10px] text-white/80 tracking-widest">ينتهي خلال</div>
+                        <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">⏳ {timeLeft(c.ends_at)}</div>
                       </>
                     )}
                   </div>
                 </div>
                 {winnerCount > 0 && (
-                  <div className="relative mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur border border-white/30">
-                    <span className="text-xs font-black text-white drop-shadow">
+                  <div className="relative mt-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur border border-white/40 shadow-lg">
+                    <span className="text-xs font-black text-white drop-shadow tracking-wider">
                       🏆 {winnerCount === 1 ? "جائزة للفائز الأول فقط" : `جوائز لأفضل ${winnerCount} لاعبين`}
                     </span>
                   </div>
@@ -288,9 +334,11 @@ function CompetitionsPage() {
 
                 {/* Leaderboard */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-bold text-slate-300">🏅 الترتيب</div>
-                    {myRank >= 0 && <div className="text-xs text-amber-300">مركزك: #{myRank + 1}</div>}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm font-black bg-gradient-to-l from-amber-200 to-yellow-400 bg-clip-text text-transparent tracking-wider inline-flex items-center gap-1.5">
+                      <span className="text-amber-300">✦</span> لوحة الشرف <span className="text-amber-300">✦</span>
+                    </div>
+                    {myRank >= 0 && <div className="text-xs font-bold text-amber-300 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">مركزك: #{myRank + 1}</div>}
                   </div>
                   {board.length === 0 ? (
                     <div className="text-center text-sm text-slate-500 py-6 rounded-lg bg-slate-950/40 border border-slate-800">
