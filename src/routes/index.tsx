@@ -1164,7 +1164,7 @@ function Index() {
       <Link
         to="/ship-market"
         onClick={() => sound.play("click")}
-        className="absolute right-2 top-[26%] z-20 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-[#3a1f0a] via-[#5a2e0e] to-[#1a0d04] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_18px_rgba(252,191,73,0.4)] flex flex-col items-center justify-center text-amber-100 active:scale-95"
+        className="absolute right-2 top-[26%] z-30 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-[#3a1f0a] via-[#5a2e0e] to-[#1a0d04] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_18px_rgba(252,191,73,0.4)] flex flex-col items-center justify-center text-amber-100 active:scale-95"
       >
         <span className="text-2xl drop-shadow">⚓</span>
         <span className="text-[10px] font-black mt-0.5 drop-shadow whitespace-nowrap">سوق السفن</span>
