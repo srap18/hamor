@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdVideo } from "@/lib/ad-videos";
 import { sound } from "@/lib/sound";
+import { serverNow, serverNowMs } from "@/lib/server-time";
 
 type AdBomb = {
   id: string;
@@ -34,7 +35,7 @@ export function AdBombOverlay({
 }) {
   const [bomb, setBomb] = useState<AdBomb | null>(null);
   const [attackerName, setAttackerName] = useState<string>("");
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(serverNowMs());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
@@ -67,7 +68,7 @@ export function AdBombOverlay({
         .select("id,target_user_id,attacker_id,video_key,started_at,expires_at,active")
         .eq("target_user_id", targetUserId)
         .eq("active", true)
-        .gt("expires_at", new Date().toISOString())
+        .gt("expires_at", serverNow().toISOString())
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -91,7 +92,7 @@ export function AdBombOverlay({
   }, [targetUserId]);
 
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setNow(serverNowMs()), 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -105,7 +106,7 @@ export function AdBombOverlay({
     if (!bomb || !isActive) return;
     if (lastBombId.current === bomb.id) return;
     lastBombId.current = bomb.id;
-    const elapsed = Date.now() - startedMs;
+    const elapsed = serverNowMs() - startedMs;
     if (elapsed < EXPLOSION_MS) {
       setPhase("explosion");
       try { sound.play("nuke"); } catch { /* noop */ }

@@ -1135,6 +1135,7 @@ export type Database = {
       profiles: {
         Row: {
           active_session_id: string | null
+          armor_last_bought_at: string | null
           avatar_emoji: string
           avatar_frame: string | null
           avatar_url: string | null
@@ -1162,6 +1163,7 @@ export type Database = {
         }
         Insert: {
           active_session_id?: string | null
+          armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -1189,6 +1191,7 @@ export type Database = {
         }
         Update: {
           active_session_id?: string | null
+          armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -2523,6 +2526,13 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      assign_crew_to_ship: {
+        Args: { _crew_id: string; _ship_id: string }
+        Returns: {
+          expires_at: string
+          inventory_id: string
+        }[]
+      }
       audit_player_currency: {
         Args: { _uid: string }
         Returns: {
@@ -2939,6 +2949,21 @@ export type Database = {
         }[]
       }
       get_staff_user_ids: { Args: never; Returns: string[] }
+      get_tribe_effort_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          attack_score: number
+          banner: string
+          donation_score: number
+          emblem: string
+          level: number
+          members: number
+          name: string
+          power: number
+          support_score: number
+          tribe_id: string
+        }[]
+      }
       gift_gems: {
         Args: { _amount: number; _recipient: string }
         Returns: Json
@@ -3208,6 +3233,7 @@ export type Database = {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
       }
+      update_my_online_at: { Args: never; Returns: undefined }
       update_tribe_details: {
         Args: { _banner: string; _description: string; _tribe_id: string }
         Returns: Json

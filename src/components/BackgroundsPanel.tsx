@@ -12,6 +12,7 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { showBanner } from "@/components/Banner";
+import { serverNowMs } from "@/lib/server-time";
 
 const RARITY_COLOR: Record<SceneBg["rarity"], string> = {
   common: "border-stone-300 from-stone-500 to-stone-700",
@@ -26,7 +27,7 @@ export function BackgroundsPanel() {
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
   const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
-  const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > Date.now();
+  const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
   const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
   const [selected, setSelected] = useState<string>("celestial_colosseum");
   const [pop, setPop] = useState<string | null>(null);
@@ -40,10 +41,10 @@ export function BackgroundsPanel() {
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(serverNowMs());
   useEffect(() => {
     if (!isBurned) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setNow(serverNowMs()), 1000);
     return () => clearInterval(t);
   }, [isBurned]);
   const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;

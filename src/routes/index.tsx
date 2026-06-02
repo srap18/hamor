@@ -9,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   sellShip,
   deleteInventoryRows,
-  splitInventoryAssign,
-  updateInventoryMeta,
   buyWithCoinsGemFallback,
   buyWithGems,
 } from "@/lib/economy";
@@ -32,7 +30,7 @@ import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
-import { syncServerTime, serverTodayKey, serverNowMs, isServerClockSynced } from "@/lib/server-time";
+import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
@@ -254,7 +252,7 @@ function Index() {
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
-          const destroyed = !!row.destroyed_at && !!row.repair_ends_at && new Date(row.repair_ends_at).getTime() > Date.now();
+          const destroyed = !!row.destroyed_at && !!row.repair_ends_at && new Date(row.repair_ends_at).getTime() > serverNowMs();
           if (destroyed) {
             // Destroyed ships can't fish. Force them home and clear at_sea in DB.
             fishing = false;
@@ -303,7 +301,7 @@ function Index() {
         const maxProg = catchPerTrip(shipDef);
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
-        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
+        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
         const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
@@ -400,7 +398,7 @@ function Index() {
     }
     const fromX = window.innerWidth - 40;
     const fromY = 60;
-    const id = Date.now();
+    const id = serverNowMs();
     setIncomingFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     if (!friendly) sound.play("whoosh");
     const flyMs = weaponId === "nuke" ? 1100 : 850;
@@ -446,7 +444,7 @@ function Index() {
   const pushHarborState = useCallback(() => {
     const ch = myHarborChanRef.current;
     if (!ch) return;
-    try { ch.send({ type: "broadcast", event: "state", payload: { t: Date.now() } }); } catch {}
+    try { ch.send({ type: "broadcast", event: "state", payload: { t: serverNowMs() } }); } catch {}
   }, []);
 
   // Auto-open the daily login once per day per device
@@ -519,7 +517,7 @@ function Index() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNowMs());
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
@@ -541,7 +539,7 @@ function Index() {
 
   // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
   const getCrewBonuses = (ship: { id: number; dbId?: string }) => {
-    const nowMs = Date.now();
+    const nowMs = serverNowMs();
     const active = crewRowsRef.current.filter(
       (r) => isCrewAssignedToShip(r.meta, ship) &&
              (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
@@ -568,7 +566,7 @@ function Index() {
 
   // 1-second tick for countdowns / expiry
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setNow(serverNowMs()), 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -584,7 +582,7 @@ function Index() {
       .eq("item_type", "crew");
     const rows = (data ?? []) as CrewRow[];
     // purge expired
-    const nowMs = Date.now();
+    const nowMs = serverNowMs();
     const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
     if (expired.length) {
       await deleteInventoryRows(expired.map((r) => r.id));
@@ -659,7 +657,7 @@ function Index() {
       attacker_id: s.user_id,
       attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
-      ends_at: s.stealing_ends_at || new Date().toISOString(),
+      ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
       target_ship_id: s.stealing_target_ship_id,
     })));
@@ -709,7 +707,7 @@ function Index() {
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
-      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= Date.now() && s.dbId);
+      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
@@ -754,7 +752,7 @@ function Index() {
   }, []);
 
 
-  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
+  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > serverNowMs();
 
   const toggleFishing = async (shipId: number) => {
     let dbIdToSync: string | undefined;
@@ -879,7 +877,7 @@ function Index() {
     pushHarborState();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
-      id: Date.now(),
+      id: serverNowMs(),
       x: rect.left + rect.width / 2,
       y: rect.top,
       v: caught
@@ -953,7 +951,7 @@ function Index() {
         <button
           onClick={async () => {
             const showToast = (v: string) => {
-              setPop({ id: Date.now(), x: window.innerWidth / 2, y: 120, v });
+              setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
               setTimeout(() => setPop(null), 1800);
             };
             if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
@@ -1227,7 +1225,7 @@ function Index() {
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
         const flipX = nativeRight ? -1 : 1;
-        const t = Date.now() / 1000;
+        const t = serverNowMs() / 1000;
         const bob = Math.sin((t + i) * 1.2) * 1.8;
         return (
           <Link
@@ -1278,8 +1276,8 @@ function Index() {
         const ready = s.progress >= s.max;
         const onSteal = !!s.stealingTargetUserId;
         const stealEnd = s.stealingEndsAt ? new Date(s.stealingEndsAt).getTime() : 0;
-        const stealReady = onSteal && stealEnd > 0 && Date.now() >= stealEnd;
-        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - Date.now()) / 1000)) : 0;
+        const stealReady = onSteal && stealEnd > 0 && serverNowMs() >= stealEnd;
+        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - serverNowMs()) / 1000)) : 0;
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
@@ -1325,8 +1323,8 @@ function Index() {
                 </div>
               )}
               {!onSteal && (() => {
-                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > Date.now();
-                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - Date.now()) / 1000)) : 0;
+                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > serverNowMs();
+                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - serverNowMs()) / 1000)) : 0;
                 const h = Math.floor(remSec / 3600);
                 const m = Math.floor((remSec % 3600) / 60);
                 const sec = remSec % 60;
@@ -1574,11 +1572,11 @@ function Index() {
           // find a row with this item_id that's unassigned
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
-          const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-          const newMeta = { assigned_ship_id: s.dbId ?? s.id, expires_at: expiresAt };
-          const { error } = row.quantity <= 1
-            ? await updateInventoryMeta(row.id, newMeta)
-            : await splitInventoryAssign(row.id, newMeta);
+          if (!s.dbId) { setToast("حدّث الأسطول أولاً"); return; }
+          const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
+            _ship_id: s.dbId,
+            _crew_id: itemId,
+          });
           if (error) {
             sound.play("error");
             setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
@@ -1910,7 +1908,7 @@ type LbProfile = {
   avatar_frame?: string | null; name_frame?: string | null;
 };
 
-type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
+type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number; donation_score?: number; support_score?: number; attack_score?: number };
 
 type CompLb = {
   id: string; title: string; description: string; banner_emoji: string; banner_text: string;
@@ -1939,7 +1937,7 @@ const COMP_THEME: Record<string, string> = {
   obsidian: "from-slate-800 via-zinc-700 to-slate-900",
 };
 function compTimeLeft(iso: string) {
-  const ms = new Date(iso).getTime() - Date.now();
+  const ms = new Date(iso).getTime() - serverNowMs();
   if (ms <= 0) return "انتهت";
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
@@ -1994,29 +1992,19 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (tab === "tribes") {
       setLoading(true);
       (async () => {
-        const { data: ts } = await supabase.from("tribes").select("id,name,emblem,banner,level").limit(200);
-        if (!ts || ts.length === 0) { setTribes([]); setLoading(false); return; }
-        const ids = ts.map((t: any) => t.id);
-        const { data: mems } = await supabase.from("tribe_members").select("tribe_id,user_id").in("tribe_id", ids);
-        const byTribe = new Map<string, string[]>();
-        (mems || []).forEach((m: any) => {
-          const arr = byTribe.get(m.tribe_id) || [];
-          arr.push(m.user_id);
-          byTribe.set(m.tribe_id, arr);
-        });
-        const allUids = Array.from(new Set((mems || []).map((m: any) => m.user_id)));
-        const powerMap = new Map<string, number>();
-        if (allUids.length > 0) {
-          const { data: ps } = await supabase.from("profiles").select("id,level,xp").in("id", allUids);
-          (ps || []).forEach((p: any) => powerMap.set(p.id, (p.level || 1) * 100 + Math.floor((p.xp || 0) / 10)));
-        }
-        const list: TribeLb[] = (ts as any[]).map(t => {
-          const uids = byTribe.get(t.id) || [];
-          const memberPower = uids.reduce((s, u) => s + (powerMap.get(u) || 0), 0);
-          const lvlBonus = ((t.level || 1) - 1) * 500;
-          const power = memberPower + lvlBonus;
-          return { id: t.id, name: t.name, emblem: t.emblem, banner: t.banner, level: t.level || 1, members: uids.length, power };
-        }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
+        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
+          id: t.tribe_id,
+          name: t.name,
+          emblem: t.emblem,
+          banner: t.banner,
+          level: t.level || 1,
+          members: t.members || 0,
+          donation_score: Number(t.donation_score || 0),
+          support_score: Number(t.support_score || 0),
+          attack_score: Number(t.attack_score || 0),
+          power: Number(t.power || 0),
+        }));
         setTribes(list);
         setLoading(false);
       })();
@@ -2237,7 +2225,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className="relative flex-1 min-w-0">
                   <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
-                  <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} عضو</div>
+                  <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} · 🤝 {(t.support_score ?? 0).toLocaleString()} · ⚔️ {(t.attack_score ?? 0).toLocaleString()}</div>
                 </div>
                 <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⚡ {t.power.toLocaleString()}</div>
               </button>
@@ -2527,7 +2515,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const mins = Math.floor(ship.timeLeft / 60);
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  const t = Date.now() / 1000;
+  const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
   const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
@@ -2553,14 +2541,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const heldLeftRef = useRef(computedLeft);
   if (facingRef.current !== facing) {
     facingRef.current = facing;
-    turnEndRef.current = Date.now() + TURN_MS;
+    turnEndRef.current = serverNowMs() + TURN_MS;
     heldLeftRef.current = computedLeft;
   }
-  const now = Date.now();
+  const now = serverNowMs();
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > Date.now();
+  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > serverNowMs();
   const atSea = ship.sail > 0.85 && !destroyed;
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   // Ship art is drawn facing LEFT natively (with per-level overrides for art

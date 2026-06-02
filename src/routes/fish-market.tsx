@@ -7,6 +7,7 @@ import { FISH, type Fish as CatalogFish } from "@/lib/fish";
 import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { serverNow, serverNowMs } from "@/lib/server-time";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -156,8 +157,8 @@ function FishMarket() {
   }, []);
 
   // Effective price map: if freeze active, override with frozen snapshot
-  const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > Date.now());
-  const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > Date.now());
+  const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > serverNowMs());
+  const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > serverNowMs());
   const effPriceMap = useMemo(() => {
     if (!freezeActive) return priceMap;
     const out: Record<string, { current: number; min: number; max: number }> = { ...priceMap };
@@ -205,7 +206,7 @@ function FishMarket() {
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const tick = () => {
-      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - Date.now()) / 1000));
+      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - serverNowMs()) / 1000));
       setSecondsLeft(diff);
       if (diff === 0) loadMarket();
     };
@@ -295,7 +296,7 @@ function FishMarket() {
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
-    const hours = Math.max(0, (Date.now() - new Date(t).getTime()) / 3_600_000);
+    const hours = Math.max(0, (serverNowMs() - new Date(t).getTime()) / 3_600_000);
     return Math.max(0.5, 1 - 0.01 * hours);
   };
 
@@ -638,9 +639,9 @@ function SellView({
   const currentPrice = past[past.length - 1];
   const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
 
-  const [now, setNow] = useState<number>(() => Date.now());
+  const [now, setNow] = useState<number>(() => serverNowMs());
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    const id = window.setInterval(() => setNow(serverNowMs()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -665,7 +666,7 @@ function SellView({
   }, [minP, range]);
 
   const hourLabels = useMemo(() => {
-    const base = new Date();
+    const base = serverNow();
     base.setMinutes(0, 0, 0);
     const labels: { h: string; ampm: string }[] = [];
     for (let i = -PAST_HOURS; i <= (showFuture ? FUTURE_HOURS : 0); i++) {

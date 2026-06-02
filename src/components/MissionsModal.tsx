@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimQuest, buyLootbox, openLootbox } from "@/lib/economy";
 import { CoinIcon } from "@/components/CurrencyIcon";
-import { serverTodayKey, syncServerTime } from "@/lib/server-time";
+import { serverNow, serverNowMs, serverTodayKey, syncServerTime } from "@/lib/server-time";
 
 type Tab = "missions" | "achievements" | "boxes" | "notifs" | "events";
 
@@ -272,7 +272,8 @@ function EventsTab() {
   const [list, setList] = useState<Evt[]>([]);
   useEffect(() => {
     (async () => {
-      const now = new Date().toISOString();
+      await syncServerTime(true);
+      const now = serverNow().toISOString();
       const { data } = await supabase.from("events").select("*").eq("active", true).lte("starts_at", now).gte("ends_at", now).order("ends_at");
       setList((data ?? []) as Evt[]);
     })();
@@ -281,7 +282,7 @@ function EventsTab() {
     <div className="space-y-2">
       {list.length === 0 && <div className="text-amber-200/50 text-center py-6 text-sm">لا توجد فعاليات حالياً</div>}
       {list.map((e) => {
-        const remaining = Math.max(0, new Date(e.ends_at).getTime() - Date.now());
+        const remaining = Math.max(0, new Date(e.ends_at).getTime() - serverNowMs());
         const days = Math.floor(remaining / 86400000);
         const hrs = Math.floor((remaining % 86400000) / 3600000);
         return (

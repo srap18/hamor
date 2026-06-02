@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { MissionsModal } from "@/components/MissionsModal";
 import { MyShipsModal } from "@/components/MyShipsModal";
 import { sound } from "@/lib/sound";
-import { serverTodayKey, syncServerTime } from "@/lib/server-time";
+import { serverNow, serverNowMs, serverTodayKey, syncServerTime } from "@/lib/server-time";
 
 const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends" | "/chat" | "/fish-market" }> = [
   { icon: "🏠", label: "البحر", to: "/" },
@@ -31,7 +31,7 @@ export function BottomNav({ active }: { active?: string }) {
       await syncServerTime(true);
       const today = serverTodayKey();
       const [{ data: notifs }, { data: progress }, { data: quests }, { data: boxes }] = await Promise.all([
-        supabase.from("notifications").select("id").or(`recipient_id.eq.${user.id},recipient_id.is.null`).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
+        supabase.from("notifications").select("id").or(`recipient_id.eq.${user.id},recipient_id.is.null`).gte("created_at", new Date(serverNowMs() - 7 * 86400000).toISOString()),
         supabase.from("quest_progress").select("quest_id, progress, claimed").eq("user_id", user.id).eq("day_key", today),
         supabase.from("daily_quests").select("id, goal_count").eq("active", true),
         supabase.from("lootbox_owned").select("id").eq("user_id", user.id).eq("opened", false),
@@ -46,7 +46,7 @@ export function BottomNav({ active }: { active?: string }) {
     };
     const loadDm = async () => {
       if (active === "/chat") { setDmUnread(0); return; }
-      const lastSeen = localStorage.getItem(dmSeenKey(user.id)) || new Date(Date.now() - 30 * 86400000).toISOString();
+      const lastSeen = localStorage.getItem(dmSeenKey(user.id)) || new Date(serverNowMs() - 30 * 86400000).toISOString();
       const { count } = await supabase.from("messages")
         .select("id", { count: "exact", head: true })
         .eq("channel", "dm")
@@ -68,7 +68,7 @@ export function BottomNav({ active }: { active?: string }) {
   // When user lands on /chat, mark DMs as seen
   useEffect(() => {
     if (!user || active !== "/chat") return;
-    localStorage.setItem(dmSeenKey(user.id), new Date().toISOString());
+    localStorage.setItem(dmSeenKey(user.id), serverNow().toISOString());
     setDmUnread(0);
   }, [user, active]);
 

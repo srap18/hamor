@@ -13,6 +13,7 @@ import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
+import { serverNow, serverNowMs } from "@/lib/server-time";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -45,7 +46,7 @@ function PlayerPage() {
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | "ad_bomb" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
   const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; fishing_power: number; owner_name: string; owner_emoji: string }[]>([]);
-  const [nowTs, setNowTs] = useState<number>(Date.now());
+  const [nowTs, setNowTs] = useState<number>(serverNowMs());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const [playerCrews, setPlayerCrews] = useState<{ item_id: string; ship_id: string }[]>([]);
@@ -91,7 +92,7 @@ function PlayerPage() {
     const toY = r.top + r.height / 2;
     const fromX = window.innerWidth - 40;
     const fromY = window.innerHeight - 80;
-    const id = Date.now();
+    const id = serverNowMs();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     // whoosh during flight (only for hostile rockets)
     if (!friendly) sound.play("whoosh");
@@ -302,7 +303,7 @@ function PlayerPage() {
   // Live ticker for raider counters (fish stolen so far + countdown)
   useEffect(() => {
     if (raiders.length === 0) return;
-    const id = window.setInterval(() => setNowTs(Date.now()), 500);
+    const id = window.setInterval(() => setNowTs(serverNowMs()), 500);
     return () => window.clearInterval(id);
   }, [raiders.length]);
 
@@ -337,7 +338,7 @@ function PlayerPage() {
   const confirmDropArmorIfActive = async (): Promise<boolean> => {
     if (!me) return true;
     const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
-    if (until <= Date.now()) return true;
+    if (until <= serverNowMs()) return true;
     const ok = window.confirm(
       "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
     );
@@ -379,7 +380,7 @@ function PlayerPage() {
         _xp_gain: w.xp ?? 0,
       });
 
-      setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? new Date().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
+      setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
 
     }
 
@@ -394,7 +395,7 @@ function PlayerPage() {
         console.error("burn_target_bg failed", (burnRes as any).error);
       }
       // Always update local view so attacker sees burned bg immediately
-      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
@@ -487,7 +488,7 @@ function PlayerPage() {
       else if (msg.includes("blocked")) {
         const m = msg.match(/until ([\d\-:.+T ]+)/);
         const until = m ? new Date(m[1]) : null;
-        const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
+        const mins = until ? Math.max(1, Math.ceil((until.getTime() - serverNowMs()) / 60000)) : 60;
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
       else if (msg.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — ممنوع السرقة"); }
@@ -503,7 +504,7 @@ function PlayerPage() {
     } else {
       console.log("[steal] success", missionRes);
       const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
-      const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
+      const secs = ends ? Math.max(0, Math.round((ends.getTime() - serverNowMs()) / 1000)) : 0;
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
       loadRaiders();
@@ -992,7 +993,7 @@ function PlayerPage() {
                         .filter((x) => x.quantity > 0));
                       // Scorch the target's background for 7 days (visible to everyone)
                       burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
-                      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
+                      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
                       sound.play("success");
                       flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                       closeMenu();
@@ -1014,7 +1015,7 @@ function PlayerPage() {
                 {myShips.map((ms) => {
                   const img = ms.catalog_code ? getShipByCode(ms.catalog_code).image : getShipByMarketLevel(ms.template_id || 1).image;
                   const isDestroyed = !!ms.destroyed_at;
-                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
+                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at).getTime() > serverNowMs());
                   const onMission = !!ms.stealing_target_user_id;
                   const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
                   const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ تسرق" : ms.at_sea ? "⚓ بالبحر" : null;
@@ -1247,10 +1248,10 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     return () => clearInterval(id);
   }, [atSea, destroyed]);
   // 1s clock for repair countdown
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [nowMs, setNowMs] = useState(() => serverNowMs());
   useEffect(() => {
     if (!destroyed || !repairEndsAt) return;
-    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    const id = setInterval(() => setNowMs(serverNowMs()), 1000);
     return () => clearInterval(id);
   }, [destroyed, repairEndsAt]);
   useEffect(() => {
@@ -1258,7 +1259,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     const endMs = new Date(repairEndsAt).getTime();
     if (nowMs >= endMs) onRepaired?.();
   }, [nowMs, destroyed, repairEndsAt, onRepaired]);
-  const t = Date.now() / 1000;
+  const t = serverNowMs() / 1000;
   const bob = destroyed ? 0 : Math.sin((t + idx) * 1.4) * 1.5;
   const tilt = destroyed ? 18 : Math.sin((t + idx) * 1.8) * 0.8;
   void tick;

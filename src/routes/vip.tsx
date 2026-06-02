@@ -6,7 +6,7 @@ import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
 import submarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
-import { syncServerTime, serverTodayKey } from "@/lib/server-time";
+import { syncServerTime, serverTodayKey, serverNowMs } from "@/lib/server-time";
 
 export const Route = createFileRoute("/vip")({
   component: VipPage,
@@ -23,7 +23,7 @@ function VipPage() {
   const [showRedeem, setShowRedeem] = useState(false);
 
   const vipLevel = (profile as any)?.vip_level || 0;
-  const isExpired = !!expiresAt && new Date(expiresAt) < new Date();
+  const isExpired = !!expiresAt && new Date(expiresAt).getTime() < serverNowMs();
   const effectiveLevel = isExpired ? 0 : vipLevel;
   const currentTier = getVipTier(effectiveLevel);
 

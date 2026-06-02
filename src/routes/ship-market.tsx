@@ -16,6 +16,7 @@ import iconSpeed from "@/assets/icons/icon-speed.png";
 import iconStorage from "@/assets/icons/icon-storage.png";
 import iconTimer from "@/assets/icons/icon-timer.png";
 import iconUpgrade from "@/assets/icons/icon-upgrade.png";
+import { serverNowMs } from "@/lib/server-time";
 
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
@@ -107,7 +108,7 @@ function ShipyardPage() {
     }
 
     const tick = () => {
-      const diff = Math.max(0, Math.ceil((new Date(market.upgrade_ends_at!).getTime() - Date.now()) / 1000));
+      const diff = Math.max(0, Math.ceil((new Date(market.upgrade_ends_at!).getTime() - serverNowMs()) / 1000));
       setSecondsLeft(diff);
       if (diff === 0) loadData();
     };
