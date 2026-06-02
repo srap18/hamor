@@ -167,8 +167,8 @@ function ShipyardPage() {
 
   const buyShip = async (ship: ShipDef) => {
     if (!user || !profile) return;
-    if (shipsCount >= MAX_SHIPS) {
-      showToast(`🚫 الحد الأقصى ${MAX_SHIPS} سفن — بِع سفينة قبل الشراء`);
+    if (allFull) {
+      showToast(`🚫 الأسطول والمخزن ممتلئان (${MAX_SHIPS}+${MAX_STORAGE}) — بِع سفينة أولًا`);
       return;
     }
     if (marketLevel < ship.marketLevel) {
