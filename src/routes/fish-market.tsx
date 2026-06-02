@@ -132,6 +132,9 @@ function FishMarket() {
 
   // If the user has an active "trader" crew assigned to one of their ships,
   // it grants the same forecast as the paid market unlock — no 250💎 needed.
+  // The "trader" crew gives the player the same price-forecast benefit as the
+  // paid market unlock. As soon as the player owns one (or has one assigned to
+  // a ship), treat the trader as active — no 250💎 needed.
   const [traderCrewUntil, setTraderCrewUntil] = useState<string | null>(null);
   const [traderCrewActive, setTraderCrewActive] = useState<boolean>(false);
   useEffect(() => {
@@ -139,18 +142,21 @@ function FishMarket() {
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
-        .select("meta")
+        .select("quantity, meta")
         .eq("user_id", user.id)
         .eq("item_type", "crew")
         .eq("item_id", "trader");
       const nowMs = serverNowMs();
       let bestExp: number | null = null;
       let active = false;
-      for (const r of (data ?? []) as Array<{ meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
+      for (const r of (data ?? []) as Array<{ quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
+        if ((r.quantity ?? 0) <= 0) continue;
         const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
-        if (r.meta?.assigned_ship_id && (exp == null || exp > nowMs)) {
+        // Active when owned and either unassigned (sitting in inventory) or
+        // assigned to a ship within its 24h window.
+        if (!r.meta?.assigned_ship_id || exp == null || exp > nowMs) {
           active = true;
-          if (exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
+          if (r.meta?.assigned_ship_id && exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
         }
       }
       setTraderCrewActive(active);
