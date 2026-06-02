@@ -374,8 +374,10 @@ function Index() {
     });
   };
   useEffect(() => {
-    // Force a fresh server-time sync + fleet pull on mount so ships appear
-    // at their true position immediately (no phone-clock fallback).
+    // INSTANT first paint: pull fleet immediately so ships show their true
+    // state (fishing / docked / damaged) without waiting for the server-time
+    // round-trip. Then refresh the clock in the background and re-sync.
+    syncFleetFromDb();
     (async () => {
       await syncServerTime(true);
       syncFleetFromDb();
