@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
@@ -19,6 +19,7 @@ function VipPage() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [claimedToday, setClaimedToday] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const claimingRef = useRef(false);
   const [showRedeem, setShowRedeem] = useState(false);
 
   const vipLevel = (profile as any)?.vip_level || 0;
@@ -42,10 +43,12 @@ function VipPage() {
   }, [user]);
 
   const claim = async () => {
-    if (claiming || claimedToday) return;
+    if (claimingRef.current || claiming || claimedToday) return;
+    claimingRef.current = true;
     setClaiming(true);
     const { data, error } = await supabase.rpc("claim_vip_daily" as never);
     setClaiming(false);
+    claimingRef.current = false;
     if (error) {
       const k = (error.message || "").trim();
       if (k.includes("no_vip")) toast.error("تحتاج VIP أولاً");
