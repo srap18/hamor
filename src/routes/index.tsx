@@ -811,9 +811,13 @@ function Index() {
 
   const toggleFishing = async (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
+    // Guard against double-tap on the start/stop fishing button.
+    if (target?.dbId && collectingRef.current[target.dbId]) return;
+    if (target?.dbId) collectingRef.current[target.dbId] = true;
     if (target && isDestroyed(target) && !target.fishing) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
       sound.play("error");
+      if (target.dbId) delete collectingRef.current[target.dbId];
       return;
     }
     if (!target?.fishing && !isServerClockSynced()) {
