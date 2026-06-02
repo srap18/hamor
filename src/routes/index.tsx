@@ -780,7 +780,7 @@ function Index() {
     pushHarborState();
   };
 
-  const collect = (shipId: number, e: React.MouseEvent) => {
+  const collect = async (shipId: number, e: React.MouseEvent) => {
     const s = ships.find((x) => x.id === shipId);
     if (!s) return;
     // Docked & empty → start fishing (sail out)
@@ -788,24 +788,10 @@ function Index() {
       toggleFishing(shipId);
       return;
     }
-    // Compute time-based ratio so fishGained is strictly proportional to time at sea.
-    const { luckMult, sailorMult, guide } = getCrewBonuses(s);
-    const elapsed = (s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0) * sailorMult;
-    const timeRatio = Math.min(1, elapsed / Math.max(1, s.duration));
-    const rawRatio = s.fishing ? timeRatio : Math.min(1, s.progress / s.max);
-    // Strictly time-proportional: fish caught == (elapsed / duration) * capacity.
-    // No minimum floor — stopping after 0s yields 0.
-    const effRatio = rawRatio;
+    const { guide } = getCrewBonuses(s);
     const pool = fishPoolForShip(s);
     const storedGuide = getShipGuide(s.id);
-    // Fallback safety: if pool is empty (shouldn't happen) use any fish so the catch is never lost
-    const fallbackPool = pool.length > 0 ? pool : Object.keys(FISH);
-    const caughtId = guide && storedGuide && fallbackPool.includes(storedGuide)
-      ? storedGuide
-      : (predictTripFish(fallbackPool, s.id, s.startedAt) ?? fallbackPool[0]);
-    const caught = caughtId ? FISH[caughtId] : null;
-    const fullAmount = catchAmountForLevel(s.level, s.maxHp);
-    const baseFish = Math.floor(fullAmount * effRatio);
+    const requestedFishId = guide && storedGuide && pool.includes(storedGuide) ? storedGuide : null;
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
@@ -819,7 +805,33 @@ function Index() {
       }
       return;
     }
-    const fishGained = Math.floor(baseFish * luckMult);
+
+    if (!s.dbId) {
+      showToast("حدّث الأسطول أولاً");
+      syncFleetFromDb();
+      return;
+    }
+
+    const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
+      _ship_id: s.dbId,
+      _requested_fish_id: requestedFishId,
+    });
+    if (error) {
+      const msg = String(error.message || "");
+      if (msg.includes("not_fishing")) showToast("السفينة ليست في رحلة صيد");
+      else if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
+      else showToast("تعذّر استلام الصيد");
+      setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
+      syncFleetFromDb();
+      return;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const caughtId = row?.fish_id as string | undefined;
+    const caught = caughtId ? FISH[caughtId] : null;
+    const fishGained = Number(row?.fish_qty ?? 0);
+    const baseFish = Number(row?.base_qty ?? fishGained);
+    const luckBonus = Number(row?.luck_bonus ?? 0);
     if (fishGained <= 0) {
       // Nothing caught yet — just dock the ship without rewarding/spamming.
       setShips((curr) =>
@@ -829,28 +841,10 @@ function Index() {
             : x
         )
       );
-      if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
-      }
+      syncFleetFromDb();
       return;
     }
-    // Fishing yields only fish — sell them at the fish market to earn gold.
     setFish((f) => f + fishGained);
-    if (user && caught) {
-      incrementFishCaught(caught.id, fishGained).catch((e) => console.error("[catch]", e));
-    }
-    // Award XP for the fishing trip, scaled by ship level and catch size.
-    // Server caps via award_fishing_revenue (max = 50 + tpl*40).
-    if (s.dbId && fishGained > 0) {
-      const xpGain = Math.max(5, Math.floor(fishGained * 0.4) + s.level * 5);
-      (supabase as any).rpc("award_fishing_revenue", {
-        _ship_id: s.dbId, _coins: 0, _xp: xpGain,
-      }).then((res: any) => {
-        if (res?.error) console.warn("[fishing xp]", res.error.message);
-      });
-    }
 
     sound.play("splash");
     setTimeout(() => sound.play("coin"), 180);
@@ -862,11 +856,7 @@ function Index() {
           : x
       )
     );
-    if (s.dbId) {
-      import("@/lib/economy").then(({ setShipAtSea }) => {
-        setShipAtSea(s.dbId!, false).catch(() => {});
-      });
-    }
+    syncFleetFromDb();
     // Instant push to spectators
     pushHarborState();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -886,7 +876,7 @@ function Index() {
       shipId: s.id,
       shipLevel: s.level,
       baseCount: baseFish,
-      luckBonus: luckMult > 1 ? fishGained - baseFish : 0,
+      luckBonus,
     });
 
     setTimeout(() => setPop(null), 1400);
