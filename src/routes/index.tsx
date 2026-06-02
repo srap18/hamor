@@ -1857,7 +1857,7 @@ function Index() {
       {/* Dragon + Totem removed per user request */}
 
       {/* BOTTOM NAV */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-1.5 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+      <div className="fixed bottom-0 left-0 right-0 z-[80] px-1.5 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
         <div className="flex items-center justify-around">
           {[
             { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const },
