@@ -715,6 +715,59 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_topic_votes: {
+        Row: {
+          created_at: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_topic_votes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "forum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_topics: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+          votes: number
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+          votes?: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+          votes?: number
+        }
+        Relationships: []
+      }
       friends: {
         Row: {
           addressee_id: string
