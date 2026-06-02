@@ -27,6 +27,27 @@ if (typeof window !== "undefined") {
       if (document.visibilityState === "visible") syncServerTime(true);
     });
   } catch {}
+
+  // Disable browser zoom (Ctrl+wheel, Ctrl/Cmd +/-, pinch gestures, double-tap).
+  try {
+    window.addEventListener("wheel", (e) => {
+      if (e.ctrlKey) e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && ["=", "+", "-", "_", "0"].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener("gesturestart", (e) => e.preventDefault());
+    document.addEventListener("gesturechange", (e) => e.preventDefault());
+    document.addEventListener("gestureend", (e) => e.preventDefault());
+    let lastTouch = 0;
+    document.addEventListener("touchend", (e) => {
+      const now = Date.now();
+      if (now - lastTouch <= 300) e.preventDefault();
+      lastTouch = now;
+    }, { passive: false });
+  } catch {}
 }
 
 import appCss from "../styles.css?url";
