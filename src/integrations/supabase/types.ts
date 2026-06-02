@@ -2558,14 +2558,6 @@ export type Database = {
           player_id: string
         }[]
       }
-      award_fishing_revenue: {
-        Args: { _coins: number; _ship_id: string; _xp: number }
-        Returns: undefined
-      }
-      award_fishing_revenue_simple: {
-        Args: { _coins: number; _xp: number }
-        Returns: undefined
-      }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
         Returns: undefined
@@ -2658,15 +2650,6 @@ export type Database = {
           stolen_count: number
           total_value: number
         }[]
-      }
-      catch_fish: {
-        Args: {
-          _base_value: number
-          _fish_id: string
-          _ship_id: string
-          _xp_gain: number
-        }
-        Returns: undefined
       }
       catch_thief: {
         Args: { _attacker_ship_id: string }
@@ -3233,26 +3216,18 @@ export type Database = {
           ends_at: string
         }[]
       }
-      steal_fish:
-        | {
-            Args: { _defender_id: string; _max_count?: number }
-            Returns: {
-              stolen_count: number
-              total_value: number
-            }[]
-          }
-        | {
-            Args: {
-              _attacker_ship_id?: string
-              _defender_id: string
-              _max_count?: number
-              _target_ship_id?: string
-            }
-            Returns: {
-              stolen_count: number
-              total_value: number
-            }[]
-          }
+      steal_fish: {
+        Args: {
+          _attacker_ship_id?: string
+          _defender_id: string
+          _max_count?: number
+          _target_ship_id?: string
+        }
+        Returns: {
+          stolen_count: number
+          total_value: number
+        }[]
+      }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
