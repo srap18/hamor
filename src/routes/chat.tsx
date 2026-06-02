@@ -750,9 +750,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   };
 
   const acceptReq = (r: JoinReq) => wrap(async () => {
-    await supabase.from("tribe_members").insert({ tribe_id: tribeId, user_id: r.user_id, role: "member" });
-    await officerSetTribe(r.user_id, tribeId);
-    await supabase.from("tribe_join_requests").update({ status: "accepted" }).eq("id", r.id);
+    const { error } = await supabase.rpc("accept_join_request" as never, { _request_id: r.id } as never);
+    if (error) throw error;
     await load();
   });
   const rejectReq = (r: JoinReq) => wrap(async () => {

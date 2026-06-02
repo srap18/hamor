@@ -2433,6 +2433,7 @@ export type Database = {
         Args: { _coins_needed: number; _uid: string }
         Returns: undefined
       }
+      accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       add_vip_points: {
         Args: { _pts: number; _user: string }
         Returns: undefined
