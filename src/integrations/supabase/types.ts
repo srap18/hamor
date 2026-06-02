@@ -938,6 +938,9 @@ export type Database = {
           created_at: string
           id: string
           recipient_id: string | null
+          reply_to_body: string | null
+          reply_to_id: string | null
+          reply_to_name: string | null
           sender_id: string
           tribe_id: string | null
         }
@@ -949,6 +952,9 @@ export type Database = {
           created_at?: string
           id?: string
           recipient_id?: string | null
+          reply_to_body?: string | null
+          reply_to_id?: string | null
+          reply_to_name?: string | null
           sender_id: string
           tribe_id?: string | null
         }
@@ -960,6 +966,9 @@ export type Database = {
           created_at?: string
           id?: string
           recipient_id?: string | null
+          reply_to_body?: string | null
+          reply_to_id?: string | null
+          reply_to_name?: string | null
           sender_id?: string
           tribe_id?: string | null
         }
