@@ -917,9 +917,14 @@ function Index() {
     if (collectingRef.current[s.dbId]) return;
     collectingRef.current[s.dbId] = true;
 
+    // Optimistic: dock the ship instantly so stopping/collecting feels immediate.
+    setSeaOverride(s.dbId, false);
+    setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
+
     if (!isServerClockSynced()) {
-      await syncServerTime(true);
+      syncServerTime(true).catch(() => {});
     }
+
 
     const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
       _ship_id: s.dbId,
