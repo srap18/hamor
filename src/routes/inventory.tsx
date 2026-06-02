@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
+import { SHIPS } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/inventory")({
@@ -18,22 +19,27 @@ export const Route = createFileRoute("/inventory")({
 
 type Tab = "crew" | "weapon" | "fish" | "shield";
 
-interface InvRow { item_type: string; item_id: string; quantity: number; }
+interface InvRow { id: string; item_type: string; item_id: string; quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null; }
 interface FishRow { fish_id: string; quantity: number; total_caught: number; }
+interface OwnedShip { id: string; catalog_code: string | null; hp: number; max_hp: number; in_storage: boolean; }
 
 function InventoryPage() {
   const [tab, setTab] = useState<Tab>("crew");
   const [inv, setInv] = useState<InvRow[]>([]);
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
+  const [ships, setShips] = useState<OwnedShip[]>([]);
+  const [crewToUse, setCrewToUse] = useState<string | null>(null);
+  const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) { setLoading(false); return; }
-    const [{ data: i }, { data: f }] = await Promise.all([
-      supabase.from("inventory").select("item_type,item_id,quantity").eq("user_id", u.user.id),
+    const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
+      supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
       supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
+      supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
     ]);
     const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
     const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
@@ -46,6 +52,7 @@ function InventoryPage() {
     const caughtRows = (f ?? []) as FishRow[];
     const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
     setInv(i ?? []);
+    setShips((s as OwnedShip[] | null) ?? []);
     setFishRows(Array.from(fishIds).map((fish_id) => {
       const caught = caughtRows.find((r) => r.fish_id === fish_id);
       return {
@@ -69,9 +76,28 @@ function InventoryPage() {
     };
   }, []);
 
-  const qty = (type: string, id: string) => inv.find(r => r.item_type === type && r.item_id === id)?.quantity ?? 0;
+  const isUsableStack = (r: InvRow) => !r.meta?.assigned_ship_id;
+  const qty = (type: string, id: string) => inv.filter(r => r.item_type === type && r.item_id === id && isUsableStack(r)).reduce((sum, r) => sum + (r.quantity ?? 0), 0);
   const fishQty = (id: string) => fishRows.find(r => r.fish_id === id)?.quantity ?? 0;
   const fishDiscovered = (id: string) => (fishRows.find(r => r.fish_id === id)?.total_caught ?? 0) > 0;
+  const useCrew = async (crewId: string, shipId?: string | null) => {
+    const row = inv.find(r => r.item_type === "crew" && r.item_id === crewId && isUsableStack(r) && r.quantity > 0);
+    if (!row) { alert("ما عندك هذا الطاقم في المخزن"); return; }
+    setUsingCrew(crewId);
+    const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
+    setUsingCrew(null);
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("ship already")) alert("هذه السفينة فيها نفس الطاقم بالفعل");
+      else if (msg.includes("missing ship")) alert("اختر سفينة أولًا");
+      else alert("تعذر استخدام الطاقم");
+      return;
+    }
+    setCrewToUse(null);
+    await load();
+    window.dispatchEvent(new Event("inventory-changed"));
+    alert(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
+  };
 
   return (
     <div className="fixed inset-0 overflow-y-auto text-foreground" dir="rtl" style={{
