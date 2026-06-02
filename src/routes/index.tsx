@@ -517,7 +517,7 @@ function Index() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNowMs());
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
@@ -539,7 +539,7 @@ function Index() {
 
   // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
   const getCrewBonuses = (ship: { id: number; dbId?: string }) => {
-    const nowMs = Date.now();
+    const nowMs = serverNowMs();
     const active = crewRowsRef.current.filter(
       (r) => isCrewAssignedToShip(r.meta, ship) &&
              (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
@@ -566,7 +566,7 @@ function Index() {
 
   // 1-second tick for countdowns / expiry
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setNow(serverNowMs()), 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -582,7 +582,7 @@ function Index() {
       .eq("item_type", "crew");
     const rows = (data ?? []) as CrewRow[];
     // purge expired
-    const nowMs = Date.now();
+    const nowMs = serverNowMs();
     const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
     if (expired.length) {
       await deleteInventoryRows(expired.map((r) => r.id));
@@ -657,7 +657,7 @@ function Index() {
       attacker_id: s.user_id,
       attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
-      ends_at: s.stealing_ends_at || new Date().toISOString(),
+      ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
       target_ship_id: s.stealing_target_ship_id,
     })));
@@ -707,7 +707,7 @@ function Index() {
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
-      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= Date.now() && s.dbId);
+      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
@@ -752,7 +752,7 @@ function Index() {
   }, []);
 
 
-  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
+  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > serverNowMs();
 
   const toggleFishing = async (shipId: number) => {
     let dbIdToSync: string | undefined;
