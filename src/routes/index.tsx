@@ -1227,10 +1227,14 @@ function Index() {
         <div className="flex items-center gap-2">
           {/* VIP removed */}
 
-          <div className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow">
+          <Link
+            to="/inventory"
+            className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow active:scale-95"
+            title="الأسماك المكتشفة"
+          >
             <span className="text-lg">🐟</span>
-            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}</span>
-          </div>
+            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}<span className="text-amber-400/70 font-bold">/{FISH_TOTAL}</span></span>
+          </Link>
           <NotificationsBell />
           {isAdmin && (
             <Link
