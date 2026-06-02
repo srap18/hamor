@@ -2903,6 +2903,13 @@ export type Database = {
           xp: number
         }[]
       }
+      get_server_time: {
+        Args: never
+        Returns: {
+          server_now: string
+          server_today: string
+        }[]
+      }
       get_ship_market_leaderboard: {
         Args: { _limit?: number }
         Returns: {
