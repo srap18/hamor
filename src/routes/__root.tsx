@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" },
       { title: "ملوك القراصنة - لعبة ملوك القراصنة | هامور شابك" },
       { name: "description", content: "ملوك القراصنة - لعبة المغامرات البحرية العربية الأولى. اصطد، اغزُ، وكوّن إمبراطوريتك البحرية. تُعرف أيضاً باسم هامور شابك، هامور 360، شابك 360." },
       { name: "keywords", content: "ملوك القراصنة, لعبة ملوك القراصنة, ملوك القراصنه, هامور شابك, هامور 360, شابك 360, لعبة قراصنة, لعبة صيد سمك, لعبة بحرية, pirates kings, mulook al qarasna" },
