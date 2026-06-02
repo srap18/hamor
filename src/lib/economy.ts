@@ -40,9 +40,6 @@ export async function claimDailyLogin() {
   return supabase.rpc("claim_daily_login");
 }
 
-export async function catchFish(shipId: string, fishId: string, baseValue: number, xpGain: number) {
-  return supabase.rpc("catch_fish", { _ship_id: shipId, _fish_id: fishId, _base_value: baseValue, _xp_gain: xpGain });
-}
 
 export async function sellFish(fishStockIds: string[]) {
   return supabase.rpc("sell_fish", { _fish_stock_ids: fishStockIds });
