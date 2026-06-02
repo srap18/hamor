@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, type ShipDef } from "@/lib/ships";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { MyShipsModal } from "@/components/MyShipsModal";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
 import iconFishing from "@/assets/icons/icon-fishing.png";
@@ -41,6 +42,7 @@ type OwnedShip = {
   catalog_code: string | null;
   hp: number;
   max_hp: number;
+  in_storage: boolean;
 };
 
 
@@ -55,10 +57,13 @@ function ShipyardPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<null | "upgrade" | "boost" | string>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [storageOpen, setStorageOpen] = useState(false);
 
   const selectedShip = SHIPS.find((ship) => ship.code === selectedCode) ?? SHIPS[0];
   const marketLevel = market?.level ?? 1;
   const acceleratingCost = Math.max(1, Math.ceil(secondsLeft / 60));
+  const activeShips = useMemo(() => owned.filter((s) => !s.in_storage), [owned]);
+  const storedShips = useMemo(() => owned.filter((s) => s.in_storage), [owned]);
   const ownedCount = useMemo(
     () => owned.reduce<Record<string, number>>((acc, ship) => {
       const key = ship.catalog_code ?? "unknown";
@@ -68,13 +73,15 @@ function ShipyardPage() {
     [owned],
   );
   const fleetStorageUsed = useMemo(
-    () => owned.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
-    [owned],
+    () => activeShips.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
+    [activeShips],
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
   const MAX_SHIPS = 3;
-  const shipsCount = owned.length;
-  const fleetFull = shipsCount >= MAX_SHIPS;
+  const MAX_STORAGE = 3;
+  const activeCount = activeShips.length;
+  const storageCount = storedShips.length;
+  const allFull = activeCount >= MAX_SHIPS && storageCount >= MAX_STORAGE;
   const selectedShipFlip = shipBowFacesRight(selectedShip.marketLevel) ? 1 : -1;
 
   const showToast = (message: string) => {
@@ -89,7 +96,7 @@ function ShipyardPage() {
     await supabase.rpc("finalize_market_upgrades");
     const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
       supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
-      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp").eq("user_id", user.id).order("acquired_at", { ascending: false }),
+      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
     ]);
     setMarket((marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null });
     setOwned((ownedRows as OwnedShip[] | null) ?? []);
@@ -160,8 +167,8 @@ function ShipyardPage() {
 
   const buyShip = async (ship: ShipDef) => {
     if (!user || !profile) return;
-    if (shipsCount >= MAX_SHIPS) {
-      showToast(`🚫 الحد الأقصى ${MAX_SHIPS} سفن — بِع سفينة قبل الشراء`);
+    if (allFull) {
+      showToast(`🚫 الأسطول والمخزن ممتلئان (${MAX_SHIPS}+${MAX_STORAGE}) — بِع سفينة أولًا`);
       return;
     }
     if (marketLevel < ship.marketLevel) {
@@ -304,8 +311,11 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${shipsCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>السفن: {shipsCount} / {MAX_SHIPS}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => setStorageOpen(true)} className="flex items-center gap-1.5 rounded-lg border-2 border-amber-400/60 bg-gradient-to-b from-amber-500/20 to-amber-700/20 px-3 py-2 text-xs font-black text-amber-200 hover:from-amber-500/30 hover:to-amber-700/30 active:scale-95 shadow-[0_0_15px_rgba(252,191,73,0.25)]">
+                📦 المخزن <span className="opacity-80">({storageCount}/{MAX_STORAGE})</span>
+              </button>
+              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${activeCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>النشطة: {activeCount} / {MAX_SHIPS}</div>
               <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
             </div>
           </div>
@@ -348,8 +358,8 @@ function ShipyardPage() {
                       <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || fleetFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : shipsCount >= MAX_SHIPS ? `الحد ${MAX_SHIPS}` : busy === ship.code ? "جارٍ الشراء..." : "شراء"}
+                    <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
+                      {locked ? `يتطلب ${ship.marketLevel}` : allFull ? "ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : activeCount >= MAX_SHIPS ? "شراء (للمخزن)" : "شراء"}
                     </button>
                   </div>
                 </button>
@@ -364,7 +374,7 @@ function ShipyardPage() {
           </div>
         )}
       </div>
-      
+      <MyShipsModal open={storageOpen} onClose={() => { setStorageOpen(false); loadData(); }} />
     </div>
   );
 }
