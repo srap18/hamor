@@ -1740,9 +1740,9 @@ function Index() {
                   const qty = availMap.get(cid) ?? 0;
                   const owned = qty > 0;
                   const isFixer = cid.startsWith("fixer_");
-                  const isGlobalCrew = cid === "trader" || cid === "guide";
+                  const isGlobalCrew = cid === "trader"; // only the trader is fleet-exclusive
                   const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                  // Global crews (trader/guide): only one active across the whole fleet.
+                  // Global crews (trader): only one active across the whole fleet.
                   const nowMs = serverNowMs();
                   const globallyActive = isGlobalCrew && crewRows.some(
                     (r) => r.item_id === cid
