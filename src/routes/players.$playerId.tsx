@@ -281,9 +281,23 @@ function PlayerPage() {
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
+    // Watch profile updates (death banner, bg burn, etc.) live
+    const profCh = supabase
+      .channel(`profile-watch:${playerId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${playerId}` },
+        (payload) => {
+          const r = payload.new as Partial<Profile>;
+          setP((cur) => cur ? { ...cur, ...r } : cur);
+        },
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(harborChan);
+      supabase.removeChannel(profCh);
       harborChanRef.current = null;
       window.clearInterval(poll);
       document.removeEventListener("visibilitychange", onVis);
