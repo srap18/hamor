@@ -2110,25 +2110,35 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (tab === "search") return;
+    const hasCachedData =
+      (tab === "comp" && comps.length > 0) ||
+      (tab === "tribes" && tribes.length > 0) ||
+      (tab === "fish" && fishRows.length > 0) ||
+      (tab === "ships" && shipRows.length > 0) ||
+      (["xp", "gems", "coins"].includes(tab) && rows.length > 0);
+    let cancelled = false;
+    const showSpinner = !hasCachedData;
+    if (showSpinner) setLoading(true);
     if (tab === "comp") {
-      setLoading(true);
       (async () => {
         const { data } = await (supabase as any).rpc("get_active_competitions");
+        if (cancelled) return;
         const list = ((data ?? []) as CompLb[]);
         setComps(list);
         const entries = await Promise.all(list.map(async (c) => {
           const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
           return [c.id, ((lb ?? []) as CompLbRow[])] as const;
         }));
+        if (cancelled) return;
         setCompBoards(Object.fromEntries(entries));
         setLoading(false);
       })();
-      return;
+      return () => { cancelled = true; };
     }
     if (tab === "tribes") {
-      setLoading(true);
       (async () => {
         const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        if (cancelled) return;
         const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
           id: t.tribe_id,
           name: t.name,
@@ -2144,12 +2154,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         setTribes(list);
         setLoading(false);
       })();
-      return;
+      return () => { cancelled = true; };
     }
     if (tab === "fish") {
-      setLoading(true);
       (async () => {
         const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
+        if (cancelled) return;
         const mapped = ((data as any[]) || []).map((r) => ({
           id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
           avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
@@ -2159,12 +2169,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
         setLoading(false);
       })();
-      return;
+      return () => { cancelled = true; };
     }
     if (tab === "ships") {
-      setLoading(true);
       (async () => {
         const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
+        if (cancelled) return;
         const mapped = ((data as any[]) || []).map((r) => ({
           id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
           avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
@@ -2174,12 +2184,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
         setLoading(false);
       })();
-      return;
+      return () => { cancelled = true; };
     }
-    setLoading(true);
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     (async () => {
       const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
+      if (cancelled) return;
       const mapped = ((data as any[]) || []).map((r) => ({
         id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
         level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
@@ -2188,6 +2198,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
       setRows(mapped);
       setLoading(false);
     })();
+    return () => { cancelled = true; };
 
   }, [tab, staffIds, refreshSeq]);
 
@@ -2196,28 +2207,27 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     let debounce: number | null = null;
     const refreshNow = () => {
       if (debounce) window.clearTimeout(debounce);
-      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 120);
+      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 500);
     };
     const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", onVisible);
-    const ch = supabase
-      .channel(`leaderboard-live-${tab}-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "fish_caught" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_market" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tribes" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tribe_donations" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_gifts" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "attacks" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "competitions" }, refreshNow)
-      .on("postgres_changes", { event: "*", schema: "public", table: "competition_catches" }, refreshNow)
-      .subscribe();
+    const watchedTables =
+      tab === "comp" ? ["competitions", "competition_catches"] :
+      tab === "fish" ? ["fish_caught"] :
+      tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
+      tab === "ships" ? ["ships_owned"] :
+      [];
+    const ch = watchedTables.length > 0
+      ? watchedTables.reduce((channel, table) => (
+          channel.on("postgres_changes", { event: "*", schema: "public", table }, refreshNow)
+        ), supabase.channel(`leaderboard-live-${tab}`)).subscribe()
+      : null;
     return () => {
       window.removeEventListener("focus", refreshNow);
       document.removeEventListener("visibilitychange", onVisible);
       if (debounce) window.clearTimeout(debounce);
-      supabase.removeChannel(ch);
+      if (ch) supabase.removeChannel(ch);
     };
   }, [tab]);
 
