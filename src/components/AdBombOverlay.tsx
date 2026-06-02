@@ -38,10 +38,10 @@ export function AdBombOverlay({
   const [now, setNow] = useState(serverNowMs());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [needsTap, setNeedsTap] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const unmuteCleanupRef = useRef<(() => void) | null>(null);
   const lastBombId = useRef<string | null>(null);
 
   // Look up attacker display name once per bomb
@@ -124,56 +124,68 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
-  // Autoplay muted (browser-allowed) then immediately try to unmute. If the
-  // browser still blocks sound, hook into the very first user gesture
-  // anywhere on the page to unmute — no visible button required.
+  // Try audible playback first. If the browser blocks it, keep the video
+  // running muted and unlock sound automatically on the next interaction.
   useEffect(() => {
     if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
 
-    const unmute = () => {
+    let cancelled = false;
+    unmuteCleanupRef.current?.();
+
+    const playWithSound = () => {
       v.muted = false;
       v.volume = 1;
+      setIsMuted(false);
       const up = v.play();
       if (up && typeof up.then === "function") {
-        up.then(() => { setIsMuted(false); }).catch(() => { /* keep muted */ });
+        return up.then(() => true).catch(() => false);
       } else {
-        setIsMuted(false);
+        return Promise.resolve(true);
       }
     };
 
-    v.muted = true;
-    setIsMuted(true);
-    const p = v.play();
-    const tryUnmuteNow = () => {
-      v.muted = false;
-      v.volume = 1;
-      const up = v.play();
-      if (up && typeof up.then === "function") {
-        up.then(() => { setIsMuted(false); }).catch(() => {
-          v.muted = true;
-          setIsMuted(true);
-          // Wait for any gesture anywhere → unmute then
-          const onGesture = () => { unmute(); cleanup(); };
-          const cleanup = () => {
-            window.removeEventListener("pointerdown", onGesture, true);
-            window.removeEventListener("touchstart", onGesture, true);
-            window.removeEventListener("keydown", onGesture, true);
-            window.removeEventListener("click", onGesture, true);
-          };
-          window.addEventListener("pointerdown", onGesture, true);
-          window.addEventListener("touchstart", onGesture, true);
-          window.addEventListener("keydown", onGesture, true);
-          window.addEventListener("click", onGesture, true);
-        });
-      }
+    const keepPlayingMuted = () => {
+      v.muted = true;
+      setIsMuted(true);
+      void v.play().catch(() => {});
     };
-    if (p && typeof p.then === "function") {
-      p.then(tryUnmuteNow).catch(tryUnmuteNow);
-    } else {
-      tryUnmuteNow();
-    }
+
+    const attachSilentUnlock = () => {
+      const onGesture = () => {
+        void playWithSound().then((ok) => {
+          if (ok) unmuteCleanupRef.current?.();
+          else keepPlayingMuted();
+        });
+      };
+      const cleanup = () => {
+        window.removeEventListener("pointerdown", onGesture, true);
+        window.removeEventListener("touchstart", onGesture, true);
+        window.removeEventListener("keydown", onGesture, true);
+        window.removeEventListener("click", onGesture, true);
+        window.removeEventListener("visibilitychange", onGesture, true);
+      };
+      unmuteCleanupRef.current = cleanup;
+      window.addEventListener("pointerdown", onGesture, true);
+      window.addEventListener("touchstart", onGesture, true);
+      window.addEventListener("keydown", onGesture, true);
+      window.addEventListener("click", onGesture, true);
+      window.addEventListener("visibilitychange", onGesture, true);
+    };
+
+    void playWithSound().then((ok) => {
+      if (cancelled) return;
+      if (ok) return;
+      keepPlayingMuted();
+      attachSilentUnlock();
+    });
+
+    return () => {
+      cancelled = true;
+      unmuteCleanupRef.current?.();
+      unmuteCleanupRef.current = null;
+    };
   }, [isActive, phase, bomb?.id]);
 
   if (!isActive || !bomb) return null;
@@ -183,14 +195,6 @@ export function AdBombOverlay({
 
   const minsLeft = Math.max(0, Math.floor((expiresMs - now) / 60_000));
   const secsLeft = Math.max(0, Math.floor(((expiresMs - now) % 60_000) / 1000));
-
-  const handleTap = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = false;
-    v.volume = 1;
-    v.play().then(() => { setIsMuted(false); setNeedsTap(false); }).catch(() => {});
-  };
 
   const handleRemove = async () => {
     if (removing) return;
@@ -233,7 +237,7 @@ export function AdBombOverlay({
             src={video.src}
             autoPlay
             loop
-            muted
+            muted={isMuted}
             playsInline
             preload="auto"
             className="absolute inset-0 h-full w-full object-cover"
