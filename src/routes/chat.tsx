@@ -13,6 +13,7 @@ import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
+import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
