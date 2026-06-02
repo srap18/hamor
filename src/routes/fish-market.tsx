@@ -130,6 +130,46 @@ function FishMarket() {
   };
   useEffect(() => { loadMarketState(); }, [user?.id]);
 
+  // If the user has an active "trader" crew assigned to one of their ships,
+  // it grants the same forecast as the paid market unlock — no 250💎 needed.
+  // The "trader" crew gives the player the same price-forecast benefit as the
+  // paid market unlock. As soon as the player owns one (or has one assigned to
+  // a ship), treat the trader as active — no 250💎 needed.
+  const [traderCrewUntil, setTraderCrewUntil] = useState<string | null>(null);
+  const [traderCrewActive, setTraderCrewActive] = useState<boolean>(false);
+  useEffect(() => {
+    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); return; }
+    const load = async () => {
+      const { data } = await supabase
+        .from("inventory")
+        .select("quantity, meta")
+        .eq("user_id", user.id)
+        .eq("item_type", "crew")
+        .eq("item_id", "trader");
+      const nowMs = serverNowMs();
+      let bestExp: number | null = null;
+      let active = false;
+      for (const r of (data ?? []) as Array<{ quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
+        if ((r.quantity ?? 0) <= 0) continue;
+        const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+        // Active when owned and either unassigned (sitting in inventory) or
+        // assigned to a ship within its 24h window.
+        if (!r.meta?.assigned_ship_id || exp == null || exp > nowMs) {
+          active = true;
+          if (r.meta?.assigned_ship_id && exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
+        }
+      }
+      setTraderCrewActive(active);
+      setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
+    };
+    load();
+    const ch = supabase
+      .channel(`inv_trader_${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "inventory", filter: `user_id=eq.${user.id}` }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id]);
+
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
     const loadPrices = async () => {
@@ -163,7 +203,12 @@ function FishMarket() {
 
   // Freeze protects freshness/rot only. Market price itself always stays live.
   const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > serverNowMs());
-  const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > serverNowMs());
+  const traderUnlockUntilMs = marketState.trader_until ? new Date(marketState.trader_until).getTime() : 0;
+  const traderCrewUntilMs = traderCrewUntil ? new Date(traderCrewUntil).getTime() : 0;
+  const traderActiveGlobal = traderUnlockUntilMs > serverNowMs() || traderCrewActive;
+  const effectiveTraderUntil = traderCrewActive && traderCrewUntilMs === 0
+    ? null // crew assigned without explicit expiry — show as active, no countdown
+    : (traderUnlockUntilMs >= traderCrewUntilMs ? marketState.trader_until : traderCrewUntil);
 
 
   const loadMarket = async () => {
@@ -413,7 +458,7 @@ function FishMarket() {
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
-          traderUntil={marketState.trader_until}
+          traderUntil={effectiveTraderUntil}
           rotPct={Math.round(rotMult(sel.id) * 100)}
           selling={selling}
           onBack={() => setSelected(null)}
