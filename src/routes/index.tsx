@@ -2568,18 +2568,49 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
     const { data: t } = await supabase.from("tribes").select("name,emblem,banner,description,level,treasure_coins,total_donations,join_mode").eq("id", tribeId).maybeSingle();
     if (t) setInfo(t as any);
 
-      const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
-      const ids = (ms || []).map((m: any) => m.user_id);
-      const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
-      const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
-      const merged = (ms || []).map((m: any) => {
-        const p: any = pmap.get(m.user_id) || {};
-        return { user_id: m.user_id, role: m.role, display_name: p.display_name || "...", avatar_emoji: p.avatar_emoji || "👤", level: p.level || 1, xp: p.xp || 0 };
-      }).sort((a, b) => (b.level * 100 + b.xp / 10) - (a.level * 100 + a.xp / 10));
-      setMembers(merged);
-      setLoading(false);
-    })();
+    const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
+    const ids = (ms || []).map((m: any) => m.user_id);
+    const { data: ps } = ids.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level,xp").in("id", ids) : { data: [] };
+    const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
+    const merged = (ms || []).map((m: any) => {
+      const p: any = pmap.get(m.user_id) || {};
+      return { user_id: m.user_id, role: m.role, display_name: p.display_name || "...", avatar_emoji: p.avatar_emoji || "👤", level: p.level || 1, xp: p.xp || 0 };
+    }).sort((a, b) => (b.level * 100 + b.xp / 10) - (a.level * 100 + a.xp / 10));
+    setMembers(merged);
+    const { data: u } = await supabase.auth.getUser();
+    const uid = u.user?.id ?? null;
+    if (uid) {
+      const { data: prof } = await supabase.from("profiles").select("tribe_id").eq("id", uid).maybeSingle();
+      setMyTribeId((prof as any)?.tribe_id ?? null);
+      const { data: rq } = await supabase.from("tribe_join_requests").select("id").eq("tribe_id", tribeId).eq("user_id", uid).eq("status", "pending").maybeSingle();
+      setPendingReq(!!rq);
+    }
+    setLoading(false);
   }, [tribeId]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const join = async () => {
+    setJoining(true); setJoinErr(null);
+    try {
+      if (info?.join_mode === "open") {
+        const { error } = await supabase.rpc("join_tribe_open" as never, { _tribe_id: tribeId } as never);
+        if (error) throw error;
+        onClose();
+        window.location.href = "/chat?tab=tribe";
+      } else {
+        const { data: u } = await supabase.auth.getUser();
+        const uid = u.user?.id;
+        if (!uid) throw new Error("سجل الدخول");
+        const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: uid, status: "pending" });
+        if (error) throw error;
+        setPendingReq(true);
+      }
+    } catch (e: any) {
+      setJoinErr(e?.message || "خطأ");
+    }
+    setJoining(false);
+  };
 
   const totalPower = members.reduce((s, m) => s + (m.level * 100 + Math.floor(m.xp / 10)), 0) + ((info?.level || 1) - 1) * 500;
 
