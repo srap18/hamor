@@ -117,11 +117,8 @@ export function BottomNav({ active }: { active?: string }) {
                 >
                   <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{it.icon}</span>
                 </div>
-                {it.to === "/chat" && dmUnread > 0 && (
-                  <span className="absolute -top-1 -right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
-                    {dmUnread > 9 ? "9+" : dmUnread}
-                  </span>
-                )}
+                {it.to === "/chat" && dmUnread > 0 && <FancyBadge count={dmUnread} />}
+                {it.to === "/friends" && friendReqCount > 0 && <FancyBadge count={friendReqCount} />}
                 <span className={`text-[9px] font-black ${isActive ? "text-amber-200 drop-shadow" : "text-amber-400/70"}`}>{it.label}</span>
               </button>
             );
