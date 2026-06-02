@@ -29,11 +29,12 @@ export function LastAttackTicker() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("global_last_attack" as never)
+      const { data, error } = await (supabase as any)
+        .from("global_last_attack")
         .select("attacker_name,target_name,kind,at")
         .eq("id", true)
         .maybeSingle();
+      if (error) console.warn("[ticker] fetch error", error);
       if (!cancelled && data) setRow(data as LastAttack);
     })();
 
