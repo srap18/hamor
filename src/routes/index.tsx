@@ -769,8 +769,6 @@ function Index() {
   const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > serverNowMs();
 
   const toggleFishing = async (shipId: number) => {
-    let dbIdToSync: string | undefined;
-    let nextAtSea = false;
     const target = ships.find((x) => x.id === shipId);
     if (target && isDestroyed(target) && !target.fishing) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
@@ -780,16 +778,16 @@ function Index() {
     if (!target?.fishing && !isServerClockSynced()) {
       await syncServerTime(true);
     }
+    if (!target) return;
     const startNow = serverNowMs();
+    const dbIdToSync = target.dbId;
+    const nextAtSea = !target.fishing;
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
-        dbIdToSync = x.dbId;
         if (x.fishing) {
-          nextAtSea = false;
           return { ...x, fishing: false, startedAt: undefined };
         }
-        nextAtSea = true;
         const ratio = x.max > 0 ? x.progress / x.max : 0;
         const startedAt = startNow - Math.round(ratio * x.duration * 1000);
         return { ...x, fishing: true, startedAt };
@@ -798,9 +796,13 @@ function Index() {
     sound.play("whoosh");
     // Sync at_sea to DB so other players see live status via realtime
     if (dbIdToSync) {
-      import("@/lib/economy").then(({ setShipAtSea }) => {
-        setShipAtSea(dbIdToSync!, nextAtSea).catch(() => {});
-      });
+      const { setShipAtSea } = await import("@/lib/economy");
+      const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
+      if (error) {
+        showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
+        syncFleetFromDb();
+        return;
+      }
     }
     // Instant push to spectators
     pushHarborState();
