@@ -1539,6 +1539,7 @@ export type Database = {
           fishing_started_at: string | null
           hp: number
           id: string
+          in_storage: boolean
           last_fishing_reward_at: string | null
           max_hp: number
           repair_ends_at: string | null
@@ -1556,6 +1557,7 @@ export type Database = {
           fishing_started_at?: string | null
           hp?: number
           id?: string
+          in_storage?: boolean
           last_fishing_reward_at?: string | null
           max_hp?: number
           repair_ends_at?: string | null
@@ -1573,6 +1575,7 @@ export type Database = {
           fishing_started_at?: string | null
           hp?: number
           id?: string
+          in_storage?: boolean
           last_fishing_reward_at?: string | null
           max_hp?: number
           repair_ends_at?: string | null
@@ -2403,6 +2406,10 @@ export type Database = {
     Functions: {
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
+      _grant_ship_with_storage: {
+        Args: { _catalog_code: string; _uid: string }
+        Returns: string
+      }
       _mutate_currency: {
         Args: {
           _coins?: number
@@ -2872,6 +2879,7 @@ export type Database = {
           fishing_started_at: string | null
           hp: number
           id: string
+          in_storage: boolean
           last_fishing_reward_at: string | null
           max_hp: number
           repair_ends_at: string | null
@@ -3216,6 +3224,8 @@ export type Database = {
         Returns: undefined
       }
       shield_purchases_last_week: { Args: { _user: string }; Returns: number }
+      ship_from_storage: { Args: { p_ship_id: string }; Returns: Json }
+      ship_to_storage: { Args: { p_ship_id: string }; Returns: Json }
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string
@@ -3241,6 +3251,10 @@ export type Database = {
           stolen_count: number
           total_value: number
         }[]
+      }
+      swap_ship_with_storage: {
+        Args: { p_active_id: string; p_storage_id: string }
+        Returns: Json
       }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
