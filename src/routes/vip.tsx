@@ -6,6 +6,7 @@ import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
 import submarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
+import { syncServerTime, serverTodayKey } from "@/lib/server-time";
 
 export const Route = createFileRoute("/vip")({
   component: VipPage,
@@ -28,10 +29,11 @@ function VipPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      await syncServerTime(true);
       const { data: prof } = await supabase
         .from("profiles").select("vip_expires_at").eq("id", user.id).maybeSingle();
       setExpiresAt((prof as any)?.vip_expires_at ?? null);
-      const today = new Date().toISOString().slice(0, 10);
+      const today = serverTodayKey();
       const { data: claim } = await supabase
         .from("vip_daily_claims" as never)
         .select("id").eq("user_id", user.id).eq("claim_date", today).maybeSingle();
@@ -40,6 +42,7 @@ function VipPage() {
   }, [user]);
 
   const claim = async () => {
+    if (claiming || claimedToday) return;
     setClaiming(true);
     const { data, error } = await supabase.rpc("claim_vip_daily" as never);
     setClaiming(false);
