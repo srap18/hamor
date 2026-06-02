@@ -256,7 +256,7 @@ function Shop() {
       {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
-      <div className="absolute top-12 left-0 right-0 z-20 text-center text-lg font-extrabold text-glow">
+      <div className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow" style={{ top: "calc(max(0.5rem, env(safe-area-inset-top)) + 3.25rem)" }}>
         المتجر
       </div>
 
