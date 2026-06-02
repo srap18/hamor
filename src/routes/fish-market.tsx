@@ -137,8 +137,10 @@ function FishMarket() {
   // a ship), treat the trader as active — no 250💎 needed.
   const [traderCrewUntil, setTraderCrewUntil] = useState<string | null>(null);
   const [traderCrewActive, setTraderCrewActive] = useState<boolean>(false);
+  const [ownedTraderQty, setOwnedTraderQty] = useState(0);
+  const [traderPrice, setTraderPrice] = useState(30);
   useEffect(() => {
-    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); return; }
+    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); setOwnedTraderQty(0); return; }
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
@@ -149,16 +151,17 @@ function FishMarket() {
       const nowMs = serverNowMs();
       let bestExp: number | null = null;
       let active = false;
+      let owned = 0;
       for (const r of (data ?? []) as Array<{ quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
         if ((r.quantity ?? 0) <= 0) continue;
         const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
-        // Active when owned and either unassigned (sitting in inventory) or
-        // assigned to a ship within its 24h window.
-        if (!r.meta?.assigned_ship_id || exp == null || exp > nowMs) {
+        if (!r.meta?.assigned_ship_id) owned += r.quantity ?? 0;
+        if (r.meta?.assigned_ship_id && exp != null && exp > nowMs) {
           active = true;
-          if (r.meta?.assigned_ship_id && exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
+          if (bestExp == null || exp > bestExp) bestExp = exp;
         }
       }
+      setOwnedTraderQty(owned);
       setTraderCrewActive(active);
       setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
     };
@@ -169,6 +172,19 @@ function FishMarket() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user?.id]);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("client_item_prices")
+      .select("price_gems")
+      .eq("item_type", "crew")
+      .eq("item_id", "trader")
+      .maybeSingle()
+      .then(({ data }: { data: { price_gems?: number } | null }) => {
+        const price = Number(data?.price_gems ?? 0);
+        if (price > 0) setTraderPrice(price);
+      });
+  }, []);
 
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
