@@ -83,10 +83,20 @@ function PlayerPage() {
     if (!me) return;
     const [{ data: ms }, { data: iv }] = await Promise.all([
       supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id").eq("user_id", me),
-      supabase.from("inventory").select("item_id,item_type,quantity").eq("user_id", me),
+      supabase.from("inventory").select("item_id,item_type,quantity,meta").eq("user_id", me),
     ]);
     setMyShips((ms as Ship[]) || []);
-    setInv((iv as { item_id: string; item_type: string; quantity: number }[]) || []);
+    // Aggregate qty per (item_id,item_type). For crew rows, EXCLUDE rows already
+    // assigned to a ship — those can't be re-sent and would otherwise make the UI
+    // show "you have X" while the RPC says "no such crew" (e.g. guide bug).
+    const agg = new Map<string, { item_id: string; item_type: string; quantity: number }>();
+    for (const r of ((iv as Array<{ item_id: string; item_type: string; quantity: number; meta: { assigned_ship_id?: string } | null }> | null) || [])) {
+      if (r.item_type === "crew" && r.meta && r.meta.assigned_ship_id) continue;
+      const k = `${r.item_type}:${r.item_id}`;
+      const cur = agg.get(k);
+      if (cur) cur.quantity += r.quantity; else agg.set(k, { item_id: r.item_id, item_type: r.item_type, quantity: r.quantity });
+    }
+    setInv(Array.from(agg.values()));
   };
 
   const closeMenu = () => { setSelectedShip(null); setMode(null); };
