@@ -346,9 +346,22 @@ function Index() {
     });
   };
   useEffect(() => {
-    syncFleetFromDb();
-    const onFocus = () => syncFleetFromDb();
+    // Force a fresh server-time sync + fleet pull on mount so ships appear
+    // at their true position immediately (no phone-clock fallback).
+    (async () => {
+      await syncServerTime(true);
+      syncFleetFromDb();
+    })();
+    const onFocus = () => {
+      syncServerTime(true).then(() => syncFleetFromDb());
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        syncServerTime(true).then(() => syncFleetFromDb());
+      }
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     // Live updates: any change to my own ships triggers an instant re-sync
     let ch: ReturnType<typeof supabase.channel> | null = null;
     let debounce: ReturnType<typeof setTimeout> | null = null;
