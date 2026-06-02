@@ -162,7 +162,7 @@ export function AdBombOverlay({
     if (!v) return;
     v.muted = false;
     v.volume = 1;
-    v.play().then(() => setNeedsTap(false)).catch(() => {});
+    v.play().then(() => { setIsMuted(false); setNeedsTap(false); }).catch(() => {});
   };
 
   const handleRemove = async () => {
