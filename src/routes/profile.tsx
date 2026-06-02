@@ -209,7 +209,7 @@ function ProfilePage() {
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={24}
+            maxLength={15}
             className="w-full px-3 py-2.5 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-base focus:border-accent outline-none"
             placeholder="اكتب اسمك"
           />
