@@ -811,9 +811,13 @@ function Index() {
 
   const toggleFishing = async (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
+    // Guard against double-tap on the start/stop fishing button.
+    if (target?.dbId && collectingRef.current[target.dbId]) return;
+    if (target?.dbId) collectingRef.current[target.dbId] = true;
     if (target && isDestroyed(target) && !target.fishing) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
       sound.play("error");
+      if (target.dbId) delete collectingRef.current[target.dbId];
       return;
     }
     if (!target?.fishing && !isServerClockSynced()) {
@@ -843,11 +847,13 @@ function Index() {
       const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
       if (error) {
         delete seaStateOverrideRef.current[dbIdToSync];
+        delete collectingRef.current[dbIdToSync];
         showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
         syncFleetFromDb();
         return;
       }
       clearSeaOverrideSoon(dbIdToSync);
+      delete collectingRef.current[dbIdToSync];
     }
     // Instant push to spectators
     pushHarborState();
