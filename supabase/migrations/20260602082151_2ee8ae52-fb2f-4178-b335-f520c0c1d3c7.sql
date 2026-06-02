@@ -1,0 +1,112 @@
+CREATE OR REPLACE FUNCTION public.collect_fishing_reward(_ship_id uuid, _requested_fish_id text DEFAULT NULL::text)
+ RETURNS TABLE(fish_id text, fish_qty integer, base_qty integer, luck_bonus integer, xp_awarded integer, elapsed_seconds integer, duration_seconds integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  _uid uuid := auth.uid();
+  _ship record;
+  _cat record;
+  _pool jsonb;
+  _pool_len integer;
+  _chosen text;
+  _capacity integer;
+  _duration integer;
+  _elapsed numeric;
+  _ratio numeric;
+  _sailor_mult numeric := 1;
+  _luck_mult integer := 1;
+  _has_crew boolean := false;
+  _base integer;
+  _qty integer;
+  _xp integer;
+  _unit_value bigint;
+  _inserted_count integer;
+BEGIN
+  IF _uid IS NULL THEN RAISE EXCEPTION 'not authenticated'; END IF;
+
+  SELECT * INTO _ship FROM public.ships_owned so WHERE so.id = _ship_id FOR UPDATE;
+  IF _ship.id IS NULL OR _ship.user_id <> _uid THEN RAISE EXCEPTION 'not your ship'; END IF;
+
+  IF _ship.destroyed_at IS NOT NULL AND _ship.repair_ends_at IS NOT NULL AND _ship.repair_ends_at > now() THEN
+    UPDATE public.ships_owned so SET at_sea = false, fishing_started_at = NULL WHERE so.id = _ship_id;
+    RAISE EXCEPTION 'ship_destroyed';
+  END IF;
+
+  IF NOT COALESCE(_ship.at_sea, false) OR _ship.fishing_started_at IS NULL THEN
+    RAISE EXCEPTION 'not_fishing';
+  END IF;
+
+  IF _ship.catalog_code IS NOT NULL THEN
+    SELECT * INTO _cat FROM public.ship_catalog sc WHERE sc.code = _ship.catalog_code AND sc.active = true LIMIT 1;
+  END IF;
+  IF _cat.id IS NULL THEN
+    SELECT * INTO _cat FROM public.ship_catalog sc WHERE sc.code = ('ship-lvl-' || COALESCE(_ship.template_id, 1)) AND sc.active = true LIMIT 1;
+  END IF;
+  IF _cat.id IS NULL THEN
+    SELECT * INTO _cat FROM public.ship_catalog sc WHERE sc.sort_order = COALESCE(_ship.template_id, 1) AND sc.active = true ORDER BY sc.market_level_required ASC LIMIT 1;
+  END IF;
+  IF _cat.id IS NULL THEN RAISE EXCEPTION 'ship_catalog_missing'; END IF;
+
+  SELECT EXISTS (SELECT 1 FROM public.inventory inv WHERE inv.user_id = _uid AND inv.item_type = 'crew' AND inv.item_id = 'sailor' AND inv.meta->>'assigned_ship_id' = _ship_id::text AND ((inv.meta->>'expires_at') IS NULL OR (inv.meta->>'expires_at')::timestamptz > now())) INTO _has_crew;
+  IF _has_crew THEN _sailor_mult := 1.4; END IF;
+
+  SELECT EXISTS (SELECT 1 FROM public.inventory inv WHERE inv.user_id = _uid AND inv.item_type = 'crew' AND inv.item_id = 'luck' AND inv.meta->>'assigned_ship_id' = _ship_id::text AND ((inv.meta->>'expires_at') IS NULL OR (inv.meta->>'expires_at')::timestamptz > now())) INTO _has_crew;
+  IF _has_crew THEN _luck_mult := 2; END IF;
+
+  SELECT EXISTS (SELECT 1 FROM public.inventory inv WHERE inv.user_id = _uid AND inv.item_type = 'crew' AND inv.item_id = 'guide' AND inv.meta->>'assigned_ship_id' = _ship_id::text AND ((inv.meta->>'expires_at') IS NULL OR (inv.meta->>'expires_at')::timestamptz > now())) INTO _has_crew;
+
+  _pool := COALESCE(_cat.fish_pool, '[]'::jsonb);
+  _pool_len := jsonb_array_length(_pool);
+  IF _pool_len <= 0 THEN RAISE EXCEPTION 'empty_fish_pool'; END IF;
+
+  IF _has_crew AND _requested_fish_id IS NOT NULL AND EXISTS (SELECT 1 FROM jsonb_array_elements_text(_pool) v(fid) WHERE v.fid = _requested_fish_id) THEN
+    _chosen := _requested_fish_id;
+  ELSE
+    SELECT p.value INTO _chosen FROM jsonb_array_elements_text(_pool) WITH ORDINALITY AS p(value, ord)
+    WHERE p.ord = (1 + (abs(hashtextextended(_ship_id::text || ':' || _ship.fishing_started_at::text, 71003)) % _pool_len)) LIMIT 1;
+  END IF;
+
+  _duration := GREATEST(1, COALESCE(_cat.fishing_seconds, 30));
+  _capacity := GREATEST(1, CASE WHEN COALESCE(_ship.template_id, 0) = 32 THEN COALESCE(_ship.max_hp, _cat.storage, 10) ELSE COALESCE(_cat.storage, 10) END);
+  _elapsed := GREATEST(0, EXTRACT(EPOCH FROM (now() - _ship.fishing_started_at)) * _sailor_mult);
+  _ratio := LEAST(1, _elapsed / _duration);
+  _base := FLOOR(_capacity * _ratio)::integer;
+  _base := GREATEST(1, _base);
+  -- Cap base by the ship's full capacity (safety) — was previously hard-capped at 5000
+  -- which prevented bigger ships from collecting their real storage. Now each ship
+  -- collects up to its full storage, with luck multiplier applied on top.
+  _base := LEAST(_base, _capacity);
+  _qty := _base * _luck_mult;
+  _xp := LEAST(50 + COALESCE(_ship.template_id, 1) * 40, GREATEST(5, FLOOR(_qty * 0.4)::integer + COALESCE(_ship.template_id, 1) * 5));
+
+  UPDATE public.ships_owned so SET at_sea = false, fishing_started_at = NULL, last_fishing_reward_at = now() WHERE so.id = _ship_id;
+
+  INSERT INTO public.fish_caught(user_id, fish_id, quantity, total_caught)
+  VALUES (_uid, _chosen, _qty, _qty)
+  ON CONFLICT ON CONSTRAINT fish_caught_user_id_fish_id_key DO UPDATE
+  SET quantity = public.fish_caught.quantity + _qty,
+      total_caught = public.fish_caught.total_caught + _qty,
+      updated_at = now();
+
+  SELECT GREATEST(1, COALESCE(fmp.current_price::bigint, 1)) INTO _unit_value FROM public.fish_market_prices fmp WHERE fmp.fish_id = _chosen LIMIT 1;
+  _unit_value := COALESCE(_unit_value, 1);
+
+  INSERT INTO public.fish_stock(user_id, fish_id, ship_id, caught_at, base_value)
+  SELECT _uid, _chosen, _ship_id, now(), _unit_value FROM generate_series(1, _qty);
+  GET DIAGNOSTICS _inserted_count = ROW_COUNT;
+
+  INSERT INTO public.competition_catches(user_id, fish_id, caught_at, qty) VALUES (_uid, _chosen, now(), _qty);
+  PERFORM public._mutate_currency(_uid, 0, 0, 0, _xp);
+
+  fish_id := _chosen;
+  fish_qty := _inserted_count;
+  base_qty := _base;
+  luck_bonus := GREATEST(0, _inserted_count - _base);
+  xp_awarded := _xp;
+  elapsed_seconds := FLOOR(_elapsed)::integer;
+  duration_seconds := _duration;
+  RETURN NEXT;
+END;
+$function$;
