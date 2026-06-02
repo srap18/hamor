@@ -263,7 +263,7 @@ function ChatPage() {
         });
       }
     });
-  }, [user, text, tab, profile, dmWith, showNotice]);
+  }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
