@@ -1978,6 +1978,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
   const [tribeQ, setTribeQ] = useState("");
   const [loading, setLoading] = useState(false);
+  const [refreshSeq, setRefreshSeq] = useState(0);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
   const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
@@ -2073,7 +2074,37 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
       setLoading(false);
     })();
 
-  }, [tab, staffIds]);
+  }, [tab, staffIds, refreshSeq]);
+
+  useEffect(() => {
+    if (tab === "search") return;
+    let debounce: ReturnType<typeof window.setTimeout> | null = null;
+    const refreshNow = () => {
+      if (debounce) window.clearTimeout(debounce);
+      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 120);
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
+    window.addEventListener("focus", refreshNow);
+    document.addEventListener("visibilitychange", onVisible);
+    const ch = supabase
+      .channel(`leaderboard-live-${tab}-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "fish_caught" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_market" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tribes" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tribe_donations" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_gifts" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "attacks" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "competitions" }, refreshNow)
+      .on("postgres_changes", { event: "*", schema: "public", table: "competition_catches" }, refreshNow)
+      .subscribe();
+    return () => {
+      window.removeEventListener("focus", refreshNow);
+      document.removeEventListener("visibilitychange", onVisible);
+      if (debounce) window.clearTimeout(debounce);
+      supabase.removeChannel(ch);
+    };
+  }, [tab]);
 
   const runSearch = async () => {
     if (!q.trim()) return;
