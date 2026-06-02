@@ -3174,6 +3174,7 @@ export type Database = {
         Args: { _refund_coins: number; _ship_id: string }
         Returns: undefined
       }
+      send_friend_request: { Args: { p_target: string }; Returns: Json }
       send_support: {
         Args: {
           _crew_id?: string
