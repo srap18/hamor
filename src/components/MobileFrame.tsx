@@ -11,22 +11,22 @@ import { ReactNode, useEffect } from "react";
 export function MobileFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     const setAppHeight = () => {
-      const isStandalone =
-        window.matchMedia?.("(display-mode: standalone)")?.matches ||
-        (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+      // Always use the visible viewport height. Using screen.height in
+      // standalone mode pushed fixed bottom-0 UI below the Android nav bar.
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const fullScreenHeight = window.screen?.height ?? viewportHeight;
       document.documentElement.style.setProperty(
         "--app-height",
-        `${Math.ceil(isStandalone ? Math.max(viewportHeight, fullScreenHeight) : viewportHeight)}px`,
+        `${Math.floor(viewportHeight)}px`,
       );
     };
 
     setAppHeight();
     window.addEventListener("resize", setAppHeight);
+    window.addEventListener("orientationchange", setAppHeight);
     window.visualViewport?.addEventListener("resize", setAppHeight);
     return () => {
       window.removeEventListener("resize", setAppHeight);
+      window.removeEventListener("orientationchange", setAppHeight);
       window.visualViewport?.removeEventListener("resize", setAppHeight);
     };
   }, []);
