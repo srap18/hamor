@@ -133,8 +133,9 @@ function FishMarket() {
   // If the user has an active "trader" crew assigned to one of their ships,
   // it grants the same forecast as the paid market unlock — no 250💎 needed.
   const [traderCrewUntil, setTraderCrewUntil] = useState<string | null>(null);
+  const [traderCrewActive, setTraderCrewActive] = useState<boolean>(false);
   useEffect(() => {
-    if (!user) { setTraderCrewUntil(null); return; }
+    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); return; }
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
@@ -143,17 +144,17 @@ function FishMarket() {
         .eq("item_type", "crew")
         .eq("item_id", "trader");
       const nowMs = serverNowMs();
-      let best: number | null = null;
+      let bestExp: number | null = null;
+      let active = false;
       for (const r of (data ?? []) as Array<{ meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
         const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
-        if (r.meta?.assigned_ship_id && (!exp || exp > nowMs)) {
-          if (exp == null) { best = Number.MAX_SAFE_INTEGER; break; }
-          if (best == null || exp > best) best = exp;
+        if (r.meta?.assigned_ship_id && (exp == null || exp > nowMs)) {
+          active = true;
+          if (exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
         }
       }
-      setTraderCrewUntil(best != null && best !== Number.MAX_SAFE_INTEGER ? new Date(best).toISOString() : (best === Number.MAX_SAFE_INTEGER ? null : null));
-      // Note: if best === MAX_SAFE_INTEGER (no expiry), we set null but mark active via flag below.
-      if (best === Number.MAX_SAFE_INTEGER) setTraderCrewUntil(null);
+      setTraderCrewActive(active);
+      setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
     };
     load();
     const ch = supabase
