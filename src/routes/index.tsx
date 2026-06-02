@@ -2132,6 +2132,87 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto space-y-1">
           {loading ? (
             <div className="text-center text-accent/60 py-6 text-sm">جاري التحميل…</div>
+          ) : tab === "comp" ? (
+            comps.length === 0 ? (
+              <div className="text-center text-accent/60 py-10 text-sm">
+                <div className="text-5xl mb-2">🎪</div>
+                لا توجد فعاليات نشطة حالياً
+              </div>
+            ) : (
+              <div className="space-y-3 pb-2">
+                {comps.map(c => {
+                  const meta = COMP_METRIC_LABEL[c.metric] ?? { icon: "🏆", name: c.metric, unit: "" };
+                  const themeClass = COMP_THEME[c.banner_theme] ?? COMP_THEME.gold;
+                  const board = compBoards[c.id] ?? [];
+                  const tiers = (Array.isArray(c.prize_tiers) && c.prize_tiers.length > 0)
+                    ? c.prize_tiers
+                    : (c.reward_coins || c.reward_gems || c.reward_xp || c.reward_text)
+                      ? [{ rank: 1, coins: c.reward_coins, gems: c.reward_gems, xp: c.reward_xp, text: c.reward_text }]
+                      : [];
+                  return (
+                    <div key={c.id} className="rounded-xl overflow-hidden border border-accent/40 bg-secondary/40">
+                      <div className={`relative bg-gradient-to-br ${themeClass} p-3`}>
+                        <div className="flex items-center gap-2">
+                          <div className="text-3xl drop-shadow">{c.banner_emoji}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-black text-white drop-shadow truncate">{c.title}</div>
+                            <div className="text-[10px] font-bold text-white/90">{meta.icon} {meta.name}</div>
+                          </div>
+                          <div className="text-end shrink-0">
+                            <div className="text-[9px] text-white/80">ينتهي</div>
+                            <div className="text-xs font-black text-white">⏳ {compTimeLeft(c.ends_at)}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Prizes */}
+                      {tiers.length > 0 && (
+                        <div className="p-2 border-b border-accent/20 space-y-1">
+                          <div className="text-[10px] font-black text-amber-300 px-1">🏆 الجوائز</div>
+                          {tiers.map((t, i) => {
+                            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+                            return (
+                              <div key={i} className="flex items-center gap-2 px-2 py-1 rounded bg-secondary/60 border border-accent/20 text-[11px]">
+                                <span className="w-7 text-center font-black">{medal}</span>
+                                <div className="flex-1 flex flex-wrap gap-1 text-accent">
+                                  {t.coins > 0 && <span className="inline-flex items-center gap-0.5"><CoinIcon size={11}/>{t.coins.toLocaleString()}</span>}
+                                  {t.gems > 0 && <span>💎{t.gems}</span>}
+                                  {t.xp > 0 && <span>⭐{t.xp}</span>}
+                                  {t.text && <span>🎁{t.text}</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Leaderboard */}
+                      <div className="p-2 space-y-1">
+                        <div className="text-[10px] font-black text-accent/70 px-1">🏅 الترتيب</div>
+                        {board.length === 0 ? (
+                          <div className="text-center text-[11px] text-accent/50 py-3">كن أول من يسجّل! 🚀</div>
+                        ) : board.slice(0, 10).map((r, i) => {
+                          const isMe = r.user_id === meId;
+                          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+                          return (
+                            <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
+                              <span className="w-7 text-center text-xs font-black">{medal}</span>
+                              {r.avatar_url ? (
+                                <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
+                              ) : (
+                                <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
+                              )}
+                              <span className="flex-1 truncate text-[12px] font-bold text-accent">{r.display_name || "—"}{isMe ? " (أنت)" : ""}</span>
+                              <span className="text-[12px] font-black text-amber-300 tabular-nums">{r.score.toLocaleString()}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           ) : tab === "tribes" ? (
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
