@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
+import { SHIPS } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/inventory")({
@@ -18,22 +19,27 @@ export const Route = createFileRoute("/inventory")({
 
 type Tab = "crew" | "weapon" | "fish" | "shield";
 
-interface InvRow { item_type: string; item_id: string; quantity: number; }
+interface InvRow { id: string; item_type: string; item_id: string; quantity: number; meta: any; }
 interface FishRow { fish_id: string; quantity: number; total_caught: number; }
+interface OwnedShip { id: string; catalog_code: string | null; hp: number; max_hp: number; in_storage: boolean; }
 
 function InventoryPage() {
   const [tab, setTab] = useState<Tab>("crew");
   const [inv, setInv] = useState<InvRow[]>([]);
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
+  const [ships, setShips] = useState<OwnedShip[]>([]);
+  const [crewToUse, setCrewToUse] = useState<string | null>(null);
+  const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) { setLoading(false); return; }
-    const [{ data: i }, { data: f }] = await Promise.all([
-      supabase.from("inventory").select("item_type,item_id,quantity").eq("user_id", u.user.id),
+    const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
+      supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
       supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
+      supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
     ]);
     const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
     const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
@@ -45,7 +51,8 @@ function InventoryPage() {
 
     const caughtRows = (f ?? []) as FishRow[];
     const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
-    setInv(i ?? []);
+    setInv((i ?? []) as InvRow[]);
+    setShips((s as OwnedShip[] | null) ?? []);
     setFishRows(Array.from(fishIds).map((fish_id) => {
       const caught = caughtRows.find((r) => r.fish_id === fish_id);
       return {
@@ -69,9 +76,29 @@ function InventoryPage() {
     };
   }, []);
 
-  const qty = (type: string, id: string) => inv.find(r => r.item_type === type && r.item_id === id)?.quantity ?? 0;
+  const isUsableStack = (r: InvRow) => !r.meta?.assigned_ship_id;
+  const qty = (type: string, id: string) => inv.filter(r => r.item_type === type && r.item_id === id && isUsableStack(r)).reduce((sum, r) => sum + (r.quantity ?? 0), 0);
   const fishQty = (id: string) => fishRows.find(r => r.fish_id === id)?.quantity ?? 0;
   const fishDiscovered = (id: string) => (fishRows.find(r => r.fish_id === id)?.total_caught ?? 0) > 0;
+  const pickedCrew = CREWS.find(c => c.id === crewToUse) ?? null;
+  const useCrew = async (crewId: string, shipId?: string | null) => {
+    const row = inv.find(r => r.item_type === "crew" && r.item_id === crewId && isUsableStack(r) && r.quantity > 0);
+    if (!row) { alert("ما عندك هذا الطاقم في المخزن"); return; }
+    setUsingCrew(crewId);
+    const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
+    setUsingCrew(null);
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("ship already")) alert("هذه السفينة فيها نفس الطاقم بالفعل");
+      else if (msg.includes("missing ship")) alert("اختر سفينة أولًا");
+      else alert("تعذر استخدام الطاقم");
+      return;
+    }
+    setCrewToUse(null);
+    await load();
+    window.dispatchEvent(new Event("inventory-changed"));
+    alert(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
+  };
 
   return (
     <div className="fixed inset-0 overflow-y-auto text-foreground" dir="rtl" style={{
@@ -127,6 +154,15 @@ function InventoryPage() {
                   <div className="text-center mt-2 text-sm font-bold">
                     {n > 0 ? <span className="text-emerald-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>
+                  {n > 0 && (
+                    <button
+                      onClick={() => c.id === "trader" ? useCrew(c.id, null) : setCrewToUse(c.id)}
+                      disabled={usingCrew === c.id}
+                      className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
+                    >
+                      {usingCrew === c.id ? "..." : "استخدام"}
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -262,6 +298,30 @@ function InventoryPage() {
           );
         })()}
       </div>
+      {pickedCrew && (
+        <div className="fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center" onClick={() => !usingCrew && setCrewToUse(null)}>
+          <div className="w-full max-w-sm glass-hud rounded-2xl border border-emerald-300/50 p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center text-lg font-extrabold text-emerald-200 mb-1">{pickedCrew.emoji} استخدام {pickedCrew.name}</div>
+            <div className="text-center text-xs text-muted-foreground mb-3">اختر السفينة التي تريد تركيب الطاقم عليها</div>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {ships.length === 0 && <div className="text-center text-sm text-muted-foreground py-6">ما عندك سفن</div>}
+              {ships.map((ship) => {
+                const def = SHIPS.find(s => s.code === ship.catalog_code);
+                return (
+                  <button key={ship.id} onClick={() => useCrew(pickedCrew.id, ship.id)} disabled={!!usingCrew} className="w-full rounded-xl border border-border bg-secondary/50 p-3 flex items-center gap-3 text-right active:scale-95 disabled:opacity-60">
+                    {def?.image && <img src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold truncate">{def?.title ?? ship.catalog_code ?? "سفينة"}</div>
+                      <div className="text-[11px] text-muted-foreground">HP {ship.hp.toLocaleString()} / {ship.max_hp.toLocaleString()} {ship.in_storage ? "• في المخزن" : "• نشطة"}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => setCrewToUse(null)} disabled={!!usingCrew} className="mt-3 w-full text-xs text-muted-foreground underline">إلغاء</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

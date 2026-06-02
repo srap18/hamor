@@ -137,8 +137,10 @@ function FishMarket() {
   // a ship), treat the trader as active — no 250💎 needed.
   const [traderCrewUntil, setTraderCrewUntil] = useState<string | null>(null);
   const [traderCrewActive, setTraderCrewActive] = useState<boolean>(false);
+  const [ownedTraderQty, setOwnedTraderQty] = useState(0);
+  const [traderPrice, setTraderPrice] = useState(30);
   useEffect(() => {
-    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); return; }
+    if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); setOwnedTraderQty(0); return; }
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
@@ -149,16 +151,17 @@ function FishMarket() {
       const nowMs = serverNowMs();
       let bestExp: number | null = null;
       let active = false;
+      let owned = 0;
       for (const r of (data ?? []) as Array<{ quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null }>) {
         if ((r.quantity ?? 0) <= 0) continue;
         const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
-        // Active when owned and either unassigned (sitting in inventory) or
-        // assigned to a ship within its 24h window.
-        if (!r.meta?.assigned_ship_id || exp == null || exp > nowMs) {
+        if (!r.meta?.assigned_ship_id) owned += r.quantity ?? 0;
+        if (r.meta?.assigned_ship_id && exp != null && exp > nowMs) {
           active = true;
-          if (r.meta?.assigned_ship_id && exp != null && (bestExp == null || exp > bestExp)) bestExp = exp;
+          if (bestExp == null || exp > bestExp) bestExp = exp;
         }
       }
+      setOwnedTraderQty(owned);
       setTraderCrewActive(active);
       setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
     };
@@ -169,6 +172,19 @@ function FishMarket() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user?.id]);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("client_item_prices")
+      .select("price_gems")
+      .eq("item_type", "crew")
+      .eq("item_id", "trader")
+      .maybeSingle()
+      .then(({ data }: { data: { price_gems?: number } | null }) => {
+        const price = Number(data?.price_gems ?? 0);
+        if (price > 0) setTraderPrice(price);
+      });
+  }, []);
 
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
@@ -459,6 +475,8 @@ function FishMarket() {
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
           traderUntil={effectiveTraderUntil}
+          ownedTraderQty={ownedTraderQty}
+          traderPrice={traderPrice}
           rotPct={Math.round(rotMult(sel.id) * 100)}
           selling={selling}
           onBack={() => setSelected(null)}
@@ -670,7 +688,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, rotPct, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -679,6 +697,8 @@ function SellView({
   freezeUntil: string | null;
   traderActive: boolean;
   traderUntil: string | null;
+  ownedTraderQty: number;
+  traderPrice: number;
   rotPct: number;
   selling: boolean;
   onBack: () => void;
@@ -818,7 +838,7 @@ function SellView({
                 <div className="text-center text-amber-300 text-lg font-extrabold mb-1">🧑‍💼 التاجر</div>
                 <div className="text-center text-xs text-slate-200 mb-3">يكشف لك توقّعات الأسعار لكامل السوق لمدة <b>10 ساعات</b> بدقة 100%.</div>
                 <button onClick={buyTrader} disabled={busy} className="w-full py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 text-rose-950 font-extrabold disabled:opacity-50">
-                  {busy ? "..." : "اشترِ الآن 💎 250"}
+                  {busy ? "..." : ownedTraderQty > 0 ? "استخدام التاجر من المخزن" : `اشترِ الآن 💎 ${traderPrice}`}
                 </button>
               </>
             ) : (
