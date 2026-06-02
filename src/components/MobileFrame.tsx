@@ -19,7 +19,7 @@ export function MobileFrame({ children }: { children: ReactNode }) {
       const active = document.activeElement;
       const isEditing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLElement && active.isContentEditable;
       const previousStable = stableHeightRef.current || window.innerHeight || viewportHeight;
-      const rawInset = Math.max(0, previousStable - viewportHeight - viewportOffsetTop);
+      const rawInset = Math.max(0, previousStable - viewportHeight);
       const wasKeyboardOpen = document.documentElement.classList.contains("keyboard-open");
       const keyboardOpen = rawInset > 80 && (isEditing || wasKeyboardOpen);
 
