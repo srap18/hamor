@@ -48,7 +48,10 @@ export function SeamlessVideo({
     const offsetB = () => {
       const dur = a.duration;
       if (!dur || !isFinite(dur)) return;
-      FADE = Math.max(0.8, Math.min(2.5, dur * 0.35));
+      // Continuous crossfade: FADE = dur/2 so the two videos are always
+      // blending. At A's loop boundary, B is at mid-clip and fully visible,
+      // completely hiding any restart jump in the source content.
+      FADE = dur / 2;
       try { b.currentTime = dur / 2; } catch {}
       bOffset = true;
     };
