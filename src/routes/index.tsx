@@ -455,15 +455,25 @@ function Index() {
   // Auto-open the daily login once per day per device
   useEffect(() => {
     if (!user) return;
-    const key = `daily-login-shown:${user.id}`;
-    const today = new Date().toISOString().slice(0, 10);
-    if (localStorage.getItem(key) !== today) {
-      const t = setTimeout(() => {
+    let cancelled = false;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    (async () => {
+      await syncServerTime(true);
+      if (cancelled) return;
+      const key = `daily-login-shown:${user.id}`;
+      const today = serverTodayKey();
+      if (localStorage.getItem(key) !== today) {
+        t = setTimeout(() => {
+          if (cancelled) return;
         setDailyOpen(true);
         localStorage.setItem(key, today);
       }, 800);
-      return () => clearTimeout(t);
-    }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (t) clearTimeout(t);
+    };
   }, [user]);
 
   const [fish, setFish] = useState(34);
