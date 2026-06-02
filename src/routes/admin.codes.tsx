@@ -7,6 +7,7 @@ import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 import { VIP_TIERS } from "@/lib/vip-perks";
+import { BACKGROUNDS } from "@/lib/backgrounds";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
@@ -33,6 +34,7 @@ const KIND_LABEL: Record<string, string> = {
   name_frame: "🏷️ إطارات اسم",
   bubble_frame: "💬 إطارات رسالة",
   profile_frame: "🪪 إطارات بطاقة",
+  background: "🌅 خلفيات",
   misc: "📦 متفرقات",
 };
 
@@ -45,6 +47,7 @@ const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
     name: `${f.preview ?? "🖼️"} ${f.name}`,
     kind: FRAME_KIND_TO_ITEM_TYPE[f.kind],
   })),
+  ...BACKGROUNDS.map((b) => ({ code: b.id, name: `🌅 ${b.name}`, kind: "background" })),
 ];
 
 type RewardType = "bundle" | "item" | "ship";
