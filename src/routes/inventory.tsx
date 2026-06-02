@@ -19,7 +19,7 @@ export const Route = createFileRoute("/inventory")({
 
 type Tab = "crew" | "weapon" | "fish" | "shield";
 
-interface InvRow { id: string; item_type: string; item_id: string; quantity: number; meta: { assigned_ship_id?: string | null; expires_at?: string | null } | null; }
+interface InvRow { id: string; item_type: string; item_id: string; quantity: number; meta: any; }
 interface FishRow { fish_id: string; quantity: number; total_caught: number; }
 interface OwnedShip { id: string; catalog_code: string | null; hp: number; max_hp: number; in_storage: boolean; }
 
@@ -51,7 +51,7 @@ function InventoryPage() {
 
     const caughtRows = (f ?? []) as FishRow[];
     const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
-    setInv(i ?? []);
+    setInv((i ?? []) as InvRow[]);
     setShips((s as OwnedShip[] | null) ?? []);
     setFishRows(Array.from(fishIds).map((fish_id) => {
       const caught = caughtRows.find((r) => r.fish_id === fish_id);
