@@ -425,10 +425,18 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 
   const addFriend = async () => {
     setBusy(true); setMsg(null);
-    const { error } = await supabase.from("friends").insert({ requester_id: me, addressee_id: target.id, status: "pending" });
+    const { data, error } = await (supabase as any).rpc("send_friend_request", { p_target: target.id });
     setBusy(false);
-    if (error) setMsg(error.message.includes("duplicate") ? "تم إرسال الطلب مسبقاً" : error.message);
-    else setMsg("تم إرسال طلب الصداقه ✓");
+    const code = (data?.code || "").toString();
+    const map: Record<string, string> = {
+      sent: "تم إرسال طلب الصداقة ✓",
+      accepted_existing: "تم قبول الصداقة ✓",
+      already_sent: "تم إرسال الطلب مسبقاً",
+      already_friends: "أنتم أصدقاء بالفعل",
+      invalid_target: "طلب غير صالح",
+    };
+    if (error) setMsg(error.message);
+    else setMsg(map[code] || "تم");
   };
 
   const toggleBlock = async () => {
