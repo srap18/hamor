@@ -285,7 +285,7 @@ function ChatPage() {
         </div>
       )}
 
-      <div className="absolute top-14 left-2 right-2 z-20 flex gap-1">
+      <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "calc(3.5rem + env(safe-area-inset-top))" }}>
 
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
@@ -295,7 +295,7 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute top-24 ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`}>
+      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "calc(6rem + env(safe-area-inset-top))" }}>
         {tab === "voice" ? (
           <VoiceRooms userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
