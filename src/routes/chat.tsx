@@ -336,10 +336,10 @@ function ChatPage() {
 
       <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
 
-        {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
+        {(["public", "tribe", "dm", "voice", "topics"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
-            className={`relative flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ القبيله" : t === "dm" ? "✉️ خاص" : "🎙️ صوتي"}
+            className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
+            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "voice" ? "🎙️ صوتي" : "📝 مواضيع"}
             {t === "dm" && dmTotal > 0 && tab !== "dm" && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
                 {dmTotal > 9 ? "9+" : dmTotal}
@@ -349,9 +349,11 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: tab === "voice" ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "voice" || tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "voice" ? (
           <VoiceRooms userId={user?.id || ""} />
+        ) : tab === "topics" ? (
+          <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
           <div className="flex-1 overflow-y-auto p-3">
             <div className="flex items-center gap-2 mb-3 px-1">
