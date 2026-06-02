@@ -380,7 +380,7 @@ function PlayerPage() {
         _xp_gain: w.xp ?? 0,
       });
 
-      setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? new Date().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
+      setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
 
     }
 
@@ -395,7 +395,7 @@ function PlayerPage() {
         console.error("burn_target_bg failed", (burnRes as any).error);
       }
       // Always update local view so attacker sees burned bg immediately
-      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
@@ -488,7 +488,7 @@ function PlayerPage() {
       else if (msg.includes("blocked")) {
         const m = msg.match(/until ([\d\-:.+T ]+)/);
         const until = m ? new Date(m[1]) : null;
-        const mins = until ? Math.max(1, Math.ceil((until.getTime() - Date.now()) / 60000)) : 60;
+        const mins = until ? Math.max(1, Math.ceil((until.getTime() - serverNowMs()) / 60000)) : 60;
         flash(`🚫 ممنوع من السرقة (${mins} دقيقة)`);
       }
       else if (msg.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — ممنوع السرقة"); }
@@ -504,7 +504,7 @@ function PlayerPage() {
     } else {
       console.log("[steal] success", missionRes);
       const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
-      const secs = ends ? Math.max(0, Math.round((ends.getTime() - Date.now()) / 1000)) : 0;
+      const secs = ends ? Math.max(0, Math.round((ends.getTime() - serverNowMs()) / 1000)) : 0;
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
       loadRaiders();
@@ -993,7 +993,7 @@ function PlayerPage() {
                         .filter((x) => x.quantity > 0));
                       // Scorch the target's background for 7 days (visible to everyone)
                       burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
-                      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() } : cur);
+                      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
                       sound.play("success");
                       flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                       closeMenu();
@@ -1015,7 +1015,7 @@ function PlayerPage() {
                 {myShips.map((ms) => {
                   const img = ms.catalog_code ? getShipByCode(ms.catalog_code).image : getShipByMarketLevel(ms.template_id || 1).image;
                   const isDestroyed = !!ms.destroyed_at;
-                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at) > new Date());
+                  const isRepairing = !!(ms.repair_ends_at && new Date(ms.repair_ends_at).getTime() > serverNowMs());
                   const onMission = !!ms.stealing_target_user_id;
                   const isBusy = ms.at_sea || isDestroyed || isRepairing || onMission;
                   const label = isDestroyed ? "💥 مدمّرة" : isRepairing ? "🛠️ تحت الإصلاح" : onMission ? "🏴‍☠️ تسرق" : ms.at_sea ? "⚓ بالبحر" : null;
