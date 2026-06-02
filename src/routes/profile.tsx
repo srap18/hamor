@@ -123,7 +123,7 @@ function ProfilePage() {
     if (!userId) return;
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
-    if (trimmed.length > 24) { flash("الاسم طويل جداً"); return; }
+    if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
     setSaving(true);
     // Check name uniqueness (Arabic + English, case-insensitive)
     try {
