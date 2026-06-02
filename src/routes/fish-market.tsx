@@ -712,7 +712,7 @@ function SellView({
     <>
       <button onClick={onBack} className="absolute top-12 right-2 z-30 w-10 h-10 rounded-full bg-gradient-to-b from-rose-400 to-rose-600 border-2 border-rose-200 text-white text-lg font-bold flex items-center justify-center shadow-lg active:scale-95">✕</button>
 
-      <div className="absolute top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
         <div className="relative w-24 h-28 rounded-xl bg-gradient-to-b from-emerald-300 to-emerald-600 border-2 border-emerald-200 shadow-xl p-2 flex flex-col items-center">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-emerald-200 rotate-45 border-r-2 border-b-2 border-emerald-100" />
           <img src={FISH[fish.id]?.img} alt={fish.name} loading="lazy" width={56} height={56} className="mt-2 h-14 w-14 object-contain drop-shadow" />
