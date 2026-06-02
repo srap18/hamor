@@ -93,9 +93,6 @@ export async function splitInventoryAssign(invId: string, newMeta: unknown) {
   return supabase.rpc("split_inventory_assign", { _inv_id: invId, _new_meta: (newMeta ?? null) as never });
 }
 
-export async function awardFishingRevenue(coins: number, xp: number) {
-  return supabase.rpc("award_fishing_revenue_simple", { _coins: coins, _xp: xp });
-}
 
 export async function incrementFishCaught(fishId: string, qty: number) {
   return supabase.rpc("increment_fish_caught", { _fish_id: fishId, _qty: qty });
