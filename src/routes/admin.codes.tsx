@@ -494,6 +494,22 @@ function AdminCodesPage() {
         </div>
 
         <div className="space-y-1">
+          <div className="text-[11px] text-emerald-300/80">🌅 الخلفيات ({BACKGROUNDS.length})</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {BACKGROUNDS.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => quickCreate({ rewardType: "item", itemId: b.id, itemKind: "background", label: `🌅 ${b.name}` })}
+                className="px-2 py-2 rounded-lg bg-slate-800/70 hover:bg-amber-800/40 border border-slate-700 hover:border-amber-500 text-xs text-slate-100 text-right transition truncate"
+                title={b.name}
+              >
+                🌅 {b.name}{quickQty > 1 ? <span className="text-amber-300"> × {quickQty}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1">
           <div className="text-[11px] text-emerald-300/80">⛵ السفن ({shipsCatalog.length})</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {shipsCatalog.map((s) => (
