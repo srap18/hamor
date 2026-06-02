@@ -452,7 +452,7 @@ function FishMarket() {
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
-          traderUntil={marketState.trader_until}
+          traderUntil={effectiveTraderUntil}
           rotPct={Math.round(rotMult(sel.id) * 100)}
           selling={selling}
           onBack={() => setSelected(null)}
