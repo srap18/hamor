@@ -688,7 +688,7 @@ function PlayerPage() {
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
 
-      {me === playerId && <AdBombOverlay targetUserId={playerId} isOwner onFlash={flash} />}
+      <AdBombOverlay targetUserId={playerId} isOwner={me === playerId} onFlash={flash} />
 
       <div className="absolute top-[5.5rem] left-1/2 -translate-x-1/2 z-30 glass-hud rounded-full px-3 py-1 border border-amber-400/40 text-[10px] text-amber-200 font-bold whitespace-nowrap">
         🌅 {scene.displayName}
