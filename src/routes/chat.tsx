@@ -290,26 +290,56 @@ function ChatPage() {
           <VoiceRooms userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
           <div className="flex-1 overflow-y-auto p-3">
-            <div className="text-xs text-amber-200/60 mb-2">اختر صديق للمحادثه:</div>
-            {dmFriends.length === 0 && <div className="text-center text-amber-100/50 text-sm py-8">لا يوجد أصدقاء بعد. اذهب إلى صفحه الأصدقاء.</div>}
-            {dmFriends.map(f => (
-              <button key={f.id} onClick={() => setDmWith(f.id)} className="w-full flex items-center gap-2 p-2 hover:bg-amber-900/30 rounded-lg">
-                <Avatar p={f} size={32} />
-                <div className="text-sm font-bold">{f.display_name}</div>
-              </button>
-            ))}
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <span className="text-xl">✉️</span>
+              <div className="text-sm font-extrabold text-amber-200 tracking-wide">المحادثات الخاصة</div>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200">{dmFriends.length}</span>
+            </div>
+            {dmFriends.length === 0 && (
+              <div className="text-center py-10">
+                <div className="text-4xl mb-2 opacity-60">💌</div>
+                <div className="text-amber-100/70 text-sm font-bold">لا يوجد أصدقاء بعد</div>
+                <div className="text-amber-100/40 text-xs mt-1">اذهب إلى صفحه الأصدقاء لإضافة قبطان</div>
+                <Link to="/friends" className="inline-block mt-3 px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 text-amber-950 font-black text-sm shadow-lg active:scale-95">
+                  👥 صفحه الأصدقاء
+                </Link>
+              </div>
+            )}
+            <div className="space-y-2">
+              {dmFriends.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setDmWith(f.id)}
+                  className="group w-full flex items-center gap-3 p-2.5 rounded-xl border-2 border-amber-700/40 bg-gradient-to-l from-stone-900/90 via-stone-900/70 to-amber-950/40 hover:border-amber-400/80 hover:shadow-[0_0_18px_rgba(252,191,73,0.25)] active:scale-[0.98] transition-all relative overflow-hidden"
+                >
+                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100" />
+                  <Avatar p={f} size={42} />
+                  <div className="flex-1 min-w-0 text-right">
+                    <div className="text-sm font-extrabold text-amber-100 truncate">{f.display_name}</div>
+                    <div className="text-[10px] text-amber-300/70 font-bold">⭐ المستوى {f.level ?? 1}</div>
+                  </div>
+                  <div className="text-amber-300/70 group-hover:text-amber-200 text-lg">‹</div>
+                </button>
+              ))}
+            </div>
           </div>
         ) : tab === "tribe" && !profile?.tribe_id ? (
           <NoTribePanel userId={user?.id || ""} />
         ) : (
           <>
             {tab === "dm" && dmFriendInfo && (
-              <div className="flex items-center gap-2 p-2 border-b border-amber-700/40 bg-stone-900/60">
-                <button onClick={() => setDmWith(null)} className="text-amber-300 text-sm">←</button>
-                <Avatar p={dmFriendInfo} size={28} />
-                <div className="flex-1 text-sm font-bold">{dmFriendInfo.display_name}</div>
-                
-                <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2 py-1 rounded bg-red-700 text-xs font-bold">⚔️ حرب</button>
+              <div className="flex items-center gap-2 p-2.5 border-b-2 border-amber-500/40 bg-gradient-to-l from-amber-950/80 via-stone-900/80 to-stone-900/80 shadow-[inset_0_-2px_8px_rgba(0,0,0,0.4)]">
+                <button onClick={() => setDmWith(null)} className="w-8 h-8 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-300 text-sm active:scale-95 flex items-center justify-center">←</button>
+                <div className="relative">
+                  <Avatar p={dmFriendInfo} size={36} />
+                  <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-stone-900 shadow" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-extrabold text-amber-100 truncate drop-shadow">{dmFriendInfo.display_name}</div>
+                  <div className="text-[10px] text-emerald-300/90 font-bold">● محادثة خاصة</div>
+                </div>
+                <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-red-500 to-red-800 border border-red-300/60 text-xs font-black text-white shadow active:scale-95">⚔️ حرب</button>
               </div>
             )}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -425,10 +455,18 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 
   const addFriend = async () => {
     setBusy(true); setMsg(null);
-    const { error } = await supabase.from("friends").insert({ requester_id: me, addressee_id: target.id, status: "pending" });
+    const { data, error } = await (supabase as any).rpc("send_friend_request", { p_target: target.id });
     setBusy(false);
-    if (error) setMsg(error.message.includes("duplicate") ? "تم إرسال الطلب مسبقاً" : error.message);
-    else setMsg("تم إرسال طلب الصداقه ✓");
+    const code = (data?.code || "").toString();
+    const map: Record<string, string> = {
+      sent: "تم إرسال طلب الصداقة ✓",
+      accepted_existing: "تم قبول الصداقة ✓",
+      already_sent: "تم إرسال الطلب مسبقاً",
+      already_friends: "أنتم أصدقاء بالفعل",
+      invalid_target: "طلب غير صالح",
+    };
+    if (error) setMsg(error.message);
+    else setMsg(map[code] || "تم");
   };
 
   const toggleBlock = async () => {
