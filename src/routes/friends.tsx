@@ -47,7 +47,16 @@ function FriendsPage() {
 
   const sendReq = async (toId: string) => {
     if (!user) return;
-    await supabase.from("friends").insert({ requester_id: user.id, addressee_id: toId, status: "pending" });
+    const { data, error } = await (supabase as any).rpc("send_friend_request", { p_target: toId });
+    const code = (data?.code || error?.message || "").toString();
+    const map: Record<string, string> = {
+      sent: "تم إرسال طلب الصداقة ✓",
+      accepted_existing: "تم قبول صداقتكم ✓",
+      already_sent: "تم إرسال الطلب مسبقاً",
+      already_friends: "أنتم أصدقاء بالفعل",
+      invalid_target: "طلب غير صالح",
+    };
+    if (map[code]) alert(map[code]);
     reload();
   };
   const accept = async (fid: string) => { await supabase.from("friends").update({ status: "accepted" }).eq("id", fid); reload(); };
