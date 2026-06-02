@@ -311,8 +311,11 @@ function ShipyardPage() {
               <h2 className="text-xl font-black">أسطول الشراء</h2>
               <p className="text-xs text-muted-foreground">يظهر حسب مستوى السوق الحالي، مع عرض فخم وحالة الامتلاك لكل سفينة.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${shipsCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>السفن: {shipsCount} / {MAX_SHIPS}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => setStorageOpen(true)} className="flex items-center gap-1.5 rounded-lg border-2 border-amber-400/60 bg-gradient-to-b from-amber-500/20 to-amber-700/20 px-3 py-2 text-xs font-black text-amber-200 hover:from-amber-500/30 hover:to-amber-700/30 active:scale-95 shadow-[0_0_15px_rgba(252,191,73,0.25)]">
+                📦 المخزن <span className="opacity-80">({storageCount}/{MAX_STORAGE})</span>
+              </button>
+              <div className={`rounded-lg border px-3 py-2 text-xs font-bold ${activeCount >= MAX_SHIPS ? "border-rose-500/50 bg-rose-500/10 text-rose-200" : "border-border bg-card text-muted-foreground"}`}>النشطة: {activeCount} / {MAX_SHIPS}</div>
               <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">السعة: {fleetStorageUsed.toLocaleString()} / {fleetStorageMax.toLocaleString()}</div>
             </div>
           </div>
