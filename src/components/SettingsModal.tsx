@@ -128,6 +128,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           value={sfx}
           onChange={(v) => { setSfx(v); sound.setSfx(v); sound.play("click"); }}
         />
+        <ToggleRow
+          label="💀 إظهار لافتات الموت"
+          value={showDeathBanner}
+          onChange={(v) => {
+            setShowDeathBanner(v);
+            try {
+              if (v) localStorage.removeItem("death-banner-hidden");
+              else localStorage.setItem("death-banner-hidden", "1");
+              window.dispatchEvent(new Event("death-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
 
         {email && (
           <div className="mt-3 space-y-2">
