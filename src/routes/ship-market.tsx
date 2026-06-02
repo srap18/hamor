@@ -96,7 +96,7 @@ function ShipyardPage() {
     await supabase.rpc("finalize_market_upgrades");
     const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
       supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
-      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp").eq("user_id", user.id).order("acquired_at", { ascending: false }),
+      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
     ]);
     setMarket((marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null });
     setOwned((ownedRows as OwnedShip[] | null) ?? []);
