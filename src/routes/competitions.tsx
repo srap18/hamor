@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { syncServerTime, serverNow } from "@/lib/server-time";
 
 export const Route = createFileRoute("/competitions")({
   component: CompetitionsPage,
@@ -74,7 +75,7 @@ const RANK_TIER_STYLE: Record<number, string> = {
 const DEFAULT_TIER_STYLE = "from-indigo-600 via-purple-600 to-fuchsia-600 text-white border-purple-400 shadow-purple-500/40";
 
 function timeLeft(iso: string) {
-  const ms = new Date(iso).getTime() - Date.now();
+  const ms = new Date(iso).getTime() - serverNow().getTime();
   if (ms <= 0) return "انتهت";
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
@@ -166,6 +167,7 @@ function CompetitionsPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
+      await syncServerTime(true);
       const { data } = await supabase.rpc("get_active_competitions" as never);
       const list = (data ?? []) as Comp[];
       setComps(list);
