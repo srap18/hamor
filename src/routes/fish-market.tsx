@@ -488,7 +488,7 @@ function StorageView({
   return (
     <>
       {/* Title banner */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20">
+      <div className="absolute top-32 left-1/2 -translate-x-1/2 z-20">
         <div className="relative px-8 py-1.5 rounded-md bg-gradient-to-b from-sky-500 to-sky-700 border-2 border-cyan-200 shadow-lg">
           <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-700 rotate-45 border-l-2 border-b-2 border-cyan-200" />
           <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-sky-700 rotate-45 border-r-2 border-t-2 border-cyan-200" />
