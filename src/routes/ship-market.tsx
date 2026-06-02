@@ -42,6 +42,7 @@ type OwnedShip = {
   catalog_code: string | null;
   hp: number;
   max_hp: number;
+  in_storage: boolean;
 };
 
 
@@ -56,10 +57,13 @@ function ShipyardPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<null | "upgrade" | "boost" | string>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [storageOpen, setStorageOpen] = useState(false);
 
   const selectedShip = SHIPS.find((ship) => ship.code === selectedCode) ?? SHIPS[0];
   const marketLevel = market?.level ?? 1;
   const acceleratingCost = Math.max(1, Math.ceil(secondsLeft / 60));
+  const activeShips = useMemo(() => owned.filter((s) => !s.in_storage), [owned]);
+  const storedShips = useMemo(() => owned.filter((s) => s.in_storage), [owned]);
   const ownedCount = useMemo(
     () => owned.reduce<Record<string, number>>((acc, ship) => {
       const key = ship.catalog_code ?? "unknown";
@@ -69,13 +73,15 @@ function ShipyardPage() {
     [owned],
   );
   const fleetStorageUsed = useMemo(
-    () => owned.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
-    [owned],
+    () => activeShips.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
+    [activeShips],
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
   const MAX_SHIPS = 3;
-  const shipsCount = owned.length;
-  const fleetFull = shipsCount >= MAX_SHIPS;
+  const MAX_STORAGE = 3;
+  const activeCount = activeShips.length;
+  const storageCount = storedShips.length;
+  const allFull = activeCount >= MAX_SHIPS && storageCount >= MAX_STORAGE;
   const selectedShipFlip = shipBowFacesRight(selectedShip.marketLevel) ? 1 : -1;
 
   const showToast = (message: string) => {
