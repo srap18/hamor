@@ -84,16 +84,7 @@ export function BottomNav({ active }: { active?: string }) {
             return (
               <button
                 key={it.to}
-                onClick={() => {
-                  const go = () => nav({ to: it.to, viewTransition: true });
-                  // Use View Transitions when available for a native-feeling swap.
-                  const d: any = document;
-                  if (typeof d.startViewTransition === "function") {
-                    d.startViewTransition(go);
-                  } else {
-                    go();
-                  }
-                }}
+                onClick={() => nav({ to: it.to, viewTransition: false })}
                 className={`relative flex flex-col items-center gap-0.5 px-1.5 active:scale-95 transition-transform ${isActive ? "-translate-y-1" : ""}`}
               >
 

@@ -24,11 +24,10 @@ export const getRouter = () => {
     defaultPreloadGcTime: 30 * 60_000,
     defaultPreload: isLowBandwidth ? "intent" : "render",
     defaultPreloadDelay: isLowBandwidth ? 50 : 0,
-    // Native-app feel: never flash a loading screen unless the wait is really long,
-    // and use the View Transitions API so swapping pages animates smoothly.
+    // Native-app feel: never flash a loading screen unless the wait is really long.
     defaultPendingMs: 2000,
     defaultPendingMinMs: 0,
-    defaultViewTransition: true,
+    defaultViewTransition: false,
   });
 
   return router;

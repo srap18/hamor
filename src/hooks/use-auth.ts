@@ -31,9 +31,15 @@ const notifySession = () => sessionSubs.forEach((fn) => { try { fn(); } catch {}
 function ensureSessionBootstrap() {
   if (sessionInitialized) return;
   sessionInitialized = true;
+  const loadingTimeout = globalThis.setTimeout(() => {
+    if (!sessionLoadingFlag) return;
+    sessionLoadingFlag = false;
+    notifySession();
+  }, 4000);
   supabase.auth.onAuthStateChange((_e, s) => {
     sessionCache = s;
     sessionLoadingFlag = false;
+    globalThis.clearTimeout(loadingTimeout);
     notifySession();
     // When the user changes, drop the cached profile so we refetch
     if (s?.user?.id !== profileCache?.id) {
@@ -44,6 +50,11 @@ function ensureSessionBootstrap() {
   supabase.auth.getSession().then(({ data }) => {
     sessionCache = data.session;
     sessionLoadingFlag = false;
+    globalThis.clearTimeout(loadingTimeout);
+    notifySession();
+  }).catch(() => {
+    sessionLoadingFlag = false;
+    globalThis.clearTimeout(loadingTimeout);
     notifySession();
   });
 }
