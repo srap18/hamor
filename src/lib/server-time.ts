@@ -83,7 +83,7 @@ export function installServerClock(): void {
 
   // Patch Date.now()
   try {
-    (Date as any).now = () => _origDateNow() + offsetMs;
+    (Date as any).now = () => serverNowMs();
   } catch {}
 
   // Patch `new Date()` (no args) to return server-corrected time. Args still
@@ -95,14 +95,14 @@ export function installServerClock(): void {
         return _OrigDate(...(args as []));
       }
       if (args.length === 0) {
-        return new _OrigDate(_origDateNow() + offsetMs);
+        return new _OrigDate(serverNowMs());
       }
       // @ts-ignore - spread into Date ctor
       return new _OrigDate(...args);
     };
     Patched.prototype = _OrigDate.prototype;
     Object.setPrototypeOf(Patched, _OrigDate);
-    Patched.now = () => _origDateNow() + offsetMs;
+    Patched.now = () => serverNowMs();
     Patched.parse = _OrigDate.parse.bind(_OrigDate);
     Patched.UTC = _OrigDate.UTC.bind(_OrigDate);
     (globalThis as any).Date = Patched;
