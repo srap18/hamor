@@ -30,6 +30,14 @@ export function SeamlessVideo({
     const b = bRef.current;
     if (!a || !b) return;
 
+    // Reveal as soon as the first frame is decoded — don't wait for "playing".
+    const revealOnFrame = () => setVideoVisible(true);
+    a.addEventListener("loadeddata", revealOnFrame, { once: true });
+    if ("requestVideoFrameCallback" in a) {
+      try { (a as any).requestVideoFrameCallback(() => setVideoVisible(true)); } catch {}
+    }
+    if (a.readyState >= 2) setVideoVisible(true);
+
     let raf = 0;
     let bOffset = false;
     let FADE = 1.6;
@@ -121,7 +129,7 @@ export function SeamlessVideo({
           style={{
             ...style,
             opacity: videoVisible ? 0 : 1,
-            transition: "opacity 0.6s ease",
+            transition: "opacity 0.25s ease",
           }}
         />
       )}
