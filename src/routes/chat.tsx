@@ -70,6 +70,8 @@ function ChatPage() {
   const [text, setText] = useState("");
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
   const [dmWith, setDmWith] = useState<string | null>(null);
+  const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
+  const [dmTotal, setDmTotal] = useState(0);
   const [showManage, setShowManage] = useState(false);
   const [supportTarget, setSupportTarget] = useState<Prof | null>(null);
   const [warTarget, setWarTarget] = useState<Prof | null>(null);
