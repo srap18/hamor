@@ -1904,8 +1904,47 @@ type LbProfile = {
 
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
 
+type CompLb = {
+  id: string; title: string; description: string; banner_emoji: string; banner_text: string;
+  banner_theme: string; metric: string; target_fish_id: string | null; hide_target: boolean;
+  reward_coins: number; reward_gems: number; reward_xp: number; reward_text: string;
+  prize_tiers: Array<{ rank: number; coins: number; gems: number; xp: number; text: string }> | null;
+  starts_at: string; ends_at: string;
+};
+type CompLbRow = {
+  user_id: string; display_name: string; avatar_emoji: string; avatar_url: string | null;
+  level: number; score: number;
+};
+const COMP_METRIC_LABEL: Record<string, { icon: string; name: string; unit: string }> = {
+  explode_count: { icon: "🔥", name: "تفجيرات", unit: "تفجير" },
+  explode_damage: { icon: "💥", name: "ضرر", unit: "ضرر" },
+  fish_total: { icon: "🎣", name: "صيد", unit: "سمكة" },
+  fish_specific: { icon: "🐟", name: "صيد نوع محدد", unit: "سمكة" },
+};
+const COMP_THEME: Record<string, string> = {
+  gold: "from-amber-500 via-yellow-400 to-amber-600",
+  royal: "from-purple-600 via-fuchsia-500 to-indigo-600",
+  inferno: "from-red-600 via-orange-500 to-yellow-500",
+  ocean: "from-cyan-500 via-blue-500 to-indigo-600",
+  emerald: "from-emerald-500 via-green-500 to-teal-600",
+  diamond: "from-sky-300 via-cyan-200 to-indigo-400",
+  obsidian: "from-slate-800 via-zinc-700 to-slate-900",
+};
+function compTimeLeft(iso: string) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "انتهت";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `${d}ي ${h}س`;
+  if (h > 0) return `${h}س ${m}د`;
+  return `${m}د`;
+}
+
 function LeaderboardModal({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<"xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("xp");
+  const [tab, setTab] = useState<"comp" | "xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("comp");
+  const [comps, setComps] = useState<CompLb[]>([]);
+  const [compBoards, setCompBoards] = useState<Record<string, CompLbRow[]>>({});
   const [rows, setRows] = useState<LbProfile[]>([]);
   const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
   const [shipRows, setShipRows] = useState<Array<LbProfile & { market_level: number }>>([]);
