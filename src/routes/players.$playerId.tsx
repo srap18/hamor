@@ -865,6 +865,20 @@ function PlayerPage() {
         <Stat icon="⚓" label="السفن" value={ships.length} />
       </div>
 
+      {/* Death banner — last person who nuked / ad-bombed this player */}
+      {p?.last_destroyer_name && (p.last_destroyer_kind === "nuke" || p.last_destroyer_kind === "ad_bomb") && (
+        <div className="absolute left-2 right-2 z-30 pointer-events-none" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 8rem)" }}>
+          <div className="mx-auto max-w-md rounded-xl border-2 border-red-500/70 bg-gradient-to-r from-stone-950/90 via-red-950/85 to-stone-950/90 shadow-[0_0_20px_rgba(220,38,38,0.45)] px-3 py-2 text-center">
+            <div className="text-red-100 font-extrabold text-sm leading-tight">
+              {p.last_destroyer_kind === "nuke" ? "☢️" : "📺"} لافتات الموت ·{" "}
+              <span className="text-amber-200">{p.last_destroyer_name}</span>{" "}
+              {p.last_destroyer_kind === "nuke" ? "فجّر هذا اللاعب بالقنبلة الذرية" : "فجّر هذا اللاعب بالقنبلة الإعلانية"}
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
 
       {/* Bottom actions */}
