@@ -13,6 +13,7 @@ import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
+import { serverNow, serverNowMs } from "@/lib/server-time";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -45,7 +46,7 @@ function PlayerPage() {
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | "ad_bomb" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
   const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; fishing_power: number; owner_name: string; owner_emoji: string }[]>([]);
-  const [nowTs, setNowTs] = useState<number>(Date.now());
+  const [nowTs, setNowTs] = useState<number>(serverNowMs());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
   const [playerCrews, setPlayerCrews] = useState<{ item_id: string; ship_id: string }[]>([]);
@@ -91,7 +92,7 @@ function PlayerPage() {
     const toY = r.top + r.height / 2;
     const fromX = window.innerWidth - 40;
     const fromY = window.innerHeight - 80;
-    const id = Date.now();
+    const id = serverNowMs();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     // whoosh during flight (only for hostile rockets)
     if (!friendly) sound.play("whoosh");
@@ -302,7 +303,7 @@ function PlayerPage() {
   // Live ticker for raider counters (fish stolen so far + countdown)
   useEffect(() => {
     if (raiders.length === 0) return;
-    const id = window.setInterval(() => setNowTs(Date.now()), 500);
+    const id = window.setInterval(() => setNowTs(serverNowMs()), 500);
     return () => window.clearInterval(id);
   }, [raiders.length]);
 
@@ -337,7 +338,7 @@ function PlayerPage() {
   const confirmDropArmorIfActive = async (): Promise<boolean> => {
     if (!me) return true;
     const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
-    if (until <= Date.now()) return true;
+    if (until <= serverNowMs()) return true;
     const ok = window.confirm(
       "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
     );
