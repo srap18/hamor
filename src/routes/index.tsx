@@ -1908,7 +1908,7 @@ type LbProfile = {
   avatar_frame?: string | null; name_frame?: string | null;
 };
 
-type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number };
+type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number; donation_score?: number; support_score?: number; attack_score?: number };
 
 type CompLb = {
   id: string; title: string; description: string; banner_emoji: string; banner_text: string;
@@ -1992,29 +1992,19 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (tab === "tribes") {
       setLoading(true);
       (async () => {
-        const { data: ts } = await supabase.from("tribes").select("id,name,emblem,banner,level").limit(200);
-        if (!ts || ts.length === 0) { setTribes([]); setLoading(false); return; }
-        const ids = ts.map((t: any) => t.id);
-        const { data: mems } = await supabase.from("tribe_members").select("tribe_id,user_id").in("tribe_id", ids);
-        const byTribe = new Map<string, string[]>();
-        (mems || []).forEach((m: any) => {
-          const arr = byTribe.get(m.tribe_id) || [];
-          arr.push(m.user_id);
-          byTribe.set(m.tribe_id, arr);
-        });
-        const allUids = Array.from(new Set((mems || []).map((m: any) => m.user_id)));
-        const powerMap = new Map<string, number>();
-        if (allUids.length > 0) {
-          const { data: ps } = await supabase.from("profiles").select("id,level,xp").in("id", allUids);
-          (ps || []).forEach((p: any) => powerMap.set(p.id, (p.level || 1) * 100 + Math.floor((p.xp || 0) / 10)));
-        }
-        const list: TribeLb[] = (ts as any[]).map(t => {
-          const uids = byTribe.get(t.id) || [];
-          const memberPower = uids.reduce((s, u) => s + (powerMap.get(u) || 0), 0);
-          const lvlBonus = ((t.level || 1) - 1) * 500;
-          const power = memberPower + lvlBonus;
-          return { id: t.id, name: t.name, emblem: t.emblem, banner: t.banner, level: t.level || 1, members: uids.length, power };
-        }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
+        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
+          id: t.tribe_id,
+          name: t.name,
+          emblem: t.emblem,
+          banner: t.banner,
+          level: t.level || 1,
+          members: t.members || 0,
+          donation_score: Number(t.donation_score || 0),
+          support_score: Number(t.support_score || 0),
+          attack_score: Number(t.attack_score || 0),
+          power: Number(t.power || 0),
+        }));
         setTribes(list);
         setLoading(false);
       })();
