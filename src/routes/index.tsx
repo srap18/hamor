@@ -297,24 +297,11 @@ function Index() {
             fishing = seaOverride.atSea;
             startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
           } else if (row.at_sea && row.fishing_started_at) {
-            // Sanity guard: if the DB trip is absurdly old (>5x duration or
-            // >24h), treat it as stale leftover and don't auto-launch this
-            // ship just because a re-sync ran (caused by another ship
-            // changing). Clear at_sea in DB silently.
-            const _def = row.catalog_code ? getShipByCode(row.catalog_code) : getShipByMarketLevel(row.template_id ?? 1);
-            const _dur = _def.fishingSeconds;
-            const _elapsedMs = serverNowMs() - new Date(row.fishing_started_at).getTime();
-            const _stale = _elapsedMs > Math.max(_dur * 1000 * 5, 24 * 60 * 60 * 1000);
-            if (_stale) {
-              fishing = false;
-              startedAt = undefined;
-              import("@/lib/economy").then(({ setShipAtSea }) => {
-                setShipAtSea(s.dbId!, false).catch(() => {});
-              });
-            } else {
-              fishing = true;
-              startedAt = new Date(row.fishing_started_at).getTime();
-            }
+            // A completed/old trip is still a valid trip. Never auto-dock it here;
+            // only collect_fishing_reward may stop fishing so the result panel is
+            // always shown when the player taps collect.
+            fishing = true;
+            startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing === false) {
             // Local says STOPPED — that's the source of truth.
             // If DB still says at_sea, push the stop again to fix the race.
@@ -354,17 +341,6 @@ function Index() {
         if (!destroyed && !onSteal && seaOverride) {
           isFishing = seaOverride.atSea;
           startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
-        }
-        if (isFishing && startedAt) {
-          const _elapsedMs = serverNowMs() - startedAt;
-          const _stale = _elapsedMs > Math.max(duration * 1000 * 5, 24 * 60 * 60 * 1000);
-          if (_stale) {
-            isFishing = false;
-            startedAt = undefined;
-            import("@/lib/economy").then(({ setShipAtSea }) => {
-              setShipAtSea(dbShip.id, false).catch(() => {});
-            });
-          }
         }
         newShips.push({
           id: nextId,
