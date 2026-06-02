@@ -846,15 +846,17 @@ function Index() {
     const startNow = serverNowMs();
     const dbIdToSync = target.dbId;
     const nextAtSea = !target.fishing;
+    const nextStartedAt = nextAtSea
+      ? startNow - Math.round(((target.max > 0 ? target.progress / target.max : 0) * target.duration * 1000))
+      : undefined;
+    if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
         if (x.fishing) {
-          return { ...x, fishing: false, startedAt: undefined };
+          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration };
         }
-        const ratio = x.max > 0 ? x.progress / x.max : 0;
-        const startedAt = startNow - Math.round(ratio * x.duration * 1000);
-        return { ...x, fishing: true, startedAt };
+        return { ...x, fishing: true, startedAt: nextStartedAt };
       })
     );
     sound.play("whoosh");
@@ -863,10 +865,12 @@ function Index() {
       const { setShipAtSea } = await import("@/lib/economy");
       const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
       if (error) {
+        delete seaStateOverrideRef.current[dbIdToSync];
         showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
         syncFleetFromDb();
         return;
       }
+      clearSeaOverrideSoon(dbIdToSync);
     }
     // Instant push to spectators
     pushHarborState();
