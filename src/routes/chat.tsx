@@ -1361,6 +1361,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
           <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
+      </div>
     </form>
   );
 }
