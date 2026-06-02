@@ -20,7 +20,12 @@ function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setLoading(true);
-    const finalName = (name || email.split("@")[0]).trim();
+    const finalName = (name || email.split("@")[0]).trim().slice(0, 15);
+    if (finalName.length > 15) {
+      setLoading(false);
+      setErr("الاسم لا يتجاوز 15 حرف");
+      return;
+    }
     // Check display name uniqueness (Arabic + English, case-insensitive)
     if (finalName.length >= 2) {
       try {
