@@ -8,6 +8,7 @@ import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { VoiceRooms } from "@/components/VoiceRooms";
+import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
