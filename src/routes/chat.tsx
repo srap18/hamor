@@ -212,59 +212,60 @@ function ChatPage() {
     noticeTimerRef.current = window.setTimeout(() => setNotice(null), 2500);
   }, []);
   const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
-  const send = useCallback(async (override?: string) => {
-    if (!user || sending) return;
+  const send = useCallback((override?: string) => {
+    if (!user) return;
     const raw = override ?? text;
     const body = raw.trim().slice(0, 500);
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
 
-    // Anti-spam: 1.2s cooldown between sends + block exact duplicate within 10s in same chat
     const now = Date.now();
     const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
     const last = lastSendRef.current;
-    if (now - last.at < 1200) {
-      showNotice("على مهلك — لا ترسل بسرعة");
-      return;
-    }
-    if (last.body === body && last.channel === tab && last.target === target && now - last.at < 10000) {
+    if (last.body === body && last.channel === tab && last.target === target && now - last.at < 3000) {
       showNotice("لا تكرر نفس الرسالة");
       return;
     }
+    lastSendRef.current = { body, at: now, channel: tab, target };
 
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
-    setSending(true);
-    // Clear input immediately for snappy UX (restore on failure)
-    const prevText = text;
+
+    const tempId = `tmp-${now}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: Msg = {
+      id: tempId,
+      channel: tab,
+      sender_id: user.id,
+      recipient_id: tab === "dm" ? dmWith : null,
+      tribe_id: tab === "tribe" ? (profile?.tribe_id || null) : null,
+      body,
+      created_at: new Date().toISOString(),
+    };
+    if (profile) setProfMap(s => s.has(user.id) ? s : new Map(s).set(user.id, profile as any));
+    setMsgs(s => [...s, optimistic]);
     if (!override) setText("");
-    // Hard timeout so the button never gets stuck (e.g. flaky network)
-    const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-      setTimeout(() => resolve({ data: null, error: { message: "انتهت المهلة، حاول مرة أخرى" } }), 12000)
-    );
-    try {
-      const res = await Promise.race([
-        supabase.from("messages").insert(row).select("*").maybeSingle(),
-        timeoutPromise,
-      ]);
-      const { data, error } = res as any;
+
+    supabase.from("messages").insert(row).select("*").maybeSingle().then(({ data, error }) => {
       if (error) {
         const msg = /row-level security|policy/i.test(error.message)
           ? "أنت مكتوم حالياً من قِبل الإدارة"
           : "تعذر الإرسال: " + error.message;
         showNotice(msg);
-        if (!override) setText(prevText);
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        setText(t => t ? t : body);
         return;
       }
-      lastSendRef.current = { body, at: now, channel: tab, target };
-      if (profile) setProfMap(s => new Map(s).set(user.id, profile as any));
-      if (data) setMsgs(s => s.some(x => x.id === (data as any).id) ? s : [...s, data as Msg]);
-    } finally {
-      setSending(false);
-    }
-  }, [user, text, tab, profile, dmWith, sending, showNotice]);
+      if (data) {
+        const real = data as Msg;
+        setMsgs(s => {
+          if (s.some(x => x.id === real.id)) return s.filter(x => x.id !== tempId);
+          return s.map(x => x.id === tempId ? real : x);
+        });
+      }
+    });
+  }, [user, text, tab, profile, dmWith, showNotice]);
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
