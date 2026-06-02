@@ -206,7 +206,9 @@ export function AdBombOverlay({
             src={video.src}
             autoPlay
             loop
+            muted
             playsInline
+            preload="auto"
             className="absolute inset-0 h-full w-full object-cover"
             style={{ opacity: 0.55 }}
           />
