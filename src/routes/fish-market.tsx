@@ -8,6 +8,7 @@ import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import { sellFish } from "@/lib/economy";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -83,6 +84,7 @@ type MarketState = {
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
   const [ageMap, setAgeMap] = useState<Record<string, string>>({});
+  const [stockIdsMap, setStockIdsMap] = useState<Record<string, string[]>>({});
   const [priceMap, setPriceMap] = useState<Record<string, { current: number; min: number; max: number }>>({});
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -237,23 +239,35 @@ function FishMarket() {
 
 
 
-  // Load owned fish quantities + ages
+  // Load owned fish quantities + ages from the real market stock.
   const loadFish = async () => {
-    if (!user) { setQtyMap({}); setAgeMap({}); return; }
-    const { data } = await supabase
-      .from("fish_caught")
-      .select("fish_id, quantity, updated_at")
-      .eq("user_id", user.id);
+    if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
+    const rows: Array<{ id: string; fish_id: string; caught_at: string }> = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase
+        .from("fish_stock")
+        .select("id, fish_id, caught_at")
+        .eq("user_id", user.id)
+        .order("caught_at", { ascending: true })
+        .range(from, from + 999);
+      if (error) break;
+      const batch = (data ?? []) as Array<{ id: string; fish_id: string; caught_at: string }>;
+      rows.push(...batch);
+      if (batch.length < 1000) break;
+    }
     const map: Record<string, number> = {};
     const ages: Record<string, string> = {};
-    for (const row of (data ?? []) as Array<{ fish_id: string; quantity: number | null; updated_at: string }>) {
-      map[row.fish_id] = (map[row.fish_id] ?? 0) + (row.quantity ?? 0);
-      if (!ages[row.fish_id] || new Date(row.updated_at) < new Date(ages[row.fish_id])) {
-        ages[row.fish_id] = row.updated_at;
+    const ids: Record<string, string[]> = {};
+    for (const row of rows) {
+      map[row.fish_id] = (map[row.fish_id] ?? 0) + 1;
+      (ids[row.fish_id] ??= []).push(row.id);
+      if (!ages[row.fish_id] || new Date(row.caught_at) < new Date(ages[row.fish_id])) {
+        ages[row.fish_id] = row.caught_at;
       }
     }
     setQtyMap(map);
     setAgeMap(ages);
+    setStockIdsMap(ids);
   };
   useEffect(() => {
     loadFish();
@@ -262,10 +276,10 @@ function FishMarket() {
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     const ch = supabase
-      .channel(`fish_caught_${user.id}`)
+      .channel(`fish_stock_${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "fish_caught", filter: `user_id=eq.${user.id}` },
+        { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${user.id}` },
         () => loadFish()
       )
       .subscribe();
