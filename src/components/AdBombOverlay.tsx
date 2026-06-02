@@ -124,16 +124,28 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
-  // Try to autoplay with sound; fall back to a "tap to play" prompt if blocked.
+  // Always autoplay muted first (browsers allow it). Then try to unmute —
+  // if blocked, show a tap-to-unmute button so the video itself still shows.
   useEffect(() => {
     if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
-    v.muted = false;
-    v.volume = 1;
+    v.muted = true;
+    setIsMuted(true);
     const p = v.play();
+    const tryUnmute = () => {
+      v.muted = false;
+      v.volume = 1;
+      const up = v.play();
+      if (up && typeof up.catch === "function") {
+        up.then(() => { setIsMuted(false); setNeedsTap(false); })
+          .catch(() => { v.muted = true; setIsMuted(true); setNeedsTap(true); });
+      }
+    };
     if (p && typeof p.catch === "function") {
-      p.catch(() => setNeedsTap(true));
+      p.then(() => { tryUnmute(); }).catch(() => { setNeedsTap(true); });
+    } else {
+      tryUnmute();
     }
   }, [isActive, phase, bomb?.id]);
 
