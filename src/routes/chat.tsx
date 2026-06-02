@@ -137,6 +137,41 @@ function ChatPage() {
     })();
   }, [user]);
 
+  // Live DM unread map (per-friend counts + total). Refresh on every incoming DM.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const refresh = async () => {
+      const { map, total } = await loadDmUnreadMap(user.id);
+      if (cancelled) return;
+      setDmMap(map);
+      setDmTotal(total);
+    };
+    refresh();
+    const ch = supabase.channel(`dm-unread:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, refresh)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(ch); };
+  }, [user]);
+
+  // Mark a conversation as read whenever the user opens it
+  useEffect(() => {
+    if (!user || tab !== "dm" || !dmWith) return;
+    markDmRead(user.id, dmWith);
+    setDmMap((m) => {
+      const entry = m.get(dmWith);
+      if (!entry || entry.count === 0) return m;
+      const next = new Map(m);
+      next.set(dmWith, { ...entry, count: 0 });
+      return next;
+    });
+    setDmTotal((t) => {
+      const c = dmMap.get(dmWith)?.count ?? 0;
+      return Math.max(0, t - c);
+    });
+  }, [user, tab, dmWith]);
+
+
   useEffect(() => {
     if (!user) return;
     const loadKey = `${tab}:${dmWith || ""}`;
