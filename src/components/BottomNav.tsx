@@ -24,6 +24,7 @@ export function BottomNav({ active }: { active?: string }) {
   const [myShipsOpen, setMyShipsOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
+  const [friendReqCount, setFriendReqCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -55,12 +56,24 @@ export function BottomNav({ active }: { active?: string }) {
         .gt("created_at", lastSeen);
       setDmUnread(count ?? 0);
     };
+    const loadFriendReqs = async () => {
+      if (active === "/friends") { setFriendReqCount(0); return; }
+      const { count } = await supabase.from("friends")
+        .select("id", { count: "exact", head: true })
+        .eq("addressee_id", user.id)
+        .eq("status", "pending");
+      setFriendReqCount(count ?? 0);
+    };
     loadMissions();
     loadDm();
+    loadFriendReqs();
     const ch = supabase
       .channel("nav-notifs")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, loadMissions)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriendReqs)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriendReqs)
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "friends" }, loadFriendReqs)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user, active]);
@@ -71,6 +84,10 @@ export function BottomNav({ active }: { active?: string }) {
     localStorage.setItem(dmSeenKey(user.id), serverNow().toISOString());
     setDmUnread(0);
   }, [user, active]);
+
+  useEffect(() => {
+    if (active === "/friends") setFriendReqCount(0);
+  }, [active]);
 
 
   return (
