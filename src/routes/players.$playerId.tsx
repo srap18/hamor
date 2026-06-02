@@ -610,7 +610,7 @@ function PlayerPage() {
   if (!loading && p && targetIsStaff && friendStatus !== "self") {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
-        <div className="p-3 flex items-center gap-2">
+        <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(0.75rem, calc(env(safe-area-inset-top) + 0.5rem))" }}>
           <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
