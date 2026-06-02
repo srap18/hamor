@@ -688,6 +688,7 @@ export type Database = {
           caught_at: string
           fish_id: string
           id: string
+          quantity: number
           ship_id: string | null
           user_id: string
         }
@@ -696,6 +697,7 @@ export type Database = {
           caught_at?: string
           fish_id: string
           id?: string
+          quantity?: number
           ship_id?: string | null
           user_id: string
         }
@@ -704,6 +706,7 @@ export type Database = {
           caught_at?: string
           fish_id?: string
           id?: string
+          quantity?: number
           ship_id?: string | null
           user_id?: string
         }
@@ -2729,6 +2732,7 @@ export type Database = {
       }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      feed_daughter: { Args: { _fish_stock_ids: string[] }; Returns: Json }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
