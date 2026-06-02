@@ -8,6 +8,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
+  const [showDeathBanner, setShowDeathBanner] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
@@ -21,6 +22,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
+    try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
@@ -125,6 +127,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           label="🔊 المؤثرات الصوتية"
           value={sfx}
           onChange={(v) => { setSfx(v); sound.setSfx(v); sound.play("click"); }}
+        />
+        <ToggleRow
+          label="💀 إظهار لافتات الموت"
+          value={showDeathBanner}
+          onChange={(v) => {
+            setShowDeathBanner(v);
+            try {
+              if (v) localStorage.removeItem("death-banner-hidden");
+              else localStorage.setItem("death-banner-hidden", "1");
+              window.dispatchEvent(new Event("death-banner-pref"));
+            } catch { /* noop */ }
+          }}
         />
 
         {email && (
