@@ -240,35 +240,25 @@ function FishMarket() {
 
 
 
-  // Load owned fish quantities + ages from the real market stock.
+  // Load owned fish quantities + ages via fast aggregate RPC (avoids loading
+  // tens of thousands of rows for large stocks which causes "Load failed").
   const loadFish = async () => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
-    const rows: Array<{ id: string; fish_id: string; caught_at: string }> = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase
-        .from("fish_stock")
-        .select("id, fish_id, caught_at")
-        .eq("user_id", user.id)
-        .order("caught_at", { ascending: true })
-        .range(from, from + 999);
-      if (error) break;
-      const batch = (data ?? []) as Array<{ id: string; fish_id: string; caught_at: string }>;
-      rows.push(...batch);
-      if (batch.length < 1000) break;
-    }
+    const { data, error } = await supabase.rpc("get_fish_stock_summary" as never);
+    if (error) return;
+    const rows = (data ?? []) as Array<{ fish_id: string; qty: number | string; oldest_caught_at: string }>;
     const map: Record<string, number> = {};
     const ages: Record<string, string> = {};
-    const ids: Record<string, string[]> = {};
     for (const row of rows) {
-      map[row.fish_id] = (map[row.fish_id] ?? 0) + 1;
-      (ids[row.fish_id] ??= []).push(row.id);
-      if (!ages[row.fish_id] || new Date(row.caught_at) < new Date(ages[row.fish_id])) {
-        ages[row.fish_id] = row.caught_at;
-      }
+      const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
+      if (!q || q <= 0) continue;
+      map[row.fish_id] = q;
+      if (row.oldest_caught_at) ages[row.fish_id] = row.oldest_caught_at;
     }
     setQtyMap(map);
     setAgeMap(ages);
-    setStockIdsMap(ids);
+    // IDs are fetched on demand during sale to avoid huge payloads.
+    setStockIdsMap({});
   };
   useEffect(() => {
     loadFish();
@@ -293,6 +283,7 @@ function FishMarket() {
       supabase.removeChannel(ch);
     };
   }, [user?.id]);
+
 
   // Rot helpers: -1% per hour from oldest catch, floor 50%
   const rotMult = (fishId: string): number => {
@@ -335,27 +326,37 @@ function FishMarket() {
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
-    const availableIds = stockIdsMap[sel.id] ?? [];
-    const fishStockIds = availableIds.slice(0, requestedQty);
-    if (fishStockIds.length <= 0) {
-      await loadFish();
-      setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
-      setTimeout(() => setPop(null), 1800);
-      return;
-    }
-
-    const qty = fishStockIds.length;
-    const earned = Math.round(qty * price);
     setSelling(true);
-
-    // Optimistic local update
-    setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
-    setStockIdsMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? []).slice(qty) }));
-    setPop(`+${earned.toLocaleString()} ذهب`);
-    setTimeout(() => setPop(null), 1500);
-
     try {
-      // Atomic server-side sale: deletes rows from fish_stock and credits coins.
+      // Fetch only the IDs we need on demand (oldest first).
+      const { data: idRows, error: idErr } = await supabase
+        .from("fish_stock")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("fish_id", sel.id)
+        .order("caught_at", { ascending: true })
+        .limit(requestedQty);
+      if (idErr) {
+        setPop(`❌ ${idErr.message || "تعذر البيع"}`);
+        setTimeout(() => setPop(null), 2500);
+        return;
+      }
+      const fishStockIds = (idRows ?? []).map((r: { id: string }) => r.id);
+      if (fishStockIds.length <= 0) {
+        await loadFish();
+        setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
+        setTimeout(() => setPop(null), 1800);
+        return;
+      }
+
+      const qty = fishStockIds.length;
+      const earned = Math.round(qty * price);
+
+      // Optimistic local update
+      setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
+      setPop(`+${earned.toLocaleString()} ذهب`);
+      setTimeout(() => setPop(null), 1500);
+
       const { data, error } = await sellFish(fishStockIds);
       if (error) {
         setPop(`❌ ${error.message || "تعذر البيع"}`);
@@ -378,6 +379,7 @@ function FishMarket() {
       setSelling(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl">
