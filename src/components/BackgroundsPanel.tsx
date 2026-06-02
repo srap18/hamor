@@ -37,7 +37,25 @@ export function BackgroundsPanel() {
   useEffect(() => {
     setOwned(getOwnedBgIds());
     setSelected(getSelectedBgId());
-  }, []);
+    // Sync any background granted via redemption code (stored in inventory as item_type='background')
+    if (!user) return;
+    supabase
+      .from("inventory")
+      .select("item_id")
+      .eq("user_id", user.id)
+      .eq("item_type", "background")
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+        const ids = data.map((r: any) => r.item_id as string).filter((id) => BACKGROUNDS.some((b) => b.id === id));
+        if (ids.length === 0) return;
+        const current = getOwnedBgIds();
+        const merged = Array.from(new Set([...current, ...ids]));
+        if (merged.length !== current.length) {
+          setOwnedBgIds(merged);
+          setOwned(merged);
+        }
+      });
+  }, [user]);
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 
