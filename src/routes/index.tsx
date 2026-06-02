@@ -204,6 +204,7 @@ function Index() {
   shipsRef.current = ships;
   type SeaStateOverride = { atSea: boolean; startedAt?: number; expiresAt: number };
   const seaStateOverrideRef = useRef<Record<string, SeaStateOverride>>({});
+  const collectingRef = useRef<Record<string, boolean>>({});
   const getSeaOverride = (dbId: string): SeaStateOverride | undefined => {
     const override = seaStateOverrideRef.current[dbId];
     if (!override) return undefined;
