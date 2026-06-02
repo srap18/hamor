@@ -526,7 +526,25 @@ function Index() {
     };
   }, [user]);
 
-  const [fish, setFish] = useState(34);
+  const [fish, setFish] = useState(0);
+  // Discovered fish species count (kept in sync with fish_caught table)
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("fish_caught")
+        .select("fish_id,total_caught")
+        .eq("user_id", user.id);
+      if (cancelled) return;
+      const discovered = (data ?? []).filter((r: { total_caught: number | null }) => (r.total_caught ?? 0) > 0).length;
+      setFish(discovered);
+    };
+    load();
+    const onChanged = () => load();
+    window.addEventListener("fish-stock-changed", onChanged);
+    return () => { cancelled = true; window.removeEventListener("fish-stock-changed", onChanged); };
+  }, [user]);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
