@@ -1364,18 +1364,43 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
     if (!confirm(`تفعيل الكود ${selectedCode} لـ ${targets.length} لاعب؟`)) return;
     setGranting(true);
     let ok = 0, fail = 0;
+    const reasons: Record<string, number> = {};
     const newGranted = new Set(grantedIds);
     await Promise.all(targets.map(async (r) => {
       const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
         p_code: selectedCode,
         p_target_user: r.sender_id,
       });
-      if (error) fail++; else { ok++; newGranted.add(r.sender_id); }
+      if (error) {
+        fail++;
+        const raw = String(error.message || error);
+        const key = (raw.match(/(already_redeemed|code_exhausted|code_expired|code_disabled|invalid_code|admin_only|invalid_target|not_authenticated)/) || [, raw])[1];
+        reasons[key] = (reasons[key] || 0) + 1;
+      } else {
+        ok++;
+        newGranted.add(r.sender_id);
+      }
     }));
     setGrantedIds(newGranted);
     setGranting(false);
-    if (fail === 0) toast.success(`✅ تم تفعيل ${selectedCode} لـ ${ok} لاعب`);
-    else toast.warning(`✅ نجح: ${ok} • فشل: ${fail}`);
+    const reasonMap: Record<string, string> = {
+      already_redeemed: "مفعّل مسبقاً لنفس الكود",
+      code_exhausted: "نفذ الحد الأقصى للاستخدامات",
+      code_expired: "الكود منتهي",
+      code_disabled: "الكود معطّل",
+      invalid_code: "كود غير صالح",
+      admin_only: "ليس لديك صلاحية",
+      invalid_target: "مستخدم غير صالح",
+      not_authenticated: "غير مسجل دخول",
+    };
+    if (fail === 0) {
+      toast.success(`✅ تم تفعيل ${selectedCode} لـ ${ok} لاعب`);
+    } else {
+      const details = Object.entries(reasons)
+        .map(([k, n]) => `${reasonMap[k] || k}: ${n}`)
+        .join(" • ");
+      toast.warning(`نجح: ${ok} • فشل: ${fail} — السبب: ${details}`, { duration: 10000 });
+    }
   };
 
   const timeAgo = (iso: string) => {
