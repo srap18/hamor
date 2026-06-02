@@ -374,7 +374,7 @@ function ShipyardPage() {
           </div>
         )}
       </div>
-      
+      <MyShipsModal open={storageOpen} onClose={() => { setStorageOpen(false); loadData(); }} />
     </div>
   );
 }
