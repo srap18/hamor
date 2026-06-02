@@ -129,7 +129,7 @@ export function SeamlessVideo({
           style={{
             ...style,
             opacity: videoVisible ? 0 : 1,
-            transition: "opacity 0.6s ease",
+            transition: "opacity 0.25s ease",
           }}
         />
       )}
