@@ -64,7 +64,17 @@ function InventoryPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const onChanged = () => load();
+    const onFocus = () => load();
+    window.addEventListener("fish-stock-changed", onChanged);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("fish-stock-changed", onChanged);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   const qty = (type: string, id: string) => inv.find(r => r.item_type === type && r.item_id === id)?.quantity ?? 0;
   const fishQty = (id: string) => fishRows.find(r => r.fish_id === id)?.quantity ?? 0;
