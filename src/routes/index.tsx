@@ -2072,11 +2072,12 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
 
   const TABS = [
+    { id: "comp" as const, e: "🏆", l: "فعاليات" },
     { id: "xp" as const, e: "⭐", l: "XP" },
     { id: "gems" as const, e: "💎", l: "جواهر" },
     { id: "coins" as const, e: <CoinIcon size={18} />, l: "ذهب" },
     { id: "fish" as const, e: "🐟", l: "صيد" },
-    { id: "ships" as const, e: "🏪", l: "سوق سفن" },
+    { id: "ships" as const, e: "🏪", l: "سوق" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
     { id: "search" as const, e: "🔍", l: "بحث" },
   ];
@@ -2097,13 +2098,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <a href="/competitions"
-          className="block mb-3 p-2.5 rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/30 text-center font-bold text-sm text-amber-200 transition">
-          ✨ الفعاليات والبطولات ✨
-        </a>
-
-
-        <div className="grid grid-cols-7 gap-1 mb-3">
+        <div className="grid grid-cols-8 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
               onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
@@ -2115,6 +2110,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
+
 
         {tab === "search" && (
           <div className="flex gap-2 mb-2">
