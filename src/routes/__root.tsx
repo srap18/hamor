@@ -13,6 +13,21 @@ import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
 import { sound } from "@/lib/sound";
+import { installServerClock, syncServerTime } from "@/lib/server-time";
+
+// Install the server-time clock as early as possible on the client so every
+// Date.now() / new Date() call across the app reflects server time, not the
+// user's (potentially tampered) device clock.
+if (typeof window !== "undefined") {
+  installServerClock();
+  // Re-sync whenever the tab regains focus or comes back from background.
+  try {
+    window.addEventListener("focus", () => syncServerTime(true));
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") syncServerTime(true);
+    });
+  } catch {}
+}
 
 import appCss from "../styles.css?url";
 
