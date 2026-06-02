@@ -838,7 +838,7 @@ function SellView({
                 <div className="text-center text-amber-300 text-lg font-extrabold mb-1">🧑‍💼 التاجر</div>
                 <div className="text-center text-xs text-slate-200 mb-3">يكشف لك توقّعات الأسعار لكامل السوق لمدة <b>10 ساعات</b> بدقة 100%.</div>
                 <button onClick={buyTrader} disabled={busy} className="w-full py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 text-rose-950 font-extrabold disabled:opacity-50">
-                  {busy ? "..." : "اشترِ الآن 💎 250"}
+                  {busy ? "..." : ownedTraderQty > 0 ? "استخدام التاجر من المخزن" : `اشترِ الآن 💎 ${traderPrice}`}
                 </button>
               </>
             ) : (
