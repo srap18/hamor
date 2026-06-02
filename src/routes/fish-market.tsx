@@ -100,6 +100,7 @@ function FishMarket() {
   const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
+  const [selling, setSelling] = useState(false);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
@@ -324,39 +325,49 @@ function FishMarket() {
   }, [selected, qtyMap]);
 
   const sell = async (amount: number) => {
-    if (!sel || !user) return;
+    if (!sel || !user || selling) return;
     const livePrice = priceMap[sel.id]?.current;
     const rawPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : priceHistory(sel)[priceHistory(sel).length - 1];
     const price = Math.max(0.1, Math.round(rawPrice * rotMult(sel.id) * 100) / 100);
-    const qty = Math.min(amount, sel.qty);
-    if (qty <= 0) return;
+    const requestedQty = Math.min(amount, sel.qty);
+    if (requestedQty <= 0) return;
+
+    const availableIds = stockIdsMap[sel.id] ?? [];
+    const fishStockIds = availableIds.slice(0, requestedQty);
+    if (fishStockIds.length <= 0) {
+      await loadFish();
+      setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
+      setTimeout(() => setPop(null), 1800);
+      return;
+    }
+
+    const qty = fishStockIds.length;
     const earned = Math.round(qty * price);
+    setSelling(true);
 
     // Optimistic local update
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
+    setStockIdsMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? []).slice(qty) }));
     setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
-
-    const fishStockIds = (stockIdsMap[sel.id] ?? []).slice(0, qty);
-    if (fishStockIds.length <= 0) {
-      await loadFish();
-      return;
-    }
 
     // Atomic server-side sale: deletes rows from fish_stock and credits coins.
     const { data, error } = await sellFish(fishStockIds);
     if (error) {
       // Rollback optimistic update on failure
       setQtyMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? 0) + qty }));
+      setStockIdsMap((curr) => ({ ...curr, [sel.id]: [...fishStockIds, ...(curr[sel.id] ?? [])] }));
       setPop(`❌ ${error.message || "تعذر البيع"}`);
       setTimeout(() => setPop(null), 2500);
+      setSelling(false);
       return;
     }
     const serverEarned = Number(data ?? earned);
-    setPop(`+${serverEarned.toLocaleString()} ذهب`);
+    setPop(`${qty < requestedQty ? "تم تحديث الكمية • " : ""}+${serverEarned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
-    loadFish();
+    await loadFish();
     refreshProfile();
+    setSelling(false);
   };
 
   return (
@@ -411,6 +422,7 @@ function FishMarket() {
           traderActive={traderActiveGlobal}
           traderUntil={marketState.trader_until}
           rotPct={Math.round(rotMult(sel.id) * 100)}
+          selling={selling}
           onBack={() => setSelected(null)}
           onSell={sell}
           onPurchased={() => { loadMarketState(); refreshProfile(); }}
