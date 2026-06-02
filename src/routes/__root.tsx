@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
+import { GiftPopup } from "@/components/GiftPopup";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
@@ -244,6 +245,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MobileFrame>
         <GlobalBanner />
+        <GiftPopup />
         <Outlet />
         <Toaster position="top-center" richColors />
       </MobileFrame>

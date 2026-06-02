@@ -1043,6 +1043,7 @@ export type Database = {
           created_by: string | null
           id: string
           kind: string
+          meta: Json | null
           recipient_id: string | null
           title: string
         }
@@ -1052,6 +1053,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           kind?: string
+          meta?: Json | null
           recipient_id?: string | null
           title: string
         }
@@ -1061,6 +1063,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           kind?: string
+          meta?: Json | null
           recipient_id?: string | null
           title?: string
         }
