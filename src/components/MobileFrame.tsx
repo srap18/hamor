@@ -12,7 +12,7 @@ export function MobileFrame({ children }: { children: ReactNode }) {
   useEffect(() => {
     const setAppHeight = () => {
       const isStandalone =
-        window.matchMedia?.("(display-mode: standalone)").matches ||
+        window.matchMedia?.("(display-mode: standalone)")?.matches ||
         (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
       const fullScreenHeight = window.screen?.height ?? viewportHeight;
