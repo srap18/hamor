@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimQuest, buyLootbox, openLootbox } from "@/lib/economy";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { serverTodayKey, syncServerTime } from "@/lib/server-time";
 
 type Tab = "missions" | "achievements" | "boxes" | "notifs" | "events";
 
@@ -16,7 +17,7 @@ type BoxType = { id: string; name: string; icon: string; rarity: string; cost_co
 type Notif = { id: string; title: string; body: string; kind: string; created_at: string; recipient_id: string | null };
 type Evt = { id: string; title: string; description: string; banner: string; starts_at: string; ends_at: string; xp_multiplier: number; coin_multiplier: number };
 
-function dayKey() { return new Date().toISOString().slice(0, 10); }
+function dayKey() { return serverTodayKey(); }
 
 export function MissionsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("missions");
@@ -62,6 +63,7 @@ function MissionsTab() {
 
   const load = async () => {
     if (!user) return;
+    await syncServerTime(true);
     const { data: qs } = await supabase.from("daily_quests").select("*").eq("active", true);
     const { data: pgs } = await supabase.from("quest_progress").select("quest_id, progress, claimed").eq("user_id", user.id).eq("day_key", dayKey());
     setQuests((qs ?? []) as Quest[]);
@@ -73,6 +75,7 @@ function MissionsTab() {
 
   const claim = async (q: Quest) => {
     if (!user) return;
+    await syncServerTime(true);
     const p = prog[q.id];
     if (!p || p.progress < q.goal_count || p.claimed) return;
     sound.play("coin");
