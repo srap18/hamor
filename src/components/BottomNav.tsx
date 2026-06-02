@@ -75,7 +75,10 @@ export function BottomNav({ active }: { active?: string }) {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-[80] px-2 pt-2 pb-1 border-t-4 border-amber-400/80 bg-gradient-to-b from-[#2a1606] via-[#1a0d04] to-black shadow-[0_-6px_20px_rgba(0,0,0,0.7)]">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[80] px-2 pt-2 border-t-4 border-amber-400/80 bg-gradient-to-b from-[#2a1606] via-[#1a0d04] to-black shadow-[0_-6px_20px_rgba(0,0,0,0.7)]"
+        style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}
+      >
         {/* Decorative rope/gold line */}
         <div className="absolute -top-1 left-0 right-0 h-1 bg-gradient-to-r from-amber-700 via-amber-300 to-amber-700 opacity-80" />
         <div className="flex items-center justify-around">
