@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
@@ -57,6 +57,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
   const [streak, setStreak] = useState(0);
   const [lastDate, setLastDate] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,8 +101,9 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
 
 
   const claim = async () => {
-    if (!user || busy || claimedToday) return;
+    if (!user || busyRef.current || busy || claimedToday) return;
     if (!nukeAllowed) { setToast("🔒 القنبلة الذرية تتطلب 15 يوم متتالي"); setTimeout(()=>setToast(null), 2400); return; }
+    busyRef.current = true;
     setBusy(true);
     sound.play("coin");
 
@@ -113,6 +115,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
         : `❌ ${error.message || "فشل الاستلام"}`;
       setToast(msg);
       setBusy(false);
+      busyRef.current = false;
       setTimeout(() => setToast(null), 2800);
       // Reload streak state from DB so UI reflects truth
       const { data: row } = await supabase
@@ -131,6 +134,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     setLastDate(today);
     setToast(`+${reward.qty} ${reward.emoji} ${reward.name}`);
     setBusy(false);
+    busyRef.current = false;
     setTimeout(() => setToast(null), 2400);
   };
 

@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { VIP_TIERS, getVipTier } from "@/lib/vip-perks";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { toast } from "sonner";
 import submarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
+import { syncServerTime, serverTodayKey } from "@/lib/server-time";
 
 export const Route = createFileRoute("/vip")({
   component: VipPage,
@@ -18,6 +19,7 @@ function VipPage() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [claimedToday, setClaimedToday] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const claimingRef = useRef(false);
   const [showRedeem, setShowRedeem] = useState(false);
 
   const vipLevel = (profile as any)?.vip_level || 0;
@@ -28,10 +30,11 @@ function VipPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      await syncServerTime(true);
       const { data: prof } = await supabase
         .from("profiles").select("vip_expires_at").eq("id", user.id).maybeSingle();
       setExpiresAt((prof as any)?.vip_expires_at ?? null);
-      const today = new Date().toISOString().slice(0, 10);
+      const today = serverTodayKey();
       const { data: claim } = await supabase
         .from("vip_daily_claims" as never)
         .select("id").eq("user_id", user.id).eq("claim_date", today).maybeSingle();
@@ -40,9 +43,12 @@ function VipPage() {
   }, [user]);
 
   const claim = async () => {
+    if (claimingRef.current || claiming || claimedToday) return;
+    claimingRef.current = true;
     setClaiming(true);
     const { data, error } = await supabase.rpc("claim_vip_daily" as never);
     setClaiming(false);
+    claimingRef.current = false;
     if (error) {
       const k = (error.message || "").trim();
       if (k.includes("no_vip")) toast.error("تحتاج VIP أولاً");

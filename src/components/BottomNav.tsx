@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { MissionsModal } from "@/components/MissionsModal";
 import { MyShipsModal } from "@/components/MyShipsModal";
 import { sound } from "@/lib/sound";
+import { serverTodayKey, syncServerTime } from "@/lib/server-time";
 
 const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends" | "/chat" | "/fish-market" }> = [
   { icon: "🏠", label: "البحر", to: "/" },
@@ -26,8 +27,9 @@ export function BottomNav({ active }: { active?: string }) {
 
   useEffect(() => {
     if (!user) return;
-    const today = new Date().toISOString().slice(0, 10);
     const loadMissions = async () => {
+      await syncServerTime(true);
+      const today = serverTodayKey();
       const [{ data: notifs }, { data: progress }, { data: quests }, { data: boxes }] = await Promise.all([
         supabase.from("notifications").select("id").or(`recipient_id.eq.${user.id},recipient_id.is.null`).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
         supabase.from("quest_progress").select("quest_id, progress, claimed").eq("user_id", user.id).eq("day_key", today),

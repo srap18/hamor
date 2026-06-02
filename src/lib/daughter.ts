@@ -6,6 +6,7 @@ import outfitSailor from "@/assets/daughter-outfit-sailor.png";
 import outfitSummer from "@/assets/daughter-outfit-summer.png";
 import outfitCaptain from "@/assets/daughter-outfit-captain.png";
 import outfitBeach from "@/assets/daughter-outfit-beach.png";
+import { serverTodayKey } from "@/lib/server-time";
 
 export type Daughter = {
   user_id: string;
@@ -80,7 +81,7 @@ export function gemCostFor(stage: number): number | null {
 
 export function remainingTodayFor(d: Daughter | null): number {
   if (!d) return DAILY_FISH_LIMIT;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = serverTodayKey();
   const used = (d.feed_day === today) ? (d.feed_count_today ?? 0) : 0;
   return Math.max(0, DAILY_FISH_LIMIT - used);
 }
