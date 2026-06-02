@@ -2078,7 +2078,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (tab === "search") return;
-    let debounce: ReturnType<typeof window.setTimeout> | null = null;
+    let debounce: number | null = null;
     const refreshNow = () => {
       if (debounce) window.clearTimeout(debounce);
       debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 120);
