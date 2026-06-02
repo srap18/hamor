@@ -981,6 +981,8 @@ function Index() {
     syncFleetFromDb();
     // Instant push to spectators
     pushHarborState();
+    // Tell any open fish-market / inventory tab to reload right now (don't wait for realtime).
+    try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
     setPop({
       id: serverNowMs(),
       x: popAnchor.left + popAnchor.width / 2,
