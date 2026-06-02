@@ -375,7 +375,7 @@ function FishMarket() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
       {/* TOP HUD */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] mt-10 flex items-center gap-2">
         <Link to="/" className="w-10 h-10 rounded-xl glass-hud border border-accent/40 flex items-center justify-center text-lg active:scale-95">
           ←
         </Link>
