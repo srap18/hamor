@@ -1206,15 +1206,8 @@ function Index() {
 
         {/* Boost rail */}
         <div className="flex items-center gap-2">
-          <Link to="/vip" className="flex-1 rounded-xl border border-amber-400/50 bg-black/50 backdrop-blur px-2 py-1.5 flex items-center gap-2 active:scale-[0.98]">
-            <div className="text-xs font-black text-amber-300 whitespace-nowrap drop-shadow">
-              👑 VIP {(profile as any)?.vip_level || 0}
-            </div>
-            <div className="flex-1 h-2.5 bg-black/70 rounded-full overflow-hidden border border-amber-700/60">
-              <div className="h-full bg-gradient-to-r from-amber-400 to-amber-200 rounded-full shadow-[0_0_8px_rgba(252,191,73,0.6)]" style={{ width: `${Math.min(100, ((profile as any)?.vip_level || 0) * 10)}%` }} />
-            </div>
-            <span className="text-[10px] text-amber-200 font-bold whitespace-nowrap">عرض ←</span>
-          </Link>
+          {/* VIP removed */}
+
           <div className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow">
             <span className="text-lg">🐟</span>
             <span className="text-sm font-black text-amber-200 tabular-nums">{fish}</span>
