@@ -337,8 +337,13 @@ function ChatPage() {
 
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
-            className={`flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
+            className={`relative flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
             {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ القبيله" : t === "dm" ? "✉️ خاص" : "🎙️ صوتي"}
+            {t === "dm" && dmTotal > 0 && tab !== "dm" && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                {dmTotal > 9 ? "9+" : dmTotal}
+              </span>
+            )}
           </button>
         ))}
       </div>
