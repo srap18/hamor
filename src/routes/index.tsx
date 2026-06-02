@@ -9,8 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   sellShip,
   deleteInventoryRows,
-  splitInventoryAssign,
-  updateInventoryMeta,
   buyWithCoinsGemFallback,
   buyWithGems,
 } from "@/lib/economy";
@@ -32,7 +30,7 @@ import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
-import { syncServerTime, serverTodayKey, serverNowMs, isServerClockSynced } from "@/lib/server-time";
+import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
