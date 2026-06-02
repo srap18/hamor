@@ -912,16 +912,9 @@ function Index() {
       return;
     }
 
-    // Make "collect / return" feel immediate. The RPC still awards any catch,
-    // but local state docks the exact tapped ship now and ignores stale echoes.
-    setSeaOverride(s.dbId, false);
-    setShips((curr) =>
-      curr.map((x) =>
-        x.id === shipId
-          ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined }
-          : x
-      )
-    );
+    // Guard against double-tap that would race the RPC and produce "not_fishing".
+    if (collectingRef.current[s.dbId]) return;
+    collectingRef.current[s.dbId] = true;
 
     if (!isServerClockSynced()) {
       await syncServerTime(true);
@@ -932,8 +925,10 @@ function Index() {
       _requested_fish_id: requestedFishId,
     });
     if (error) {
+      delete collectingRef.current[s.dbId];
       const msg = String(error.message || "");
-      // Always dock the ship locally + force-stop on server so UI stays in sync.
+      // Dock locally + force-stop on server so UI stays in sync.
+      setSeaOverride(s.dbId, false);
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
       if (s.dbId) {
         import("@/lib/economy").then(({ setShipAtSea }) => {
@@ -941,11 +936,15 @@ function Index() {
         });
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
-      // 'not_fishing' is a benign race (DB already docked) — dock silently, no error toast.
-      else if (!msg.includes("not_fishing")) showToast("تعذّر استلام الصيد");
+      else if (msg.includes("not_fishing")) showToast("لا يوجد صيد جاهز — حدّث الصفحة");
+      else showToast("تعذّر استلام الصيد");
       syncFleetFromDb();
       return;
     }
+    delete collectingRef.current[s.dbId];
+    // Lock UI to "docked" so realtime echoes can't briefly flip it back to fishing.
+    setSeaOverride(s.dbId, false);
+
     clearSeaOverrideSoon(s.dbId);
 
     const row = Array.isArray(data) ? data[0] : data;
