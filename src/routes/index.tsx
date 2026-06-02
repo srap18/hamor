@@ -221,7 +221,8 @@ function Index() {
   // any ship in ships_owned shows up here (up to MAX_FLEET), and placeholder
   // slots without a dbId are evicted to make room for real purchases.
   const syncFleetFromDb = async () => {
-    await syncServerTime();
+    // Don't block on server-time fetch — serverNowMs() falls back to Date.now()
+    // and the offset gets refreshed in the background by the caller / interval.
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
