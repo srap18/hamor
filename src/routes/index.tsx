@@ -433,6 +433,36 @@ function Index() {
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
   const [dailyOpen, setDailyOpen] = useState(false);
+  const [dmUnread, setDmUnread] = useState(0);
+  const [friendsUnread, setFriendsUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const dmSeenKey = `dm-last-seen:${user.id}`;
+    const loadDm = async () => {
+      const lastSeen = localStorage.getItem(dmSeenKey) || new Date(Date.now() - 30 * 86400000).toISOString();
+      const { count } = await supabase.from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("channel", "dm")
+        .eq("recipient_id", user.id)
+        .neq("sender_id", user.id)
+        .gt("created_at", lastSeen);
+      setDmUnread(count ?? 0);
+    };
+    const loadFriends = async () => {
+      const { count } = await supabase.from("friends")
+        .select("id", { count: "exact", head: true })
+        .eq("addressee_id", user.id)
+        .eq("status", "pending");
+      setFriendsUnread(count ?? 0);
+    };
+    loadDm(); loadFriends();
+    const ch = supabase.channel(`home-badges:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriends)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id]);
 
   // Instant push: spectators viewing my harbor get a broadcast on every state change
   const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -1889,18 +1919,23 @@ function Index() {
       <div className="fixed bottom-0 left-0 right-0 z-[80] px-1.5 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]" style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}>
         <div className="flex items-center justify-around">
           {[
-            { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const },
-            { e: "💬", l: "شات", to: "/chat" as const, action: null },
-            { e: "🏛️", l: "متجر", to: "/shop" as const, action: null },
-            { e: "📦", l: "مخزن", to: "/inventory" as const, action: null },
-            { e: "👥", l: "أصدقاء", to: "/friends" as const, action: null },
-            { e: "🏆", l: "ترتيب", to: null, action: "boost" as const },
-            { e: "💀", l: "تحدي", to: null, action: "challenge" as const },
+            { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const, badge: 0 },
+            { e: "💬", l: "شات", to: "/chat" as const, action: null, badge: dmUnread },
+            { e: "🏛️", l: "متجر", to: "/shop" as const, action: null, badge: 0 },
+            { e: "📦", l: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { e: "👥", l: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
+            { e: "🏆", l: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            { e: "💀", l: "تحدي", to: null, action: "challenge" as const, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-amber-700/90 to-amber-950/90 border-2 border-amber-300/70 flex items-center justify-center text-xl shadow-[inset_0_1px_0_rgba(255,220,140,0.4),0_2px_6px_rgba(0,0,0,0.5)]">
+                <div className="relative w-11 h-11 rounded-xl bg-gradient-to-b from-amber-700/90 to-amber-950/90 border-2 border-amber-300/70 flex items-center justify-center text-xl shadow-[inset_0_1px_0_rgba(255,220,140,0.4),0_2px_6px_rgba(0,0,0,0.5)]">
                   {it.e}
+                  {it.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                      {it.badge > 9 ? "9+" : it.badge}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[10px] text-amber-200 font-black drop-shadow mt-0.5">{it.l}</span>
               </>
