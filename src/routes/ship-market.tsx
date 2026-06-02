@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, type ShipDef } from "@/lib/ships";
+import { FISH } from "@/lib/fish";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { MyShipsModal } from "@/components/MyShipsModal";
@@ -243,6 +244,19 @@ function ShipyardPage() {
                     <div className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Featured Vessel</div>
                     <div className="mt-1 text-3xl font-black">{selectedShip.title}</div>
                     <div className="mt-1 text-sm text-muted-foreground">{selectedShip.flavor}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">يصطاد:</span>
+                      {selectedShip.fishPool.map((fid) => {
+                        const f = FISH[fid];
+                        if (!f) return null;
+                        return (
+                          <span key={fid} className="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-bold text-accent">
+                            <span>{f.emoji}</span>
+                            <span>{f.name}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                   <span className="rounded-md border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-bold text-accent">{selectedShip.rarity}</span>
                 </div>
@@ -351,6 +365,19 @@ function ShipyardPage() {
                     <Mini icon={iconArmor} value={ship.armor} />
                     <Mini icon={iconSpeed} value={ship.speed} />
                     <Mini icon={iconRepair} value={formatDuration(ship.repairSeconds)} />
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {ship.fishPool.map((fid) => {
+                      const f = FISH[fid];
+                      if (!f) return null;
+                      return (
+                        <span key={fid} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/40 px-1.5 py-0.5 text-[10px] font-bold text-foreground/80">
+                          <span>{f.emoji}</span>
+                          <span>{f.name}</span>
+                        </span>
+                      );
+                    })}
                   </div>
 
                   <div className="mt-3 flex items-center justify-between">
