@@ -318,8 +318,19 @@ function Index() {
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
-        const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
-        const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
+        let isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
+        let startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
+        if (isFishing && startedAt) {
+          const _elapsedMs = serverNowMs() - startedAt;
+          const _stale = _elapsedMs > Math.max(duration * 1000 * 5, 24 * 60 * 60 * 1000);
+          if (_stale) {
+            isFishing = false;
+            startedAt = undefined;
+            import("@/lib/economy").then(({ setShipAtSea }) => {
+              setShipAtSea(dbShip.id, false).catch(() => {});
+            });
+          }
+        }
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
