@@ -7,7 +7,6 @@ import { FISH, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  incrementFishCaught,
   sellShip,
   deleteInventoryRows,
   splitInventoryAssign,
@@ -33,6 +32,7 @@ import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
+import { syncServerTime, serverTodayKey } from "@/lib/server-time";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
