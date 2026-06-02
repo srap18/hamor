@@ -6,6 +6,7 @@ import { MissionsModal } from "@/components/MissionsModal";
 import { MyShipsModal } from "@/components/MyShipsModal";
 import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs, serverTodayKey, syncServerTime } from "@/lib/server-time";
+import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
 const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends" | "/chat" | "/fish-market" }> = [
   { icon: "🏠", label: "البحر", to: "/" },
@@ -14,8 +15,6 @@ const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends"
   { icon: "💬", label: "الشات", to: "/chat" },
   { icon: "🐟", label: "السوق", to: "/fish-market" },
 ];
-
-const dmSeenKey = (uid: string) => `dm-last-seen:${uid}`;
 
 export function BottomNav({ active }: { active?: string }) {
   const nav = useNavigate();
