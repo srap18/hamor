@@ -270,7 +270,7 @@ function ChatPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl" style={{ background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
-      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.25rem, calc(env(safe-area-inset-top) + 0.5rem))" }}>
         <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
         <div className="flex-1 text-center text-lg font-extrabold text-amber-300">💬 الشات</div>
         {tab === "tribe" && profile?.tribe_id && (
@@ -285,7 +285,7 @@ function ChatPage() {
         </div>
       )}
 
-      <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "calc(3.5rem + env(safe-area-inset-top))" }}>
+      <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
 
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
@@ -295,7 +295,7 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "calc(6rem + env(safe-area-inset-top))" }}>
+      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))" }}>
         {tab === "voice" ? (
           <VoiceRooms userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
