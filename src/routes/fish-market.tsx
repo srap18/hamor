@@ -280,7 +280,10 @@ function FishMarket() {
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
-    const hours = Math.max(0, (serverNowMs() - new Date(t).getTime()) / 3_600_000);
+    const caughtAt = new Date(t).getTime();
+    const freezeStart = freezeActive && marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
+    const ageEnd = freezeStart > 0 ? Math.max(caughtAt, freezeStart) : serverNowMs();
+    const hours = Math.max(0, (ageEnd - caughtAt) / 3_600_000);
     return Math.max(0.5, 1 - 0.01 * hours);
   };
 
@@ -633,12 +636,12 @@ function SellView({
   const freezeMs = freezeUntil ? Math.max(0, new Date(freezeUntil).getTime() - now) : 0;
 
   const future = useMemo(() => {
-    if (!traderActive && !freezeActive) return [] as number[];
+    if (!traderActive) return [] as number[];
     if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
     return forecastPrices(fish, currentPrice, 42, FUTURE_HOURS);
-  }, [traderActive, freezeActive, fish.id, currentPrice, forecast]);
+  }, [traderActive, fish.id, currentPrice, forecast]);
 
-  const showFuture = traderActive || freezeActive;
+  const showFuture = traderActive;
   const allPoints = showFuture ? [...past, ...future] : past;
   const minP = Math.min(...allPoints);
   const maxP = Math.max(...allPoints);
@@ -751,8 +754,8 @@ function SellView({
               </>
             ) : (
               <>
-                <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد السوق</div>
-                <div className="text-center text-xs text-slate-200 mb-3">يجمّد أسعار كل السوق على القيم الحالية للمدة المختارة.</div>
+                <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد التعفّن</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي.</div>
                 <div className="grid grid-cols-3 gap-2">
                   {[{ h: 2, p: 50 }, { h: 9, p: 100 }, { h: 24, p: 150 }].map((o) => (
                     <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy || freezeActive} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
