@@ -202,6 +202,28 @@ function Index() {
   const [crewTick, setCrewTick] = useState(0); // re-render after crew updates
   const shipsRef = useRef(ships);
   shipsRef.current = ships;
+  type SeaStateOverride = { atSea: boolean; startedAt?: number; expiresAt: number };
+  const seaStateOverrideRef = useRef<Record<string, SeaStateOverride>>({});
+  const getSeaOverride = (dbId: string): SeaStateOverride | undefined => {
+    const override = seaStateOverrideRef.current[dbId];
+    if (!override) return undefined;
+    if (override.expiresAt <= serverNowMs()) {
+      delete seaStateOverrideRef.current[dbId];
+      return undefined;
+    }
+    return override;
+  };
+  const setSeaOverride = useCallback((dbId: string, atSea: boolean, startedAt?: number) => {
+    seaStateOverrideRef.current[dbId] = { atSea, startedAt, expiresAt: serverNowMs() + 8000 };
+  }, []);
+  const clearSeaOverrideSoon = useCallback((dbId: string, delayMs = 2500) => {
+    const marker = seaStateOverrideRef.current[dbId]?.expiresAt;
+    window.setTimeout(() => {
+      if (seaStateOverrideRef.current[dbId]?.expiresAt === marker) {
+        delete seaStateOverrideRef.current[dbId];
+      }
+    }, delayMs);
+  }, []);
   useEffect(() => {
     const t = setInterval(() => saveFleet(shipsRef.current), 1000);
     const onHide = () => saveFleet(shipsRef.current);
@@ -245,6 +267,7 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
+          const seaOverride = getSeaOverride(s.dbId!);
           // Restore fishing trip from DB only when local state agrees, OR
           // when local has no opinion yet (no startedAt and not fishing).
           // If the user just pressed STOP locally (fishing=false), we MUST
@@ -267,6 +290,11 @@ function Index() {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
+          } else if (seaOverride) {
+            // User just pressed start/stop locally. Keep the UI instant and
+            // don't let a slightly older realtime/poll fetch flip it back.
+            fishing = seaOverride.atSea;
+            startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
           } else if (row.at_sea && row.fishing_started_at) {
             // Sanity guard: if the DB trip is absurdly old (>5x duration or
             // >24h), treat it as stale leftover and don't auto-launch this
@@ -309,6 +337,7 @@ function Index() {
       const newShips: Ship[] = [];
       for (let i = 0; i < Math.min(capacity, toAdd.length); i++) {
         const dbShip = toAdd[i];
+          const seaOverride = getSeaOverride(dbShip.id);
         const lvl = dbShip.template_id ?? 1;
         while (usedIds.has(nextId)) nextId++;
         usedIds.add(nextId);
@@ -321,6 +350,10 @@ function Index() {
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
         let isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         let startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
+        if (!destroyed && !onSteal && seaOverride) {
+          isFishing = seaOverride.atSea;
+          startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
+        }
         if (isFishing && startedAt) {
           const _elapsedMs = serverNowMs() - startedAt;
           const _stale = _elapsedMs > Math.max(duration * 1000 * 5, 24 * 60 * 60 * 1000);
@@ -813,15 +846,17 @@ function Index() {
     const startNow = serverNowMs();
     const dbIdToSync = target.dbId;
     const nextAtSea = !target.fishing;
+    const nextStartedAt = nextAtSea
+      ? startNow - Math.round(((target.max > 0 ? target.progress / target.max : 0) * target.duration * 1000))
+      : undefined;
+    if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
         if (x.fishing) {
-          return { ...x, fishing: false, startedAt: undefined };
+          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration };
         }
-        const ratio = x.max > 0 ? x.progress / x.max : 0;
-        const startedAt = startNow - Math.round(ratio * x.duration * 1000);
-        return { ...x, fishing: true, startedAt };
+        return { ...x, fishing: true, startedAt: nextStartedAt };
       })
     );
     sound.play("whoosh");
@@ -830,10 +865,12 @@ function Index() {
       const { setShipAtSea } = await import("@/lib/economy");
       const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
       if (error) {
+        delete seaStateOverrideRef.current[dbIdToSync];
         showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
         syncFleetFromDb();
         return;
       }
+      clearSeaOverrideSoon(dbIdToSync);
     }
     // Instant push to spectators
     pushHarborState();
@@ -875,6 +912,17 @@ function Index() {
       return;
     }
 
+    // Make "collect / return" feel immediate. The RPC still awards any catch,
+    // but local state docks the exact tapped ship now and ignores stale echoes.
+    setSeaOverride(s.dbId, false);
+    setShips((curr) =>
+      curr.map((x) =>
+        x.id === shipId
+          ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined }
+          : x
+      )
+    );
+
     if (!isServerClockSynced()) {
       await syncServerTime(true);
     }
@@ -898,6 +946,7 @@ function Index() {
       syncFleetFromDb();
       return;
     }
+    clearSeaOverrideSoon(s.dbId);
 
     const row = Array.isArray(data) ? data[0] : data;
     const caughtId = row?.fish_id as string | undefined;
