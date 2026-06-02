@@ -13,6 +13,7 @@ import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
+import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
@@ -69,6 +70,8 @@ function ChatPage() {
   const [text, setText] = useState("");
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
   const [dmWith, setDmWith] = useState<string | null>(null);
+  const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
+  const [dmTotal, setDmTotal] = useState(0);
   const [showManage, setShowManage] = useState(false);
   const [supportTarget, setSupportTarget] = useState<Prof | null>(null);
   const [warTarget, setWarTarget] = useState<Prof | null>(null);
@@ -133,6 +136,41 @@ function ChatPage() {
       }
     })();
   }, [user]);
+
+  // Live DM unread map (per-friend counts + total). Refresh on every incoming DM.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const refresh = async () => {
+      const { map, total } = await loadDmUnreadMap(user.id);
+      if (cancelled) return;
+      setDmMap(map);
+      setDmTotal(total);
+    };
+    refresh();
+    const ch = supabase.channel(`dm-unread:${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, refresh)
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(ch); };
+  }, [user]);
+
+  // Mark a conversation as read whenever the user opens it
+  useEffect(() => {
+    if (!user || tab !== "dm" || !dmWith) return;
+    markDmRead(user.id, dmWith);
+    setDmMap((m) => {
+      const entry = m.get(dmWith);
+      if (!entry || entry.count === 0) return m;
+      const next = new Map(m);
+      next.set(dmWith, { ...entry, count: 0 });
+      return next;
+    });
+    setDmTotal((t) => {
+      const c = dmMap.get(dmWith)?.count ?? 0;
+      return Math.max(0, t - c);
+    });
+  }, [user, tab, dmWith]);
+
 
   useEffect(() => {
     if (!user) return;
@@ -299,8 +337,13 @@ function ChatPage() {
 
         {(["public", "tribe", "dm", "voice"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
-            className={`flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
+            className={`relative flex-1 py-1.5 rounded-t-lg text-xs font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
             {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ القبيله" : t === "dm" ? "✉️ خاص" : "🎙️ صوتي"}
+            {t === "dm" && dmTotal > 0 && tab !== "dm" && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                {dmTotal > 9 ? "9+" : dmTotal}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -327,21 +370,41 @@ function ChatPage() {
               </div>
             )}
             <div className="space-y-2">
-              {dmFriends.map(f => (
+              {[...dmFriends].sort((a, b) => {
+                const ea = dmMap.get(a.id); const eb = dmMap.get(b.id);
+                if ((eb?.count ?? 0) !== (ea?.count ?? 0)) return (eb?.count ?? 0) - (ea?.count ?? 0);
+                const ta = ea?.lastAt ?? ""; const tb = eb?.lastAt ?? "";
+                return tb.localeCompare(ta);
+              }).map(f => {
+                const entry = dmMap.get(f.id);
+                const unread = entry?.count ?? 0;
+                return (
                 <button
                   key={f.id}
                   onClick={() => setDmWith(f.id)}
-                  className="group w-full flex items-center gap-3 p-2.5 rounded-xl border-2 border-amber-700/40 bg-gradient-to-l from-stone-900/90 via-stone-900/70 to-amber-950/40 hover:border-amber-400/80 hover:shadow-[0_0_18px_rgba(252,191,73,0.25)] active:scale-[0.98] transition-all relative overflow-hidden"
+                  className={`group w-full flex items-center gap-3 p-2.5 rounded-xl border-2 ${unread > 0 ? "border-red-400/70 bg-gradient-to-l from-red-950/40 via-stone-900/80 to-amber-950/40 shadow-[0_0_14px_rgba(239,68,68,0.25)]" : "border-amber-700/40 bg-gradient-to-l from-stone-900/90 via-stone-900/70 to-amber-950/40"} hover:border-amber-400/80 hover:shadow-[0_0_18px_rgba(252,191,73,0.25)] active:scale-[0.98] transition-all relative overflow-hidden`}
                 >
                   <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100" />
-                  <Avatar p={f} size={42} />
+                  <div className="relative">
+                    <Avatar p={f} size={42} />
+                    {unread > 0 && (
+                      <span className="absolute -top-1 -left-1 min-w-[20px] h-[20px] px-1 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                        {unread > 9 ? "9+" : unread}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0 text-right">
                     <div className="text-sm font-extrabold text-amber-100 truncate">{f.display_name}</div>
-                    <div className="text-[10px] text-amber-300/70 font-bold">⭐ المستوى {f.level ?? 1}</div>
+                    {entry?.lastBody ? (
+                      <div className={`text-[11px] truncate ${unread > 0 ? "text-amber-100 font-bold" : "text-amber-300/60"}`}>{entry.lastFromMe ? "↩︎ " : ""}{entry.lastBody}</div>
+                    ) : (
+                      <div className="text-[10px] text-amber-300/70 font-bold">⭐ المستوى {f.level ?? 1}</div>
+                    )}
                   </div>
                   <div className="text-amber-300/70 group-hover:text-amber-200 text-lg">‹</div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : tab === "tribe" && !profile?.tribe_id ? (

@@ -6,6 +6,7 @@ import { MissionsModal } from "@/components/MissionsModal";
 import { MyShipsModal } from "@/components/MyShipsModal";
 import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs, serverTodayKey, syncServerTime } from "@/lib/server-time";
+import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
 const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends" | "/chat" | "/fish-market" }> = [
   { icon: "🏠", label: "البحر", to: "/" },
@@ -14,8 +15,6 @@ const items: Array<{ icon: string; label: string; to: "/" | "/shop" | "/friends"
   { icon: "💬", label: "الشات", to: "/chat" },
   { icon: "🐟", label: "السوق", to: "/fish-market" },
 ];
-
-const dmSeenKey = (uid: string) => `dm-last-seen:${uid}`;
 
 export function BottomNav({ active }: { active?: string }) {
   const nav = useNavigate();
@@ -46,29 +45,23 @@ export function BottomNav({ active }: { active?: string }) {
     };
     const loadDm = async () => {
       if (active === "/chat") { setDmUnread(0); return; }
-      const lastSeen = localStorage.getItem(dmSeenKey(user.id)) || new Date(serverNowMs() - 30 * 86400000).toISOString();
-      const { count } = await supabase.from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("channel", "dm")
-        .eq("recipient_id", user.id)
-        .neq("sender_id", user.id)
-        .gt("created_at", lastSeen);
-      setDmUnread(count ?? 0);
+      const { total } = await loadDmUnreadMap(user.id);
+      setDmUnread(total);
     };
     loadMissions();
     loadDm();
     const ch = supabase
-      .channel("nav-notifs")
+      .channel(`nav-notifs:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, loadMissions)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user, active]);
 
-  // When user lands on /chat, mark DMs as seen
+  // When user lands on /chat, mark DMs as seen globally (per-peer is set on entering each conversation)
   useEffect(() => {
     if (!user || active !== "/chat") return;
-    localStorage.setItem(dmSeenKey(user.id), serverNow().toISOString());
+    markAllDmRead(user.id);
     setDmUnread(0);
   }, [user, active]);
 
