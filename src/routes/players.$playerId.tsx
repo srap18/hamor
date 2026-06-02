@@ -27,6 +27,10 @@ type Profile = {
   selected_bg_id?: string | null;
   bg_burned_until?: string | null;
   avatar_frame?: string | null; name_frame?: string | null; profile_frame?: string | null;
+  last_destroyer_id?: string | null;
+  last_destroyer_name?: string | null;
+  last_destroyer_kind?: string | null;
+  last_destroyer_at?: string | null;
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
@@ -277,9 +281,23 @@ function PlayerPage() {
     harborChan.subscribe();
     harborChanRef.current = harborChan;
 
+    // Watch profile updates (death banner, bg burn, etc.) live
+    const profCh = supabase
+      .channel(`profile-watch:${playerId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${playerId}` },
+        (payload) => {
+          const r = payload.new as Partial<Profile>;
+          setP((cur) => cur ? { ...cur, ...r } : cur);
+        },
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(harborChan);
+      supabase.removeChannel(profCh);
       harborChanRef.current = null;
       window.clearInterval(poll);
       document.removeEventListener("visibilitychange", onVis);
@@ -846,6 +864,20 @@ function PlayerPage() {
         <Stat icon="⭐" label="XP" value={p?.xp ?? 0} />
         <Stat icon="⚓" label="السفن" value={ships.length} />
       </div>
+
+      {/* Death banner — last person who nuked / ad-bombed this player */}
+      {p?.last_destroyer_name && (p.last_destroyer_kind === "nuke" || p.last_destroyer_kind === "ad_bomb") && (
+        <div className="absolute left-2 right-2 z-30 pointer-events-none" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 8rem)" }}>
+          <div className="mx-auto max-w-md rounded-xl border-2 border-red-500/70 bg-gradient-to-r from-stone-950/90 via-red-950/85 to-stone-950/90 shadow-[0_0_20px_rgba(220,38,38,0.45)] px-3 py-2 text-center">
+            <div className="text-red-100 font-extrabold text-sm leading-tight">
+              {p.last_destroyer_kind === "nuke" ? "☢️" : "📺"} لافتات الموت ·{" "}
+              <span className="text-amber-200">{p.last_destroyer_name}</span>{" "}
+              {p.last_destroyer_kind === "nuke" ? "فجّر هذا اللاعب بالقنبلة الذرية" : "فجّر هذا اللاعب بالقنبلة الإعلانية"}
+            </div>
+          </div>
+        </div>
+      )}
+
 
 
 

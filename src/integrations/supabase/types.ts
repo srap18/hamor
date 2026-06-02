@@ -1164,6 +1164,10 @@ export type Database = {
           display_name: string
           gems: number
           id: string
+          last_destroyer_at: string | null
+          last_destroyer_id: string | null
+          last_destroyer_kind: string | null
+          last_destroyer_name: string | null
           level: number
           name_frame: string | null
           online_at: string
@@ -1192,6 +1196,10 @@ export type Database = {
           display_name: string
           gems?: number
           id: string
+          last_destroyer_at?: string | null
+          last_destroyer_id?: string | null
+          last_destroyer_kind?: string | null
+          last_destroyer_name?: string | null
           level?: number
           name_frame?: string | null
           online_at?: string
@@ -1220,6 +1228,10 @@ export type Database = {
           display_name?: string
           gems?: number
           id?: string
+          last_destroyer_at?: string | null
+          last_destroyer_id?: string | null
+          last_destroyer_kind?: string | null
+          last_destroyer_name?: string | null
           level?: number
           name_frame?: string | null
           online_at?: string
