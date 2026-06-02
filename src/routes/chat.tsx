@@ -20,7 +20,7 @@ export const Route = createFileRoute("/chat")({
 });
 
 type Channel = "public" | "tribe" | "dm" | "voice";
-type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null };
+type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null; reply_to_id?: string | null; reply_to_body?: string | null; reply_to_name?: string | null };
 type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null };
 
 function VipBadge(_: { level?: number | null; expiresAt?: string | null }) {
@@ -76,6 +76,7 @@ function ChatPage() {
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set()); // people I blocked
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
   const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; body: string; name: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Pause background music while on the chat screen, resume on leave
@@ -220,6 +221,11 @@ function ChatPage() {
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
+    if (replyTo) {
+      row.reply_to_id = replyTo.id;
+      row.reply_to_body = replyTo.body.slice(0, 200);
+      row.reply_to_name = replyTo.name.slice(0, 60);
+    }
 
     const tempId = `tmp-${now}-${Math.random().toString(36).slice(2, 8)}`;
     const optimistic: Msg = {
@@ -230,10 +236,14 @@ function ChatPage() {
       tribe_id: tab === "tribe" ? (profile?.tribe_id || null) : null,
       body,
       created_at: new Date().toISOString(),
+      reply_to_id: replyTo?.id ?? null,
+      reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
+      reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
     };
     if (profile) setProfMap(s => s.has(user.id) ? s : new Map(s).set(user.id, profile as any));
     setMsgs(s => [...s, optimistic]);
     if (!override) setText("");
+    setReplyTo(null);
 
     supabase.from("messages").insert(row).select("*").maybeSingle().then(({ data, error }) => {
       if (error) {
@@ -253,7 +263,7 @@ function ChatPage() {
         });
       }
     });
-  }, [user, text, tab, profile, dmWith, showNotice]);
+  }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
@@ -347,35 +357,48 @@ function ChatPage() {
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
                 const p = profMap.get(m.sender_id);
                 const mine = m.sender_id === user?.id;
+                const senderName = (mine ? (profile as any)?.display_name : p?.display_name) || "مستخدم";
+                const previewBody = m.audio_url ? "🎤 رسالة صوتية" : m.body;
                 return (
-                  <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-                    <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
-                      <Avatar p={p} size={56} />
-                    </button>
-                    {(() => {
-                      const bubbleFrame = frameById((mine ? (profile as any)?.bubble_frame : p?.bubble_frame));
-                      const bubbleCls = bubbleFrame?.kind === "bubble" && bubbleFrame.bubbleClass
-                        ? bubbleFrame.bubbleClass
-                        : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
-                      return (
-                          <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
-                          {!mine && (
-                            <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
-                              <NameBadge p={p} />
-                            </button>
-                          )}
-                          {mine && (
-                            <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
-                          )}
-                          {m.audio_url ? (
-                            <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
-                          ) : (
-                            <div className="text-sm break-words">{m.body}</div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <SwipeableRow
+                    key={m.id}
+                    onReply={() => setReplyTo({ id: m.id, body: previewBody, name: senderName })}
+                  >
+                    <div className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
+                      <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
+                        <Avatar p={p} size={56} />
+                      </button>
+                      {(() => {
+                        const bubbleFrame = frameById((mine ? (profile as any)?.bubble_frame : p?.bubble_frame));
+                        const bubbleCls = bubbleFrame?.kind === "bubble" && bubbleFrame.bubbleClass
+                          ? bubbleFrame.bubbleClass
+                          : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
+                        return (
+                            <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
+                            {!mine && (
+                              <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
+                                <NameBadge p={p} />
+                              </button>
+                            )}
+                            {mine && (
+                              <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
+                            )}
+                            {m.reply_to_id && (m.reply_to_body || m.reply_to_name) && (
+                              <div className="mb-1 border-r-4 border-amber-300/80 bg-black/25 rounded-md px-2 py-1 text-[11px]">
+                                <div className="font-black text-amber-200 truncate">↩︎ {m.reply_to_name || "رد"}</div>
+                                <div className="opacity-80 truncate">{m.reply_to_body}</div>
+                              </div>
+                            )}
+                            {m.audio_url ? (
+                              <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
+                            ) : (
+                              <div className="text-sm break-words">{m.body}</div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </SwipeableRow>
                 );
               })}
             </div>
@@ -404,6 +427,8 @@ function ChatPage() {
             channel={tab as "public" | "tribe" | "dm"}
             tribeId={profile?.tribe_id || null}
             dmWith={dmWith}
+            replyTo={replyTo}
+            onClearReply={() => setReplyTo(null)}
           />
         )
       )}
@@ -1202,9 +1227,10 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith }: {
+function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
   text: string; setText: (v: string) => void; onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
+  replyTo?: { id: string; body: string; name: string } | null; onClearReply?: () => void;
 }) {
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -1299,7 +1325,17 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   useEffect(() => () => stopTimer(), []);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute bottom-[76px] left-2 right-2 z-40 flex gap-2">
+    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute bottom-[76px] left-2 right-2 z-40 flex flex-col gap-1.5">
+      {replyTo && (
+        <div className="flex items-stretch gap-2 rounded-xl border-r-4 border-amber-400 bg-stone-900/95 px-2 py-1.5 shadow-lg">
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-black text-amber-300 truncate">↩︎ رد على {replyTo.name}</div>
+            <div className="text-xs text-amber-100/80 truncate">{replyTo.body}</div>
+          </div>
+          <button type="button" onClick={onClearReply} className="px-2 text-amber-300 hover:text-white font-black">✕</button>
+        </div>
+      )}
+      <div className="flex gap-2">
       {recording ? (
         <>
           <div className={`flex-1 px-3 py-2 rounded-lg border text-sm text-white flex items-center gap-2 ${elapsed >= MAX_REC_SECONDS - 5 ? "bg-red-900/80 border-red-400/80" : "bg-red-900/60 border-red-500/60"}`}>
@@ -1325,7 +1361,65 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
           <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
+      </div>
     </form>
+  );
+}
+
+function SwipeableRow({ children, onReply }: { children: React.ReactNode; onReply: () => void }) {
+  const [dx, setDx] = useState(0);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const active = useRef(false);
+  const triggered = useRef(false);
+  const THRESHOLD = 60;
+  const MAX = 90;
+
+  const onStart = (x: number, y: number) => {
+    startX.current = x;
+    startY.current = y;
+    active.current = true;
+    triggered.current = false;
+  };
+  const onMove = (x: number, y: number, e?: TouchEvent | React.TouchEvent) => {
+    if (!active.current) return;
+    const deltaX = x - startX.current;
+    const deltaY = y - startY.current;
+    if (Math.abs(deltaY) > Math.abs(deltaX) + 8) { active.current = false; setDx(0); return; }
+    const clamped = Math.max(-MAX, Math.min(MAX, deltaX));
+    setDx(clamped);
+    if (!triggered.current && Math.abs(clamped) >= THRESHOLD) {
+      triggered.current = true;
+      try { (navigator as any).vibrate?.(20); } catch {}
+      onReply();
+    }
+  };
+  const onEnd = () => {
+    active.current = false;
+    setDx(0);
+  };
+
+  const showHint = Math.abs(dx) > 8;
+  return (
+    <div
+      className="relative touch-pan-y select-none"
+      onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e)}
+      onTouchEnd={onEnd}
+      onTouchCancel={onEnd}
+    >
+      {showHint && (
+        <div
+          className={`pointer-events-none absolute inset-y-0 flex items-center text-amber-300 text-lg font-black ${dx > 0 ? "left-2" : "right-2"}`}
+          style={{ opacity: Math.min(1, Math.abs(dx) / THRESHOLD) }}
+        >
+          ↩︎
+        </div>
+      )}
+      <div style={{ transform: `translateX(${dx}px)`, transition: active.current ? "none" : "transform 180ms ease" }}>
+        {children}
+      </div>
+    </div>
   );
 }
 
