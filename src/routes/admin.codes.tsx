@@ -407,6 +407,10 @@ function AdminCodesPage() {
         <h1 className="text-xl md:text-2xl font-bold">🎟️ أكواد الاستعمال</h1>
       </div>
 
+      <GrantToOnlinePanel codes={codes} />
+
+
+
       {/* ───────── شرح مبسّط لكل شيء في اللوحة ───────── */}
       <div className="rounded-xl border border-sky-700/60 bg-sky-950/40 p-3 md:p-4 text-sm leading-relaxed space-y-2">
         <div className="font-bold text-sky-200 text-base">📖 شرح اللوحة — اقرأها مرة واحدة</div>
