@@ -238,8 +238,8 @@ export function AdBombOverlay({
         </div>
       </div>
 
-      {/* If autoplay-with-sound was blocked, prompt the user to tap once */}
-      {needsTap && phase === "video" && (
+      {/* If sound is muted (autoplay-with-sound blocked), prompt to unmute */}
+      {isMuted && phase === "video" && (
         <button
           onClick={handleTap}
           className="fixed inset-x-0 bottom-24 mx-auto z-[46] w-fit px-4 py-2 rounded-full bg-white/90 text-black text-xs font-bold shadow-lg pointer-events-auto"
