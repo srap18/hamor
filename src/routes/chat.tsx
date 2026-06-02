@@ -357,35 +357,48 @@ function ChatPage() {
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
                 const p = profMap.get(m.sender_id);
                 const mine = m.sender_id === user?.id;
+                const senderName = (mine ? (profile as any)?.display_name : p?.display_name) || "مستخدم";
+                const previewBody = m.audio_url ? "🎤 رسالة صوتية" : m.body;
                 return (
-                  <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-                    <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
-                      <Avatar p={p} size={56} />
-                    </button>
-                    {(() => {
-                      const bubbleFrame = frameById((mine ? (profile as any)?.bubble_frame : p?.bubble_frame));
-                      const bubbleCls = bubbleFrame?.kind === "bubble" && bubbleFrame.bubbleClass
-                        ? bubbleFrame.bubbleClass
-                        : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
-                      return (
-                          <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
-                          {!mine && (
-                            <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
-                              <NameBadge p={p} />
-                            </button>
-                          )}
-                          {mine && (
-                            <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
-                          )}
-                          {m.audio_url ? (
-                            <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
-                          ) : (
-                            <div className="text-sm break-words">{m.body}</div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <SwipeableRow
+                    key={m.id}
+                    onReply={() => setReplyTo({ id: m.id, body: previewBody, name: senderName })}
+                  >
+                    <div className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
+                      <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
+                        <Avatar p={p} size={56} />
+                      </button>
+                      {(() => {
+                        const bubbleFrame = frameById((mine ? (profile as any)?.bubble_frame : p?.bubble_frame));
+                        const bubbleCls = bubbleFrame?.kind === "bubble" && bubbleFrame.bubbleClass
+                          ? bubbleFrame.bubbleClass
+                          : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
+                        return (
+                            <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
+                            {!mine && (
+                              <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
+                                <NameBadge p={p} />
+                              </button>
+                            )}
+                            {mine && (
+                              <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
+                            )}
+                            {m.reply_to_id && (m.reply_to_body || m.reply_to_name) && (
+                              <div className="mb-1 border-r-4 border-amber-300/80 bg-black/25 rounded-md px-2 py-1 text-[11px]">
+                                <div className="font-black text-amber-200 truncate">↩︎ {m.reply_to_name || "رد"}</div>
+                                <div className="opacity-80 truncate">{m.reply_to_body}</div>
+                              </div>
+                            )}
+                            {m.audio_url ? (
+                              <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
+                            ) : (
+                              <div className="text-sm break-words">{m.body}</div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </SwipeableRow>
                 );
               })}
             </div>
