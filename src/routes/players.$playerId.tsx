@@ -61,6 +61,19 @@ function PlayerPage() {
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [deathBannerHidden, setDeathBannerHidden] = useState<boolean>(() => {
+    try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
+  });
+  const [deathBannerMin, setDeathBannerMin] = useState<boolean>(() => {
+    try { return localStorage.getItem("death-banner-min") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    const onPref = () => {
+      try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
+    };
+    window.addEventListener("death-banner-pref", onPref);
+    return () => window.removeEventListener("death-banner-pref", onPref);
+  }, []);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 1800); };
 
