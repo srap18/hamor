@@ -1968,6 +1968,21 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (tab === "search") return;
+    if (tab === "comp") {
+      setLoading(true);
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_active_competitions");
+        const list = ((data ?? []) as CompLb[]);
+        setComps(list);
+        const entries = await Promise.all(list.map(async (c) => {
+          const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
+          return [c.id, ((lb ?? []) as CompLbRow[])] as const;
+        }));
+        setCompBoards(Object.fromEntries(entries));
+        setLoading(false);
+      })();
+      return;
+    }
     if (tab === "tribes") {
       setLoading(true);
       (async () => {
