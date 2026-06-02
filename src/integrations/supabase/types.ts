@@ -2416,6 +2416,7 @@ export type Database = {
         Returns: undefined
       }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
+      admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       admin_delete_voice_room: {
         Args: { _room_id: string }
@@ -2458,6 +2459,14 @@ export type Database = {
           fish_id: string
           quantity: number
           total_caught: number
+        }[]
+      }
+      admin_grant_code_to_online: {
+        Args: { _code: string; _within_minutes: number }
+        Returns: {
+          failed: number
+          granted: number
+          targeted: number
         }[]
       }
       admin_grant_lootbox: {
