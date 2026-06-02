@@ -307,36 +307,65 @@ function AdminCompetitions() {
           const rowTiers: PrizeTier[] = Array.isArray(r.prize_tiers) && r.prize_tiers.length > 0
             ? r.prize_tiers
             : [{ rank: 1, coins: r.reward_coins, gems: r.reward_gems, xp: r.reward_xp, text: r.reward_text }];
+          const board = boards[r.id] ?? [];
           return (
-            <div key={r.id} className="rounded-xl border border-slate-700 bg-slate-900 p-4 flex items-start gap-3">
-              <div className="text-3xl">{r.banner_emoji}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold flex items-center gap-2 flex-wrap">
-                  {r.title}
-                  {ended && <span className="text-xs px-2 py-0.5 rounded bg-slate-700">منتهية</span>}
-                  {!r.active && <span className="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-200">معطّلة</span>}
-                  {r.hide_target && <span className="text-xs px-2 py-0.5 rounded bg-purple-900/60 text-purple-200">🤫 مخفية</span>}
+            <div key={r.id} className="rounded-xl border border-slate-700 bg-slate-900 p-4">
+              <div className="flex items-start gap-3">
+                <div className="text-3xl">{r.banner_emoji}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold flex items-center gap-2 flex-wrap">
+                    {r.title}
+                    {ended && <span className="text-xs px-2 py-0.5 rounded bg-slate-700">منتهية</span>}
+                    {!r.active && <span className="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-200">معطّلة</span>}
+                    {r.hide_target && <span className="text-xs px-2 py-0.5 rounded bg-purple-900/60 text-purple-200">🤫 مخفية</span>}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">
+                    {METRICS.find(m => m.id === r.metric)?.label}
+                    {fishName && <> — <b className="text-slate-200">{fishName}</b></>}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    ينتهي خلال: <b className="text-slate-300">{formatTimeLeft(r.ends_at)}</b>
+                  </div>
+                  <div className="text-xs text-amber-300 mt-2 space-y-0.5">
+                    {rowTiers.map((t, i) => (
+                      <div key={i}>
+                        <b>{RANK_LABEL(t.rank ?? i + 1)}:</b> 🪙 {t.coins} · 💎 {t.gems} · ⭐ {t.xp}{t.text ? ` · ${t.text}` : ""}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  {METRICS.find(m => m.id === r.metric)?.label}
-                  {fishName && <> — <b className="text-slate-200">{fishName}</b></>}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  ينتهي خلال: <b className="text-slate-300">{formatTimeLeft(r.ends_at)}</b>
-                </div>
-                <div className="text-xs text-amber-300 mt-2 space-y-0.5">
-                  {rowTiers.map((t, i) => (
-                    <div key={i}>
-                      <b>{RANK_LABEL(t.rank ?? i + 1)}:</b> 🪙 {t.coins} · 💎 {t.gems} · ⭐ {t.xp}{t.text ? ` · ${t.text}` : ""}
-                    </div>
-                  ))}
+                <div className="flex flex-col gap-1.5">
+                  <button onClick={()=>toggle(r.id, r.active)} className="text-xs px-2.5 py-1.5 rounded bg-slate-700 hover:bg-slate-600">
+                    {r.active ? "تعطيل" : "تفعيل"}
+                  </button>
+                  <button onClick={()=>remove(r.id)} className="text-xs px-2.5 py-1.5 rounded bg-red-900/50 hover:bg-red-900/70 text-red-200">حذف</button>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <button onClick={()=>toggle(r.id, r.active)} className="text-xs px-2.5 py-1.5 rounded bg-slate-700 hover:bg-slate-600">
-                  {r.active ? "تعطيل" : "تفعيل"}
-                </button>
-                <button onClick={()=>remove(r.id)} className="text-xs px-2.5 py-1.5 rounded bg-red-900/50 hover:bg-red-900/70 text-red-200">حذف</button>
+
+              {/* Leaderboard */}
+              <div className="mt-3 pt-3 border-t border-slate-800">
+                <div className="text-xs font-bold text-slate-300 mb-2">🏅 الترتيب الحالي</div>
+                {board.length === 0 ? (
+                  <div className="text-xs text-slate-500 py-2">لا توجد نقاط مسجلة بعد.</div>
+                ) : (
+                  <ol className="space-y-1">
+                    {board.map((p, i) => {
+                      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+                      return (
+                        <li key={p.user_id} className="flex items-center gap-2 px-2 py-1 rounded bg-slate-950/60 border border-slate-800">
+                          <span className="w-8 text-center text-xs font-black">{medal}</span>
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover"/>
+                          ) : (
+                            <span className="text-base">{p.avatar_emoji || "🧑‍✈️"}</span>
+                          )}
+                          <span className="flex-1 truncate text-xs">{p.display_name || "—"}</span>
+                          <span className="text-xs font-black text-amber-300">{p.score?.toLocaleString?.() ?? p.score}</span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
               </div>
             </div>
           );
