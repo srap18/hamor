@@ -997,7 +997,7 @@ function Index() {
   };
 
   return (
-    <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${screenShake}`}>
+    <div className={`fixed inset-x-0 top-0 overflow-hidden bg-[#0d2236] ${screenShake}`} style={{ height: "var(--app-height, 100dvh)" }}>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {scene.displayVideo ? (
           <SeamlessVideo
@@ -1857,7 +1857,7 @@ function Index() {
       {/* Dragon + Totem removed per user request */}
 
       {/* BOTTOM NAV */}
-      <div className="fixed bottom-0 left-0 right-0 z-[80] px-1.5 pt-1.5 pb-1 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]">
+      <div className="fixed bottom-0 left-0 right-0 z-[80] px-1.5 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]" style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}>
         <div className="flex items-center justify-around">
           {[
             { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const },

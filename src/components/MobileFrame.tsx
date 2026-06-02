@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 /**
  * Wraps the entire app in a phone-shaped frame on desktop/tablet,
@@ -9,6 +9,28 @@ import { ReactNode } from "react";
  * instead of the viewport.
  */
 export function MobileFrame({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    const setAppHeight = () => {
+      const isStandalone =
+        window.matchMedia?.("(display-mode: standalone)")?.matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const fullScreenHeight = window.screen?.height ?? viewportHeight;
+      document.documentElement.style.setProperty(
+        "--app-height",
+        `${Math.ceil(isStandalone ? Math.max(viewportHeight, fullScreenHeight) : viewportHeight)}px`,
+      );
+    };
+
+    setAppHeight();
+    window.addEventListener("resize", setAppHeight);
+    window.visualViewport?.addEventListener("resize", setAppHeight);
+    return () => {
+      window.removeEventListener("resize", setAppHeight);
+      window.visualViewport?.removeEventListener("resize", setAppHeight);
+    };
+  }, []);
+
   return (
     <div className="mobile-frame-root">
       <div className="mobile-frame-stage">
