@@ -274,8 +274,10 @@ function FishMarket() {
     loadFish();
     if (!user) return;
     const onFocus = () => loadFish();
+    const onStockChanged = () => loadFish();
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("fish-stock-changed", onStockChanged);
     const ch = supabase
       .channel(`fish_stock_${user.id}`)
       .on(
@@ -287,6 +289,7 @@ function FishMarket() {
     return () => {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("fish-stock-changed", onStockChanged);
       supabase.removeChannel(ch);
     };
   }, [user?.id]);
