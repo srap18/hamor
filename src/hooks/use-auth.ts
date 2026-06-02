@@ -99,9 +99,9 @@ function ensureProfileBootstrap(userId: string) {
   fetchProfileNow(userId);
 
   // Ping online_at every minute, plus one initial
-  supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", userId);
+  supabase.rpc("update_my_online_at" as never);
   profilePingTimer = setInterval(() => {
-    supabase.from("profiles").update({ online_at: new Date().toISOString() }).eq("id", userId);
+    supabase.rpc("update_my_online_at" as never);
   }, 60_000);
 
   // Realtime subscription
