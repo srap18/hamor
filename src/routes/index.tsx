@@ -942,7 +942,10 @@ function Index() {
         });
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
-      else if (msg.includes("not_fishing")) showToast("لا يوجد صيد جاهز — حدّث الصفحة");
+      else if (msg.includes("not_fishing")) {
+        // Server already considers the ship docked (a previous collect/stop landed
+        // first, or realtime echo raced the tap). Silent dock — no error toast.
+      }
       else showToast("تعذّر استلام الصيد");
       syncFleetFromDb();
       return;
