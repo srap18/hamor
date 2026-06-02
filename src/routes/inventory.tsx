@@ -199,44 +199,68 @@ function InventoryPage() {
             </div>
           );
         })()}
-        {!loading && tab === "fish" && (
-          <>
-            <div className="mb-3 glass-hud rounded-xl px-3 py-2 flex items-center justify-between border border-sky-300/40">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🔍</span>
-                <span className="text-xs font-bold text-sky-100">الأسماك المكتشفة</span>
+        {!loading && tab === "fish" && (() => {
+          const allFish = Object.values(FISH);
+          const discoveredCount = fishRows.filter(r => (r.total_caught ?? 0) > 0).length;
+          const remaining = allFish.filter(f => !fishDiscovered(f.id));
+          return (
+            <>
+              <div className="mb-2 glass-hud rounded-xl px-3 py-2 flex items-center justify-between border border-sky-300/40">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🔍</span>
+                  <span className="text-xs font-bold text-sky-100">المكتشف</span>
+                </div>
+                <div className="text-sm font-extrabold text-amber-300">
+                  {discoveredCount}
+                  <span className="text-muted-foreground mx-1">/</span>
+                  <span className="text-sky-200">{FISH_TOTAL}</span>
+                </div>
               </div>
-              <div className="text-sm font-extrabold text-amber-300">
-                {fishRows.filter(r => (r.total_caught ?? 0) > 0).length}
-                <span className="text-muted-foreground mx-1">/</span>
-                <span className="text-sky-200">{FISH_TOTAL}</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-            {Object.values(FISH).map(f => {
-              const n = fishQty(f.id);
-              const discovered = fishDiscovered(f.id);
-              return (
-                <div key={f.id} className={`glass-hud rounded-xl p-2 border ${discovered?"border-sky-400/60":"border-border/40 opacity-50"}`}>
-                  <div className="h-16 flex items-center justify-center">
-                    {discovered ? (
-                      <img src={f.img} alt={f.name} loading="lazy" width={64} height={64}
-                        className="max-h-16 max-w-full object-contain drop-shadow-lg" />
-                    ) : (
-                      <div className="text-4xl grayscale opacity-40">❓</div>
-                    )}
+              {remaining.length > 0 && (
+                <div className="mb-3 glass-hud rounded-xl px-3 py-2 border border-rose-300/40">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🎯</span>
+                      <span className="text-xs font-bold text-rose-100">باقي عليك</span>
+                    </div>
+                    <span className="text-xs font-extrabold text-rose-200">{remaining.length} نوع</span>
                   </div>
-                  <div className="text-[10px] font-bold text-center mt-1 truncate">{discovered ? f.name : "؟؟؟"}</div>
-                  <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{f.price.toLocaleString()} <CoinIcon size={10} /></div>
-                  <div className="text-center text-xs font-bold mt-1">
-                    {discovered ? <span className="text-sky-300">×{n}</span> : <span className="text-muted-foreground/60">—</span>}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {remaining.map(f => (
+                      <span key={f.id} className="text-[10px] px-2 py-0.5 rounded-full bg-rose-900/40 border border-rose-400/30 text-rose-100">
+                        {f.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-            </div>
-          </>
-        )}
+              )}
+              <div className="grid grid-cols-3 gap-2">
+              {allFish.map(f => {
+                const n = fishQty(f.id);
+                const discovered = fishDiscovered(f.id);
+                return (
+                  <div key={f.id} className={`glass-hud rounded-xl p-2 border ${discovered?"border-sky-400/60":"border-border/40 opacity-60"}`}>
+                    <div className="h-16 flex items-center justify-center">
+                      {discovered ? (
+                        <img src={f.img} alt={f.name} loading="lazy" width={64} height={64}
+                          className="max-h-16 max-w-full object-contain drop-shadow-lg" />
+                      ) : (
+                        <img src={f.img} alt={f.name} loading="lazy" width={64} height={64}
+                          className="max-h-16 max-w-full object-contain grayscale opacity-40" />
+                      )}
+                    </div>
+                    <div className="text-[10px] font-bold text-center mt-1 truncate">{f.name}</div>
+                    <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{f.price.toLocaleString()} <CoinIcon size={10} /></div>
+                    <div className="text-center text-xs font-bold mt-1">
+                      {discovered ? <span className="text-sky-300">×{n}</span> : <span className="text-rose-300/80 text-[10px]">غير مكتشفة</span>}
+                    </div>
+                  </div>
+                );
+              })}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
