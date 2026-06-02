@@ -221,7 +221,8 @@ function Index() {
   // any ship in ships_owned shows up here (up to MAX_FLEET), and placeholder
   // slots without a dbId are evicted to make room for real purchases.
   const syncFleetFromDb = async () => {
-    await syncServerTime();
+    // Don't block on server-time fetch — serverNowMs() falls back to Date.now()
+    // and the offset gets refreshed in the background by the caller / interval.
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
@@ -373,8 +374,10 @@ function Index() {
     });
   };
   useEffect(() => {
-    // Force a fresh server-time sync + fleet pull on mount so ships appear
-    // at their true position immediately (no phone-clock fallback).
+    // INSTANT first paint: pull fleet immediately so ships show their true
+    // state (fishing / docked / damaged) without waiting for the server-time
+    // round-trip. Then refresh the clock in the background and re-sync.
+    syncFleetFromDb();
     (async () => {
       await syncServerTime(true);
       syncFleetFromDb();
@@ -562,6 +565,7 @@ function Index() {
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
+  const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
 
@@ -1695,32 +1699,51 @@ function Index() {
                   const qty = availMap.get(cid) ?? 0;
                   const owned = qty > 0;
                   const isFixer = cid.startsWith("fixer_");
+                  const isGlobalCrew = cid === "trader" || cid === "guide";
                   const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                  const canAssign = owned && (isFixer ? true : (assignedRows.length < slots && !alreadyOnShip));
+                  // Global crews (trader/guide): only one active across the whole fleet.
+                  const nowMs = serverNowMs();
+                  const globallyActive = isGlobalCrew && crewRows.some(
+                    (r) => r.item_id === cid
+                      && r.meta?.assigned_ship_id != null
+                      && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
+                  );
+                  const canAssign = owned && (
+                    isFixer
+                      ? true
+                      : isGlobalCrew
+                        ? !globallyActive
+                        : (assignedRows.length < slots && !alreadyOnShip)
+                  );
                   const canAfford = c.currency === "gems" ? gems >= c.price : (coins + gems * 1000) >= c.price;
+                  const isBuying = buyingCrewId === cid;
 
                   const buyCrew = () => {
+                    if (isBuying) return;
                     if (!canAfford) {
                       sound.play("error");
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
-                    // Instant feedback
+                    setBuyingCrewId(cid);
                     sound.play("coin");
                     setToast(`✓ تم شراء ${c.name}`);
-                    // Fire-and-forget purchase
                     (async () => {
-                      const { error } = c.currency === "gems"
-                        ? await buyWithGems(cid, "crew", c.price, undefined, 1)
-                        : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
-                      if (error) {
-                        sound.play("error");
-                        setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
-                        return;
+                      try {
+                        const { error } = c.currency === "gems"
+                          ? await buyWithGems(cid, "crew", c.price, undefined, 1)
+                          : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
+                        if (error) {
+                          sound.play("error");
+                          setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
+                          return;
+                        }
+                        refreshProfile();
+                        reloadCrews();
+                        setCrewTick((t) => t + 1);
+                      } finally {
+                        setBuyingCrewId(null);
                       }
-                      refreshProfile();
-                      reloadCrews();
-                      setCrewTick((t) => t + 1);
                     })();
                   };
 
@@ -1742,6 +1765,9 @@ function Index() {
                           {owned && <span className="text-amber-300">×{qty}</span>}
                         </div>
                         <div className="text-[10px] text-emerald-300 truncate">{c.bonus}</div>
+                        {isGlobalCrew && globallyActive && !alreadyOnShip && (
+                          <div className="text-[9px] text-amber-300/80">🔒 مفعّل على سفينة أخرى</div>
+                        )}
                       </div>
                       {owned ? (
                         <button
@@ -1753,19 +1779,25 @@ function Index() {
                               : "bg-secondary/40 text-accent/50"
                           }`}
                         >
-                          {isFixer ? "🛠️ استخدام" : alreadyOnShip ? "مفعّل ✓" : canAssign ? "تفعيل" : "ممتلئ"}
+                          {isFixer
+                            ? "🛠️ استخدام"
+                            : alreadyOnShip
+                              ? "مفعّل ✓"
+                              : (isGlobalCrew && globallyActive)
+                                ? "مقفول 🔒"
+                                : canAssign ? "تفعيل" : "ممتلئ"}
                         </button>
                       ) : (
                         <button
                           onClick={buyCrew}
-                          disabled={!canAfford}
+                          disabled={!canAfford || isBuying}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight ${
-                            canAfford
+                            canAfford && !isBuying
                               ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white border border-amber-300"
                               : "bg-secondary/40 text-accent/50"
                           }`}
                         >
-                          <span>شراء</span>
+                          <span>{isBuying ? "..." : "شراء"}</span>
                           <span className="text-[9px]">
                             {c.price.toLocaleString()} {c.currency === "gems" ? "💎" : "🪙"}
                           </span>
