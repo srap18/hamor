@@ -202,6 +202,28 @@ function Index() {
   const [crewTick, setCrewTick] = useState(0); // re-render after crew updates
   const shipsRef = useRef(ships);
   shipsRef.current = ships;
+  type SeaStateOverride = { atSea: boolean; startedAt?: number; expiresAt: number };
+  const seaStateOverrideRef = useRef<Record<string, SeaStateOverride>>({});
+  const getSeaOverride = (dbId: string): SeaStateOverride | undefined => {
+    const override = seaStateOverrideRef.current[dbId];
+    if (!override) return undefined;
+    if (override.expiresAt <= serverNowMs()) {
+      delete seaStateOverrideRef.current[dbId];
+      return undefined;
+    }
+    return override;
+  };
+  const setSeaOverride = useCallback((dbId: string, atSea: boolean, startedAt?: number) => {
+    seaStateOverrideRef.current[dbId] = { atSea, startedAt, expiresAt: serverNowMs() + 8000 };
+  }, []);
+  const clearSeaOverrideSoon = useCallback((dbId: string, delayMs = 2500) => {
+    const marker = seaStateOverrideRef.current[dbId]?.expiresAt;
+    window.setTimeout(() => {
+      if (seaStateOverrideRef.current[dbId]?.expiresAt === marker) {
+        delete seaStateOverrideRef.current[dbId];
+      }
+    }, delayMs);
+  }, []);
   useEffect(() => {
     const t = setInterval(() => saveFleet(shipsRef.current), 1000);
     const onHide = () => saveFleet(shipsRef.current);
