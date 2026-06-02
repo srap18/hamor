@@ -62,9 +62,19 @@ function emptyTier(rank: number): PrizeTier {
   return { rank, coins: 0, gems: 0, xp: 0, text: "" };
 }
 
+type LbRow = {
+  user_id: string;
+  display_name: string;
+  avatar_emoji: string;
+  avatar_url: string | null;
+  level: number;
+  score: number;
+};
+
 function AdminCompetitions() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -88,8 +98,14 @@ function AdminCompetitions() {
       .from("competitions" as never)
       .select("*")
       .order("created_at", { ascending: false });
-    setRows((data ?? []) as never);
+    const list = (data ?? []) as Row[];
+    setRows(list as never);
     setLoading(false);
+    const entries = await Promise.all(list.map(async (c) => {
+      const { data: lb } = await supabase.rpc("get_competition_leaderboard" as never, { _competition_id: c.id } as never);
+      return [c.id, (lb ?? []) as LbRow[]] as const;
+    }));
+    setBoards(Object.fromEntries(entries));
   };
   useEffect(() => { load(); }, []);
 
