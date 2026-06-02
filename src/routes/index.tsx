@@ -382,6 +382,7 @@ function Index() {
     })();
     return () => {
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
       if (debounce) clearTimeout(debounce);
       if (ch) supabase.removeChannel(ch);
     };
