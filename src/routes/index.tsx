@@ -346,9 +346,22 @@ function Index() {
     });
   };
   useEffect(() => {
-    syncFleetFromDb();
-    const onFocus = () => syncFleetFromDb();
+    // Force a fresh server-time sync + fleet pull on mount so ships appear
+    // at their true position immediately (no phone-clock fallback).
+    (async () => {
+      await syncServerTime(true);
+      syncFleetFromDb();
+    })();
+    const onFocus = () => {
+      syncServerTime(true).then(() => syncFleetFromDb());
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        syncServerTime(true).then(() => syncFleetFromDb());
+      }
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     // Live updates: any change to my own ships triggers an instant re-sync
     let ch: ReturnType<typeof supabase.channel> | null = null;
     let debounce: ReturnType<typeof setTimeout> | null = null;
@@ -369,6 +382,7 @@ function Index() {
     })();
     return () => {
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
       if (debounce) clearTimeout(debounce);
       if (ch) supabase.removeChannel(ch);
     };
@@ -834,10 +848,16 @@ function Index() {
     });
     if (error) {
       const msg = String(error.message || "");
-      if (msg.includes("not_fishing")) showToast("السفينة ليست في رحلة صيد");
-      else if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
-      else showToast("تعذّر استلام الصيد");
+      // Always dock the ship locally + force-stop on server so UI stays in sync.
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
+      if (s.dbId) {
+        import("@/lib/economy").then(({ setShipAtSea }) => {
+          setShipAtSea(s.dbId!, false).catch(() => {});
+        });
+      }
+      if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
+      // 'not_fishing' is a benign race (DB already docked) — dock silently, no error toast.
+      else if (!msg.includes("not_fishing")) showToast("تعذّر استلام الصيد");
       syncFleetFromDb();
       return;
     }
