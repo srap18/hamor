@@ -1119,7 +1119,8 @@ function Index() {
             sound.play("success");
             showToast("✨ رجعت الخلفية سليمة!");
           }}
-          className="absolute top-[10rem] left-1/2 -translate-x-1/2 z-40 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-[11px] font-extrabold shadow-2xl active:scale-95 flex items-center gap-1"
+          className="fixed left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-sm font-extrabold shadow-2xl active:scale-95 flex items-center gap-1.5 animate-pulse"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 6.5rem)" }}
         >
           🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
         </button>
