@@ -408,6 +408,7 @@ function AdminCodesPage() {
       </div>
 
       <GrantToOnlinePanel codes={codes} />
+      <RecentChatSendersPanel codes={codes} />
 
 
 
