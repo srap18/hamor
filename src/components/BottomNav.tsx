@@ -155,6 +155,18 @@ export function BottomNav({ active }: { active?: string }) {
   );
 }
 
+function FancyBadge({ count }: { count: number }) {
+  return (
+    <span className="absolute -top-1.5 -right-1.5 pointer-events-none">
+      <span className="absolute inset-0 rounded-full bg-red-500/60 blur-md animate-pulse" />
+      <span className="relative min-w-[20px] h-[20px] px-1.5 rounded-full bg-gradient-to-b from-red-400 via-red-600 to-red-900 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow-[0_0_10px_rgba(252,191,73,0.8),inset_0_1px_0_rgba(255,255,255,0.5)]">
+        {count > 9 ? "9+" : count}
+      </span>
+    </span>
+  );
+}
+
 // keep Link import used for tree-shaking detection in case future refactor needs it
 export const _LinkAlias = Link;
+
 
