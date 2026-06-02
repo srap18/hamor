@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
-import { FISH, fishForShip } from "@/lib/fish";
+import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -526,7 +526,25 @@ function Index() {
     };
   }, [user]);
 
-  const [fish, setFish] = useState(34);
+  const [fish, setFish] = useState(0);
+  // Discovered fish species count (kept in sync with fish_caught table)
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("fish_caught")
+        .select("fish_id,total_caught")
+        .eq("user_id", user.id);
+      if (cancelled) return;
+      const discovered = (data ?? []).filter((r: { total_caught: number | null }) => (r.total_caught ?? 0) > 0).length;
+      setFish(discovered);
+    };
+    load();
+    const onChanged = () => load();
+    window.addEventListener("fish-stock-changed", onChanged);
+    return () => { cancelled = true; window.removeEventListener("fish-stock-changed", onChanged); };
+  }, [user]);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
@@ -1209,10 +1227,14 @@ function Index() {
         <div className="flex items-center gap-2">
           {/* VIP removed */}
 
-          <div className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow">
+          <Link
+            to="/inventory"
+            className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow active:scale-95"
+            title="الأسماك المكتشفة"
+          >
             <span className="text-lg">🐟</span>
-            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}</span>
-          </div>
+            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}<span className="text-amber-400/70 font-bold">/{FISH_TOTAL}</span></span>
+          </Link>
           <NotificationsBell />
           {isAdmin && (
             <Link
