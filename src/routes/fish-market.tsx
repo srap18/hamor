@@ -327,37 +327,18 @@ function FishMarket() {
     if (requestedQty <= 0) return;
 
     setSelling(true);
+    // Optimistic local update
+    const earned = Math.round(requestedQty * price);
+    setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
+    setPop(`+${earned.toLocaleString()} ذهب`);
+    setTimeout(() => setPop(null), 1500);
+
     try {
-      // Fetch only the IDs we need on demand (oldest first).
-      const { data: idRows, error: idErr } = await supabase
-        .from("fish_stock")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("fish_id", sel.id)
-        .order("caught_at", { ascending: true })
-        .limit(requestedQty);
-      if (idErr) {
-        setPop(`❌ ${idErr.message || "تعذر البيع"}`);
-        setTimeout(() => setPop(null), 2500);
-        return;
-      }
-      const fishStockIds = (idRows ?? []).map((r: { id: string }) => r.id);
-      if (fishStockIds.length <= 0) {
-        await loadFish();
-        setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
-        setTimeout(() => setPop(null), 1800);
-        return;
-      }
-
-      const qty = fishStockIds.length;
-      const earned = Math.round(qty * price);
-
-      // Optimistic local update
-      setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
-      setPop(`+${earned.toLocaleString()} ذهب`);
-      setTimeout(() => setPop(null), 1500);
-
-      const { data, error } = await sellFish(fishStockIds);
+      // Server-side: deletes oldest N rows for this fish in a single call.
+      const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
+        _fish_id: sel.id,
+        _qty: requestedQty,
+      } as never);
       if (error) {
         setPop(`❌ ${error.message || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
@@ -371,7 +352,7 @@ function FishMarket() {
         await loadFish();
         return;
       }
-      setPop(`${qty < requestedQty ? "تم تحديث الكمية • " : ""}+${serverEarned.toLocaleString()} ذهب`);
+      setPop(`+${serverEarned.toLocaleString()} ذهب`);
       setTimeout(() => setPop(null), 1500);
       await loadFish();
       refreshProfile();
@@ -379,6 +360,7 @@ function FishMarket() {
       setSelling(false);
     }
   };
+
 
 
   return (
