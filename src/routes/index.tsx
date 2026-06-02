@@ -3017,7 +3017,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               />
               <div className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-extrabold text-white whitespace-nowrap"
                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
-                <span className="tabular-nums">{caughtNow}/{capacity}</span>
+                <span className="tabular-nums" dir="ltr">{caughtNow}/{capacity}</span>
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
