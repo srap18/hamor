@@ -326,27 +326,37 @@ function FishMarket() {
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
-    const availableIds = stockIdsMap[sel.id] ?? [];
-    const fishStockIds = availableIds.slice(0, requestedQty);
-    if (fishStockIds.length <= 0) {
-      await loadFish();
-      setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
-      setTimeout(() => setPop(null), 1800);
-      return;
-    }
-
-    const qty = fishStockIds.length;
-    const earned = Math.round(qty * price);
     setSelling(true);
-
-    // Optimistic local update
-    setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
-    setStockIdsMap((curr) => ({ ...curr, [sel.id]: (curr[sel.id] ?? []).slice(qty) }));
-    setPop(`+${earned.toLocaleString()} ذهب`);
-    setTimeout(() => setPop(null), 1500);
-
     try {
-      // Atomic server-side sale: deletes rows from fish_stock and credits coins.
+      // Fetch only the IDs we need on demand (oldest first).
+      const { data: idRows, error: idErr } = await supabase
+        .from("fish_stock")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("fish_id", sel.id)
+        .order("caught_at", { ascending: true })
+        .limit(requestedQty);
+      if (idErr) {
+        setPop(`❌ ${idErr.message || "تعذر البيع"}`);
+        setTimeout(() => setPop(null), 2500);
+        return;
+      }
+      const fishStockIds = (idRows ?? []).map((r: { id: string }) => r.id);
+      if (fishStockIds.length <= 0) {
+        await loadFish();
+        setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
+        setTimeout(() => setPop(null), 1800);
+        return;
+      }
+
+      const qty = fishStockIds.length;
+      const earned = Math.round(qty * price);
+
+      // Optimistic local update
+      setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - qty) }));
+      setPop(`+${earned.toLocaleString()} ذهب`);
+      setTimeout(() => setPop(null), 1500);
+
       const { data, error } = await sellFish(fishStockIds);
       if (error) {
         setPop(`❌ ${error.message || "تعذر البيع"}`);
@@ -369,6 +379,7 @@ function FishMarket() {
       setSelling(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl">
