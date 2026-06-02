@@ -878,18 +878,49 @@ function PlayerPage() {
         <Stat icon="⚓" label="السفن" value={ships.length} />
       </div>
 
-      {/* Death banner — last person who nuked / ad-bombed this player */}
-      {p?.last_destroyer_name && (p.last_destroyer_kind === "nuke" || p.last_destroyer_kind === "ad_bomb") && (
-        <div className="absolute left-2 right-2 z-30 pointer-events-none" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 8rem)" }}>
-          <div className="mx-auto max-w-md rounded-xl border-2 border-red-500/70 bg-gradient-to-r from-stone-950/90 via-red-950/85 to-stone-950/90 shadow-[0_0_20px_rgba(220,38,38,0.45)] px-3 py-2 text-center">
-            <div className="text-red-100 font-extrabold text-sm leading-tight">
-              {p.last_destroyer_kind === "nuke" ? "☢️" : "📺"} لافتات الموت ·{" "}
-              <span className="text-amber-200">{p.last_destroyer_name}</span>{" "}
-              {p.last_destroyer_kind === "nuke" ? "فجّر هذا اللاعب بالقنبلة الذرية" : "فجّر هذا اللاعب بالقنبلة الإعلانية"}
+      {/* Death banner — elegant transparent, minimizable, hideable from settings */}
+      {!deathBannerHidden && p?.last_destroyer_name && (p.last_destroyer_kind === "nuke" || p.last_destroyer_kind === "ad_bomb") && (
+        <div className="absolute left-2 right-2 z-30 flex justify-center" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 7.5rem)" }}>
+          {deathBannerMin ? (
+            <button
+              onClick={() => {
+                setDeathBannerMin(false);
+                try { localStorage.removeItem("death-banner-min"); } catch { /* noop */ }
+                sound.play("click");
+              }}
+              className="pointer-events-auto px-2 py-1 rounded-full backdrop-blur-md bg-black/25 border border-red-400/40 text-red-100/90 text-[11px] font-bold shadow-[0_2px_10px_rgba(0,0,0,0.35)] active:scale-95"
+              title="إظهار لافتة الموت"
+            >
+              {p.last_destroyer_kind === "nuke" ? "☢️" : "📺"} لافتة
+            </button>
+          ) : (
+            <div className="relative max-w-md w-full rounded-xl backdrop-blur-md bg-gradient-to-r from-black/15 via-red-900/20 to-black/15 border border-red-300/30 shadow-[0_4px_18px_rgba(0,0,0,0.35)] px-3 py-1.5 text-center overflow-hidden">
+              {/* subtle inner glow */}
+              <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-white/5 to-transparent" />
+              <div className="relative text-red-50/95 font-bold text-[12px] leading-tight tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pe-6">
+                <span className="opacity-90 me-1">{p.last_destroyer_kind === "nuke" ? "☢️" : "📺"}</span>
+                <span className="text-amber-100/90 me-1">لافتة الموت ·</span>
+                <span className="text-amber-300 font-extrabold">{p.last_destroyer_name}</span>
+                <span className="ms-1 text-red-50/85">
+                  {p.last_destroyer_kind === "nuke" ? "فجّر هذا اللاعب بالقنبلة الذرية" : "فجّر هذا اللاعب بالقنبلة الإعلانية"}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setDeathBannerMin(true);
+                  try { localStorage.setItem("death-banner-min", "1"); } catch { /* noop */ }
+                  sound.play("click");
+                }}
+                className="absolute top-1/2 -translate-y-1/2 end-1 w-5 h-5 rounded-full bg-black/30 hover:bg-black/50 border border-white/20 text-white/80 text-[10px] leading-none flex items-center justify-center active:scale-90"
+                title="تصغير"
+              >
+                −
+              </button>
             </div>
-          </div>
+          )}
         </div>
       )}
+
 
 
 
