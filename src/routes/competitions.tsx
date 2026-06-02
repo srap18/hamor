@@ -234,8 +234,17 @@ function CompetitionsPage() {
                     </div>
                   </div>
                   <div className="text-end shrink-0">
-                    <div className="text-[10px] text-white/80">ينتهي خلال</div>
-                    <div className="text-lg font-black text-white drop-shadow">⏳ {timeLeft(c.ends_at)}</div>
+                    {new Date(c.ends_at).getTime() <= serverNow().getTime() ? (
+                      <>
+                        <div className="text-[10px] text-white/80">الحالة</div>
+                        <div className="text-lg font-black text-white drop-shadow px-2 py-0.5 rounded-md bg-black/30 border border-white/30">⛔ انتهت</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[10px] text-white/80">ينتهي خلال</div>
+                        <div className="text-lg font-black text-white drop-shadow">⏳ {timeLeft(c.ends_at)}</div>
+                      </>
+                    )}
                   </div>
                 </div>
                 {winnerCount > 0 && (

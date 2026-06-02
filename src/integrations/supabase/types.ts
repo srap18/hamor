@@ -414,6 +414,7 @@ export type Database = {
           id: string
           metric: string
           prize_tiers: Json
+          prizes_distributed_at: string | null
           reward_coins: number
           reward_gems: number
           reward_text: string
@@ -435,6 +436,7 @@ export type Database = {
           id?: string
           metric: string
           prize_tiers?: Json
+          prizes_distributed_at?: string | null
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
@@ -456,6 +458,7 @@ export type Database = {
           id?: string
           metric?: string
           prize_tiers?: Json
+          prizes_distributed_at?: string | null
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
@@ -2734,6 +2737,11 @@ export type Database = {
       effective_vip_level: { Args: { _user: string }; Returns: number }
       feed_daughter: { Args: { _fish_stock_ids: string[] }; Returns: Json }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
+      finalize_competition: {
+        Args: { _competition_id: string }
+        Returns: undefined
+      }
+      finalize_due_competitions: { Args: never; Returns: undefined }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
@@ -2774,6 +2782,7 @@ export type Database = {
           id: string
           metric: string
           prize_tiers: Json
+          prizes_distributed_at: string
           reward_coins: number
           reward_gems: number
           reward_text: string
