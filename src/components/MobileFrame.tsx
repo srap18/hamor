@@ -35,8 +35,13 @@ export function MobileFrame({ children }: { children: ReactNode }) {
         `${Math.floor(appHeight)}px`,
       );
       document.documentElement.style.setProperty("--keyboard-inset", `${Math.floor(keyboardInset)}px`);
+      document.documentElement.style.setProperty("--visual-viewport-offset-top", `${Math.floor(viewportOffsetTop)}px`);
       document.documentElement.classList.toggle("keyboard-open", keyboardInset > 0);
-      if (keyboardInset > 0) window.scrollTo(0, 0);
+      if (isEditing || keyboardInset > 0) {
+        window.scrollTo(0, 0);
+        window.requestAnimationFrame(() => window.scrollTo(0, 0));
+        window.setTimeout(() => window.scrollTo(0, 0), 120);
+      }
     };
 
     setAppHeight();
