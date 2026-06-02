@@ -32,7 +32,7 @@ import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
-import { syncServerTime, serverTodayKey } from "@/lib/server-time";
+import { syncServerTime, serverTodayKey, serverNowMs, isServerClockSynced } from "@/lib/server-time";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
@@ -136,12 +136,12 @@ function loadFleet(): Ship[] {
         max: realMax,
         timeLeft: realDuration,
         duration: realDuration,
-        startedAt: s.startedAt,
+        startedAt: s.dbId ? undefined : s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
         img: def.image,
-        progress: Math.min(s.progress ?? 0, realMax),
-        fishing: s.fishing ?? false,
-        sail: s.sail ?? 0,
+        progress: s.dbId ? 0 : Math.min(s.progress ?? 0, realMax),
+        fishing: s.dbId ? false : (s.fishing ?? false),
+        sail: s.dbId ? 0 : (s.sail ?? 0),
       };
     });
   } catch {
@@ -153,8 +153,8 @@ function saveFleet(ships: Ship[]) {
   if (typeof window === "undefined") return;
   const slots: FleetSlot[] = ships.map((s) => ({
     id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
-    duration: s.duration, progress: s.progress, fishing: s.fishing, sail: s.sail,
-    startedAt: s.startedAt,
+    duration: s.duration, progress: s.dbId ? 0 : s.progress, fishing: s.dbId ? false : s.fishing, sail: s.dbId ? 0 : s.sail,
+    startedAt: s.dbId ? undefined : s.startedAt,
   }));
   window.localStorage.setItem(FLEET_KEY, JSON.stringify(slots));
 }
@@ -223,6 +223,7 @@ function Index() {
   // any ship in ships_owned shows up here (up to MAX_FLEET), and placeholder
   // slots without a dbId are evicted to make room for real purchases.
   const syncFleetFromDb = async () => {
+    await syncServerTime();
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
@@ -267,6 +268,9 @@ function Index() {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
+          } else if (row.at_sea && row.fishing_started_at) {
+            fishing = true;
+            startedAt = new Date(row.fishing_started_at).getTime();
           } else if (s.fishing === false) {
             // Local says STOPPED — that's the source of truth.
             // If DB still says at_sea, push the stop again to fix the race.
@@ -277,13 +281,6 @@ function Index() {
                 setShipAtSea(s.dbId!, false).catch(() => {});
               });
             }
-          } else if (row.at_sea && row.fishing_started_at) {
-            fishing = true;
-            startedAt = new Date(row.fishing_started_at).getTime();
-          } else if (s.fishing && s.startedAt) {
-            import("@/lib/economy").then(({ setShipAtSea }) => {
-              setShipAtSea(s.dbId!, true).catch(() => {});
-            });
           }
           return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
         });
@@ -729,7 +726,7 @@ function Index() {
   // Progress + sail animation ticker — strictly time-proportional.
   useEffect(() => {
     const id = setInterval(() => {
-      const now = Date.now();
+      const now = serverNowMs();
       setShips((curr) =>
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
@@ -740,6 +737,9 @@ function Index() {
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
+          }
+          if (s.dbId && !isServerClockSynced()) {
+            return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
@@ -756,7 +756,7 @@ function Index() {
 
   const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > Date.now();
 
-  const toggleFishing = (shipId: number) => {
+  const toggleFishing = async (shipId: number) => {
     let dbIdToSync: string | undefined;
     let nextAtSea = false;
     const target = ships.find((x) => x.id === shipId);
@@ -765,6 +765,10 @@ function Index() {
       sound.play("error");
       return;
     }
+    if (!target?.fishing && !isServerClockSynced()) {
+      await syncServerTime(true);
+    }
+    const startNow = serverNowMs();
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
@@ -775,7 +779,7 @@ function Index() {
         }
         nextAtSea = true;
         const ratio = x.max > 0 ? x.progress / x.max : 0;
-        const startedAt = Date.now() - Math.round(ratio * x.duration * 1000);
+        const startedAt = startNow - Math.round(ratio * x.duration * 1000);
         return { ...x, fishing: true, startedAt };
       })
     );
@@ -795,7 +799,7 @@ function Index() {
     if (!s) return;
     // Docked & empty → start fishing (sail out)
     if (s.progress <= 0 && !s.fishing) {
-      toggleFishing(shipId);
+      await toggleFishing(shipId);
       return;
     }
     const { guide } = getCrewBonuses(s);
@@ -820,6 +824,10 @@ function Index() {
       showToast("حدّث الأسطول أولاً");
       syncFleetFromDb();
       return;
+    }
+
+    if (!isServerClockSynced()) {
+      await syncServerTime(true);
     }
 
     const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {

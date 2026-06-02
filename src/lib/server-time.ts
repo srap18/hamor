@@ -1,7 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Offset (server - client) in ms, refreshed periodically.
+// Server clock anchored to monotonic performance.now(), so changing the
+// phone/device clock after sync cannot advance game timers.
 let offsetMs = 0;
+let anchorServerMs = 0;
+let anchorPerfMs = 0;
+let hasTrustedServerClock = false;
 let lastSync = 0;
 let pending: Promise<void> | null = null;
 let installed = false;
@@ -12,21 +16,29 @@ const _origDateNow: () => number =
   typeof Date !== "undefined" ? Date.now.bind(Date) : () => 0;
 const _OrigDate: DateConstructor = Date;
 
+const perfNow = () =>
+  typeof performance !== "undefined" && typeof performance.now === "function"
+    ? performance.now()
+    : _origDateNow();
+
 export async function syncServerTime(force = false): Promise<void> {
-  const now = _origDateNow();
+  const now = perfNow();
   if (!force && lastSync && now - lastSync < 5 * 60_000) return;
   if (pending) return pending;
   pending = (async () => {
     try {
-      const t0 = _origDateNow();
+      const t0 = perfNow();
       const { data } = await (supabase as any).rpc("get_server_time");
-      const t1 = _origDateNow();
+      const t1 = perfNow();
       const row = Array.isArray(data) ? data[0] : data;
       if (row?.server_now) {
         // Account for round-trip — assume server time is mid-flight.
         const serverMs = new _OrigDate(row.server_now).getTime();
-        offsetMs = serverMs - (t0 + (t1 - t0) / 2);
-        lastSync = _origDateNow();
+        anchorServerMs = serverMs + (t1 - t0) / 2;
+        anchorPerfMs = t1;
+        offsetMs = anchorServerMs - _origDateNow();
+        hasTrustedServerClock = true;
+        lastSync = perfNow();
       }
     } catch {
       /* fallback to client time */
@@ -38,11 +50,18 @@ export async function syncServerTime(force = false): Promise<void> {
 }
 
 export function serverNow(): Date {
-  return new _OrigDate(_origDateNow() + offsetMs);
+  return new _OrigDate(serverNowMs());
 }
 
 export function serverNowMs(): number {
+  if (hasTrustedServerClock) {
+    return anchorServerMs + (perfNow() - anchorPerfMs);
+  }
   return _origDateNow() + offsetMs;
+}
+
+export function isServerClockSynced(): boolean {
+  return hasTrustedServerClock;
 }
 
 /** UTC date (YYYY-MM-DD) according to the server clock. */
@@ -64,7 +83,7 @@ export function installServerClock(): void {
 
   // Patch Date.now()
   try {
-    (Date as any).now = () => _origDateNow() + offsetMs;
+    (Date as any).now = () => serverNowMs();
   } catch {}
 
   // Patch `new Date()` (no args) to return server-corrected time. Args still
@@ -76,14 +95,14 @@ export function installServerClock(): void {
         return _OrigDate(...(args as []));
       }
       if (args.length === 0) {
-        return new _OrigDate(_origDateNow() + offsetMs);
+        return new _OrigDate(serverNowMs());
       }
       // @ts-ignore - spread into Date ctor
       return new _OrigDate(...args);
     };
     Patched.prototype = _OrigDate.prototype;
     Object.setPrototypeOf(Patched, _OrigDate);
-    Patched.now = () => _origDateNow() + offsetMs;
+    Patched.now = () => serverNowMs();
     Patched.parse = _OrigDate.parse.bind(_OrigDate);
     Patched.UTC = _OrigDate.UTC.bind(_OrigDate);
     (globalThis as any).Date = Patched;
