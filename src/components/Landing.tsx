@@ -82,7 +82,7 @@ export function Landing() {
           <Link to="/refund" className="hover:text-amber-300">سياسة الاسترداد</Link>
         </div>
         <div className="text-center text-xs text-amber-100/40 mt-3">
-          © {new Date().getFullYear()} Ocean Catch — Amira Qailan Dakhil Allah Alsharari
+          © {new Date().getFullYear()} ملوك القراصنة — Amira Qailan Dakhil Allah Alsharari
         </div>
       </footer>
     </div>
