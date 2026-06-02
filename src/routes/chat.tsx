@@ -270,7 +270,7 @@ function ChatPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl" style={{ background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
-      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
         <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
         <div className="flex-1 text-center text-lg font-extrabold text-amber-300">💬 الشات</div>
         {tab === "tribe" && profile?.tribe_id && (
