@@ -76,6 +76,7 @@ function ChatPage() {
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set()); // people I blocked
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
   const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; body: string; name: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Pause background music while on the chat screen, resume on leave
