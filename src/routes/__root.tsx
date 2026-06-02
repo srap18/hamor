@@ -246,6 +246,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MobileFrame>
         <GlobalBanner />
+        <LastAttackTicker />
         <GiftPopup />
         <Outlet />
         <Toaster position="top-center" richColors />
