@@ -475,6 +475,8 @@ function FishMarket() {
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
           traderUntil={effectiveTraderUntil}
+          ownedTraderQty={ownedTraderQty}
+          traderPrice={traderPrice}
           rotPct={Math.round(rotMult(sel.id) * 100)}
           selling={selling}
           onBack={() => setSelected(null)}
@@ -686,7 +688,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, rotPct, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -695,6 +697,8 @@ function SellView({
   freezeUntil: string | null;
   traderActive: boolean;
   traderUntil: string | null;
+  ownedTraderQty: number;
+  traderPrice: number;
   rotPct: number;
   selling: boolean;
   onBack: () => void;
