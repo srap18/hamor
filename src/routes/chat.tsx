@@ -863,9 +863,9 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
             </div>
           )}
 
-          {isOwner && (
+          {isOfficer && (
             <div className="space-y-2">
-              {!editingName ? (
+              {isOwner && (!editingName ? (
                 <button onClick={() => setEditingName(true)} className="w-full py-2 rounded-lg bg-amber-700/40 border border-amber-500/50 text-amber-100 text-xs font-bold">
                   ✏️ تغيير اسم القبيلة (💎 {RENAME_COST_GEMS})
                 </button>
@@ -878,7 +878,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                     <button onClick={() => setEditingName(false)} className="px-3 py-1.5 rounded bg-stone-800 text-amber-200 text-xs">إلغاء</button>
                   </div>
                 </div>
-              )}
+              ))}
 
               {!editingDetails ? (
                 <button onClick={() => setEditingDetails(true)} className="w-full py-2 rounded-lg bg-amber-700/40 border border-amber-500/50 text-amber-100 text-xs font-bold">
@@ -921,21 +921,23 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                 </div>
               </div>
 
-              {/* Delete tribe */}
-              <button disabled={busy}
-                onClick={async () => {
-                  const ok = await confirmDialog({ title: "حذف القبيلة", message: "متأكد تبي تحذف القبيلة نهائياً؟ كل الأعضاء راح يطلعون والخزنة راح تروح.", confirmText: "احذف نهائياً", danger: true });
-                  if (!ok) return;
-                  wrap(async () => {
-                    const { error } = await supabase.from("tribes").delete().eq("id", tribeId);
-                    if (error) throw error;
-                    onClose();
-                    window.location.reload();
-                  });
-                }}
-                className="w-full py-2 rounded-lg bg-red-900 border-2 border-red-500 text-white font-bold text-sm">
-                🗑️ حذف القبيلة نهائياً
-              </button>
+              {/* Delete tribe — owner only */}
+              {isOwner && (
+                <button disabled={busy}
+                  onClick={async () => {
+                    const ok = await confirmDialog({ title: "حذف القبيلة", message: "متأكد تبي تحذف القبيلة نهائياً؟ كل الأعضاء راح يطلعون والخزنة راح تروح.", confirmText: "احذف نهائياً", danger: true });
+                    if (!ok) return;
+                    wrap(async () => {
+                      const { error } = await supabase.from("tribes").delete().eq("id", tribeId);
+                      if (error) throw error;
+                      onClose();
+                      window.location.reload();
+                    });
+                  }}
+                  className="w-full py-2 rounded-lg bg-red-900 border-2 border-red-500 text-white font-bold text-sm">
+                  🗑️ حذف القبيلة نهائياً
+                </button>
+              )}
             </div>
           )}
 
