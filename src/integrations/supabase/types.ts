@@ -1135,6 +1135,7 @@ export type Database = {
       profiles: {
         Row: {
           active_session_id: string | null
+          armor_last_bought_at: string | null
           avatar_emoji: string
           avatar_frame: string | null
           avatar_url: string | null
@@ -1162,6 +1163,7 @@ export type Database = {
         }
         Insert: {
           active_session_id?: string | null
+          armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -1189,6 +1191,7 @@ export type Database = {
         }
         Update: {
           active_session_id?: string | null
+          armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
           avatar_url?: string | null
@@ -3223,6 +3226,7 @@ export type Database = {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
       }
+      update_my_online_at: { Args: never; Returns: undefined }
       update_tribe_details: {
         Args: { _banner: string; _description: string; _tribe_id: string }
         Returns: Json
