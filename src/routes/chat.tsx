@@ -221,6 +221,11 @@ function ChatPage() {
     const row: any = { sender_id: user.id, body, channel: tab };
     if (tab === "tribe") row.tribe_id = profile?.tribe_id;
     if (tab === "dm") row.recipient_id = dmWith;
+    if (replyTo) {
+      row.reply_to_id = replyTo.id;
+      row.reply_to_body = replyTo.body.slice(0, 200);
+      row.reply_to_name = replyTo.name.slice(0, 60);
+    }
 
     const tempId = `tmp-${now}-${Math.random().toString(36).slice(2, 8)}`;
     const optimistic: Msg = {
@@ -231,10 +236,14 @@ function ChatPage() {
       tribe_id: tab === "tribe" ? (profile?.tribe_id || null) : null,
       body,
       created_at: new Date().toISOString(),
+      reply_to_id: replyTo?.id ?? null,
+      reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
+      reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
     };
     if (profile) setProfMap(s => s.has(user.id) ? s : new Map(s).set(user.id, profile as any));
     setMsgs(s => [...s, optimistic]);
     if (!override) setText("");
+    setReplyTo(null);
 
     supabase.from("messages").insert(row).select("*").maybeSingle().then(({ data, error }) => {
       if (error) {
