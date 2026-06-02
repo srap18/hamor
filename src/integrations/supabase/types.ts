@@ -2939,6 +2939,21 @@ export type Database = {
         }[]
       }
       get_staff_user_ids: { Args: never; Returns: string[] }
+      get_tribe_effort_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          attack_score: number
+          banner: string
+          donation_score: number
+          emblem: string
+          level: number
+          members: number
+          name: string
+          power: number
+          support_score: number
+          tribe_id: string
+        }[]
+      }
       gift_gems: {
         Args: { _amount: number; _recipient: string }
         Returns: Json
