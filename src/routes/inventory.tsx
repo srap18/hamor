@@ -35,8 +35,32 @@ function InventoryPage() {
       supabase.from("inventory").select("item_type,item_id,quantity").eq("user_id", u.user.id),
       supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
     ]);
+    const stockRows: Array<{ fish_id: string }> = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("fish_stock")
+        .select("fish_id")
+        .eq("user_id", u.user.id)
+        .range(from, from + 999);
+      const batch = (data ?? []) as Array<{ fish_id: string }>;
+      stockRows.push(...batch);
+      if (batch.length < 1000) break;
+    }
+    const stockQty = stockRows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.fish_id] = (acc[row.fish_id] ?? 0) + 1;
+      return acc;
+    }, {});
+    const caughtRows = (f ?? []) as FishRow[];
+    const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
     setInv(i ?? []);
-    setFishRows(f ?? []);
+    setFishRows(Array.from(fishIds).map((fish_id) => {
+      const caught = caughtRows.find((r) => r.fish_id === fish_id);
+      return {
+        fish_id,
+        quantity: stockQty[fish_id] ?? 0,
+        total_caught: Math.max(caught?.total_caught ?? 0, stockQty[fish_id] ?? 0),
+      };
+    }));
     setLoading(false);
   };
 
