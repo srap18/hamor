@@ -863,7 +863,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
             </div>
           )}
 
-          {isOwner && (
+          {isOfficer && (
             <div className="space-y-2">
               {!editingName ? (
                 <button onClick={() => setEditingName(true)} className="w-full py-2 rounded-lg bg-amber-700/40 border border-amber-500/50 text-amber-100 text-xs font-bold">
