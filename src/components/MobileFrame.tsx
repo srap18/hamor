@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 /**
  * Wraps the entire app in a phone-shaped frame on desktop/tablet,
@@ -9,25 +9,51 @@ import { ReactNode, useEffect } from "react";
  * instead of the viewport.
  */
 export function MobileFrame({ children }: { children: ReactNode }) {
+  const stableHeightRef = useRef<number>(0);
+
   useEffect(() => {
     const setAppHeight = () => {
-      // Always use the visible viewport height. Using screen.height in
-      // standalone mode pushed fixed bottom-0 UI below the Android nav bar.
-      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const viewport = window.visualViewport;
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const viewportOffsetTop = viewport?.offsetTop ?? 0;
+      const active = document.activeElement;
+      const isEditing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLElement && active.isContentEditable;
+      const previousStable = stableHeightRef.current || window.innerHeight || viewportHeight;
+      const rawInset = Math.max(0, previousStable - viewportHeight - viewportOffsetTop);
+      const keyboardOpen = isEditing && rawInset > 80;
+
+      if (!keyboardOpen) {
+        stableHeightRef.current = Math.floor(viewportHeight);
+      }
+
+      const appHeight = keyboardOpen ? previousStable : viewportHeight;
+      const keyboardInset = keyboardOpen ? rawInset : 0;
+
       document.documentElement.style.setProperty(
         "--app-height",
-        `${Math.floor(viewportHeight)}px`,
+        `${Math.floor(appHeight)}px`,
       );
+      document.documentElement.style.setProperty("--keyboard-inset", `${Math.floor(keyboardInset)}px`);
+      document.documentElement.classList.toggle("keyboard-open", keyboardInset > 0);
+      if (keyboardInset > 0) window.scrollTo(0, 0);
     };
 
     setAppHeight();
     window.addEventListener("resize", setAppHeight);
+    window.addEventListener("scroll", setAppHeight, { passive: true });
+    window.addEventListener("focusin", setAppHeight);
+    window.addEventListener("focusout", setAppHeight);
     window.addEventListener("orientationchange", setAppHeight);
     window.visualViewport?.addEventListener("resize", setAppHeight);
+    window.visualViewport?.addEventListener("scroll", setAppHeight);
     return () => {
       window.removeEventListener("resize", setAppHeight);
+      window.removeEventListener("scroll", setAppHeight);
+      window.removeEventListener("focusin", setAppHeight);
+      window.removeEventListener("focusout", setAppHeight);
       window.removeEventListener("orientationchange", setAppHeight);
       window.visualViewport?.removeEventListener("resize", setAppHeight);
+      window.visualViewport?.removeEventListener("scroll", setAppHeight);
     };
   }, []);
 
