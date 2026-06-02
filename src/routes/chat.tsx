@@ -1366,3 +1366,60 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   );
 }
 
+function SwipeableRow({ children, onReply }: { children: React.ReactNode; onReply: () => void }) {
+  const [dx, setDx] = useState(0);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const active = useRef(false);
+  const triggered = useRef(false);
+  const THRESHOLD = 60;
+  const MAX = 90;
+
+  const onStart = (x: number, y: number) => {
+    startX.current = x;
+    startY.current = y;
+    active.current = true;
+    triggered.current = false;
+  };
+  const onMove = (x: number, y: number, e?: TouchEvent | React.TouchEvent) => {
+    if (!active.current) return;
+    const deltaX = x - startX.current;
+    const deltaY = y - startY.current;
+    if (Math.abs(deltaY) > Math.abs(deltaX) + 8) { active.current = false; setDx(0); return; }
+    const clamped = Math.max(-MAX, Math.min(MAX, deltaX));
+    setDx(clamped);
+    if (!triggered.current && Math.abs(clamped) >= THRESHOLD) {
+      triggered.current = true;
+      try { (navigator as any).vibrate?.(20); } catch {}
+      onReply();
+    }
+  };
+  const onEnd = () => {
+    active.current = false;
+    setDx(0);
+  };
+
+  const showHint = Math.abs(dx) > 8;
+  return (
+    <div
+      className="relative touch-pan-y select-none"
+      onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e)}
+      onTouchEnd={onEnd}
+      onTouchCancel={onEnd}
+    >
+      {showHint && (
+        <div
+          className={`pointer-events-none absolute inset-y-0 flex items-center text-amber-300 text-lg font-black ${dx > 0 ? "left-2" : "right-2"}`}
+          style={{ opacity: Math.min(1, Math.abs(dx) / THRESHOLD) }}
+        >
+          ↩︎
+        </div>
+      )}
+      <div style={{ transform: `translateX(${dx}px)`, transition: active.current ? "none" : "transform 180ms ease" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
