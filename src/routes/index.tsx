@@ -1572,11 +1572,11 @@ function Index() {
           // find a row with this item_id that's unassigned
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
-          const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
-          const newMeta = { assigned_ship_id: s.dbId ?? s.id, expires_at: expiresAt };
-          const { error } = row.quantity <= 1
-            ? await updateInventoryMeta(row.id, newMeta)
-            : await splitInventoryAssign(row.id, newMeta);
+          if (!s.dbId) { setToast("حدّث الأسطول أولاً"); return; }
+          const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
+            _ship_id: s.dbId,
+            _crew_id: itemId,
+          });
           if (error) {
             sound.play("error");
             setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
