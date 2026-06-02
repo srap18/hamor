@@ -1367,8 +1367,8 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
     const newGranted = new Set(grantedIds);
     await Promise.all(targets.map(async (r) => {
       const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
-        _code: selectedCode,
-        _user_id: r.sender_id,
+        p_code: selectedCode,
+        p_target_user: r.sender_id,
       });
       if (error) fail++; else { ok++; newGranted.add(r.sender_id); }
     }));
