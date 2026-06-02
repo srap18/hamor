@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import { syncServerTime, serverTodayKey } from "@/lib/server-time";
 import iconCoins from "@/assets/icons/icon-coins.png";
 import iconGems from "@/assets/icons/icon-gems.png";
 
@@ -36,7 +37,7 @@ const REWARDS: Reward[] = [
   { item_type: "weapon", item_id: "nuke",         emoji: "☢️",   name: "قنبلة ذرية",   qty: 10 },
 ];
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => serverTodayKey();
 const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 
@@ -61,6 +62,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
   useEffect(() => {
     if (!open || !user) return;
     (async () => {
+      await syncServerTime(true);
       const { data } = await supabase
         .from("daily_login_streaks")
         .select("current_streak,last_claim_date")
