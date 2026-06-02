@@ -847,11 +847,13 @@ function Index() {
       const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
       if (error) {
         delete seaStateOverrideRef.current[dbIdToSync];
+        delete collectingRef.current[dbIdToSync];
         showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
         syncFleetFromDb();
         return;
       }
       clearSeaOverrideSoon(dbIdToSync);
+      delete collectingRef.current[dbIdToSync];
     }
     // Instant push to spectators
     pushHarborState();
