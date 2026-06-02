@@ -912,6 +912,17 @@ function Index() {
       return;
     }
 
+    // Make "collect / return" feel immediate. The RPC still awards any catch,
+    // but local state docks the exact tapped ship now and ignores stale echoes.
+    setSeaOverride(s.dbId, false);
+    setShips((curr) =>
+      curr.map((x) =>
+        x.id === shipId
+          ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined }
+          : x
+      )
+    );
+
     if (!isServerClockSynced()) {
       await syncServerTime(true);
     }
@@ -935,6 +946,7 @@ function Index() {
       syncFleetFromDb();
       return;
     }
+    clearSeaOverrideSoon(s.dbId);
 
     const row = Array.isArray(data) ? data[0] : data;
     const caughtId = row?.fish_id as string | undefined;
