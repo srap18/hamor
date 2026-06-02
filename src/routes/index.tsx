@@ -877,7 +877,7 @@ function Index() {
     pushHarborState();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
-      id: Date.now(),
+      id: serverNowMs(),
       x: rect.left + rect.width / 2,
       y: rect.top,
       v: caught
@@ -951,7 +951,7 @@ function Index() {
         <button
           onClick={async () => {
             const showToast = (v: string) => {
-              setPop({ id: Date.now(), x: window.innerWidth / 2, y: 120, v });
+              setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
               setTimeout(() => setPop(null), 1800);
             };
             if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
@@ -1225,7 +1225,7 @@ function Index() {
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
         const flipX = nativeRight ? -1 : 1;
-        const t = Date.now() / 1000;
+        const t = serverNowMs() / 1000;
         const bob = Math.sin((t + i) * 1.2) * 1.8;
         return (
           <Link
@@ -2525,7 +2525,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const mins = Math.floor(ship.timeLeft / 60);
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  const t = Date.now() / 1000;
+  const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
   const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
@@ -2551,14 +2551,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const heldLeftRef = useRef(computedLeft);
   if (facingRef.current !== facing) {
     facingRef.current = facing;
-    turnEndRef.current = Date.now() + TURN_MS;
+    turnEndRef.current = serverNowMs() + TURN_MS;
     heldLeftRef.current = computedLeft;
   }
-  const now = Date.now();
+  const now = serverNowMs();
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > Date.now();
+  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > serverNowMs();
   const atSea = ship.sail > 0.85 && !destroyed;
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   // Ship art is drawn facing LEFT natively (with per-level overrides for art
