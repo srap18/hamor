@@ -165,10 +165,6 @@ function ProfilePage() {
           <h1 className="text-lg font-bold text-glow flex items-center gap-2">👤 ملفي الشخصي</h1>
           <p className="text-[10px] text-muted-foreground">عدّل اسمك وصورتك وإطاراتك</p>
         </div>
-        <button onClick={save} disabled={saving}
-          className="px-4 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-bold text-sm active:scale-95 disabled:opacity-50">
-          {saving ? "..." : "حفظ"}
-        </button>
       </header>
 
       <main className="p-3 pb-10 space-y-4">
@@ -200,6 +196,12 @@ function ProfilePage() {
             </div>
           </div>
         </section>
+
+        {/* Save button below preview card */}
+        <button onClick={save} disabled={saving}
+          className="w-full px-4 py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-bold text-base active:scale-95 disabled:opacity-50 shadow-lg">
+          {saving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
+        </button>
 
         {/* Name */}
         <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
