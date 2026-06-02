@@ -1276,8 +1276,8 @@ function Index() {
         const ready = s.progress >= s.max;
         const onSteal = !!s.stealingTargetUserId;
         const stealEnd = s.stealingEndsAt ? new Date(s.stealingEndsAt).getTime() : 0;
-        const stealReady = onSteal && stealEnd > 0 && Date.now() >= stealEnd;
-        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - Date.now()) / 1000)) : 0;
+        const stealReady = onSteal && stealEnd > 0 && serverNowMs() >= stealEnd;
+        const stealSecsLeft = onSteal ? Math.max(0, Math.ceil((stealEnd - serverNowMs()) / 1000)) : 0;
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
@@ -1323,8 +1323,8 @@ function Index() {
                 </div>
               )}
               {!onSteal && (() => {
-                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > Date.now();
-                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - Date.now()) / 1000)) : 0;
+                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > serverNowMs();
+                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - serverNowMs()) / 1000)) : 0;
                 const h = Math.floor(remSec / 3600);
                 const m = Math.floor((remSec % 3600) / 60);
                 const sec = remSec % 60;
@@ -1937,7 +1937,7 @@ const COMP_THEME: Record<string, string> = {
   obsidian: "from-slate-800 via-zinc-700 to-slate-900",
 };
 function compTimeLeft(iso: string) {
-  const ms = new Date(iso).getTime() - Date.now();
+  const ms = new Date(iso).getTime() - serverNowMs();
   if (ms <= 0) return "انتهت";
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
