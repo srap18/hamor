@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { serverNowMs } from "@/lib/server-time";
 
 /**
  * Cinematic post-nuclear overlay shown on top of any scene background when
@@ -23,9 +24,9 @@ export function BurnedBgOverlay({
   burnedUntil: string | null | undefined;
   ownerName?: string | null;
 }) {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNowMs());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000);
+    const t = setInterval(() => setNow(serverNowMs()), 30_000);
     return () => clearInterval(t);
   }, []);
 
