@@ -35,21 +35,14 @@ function InventoryPage() {
       supabase.from("inventory").select("item_type,item_id,quantity").eq("user_id", u.user.id),
       supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
     ]);
-    const stockRows: Array<{ fish_id: string }> = [];
-    for (let from = 0; ; from += 1000) {
-      const { data } = await supabase
-        .from("fish_stock")
-        .select("fish_id")
-        .eq("user_id", u.user.id)
-        .range(from, from + 999);
-      const batch = (data ?? []) as Array<{ fish_id: string }>;
-      stockRows.push(...batch);
-      if (batch.length < 1000) break;
+    const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
+    const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
+    const stockQty: Record<string, number> = {};
+    for (const row of summaryRows) {
+      const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
+      if (q && q > 0) stockQty[row.fish_id] = q;
     }
-    const stockQty = stockRows.reduce<Record<string, number>>((acc, row) => {
-      acc[row.fish_id] = (acc[row.fish_id] ?? 0) + 1;
-      return acc;
-    }, {});
+
     const caughtRows = (f ?? []) as FishRow[];
     const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
     setInv(i ?? []);
