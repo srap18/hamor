@@ -367,6 +367,19 @@ function ShipyardPage() {
                     <Mini icon={iconRepair} value={formatDuration(ship.repairSeconds)} />
                   </div>
 
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {ship.fishPool.map((fid) => {
+                      const f = FISH[fid];
+                      if (!f) return null;
+                      return (
+                        <span key={fid} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/40 px-1.5 py-0.5 text-[10px] font-bold text-foreground/80">
+                          <span>{f.emoji}</span>
+                          <span>{f.name}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-black">
                       <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
