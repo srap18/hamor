@@ -809,6 +809,10 @@ function Index() {
   };
 
   const collect = async (shipId: number, e: React.MouseEvent) => {
+    const targetEl = e.currentTarget as HTMLElement | null;
+    const popAnchor = targetEl
+      ? targetEl.getBoundingClientRect()
+      : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0 };
     const s = ships.find((x) => x.id === shipId);
     if (!s) return;
     // Docked & empty → start fishing (sail out)
@@ -897,11 +901,10 @@ function Index() {
     syncFleetFromDb();
     // Instant push to spectators
     pushHarborState();
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPop({
       id: serverNowMs(),
-      x: rect.left + rect.width / 2,
-      y: rect.top,
+      x: popAnchor.left + popAnchor.width / 2,
+      y: popAnchor.top,
       v: caught
         ? `${caught.name} ×${fishGained}`
         : `سمكة ×${fishGained}`,
