@@ -438,30 +438,26 @@ function Index() {
 
   useEffect(() => {
     if (!user) return;
-    const dmSeenKey = `dm-last-seen:${user.id}`;
+    let cancelled = false;
     const loadDm = async () => {
-      const lastSeen = localStorage.getItem(dmSeenKey) || new Date(Date.now() - 30 * 86400000).toISOString();
-      const { count } = await supabase.from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("channel", "dm")
-        .eq("recipient_id", user.id)
-        .neq("sender_id", user.id)
-        .gt("created_at", lastSeen);
-      setDmUnread(count ?? 0);
+      const { loadDmUnreadMap } = await import("@/lib/dm-unread");
+      const { total } = await loadDmUnreadMap(user.id);
+      if (!cancelled) setDmUnread(total);
     };
     const loadFriends = async () => {
       const { count } = await supabase.from("friends")
         .select("id", { count: "exact", head: true })
         .eq("addressee_id", user.id)
         .eq("status", "pending");
-      setFriendsUnread(count ?? 0);
+      if (!cancelled) setFriendsUnread(count ?? 0);
     };
     loadDm(); loadFriends();
     const ch = supabase.channel(`home-badges:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
       .on("postgres_changes", { event: "*", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriends)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_blocks" }, loadDm)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user?.id]);
 
   // Instant push: spectators viewing my harbor get a broadcast on every state change
