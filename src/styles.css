@@ -561,11 +561,11 @@ html, body {
   }
   .mobile-frame-stage {
     min-height: 100dvh;
-    width: auto;
+    width: 100%;
     align-items: stretch;
   }
   .mobile-frame-device {
-    width: 390px;
+    width: 100%;
     min-height: 100dvh;
     height: 100dvh;
     overflow: hidden;
