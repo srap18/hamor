@@ -305,7 +305,7 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))" }}>
+      <div className={`absolute ${tab === "voice" ? "bottom-20" : "bottom-32"} left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: tab === "voice" ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "voice" ? (
           <VoiceRooms userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
@@ -1345,7 +1345,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   useEffect(() => () => stopTimer(), []);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute bottom-[76px] left-2 right-2 z-40 flex flex-col gap-1.5">
+    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px))" }}>
       {replyTo && (
         <div className="flex items-stretch gap-2 rounded-xl border-r-4 border-amber-400 bg-stone-900/95 px-2 py-1.5 shadow-lg">
           <div className="flex-1 min-w-0">
