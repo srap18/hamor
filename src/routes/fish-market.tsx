@@ -632,7 +632,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, rotPct, onBack, onSell, onPurchased,
+  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, rotPct, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -642,6 +642,7 @@ function SellView({
   traderActive: boolean;
   traderUntil: string | null;
   rotPct: number;
+  selling: boolean;
   onBack: () => void;
   onSell: (amount: number) => void;
   onPurchased: () => void;
@@ -767,7 +768,7 @@ function SellView({
           <div className="flex items-center gap-1 text-amber-300 font-bold">
             <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * effectivePrice).toLocaleString()}</span>
           </div>
-          <button onClick={() => onSell(amount)} disabled={amount === 0} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">بيع</button>
+          <button onClick={() => onSell(amount)} disabled={amount === 0 || selling} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
         </div>
       </div>
 
