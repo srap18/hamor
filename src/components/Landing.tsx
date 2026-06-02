@@ -21,8 +21,8 @@ export function Landing() {
 
       <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">⛵</span>
-          <span className="text-xl font-bold text-amber-300">Ocean Catch</span>
+          <span className="text-2xl">🏴‍☠️</span>
+          <span className="text-xl font-bold text-amber-300">ملوك القراصنة</span>
         </div>
         <nav className="flex items-center gap-3 text-sm">
           <Link to="/pricing" className="hover:text-amber-300">الأسعار</Link>
