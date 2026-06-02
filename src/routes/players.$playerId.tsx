@@ -1248,10 +1248,10 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     return () => clearInterval(id);
   }, [atSea, destroyed]);
   // 1s clock for repair countdown
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [nowMs, setNowMs] = useState(() => serverNowMs());
   useEffect(() => {
     if (!destroyed || !repairEndsAt) return;
-    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    const id = setInterval(() => setNowMs(serverNowMs()), 1000);
     return () => clearInterval(id);
   }, [destroyed, repairEndsAt]);
   useEffect(() => {
@@ -1259,7 +1259,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     const endMs = new Date(repairEndsAt).getTime();
     if (nowMs >= endMs) onRepaired?.();
   }, [nowMs, destroyed, repairEndsAt, onRepaired]);
-  const t = Date.now() / 1000;
+  const t = serverNowMs() / 1000;
   const bob = destroyed ? 0 : Math.sin((t + idx) * 1.4) * 1.5;
   const tilt = destroyed ? 18 : Math.sin((t + idx) * 1.8) * 0.8;
   void tick;
