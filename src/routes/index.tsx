@@ -252,7 +252,7 @@ function Index() {
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
-          const destroyed = !!row.destroyed_at && !!row.repair_ends_at && new Date(row.repair_ends_at).getTime() > Date.now();
+          const destroyed = !!row.destroyed_at && !!row.repair_ends_at && new Date(row.repair_ends_at).getTime() > serverNowMs();
           if (destroyed) {
             // Destroyed ships can't fish. Force them home and clear at_sea in DB.
             fishing = false;
@@ -301,7 +301,7 @@ function Index() {
         const maxProg = catchPerTrip(shipDef);
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
-        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > Date.now();
+        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
         const isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         const startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         newShips.push({
@@ -398,7 +398,7 @@ function Index() {
     }
     const fromX = window.innerWidth - 40;
     const fromY = 60;
-    const id = Date.now();
+    const id = serverNowMs();
     setIncomingFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     if (!friendly) sound.play("whoosh");
     const flyMs = weaponId === "nuke" ? 1100 : 850;
@@ -444,7 +444,7 @@ function Index() {
   const pushHarborState = useCallback(() => {
     const ch = myHarborChanRef.current;
     if (!ch) return;
-    try { ch.send({ type: "broadcast", event: "state", payload: { t: Date.now() } }); } catch {}
+    try { ch.send({ type: "broadcast", event: "state", payload: { t: serverNowMs() } }); } catch {}
   }, []);
 
   // Auto-open the daily login once per day per device
