@@ -267,6 +267,7 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
+          const seaOverride = getSeaOverride(s.dbId!);
           // Restore fishing trip from DB only when local state agrees, OR
           // when local has no opinion yet (no startedAt and not fishing).
           // If the user just pressed STOP locally (fishing=false), we MUST
@@ -289,6 +290,11 @@ function Index() {
             // Stealing mission: ship is sailing (at sea) but not fishing
             fishing = false;
             startedAt = undefined;
+          } else if (seaOverride) {
+            // User just pressed start/stop locally. Keep the UI instant and
+            // don't let a slightly older realtime/poll fetch flip it back.
+            fishing = seaOverride.atSea;
+            startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
           } else if (row.at_sea && row.fishing_started_at) {
             // Sanity guard: if the DB trip is absurdly old (>5x duration or
             // >24h), treat it as stale leftover and don't auto-launch this
@@ -331,6 +337,7 @@ function Index() {
       const newShips: Ship[] = [];
       for (let i = 0; i < Math.min(capacity, toAdd.length); i++) {
         const dbShip = toAdd[i];
+          const seaOverride = getSeaOverride(dbShip.id);
         const lvl = dbShip.template_id ?? 1;
         while (usedIds.has(nextId)) nextId++;
         usedIds.add(nextId);
@@ -343,6 +350,10 @@ function Index() {
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
         let isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         let startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
+        if (!destroyed && !onSteal && seaOverride) {
+          isFishing = seaOverride.atSea;
+          startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
+        }
         if (isFishing && startedAt) {
           const _elapsedMs = serverNowMs() - startedAt;
           const _stale = _elapsedMs > Math.max(duration * 1000 * 5, 24 * 60 * 60 * 1000);
