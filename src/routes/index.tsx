@@ -2622,6 +2622,18 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                   <div className="text-accent/60">أعضاء 👥</div>
                 </div>
               </div>
+              {(() => {
+                const myMembership = members.find(m => m.user_id === meId);
+                if (!myMembership) return null;
+                const isOfficer = myMembership.role === "owner" || myMembership.role === "moderator";
+                return (
+                  <a href={`/chat?manage=${isOfficer ? "1" : "0"}&tab=tribe`}
+                     onClick={() => sound.play("click")}
+                     className="mt-2 block w-full text-center py-2 rounded-lg bg-amber-600 text-stone-900 font-extrabold text-xs">
+                    {isOfficer ? "⚙️ إدارة القبيلة" : "🏴‍☠️ افتح قبيلتي في الشات"}
+                  </a>
+                );
+              })()}
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-1">

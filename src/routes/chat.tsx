@@ -85,6 +85,16 @@ function ChatPage() {
     return () => { sound.resumeForChat(); };
   }, []);
 
+  // Deep-link: ?tab=tribe or ?manage=1 auto-opens the tribe tab / management modal
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const wantTab = params.get("tab");
+    const wantManage = params.get("manage") === "1";
+    if (wantTab === "tribe" || wantManage) setTab("tribe");
+    if (wantManage && profile?.tribe_id) setShowManage(true);
+  }, [profile?.tribe_id]);
+
 
 
   useEffect(() => {
