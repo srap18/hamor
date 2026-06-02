@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/use-auth";
+import { serverNowMs } from "@/lib/server-time";
 
 function fmt(ms: number) {
   if (ms <= 0) return "";
@@ -14,9 +15,9 @@ function fmt(ms: number) {
 
 export function ShieldBadge() {
   const { profile } = useProfile();
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(serverNowMs());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000);
+    const t = setInterval(() => setNow(serverNowMs()), 30_000);
     return () => clearInterval(t);
   }, []);
   const until = profile?.protection_until ? new Date(profile.protection_until).getTime() : 0;
