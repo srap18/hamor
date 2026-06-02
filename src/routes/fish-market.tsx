@@ -197,7 +197,12 @@ function FishMarket() {
 
   // Freeze protects freshness/rot only. Market price itself always stays live.
   const freezeActive = !!(marketState.freeze_until && new Date(marketState.freeze_until).getTime() > serverNowMs());
-  const traderActiveGlobal = !!(marketState.trader_until && new Date(marketState.trader_until).getTime() > serverNowMs());
+  const traderUnlockUntilMs = marketState.trader_until ? new Date(marketState.trader_until).getTime() : 0;
+  const traderCrewUntilMs = traderCrewUntil ? new Date(traderCrewUntil).getTime() : 0;
+  const traderActiveGlobal = traderUnlockUntilMs > serverNowMs() || traderCrewActive;
+  const effectiveTraderUntil = traderCrewActive && traderCrewUntilMs === 0
+    ? null // crew assigned without explicit expiry — show as active, no countdown
+    : (traderUnlockUntilMs >= traderCrewUntilMs ? marketState.trader_until : traderCrewUntil);
 
 
   const loadMarket = async () => {
