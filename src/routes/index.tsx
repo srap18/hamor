@@ -2659,14 +2659,35 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
               </div>
               {(() => {
                 const myMembership = members.find(m => m.user_id === meId);
-                if (!myMembership) return null;
-                const isOfficer = myMembership.role === "owner" || myMembership.role === "moderator";
+                if (myMembership) {
+                  const isOfficer = myMembership.role === "owner" || myMembership.role === "moderator";
+                  return (
+                    <a href={`/chat?manage=${isOfficer ? "1" : "0"}&tab=tribe`}
+                       onClick={() => sound.play("click")}
+                       className="mt-2 block w-full text-center py-2 rounded-lg bg-amber-600 text-stone-900 font-extrabold text-xs">
+                      {isOfficer ? "⚙️ إدارة القبيلة" : "🏴‍☠️ افتح قبيلتي في الشات"}
+                    </a>
+                  );
+                }
+                if (!meId) return null;
+                if (myTribeId && myTribeId !== tribeId) {
+                  return (
+                    <div className="mt-2 text-center py-2 rounded-lg bg-stone-800 text-accent/60 text-[11px]">
+                      أنت بقبيلة أخرى — اخرج منها أولاً للانضمام
+                    </div>
+                  );
+                }
+                const isOpen = info.join_mode === "open";
                 return (
-                  <a href={`/chat?manage=${isOfficer ? "1" : "0"}&tab=tribe`}
-                     onClick={() => sound.play("click")}
-                     className="mt-2 block w-full text-center py-2 rounded-lg bg-amber-600 text-stone-900 font-extrabold text-xs">
-                    {isOfficer ? "⚙️ إدارة القبيلة" : "🏴‍☠️ افتح قبيلتي في الشات"}
-                  </a>
+                  <div className="mt-2 space-y-1">
+                    <button
+                      disabled={joining || pendingReq}
+                      onClick={() => { sound.play("click"); join(); }}
+                      className="block w-full text-center py-2 rounded-lg bg-emerald-600 text-white font-extrabold text-xs disabled:opacity-60">
+                      {pendingReq ? "⏳ بانتظار قبول الزعيم" : isOpen ? "🚀 انضمام مباشر" : "📩 طلب انضمام"}
+                    </button>
+                    {joinErr && <div className="text-[10px] text-red-400 text-center">{joinErr}</div>}
+                  </div>
                 );
               })()}
             </div>
