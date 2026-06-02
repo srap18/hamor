@@ -1048,7 +1048,16 @@ function Index() {
   };
 
   return (
-    <div className={`fixed inset-x-0 top-0 overflow-hidden bg-[#0d2236] ${screenShake}`} style={{ height: "var(--app-height, 100dvh)" }}>
+    <div
+      className={`fixed inset-x-0 top-0 overflow-hidden bg-[#0d2236] ${screenShake}`}
+      style={{
+        height: "var(--app-height, 100dvh)",
+        backgroundImage: scene.displayImage ? `url(${scene.displayImage})` : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: scene.objectPosition ?? "center center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {scene.displayVideo ? (
           <SeamlessVideo
