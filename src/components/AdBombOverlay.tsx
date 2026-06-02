@@ -124,65 +124,56 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
-  // Try audible playback first. If the browser blocks it, keep the video
-  // running muted and unlock sound automatically on the next interaction.
+  // Always start the video muted (so autoplay never gets blocked and the
+  // frames are visible), then try to unmute. If the browser still blocks
+  // unmuted audio, the next user gesture unlocks sound — without remounting
+  // the <video> element.
   useEffect(() => {
     if (!isActive || phase !== "video") return;
     const v = videoRef.current;
     if (!v) return;
 
-    let cancelled = false;
     unmuteCleanupRef.current?.();
 
-    const playWithSound = () => {
+    v.muted = true;
+    v.volume = 1;
+    void v.play().catch(() => {});
+
+    const tryUnmute = () => {
       v.muted = false;
-      v.volume = 1;
-      setIsMuted(false);
-      const up = v.play();
-      if (up && typeof up.then === "function") {
-        return up.then(() => true).catch(() => false);
+      const p = v.play();
+      const handle = (ok: boolean) => {
+        if (ok) {
+          setIsMuted(false);
+          unmuteCleanupRef.current?.();
+        } else {
+          v.muted = true;
+          void v.play().catch(() => {});
+        }
+      };
+      if (p && typeof p.then === "function") {
+        p.then(() => handle(true)).catch(() => handle(false));
       } else {
-        return Promise.resolve(true);
+        handle(true);
       }
     };
 
-    const keepPlayingMuted = () => {
-      v.muted = true;
-      setIsMuted(true);
-      void v.play().catch(() => {});
-    };
+    tryUnmute();
 
-    const attachSilentUnlock = () => {
-      const onGesture = () => {
-        void playWithSound().then((ok) => {
-          if (ok) unmuteCleanupRef.current?.();
-          else keepPlayingMuted();
-        });
-      };
-      const cleanup = () => {
-        window.removeEventListener("pointerdown", onGesture, true);
-        window.removeEventListener("touchstart", onGesture, true);
-        window.removeEventListener("keydown", onGesture, true);
-        window.removeEventListener("click", onGesture, true);
-        window.removeEventListener("visibilitychange", onGesture, true);
-      };
-      unmuteCleanupRef.current = cleanup;
-      window.addEventListener("pointerdown", onGesture, true);
-      window.addEventListener("touchstart", onGesture, true);
-      window.addEventListener("keydown", onGesture, true);
-      window.addEventListener("click", onGesture, true);
-      window.addEventListener("visibilitychange", onGesture, true);
+    const onGesture = () => tryUnmute();
+    const cleanup = () => {
+      window.removeEventListener("pointerdown", onGesture, true);
+      window.removeEventListener("touchstart", onGesture, true);
+      window.removeEventListener("keydown", onGesture, true);
+      window.removeEventListener("click", onGesture, true);
     };
-
-    void playWithSound().then((ok) => {
-      if (cancelled) return;
-      if (ok) return;
-      keepPlayingMuted();
-      attachSilentUnlock();
-    });
+    unmuteCleanupRef.current = cleanup;
+    window.addEventListener("pointerdown", onGesture, true);
+    window.addEventListener("touchstart", onGesture, true);
+    window.addEventListener("keydown", onGesture, true);
+    window.addEventListener("click", onGesture, true);
 
     return () => {
-      cancelled = true;
       unmuteCleanupRef.current?.();
       unmuteCleanupRef.current = null;
     };
