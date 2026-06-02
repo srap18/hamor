@@ -239,7 +239,7 @@ function Shop() {
       />
 
       {/* TOP HUD */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(0.5rem, calc(env(safe-area-inset-top) + 0.25rem))" }}>
         <Link to="/" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
           ↩
         </Link>
@@ -256,7 +256,7 @@ function Shop() {
       {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
-      <div className="absolute top-12 left-0 right-0 z-20 text-center text-lg font-extrabold text-glow">
+      <div className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow" style={{ top: "calc(max(0.5rem, env(safe-area-inset-top)) + 3.25rem)" }}>
         المتجر
       </div>
 

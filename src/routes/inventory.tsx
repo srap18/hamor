@@ -77,7 +77,7 @@ function InventoryPage() {
     <div className="fixed inset-0 overflow-y-auto text-foreground" dir="rtl" style={{
       background: "radial-gradient(ellipse at top, oklch(0.30 0.10 250) 0%, oklch(0.12 0.06 245) 100%)",
     }}>
-      <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 py-3 flex items-center gap-3">
+      <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 pb-3 flex items-center gap-3" style={{ paddingTop: "max(0.75rem, calc(env(safe-area-inset-top) + 0.5rem))" }}>
         <Link to="/" className="w-10 h-10 rounded-xl glass-hud flex items-center justify-center text-lg active:scale-95">←</Link>
         <div className="flex-1">
           <h1 className="text-lg font-bold text-glow flex items-center gap-2">📦 المخزن</h1>
