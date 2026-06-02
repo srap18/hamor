@@ -39,6 +39,7 @@ export function AdBombOverlay({
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [phase, setPhase] = useState<"explosion" | "video">("video");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lastBombId = useRef<string | null>(null);
