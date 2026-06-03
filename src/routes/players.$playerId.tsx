@@ -32,7 +32,7 @@ type Profile = {
   last_destroyer_kind?: string | null;
   last_destroyer_at?: string | null;
 };
-type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
+type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
 
 function PlayerPage() {
@@ -82,7 +82,7 @@ function PlayerPage() {
     setSelectedShip(s); setMode("menu");
     if (!me) return;
     const [{ data: ms }, { data: iv }] = await Promise.all([
-      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id").eq("user_id", me),
+      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id,in_storage").eq("user_id", me).eq("in_storage", false),
       supabase.from("inventory").select("item_id,item_type,quantity,meta").eq("user_id", me),
     ]);
     setMyShips((ms as Ship[]) || []);
@@ -163,7 +163,7 @@ function PlayerPage() {
       }
       const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
-        supabase.from("ships_owned").select("*").eq("user_id", playerId).order("acquired_at", { ascending: true }),
+        supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
@@ -231,6 +231,7 @@ function PlayerPage() {
       .from("ships_owned")
       .select("*")
       .eq("user_id", playerId)
+      .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
     const fresh = (data as Ship[]) || [];
     setShips(fresh);
@@ -250,6 +251,7 @@ function PlayerPage() {
           setShips((arr) => {
             if (payload.eventType === "INSERT") {
               const r = payload.new as Ship;
+              if (r.in_storage) return arr;
               if (arr.some((x) => x.id === r.id)) return arr;
               return [...arr, r];
             }
@@ -258,6 +260,7 @@ function PlayerPage() {
               return arr.filter((x) => x.id !== r.id);
             }
             const r = payload.new as Ship;
+            if (r.in_storage) return arr.filter((x) => x.id !== r.id);
             return arr.map((x) => (x.id === r.id ? { ...x, ...r } : x));
           });
           setSelectedShip((cur) => {
