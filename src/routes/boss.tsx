@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import bossImg from "@/assets/world-boss.png";
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🐲 وحش العالم — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "🐲 وحش العالم — معركة بحرية" }] }),
   component: BossPage,
 });
 
@@ -15,116 +16,126 @@ type Boss = {
   spawned_at: string; expires_at: string;
   defeated_at: string | null;
 };
-type HitRow = { user_id: string; total_damage: number; hit_count: number };
-type FreeStatus = { available: boolean; cooldown_until?: string | null };
+type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null };
+type RocketRow = { id: string; item_id: string; quantity: number };
+
+const ROCKETS = [
+  { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",       border: "border-sky-300" },
+  { id: "rocket_medium", name: "متوسط",  dmg: 4000,  color: "from-emerald-500 to-emerald-800", border: "border-emerald-300" },
+  { id: "rocket_large",  name: "كبير",   dmg: 18000, color: "from-amber-500 to-amber-800",    border: "border-amber-300" },
+  { id: "nuke",          name: "ذرية",   dmg: 70000, color: "from-fuchsia-500 to-rose-900",   border: "border-fuchsia-300" },
+];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
 
+type Projectile = { id: number; kind: "rocket" | "boss"; weapon?: string; key: number };
+type Splash = { id: number; side: "ship" | "boss"; crit?: boolean; dmg?: number };
+
 function BossPage() {
   const [boss, setBoss] = useState<Boss | null>(null);
-  const [hits, setHits] = useState<HitRow[]>([]);
-  const [names, setNames] = useState<Record<string, { display_name: string; avatar_emoji: string }>>({});
-  const [free, setFree] = useState<FreeStatus>({ available: false });
+  const [ships, setShips] = useState<ShipRow[]>([]);
+  const [selectedShip, setSelectedShip] = useState<ShipRow | null>(null);
+  const [shipHp, setShipHp] = useState(100); // local %; cosmetic
+  const [rockets, setRockets] = useState<RocketRow[]>([]);
+  const [projectiles, setProjectiles] = useState<Projectile[]>([]);
+  const [splashes, setSplashes] = useState<Splash[]>([]);
   const [busy, setBusy] = useState(false);
-  const [floats, setFloats] = useState<{ id: number; dmg: number; crit: boolean; x: number; y: number }[]>([]);
-  const [shake, setShake] = useState(false);
+  const [shake, setShake] = useState<"none" | "ship" | "boss">("none");
   const [now, setNow] = useState(Date.now());
-  const [hasContinuous, setHasContinuous] = useState(false);
-  const continuousRef = useRef<number | null>(null);
   const myIdRef = useRef<string | null>(null);
+  const idRef = useRef(0);
+  const nextId = () => ++idRef.current;
 
-  const loadBoss = useCallback(async () => {
-    const { data } = await rpc("get_active_boss");
-    setBoss(data as Boss);
-    if (data?.id) {
-      const { data: h } = await supabase.from("boss_hits").select("user_id,total_damage,hit_count")
-        .eq("boss_id", data.id).order("total_damage", { ascending: false }).limit(20);
-      setHits((h ?? []) as HitRow[]);
-      const ids = (h ?? []).map((x) => x.user_id);
-      if (ids.length) {
-        const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
-        const map: Record<string, { display_name: string; avatar_emoji: string }> = {};
-        (profs ?? []).forEach((p: { id: string; display_name: string; avatar_emoji: string }) => {
-          map[p.id] = { display_name: p.display_name, avatar_emoji: p.avatar_emoji };
-        });
-        setNames(map);
-      }
-    }
-  }, []);
-
+  // Initial fetch
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       myIdRef.current = user?.id ?? null;
-      await loadBoss();
-      const { data: fs } = await rpc("free_strike_status");
-      setFree((fs as FreeStatus) ?? { available: false });
-      const { data: bonus } = await rpc("player_attack_bonus", { p_user: user?.id });
-      if (bonus?.continuous) setHasContinuous(true);
+      const { data: b } = await rpc("get_active_boss");
+      setBoss(b as Boss);
+      if (!user?.id) return;
+      const [{ data: sh }, { data: inv }] = await Promise.all([
+        supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
+          .eq("user_id", user.id).eq("in_storage", false).order("acquired_at"),
+        supabase.from("inventory").select("id,item_id,quantity")
+          .eq("user_id", user.id).in("item_id", ["rocket_small", "rocket_medium", "rocket_large", "nuke"]),
+      ]);
+      const sList = (sh ?? []) as ShipRow[];
+      setShips(sList);
+      // Pick strongest by template_id
+      const best = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0))[0];
+      setSelectedShip(best ?? null);
+      setRockets((inv ?? []) as RocketRow[]);
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [loadBoss]);
+  }, []);
 
-  // realtime boss updates
+  // realtime boss
   useEffect(() => {
     if (!boss?.id) return;
-    const ch = supabase
-      .channel(`world_boss_${boss.id}`)
+    const ch = supabase.channel(`world_boss_${boss.id}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "world_boss", filter: `id=eq.${boss.id}` },
-        (payload) => {
-          setBoss((b) => b ? { ...b, ...(payload.new as Partial<Boss>) } : b);
-        })
-      .on("postgres_changes", { event: "*", schema: "public", table: "boss_hits", filter: `boss_id=eq.${boss.id}` },
-        () => { loadBoss(); })
+        (p) => setBoss((b) => b ? { ...b, ...(p.new as Partial<Boss>) } : b))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [boss?.id, loadBoss]);
+  }, [boss?.id]);
 
-  // continuous fire for divine sword
+  // Boss counter-attacks every 6–10s
   useEffect(() => {
-    if (!hasContinuous || !boss || boss.hp_current <= 0) return;
-    if (continuousRef.current) window.clearInterval(continuousRef.current);
-    continuousRef.current = window.setInterval(async () => {
-      const { data } = await rpc("attack_boss", { p_use_free: false });
-      if (data?.ok) addFloat(data.damage, data.crit);
-    }, 3000) as unknown as number;
-    return () => { if (continuousRef.current) window.clearInterval(continuousRef.current); };
-  }, [hasContinuous, boss]);
+    if (!boss || boss.hp_current <= 0 || !selectedShip || shipHp <= 0) return;
+    const t = setInterval(() => {
+      // boss projectile from boss → ship
+      const pid = nextId();
+      setProjectiles((p) => [...p, { id: pid, kind: "boss", key: nextId() }]);
+      setTimeout(() => {
+        setProjectiles((p) => p.filter((x) => x.id !== pid));
+        const dmg = 5 + Math.floor(Math.random() * 10);
+        setSplashes((s) => [...s, { id: nextId(), side: "ship", dmg }]);
+        setShake("ship");
+        setShipHp((hp) => Math.max(0, hp - dmg));
+        setTimeout(() => setShake("none"), 220);
+      }, 900);
+    }, 6500 + Math.random() * 3500);
+    return () => clearInterval(t);
+  }, [boss, selectedShip, shipHp]);
 
-  const addFloat = (dmg: number, crit: boolean) => {
-    const id = Date.now() + Math.random();
-    setFloats((f) => [...f, { id, dmg, crit, x: 30 + Math.random() * 40, y: 30 + Math.random() * 30 }]);
-    setShake(true);
-    setTimeout(() => setShake(false), 200);
-    setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 1500);
-  };
+  // Cleanup splashes
+  useEffect(() => {
+    if (!splashes.length) return;
+    const t = setTimeout(() => setSplashes((s) => s.slice(1)), 1400);
+    return () => clearTimeout(t);
+  }, [splashes]);
 
-  const attack = async (useFree = false) => {
-    if (busy) return;
+  const fire = useCallback(async (weaponId: string) => {
+    if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    const ammo = rockets.find((r) => r.item_id === weaponId);
+    if (!ammo || ammo.quantity < 1) return;
     setBusy(true);
-    const { data, error } = await rpc("attack_boss", { p_use_free: useFree });
-    setBusy(false);
-    if (error) return alert(error.message);
-    if (data?.ok === false) return alert(data.error);
-    addFloat(data.damage, data.crit);
-    if (useFree) setFree({ available: false, cooldown_until: new Date(Date.now() + 30000).toISOString() });
-    if (data.killed) {
-      setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 500);
-      loadBoss();
+    // optimistic projectile
+    const pid = nextId();
+    setProjectiles((p) => [...p, { id: pid, kind: "rocket", weapon: weaponId, key: nextId() }]);
+    // call RPC (consumes one rocket of cheapest type — we want the chosen type)
+    const { data, error } = await rpc("attack_boss_with", { p_weapon: weaponId });
+    if (error || (data && data.ok === false)) {
+      setProjectiles((p) => p.filter((x) => x.id !== pid));
+      setBusy(false);
+      if (error) return alert(error.message);
+      if (data?.error) return alert(data.error);
+      return;
     }
-  };
-
-  // refresh free strike status
-  useEffect(() => {
-    if (free.cooldown_until) {
-      const until = new Date(free.cooldown_until).getTime();
-      if (now >= until) {
-        rpc("free_strike_status").then(({ data }) => setFree((data as FreeStatus) ?? { available: false }));
-      }
-    }
-  }, [now, free.cooldown_until]);
+    // optimistic local rocket count -1
+    setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    setTimeout(() => {
+      setProjectiles((p) => p.filter((x) => x.id !== pid));
+      setSplashes((s) => [...s, { id: nextId(), side: "boss", crit: data.crit, dmg: data.damage }]);
+      setShake("boss");
+      setTimeout(() => setShake("none"), 220);
+      setBusy(false);
+      if (data.killed) setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 600);
+    }, 850);
+  }, [busy, boss, shipHp, rockets]);
 
   if (!boss) {
     return (
@@ -139,128 +150,206 @@ function BossPage() {
   const expMs = new Date(boss.expires_at).getTime() - now;
   const expH = Math.max(0, Math.floor(expMs / 3600000));
   const expM = Math.max(0, Math.floor((expMs % 3600000) / 60000));
-  const freeCooldownSec = free.cooldown_until ? Math.max(0, Math.ceil((new Date(free.cooldown_until).getTime() - now) / 1000)) : 0;
+
+  const shipDef = selectedShip
+    ? (selectedShip.catalog_code
+        ? getShipByCode(selectedShip.catalog_code)
+        : getShipByMarketLevel(selectedShip.template_id ?? 1))
+    : null;
 
   return (
     <div className="fixed inset-0 overflow-y-auto" dir="rtl"
-      style={{ background: "radial-gradient(ellipse at center, #1a0a0a 0%, #050505 70%, #000 100%)" }}>
-      {/* Lightning flashes */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="absolute w-px h-32 bg-rose-500/40"
-            style={{ left: `${(i*37)%100}%`, top: `${(i*23)%80}%`, animation: `lightning ${3+i%3}s ${i*0.3}s infinite`, opacity: 0 }} />
-        ))}
-      </div>
+      style={{ background:
+        "radial-gradient(ellipse at 50% 0%, #2a0f0f 0%, #0a0608 55%, #000 100%)," +
+        "linear-gradient(to bottom, #1a0a14 0%, #050308 60%, #000 100%)" }}>
       <style>{`
+        @keyframes float-up { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-90px) scale(1.5);opacity:0} }
+        @keyframes shake-x { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+        @keyframes boss-breathe { 0%,100%{transform:scale(1) translateY(0); filter:drop-shadow(0 0 24px rgba(244,63,94,0.6))} 50%{transform:scale(1.03) translateY(-3px); filter:drop-shadow(0 0 50px rgba(244,63,94,1))} }
+        @keyframes ship-bob { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
+        @keyframes wave-roll { 0%{transform:translateX(0)} 100%{transform:translateX(-40px)} }
+        @keyframes rocket-fly-right { 0%{transform:translate(0,0) rotate(-12deg);opacity:0} 10%{opacity:1} 100%{transform:translate(60vw,-30px) rotate(-12deg);opacity:1} }
+        @keyframes rocket-fly-left { 0%{transform:translate(0,0) rotate(155deg);opacity:0} 10%{opacity:1} 100%{transform:translate(-60vw,-30px) rotate(155deg);opacity:1} }
+        @keyframes splash { 0%{transform:scale(.4);opacity:0} 30%{opacity:1} 100%{transform:scale(2.4);opacity:0} }
         @keyframes lightning { 0%,90%,100%{opacity:0} 92%,94%{opacity:1; box-shadow:0 0 30px rgba(244,63,94,0.8)} }
-        @keyframes float-up { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-80px) scale(1.4);opacity:0} }
-        @keyframes shake-hit { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-6px,2px)} 50%{transform:translate(5px,-3px)} 75%{transform:translate(-3px,4px)} }
-        @keyframes boss-breathe { 0%,100%{filter:drop-shadow(0 0 40px rgba(244,63,94,0.6))} 50%{filter:drop-shadow(0 0 70px rgba(244,63,94,1))} }
       `}</style>
 
-      <div className="relative z-10 max-w-md mx-auto px-3 pt-4 pb-32">
-        <div className="flex items-center justify-between mb-3">
-          <Link to="/" className="glass-hud rounded-full px-3 py-1.5 text-rose-200 text-sm font-bold border border-rose-500/50">← رجوع</Link>
-          <div className="glass-hud rounded-full px-3 py-1.5 text-rose-200 text-sm font-bold border border-rose-500/50">
-            ⏰ {expH}س {expM}د
-          </div>
+      {/* Lightning */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="absolute w-px h-32 bg-rose-500/40"
+            style={{ left: `${(i*37)%100}%`, top: `${(i*23)%70}%`, animation: `lightning ${3+i%3}s ${i*0.3}s infinite`, opacity: 0 }} />
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-md mx-auto px-3 pt-3 pb-4 min-h-full flex flex-col">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-2">
+          <Link to="/" className="rounded-full px-3 py-1.5 bg-stone-900/70 text-rose-200 text-sm font-bold border border-rose-500/50">← رجوع</Link>
+          <div className="rounded-full px-3 py-1.5 bg-stone-900/70 text-rose-200 text-sm font-bold border border-rose-500/50">⏰ {expH}س {expM}د</div>
         </div>
 
         <div className="text-center mb-2">
           <div className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-rose-800/60 to-amber-800/60 border border-rose-400/60">
-            <span className="text-rose-100 font-extrabold text-lg">🐲 {boss.name}</span>
+            <span className="text-rose-100 font-extrabold">🐲 {boss.name}</span>
           </div>
         </div>
 
-        <div className="relative my-4 flex items-center justify-center" style={{ minHeight: 280 }}>
-          <img src={bossImg} alt={boss.name} loading="eager" width={1024} height={1024}
-            className={`w-full max-w-[340px] h-auto object-contain ${shake ? "" : ""}`}
-            style={{
-              animation: `boss-breathe 3s ease-in-out infinite${shake ? ", shake-hit 0.2s" : ""}`,
-              opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
-            }} />
-          {floats.map((f) => (
-            <div key={f.id} className={`absolute font-extrabold pointer-events-none ${f.crit ? "text-amber-300 text-3xl" : "text-rose-200 text-2xl"}`}
-              style={{ left: `${f.x}%`, top: `${f.y}%`, animation: "float-up 1.5s ease-out forwards",
-                       textShadow: f.crit ? "0 0 20px rgba(251,191,36,1)" : "0 0 12px rgba(244,63,94,0.9)" }}>
-              {f.crit ? "💥 " : ""}-{f.dmg.toLocaleString()}
+        {/* Boss HP */}
+        <div className="bg-stone-900/80 border border-rose-700/50 rounded-xl px-3 py-2 mb-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-rose-200 text-xs font-bold">❤️ الوحش</span>
+            <span className="text-rose-100 font-extrabold tabular-nums text-xs">{boss.hp_current.toLocaleString()} / {boss.hp_max.toLocaleString()}</span>
+          </div>
+          <div className="h-3 rounded-full bg-stone-950 overflow-hidden border border-rose-900">
+            <div className="h-full bg-gradient-to-r from-rose-600 via-red-500 to-amber-500 transition-all"
+              style={{ width: `${hpPct}%`, boxShadow: "0 0 12px rgba(244,63,94,0.9)" }} />
+          </div>
+        </div>
+
+        {/* BATTLE ARENA */}
+        <div className="relative flex-1 min-h-[300px] rounded-2xl overflow-hidden border-2 border-rose-900/50 mb-2"
+             style={{ background:
+                "linear-gradient(to bottom, #1a1024 0%, #0a1830 50%, #04101e 100%)" }}>
+          {/* moving waves */}
+          <div className="absolute inset-x-0 bottom-0 h-1/2 overflow-hidden opacity-70">
+            {[0,1,2].map((i) => (
+              <div key={i} className="absolute inset-x-0"
+                style={{
+                  bottom: `${i*22}%`,
+                  height: 30,
+                  background: `repeating-linear-gradient(90deg, rgba(56,189,248,0.${4-i}) 0 12px, transparent 12px 24px)`,
+                  animation: `wave-roll ${2.5+i*0.6}s linear infinite`,
+                  filter: "blur(1px)",
+                }} />
+            ))}
+          </div>
+
+          {/* BOSS (left side) */}
+          <div className={`absolute left-2 top-2 bottom-12 w-[55%] flex items-center justify-center`}
+               style={{ animation: shake === "boss" ? "shake-x 0.22s" : undefined }}>
+            <img src={bossImg} alt={boss.name} draggable={false}
+              className="w-full h-full object-contain"
+              style={{
+                animation: "boss-breathe 3s ease-in-out infinite",
+                opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
+                transform: "scaleX(-1)",
+              }} />
+            {splashes.filter((s) => s.side === "boss").map((s) => (
+              <div key={s.id}>
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  style={{ width: 100, height: 100,
+                    background: "radial-gradient(circle, rgba(255,220,80,1) 0%, rgba(255,80,20,0.7) 40%, transparent 70%)",
+                    animation: "splash 0.6s ease-out forwards" }} />
+                <div className={`absolute left-1/2 top-1/4 -translate-x-1/2 font-extrabold pointer-events-none ${s.crit ? "text-amber-300 text-3xl" : "text-rose-200 text-2xl"}`}
+                  style={{ animation: "float-up 1.4s ease-out forwards",
+                    textShadow: s.crit ? "0 0 20px rgba(251,191,36,1)" : "0 0 12px rgba(244,63,94,0.9)" }}>
+                  {s.crit ? "💥 " : ""}-{(s.dmg ?? 0).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* SHIP (right side, facing the boss) */}
+          {shipDef && (
+            <div className={`absolute right-2 bottom-10 w-[42%] aspect-[4/3]`}
+                 style={{ animation: shake === "ship" ? "shake-x 0.22s" : undefined }}>
+              <div style={{ animation: "ship-bob 2.6s ease-in-out infinite", transformOrigin: "50% 90%" }}>
+                <img src={shipDef.image} alt={shipDef.name} draggable={false}
+                  className="w-full h-full object-contain"
+                  style={{ transform: "scaleX(-1)",
+                    filter: shipHp <= 0 ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
+              </div>
+              {splashes.filter((s) => s.side === "ship").map((s) => (
+                <div key={s.id}>
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{ width: 70, height: 70,
+                      background: "radial-gradient(circle, rgba(80,180,255,1) 0%, rgba(20,80,180,0.7) 40%, transparent 70%)",
+                      animation: "splash 0.6s ease-out forwards" }} />
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 font-extrabold text-rose-200 text-lg pointer-events-none"
+                    style={{ animation: "float-up 1.3s ease-out forwards", textShadow: "0 0 10px rgba(244,63,94,0.9)" }}>
+                    -{s.dmg}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Projectiles */}
+          {projectiles.map((p) => p.kind === "rocket" ? (
+            <div key={p.key} className="absolute"
+              style={{ right: "30%", bottom: "30%", animation: "rocket-fly-left 0.85s linear forwards" }}>
+              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 8px rgba(255,180,40,1))" }}>
+                {p.weapon === "nuke" ? "☢️" : p.weapon === "rocket_large" ? "💥" : p.weapon === "rocket_medium" ? "🎯" : "🚀"}
+              </div>
+            </div>
+          ) : (
+            <div key={p.key} className="absolute"
+              style={{ left: "30%", top: "30%", animation: "rocket-fly-right 0.9s linear forwards" }}>
+              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 10px rgba(244,63,94,1))" }}>🔥</div>
             </div>
           ))}
+
           {dead && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-stone-900/90 border-2 border-amber-400 rounded-2xl px-6 py-4 text-center">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+              <div className="bg-stone-900/95 border-2 border-amber-400 rounded-2xl px-6 py-4 text-center">
                 <div className="text-4xl mb-1">💀</div>
                 <div className="text-amber-100 font-extrabold">سقط الوحش!</div>
-                <div className="text-amber-300/70 text-xs mt-1">سيظهر بوس جديد خلال 48 ساعة</div>
+                <div className="text-amber-300/70 text-xs mt-1">سيظهر بوس جديد قريباً</div>
               </div>
             </div>
           )}
         </div>
 
-        {/* HP bar */}
-        <div className="bg-stone-900/80 border-2 border-rose-700/50 rounded-2xl p-3 mb-3 backdrop-blur">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-rose-200 text-sm font-bold">❤️ HP الوحش</span>
-            <span className="text-rose-100 font-extrabold tabular-nums text-sm">
-              {boss.hp_current.toLocaleString()} / {boss.hp_max.toLocaleString()}
-            </span>
-          </div>
-          <div className="h-5 rounded-full bg-stone-950 overflow-hidden border border-rose-900">
-            <div className="h-full bg-gradient-to-r from-rose-600 via-red-500 to-amber-500 transition-all"
-              style={{ width: `${hpPct}%`, boxShadow: "0 0 14px rgba(244,63,94,0.9)" }} />
-          </div>
-        </div>
-
-        {/* Attack buttons */}
-        {!dead && (
-          <div className="space-y-2 mb-4">
-            <button disabled={busy} onClick={() => attack(false)}
-              className="w-full py-4 rounded-2xl bg-gradient-to-b from-rose-500 to-rose-800 text-white font-extrabold text-lg shadow-xl border-2 border-rose-300/40 disabled:opacity-50 active:scale-95 transition-transform">
-              🚀 اضرب بصاروخ
-            </button>
-            {(free.available || freeCooldownSec > 0) && (
-              <button disabled={busy || !free.available} onClick={() => attack(true)}
-                className={`w-full py-3 rounded-2xl font-extrabold shadow-xl border-2 transition-transform ${
-                  free.available
-                    ? "bg-gradient-to-b from-amber-400 to-orange-600 text-stone-900 border-amber-200 active:scale-95"
-                    : "bg-stone-800 text-stone-500 border-stone-700"
-                }`}>
-                {free.available ? "🐲 ضربة التنين المجانية!" : `🐲 ضربة التنين — ${freeCooldownSec}ث`}
-              </button>
-            )}
-            {hasContinuous && (
-              <div className="text-center text-rose-300/70 text-xs animate-pulse">🔥 إطلاق مستمر فعّال (كل 3ث)</div>
+        {/* Ship HP + selector */}
+        {selectedShip && shipDef && (
+          <div className="bg-stone-900/80 border border-sky-700/50 rounded-xl px-3 py-2 mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sky-200 text-xs font-bold flex-1 truncate">⚓ {shipDef.name}</span>
+              <span className="text-sky-100 font-extrabold tabular-nums text-xs">{shipHp}%</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-stone-950 overflow-hidden border border-sky-900">
+              <div className="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all"
+                style={{ width: `${shipHp}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
+            </div>
+            {ships.length > 1 && (
+              <div className="flex gap-1.5 mt-2 overflow-x-auto">
+                {ships.map((s) => {
+                  const d = s.catalog_code ? getShipByCode(s.catalog_code) : getShipByMarketLevel(s.template_id ?? 1);
+                  const sel = s.id === selectedShip.id;
+                  return (
+                    <button key={s.id} onClick={() => { setSelectedShip(s); setShipHp(100); }}
+                      className={`shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95`}>
+                      <img src={d.image} alt="" className="w-10 h-10 object-contain" style={{ transform: "scaleX(-1)" }} />
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
 
-        {/* Leaderboard */}
-        <div className="bg-stone-900/70 border border-rose-700/40 rounded-2xl p-3 backdrop-blur">
-          <div className="text-rose-200 text-sm font-bold mb-2 text-center">🏆 أعلى الضرر</div>
-          {hits.length === 0 ? (
-            <div className="text-center text-rose-300/50 text-xs py-3">كن أول من يضرب الوحش</div>
-          ) : (
-            <div className="space-y-1.5">
-              {hits.map((h, i) => {
-                const p = names[h.user_id];
-                const isMe = h.user_id === myIdRef.current;
-                return (
-                  <div key={h.user_id} className={`flex items-center gap-2 p-2 rounded-lg ${
-                    isMe ? "bg-amber-500/20 border border-amber-400/60" : i < 3 ? "bg-rose-900/40" : "bg-stone-800/40"
-                  }`}>
-                    <span className="text-rose-300 font-extrabold w-6 text-center">{i + 1}</span>
-                    <span className="text-xl">{p?.avatar_emoji ?? "🧑‍✈️"}</span>
-                    <span className="flex-1 text-rose-100 text-sm truncate">{p?.display_name ?? "..."}</span>
-                    <span className="text-rose-200 font-extrabold text-sm tabular-nums">{h.total_damage.toLocaleString()}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div className="mt-2 text-center text-rose-300/50 text-[10px]">
-            🎁 أعلى ضرر = أفضل غنائم (التوب 3 يضمنون نادر+)
+        {/* Rockets inventory */}
+        {!dead && (
+          <div className="grid grid-cols-4 gap-2">
+            {ROCKETS.map((rk) => {
+              const have = rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0;
+              const disabled = busy || have <= 0 || shipHp <= 0;
+              return (
+                <button key={rk.id} disabled={disabled} onClick={() => fire(rk.id)}
+                  className={`relative rounded-xl bg-gradient-to-b ${rk.color} border-2 ${rk.border} py-2 active:scale-95 transition-transform shadow-lg ${disabled ? "opacity-40 grayscale" : ""}`}>
+                  <div className="text-2xl">{rk.id === "nuke" ? "☢️" : rk.id === "rocket_large" ? "💥" : rk.id === "rocket_medium" ? "🎯" : "🚀"}</div>
+                  <div className="text-[10px] font-bold text-white/90">{rk.name}</div>
+                  <div className="text-[10px] text-white/80 tabular-nums">-{rk.dmg.toLocaleString()}</div>
+                  <div className="absolute -top-1.5 -right-1.5 bg-stone-900 border border-amber-400 rounded-full px-1.5 py-0.5 text-amber-200 text-[10px] font-extrabold tabular-nums">×{have}</div>
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
+        {shipHp <= 0 && !dead && (
+          <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تعطلت! اختر سفينة أخرى</div>
+        )}
       </div>
     </div>
   );
