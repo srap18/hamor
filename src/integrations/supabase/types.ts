@@ -736,6 +736,38 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_replies: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_replies_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "forum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forum_topic_votes: {
         Row: {
           created_at: string
@@ -767,6 +799,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          replies_count: number
           title: string
           user_id: string
           votes: number
@@ -775,6 +808,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          replies_count?: number
           title: string
           user_id: string
           votes?: number
@@ -783,6 +817,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          replies_count?: number
           title?: string
           user_id?: string
           votes?: number
