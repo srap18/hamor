@@ -213,7 +213,24 @@ export const SHIPS: ShipDef[] = Array.from({ length: 30 }, (_, i) => buildShip(i
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
-const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
+
+// Tribe-exclusive ships (level 24 base, but with 20K HP/storage and tribe-only currency).
+function buildTribeShip(code: string, name: string, image: string, rarity: string, armor: number, speed: number, attackBonus: number, flavor: string): ShipDef {
+  return {
+    code, name, title: name, image,
+    price: 0, marketLevel: 24, rarity,
+    maxHp: 20000, armor, speed, storage: 20000,
+    repairSeconds: 18000, fishingSeconds: 60,
+    fishPool: ["manta","hammerhead","whale","orca","arowana","goldfish","pearl"],
+    flavor,
+  };
+}
+export const TRIBE_LIGHTNING_SHIP = buildTribeShip("tribe-lightning", "⚡ سفينة البرق", shipTribeLightning, "Epic", 80, 100, 180, "سفينة قبيلة بسرعة خاطفة وضربات برق متتالية.");
+export const TRIBE_TORNADO_SHIP   = buildTribeShip("tribe-tornado",   "🌀 سفينة الإعصار", shipTribeTornado, "Epic", 200, 70, 200, "سفينة قبيلة بدروع متينة وقوة دفاعية هائلة.");
+export const TRIBE_FIRE_SHIP      = buildTribeShip("tribe-fire",      "🔥 سفينة النار", shipTribeFire, "Legendary", 150, 85, 320, "سفينة قبيلة أسطورية بقوة هجوم مدمرة.");
+export const TRIBE_SHIPS: ShipDef[] = [TRIBE_LIGHTNING_SHIP, TRIBE_TORNADO_SHIP, TRIBE_FIRE_SHIP];
+
+const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP, ...TRIBE_SHIPS];
 
 export const STARTER_SHIP = SHIPS[0];
 
