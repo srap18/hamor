@@ -23,6 +23,7 @@ function UserProfilePage() {
   const [friendStatus, setFriendStatus] = useState<"none" | "pending_out" | "pending_in" | "accepted" | "self">("none");
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [tribe, setTribe] = useState<TribeInfo | null>(null);
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 1800); };
 
