@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileByUsername, type PublicProfile } from "@/lib/profiles-public";
 import { frameById } from "@/lib/frames";
+import { getTribeBanner } from "@/lib/tribe-banners";
 import ProfileAlbum from "@/components/ProfileAlbum";
+
+type TribeInfo = { id: string; name: string; level: number; emblem: string | null };
 
 export const Route = createFileRoute("/u/$username")({
   ssr: false,
