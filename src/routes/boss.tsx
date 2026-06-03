@@ -21,11 +21,13 @@ type ShipRow = { id: string; template_id: number | null; catalog_code: string | 
 type RocketRow = { id: string; item_id: string; quantity: number };
 
 const ROCKETS = [
-  { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",       border: "border-sky-300" },
+  { id: "cannon",        name: "مدفع",   dmg: 120,   color: "from-stone-500 to-stone-800",     border: "border-stone-300", free: true },
+  { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",         border: "border-sky-300" },
   { id: "rocket_medium", name: "متوسط",  dmg: 4000,  color: "from-emerald-500 to-emerald-800", border: "border-emerald-300" },
-  { id: "rocket_large",  name: "كبير",   dmg: 18000, color: "from-amber-500 to-amber-800",    border: "border-amber-300" },
-  { id: "nuke",          name: "ذرية",   dmg: 70000, color: "from-fuchsia-500 to-rose-900",   border: "border-fuchsia-300" },
+  { id: "rocket_large",  name: "كبير",   dmg: 18000, color: "from-amber-500 to-amber-800",     border: "border-amber-300" },
+  { id: "nuke",          name: "ذرية",   dmg: 70000, color: "from-fuchsia-500 to-rose-900",    border: "border-fuchsia-300" },
 ];
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
