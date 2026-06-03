@@ -1224,12 +1224,12 @@ function Index() {
       {/* Clickable building hotspots */}
       <Hotspot to="/fish-market" label="سوق السمك" emoji="🐟"
         style={{ left: "0%", top: "18%", width: "26%", height: "22%" }} />
-      {/* Ship Market — in-world building blended into the background on the
-          right horizon. Evolves with market level (1-30). Burns when nuked. */}
+      {/* Ship Market — sits on the island shore, below the fish market and away
+          from the ships' lanes. Works across all backgrounds. */}
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "0%", top: "20%", width: "30%", height: "16%" }}
+        style={{ left: "2%", top: "41%", width: "24%", height: "14%" }}
       />
 
       {/* Realistic drifting clouds */}
