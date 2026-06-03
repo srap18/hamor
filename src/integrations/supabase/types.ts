@@ -556,6 +556,81 @@ export type Database = {
         }
         Relationships: []
       }
+      dragon_equipment: {
+        Row: {
+          acquired_at: string
+          equipped: boolean
+          id: string
+          name: string
+          rarity: string
+          slot: string
+          stats: Json
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          name: string
+          rarity?: string
+          slot: string
+          stats?: Json
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          equipped?: boolean
+          id?: string
+          name?: string
+          rarity?: string
+          slot?: string
+          stats?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dragons: {
+        Row: {
+          created_at: string
+          dp: number
+          element: string
+          hatched_at: string | null
+          name: string
+          pvp_losses: number
+          pvp_wins: number
+          stage: number
+          total_boss_damage: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dp?: number
+          element?: string
+          hatched_at?: string | null
+          name?: string
+          pvp_losses?: number
+          pvp_wins?: number
+          stage?: number
+          total_boss_damage?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dp?: number
+          element?: string
+          hatched_at?: string | null
+          name?: string
+          pvp_losses?: number
+          pvp_wins?: number
+          stage?: number
+          total_boss_damage?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       economy_settings: {
         Row: {
           key: string
@@ -3229,6 +3304,28 @@ export type Database = {
           username: string
           xp: number
         }[]
+      }
+      get_or_init_dragon: {
+        Args: never
+        Returns: {
+          created_at: string
+          dp: number
+          element: string
+          hatched_at: string | null
+          name: string
+          pvp_losses: number
+          pvp_wins: number
+          stage: number
+          total_boss_damage: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dragons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_player_crews: {
         Args: { _player_id: string }

@@ -28,6 +28,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
+import { Route as DragonRouteImport } from './routes/dragon'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -144,6 +145,11 @@ const FishMarketRoute = FishMarketRouteImport.update({
   path: '/fish-market',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DragonRoute = DragonRouteImport.update({
+  id: '/dragon',
+  path: '/dragon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CosmeticsRoute = CosmeticsRouteImport.update({
   id: '/cosmetics',
   path: '/cosmetics',
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -501,6 +513,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
+  DragonRoute: typeof DragonRoute
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   FriendsRoute: typeof FriendsRoute
@@ -659,6 +672,13 @@ declare module '@tanstack/react-router' {
       path: '/fish-market'
       fullPath: '/fish-market'
       preLoaderRoute: typeof FishMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dragon': {
+      id: '/dragon'
+      path: '/dragon'
+      fullPath: '/dragon'
+      preLoaderRoute: typeof DragonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cosmetics': {
@@ -839,6 +859,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
+  DragonRoute: DragonRoute,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   FriendsRoute: FriendsRoute,
@@ -866,13 +887,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

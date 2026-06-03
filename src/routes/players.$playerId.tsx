@@ -14,6 +14,7 @@ import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import { DragonEggButton } from "@/components/DragonEggButton";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -762,6 +763,11 @@ function PlayerPage() {
         <div className="absolute text-xl animate-bird-fly" style={{ top: "12%", left: "-10%", animationDuration: "22s" }}>🕊️</div>
         <div className="absolute text-base animate-bird-fly" style={{ top: "20%", left: "-15%", animationDuration: "28s", animationDelay: "-8s" }}>🕊️</div>
       </div>
+
+      {/* Floating dragon egg — same spot as the glowing dragon visual in the user's reference screenshot */}
+      <DragonEggButton className="absolute top-[18%] right-[8%] z-20 w-24 h-24 active:scale-90 transition-transform" />
+
+
 
 
       {/* Their ships floating */}
