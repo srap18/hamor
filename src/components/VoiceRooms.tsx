@@ -297,7 +297,7 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
     setParticipants(list);
     const ids = Array.from(new Set(list.map(p => p.user_id)));
     if (ids.length) {
-      const { data: prs } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids);
+      const { data: prs } = await supabase.from("profiles").select("id,display_name,username,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids);
       setProfs(new Map((prs || []).map((p: any) => [p.id, p])));
     }
   }, [room.id]);
@@ -462,7 +462,7 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
           setMessages(hist);
           // Load profiles for message authors
           const ids = Array.from(new Set(hist.map(h => h.user_id)));
-          if (ids.length) supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids).then(({ data: prs }) => {
+          if (ids.length) supabase.from("profiles").select("id,display_name,username,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids).then(({ data: prs }) => {
             if (prs) setProfs(prev => { const n = new Map(prev); prs.forEach((p: any) => n.set(p.id, p)); return n; });
           });
         });
