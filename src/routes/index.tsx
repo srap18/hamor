@@ -2309,9 +2309,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
       tab === "comp" ? ["competitions", "competition_catches"] :
-      tab === "fish" ? ["fish_caught"] :
+      tab === "fish" ? ["fish_caught", "profiles"] :
       tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
-      tab === "ships" ? ["ships_owned"] :
+      tab === "ships" ? ["ships_owned", "profiles"] :
+      tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
       [];
     const ch = watchedTables.length > 0
       ? watchedTables.reduce((channel, table) => (
