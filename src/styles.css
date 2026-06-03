@@ -219,6 +219,12 @@
   }
   .animate-smoke-rise { animation: smoke-rise 2.4s ease-out infinite; }
 
+  @keyframes float-soft {
+    0%, 100% { transform: translateY(0) rotate(-0.3deg); }
+    50%      { transform: translateY(-3px) rotate(0.3deg); }
+  }
+  .animate-float-soft { animation: float-soft 6s ease-in-out infinite; transform-origin: center bottom; }
+
   @keyframes bow-splash {
     0%   { transform: translateX(-50%) scaleX(0.4) scaleY(0.6); opacity: 0; }
     30%  { opacity: 0.9; }
