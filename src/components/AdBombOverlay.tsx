@@ -259,12 +259,12 @@ export function AdBombOverlay({
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
           <div className="text-[11px] text-fuchsia-50 font-bold leading-tight">
-            <div>📺 قنبلة إعلانية من {attackerName || "لاعب"}</div>
+            <div>📺 قنبلة إعلانية من {attackerName || "لاعب"}{targetName ? ` على ${targetName}` : ""}</div>
             <div className="text-[10px] opacity-80 tabular-nums">
               متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
-          {isOwner && (
+          {(isOwner || (!!meId && !!bomb && meId === bomb.target_user_id)) && (
             <button
               onClick={handleRemove}
               disabled={removing}
