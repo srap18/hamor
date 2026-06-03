@@ -298,6 +298,25 @@ function ProfilePage() {
           <div className="text-[10px] text-muted-foreground text-left">{bio.length}/200</div>
         </section>
 
+        {/* View public profile */}
+        {username && (
+          <Link to="/u/$username" params={{ username }}
+            className="block text-center rounded-2xl px-4 py-3 bg-gradient-to-b from-indigo-400 to-indigo-700 border-2 border-indigo-200 text-white font-bold shadow-lg active:scale-95">
+            👁️ عرض ملفي الشخصي العام
+          </Link>
+        )}
+
+        {/* Album: photos + short videos */}
+        {userId && (
+          <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-3">
+            <div>
+              <h2 className="text-sm font-bold text-accent">📸 ألبومي (صور ومقاطع قصيرة)</h2>
+              <p className="text-[10px] text-muted-foreground">حتى 20 عنصر • مقاطع قصيرة (≤ 30 ثانية) • فحص ذكاء اصطناعي قبل النشر</p>
+            </div>
+            <ProfileAlbumLazy userId={userId} isOwner={true} />
+          </section>
+        )}
+
         {/* Avatar image */}
         <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-3">
           <div className="flex items-center justify-between">
