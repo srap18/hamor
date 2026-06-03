@@ -38,6 +38,7 @@ function validate(title: string, body: string): string | null {
 }
 
 export function ForumTopics({ userId }: { userId: string }) {
+  const { isAdmin } = useIsAdmin();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [authors, setAuthors] = useState<Map<string, Author>>(new Map());
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
