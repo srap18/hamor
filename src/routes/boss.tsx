@@ -113,13 +113,12 @@ function BossPage() {
 
   const fire = useCallback(async (weaponId: string) => {
     if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    const isFree = weaponId === "cannon";
     const ammo = rockets.find((r) => r.item_id === weaponId);
-    if (!ammo || ammo.quantity < 1) return;
+    if (!isFree && (!ammo || ammo.quantity < 1)) return;
     setBusy(true);
-    // optimistic projectile
     const pid = nextId();
     setProjectiles((p) => [...p, { id: pid, kind: "rocket", weapon: weaponId, key: nextId() }]);
-    // call RPC (consumes one rocket of cheapest type — we want the chosen type)
     const { data, error } = await rpc("attack_boss_with", { p_weapon: weaponId });
     if (error || (data && data.ok === false)) {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
@@ -128,8 +127,9 @@ function BossPage() {
       if (data?.error) return alert(data.error);
       return;
     }
-    // optimistic local rocket count -1
-    setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    if (!isFree) {
+      setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    }
     setTimeout(() => {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setSplashes((s) => [...s, { id: nextId(), side: "boss", crit: data.crit, dmg: data.damage }]);
@@ -139,6 +139,7 @@ function BossPage() {
       if (data.killed) setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 600);
     }, 850);
   }, [busy, boss, shipHp, rockets]);
+
 
   if (!boss) {
     return (
