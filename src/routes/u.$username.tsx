@@ -34,6 +34,11 @@ function UserProfilePage() {
       setMe(u.user?.id ?? null);
       const p = await getProfileByUsername(username);
       setProfile(p);
+      if (p?.tribe_id) {
+        const { data: t } = await supabase.from("tribes").select("id,name,level,emblem").eq("id", p.tribe_id).maybeSingle();
+        if (t) setTribe(t as TribeInfo);
+        else setTribe(null);
+      } else setTribe(null);
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
         else {
