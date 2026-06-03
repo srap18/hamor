@@ -250,7 +250,52 @@ function ProfilePage() {
             className="w-full px-3 py-2.5 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-base focus:border-accent outline-none"
             placeholder="اكتب اسمك"
           />
-          <div className="text-[10px] text-muted-foreground">من 2 إلى 24 حرف</div>
+          <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف</div>
+        </section>
+
+        {/* Username */}
+        <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-bold text-accent">اليوزر @</label>
+            <span className="text-[10px] text-muted-foreground">@{username || "..."}</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={usernameDraft}
+              onChange={(e) => setUsernameDraft(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20))}
+              maxLength={20}
+              dir="ltr"
+              className="flex-1 px-3 py-2.5 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-base focus:border-accent outline-none font-mono"
+              placeholder="user_123456"
+              disabled={!canChangeUsername}
+            />
+            <button
+              onClick={changeUsername}
+              disabled={savingUsername || !canChangeUsername || usernameDraft === username}
+              className="px-3 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 text-xs font-bold active:scale-95 disabled:opacity-50"
+            >
+              {savingUsername ? "..." : "تغيير"}
+            </button>
+          </div>
+          <div className="text-[10px] text-muted-foreground">
+            {canChangeUsername
+              ? "5-20 حرف، أحرف إنجليزية صغيرة وأرقام و _ فقط. يمكن تغييره مرة كل 14 يوم."
+              : `يمكنك تغيير اليوزر بعد ${Math.ceil(usernameCooldownLeft / (24 * 3600 * 1000))} يوم`}
+          </div>
+        </section>
+
+        {/* Bio */}
+        <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
+          <label className="text-sm font-bold text-accent">الوصف الشخصي</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value.slice(0, 200))}
+            maxLength={200}
+            rows={3}
+            className="w-full px-3 py-2 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-sm focus:border-accent outline-none resize-none"
+            placeholder="اكتب وصف قصير عنك..."
+          />
+          <div className="text-[10px] text-muted-foreground text-left">{bio.length}/200</div>
         </section>
 
         {/* Avatar image */}
