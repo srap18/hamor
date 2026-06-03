@@ -1231,18 +1231,19 @@ function Index() {
 
 
 
-      {/* Fish market — animated building, changes per upgrade level */}
+      {/* Fish market — takes the old ship market spot on the left beach */}
       <FishMarketBuilding
         level={fishMarketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "2%", top: "44%", width: "24%", height: "20%" }}
+        style={{ left: "22%", top: "48%", width: "26%", height: "20%" }}
       />
-      {/* Ship Market — sits where the fish market used to be, facing the sea */}
+      {/* Ship Market — moved to the marked spot near the shoreline */}
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ left: "22%", top: "48%", width: "26%", height: "20%" }}
+        style={{ right: "32%", top: "40%", width: "22%", height: "18%" }}
       />
+
 
 
       {/* Realistic drifting clouds */}
