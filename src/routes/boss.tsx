@@ -309,16 +309,27 @@ function BossPage() {
 
           {/* Projectiles */}
           {projectiles.map((p) => p.kind === "rocket" ? (
-            <div key={p.key} className="absolute"
-              style={{ right: "30%", bottom: "30%", animation: "rocket-fly-left 0.85s linear forwards" }}>
-              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 8px rgba(255,180,40,1))" }}>
+            <div key={p.key} className="absolute z-30 flex items-center gap-1"
+              style={{ right: "40%", bottom: "38%", animation: "rocket-arc-left 0.85s cubic-bezier(.4,.1,.6,1) forwards" }}>
+              {/* trail */}
+              <div className="h-1.5 w-16 rounded-full origin-right"
+                style={{
+                  background: "linear-gradient(to left, rgba(255,200,80,1), rgba(255,80,20,0.8), transparent)",
+                  filter: "blur(2px)", animation: "trail-pulse 0.2s linear infinite",
+                }} />
+              <div className="text-4xl drop-shadow-[0_0_14px_rgba(255,180,40,1)]">
                 {p.weapon === "nuke" ? "☢️" : p.weapon === "rocket_large" ? "💥" : p.weapon === "rocket_medium" ? "🎯" : "🚀"}
               </div>
             </div>
           ) : (
-            <div key={p.key} className="absolute"
-              style={{ left: "30%", top: "30%", animation: "rocket-fly-right 0.9s linear forwards" }}>
-              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 10px rgba(244,63,94,1))" }}>🔥</div>
+            <div key={p.key} className="absolute z-30 flex items-center gap-1"
+              style={{ left: "40%", top: "35%", animation: "rocket-arc-right 0.9s cubic-bezier(.4,.1,.6,1) forwards" }}>
+              <div className="text-4xl drop-shadow-[0_0_14px_rgba(244,63,94,1)]">🔥</div>
+              <div className="h-1.5 w-16 rounded-full"
+                style={{
+                  background: "linear-gradient(to right, rgba(255,80,40,1), rgba(120,20,20,0.8), transparent)",
+                  filter: "blur(2px)", animation: "trail-pulse 0.2s linear infinite",
+                }} />
             </div>
           ))}
 
