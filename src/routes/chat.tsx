@@ -349,13 +349,11 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "voice" || tab === "topics" || tab === "tribeshop") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "voice" || tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "voice" ? (
           <VoiceRooms userId={user?.id || ""} />
         ) : tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
-        ) : tab === "tribeshop" ? (
-          <TribeShop userId={user?.id || ""} tribeId={profile?.tribe_id || null} />
         ) : tab === "dm" && !dmWith ? (
           <div className="flex-1 overflow-y-auto p-3">
             <div className="flex items-center gap-2 mb-3 px-1">
