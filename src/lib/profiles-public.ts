@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type PublicProfile = {
   id: string;
   display_name: string | null;
+  username: string | null;
+  bio: string | null;
   avatar_emoji: string | null;
   avatar_url: string | null;
   level: number | null;
@@ -25,6 +27,12 @@ export async function getProfilesPublic(ids: string[]): Promise<PublicProfile[]>
 
 export async function getProfilePublic(id: string): Promise<PublicProfile | null> {
   const list = await getProfilesPublic([id]);
+  return list[0] || null;
+}
+
+export async function getProfileByUsername(username: string): Promise<PublicProfile | null> {
+  const { data } = await (supabase as any).rpc("get_profile_by_username", { _username: username });
+  const list = (data || []) as PublicProfile[];
   return list[0] || null;
 }
 

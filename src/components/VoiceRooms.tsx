@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { createJungle } from "@/lib/jungle";
 import { transformVoice } from "@/lib/voicechanger.functions";
@@ -9,7 +10,7 @@ import { frameById } from "@/lib/frames";
 
 type Room = { id: string; name: string; topic: string; created_by: string; max_users: number; created_at: string };
 type Participant = { id: string; room_id: string; user_id: string; is_muted: boolean; joined_at: string };
-type Prof = { id: string; display_name: string; avatar_emoji: string; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null };
+type Prof = { id: string; display_name: string; username?: string | null; avatar_emoji: string; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null };
 
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
@@ -254,6 +255,10 @@ function buildProcessedStream(raw: MediaStream, fx: VoiceFx): { stream: MediaStr
 
 
 function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; onLeave: () => void }) {
+  const navigate = useNavigate();
+  const openProfile = (p: Prof | undefined) => {
+    if (p?.username) navigate({ to: "/u/$username", params: { username: p.username } });
+  };
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [profs, setProfs] = useState<Map<string, Prof>>(new Map());
   const [muted, setMuted] = useState(false);
@@ -296,7 +301,7 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
     setParticipants(list);
     const ids = Array.from(new Set(list.map(p => p.user_id)));
     if (ids.length) {
-      const { data: prs } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids);
+      const { data: prs } = await supabase.from("profiles").select("id,display_name,username,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids);
       setProfs(new Map((prs || []).map((p: any) => [p.id, p])));
     }
   }, [room.id]);
@@ -461,7 +466,7 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
           setMessages(hist);
           // Load profiles for message authors
           const ids = Array.from(new Set(hist.map(h => h.user_id)));
-          if (ids.length) supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids).then(({ data: prs }) => {
+          if (ids.length) supabase.from("profiles").select("id,display_name,username,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame").in("id", ids).then(({ data: prs }) => {
             if (prs) setProfs(prev => { const n = new Map(prev); prs.forEach((p: any) => n.set(p.id, p)); return n; });
           });
         });
@@ -726,10 +731,10 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
                 const isMe = p.user_id === userId;
                 const isSpeaking = speakingPeers.has(p.user_id);
                 return (
-                  <div key={p.id} className="flex flex-col items-center gap-1 shrink-0">
+                  <button key={p.id} onClick={() => !isMe && openProfile(prof)} className="flex flex-col items-center gap-1 shrink-0 active:scale-95">
                     <Avatar p={prof} size={64} speaking={isSpeaking} muted={isMe ? muted : p.is_muted} />
                     <div className={`text-[10px] font-bold truncate max-w-[70px] px-1 ${frameById(prof?.name_frame)?.kind === "name" ? frameById(prof?.name_frame)?.nameClass : "text-amber-100/80"} ${frameById(prof?.name_frame)?.animClass ?? ""}`}>{isMe ? "أنت" : (prof?.display_name || "...")}</div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -766,12 +771,13 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
               const isMe = p.user_id === userId;
               const isSpeaking = speakingPeers.has(p.user_id);
               return (
-                <div key={p.id} className="flex flex-col items-center gap-1">
+                <button key={p.id} onClick={() => !isMe && openProfile(prof)} className="flex flex-col items-center gap-1 active:scale-95">
                   <Avatar p={prof} size={104} speaking={isSpeaking} muted={isMe ? muted : p.is_muted} />
                   <div className={`text-xs font-bold truncate max-w-full px-1.5 ${frameById(prof?.name_frame)?.kind === "name" ? frameById(prof?.name_frame)?.nameClass : "text-amber-100"} ${frameById(prof?.name_frame)?.animClass ?? ""}`}>{prof?.display_name || "..."}</div>
+                  {prof?.username && !isMe && <div className="text-[9px] text-amber-200/60">@{prof.username}</div>}
                   {isMe && <div className="text-[10px] text-emerald-300">(أنت)</div>}
                   {p.user_id === room.created_by && <div className="text-[10px] text-amber-400">👑 مالك</div>}
-                </div>
+                </button>
               );
             })}
           </div>

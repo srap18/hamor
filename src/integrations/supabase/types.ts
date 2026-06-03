@@ -1289,6 +1289,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_media: {
+        Row: {
+          caption: string
+          created_at: string
+          duration_ms: number | null
+          id: string
+          media_type: string
+          media_url: string
+          thumbnail_url: string | null
+          user_id: string
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          media_type: string
+          media_url: string
+          thumbnail_url?: string | null
+          user_id: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          media_type?: string
+          media_url?: string
+          thumbnail_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_session_id: string | null
@@ -1297,6 +1330,7 @@ export type Database = {
           avatar_frame: string | null
           avatar_url: string | null
           bg_burned_until: string | null
+          bio: string
           bubble_frame: string | null
           coins: number
           created_at: string
@@ -1317,6 +1351,8 @@ export type Database = {
           steal_blocked_until: string | null
           tribe_gems: number
           tribe_id: string | null
+          username: string
+          username_changed_at: string | null
           vip_expires_at: string | null
           vip_level: number
           vip_points: number
@@ -1330,6 +1366,7 @@ export type Database = {
           avatar_frame?: string | null
           avatar_url?: string | null
           bg_burned_until?: string | null
+          bio?: string
           bubble_frame?: string | null
           coins?: number
           created_at?: string
@@ -1350,6 +1387,8 @@ export type Database = {
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
+          username: string
+          username_changed_at?: string | null
           vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
@@ -1363,6 +1402,7 @@ export type Database = {
           avatar_frame?: string | null
           avatar_url?: string | null
           bg_burned_until?: string | null
+          bio?: string
           bubble_frame?: string | null
           coins?: number
           created_at?: string
@@ -1383,6 +1423,8 @@ export type Database = {
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
+          username?: string
+          username_changed_at?: string | null
           vip_expires_at?: string | null
           vip_level?: number
           vip_points?: number
@@ -2605,6 +2647,7 @@ export type Database = {
     Functions: {
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
+      _gen_unique_username: { Args: never; Returns: string }
       _grant_ship_with_storage: {
         Args: { _catalog_code: string; _uid: string }
         Returns: string
@@ -2894,6 +2937,7 @@ export type Database = {
           blocked_until: string
         }[]
       }
+      change_username: { Args: { _new: string }; Returns: Json }
       claim_daily_login: {
         Args: never
         Returns: {
@@ -3142,6 +3186,7 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bio: string
           bubble_frame: string
           created_at: string
           display_name: string
@@ -3152,6 +3197,7 @@ export type Database = {
           profile_frame: string
           selected_bg_id: string
           tribe_id: string
+          username: string
           xp: number
         }[]
       }
@@ -3162,12 +3208,13 @@ export type Database = {
           ship_id: string
         }[]
       }
-      get_profiles_public: {
-        Args: { _ids: string[] }
+      get_profile_by_username: {
+        Args: { _username: string }
         Returns: {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bio: string
           bubble_frame: string
           created_at: string
           display_name: string
@@ -3178,6 +3225,28 @@ export type Database = {
           profile_frame: string
           selected_bg_id: string
           tribe_id: string
+          username: string
+          xp: number
+        }[]
+      }
+      get_profiles_public: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          bio: string
+          bubble_frame: string
+          created_at: string
+          display_name: string
+          id: string
+          level: number
+          name_frame: string
+          online_at: string
+          profile_frame: string
+          selected_bg_id: string
+          tribe_id: string
+          username: string
           xp: number
         }[]
       }
@@ -3382,6 +3451,7 @@ export type Database = {
           avatar_emoji: string
           avatar_frame: string
           avatar_url: string
+          bio: string
           bubble_frame: string
           created_at: string
           display_name: string
@@ -3392,6 +3462,7 @@ export type Database = {
           profile_frame: string
           selected_bg_id: string
           tribe_id: string
+          username: string
           xp: number
         }[]
       }
