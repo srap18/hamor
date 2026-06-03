@@ -718,24 +718,27 @@ function Index() {
   }, [modal, crewTick]);
 
   const [marketLevel, setMarketLevel] = useState<number>(1);
+  const [fishMarketLevel, setFishMarketLevel] = useState<number>(1);
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
       // Finalize any completed upgrades so the level reflects instantly
       await supabase.rpc("finalize_market_upgrades");
-      const { data } = await supabase
-        .from("user_market")
-        .select("level")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      await supabase.rpc("finalize_fish_market_upgrades" as never);
+      const [{ data: shipRow }, { data: fishRow }] = await Promise.all([
+        supabase.from("user_market").select("level").eq("user_id", user.id).maybeSingle(),
+        supabase.from("user_fish_market" as never).select("level").eq("user_id", user.id).maybeSingle(),
+      ]);
       if (cancelled) return;
-      setMarketLevel(Math.max(1, Math.min(30, (data as any)?.level ?? 1)));
+      setMarketLevel(Math.max(1, Math.min(30, (shipRow as any)?.level ?? 1)));
+      setFishMarketLevel(Math.max(1, Math.min(30, (fishRow as any)?.level ?? 1)));
     };
     load();
     const ch = supabase
       .channel(`my-market-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "user_market", filter: `user_id=eq.${user.id}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_fish_market", filter: `user_id=eq.${user.id}` }, load)
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
@@ -748,6 +751,7 @@ function Index() {
       supabase.removeChannel(ch);
     };
   }, [user]);
+
 
   const [bgId, setBgId] = useState<string>(() => getSelectedBgId());
   useEffect(() => {
