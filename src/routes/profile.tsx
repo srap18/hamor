@@ -38,6 +38,11 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameChangedAt, setUsernameChangedAt] = useState<string | null>(null);
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [bio, setBio] = useState("");
   const [avatarEmoji, setAvatarEmoji] = useState("🧙");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFrame, setAvatarFrame] = useState<string | null>(null);
