@@ -193,13 +193,14 @@ function DragonPage() {
           </div>
         </div>
 
-        {/* Coming soon panels */}
+        {/* Action panels */}
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="bg-stone-900/50 border border-amber-700/30 rounded-xl p-3 text-center opacity-60">
-            <div className="text-2xl mb-1">⚔️</div>
-            <div className="text-amber-300/80 text-xs font-bold">التسليح</div>
-            <div className="text-stone-400 text-[9px]">قريباً</div>
-          </div>
+          <Link to="/dragon/forge"
+            className="bg-gradient-to-br from-amber-600/40 to-rose-900/40 border-2 border-amber-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
+            <div className="text-2xl mb-1">⚒️</div>
+            <div className="text-amber-100 text-xs font-extrabold">الفورج</div>
+            <div className="text-amber-300/80 text-[9px]">تسليح وترقية</div>
+          </Link>
           <div className="bg-stone-900/50 border border-amber-700/30 rounded-xl p-3 text-center opacity-60">
             <div className="text-2xl mb-1">🏟️</div>
             <div className="text-amber-300/80 text-xs font-bold">الأرينا</div>

@@ -2937,6 +2937,7 @@ export type Database = {
           player_id: string
         }[]
       }
+      award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
         Returns: undefined
@@ -2953,6 +2954,10 @@ export type Database = {
       buy_catalog_item: {
         Args: { _item_id: string; _item_type: string }
         Returns: undefined
+      }
+      buy_dragon_equipment: {
+        Args: { p_currency: string; p_rarity: string; p_slot: string }
+        Returns: Json
       }
       buy_lootbox: { Args: { _type_id: string }; Returns: string }
       buy_market_freeze: { Args: { _hours: number }; Returns: string }
@@ -3114,6 +3119,7 @@ export type Database = {
       }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      equip_dragon_item: { Args: { p_item_id: string }; Returns: Json }
       feed_daughter: { Args: { _fish_stock_ids: string[] }; Returns: Json }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_competition: {
@@ -3703,6 +3709,7 @@ export type Database = {
         Returns: Json
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
+      upgrade_dragon_item: { Args: { p_item_id: string }; Returns: Json }
       use_crew_from_inventory: {
         Args: { _inventory_id: string; _ship_id?: string }
         Returns: Json
