@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/use-admin";
 import {
   listProfileMedia,
   deleteProfileMedia,
@@ -26,7 +26,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
   const [viewer, setViewer] = useState<ProfileMedia | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ProfileMedia | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const isAdmin = useIsAdmin();
+  const { isAdmin } = useIsAdmin();
 
   const flash = (m: string) => { setStatus(m); window.setTimeout(() => setStatus(null), 2500); };
 
@@ -201,15 +201,3 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
   );
 }
 
-function useIsAdmin() {
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const { data } = await (supabase as any).rpc("is_admin", { _user_id: u.user.id });
-      setAdmin(!!data);
-    })();
-  }, []);
-  return admin;
-}
