@@ -255,6 +255,10 @@ function buildProcessedStream(raw: MediaStream, fx: VoiceFx): { stream: MediaStr
 
 
 function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; onLeave: () => void }) {
+  const navigate = useNavigate();
+  const openProfile = (p: Prof | undefined) => {
+    if (p?.username) navigate({ to: "/u/$username", params: { username: p.username } });
+  };
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [profs, setProfs] = useState<Map<string, Prof>>(new Map());
   const [muted, setMuted] = useState(false);
