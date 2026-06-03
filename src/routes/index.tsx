@@ -28,6 +28,7 @@ import cloudImg from "@/assets/cloud-realistic.png";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
+import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
