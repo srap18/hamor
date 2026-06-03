@@ -1,6 +1,11 @@
-// Web Audio API-based sound engine — zero dependencies, no network.
-// Provides procedural SFX + an ambient music pad. Respects user toggles
-// in localStorage ("sfx_on" / "music_on").
+// Web Audio API-based sound engine + cinematic sample playback.
+// Procedural SFX cover the small UI sounds; the big booms (explosion / nuke)
+// use realistic CDN-hosted MP3 samples so they feel like Hollywood-grade
+// detonations instead of synth chirps. Respects user toggles in localStorage
+// ("sfx_on" / "music_on").
+
+import explosionAsset from "@/assets/sfx/explosion.mp3.asset.json";
+import nukeAsset from "@/assets/sfx/nuke.mp3.asset.json";
 
 type SfxKind =
   | "click"
@@ -12,6 +17,17 @@ type SfxKind =
   | "success"
   | "whoosh"
   | "error";
+
+// Realistic explosion / nuke samples — preloaded as HTMLAudio for low-latency
+// playback. We clone the element on each play() so overlapping booms still work.
+const SAMPLE_URLS: Partial<Record<SfxKind, string>> = {
+  explosion: explosionAsset.url,
+  nuke: nukeAsset.url,
+};
+const SAMPLE_VOLUMES: Partial<Record<SfxKind, number>> = {
+  explosion: 0.95,
+  nuke: 1.0,
+};
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
