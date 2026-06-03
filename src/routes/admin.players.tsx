@@ -218,7 +218,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
       ]);
       const all: HistoryEntry[] = [
@@ -227,9 +227,58 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
       setAvatarUrl((prof as any)?.avatar_url ?? null);
+      setUsernameVal(((prof as any)?.username ?? "") as string);
+      setBio(((prof as any)?.bio ?? "") as string);
+      setMediaBanned(Boolean((prof as any)?.media_banned));
       setFishRows(((fish ?? []) as FishAdminRow[]).map((r) => ({ fish_id: r.fish_id, quantity: r.quantity ?? 0, total_caught: r.total_caught ?? 0 })));
     })();
   }, [player.id]);
+
+  const saveUsername = async () => {
+    const v = usernameVal.trim().toLowerCase();
+    if (!/^[a-z0-9_]{2,20}$/.test(v)) { toast.error("اليوزر: 2-20 حرف، a-z 0-9 _"); return; }
+    setSavingUsername(true);
+    const { error } = await (supabase as any).rpc("admin_set_username", { _target: player.id, _new: v });
+    setSavingUsername(false);
+    if (error) {
+      const m = String(error.message || "");
+      if (m.includes("USERNAME_TAKEN")) toast.error("اليوزر محجوز");
+      else if (m.includes("INVALID_USERNAME")) toast.error("صيغة اليوزر غير صحيحة");
+      else toast.error("خطأ: " + m);
+      return;
+    }
+    await logAudit("admin_set_username", player.id, { username: v });
+    toast.success("تم تعيين اليوزر");
+  };
+
+  const saveBio = async () => {
+    setSavingBio(true);
+    const { error } = await (supabase as any).rpc("admin_set_profile_fields", { _target: player.id, _bio: bio.slice(0, 200) });
+    setSavingBio(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_edit_bio", player.id, {});
+    toast.success("تم حفظ الوصف");
+  };
+
+  const toggleMediaBan = async () => {
+    const next = !mediaBanned;
+    if (next && !confirm(`منع ${player.display_name} من رفع أي صور أو مقاطع في الألبوم؟`)) return;
+    const { error } = await (supabase as any).rpc("admin_set_media_ban", { _target: player.id, _banned: next });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    setMediaBanned(next);
+    await logAudit(next ? "media_ban" : "media_unban", player.id, {});
+    toast.success(next ? "تم منع الرفع" : "تم رفع المنع");
+  };
+
+  const wipeProfile = async () => {
+    if (!confirm(`⚠️ مسح الوصف والصورة وكل الألبوم لـ ${player.display_name}؟`)) return;
+    const { data, error } = await (supabase as any).rpc("admin_wipe_profile", { _target: player.id });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    const d: any = data ?? {};
+    setBio(""); setAvatarUrl(null);
+    await logAudit("admin_wipe_profile", player.id, { deleted_media: d.deleted_media });
+    toast.success(`🧹 مُسح الملف الشخصي (${d.deleted_media ?? 0} عنصر من الألبوم)`);
+  };
 
   const saveProfile = async () => {
     setSavingProfile(true);
