@@ -260,14 +260,11 @@ function BossPage() {
                   background: "radial-gradient(circle, #ffb84a, transparent)",
                   animation: `ember-rise ${1.6+i*0.3}s ${i*0.4}s ease-out infinite` }} />
             ))}
-            <div className="relative w-full h-full" style={{ animation: "boss-fly 3.2s ease-in-out infinite" }}>
-              <img src={bossImg} alt={boss.name} draggable={false}
-                className="w-full h-full object-contain"
-                style={{
-                  animation: "boss-wing 2.4s ease-in-out infinite",
-                  opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
-                }} />
+            <div className="relative w-full h-full flex items-center justify-center"
+                 style={{ opacity: dead ? 0.35 : 1, filter: dead ? "grayscale(1)" : undefined }}>
+              <AnimatedDragon size={260} variant="boss" breathing flip />
             </div>
+
             {splashes.filter((s) => s.side === "boss").map((s) => (
               <div key={s.id}>
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
