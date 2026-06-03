@@ -1237,12 +1237,13 @@ function Index() {
         burnedUntil={(profile as any)?.bg_burned_until}
         style={{ left: "22%", top: "48%", width: "26%", height: "20%" }}
       />
-      {/* Ship Market — moved to the marked spot near the shoreline */}
+      {/* Ship Market — floating on the sea at the marked spot */}
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "32%", top: "40%", width: "22%", height: "18%" }}
+        style={{ right: "10%", top: "52%", width: "22%", height: "18%" }}
       />
+
 
 
 
