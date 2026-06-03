@@ -1325,6 +1325,7 @@ export type Database = {
       profiles: {
         Row: {
           active_session_id: string | null
+          album_privacy: string
           armor_last_bought_at: string | null
           avatar_emoji: string
           avatar_frame: string | null
@@ -1362,6 +1363,7 @@ export type Database = {
         }
         Insert: {
           active_session_id?: string | null
+          album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
@@ -1399,6 +1401,7 @@ export type Database = {
         }
         Update: {
           active_session_id?: string | null
+          album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
           avatar_frame?: string | null
@@ -2946,6 +2949,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      can_view_album: {
+        Args: { _owner: string; _viewer: string }
+        Returns: boolean
+      }
       cancel_steal_mission: {
         Args: { _attacker_ship_id: string }
         Returns: {

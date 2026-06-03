@@ -24,6 +24,7 @@ function UserProfilePage() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [tribe, setTribe] = useState<TribeInfo | null>(null);
+  const [albumPrivacy, setAlbumPrivacy] = useState<"public" | "friends">("public");
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 1800); };
 
@@ -39,6 +40,10 @@ function UserProfilePage() {
         if (t) setTribe(t as TribeInfo);
         else setTribe(null);
       } else setTribe(null);
+      if (p) {
+        const { data: pr } = await supabase.from("profiles").select("album_privacy").eq("id", p.id).maybeSingle();
+        setAlbumPrivacy(((pr as any)?.album_privacy === "friends" ? "friends" : "public"));
+      }
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
         else {
@@ -223,6 +228,11 @@ function UserProfilePage() {
         )}
 
         {/* Album */}
+        {albumPrivacy === "friends" && (
+          <div className="text-[11px] text-amber-200 bg-amber-900/30 border border-amber-500/40 rounded-xl px-3 py-2 text-center">
+            🔒 الألبوم خاص بالأصدقاء — لن يظهر إلا للأصدقاء المقبولين والإدارة.
+          </div>
+        )}
         <ProfileAlbum userId={profile.id} isOwner={isSelf} />
       </main>
 
