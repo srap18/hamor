@@ -77,7 +77,7 @@ export function FishMarketBuilding({
           <img
             src={img}
             alt=""
-            loading="lazy"
+            loading="eager" decoding="async" fetchPriority="high"
             draggable={false}
             className="w-full h-full object-contain object-bottom select-none"
             style={{
