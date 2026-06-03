@@ -40,6 +40,10 @@ function UserProfilePage() {
         if (t) setTribe(t as TribeInfo);
         else setTribe(null);
       } else setTribe(null);
+      if (p) {
+        const { data: pr } = await supabase.from("profiles").select("album_privacy").eq("id", p.id).maybeSingle();
+        setAlbumPrivacy(((pr as any)?.album_privacy === "friends" ? "friends" : "public"));
+      }
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
         else {
