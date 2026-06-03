@@ -245,22 +245,34 @@ function BossPage() {
             ))}
           </div>
 
-          {/* BOSS (left side) */}
+          {/* BOSS (left side) — flying */}
           <div className={`absolute left-2 top-2 bottom-12 w-[55%] flex items-center justify-center`}
                style={{ animation: shake === "boss" ? "shake-x 0.22s" : undefined }}>
-            <img src={bossImg} alt={boss.name} draggable={false}
-              className="w-full h-full object-contain"
-              style={{
-                animation: "boss-breathe 3s ease-in-out infinite",
-                opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
-                transform: "scaleX(-1)",
-              }} />
+            {/* ground shadow */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full"
+              style={{ width: "70%", height: 18, background: "radial-gradient(ellipse, rgba(0,0,0,0.7) 0%, transparent 70%)",
+                animation: "boss-shadow 3.2s ease-in-out infinite" }} />
+            {/* embers under boss */}
+            {[0,1,2,3].map((i) => (
+              <span key={i} className="absolute rounded-full"
+                style={{ left: `${30+i*12}%`, bottom: 10, width: 4, height: 4,
+                  background: "radial-gradient(circle, #ffb84a, transparent)",
+                  animation: `ember-rise ${1.6+i*0.3}s ${i*0.4}s ease-out infinite` }} />
+            ))}
+            <div className="relative w-full h-full" style={{ animation: "boss-fly 3.2s ease-in-out infinite" }}>
+              <img src={bossImg} alt={boss.name} draggable={false}
+                className="w-full h-full object-contain"
+                style={{
+                  animation: "boss-wing 2.4s ease-in-out infinite",
+                  opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
+                }} />
+            </div>
             {splashes.filter((s) => s.side === "boss").map((s) => (
               <div key={s.id}>
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{ width: 100, height: 100,
-                    background: "radial-gradient(circle, rgba(255,220,80,1) 0%, rgba(255,80,20,0.7) 40%, transparent 70%)",
-                    animation: "splash 0.6s ease-out forwards" }} />
+                  style={{ width: 120, height: 120,
+                    background: "radial-gradient(circle, rgba(255,240,120,1) 0%, rgba(255,80,20,0.8) 35%, transparent 70%)",
+                    animation: "splash 0.7s ease-out forwards" }} />
                 <div className={`absolute left-1/2 top-1/4 -translate-x-1/2 font-extrabold pointer-events-none ${s.crit ? "text-amber-300 text-3xl" : "text-rose-200 text-2xl"}`}
                   style={{ animation: "float-up 1.4s ease-out forwards",
                     textShadow: s.crit ? "0 0 20px rgba(251,191,36,1)" : "0 0 12px rgba(244,63,94,0.9)" }}>
