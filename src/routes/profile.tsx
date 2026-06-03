@@ -317,6 +317,43 @@ function ProfilePage() {
               <h2 className="text-sm font-bold text-accent">📸 ألبومي (صور ومقاطع قصيرة)</h2>
               <p className="text-[10px] text-muted-foreground">حتى 20 عنصر • مقاطع قصيرة (≤ 30 ثانية) • فحص ذكاء اصطناعي قبل النشر</p>
             </div>
+
+            {/* Privacy toggle */}
+            <div className="rounded-xl border border-amber-500/40 bg-stone-900/60 p-3 space-y-2">
+              <div className="text-xs font-bold text-amber-200">🔒 خصوصية الألبوم</div>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { v: "public", label: "🌍 عام (الكل يشوف)" },
+                  { v: "friends", label: "👥 الأصدقاء فقط" },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.v}
+                    disabled={savingPrivacy}
+                    onClick={async () => {
+                      if (albumPrivacy === opt.v || !userId) return;
+                      setSavingPrivacy(true);
+                      const prev = albumPrivacy;
+                      setAlbumPrivacy(opt.v);
+                      const { error } = await supabase.from("profiles").update({ album_privacy: opt.v } as any).eq("id", userId);
+                      setSavingPrivacy(false);
+                      if (error) { setAlbumPrivacy(prev); flash("فشل الحفظ"); }
+                      else flash("تم تحديث الخصوصية ✓");
+                    }}
+                    className={`px-2 py-2 rounded-lg text-xs font-bold border active:scale-95 disabled:opacity-50 ${
+                      albumPrivacy === opt.v
+                        ? "bg-gradient-to-b from-amber-400 to-amber-700 border-amber-200 text-amber-950"
+                        : "bg-stone-800 border-stone-600 text-stone-300"
+                    }`}
+                  >{opt.label}</button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                {albumPrivacy === "friends"
+                  ? "أصدقاؤك المقبولون فقط يشوفون الألبوم. الإدارة تشوف دائماً."
+                  : "كل اللاعبين يقدرون يشوفون الألبوم."}
+              </p>
+            </div>
+
             <ProfileAlbum userId={userId} isOwner={true} />
           </section>
         )}
