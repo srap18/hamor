@@ -80,28 +80,28 @@ export function ShipMarketBuilding({
         className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
       <div className="relative w-full h-full">
-        {/* Subtle reflection on the water below the structure */}
+        {/* Sandy ground shadow — anchors the building to the beach */}
         <div
           aria-hidden
-          className="absolute left-[12%] right-[12%] -bottom-[6%] h-[16%] rounded-[50%] blur-md opacity-60 pointer-events-none"
+          className="absolute left-[10%] right-[10%] bottom-[2%] h-[10%] rounded-[50%] blur-md pointer-events-none"
           style={{
-            background: isBurned
-              ? "radial-gradient(ellipse, rgba(220,40,10,0.55), rgba(0,0,0,0) 70%)"
-              : "radial-gradient(ellipse, rgba(120,220,255,0.55), rgba(0,0,0,0) 70%)",
+            background:
+              "radial-gradient(ellipse, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 70%)",
           }}
         />
 
-        {/* Building image */}
+        {/* Building image — flipped to face the sea (right side) */}
         <img
           src={img}
           alt=""
           loading="lazy"
           draggable={false}
-          className="w-full h-full object-contain select-none drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] animate-float-soft"
+          className="w-full h-full object-contain object-bottom select-none"
           style={{
+            transform: "scaleX(-1)",
             filter: isBurned
-              ? "saturate(0.6) brightness(0.85) contrast(1.1)"
-              : `drop-shadow(0 0 ${6 + clampedLevel}px rgba(252,191,73,${0.18 + clampedLevel * 0.012}))`,
+              ? "saturate(0.6) brightness(0.85) contrast(1.1) drop-shadow(0 6px 6px rgba(0,0,0,0.5))"
+              : `drop-shadow(0 6px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 ${4 + clampedLevel * 0.5}px rgba(252,191,73,${0.12 + clampedLevel * 0.008}))`,
           }}
         />
 
