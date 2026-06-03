@@ -1241,7 +1241,7 @@ function Index() {
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "26%", top: "44%", width: "20%", height: "16%" }}
+        style={{ right: "20%", top: "30%", width: "20%", height: "16%" }}
       />
 
 
