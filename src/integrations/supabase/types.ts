@@ -715,6 +715,27 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_bans: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       forum_topic_votes: {
         Row: {
           created_at: string
@@ -1259,6 +1280,7 @@ export type Database = {
           rubies: number
           selected_bg_id: string
           steal_blocked_until: string | null
+          tribe_gems: number
           tribe_id: string | null
           vip_expires_at: string | null
           vip_level: number
@@ -1291,6 +1313,7 @@ export type Database = {
           rubies?: number
           selected_bg_id?: string
           steal_blocked_until?: string | null
+          tribe_gems?: number
           tribe_id?: string | null
           vip_expires_at?: string | null
           vip_level?: number
@@ -1323,6 +1346,7 @@ export type Database = {
           rubies?: number
           selected_bg_id?: string
           steal_blocked_until?: string | null
+          tribe_gems?: number
           tribe_id?: string | null
           vip_expires_at?: string | null
           vip_level?: number
@@ -1486,11 +1510,13 @@ export type Database = {
           name: string
           price_coins: number
           price_gems: number
+          price_tribe_gems: number
           rarity: string
           repair_seconds: number
           sort_order: number
           speed: number
           storage: number
+          tribe_only: boolean
         }
         Insert: {
           active?: boolean
@@ -1509,11 +1535,13 @@ export type Database = {
           name: string
           price_coins?: number
           price_gems?: number
+          price_tribe_gems?: number
           rarity?: string
           repair_seconds?: number
           sort_order?: number
           speed?: number
           storage?: number
+          tribe_only?: boolean
         }
         Update: {
           active?: boolean
@@ -1532,11 +1560,13 @@ export type Database = {
           name?: string
           price_coins?: number
           price_gems?: number
+          price_tribe_gems?: number
           rarity?: string
           repair_seconds?: number
           sort_order?: number
           speed?: number
           storage?: number
+          tribe_only?: boolean
         }
         Relationships: []
       }
@@ -1898,6 +1928,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tribe_gem_daily: {
+        Row: {
+          day: string
+          donation_gems: number
+          pvp_wins: number
+          ship_kills: number
+          user_id: string
+        }
+        Insert: {
+          day: string
+          donation_gems?: number
+          pvp_wins?: number
+          ship_kills?: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          donation_gems?: number
+          pvp_wins?: number
+          ship_kills?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       tribe_join_requests: {
         Row: {
           created_at: string
@@ -2015,6 +2069,7 @@ export type Database = {
           owner_id: string
           total_donations: number
           treasure_coins: number
+          treasure_tribe_gems: number
         }
         Insert: {
           banner?: string
@@ -2029,6 +2084,7 @@ export type Database = {
           owner_id: string
           total_donations?: number
           treasure_coins?: number
+          treasure_tribe_gems?: number
         }
         Update: {
           banner?: string
@@ -2043,6 +2099,7 @@ export type Database = {
           owner_id?: string
           total_donations?: number
           treasure_coins?: number
+          treasure_tribe_gems?: number
         }
         Relationships: [
           {
@@ -2738,6 +2795,7 @@ export type Database = {
         Returns: string
       }
       buy_trader_unlock: { Args: never; Returns: string }
+      buy_tribe_ship: { Args: { _code: string }; Returns: string }
       buy_with_coins:
         | {
             Args: {
@@ -2908,6 +2966,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      forum_admin_ban: {
+        Args: { _reason?: string; _user_id: string }
+        Returns: undefined
+      }
+      forum_admin_unban: { Args: { _user_id: string }; Returns: undefined }
       get_active_competitions: {
         Args: never
         Returns: {

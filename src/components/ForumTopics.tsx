@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { useIsAdmin } from "@/hooks/use-admin";
 
 type Topic = {
   id: string;
@@ -37,6 +38,7 @@ function validate(title: string, body: string): string | null {
 }
 
 export function ForumTopics({ userId }: { userId: string }) {
+  const { isAdmin } = useIsAdmin();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [authors, setAuthors] = useState<Map<string, Author>>(new Map());
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
@@ -117,11 +119,21 @@ export function ForumTopics({ userId }: { userId: string }) {
   }, [userId, myVotes]);
 
   const removeTopic = useCallback(async (t: Topic) => {
-    if (t.user_id !== userId) return;
+    if (t.user_id !== userId && !isAdmin) return;
     if (!confirm("حذف الموضوع؟")) return;
     await supabase.from("forum_topics").delete().eq("id", t.id);
     load();
-  }, [userId, load]);
+  }, [userId, isAdmin, load]);
+
+  const banUser = useCallback(async (t: Topic) => {
+    if (!isAdmin) return;
+    const reason = prompt("سبب الحظر من المواضيع (اختياري):", "نشر مخالف");
+    if (reason === null) return;
+    const { error } = await supabase.rpc("forum_admin_ban", { _user_id: t.user_id, _reason: reason || "" });
+    if (error) { alert("تعذّر الحظر"); return; }
+    alert("تم حظر اللاعب من المواضيع وحذف مواضيعه.");
+    load();
+  }, [isAdmin, load]);
 
   const sorted = useMemo(() => topics, [topics]);
 
@@ -212,12 +224,21 @@ export function ForumTopics({ userId }: { userId: string }) {
                   <span className="text-[10px] text-amber-300/80 font-bold truncate">{a?.display_name || "..."}</span>
                   <span className="text-[9px] text-amber-200/40">·</span>
                   <span className="text-[9px] text-amber-200/50">{new Date(t.created_at).toLocaleDateString("ar")}</span>
-                  {isMine && (
+                  {(isMine || isAdmin) && (
                     <button
                       onClick={() => removeTopic(t)}
                       className="mr-auto text-[10px] text-red-300/80 hover:text-red-200 px-1.5 py-0.5 rounded border border-red-500/30"
                     >
                       حذف
+                    </button>
+                  )}
+                  {isAdmin && !isMine && (
+                    <button
+                      onClick={() => banUser(t)}
+                      className={`text-[10px] text-orange-200 hover:text-orange-100 px-1.5 py-0.5 rounded border border-orange-500/40 bg-orange-900/30 ${isMine ? "" : "ml-1"}`}
+                      title="حظر اللاعب من المواضيع"
+                    >
+                      🚫 حظر
                     </button>
                   )}
                 </div>
