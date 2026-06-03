@@ -136,16 +136,16 @@ export function ShipMarketBuilding({
           </div>
         )}
 
-        {/* Level badge */}
+        {/* Subtle level pill — appears only on tap/hover so the building blends with the scene */}
         <div
-          className={`absolute -top-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md text-[10px] font-black border shadow-lg whitespace-nowrap ${
+          className={`absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md text-[9px] font-bold border whitespace-nowrap opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity ${
             isBurned
-              ? "bg-gradient-to-b from-red-900 to-black border-red-400/70 text-red-100"
-              : "bg-gradient-to-b from-amber-700 to-amber-950 border-amber-300 text-amber-100"
+              ? "bg-red-950/80 border-red-400/60 text-red-100"
+              : "bg-black/60 border-amber-300/60 text-amber-100"
           }`}
-          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
         >
-          {isBurned ? "🔥 محترق" : `⚓ سوق السفن · L${clampedLevel}/30`}
+          {isBurned ? "🔥 محترق" : `⚓ L${clampedLevel}/30`}
         </div>
       </div>
       </Link>
