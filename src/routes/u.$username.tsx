@@ -24,6 +24,7 @@ function UserProfilePage() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [tribe, setTribe] = useState<TribeInfo | null>(null);
+  const [albumPrivacy, setAlbumPrivacy] = useState<"public" | "friends">("public");
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 1800); };
 
