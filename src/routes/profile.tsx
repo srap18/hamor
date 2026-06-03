@@ -66,7 +66,7 @@ function ProfilePage() {
       const [{ data: p }, { data: inv }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame")
+          .select("display_name,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame,album_privacy")
           .eq("id", u.user.id).maybeSingle(),
         supabase
           .from("inventory")
