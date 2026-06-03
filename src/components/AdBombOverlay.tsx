@@ -28,13 +28,18 @@ export function AdBombOverlay({
   targetUserId,
   isOwner,
   onFlash,
+  global = false,
 }: {
-  targetUserId: string | null;
+  targetUserId?: string | null;
   isOwner?: boolean;
   onFlash?: (msg: string) => void;
+  /** When true, show the latest active ad-bomb anywhere in the game (broadcast). */
+  global?: boolean;
 }) {
   const [bomb, setBomb] = useState<AdBomb | null>(null);
   const [attackerName, setAttackerName] = useState<string>("");
+  const [targetName, setTargetName] = useState<string>("");
+  const [meId, setMeId] = useState<string | null>(null);
   const [now, setNow] = useState(serverNowMs());
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -44,44 +49,54 @@ export function AdBombOverlay({
   const unmuteCleanupRef = useRef<(() => void) | null>(null);
   const lastBombId = useRef<string | null>(null);
 
-  // Look up attacker display name once per bomb
+  // Track current user (for owner detection in global mode)
   useEffect(() => {
-    if (!bomb?.attacker_id) { setAttackerName(""); return; }
+    supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null));
+  }, []);
+
+  // Look up attacker + target display names once per bomb
+  useEffect(() => {
+    if (!bomb) { setAttackerName(""); setTargetName(""); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
-        .eq("id", bomb.attacker_id)
-        .maybeSingle();
-      if (!cancelled) setAttackerName((data as { display_name?: string } | null)?.display_name ?? "لاعب");
+        .select("id,display_name")
+        .in("id", [bomb.attacker_id, bomb.target_user_id]);
+      if (cancelled) return;
+      const rows = (data as { id: string; display_name?: string }[] | null) ?? [];
+      const byId = Object.fromEntries(rows.map((r) => [r.id, r.display_name ?? "لاعب"]));
+      setAttackerName(byId[bomb.attacker_id] ?? "لاعب");
+      setTargetName(byId[bomb.target_user_id] ?? "لاعب");
     })();
     return () => { cancelled = true; };
-  }, [bomb?.attacker_id]);
+  }, [bomb?.attacker_id, bomb?.target_user_id]);
 
   useEffect(() => {
-    if (!targetUserId) return;
+    if (!global && !targetUserId) return;
     let cancelled = false;
 
     const load = async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("ad_bombs" as never)
         .select("id,target_user_id,attacker_id,video_key,started_at,expires_at,active")
-        .eq("target_user_id", targetUserId)
         .eq("active", true)
         .gt("expires_at", serverNow().toISOString())
         .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+      if (!global && targetUserId) q = q.eq("target_user_id", targetUserId);
+      const { data } = await q.maybeSingle();
       if (!cancelled) setBomb((data as AdBomb | null) ?? null);
     };
     load();
 
+    const channelName = global ? "ad-bombs:global" : `ad-bombs:${targetUserId}`;
+    const filter = global ? undefined : `target_user_id=eq.${targetUserId}`;
     const ch = supabase
-      .channel(`ad-bombs:${targetUserId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "ad_bombs", filter: `target_user_id=eq.${targetUserId}` },
+        { event: "*", schema: "public", table: "ad_bombs", ...(filter ? { filter } : {}) },
         () => load(),
       )
       .subscribe();
@@ -90,7 +105,8 @@ export function AdBombOverlay({
       cancelled = true;
       supabase.removeChannel(ch);
     };
-  }, [targetUserId]);
+  }, [targetUserId, global]);
+
 
   useEffect(() => {
     const t = setInterval(() => setNow(serverNowMs()), 1000);
@@ -243,12 +259,12 @@ export function AdBombOverlay({
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
           <div className="text-[11px] text-fuchsia-50 font-bold leading-tight">
-            <div>📺 قنبلة إعلانية من {attackerName || "لاعب"}</div>
+            <div>📺 قنبلة إعلانية من {attackerName || "لاعب"}{targetName ? ` على ${targetName}` : ""}</div>
             <div className="text-[10px] opacity-80 tabular-nums">
               متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
-          {isOwner && (
+          {(isOwner || (!!meId && !!bomb && meId === bomb.target_user_id)) && (
             <button
               onClick={handleRemove}
               disabled={removing}
