@@ -90,7 +90,7 @@ export function ShipMarketBuilding({
           }}
         />
 
-        {/* Building image */}
+        {/* Building image — flipped to face the sea (right) */}
         <img
           src={img}
           alt=""
@@ -98,6 +98,7 @@ export function ShipMarketBuilding({
           draggable={false}
           className="w-full h-full object-contain object-bottom select-none"
           style={{
+            transform: "scaleX(-1)",
             filter: isBurned
               ? "saturate(0.6) brightness(0.85) contrast(1.1) drop-shadow(0 6px 6px rgba(0,0,0,0.5))"
               : `drop-shadow(0 6px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 ${4 + clampedLevel * 0.5}px rgba(252,191,73,${0.12 + clampedLevel * 0.008}))`,
