@@ -731,10 +731,10 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
                 const isMe = p.user_id === userId;
                 const isSpeaking = speakingPeers.has(p.user_id);
                 return (
-                  <div key={p.id} className="flex flex-col items-center gap-1 shrink-0">
+                  <button key={p.id} onClick={() => !isMe && openProfile(prof)} className="flex flex-col items-center gap-1 shrink-0 active:scale-95">
                     <Avatar p={prof} size={64} speaking={isSpeaking} muted={isMe ? muted : p.is_muted} />
                     <div className={`text-[10px] font-bold truncate max-w-[70px] px-1 ${frameById(prof?.name_frame)?.kind === "name" ? frameById(prof?.name_frame)?.nameClass : "text-amber-100/80"} ${frameById(prof?.name_frame)?.animClass ?? ""}`}>{isMe ? "أنت" : (prof?.display_name || "...")}</div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
