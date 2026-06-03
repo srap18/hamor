@@ -228,6 +228,11 @@ function UserProfilePage() {
         )}
 
         {/* Album */}
+        {albumPrivacy === "friends" && (
+          <div className="text-[11px] text-amber-200 bg-amber-900/30 border border-amber-500/40 rounded-xl px-3 py-2 text-center">
+            🔒 الألبوم خاص بالأصدقاء — لن يظهر إلا للأصدقاء المقبولين والإدارة.
+          </div>
+        )}
         <ProfileAlbum userId={profile.id} isOwner={isSelf} />
       </main>
 
