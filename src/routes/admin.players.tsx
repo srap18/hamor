@@ -482,6 +482,47 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </button>
         </div>
 
+        {/* Profile (username + bio + media ban + wipe) */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="text-sm font-semibold text-slate-300">🪪 الملف الشخصي</div>
+          <div>
+            <label className="text-xs text-slate-400">اليوزر @ (الأدمن فقط يقدر أقل من 5 حروف وبدون قيد 14 يوم)</label>
+            <div className="flex gap-2 mt-1">
+              <input dir="ltr" value={usernameVal}
+                onChange={(e) => setUsernameVal(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20))}
+                placeholder="user_or_2-20"
+                className="flex-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm font-mono focus:outline-none focus:border-indigo-500" />
+              <button onClick={saveUsername} disabled={savingUsername}
+                className="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-xs font-bold">
+                {savingUsername ? "..." : "تعيين"}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الوصف الشخصي</label>
+            <textarea value={bio} onChange={(e) => setBio(e.target.value.slice(0, 200))} rows={2}
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 resize-none" />
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-[10px] text-slate-500">{bio.length}/200</span>
+              <button onClick={saveBio} disabled={savingBio}
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-xs font-bold">
+                {savingBio ? "..." : "💾 حفظ الوصف"}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={toggleMediaBan}
+              className={`px-3 py-2 rounded-lg text-xs font-bold ${mediaBanned ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-orange-600/40 hover:bg-orange-600/60 text-orange-100"}`}>
+              {mediaBanned ? "✅ السماح بالرفع" : "🚫 منع رفع الصور/المقاطع"}
+            </button>
+            <button onClick={wipeProfile}
+              className="px-3 py-2 rounded-lg bg-rose-600/50 hover:bg-rose-600/70 text-rose-100 text-xs font-bold">
+              🧹 مسح الوصف + الصورة + الألبوم
+            </button>
+          </div>
+        </div>
+
+
         <div className="space-y-3">
           {[
             { label: "🪙 العملات", value: coins, set: setCoins },
