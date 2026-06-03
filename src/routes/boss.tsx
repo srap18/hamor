@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
-import bossImg from "@/assets/world-boss.png";
+import { AnimatedDragon } from "@/components/AnimatedDragon";
+
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
@@ -20,11 +21,13 @@ type ShipRow = { id: string; template_id: number | null; catalog_code: string | 
 type RocketRow = { id: string; item_id: string; quantity: number };
 
 const ROCKETS = [
-  { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",       border: "border-sky-300" },
+  { id: "cannon",        name: "مدفع",   dmg: 120,   color: "from-stone-500 to-stone-800",     border: "border-stone-300", free: true },
+  { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",         border: "border-sky-300" },
   { id: "rocket_medium", name: "متوسط",  dmg: 4000,  color: "from-emerald-500 to-emerald-800", border: "border-emerald-300" },
-  { id: "rocket_large",  name: "كبير",   dmg: 18000, color: "from-amber-500 to-amber-800",    border: "border-amber-300" },
-  { id: "nuke",          name: "ذرية",   dmg: 70000, color: "from-fuchsia-500 to-rose-900",   border: "border-fuchsia-300" },
+  { id: "rocket_large",  name: "كبير",   dmg: 18000, color: "from-amber-500 to-amber-800",     border: "border-amber-300" },
+  { id: "nuke",          name: "ذرية",   dmg: 70000, color: "from-fuchsia-500 to-rose-900",    border: "border-fuchsia-300" },
 ];
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
@@ -110,13 +113,12 @@ function BossPage() {
 
   const fire = useCallback(async (weaponId: string) => {
     if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    const isFree = weaponId === "cannon";
     const ammo = rockets.find((r) => r.item_id === weaponId);
-    if (!ammo || ammo.quantity < 1) return;
+    if (!isFree && (!ammo || ammo.quantity < 1)) return;
     setBusy(true);
-    // optimistic projectile
     const pid = nextId();
     setProjectiles((p) => [...p, { id: pid, kind: "rocket", weapon: weaponId, key: nextId() }]);
-    // call RPC (consumes one rocket of cheapest type — we want the chosen type)
     const { data, error } = await rpc("attack_boss_with", { p_weapon: weaponId });
     if (error || (data && data.ok === false)) {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
@@ -125,8 +127,9 @@ function BossPage() {
       if (data?.error) return alert(data.error);
       return;
     }
-    // optimistic local rocket count -1
-    setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    if (!isFree) {
+      setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    }
     setTimeout(() => {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setSplashes((s) => [...s, { id: nextId(), side: "boss", crit: data.crit, dmg: data.damage }]);
@@ -136,6 +139,7 @@ function BossPage() {
       if (data.killed) setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 600);
     }, 850);
   }, [busy, boss, shipHp, rockets]);
+
 
   if (!boss) {
     return (
@@ -259,14 +263,11 @@ function BossPage() {
                   background: "radial-gradient(circle, #ffb84a, transparent)",
                   animation: `ember-rise ${1.6+i*0.3}s ${i*0.4}s ease-out infinite` }} />
             ))}
-            <div className="relative w-full h-full" style={{ animation: "boss-fly 3.2s ease-in-out infinite" }}>
-              <img src={bossImg} alt={boss.name} draggable={false}
-                className="w-full h-full object-contain"
-                style={{
-                  animation: "boss-wing 2.4s ease-in-out infinite",
-                  opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
-                }} />
+            <div className="relative w-full h-full flex items-center justify-center"
+                 style={{ opacity: dead ? 0.35 : 1, filter: dead ? "grayscale(1)" : undefined }}>
+              <AnimatedDragon size={260} variant="boss" breathing flip />
             </div>
+
             {splashes.filter((s) => s.side === "boss").map((s) => (
               <div key={s.id}>
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -374,22 +375,26 @@ function BossPage() {
 
         {/* Rockets inventory */}
         {!dead && (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-1.5">
             {ROCKETS.map((rk) => {
-              const have = rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0;
-              const disabled = busy || have <= 0 || shipHp <= 0;
+              const have = rk.free ? Infinity : (rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0);
+              const disabled = busy || (!rk.free && have <= 0) || shipHp <= 0;
+              const icon = rk.id === "cannon" ? "💣" : rk.id === "nuke" ? "☢️" : rk.id === "rocket_large" ? "💥" : rk.id === "rocket_medium" ? "🎯" : "🚀";
               return (
                 <button key={rk.id} disabled={disabled} onClick={() => fire(rk.id)}
                   className={`relative rounded-xl bg-gradient-to-b ${rk.color} border-2 ${rk.border} py-2 active:scale-95 transition-transform shadow-lg ${disabled ? "opacity-40 grayscale" : ""}`}>
-                  <div className="text-2xl">{rk.id === "nuke" ? "☢️" : rk.id === "rocket_large" ? "💥" : rk.id === "rocket_medium" ? "🎯" : "🚀"}</div>
+                  <div className="text-2xl">{icon}</div>
                   <div className="text-[10px] font-bold text-white/90">{rk.name}</div>
                   <div className="text-[10px] text-white/80 tabular-nums">-{rk.dmg.toLocaleString()}</div>
-                  <div className="absolute -top-1.5 -right-1.5 bg-stone-900 border border-amber-400 rounded-full px-1.5 py-0.5 text-amber-200 text-[10px] font-extrabold tabular-nums">×{have}</div>
+                  <div className="absolute -top-1.5 -right-1.5 bg-stone-900 border border-amber-400 rounded-full px-1.5 py-0.5 text-amber-200 text-[10px] font-extrabold tabular-nums">
+                    {rk.free ? "∞" : `×${have}`}
+                  </div>
                 </button>
               );
             })}
           </div>
         )}
+
         {shipHp <= 0 && !dead && (
           <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تعطلت! اختر سفينة أخرى</div>
         )}
