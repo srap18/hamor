@@ -1221,7 +1221,10 @@ function Index() {
 
 
 
-      {/* Ship Market — placed where the fish market used to sit on the island. */}
+      {/* Fish market — moved to the right side of the scene */}
+      <Hotspot to="/fish-market" label="سوق السمك" emoji="🐟"
+        style={{ right: "2%", top: "20%", width: "22%", height: "18%" }} />
+      {/* Ship Market — sits where the fish market used to be, facing the sea */}
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
