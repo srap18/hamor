@@ -35,6 +35,7 @@ import { Route as BackgroundsShopRouteImport } from './routes/backgrounds-shop'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
@@ -177,6 +178,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayersPlayerIdRoute = PlayersPlayerIdRouteImport.update({
   id: '/players/$playerId',
   path: '/players/$playerId',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -389,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/players/$playerId'
+    | '/u/$username'
     | '/admin/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/players/$playerId'
+    | '/u/$username'
     | '/admin'
     | '/api/public/payments/webhook'
   id:
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/players/$playerId'
+    | '/u/$username'
     | '/admin/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -497,6 +509,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   VipRoute: typeof VipRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
+  UUsernameRoute: typeof UUsernameRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -684,6 +697,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/players/$playerId': {
       id: '/players/$playerId'
       path: '/players/$playerId'
@@ -819,6 +839,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   VipRoute: VipRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
+  UUsernameRoute: UUsernameRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
