@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { createJungle } from "@/lib/jungle";
 import { transformVoice } from "@/lib/voicechanger.functions";
@@ -9,7 +10,7 @@ import { frameById } from "@/lib/frames";
 
 type Room = { id: string; name: string; topic: string; created_by: string; max_users: number; created_at: string };
 type Participant = { id: string; room_id: string; user_id: string; is_muted: boolean; joined_at: string };
-type Prof = { id: string; display_name: string; avatar_emoji: string; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null };
+type Prof = { id: string; display_name: string; username?: string | null; avatar_emoji: string; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null };
 
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
