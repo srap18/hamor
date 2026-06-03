@@ -248,15 +248,6 @@ export function AdBombOverlay({
               متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
-          {isOwner && (
-            <button
-              onClick={handleRemove}
-              disabled={removing}
-              className="ms-1 px-2 py-1 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 text-white text-[10px] font-extrabold active:scale-95 disabled:opacity-50"
-            >
-              إزالة 💎100
-            </button>
-          )}
         </div>
       </div>
 
