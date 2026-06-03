@@ -146,6 +146,30 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_scores: {
+        Row: {
+          score: number
+          updated_at: string
+          user_id: string
+          week_start: string
+          wins: number
+        }
+        Insert: {
+          score?: number
+          updated_at?: string
+          user_id: string
+          week_start: string
+          wins?: number
+        }
+        Update: {
+          score?: number
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+          wins?: number
+        }
+        Relationships: []
+      }
       attacks: {
         Row: {
           attacker_id: string
@@ -256,6 +280,36 @@ export type Database = {
           expires_at?: string | null
           id?: string
           reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      boss_hits: {
+        Row: {
+          boss_id: string
+          hit_count: number
+          id: string
+          loot_claimed: boolean
+          total_damage: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          boss_id: string
+          hit_count?: number
+          id?: string
+          loot_claimed?: boolean
+          total_damage?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          boss_id?: string
+          hit_count?: number
+          id?: string
+          loot_claimed?: boolean
+          total_damage?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -552,6 +606,24 @@ export type Database = {
           created_at?: string
           device_id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dragon_claims: {
+        Row: {
+          last_daily_rockets: string | null
+          last_free_strike: string | null
+          user_id: string
+        }
+        Insert: {
+          last_daily_rockets?: string | null
+          last_free_strike?: string | null
+          user_id: string
+        }
+        Update: {
+          last_daily_rockets?: string | null
+          last_free_strike?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2627,6 +2699,45 @@ export type Database = {
         }
         Relationships: []
       }
+      world_boss: {
+        Row: {
+          created_at: string
+          defeated_at: string | null
+          defeated_by: string | null
+          expires_at: string
+          hp_current: number
+          hp_max: number
+          id: string
+          loot_distributed: boolean
+          name: string
+          spawned_at: string
+        }
+        Insert: {
+          created_at?: string
+          defeated_at?: string | null
+          defeated_by?: string | null
+          expires_at?: string
+          hp_current?: number
+          hp_max?: number
+          id?: string
+          loot_distributed?: boolean
+          name?: string
+          spawned_at?: string
+        }
+        Update: {
+          created_at?: string
+          defeated_at?: string | null
+          defeated_by?: string | null
+          expires_at?: string
+          hp_current?: number
+          hp_max?: number
+          id?: string
+          loot_distributed?: boolean
+          name?: string
+          spawned_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       profiles_public: {
@@ -2728,6 +2839,7 @@ export type Database = {
     Functions: {
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
+      _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
       _gen_unique_username: { Args: never; Returns: string }
       _grant_ship_with_storage: {
         Args: { _catalog_code: string; _uid: string }
@@ -2924,6 +3036,7 @@ export type Database = {
           inventory_id: string
         }[]
       }
+      attack_boss: { Args: { p_use_free?: boolean }; Returns: Json }
       audit_player_currency: {
         Args: { _uid: string }
         Returns: {
@@ -2936,6 +3049,10 @@ export type Database = {
           ledger_gems: number
           player_id: string
         }[]
+      }
+      award_arena_score: {
+        Args: { p_score: number; p_won?: boolean }
+        Returns: undefined
       }
       award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
       broadcast_nuke: {
@@ -3047,6 +3164,7 @@ export type Database = {
         }[]
       }
       change_username: { Args: { _new: string }; Returns: Json }
+      claim_daily_dragon_rockets: { Args: never; Returns: Json }
       claim_daily_login: {
         Args: never
         Returns: {
@@ -3103,6 +3221,7 @@ export type Database = {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
       }
+      daily_rockets_status: { Args: never; Returns: Json }
       daughter_apply_purchase_bonus: {
         Args: { _spent_coins: number; _spent_gems: number }
         Returns: Json
@@ -3160,6 +3279,8 @@ export type Database = {
         Returns: undefined
       }
       forum_admin_unban: { Args: { _user_id: string }; Returns: undefined }
+      free_strike_status: { Args: never; Returns: Json }
+      get_active_boss: { Args: never; Returns: Json }
       get_active_competitions: {
         Args: never
         Returns: {
@@ -3528,6 +3649,7 @@ export type Database = {
         Returns: undefined
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
       purge_old_messages: { Args: never; Returns: undefined }
       recompute_fish_prices: { Args: never; Returns: undefined }
