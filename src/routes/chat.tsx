@@ -337,10 +337,10 @@ function ChatPage() {
 
       <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
 
-        {(["public", "tribe", "dm", "voice", "topics"] as Channel[]).map(t => (
+        {(["public", "tribe", "dm", "voice", "topics", "tribeshop"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "voice" ? "🎙️ صوتي" : "📝 مواضيع"}
+            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "voice" ? "🎙️ صوتي" : t === "topics" ? "📝 مواضيع" : "🛒 متجر"}
             {t === "dm" && dmTotal > 0 && tab !== "dm" && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
                 {dmTotal > 9 ? "9+" : dmTotal}
