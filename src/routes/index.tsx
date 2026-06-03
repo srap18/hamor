@@ -1311,6 +1311,8 @@ function Index() {
         <div className="flex items-center gap-2 pr-20">
           {/* VIP removed */}
 
+          <DragonHUD />
+
           <Link
             to="/inventory"
             className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow active:scale-95"
