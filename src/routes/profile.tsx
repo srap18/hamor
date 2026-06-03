@@ -314,7 +314,7 @@ function ProfilePage() {
               <h2 className="text-sm font-bold text-accent">📸 ألبومي (صور ومقاطع قصيرة)</h2>
               <p className="text-[10px] text-muted-foreground">حتى 20 عنصر • مقاطع قصيرة (≤ 30 ثانية) • فحص ذكاء اصطناعي قبل النشر</p>
             </div>
-            <ProfileAlbumLazy userId={userId} isOwner={true} />
+            <ProfileAlbum userId={userId} isOwner={true} />
           </section>
         )}
 
