@@ -374,22 +374,26 @@ function BossPage() {
 
         {/* Rockets inventory */}
         {!dead && (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-1.5">
             {ROCKETS.map((rk) => {
-              const have = rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0;
-              const disabled = busy || have <= 0 || shipHp <= 0;
+              const have = rk.free ? Infinity : (rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0);
+              const disabled = busy || (!rk.free && have <= 0) || shipHp <= 0;
+              const icon = rk.id === "cannon" ? "💣" : rk.id === "nuke" ? "☢️" : rk.id === "rocket_large" ? "💥" : rk.id === "rocket_medium" ? "🎯" : "🚀";
               return (
                 <button key={rk.id} disabled={disabled} onClick={() => fire(rk.id)}
                   className={`relative rounded-xl bg-gradient-to-b ${rk.color} border-2 ${rk.border} py-2 active:scale-95 transition-transform shadow-lg ${disabled ? "opacity-40 grayscale" : ""}`}>
-                  <div className="text-2xl">{rk.id === "nuke" ? "☢️" : rk.id === "rocket_large" ? "💥" : rk.id === "rocket_medium" ? "🎯" : "🚀"}</div>
+                  <div className="text-2xl">{icon}</div>
                   <div className="text-[10px] font-bold text-white/90">{rk.name}</div>
                   <div className="text-[10px] text-white/80 tabular-nums">-{rk.dmg.toLocaleString()}</div>
-                  <div className="absolute -top-1.5 -right-1.5 bg-stone-900 border border-amber-400 rounded-full px-1.5 py-0.5 text-amber-200 text-[10px] font-extrabold tabular-nums">×{have}</div>
+                  <div className="absolute -top-1.5 -right-1.5 bg-stone-900 border border-amber-400 rounded-full px-1.5 py-0.5 text-amber-200 text-[10px] font-extrabold tabular-nums">
+                    {rk.free ? "∞" : `×${have}`}
+                  </div>
                 </button>
               );
             })}
           </div>
         )}
+
         {shipHp <= 0 && !dead && (
           <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تعطلت! اختر سفينة أخرى</div>
         )}
