@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { useIsAdmin } from "@/hooks/use-admin";
 
 type Topic = {
   id: string;
