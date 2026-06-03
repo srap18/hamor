@@ -221,3 +221,49 @@ function DragonPage() {
     </div>
   );
 }
+
+function DailyRocketsCard() {
+  const [status, setStatus] = useState<{ available: boolean; count: number; tier: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { available: boolean; count: number; tier: number } | null }> }).rpc("daily_rockets_status");
+    setStatus(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  if (!status || status.tier < 3) return null;
+
+  const claim = async () => {
+    if (busy) return;
+    setBusy(true);
+    const { data, error } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { ok: boolean; count?: number; error?: string }; error: { message: string } | null }> }).rpc("claim_daily_dragon_rockets");
+    setBusy(false);
+    if (error) { setMsg("❌ " + error.message); return; }
+    if (!data.ok) { setMsg("❌ " + (data.error ?? "")); return; }
+    setMsg(`✅ استلمت ${data.count} صواريخ!`);
+    load();
+    setTimeout(() => setMsg(null), 2500);
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-emerald-900/60 to-amber-900/60 border-2 border-emerald-400/60 rounded-2xl p-3 mb-3 backdrop-blur">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <div className="text-emerald-100 font-extrabold text-sm">🚀 صواريخ التنين اليومية</div>
+          <div className="text-emerald-300/70 text-[10px]">{status.count} صواريخ بفضل سيفك</div>
+        </div>
+        <button onClick={claim} disabled={!status.available || busy}
+          className={`px-4 py-2 rounded-xl font-extrabold text-sm shadow-lg ${
+            status.available
+              ? "bg-gradient-to-b from-emerald-400 to-emerald-700 text-stone-900"
+              : "bg-stone-800 text-stone-500 border border-stone-700"
+          }`}>
+          {status.available ? "🎁 استلم" : "✓ تم اليوم"}
+        </button>
+      </div>
+      {msg && <div className="mt-2 text-center text-emerald-200 text-xs font-bold">{msg}</div>}
+    </div>
+  );
+}
