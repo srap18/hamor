@@ -114,7 +114,7 @@ function UserProfilePage() {
         </div>
       </header>
 
-      <main className="p-3 pb-20 space-y-4 max-w-md mx-auto">
+      <main className="p-3 pb-32 space-y-4 max-w-md mx-auto">
         {/* Luxurious tribe banner */}
         {tribe && (() => {
           const tier = getTribeBanner(tribe.level || 1);
