@@ -9,6 +9,7 @@ import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { VoiceRooms } from "@/components/VoiceRooms";
 import { ForumTopics } from "@/components/ForumTopics";
+import { TribeShop } from "@/components/TribeShop";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
