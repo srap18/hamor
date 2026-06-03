@@ -82,7 +82,7 @@ function PlayerPage() {
     setSelectedShip(s); setMode("menu");
     if (!me) return;
     const [{ data: ms }, { data: iv }] = await Promise.all([
-      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id").eq("user_id", me),
+      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id,in_storage").eq("user_id", me).eq("in_storage", false),
       supabase.from("inventory").select("item_id,item_type,quantity,meta").eq("user_id", me),
     ]);
     setMyShips((ms as Ship[]) || []);
@@ -251,6 +251,7 @@ function PlayerPage() {
           setShips((arr) => {
             if (payload.eventType === "INSERT") {
               const r = payload.new as Ship;
+              if (r.in_storage) return arr;
               if (arr.some((x) => x.id === r.id)) return arr;
               return [...arr, r];
             }
@@ -259,6 +260,7 @@ function PlayerPage() {
               return arr.filter((x) => x.id !== r.id);
             }
             const r = payload.new as Ship;
+            if (r.in_storage) return arr.filter((x) => x.id !== r.id);
             return arr.map((x) => (x.id === r.id ? { ...x, ...r } : x));
           });
           setSelectedShip((cur) => {
