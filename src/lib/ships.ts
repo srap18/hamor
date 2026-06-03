@@ -34,9 +34,6 @@ import ship30 from "@/assets/ships/ship-lvl-30.png";
 import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
-import shipTribeLightning from "@/assets/ships/ship-tribe-lightning.png";
-import shipTribeTornado from "@/assets/ships/ship-tribe-tornado.png";
-import shipTribeFire from "@/assets/ships/ship-tribe-fire.png";
 
 export type ShipDef = {
   code: string;
