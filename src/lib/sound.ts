@@ -38,13 +38,33 @@ class SoundEngine {
   private musicPlaying = false;
   private pausedForChat = false;
   private inited = false;
+  private sampleEls: Partial<Record<SfxKind, HTMLAudioElement>> = {};
 
   init() {
     if (typeof window === "undefined") return;
     if (this.inited) return;
     this.sfxOn = window.localStorage.getItem("sfx_on") !== "0";
     this.musicOn = window.localStorage.getItem("music_on") !== "0";
+    // Preload the cinematic sample SFX so the first boom plays instantly.
+    for (const [kind, url] of Object.entries(SAMPLE_URLS) as [SfxKind, string][]) {
+      const el = new Audio(url);
+      el.preload = "auto";
+      el.volume = SAMPLE_VOLUMES[kind] ?? 1;
+      this.sampleEls[kind] = el;
+    }
     this.inited = true;
+  }
+
+  private playSample(kind: SfxKind) {
+    const src = SAMPLE_URLS[kind];
+    if (!src) return false;
+    try {
+      const node = (this.sampleEls[kind]?.cloneNode(true) as HTMLAudioElement | undefined)
+        ?? new Audio(src);
+      node.volume = SAMPLE_VOLUMES[kind] ?? 1;
+      void node.play().catch(() => { /* autoplay may need a user gesture */ });
+    } catch { /* noop */ }
+    return true;
   }
 
   private ensureCtx() {
