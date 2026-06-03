@@ -2302,16 +2302,17 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     let debounce: number | null = null;
     const refreshNow = () => {
       if (debounce) window.clearTimeout(debounce);
-      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 500);
+      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 150);
     };
     const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
     window.addEventListener("focus", refreshNow);
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
       tab === "comp" ? ["competitions", "competition_catches"] :
-      tab === "fish" ? ["fish_caught"] :
+      tab === "fish" ? ["fish_caught", "profiles"] :
       tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
-      tab === "ships" ? ["ships_owned"] :
+      tab === "ships" ? ["ships_owned", "profiles"] :
+      tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
       [];
     const ch = watchedTables.length > 0
       ? watchedTables.reduce((channel, table) => (
