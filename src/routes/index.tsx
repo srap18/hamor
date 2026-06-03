@@ -1103,7 +1103,7 @@ function Index() {
         }}
       />
 
-      <AdBombOverlay global onFlash={showToast} />
+      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
       {scene.burned && (
         <button
