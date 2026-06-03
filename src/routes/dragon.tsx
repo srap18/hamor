@@ -193,19 +193,29 @@ function DragonPage() {
           </div>
         </div>
 
+        {/* Daily rockets claim */}
+        <DailyRocketsCard />
+
         {/* Action panels */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           <Link to="/dragon/forge"
             className="bg-gradient-to-br from-amber-600/40 to-rose-900/40 border-2 border-amber-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
             <div className="text-2xl mb-1">⚒️</div>
             <div className="text-amber-100 text-xs font-extrabold">الفورج</div>
-            <div className="text-amber-300/80 text-[9px]">تسليح وترقية</div>
+            <div className="text-amber-300/80 text-[9px]">تسليح</div>
           </Link>
-          <div className="bg-stone-900/50 border border-amber-700/30 rounded-xl p-3 text-center opacity-60">
+          <Link to="/boss"
+            className="bg-gradient-to-br from-rose-700/50 to-black border-2 border-rose-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
+            <div className="text-2xl mb-1">🐲</div>
+            <div className="text-rose-100 text-xs font-extrabold">الوحش</div>
+            <div className="text-rose-300/80 text-[9px]">هاجم</div>
+          </Link>
+          <Link to="/arena"
+            className="bg-gradient-to-br from-cyan-700/50 to-purple-900/50 border-2 border-cyan-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
             <div className="text-2xl mb-1">🏟️</div>
-            <div className="text-amber-300/80 text-xs font-bold">الأرينا</div>
-            <div className="text-stone-400 text-[9px]">قريباً</div>
-          </div>
+            <div className="text-cyan-100 text-xs font-extrabold">الأرينا</div>
+            <div className="text-cyan-300/80 text-[9px]">ترتيب</div>
+          </Link>
         </div>
       </div>
     </div>
