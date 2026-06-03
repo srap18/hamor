@@ -123,12 +123,14 @@ function ProfilePage() {
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const path = `${userId}/avatar.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "0" });
-    if (error) { setSaving(false); flash("فشل الرفع"); return; }
+    if (error) { setSaving(false); console.error("[avatar upload]", error); flash(`فشل الرفع: ${error.message}`); return; }
     const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
     const cacheBusted = `${pub.publicUrl}?t=${Date.now()}`;
     setAvatarUrl(cacheBusted);
-    await supabase.from("profiles").update({ avatar_url: cacheBusted }).eq("id", userId);
+    const { data: updated, error: updErr } = await supabase.from("profiles").update({ avatar_url: cacheBusted }).eq("id", userId).select("id");
     setSaving(false);
+    if (updErr) { console.error("[avatar profile update]", updErr); flash(`فشل الحفظ: ${updErr.message}`); return; }
+    if (!updated || updated.length === 0) { console.warn("[avatar update] no rows", { userId }); flash("لم يتم حفظ الصورة"); return; }
     flash("تم تحديث الصورة");
   };
 
@@ -146,8 +148,8 @@ function ProfilePage() {
         flash("هذا الاسم محجوز");
         return;
       }
-    } catch {}
-    const { error } = await supabase.from("profiles").update({
+    } catch (e) { console.warn("[name uniqueness check failed]", e); }
+    const { data: updated, error } = await supabase.from("profiles").update({
       display_name: trimmed,
       bio: bio.slice(0, 200),
       avatar_emoji: avatarEmoji,
@@ -155,9 +157,10 @@ function ProfilePage() {
       name_frame: nameFrame,
       bubble_frame: bubbleFrame,
       profile_frame: profileFrame,
-    } as any).eq("id", userId);
+    } as any).eq("id", userId).select("id");
     setSaving(false);
-    if (error) { flash("فشل الحفظ"); return; }
+    if (error) { console.error("[profile save]", error); flash(`فشل الحفظ: ${error.message}`); return; }
+    if (!updated || updated.length === 0) { console.warn("[profile save] no rows updated", { userId }); flash("لم يتم تحديث الملف"); return; }
     flash("تم الحفظ ✓");
   };
 
