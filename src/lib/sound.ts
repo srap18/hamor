@@ -146,6 +146,9 @@ class SoundEngine {
   play(kind: SfxKind) {
     this.init();
     if (!this.sfxOn) return;
+    // Realistic cinematic samples (explosion / nuke) — play the MP3 directly
+    // and skip the procedural synth fallback below.
+    if (SAMPLE_URLS[kind] && this.playSample(kind)) return;
     const c = this.ensureCtx();
     if (!c || !this.masterGain) return;
     const t = c.currentTime;
