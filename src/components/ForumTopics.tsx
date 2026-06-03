@@ -224,12 +224,21 @@ export function ForumTopics({ userId }: { userId: string }) {
                   <span className="text-[10px] text-amber-300/80 font-bold truncate">{a?.display_name || "..."}</span>
                   <span className="text-[9px] text-amber-200/40">·</span>
                   <span className="text-[9px] text-amber-200/50">{new Date(t.created_at).toLocaleDateString("ar")}</span>
-                  {isMine && (
+                  {(isMine || isAdmin) && (
                     <button
                       onClick={() => removeTopic(t)}
                       className="mr-auto text-[10px] text-red-300/80 hover:text-red-200 px-1.5 py-0.5 rounded border border-red-500/30"
                     >
                       حذف
+                    </button>
+                  )}
+                  {isAdmin && !isMine && (
+                    <button
+                      onClick={() => banUser(t)}
+                      className={`text-[10px] text-orange-200 hover:text-orange-100 px-1.5 py-0.5 rounded border border-orange-500/40 bg-orange-900/30 ${isMine ? "" : "ml-1"}`}
+                      title="حظر اللاعب من المواضيع"
+                    >
+                      🚫 حظر
                     </button>
                   )}
                 </div>
