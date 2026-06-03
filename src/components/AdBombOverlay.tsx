@@ -238,8 +238,8 @@ export function AdBombOverlay({
         </div>
       )}
 
-      {/* Countdown + remove button (owner) — above the video, below dialogs */}
-      <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">
+      {/* Countdown + remove button (owner) — moved down so the top header stays clear */}
+      <div className="fixed top-32 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
           <div className="text-[11px] text-fuchsia-50 font-bold leading-tight">
@@ -248,8 +248,18 @@ export function AdBombOverlay({
               متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
+          {isOwner && (
+            <button
+              onClick={handleRemove}
+              disabled={removing}
+              className="ms-1 px-2 py-1 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 text-white text-[10px] font-extrabold active:scale-95 disabled:opacity-50"
+            >
+              إزالة 💎100
+            </button>
+          )}
         </div>
       </div>
+
 
     </>
   );
