@@ -1229,7 +1229,7 @@ function Index() {
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "2%", top: "30%", width: "44%", height: "20%" }}
+        style={{ right: "1%", top: "44%", width: "34%", height: "16%" }}
       />
 
       {/* Ship Market — fixed floating button on the right, high enough to not overlap ships */}
