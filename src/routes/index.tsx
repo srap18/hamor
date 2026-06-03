@@ -1316,7 +1316,8 @@ function Index() {
         <div className="flex items-center gap-2 pr-20">
           {/* VIP removed */}
 
-          <DragonHUD />
+          {/* DragonHUD removed — entry is the shore dragon itself */}
+
 
           <Link
             to="/inventory"
