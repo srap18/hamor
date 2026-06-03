@@ -80,45 +80,16 @@ export function ShipMarketBuilding({
         className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
       <div className="relative w-full h-full">
-        {/* Compact luxurious label — sits just above the building, never overlapping it */}
+        {/* Simple small label — just text, no frame */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10"
-          style={{ bottom: "6%", filter: "drop-shadow(0 2px 5px rgba(0,0,0,0.7))" }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 whitespace-nowrap text-[9px] font-bold text-amber-200"
+          style={{
+            bottom: "6%",
+            textShadow:
+              "0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8)",
+          }}
         >
-          {/* Outer gilded frame */}
-          <div
-            className="relative px-1.5 py-[1px] rounded-full whitespace-nowrap"
-            style={{
-              background:
-                "linear-gradient(180deg, #f8e29a 0%, #d4a23a 40%, #8a5a14 75%, #f8e29a 100%)",
-              boxShadow:
-                "0 0 0 1px rgba(255,235,170,0.9) inset, 0 0 6px rgba(255,200,90,0.5), 0 1px 3px rgba(0,0,0,0.5)",
-            }}
-          >
-            {/* Inner deep navy plate */}
-            <div
-              className="relative px-1.5 py-[1px] rounded-full"
-              style={{
-                background:
-                  "linear-gradient(180deg, #1a1230 0%, #0b0820 60%, #160c2a 100%)",
-                boxShadow:
-                  "0 0 0 1px rgba(0,0,0,0.55) inset",
-              }}
-            >
-              <span
-                className="text-[8px] leading-none font-extrabold tracking-tight"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #ffeaa8 0%, #f4c95d 50%, #b9802a 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                ⚓ سوق السفن
-              </span>
-            </div>
-          </div>
+          ⚓ سوق السفن
         </div>
 
 
