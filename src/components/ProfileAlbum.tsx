@@ -86,11 +86,12 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
       flash("تمت الإضافة ✓");
       await reload();
     } catch (e: any) {
+      console.error("[album upload]", e);
       const msg = String(e?.message || e || "");
       if (msg.includes("ALBUM_FULL") || msg.includes("ALBUM_LIMIT_EXCEEDED")) flash(`الألبوم ممتلئ (${ALBUM_LIMIT} عنصر)`);
       else if (msg.includes("VIDEO_TOO_LONG")) flash("الفيديو لا يتجاوز 30 ثانية");
       else if (msg.includes("MEDIA_BANNED")) flash("🚫 الإدارة منعتك من رفع الصور والمقاطع");
-      else flash("فشل الرفع");
+      else flash(`فشل الرفع: ${msg.slice(0, 80) || "خطأ غير معروف"}`);
     } finally {
       setUploading(false);
     }
