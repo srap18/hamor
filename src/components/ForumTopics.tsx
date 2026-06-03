@@ -119,11 +119,21 @@ export function ForumTopics({ userId }: { userId: string }) {
   }, [userId, myVotes]);
 
   const removeTopic = useCallback(async (t: Topic) => {
-    if (t.user_id !== userId) return;
+    if (t.user_id !== userId && !isAdmin) return;
     if (!confirm("حذف الموضوع؟")) return;
     await supabase.from("forum_topics").delete().eq("id", t.id);
     load();
-  }, [userId, load]);
+  }, [userId, isAdmin, load]);
+
+  const banUser = useCallback(async (t: Topic) => {
+    if (!isAdmin) return;
+    const reason = prompt("سبب الحظر من المواضيع (اختياري):", "نشر مخالف");
+    if (reason === null) return;
+    const { error } = await supabase.rpc("forum_admin_ban", { _user_id: t.user_id, _reason: reason || "" });
+    if (error) { alert("تعذّر الحظر"); return; }
+    alert("تم حظر اللاعب من المواضيع وحذف مواضيعه.");
+    load();
+  }, [isAdmin, load]);
 
   const sorted = useMemo(() => topics, [topics]);
 
