@@ -1,6 +1,11 @@
-// Web Audio API-based sound engine — zero dependencies, no network.
-// Provides procedural SFX + an ambient music pad. Respects user toggles
-// in localStorage ("sfx_on" / "music_on").
+// Web Audio API-based sound engine + cinematic sample playback.
+// Procedural SFX cover the small UI sounds; the big booms (explosion / nuke)
+// use realistic CDN-hosted MP3 samples so they feel like Hollywood-grade
+// detonations instead of synth chirps. Respects user toggles in localStorage
+// ("sfx_on" / "music_on").
+
+import explosionAsset from "@/assets/sfx/explosion.mp3.asset.json";
+import nukeAsset from "@/assets/sfx/nuke.mp3.asset.json";
 
 type SfxKind =
   | "click"
@@ -13,6 +18,17 @@ type SfxKind =
   | "whoosh"
   | "error";
 
+// Realistic explosion / nuke samples — preloaded as HTMLAudio for low-latency
+// playback. We clone the element on each play() so overlapping booms still work.
+const SAMPLE_URLS: Partial<Record<SfxKind, string>> = {
+  explosion: explosionAsset.url,
+  nuke: nukeAsset.url,
+};
+const SAMPLE_VOLUMES: Partial<Record<SfxKind, number>> = {
+  explosion: 0.95,
+  nuke: 1.0,
+};
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -22,13 +38,33 @@ class SoundEngine {
   private musicPlaying = false;
   private pausedForChat = false;
   private inited = false;
+  private sampleEls: Partial<Record<SfxKind, HTMLAudioElement>> = {};
 
   init() {
     if (typeof window === "undefined") return;
     if (this.inited) return;
     this.sfxOn = window.localStorage.getItem("sfx_on") !== "0";
     this.musicOn = window.localStorage.getItem("music_on") !== "0";
+    // Preload the cinematic sample SFX so the first boom plays instantly.
+    for (const [kind, url] of Object.entries(SAMPLE_URLS) as [SfxKind, string][]) {
+      const el = new Audio(url);
+      el.preload = "auto";
+      el.volume = SAMPLE_VOLUMES[kind] ?? 1;
+      this.sampleEls[kind] = el;
+    }
     this.inited = true;
+  }
+
+  private playSample(kind: SfxKind) {
+    const src = SAMPLE_URLS[kind];
+    if (!src) return false;
+    try {
+      const node = (this.sampleEls[kind]?.cloneNode(true) as HTMLAudioElement | undefined)
+        ?? new Audio(src);
+      node.volume = SAMPLE_VOLUMES[kind] ?? 1;
+      void node.play().catch(() => { /* autoplay may need a user gesture */ });
+    } catch { /* noop */ }
+    return true;
   }
 
   private ensureCtx() {
@@ -110,6 +146,9 @@ class SoundEngine {
   play(kind: SfxKind) {
     this.init();
     if (!this.sfxOn) return;
+    // Realistic cinematic samples (explosion / nuke) — play the MP3 directly
+    // and skip the procedural synth fallback below.
+    if (SAMPLE_URLS[kind] && this.playSample(kind)) return;
     const c = this.ensureCtx();
     if (!c || !this.masterGain) return;
     const t = c.currentTime;
