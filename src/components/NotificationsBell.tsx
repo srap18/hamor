@@ -161,8 +161,8 @@ export function NotificationsBell() {
                       <div key={n.id} className={`p-3 flex gap-2 ${isRead ? "opacity-60" : "bg-amber-900/15"}`}>
                         {actor ? (
                           <Link
-                            to="/players/$playerId"
-                            params={{ playerId: actor.id }}
+                            to="/p/$id"
+                            params={{ id: actor.id }}
                             onClick={() => setOpen(false)}
                             className="shrink-0"
                           >
@@ -186,16 +186,16 @@ export function NotificationsBell() {
                           {actor && (
                             <div className="mt-1.5 flex gap-1.5">
                               <Link
-                                to="/players/$playerId"
-                                params={{ playerId: actor.id }}
+                                to="/p/$id"
+                                params={{ id: actor.id }}
                                 onClick={() => setOpen(false)}
                                 className="px-2 py-0.5 rounded-md bg-sky-600/90 text-white text-[10px] font-bold"
                               >
                                 👤 زيارة {actor.display_name || "اللاعب"}
                               </Link>
                               <Link
-                                to="/players/$playerId"
-                                params={{ playerId: actor.id }}
+                                to="/p/$id"
+                                params={{ id: actor.id }}
                                 onClick={() => setOpen(false)}
                                 className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold"
                               >
