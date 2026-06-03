@@ -164,14 +164,34 @@ function BossPage() {
         "linear-gradient(to bottom, #1a0a14 0%, #050308 60%, #000 100%)" }}>
       <style>{`
         @keyframes float-up { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-90px) scale(1.5);opacity:0} }
-        @keyframes shake-x { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-        @keyframes boss-breathe { 0%,100%{transform:scale(1) translateY(0); filter:drop-shadow(0 0 24px rgba(244,63,94,0.6))} 50%{transform:scale(1.03) translateY(-3px); filter:drop-shadow(0 0 50px rgba(244,63,94,1))} }
+        @keyframes shake-x { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        @keyframes boss-fly {
+          0%   { transform: translate(0,0) rotate(-2deg) scale(1); filter:drop-shadow(0 0 30px rgba(244,63,94,0.7)); }
+          25%  { transform: translate(8px,-18px) rotate(3deg) scale(1.04); filter:drop-shadow(0 0 55px rgba(255,80,30,1)); }
+          50%  { transform: translate(-4px,-28px) rotate(-3deg) scale(1.06); filter:drop-shadow(0 0 70px rgba(255,120,30,1)); }
+          75%  { transform: translate(-10px,-12px) rotate(2deg) scale(1.03); filter:drop-shadow(0 0 50px rgba(244,63,94,0.9)); }
+          100% { transform: translate(0,0) rotate(-2deg) scale(1); filter:drop-shadow(0 0 30px rgba(244,63,94,0.7)); }
+        }
+        @keyframes boss-wing { 0%,100%{transform:scaleX(-1) skewY(-2deg)} 50%{transform:scaleX(-1) skewY(3deg)} }
+        @keyframes boss-shadow { 0%,100%{transform:scaleX(1) scaleY(.4);opacity:.55} 50%{transform:scaleX(.7) scaleY(.3);opacity:.3} }
         @keyframes ship-bob { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
         @keyframes wave-roll { 0%{transform:translateX(0)} 100%{transform:translateX(-40px)} }
-        @keyframes rocket-fly-right { 0%{transform:translate(0,0) rotate(-12deg);opacity:0} 10%{opacity:1} 100%{transform:translate(60vw,-30px) rotate(-12deg);opacity:1} }
-        @keyframes rocket-fly-left { 0%{transform:translate(0,0) rotate(155deg);opacity:0} 10%{opacity:1} 100%{transform:translate(-60vw,-30px) rotate(155deg);opacity:1} }
-        @keyframes splash { 0%{transform:scale(.4);opacity:0} 30%{opacity:1} 100%{transform:scale(2.4);opacity:0} }
+        @keyframes rocket-arc-left {
+          0%   { transform: translate(0,0) rotate(180deg); opacity:0; }
+          8%   { opacity:1; }
+          50%  { transform: translate(-38vw,-50px) rotate(195deg); }
+          100% { transform: translate(-72vw,20px) rotate(210deg); opacity:1; }
+        }
+        @keyframes rocket-arc-right {
+          0%   { transform: translate(0,0) rotate(0deg); opacity:0; }
+          8%   { opacity:1; }
+          50%  { transform: translate(38vw,-40px) rotate(-15deg); }
+          100% { transform: translate(72vw,30px) rotate(-30deg); opacity:1; }
+        }
+        @keyframes trail-pulse { 0%,100%{opacity:.6; transform:scaleX(1)} 50%{opacity:1; transform:scaleX(1.3)} }
+        @keyframes splash { 0%{transform:scale(.4);opacity:0} 30%{opacity:1} 100%{transform:scale(2.6);opacity:0} }
         @keyframes lightning { 0%,90%,100%{opacity:0} 92%,94%{opacity:1; box-shadow:0 0 30px rgba(244,63,94,0.8)} }
+        @keyframes ember-rise { 0%{transform:translateY(0);opacity:0} 20%{opacity:1} 100%{transform:translateY(-40px);opacity:0} }
       `}</style>
 
       {/* Lightning */}
@@ -225,22 +245,34 @@ function BossPage() {
             ))}
           </div>
 
-          {/* BOSS (left side) */}
+          {/* BOSS (left side) — flying */}
           <div className={`absolute left-2 top-2 bottom-12 w-[55%] flex items-center justify-center`}
                style={{ animation: shake === "boss" ? "shake-x 0.22s" : undefined }}>
-            <img src={bossImg} alt={boss.name} draggable={false}
-              className="w-full h-full object-contain"
-              style={{
-                animation: "boss-breathe 3s ease-in-out infinite",
-                opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
-                transform: "scaleX(-1)",
-              }} />
+            {/* ground shadow */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full"
+              style={{ width: "70%", height: 18, background: "radial-gradient(ellipse, rgba(0,0,0,0.7) 0%, transparent 70%)",
+                animation: "boss-shadow 3.2s ease-in-out infinite" }} />
+            {/* embers under boss */}
+            {[0,1,2,3].map((i) => (
+              <span key={i} className="absolute rounded-full"
+                style={{ left: `${30+i*12}%`, bottom: 10, width: 4, height: 4,
+                  background: "radial-gradient(circle, #ffb84a, transparent)",
+                  animation: `ember-rise ${1.6+i*0.3}s ${i*0.4}s ease-out infinite` }} />
+            ))}
+            <div className="relative w-full h-full" style={{ animation: "boss-fly 3.2s ease-in-out infinite" }}>
+              <img src={bossImg} alt={boss.name} draggable={false}
+                className="w-full h-full object-contain"
+                style={{
+                  animation: "boss-wing 2.4s ease-in-out infinite",
+                  opacity: dead ? 0.3 : 1, filter: dead ? "grayscale(1)" : undefined,
+                }} />
+            </div>
             {splashes.filter((s) => s.side === "boss").map((s) => (
               <div key={s.id}>
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{ width: 100, height: 100,
-                    background: "radial-gradient(circle, rgba(255,220,80,1) 0%, rgba(255,80,20,0.7) 40%, transparent 70%)",
-                    animation: "splash 0.6s ease-out forwards" }} />
+                  style={{ width: 120, height: 120,
+                    background: "radial-gradient(circle, rgba(255,240,120,1) 0%, rgba(255,80,20,0.8) 35%, transparent 70%)",
+                    animation: "splash 0.7s ease-out forwards" }} />
                 <div className={`absolute left-1/2 top-1/4 -translate-x-1/2 font-extrabold pointer-events-none ${s.crit ? "text-amber-300 text-3xl" : "text-rose-200 text-2xl"}`}
                   style={{ animation: "float-up 1.4s ease-out forwards",
                     textShadow: s.crit ? "0 0 20px rgba(251,191,36,1)" : "0 0 12px rgba(244,63,94,0.9)" }}>
@@ -277,16 +309,27 @@ function BossPage() {
 
           {/* Projectiles */}
           {projectiles.map((p) => p.kind === "rocket" ? (
-            <div key={p.key} className="absolute"
-              style={{ right: "30%", bottom: "30%", animation: "rocket-fly-left 0.85s linear forwards" }}>
-              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 8px rgba(255,180,40,1))" }}>
+            <div key={p.key} className="absolute z-30 flex items-center gap-1"
+              style={{ right: "40%", bottom: "38%", animation: "rocket-arc-left 0.85s cubic-bezier(.4,.1,.6,1) forwards" }}>
+              {/* trail */}
+              <div className="h-1.5 w-16 rounded-full origin-right"
+                style={{
+                  background: "linear-gradient(to left, rgba(255,200,80,1), rgba(255,80,20,0.8), transparent)",
+                  filter: "blur(2px)", animation: "trail-pulse 0.2s linear infinite",
+                }} />
+              <div className="text-4xl drop-shadow-[0_0_14px_rgba(255,180,40,1)]">
                 {p.weapon === "nuke" ? "☢️" : p.weapon === "rocket_large" ? "💥" : p.weapon === "rocket_medium" ? "🎯" : "🚀"}
               </div>
             </div>
           ) : (
-            <div key={p.key} className="absolute"
-              style={{ left: "30%", top: "30%", animation: "rocket-fly-right 0.9s linear forwards" }}>
-              <div className="text-3xl" style={{ filter: "drop-shadow(0 0 10px rgba(244,63,94,1))" }}>🔥</div>
+            <div key={p.key} className="absolute z-30 flex items-center gap-1"
+              style={{ left: "40%", top: "35%", animation: "rocket-arc-right 0.9s cubic-bezier(.4,.1,.6,1) forwards" }}>
+              <div className="text-4xl drop-shadow-[0_0_14px_rgba(244,63,94,1)]">🔥</div>
+              <div className="h-1.5 w-16 rounded-full"
+                style={{
+                  background: "linear-gradient(to right, rgba(255,80,40,1), rgba(120,20,20,0.8), transparent)",
+                  filter: "blur(2px)", animation: "trail-pulse 0.2s linear infinite",
+                }} />
             </div>
           ))}
 
