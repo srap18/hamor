@@ -148,6 +148,7 @@ export function ShipMarketBuilding({
           {isBurned ? "🔥 محترق" : `⚓ سوق السفن · L${clampedLevel}/30`}
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
