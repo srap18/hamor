@@ -771,12 +771,13 @@ function VoiceRoomView({ room, userId, onLeave }: { room: Room; userId: string; 
               const isMe = p.user_id === userId;
               const isSpeaking = speakingPeers.has(p.user_id);
               return (
-                <div key={p.id} className="flex flex-col items-center gap-1">
+                <button key={p.id} onClick={() => !isMe && openProfile(prof)} className="flex flex-col items-center gap-1 active:scale-95">
                   <Avatar p={prof} size={104} speaking={isSpeaking} muted={isMe ? muted : p.is_muted} />
                   <div className={`text-xs font-bold truncate max-w-full px-1.5 ${frameById(prof?.name_frame)?.kind === "name" ? frameById(prof?.name_frame)?.nameClass : "text-amber-100"} ${frameById(prof?.name_frame)?.animClass ?? ""}`}>{prof?.display_name || "..."}</div>
+                  {prof?.username && !isMe && <div className="text-[9px] text-amber-200/60">@{prof.username}</div>}
                   {isMe && <div className="text-[10px] text-emerald-300">(أنت)</div>}
                   {p.user_id === room.created_by && <div className="text-[10px] text-amber-400">👑 مالك</div>}
-                </div>
+                </button>
               );
             })}
           </div>
