@@ -80,6 +80,14 @@ export function ShipMarketBuilding({
         className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
       <div className="relative w-full h-full">
+        {/* Always-visible label so players recognize the Ship Market */}
+        <div
+          className="absolute -top-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md text-[10px] font-extrabold whitespace-nowrap border border-amber-300/80 bg-gradient-to-b from-amber-500/95 to-amber-700/95 text-white shadow-lg pointer-events-none z-10"
+          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+        >
+          ⚓ سوق السفن
+        </div>
+
         {/* Sandy ground shadow — anchors the building to the beach */}
         <div
           aria-hidden
