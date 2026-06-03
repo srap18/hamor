@@ -397,22 +397,34 @@ function PlayerPage() {
     if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     setMode(null);
-    await consumeItem(weaponId, "weapon");
     const targets = w.aoe ? ships : [selectedShip];
-    for (const t of targets) {
-      // Tell every spectator in this harbor to play the same rocket FX
+    // ─── Pre-validate on the first target BEFORE consuming the weapon ───
+    // Server-side rules (3 fishing ships, market level, protection, etc.) are
+    // enforced inside apply_ship_damage; we hit it once first so a failed
+    // precondition does NOT cost the player their weapon or trigger FX.
+    const firstTarget = targets[0];
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: w.damage });
+    if (firstErr) {
+      const m = String(firstErr.message || "");
+      if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
+      if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم تكون كل سفنك الـ3 في وضع الصيد قبل الهجوم"); setBusy(false); return; }
+      if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
+      if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
+      sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
+    }
+    // Validation passed — now consume the weapon and run FX/damage for all targets.
+    await consumeItem(weaponId, "weapon");
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
       broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
       await playProjectile(t.id, w.emoji, false, w.id);
-      const { data: dmgRes, error: dmgErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
-      if (dmgErr) {
-        const m = String(dmgErr.message || "");
-        if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
-        if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم تكون عندك سفينة في وضع الصيد قبل الهجوم"); setBusy(false); return; }
-        if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
-        if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
-        sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
+      let row: any = null;
+      if (i === 0) {
+        row = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
+      } else {
+        const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
+        row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
       }
-      const row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
       const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - w.damage);
       const repEnds = row?.repair_ends_at ?? null;
       await (supabase as any).rpc("record_attack", {
@@ -422,7 +434,6 @@ function PlayerPage() {
       });
 
       setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
-
     }
 
 
