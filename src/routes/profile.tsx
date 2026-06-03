@@ -63,7 +63,7 @@ function ProfilePage() {
       const [{ data: p }, { data: inv }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame")
+          .select("display_name,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame")
           .eq("id", u.user.id).maybeSingle(),
         supabase
           .from("inventory")
@@ -73,6 +73,10 @@ function ProfilePage() {
       ]);
       if (p) {
         setDisplayName(p.display_name ?? "");
+        setUsername((p as any).username ?? "");
+        setUsernameDraft((p as any).username ?? "");
+        setUsernameChangedAt((p as any).username_changed_at ?? null);
+        setBio((p as any).bio ?? "");
         setAvatarEmoji(p.avatar_emoji ?? "🧙");
         setAvatarUrl(p.avatar_url ?? null);
         setAvatarFrame(p.avatar_frame ?? null);
