@@ -82,8 +82,8 @@ export function ShipMarketBuilding({
       <div className="relative w-full h-full">
         {/* Compact luxurious label — sits just above the building, never overlapping it */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-10"
-          style={{ top: "-2px", filter: "drop-shadow(0 2px 5px rgba(0,0,0,0.7))" }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10"
+          style={{ bottom: "6%", filter: "drop-shadow(0 2px 5px rgba(0,0,0,0.7))" }}
         >
           {/* Outer gilded frame */}
           <div
