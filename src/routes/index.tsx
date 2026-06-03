@@ -21,6 +21,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DragonHUD } from "@/components/DragonHUD";
+import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -1141,6 +1142,9 @@ function Index() {
             "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)",
         }}
       />
+
+      {/* Animated shore dragon — sits where the old fountain was, on every background */}
+      <DragonShoreCreature />
 
       {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
