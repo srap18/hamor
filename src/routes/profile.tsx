@@ -51,6 +51,8 @@ function ProfilePage() {
   const [bubbleFrame, setBubbleFrame] = useState<string | null>(null);
   const [profileFrame, setProfileFrame] = useState<string | null>(null);
   const [ownedFrameIds, setOwnedFrameIds] = useState<Set<string>>(new Set());
+  const [albumPrivacy, setAlbumPrivacy] = useState<"public" | "friends">("public");
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [pop, setPop] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
