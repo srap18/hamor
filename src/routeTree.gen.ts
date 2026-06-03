@@ -32,7 +32,9 @@ import { Route as DragonRouteImport } from './routes/dragon'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as BossRouteImport } from './routes/boss'
 import { Route as BackgroundsShopRouteImport } from './routes/backgrounds-shop'
+import { Route as ArenaRouteImport } from './routes/arena'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -166,9 +168,19 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BossRoute = BossRouteImport.update({
+  id: '/boss',
+  path: '/boss',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BackgroundsShopRoute = BackgroundsShopRouteImport.update({
   id: '/backgrounds-shop',
   path: '/backgrounds-shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArenaRoute = ArenaRouteImport.update({
+  id: '/arena',
+  path: '/arena',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -261,7 +273,9 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
@@ -303,7 +317,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
@@ -347,7 +363,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
@@ -392,7 +410,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/arena'
     | '/backgrounds-shop'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
@@ -434,7 +454,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/arena'
     | '/backgrounds-shop'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
@@ -477,7 +499,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/arena'
     | '/backgrounds-shop'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
@@ -521,7 +545,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ArenaRoute: typeof ArenaRoute
   BackgroundsShopRoute: typeof BackgroundsShopRoute
+  BossRoute: typeof BossRoute
   ChatRoute: typeof ChatRoute
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
@@ -714,11 +740,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/boss': {
+      id: '/boss'
+      path: '/boss'
+      fullPath: '/boss'
+      preLoaderRoute: typeof BossRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backgrounds-shop': {
       id: '/backgrounds-shop'
       path: '/backgrounds-shop'
       fullPath: '/backgrounds-shop'
       preLoaderRoute: typeof BackgroundsShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arena': {
+      id: '/arena'
+      path: '/arena'
+      fullPath: '/arena'
+      preLoaderRoute: typeof ArenaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -885,7 +925,9 @@ const DragonRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ArenaRoute: ArenaRoute,
   BackgroundsShopRoute: BackgroundsShopRoute,
+  BossRoute: BossRoute,
   ChatRoute: ChatRoute,
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,

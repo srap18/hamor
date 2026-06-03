@@ -193,21 +193,77 @@ function DragonPage() {
           </div>
         </div>
 
+        {/* Daily rockets claim */}
+        <DailyRocketsCard />
+
         {/* Action panels */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           <Link to="/dragon/forge"
             className="bg-gradient-to-br from-amber-600/40 to-rose-900/40 border-2 border-amber-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
             <div className="text-2xl mb-1">⚒️</div>
             <div className="text-amber-100 text-xs font-extrabold">الفورج</div>
-            <div className="text-amber-300/80 text-[9px]">تسليح وترقية</div>
+            <div className="text-amber-300/80 text-[9px]">تسليح</div>
           </Link>
-          <div className="bg-stone-900/50 border border-amber-700/30 rounded-xl p-3 text-center opacity-60">
+          <Link to="/boss"
+            className="bg-gradient-to-br from-rose-700/50 to-black border-2 border-rose-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
+            <div className="text-2xl mb-1">🐲</div>
+            <div className="text-rose-100 text-xs font-extrabold">الوحش</div>
+            <div className="text-rose-300/80 text-[9px]">هاجم</div>
+          </Link>
+          <Link to="/arena"
+            className="bg-gradient-to-br from-cyan-700/50 to-purple-900/50 border-2 border-cyan-400/60 rounded-xl p-3 text-center backdrop-blur shadow-lg hover:scale-105 transition-transform">
             <div className="text-2xl mb-1">🏟️</div>
-            <div className="text-amber-300/80 text-xs font-bold">الأرينا</div>
-            <div className="text-stone-400 text-[9px]">قريباً</div>
-          </div>
+            <div className="text-cyan-100 text-xs font-extrabold">الأرينا</div>
+            <div className="text-cyan-300/80 text-[9px]">ترتيب</div>
+          </Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DailyRocketsCard() {
+  const [status, setStatus] = useState<{ available: boolean; count: number; tier: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { available: boolean; count: number; tier: number } | null }> }).rpc("daily_rockets_status");
+    setStatus(data);
+  };
+  useEffect(() => { load(); }, []);
+
+  if (!status || status.tier < 3) return null;
+
+  const claim = async () => {
+    if (busy) return;
+    setBusy(true);
+    const { data, error } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { ok: boolean; count?: number; error?: string }; error: { message: string } | null }> }).rpc("claim_daily_dragon_rockets");
+    setBusy(false);
+    if (error) { setMsg("❌ " + error.message); return; }
+    if (!data.ok) { setMsg("❌ " + (data.error ?? "")); return; }
+    setMsg(`✅ استلمت ${data.count} صواريخ!`);
+    load();
+    setTimeout(() => setMsg(null), 2500);
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-emerald-900/60 to-amber-900/60 border-2 border-emerald-400/60 rounded-2xl p-3 mb-3 backdrop-blur">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <div className="text-emerald-100 font-extrabold text-sm">🚀 صواريخ التنين اليومية</div>
+          <div className="text-emerald-300/70 text-[10px]">{status.count} صواريخ بفضل سيفك</div>
+        </div>
+        <button onClick={claim} disabled={!status.available || busy}
+          className={`px-4 py-2 rounded-xl font-extrabold text-sm shadow-lg ${
+            status.available
+              ? "bg-gradient-to-b from-emerald-400 to-emerald-700 text-stone-900"
+              : "bg-stone-800 text-stone-500 border border-stone-700"
+          }`}>
+          {status.available ? "🎁 استلم" : "✓ تم اليوم"}
+        </button>
+      </div>
+      {msg && <div className="mt-2 text-center text-emerald-200 text-xs font-bold">{msg}</div>}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { DragonHUD } from "@/components/DragonHUD";
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -1310,6 +1311,8 @@ function Index() {
         {/* Boost rail */}
         <div className="flex items-center gap-2 pr-20">
           {/* VIP removed */}
+
+          <DragonHUD />
 
           <Link
             to="/inventory"
