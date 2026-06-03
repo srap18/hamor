@@ -247,7 +247,7 @@ function RootComponent() {
       <MobileFrame>
         <GlobalBanner />
         <LastAttackTicker />
-        <GiftPopup />
+        
         <Outlet />
         <Toaster position="top-center" richColors />
       </MobileFrame>
