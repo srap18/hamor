@@ -509,7 +509,7 @@ function ChatPage() {
         )}
       </div>
 
-      {tab !== "voice" && tab !== "topics" && (
+      {tab !== "voice" && tab !== "topics" && tab !== "tribeshop" && (
         myMute ? (
           <div className="px-3 pb-3">
             <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
