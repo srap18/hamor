@@ -145,6 +145,7 @@ function ProfilePage() {
     } catch {}
     const { error } = await supabase.from("profiles").update({
       display_name: trimmed,
+      bio: bio.slice(0, 200),
       avatar_emoji: avatarEmoji,
       avatar_frame: avatarFrame,
       name_frame: nameFrame,
@@ -154,6 +155,33 @@ function ProfilePage() {
     setSaving(false);
     if (error) { flash("فشل الحفظ"); return; }
     flash("تم الحفظ ✓");
+  };
+
+  const usernameCooldownLeft = (() => {
+    if (!usernameChangedAt) return 0;
+    const next = new Date(usernameChangedAt).getTime() + 14 * 24 * 3600 * 1000;
+    return Math.max(0, next - Date.now());
+  })();
+  const canChangeUsername = usernameCooldownLeft === 0;
+
+  const changeUsername = async () => {
+    const v = usernameDraft.trim().toLowerCase();
+    if (!/^[a-z0-9_]{5,20}$/.test(v)) { flash("اليوزر: 5-20 حرف، a-z 0-9 _ فقط"); return; }
+    if (v === username) { flash("لم يتغير اليوزر"); return; }
+    setSavingUsername(true);
+    const { data, error } = await (supabase as any).rpc("change_username", { _new: v });
+    setSavingUsername(false);
+    if (error) {
+      const msg = String(error.message || "");
+      if (msg.includes("USERNAME_TAKEN")) flash("هذا اليوزر محجوز");
+      else if (msg.includes("USERNAME_COOLDOWN")) flash("لا يمكن تغيير اليوزر إلا كل 14 يوم");
+      else if (msg.includes("INVALID_USERNAME")) flash("اليوزر غير صالح");
+      else flash("فشل تغيير اليوزر");
+      return;
+    }
+    setUsername(data?.username || v);
+    setUsernameChangedAt(new Date().toISOString());
+    flash("تم تغيير اليوزر ✓");
   };
 
   const equippedAvatarFrame = frameById(avatarFrame);
