@@ -3037,6 +3037,7 @@ export type Database = {
         }[]
       }
       attack_boss: { Args: { p_use_free?: boolean }; Returns: Json }
+      attack_boss_with: { Args: { p_weapon: string }; Returns: Json }
       audit_player_currency: {
         Args: { _uid: string }
         Returns: {
