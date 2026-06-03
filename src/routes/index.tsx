@@ -1230,15 +1230,19 @@ function Index() {
 
 
 
-      {/* Fish market — moved to the right side of the scene */}
-      <Hotspot to="/fish-market" label="سوق السمك" emoji="🐟"
-        style={{ right: "2%", top: "20%", width: "22%", height: "18%" }} />
+      {/* Fish market — animated building, changes per upgrade level */}
+      <FishMarketBuilding
+        level={fishMarketLevel}
+        burnedUntil={(profile as any)?.bg_burned_until}
+        style={{ right: "2%", top: "44%", width: "24%", height: "20%" }}
+      />
       {/* Ship Market — sits where the fish market used to be, facing the sea */}
       <ShipMarketBuilding
         level={marketLevel}
         burnedUntil={(profile as any)?.bg_burned_until}
         style={{ left: "22%", top: "48%", width: "26%", height: "20%" }}
       />
+
 
       {/* Realistic drifting clouds */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
