@@ -717,6 +717,33 @@ function Index() {
     };
   }, [modal, crewTick]);
 
+  const [marketLevel, setMarketLevel] = useState<number>(1);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("user_market")
+        .select("level")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      setMarketLevel(Math.max(1, Math.min(30, (data as any)?.level ?? 1)));
+    };
+    load();
+    const ch = supabase
+      .channel(`my-market-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_market", filter: `user_id=eq.${user.id}` }, load)
+      .subscribe();
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      supabase.removeChannel(ch);
+    };
+  }, [user]);
+
   const [bgId, setBgId] = useState<string>(() => getSelectedBgId());
   useEffect(() => {
     (async () => {
