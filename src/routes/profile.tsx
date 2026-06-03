@@ -86,6 +86,7 @@ function ProfilePage() {
         setNameFrame(p.name_frame ?? null);
         setBubbleFrame((p as any).bubble_frame ?? null);
         setProfileFrame((p as any).profile_frame ?? null);
+        setAlbumPrivacy(((p as any).album_privacy === "friends" ? "friends" : "public"));
       }
       setOwnedFrameIds(new Set((inv ?? []).map((r: any) => r.item_id)));
       setLoading(false);
