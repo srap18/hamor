@@ -2302,7 +2302,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     let debounce: number | null = null;
     const refreshNow = () => {
       if (debounce) window.clearTimeout(debounce);
-      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 500);
+      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 150);
     };
     const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
     window.addEventListener("focus", refreshNow);
