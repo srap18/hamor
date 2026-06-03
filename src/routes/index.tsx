@@ -722,6 +722,8 @@ function Index() {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
+      // Finalize any completed upgrades so the level reflects instantly
+      await supabase.rpc("finalize_market_upgrades");
       const { data } = await supabase
         .from("user_market")
         .select("level")
@@ -737,9 +739,12 @@ function Index() {
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
+    // Poll every 5s so finished upgrades surface without a page revisit
+    const poll = setInterval(load, 5000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
+      clearInterval(poll);
       supabase.removeChannel(ch);
     };
   }, [user]);
