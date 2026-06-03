@@ -39,6 +39,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
@@ -200,6 +201,11 @@ const PIdRoute = PIdRouteImport.update({
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DragonForgeRoute = DragonForgeRouteImport.update({
+  id: '/forge',
+  path: '/forge',
+  getParentRoute: () => DragonRoute,
+} as any)
 const AdminSanctionsRoute = AdminSanctionsRouteImport.update({
   id: '/sanctions',
   path: '/sanctions',
@@ -259,7 +265,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
-  '/dragon': typeof DragonRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -300,7 +307,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
-  '/dragon': typeof DragonRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -343,7 +351,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
-  '/dragon': typeof DragonRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -372,6 +380,7 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -416,6 +425,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -499,6 +510,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -513,7 +525,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
-  DragonRoute: typeof DragonRoute
+  DragonRoute: typeof DragonRouteWithChildren
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   FriendsRoute: typeof FriendsRoute
@@ -751,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dragon/forge': {
+      id: '/dragon/forge'
+      path: '/forge'
+      fullPath: '/dragon/forge'
+      preLoaderRoute: typeof DragonForgeRouteImport
+      parentRoute: typeof DragonRoute
+    }
     '/admin/sanctions': {
       id: '/admin/sanctions'
       path: '/sanctions'
@@ -852,6 +871,17 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface DragonRouteChildren {
+  DragonForgeRoute: typeof DragonForgeRoute
+}
+
+const DragonRouteChildren: DragonRouteChildren = {
+  DragonForgeRoute: DragonForgeRoute,
+}
+
+const DragonRouteWithChildren =
+  DragonRoute._addFileChildren(DragonRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -859,7 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
-  DragonRoute: DragonRoute,
+  DragonRoute: DragonRouteWithChildren,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   FriendsRoute: FriendsRoute,
