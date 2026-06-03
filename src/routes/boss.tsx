@@ -164,14 +164,34 @@ function BossPage() {
         "linear-gradient(to bottom, #1a0a14 0%, #050308 60%, #000 100%)" }}>
       <style>{`
         @keyframes float-up { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-90px) scale(1.5);opacity:0} }
-        @keyframes shake-x { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-        @keyframes boss-breathe { 0%,100%{transform:scale(1) translateY(0); filter:drop-shadow(0 0 24px rgba(244,63,94,0.6))} 50%{transform:scale(1.03) translateY(-3px); filter:drop-shadow(0 0 50px rgba(244,63,94,1))} }
+        @keyframes shake-x { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        @keyframes boss-fly {
+          0%   { transform: translate(0,0) rotate(-2deg) scale(1); filter:drop-shadow(0 0 30px rgba(244,63,94,0.7)); }
+          25%  { transform: translate(8px,-18px) rotate(3deg) scale(1.04); filter:drop-shadow(0 0 55px rgba(255,80,30,1)); }
+          50%  { transform: translate(-4px,-28px) rotate(-3deg) scale(1.06); filter:drop-shadow(0 0 70px rgba(255,120,30,1)); }
+          75%  { transform: translate(-10px,-12px) rotate(2deg) scale(1.03); filter:drop-shadow(0 0 50px rgba(244,63,94,0.9)); }
+          100% { transform: translate(0,0) rotate(-2deg) scale(1); filter:drop-shadow(0 0 30px rgba(244,63,94,0.7)); }
+        }
+        @keyframes boss-wing { 0%,100%{transform:scaleX(-1) skewY(-2deg)} 50%{transform:scaleX(-1) skewY(3deg)} }
+        @keyframes boss-shadow { 0%,100%{transform:scaleX(1) scaleY(.4);opacity:.55} 50%{transform:scaleX(.7) scaleY(.3);opacity:.3} }
         @keyframes ship-bob { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
         @keyframes wave-roll { 0%{transform:translateX(0)} 100%{transform:translateX(-40px)} }
-        @keyframes rocket-fly-right { 0%{transform:translate(0,0) rotate(-12deg);opacity:0} 10%{opacity:1} 100%{transform:translate(60vw,-30px) rotate(-12deg);opacity:1} }
-        @keyframes rocket-fly-left { 0%{transform:translate(0,0) rotate(155deg);opacity:0} 10%{opacity:1} 100%{transform:translate(-60vw,-30px) rotate(155deg);opacity:1} }
-        @keyframes splash { 0%{transform:scale(.4);opacity:0} 30%{opacity:1} 100%{transform:scale(2.4);opacity:0} }
+        @keyframes rocket-arc-left {
+          0%   { transform: translate(0,0) rotate(180deg); opacity:0; }
+          8%   { opacity:1; }
+          50%  { transform: translate(-38vw,-50px) rotate(195deg); }
+          100% { transform: translate(-72vw,20px) rotate(210deg); opacity:1; }
+        }
+        @keyframes rocket-arc-right {
+          0%   { transform: translate(0,0) rotate(0deg); opacity:0; }
+          8%   { opacity:1; }
+          50%  { transform: translate(38vw,-40px) rotate(-15deg); }
+          100% { transform: translate(72vw,30px) rotate(-30deg); opacity:1; }
+        }
+        @keyframes trail-pulse { 0%,100%{opacity:.6; transform:scaleX(1)} 50%{opacity:1; transform:scaleX(1.3)} }
+        @keyframes splash { 0%{transform:scale(.4);opacity:0} 30%{opacity:1} 100%{transform:scale(2.6);opacity:0} }
         @keyframes lightning { 0%,90%,100%{opacity:0} 92%,94%{opacity:1; box-shadow:0 0 30px rgba(244,63,94,0.8)} }
+        @keyframes ember-rise { 0%{transform:translateY(0);opacity:0} 20%{opacity:1} 100%{transform:translateY(-40px);opacity:0} }
       `}</style>
 
       {/* Lightning */}
