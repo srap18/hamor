@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
-import bossImg from "@/assets/world-boss.png";
+import { AnimatedDragon } from "@/components/AnimatedDragon";
+
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
