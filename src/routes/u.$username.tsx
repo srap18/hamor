@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileByUsername, type PublicProfile } from "@/lib/profiles-public";
 import { frameById } from "@/lib/frames";
+import { getTribeBanner } from "@/lib/tribe-banners";
 import ProfileAlbum from "@/components/ProfileAlbum";
+
+type TribeInfo = { id: string; name: string; level: number; emblem: string | null };
 
 export const Route = createFileRoute("/u/$username")({
   ssr: false,
@@ -20,6 +23,7 @@ function UserProfilePage() {
   const [friendStatus, setFriendStatus] = useState<"none" | "pending_out" | "pending_in" | "accepted" | "self">("none");
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [tribe, setTribe] = useState<TribeInfo | null>(null);
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 1800); };
 
@@ -30,6 +34,11 @@ function UserProfilePage() {
       setMe(u.user?.id ?? null);
       const p = await getProfileByUsername(username);
       setProfile(p);
+      if (p?.tribe_id) {
+        const { data: t } = await supabase.from("tribes").select("id,name,level,emblem").eq("id", p.tribe_id).maybeSingle();
+        if (t) setTribe(t as TribeInfo);
+        else setTribe(null);
+      } else setTribe(null);
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
         else {
@@ -101,27 +110,65 @@ function UserProfilePage() {
       </header>
 
       <main className="p-3 pb-20 space-y-4 max-w-md mx-auto">
-        {/* Profile card */}
+        {/* Luxurious tribe banner */}
+        {tribe && (() => {
+          const tier = getTribeBanner(tribe.level || 1);
+          return (
+            <section className="relative w-full h-28 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-[0_0_30px_rgba(251,191,36,0.35)]">
+              <img src={tier.url} alt={`بنر ${tier.name}`} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute inset-0 flex items-center gap-3 px-4">
+                <div className="relative w-16 h-16 shrink-0">
+                  <img src={tier.emblemUrl} alt="" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+                  <img src={tier.frameUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-amber-100 font-extrabold text-base truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">🏴‍☠️ {tribe.name}</div>
+                  <div className="text-[11px] text-amber-200/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⭐ مستوى {tribe.level} · {tier.name}</div>
+                </div>
+              </div>
+            </section>
+          );
+        })()}
+
+        {/* Profile card — luxurious */}
         <section className={equippedProfileFrame?.profileClass ?? ""}>
-          <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
-            <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-              <div className={`relative w-16 h-16 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}>
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-secondary text-3xl">{profile.avatar_emoji ?? "🧙"}</div>
+          <div className="relative rounded-2xl p-4 border-2 border-amber-500/50 shadow-[0_0_24px_rgba(251,191,36,0.25)] overflow-hidden"
+            style={{ background: "linear-gradient(135deg, oklch(0.18 0.04 60) 0%, oklch(0.12 0.03 280) 100%)" }}>
+            <div aria-hidden className="absolute inset-0 pointer-events-none opacity-30"
+              style={{ background: "radial-gradient(circle at top right, rgba(251,191,36,0.35), transparent 60%)" }} />
+            <div className="relative flex items-center gap-4">
+              <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-secondary text-4xl">{profile.avatar_emoji ?? "🧙"}</div>
+                  )}
+                </div>
+                {equippedAvatarFrame?.imageUrl && (
+                  <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${equippedAvatarFrame.animClass ?? ""}`} />
                 )}
               </div>
-              {equippedAvatarFrame?.imageUrl && (
-                <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className={`inline-block px-3 py-1 rounded-md font-bold text-base ${equippedNameFrame?.nameClass ?? "bg-secondary/60 border border-border text-foreground"}`}>
-                {profile.display_name || "—"}
+              <div className="flex-1 min-w-0">
+                <div className={`inline-block px-3 py-1 rounded-md font-extrabold text-lg ${equippedNameFrame?.nameClass ?? "bg-gradient-to-r from-amber-500/30 to-amber-700/30 border border-amber-400/60 text-amber-100"}`}>
+                  {profile.display_name || "—"}
+                </div>
+                <div className="text-[11px] text-amber-200/80 mt-1 truncate">@{profile.username}</div>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-700 text-amber-950 border border-amber-300 shadow">
+                    ⭐ مستوى {profile.level ?? 1}
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-900/70 text-indigo-100 border border-indigo-400/60">
+                    ✨ {profile.xp ?? 0} XP
+                  </span>
+                  {equippedAvatarFrame && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-900/70 text-fuchsia-100 border border-fuchsia-400/60">
+                      🖼️ {equippedAvatarFrame.name ?? "إطار"}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1 truncate">@{profile.username}</div>
-              <div className="text-[10px] text-amber-200 mt-1">المستوى {profile.level ?? 1} · {profile.xp ?? 0} XP</div>
             </div>
           </div>
         </section>
