@@ -80,13 +80,68 @@ export function ShipMarketBuilding({
         className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
       <div className="relative w-full h-full">
-        {/* Always-visible label so players recognize the Ship Market */}
+        {/* Luxurious always-visible label so players recognize the Ship Market */}
         <div
-          className="absolute -top-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md text-[10px] font-extrabold whitespace-nowrap border border-amber-300/80 bg-gradient-to-b from-amber-500/95 to-amber-700/95 text-white shadow-lg pointer-events-none z-10"
-          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+          className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-10"
+          style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.7))" }}
         >
-          ⚓ سوق السفن
+          {/* Outer gilded frame */}
+          <div
+            className="relative px-3 py-1 rounded-full whitespace-nowrap"
+            style={{
+              background:
+                "linear-gradient(180deg, #f8e29a 0%, #d4a23a 35%, #8a5a14 70%, #f8e29a 100%)",
+              boxShadow:
+                "0 0 0 1px rgba(255,235,170,0.9) inset, 0 0 14px rgba(255,200,90,0.55), 0 2px 6px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* Inner deep navy plate */}
+            <div
+              className="relative px-2.5 py-[3px] rounded-full"
+              style={{
+                background:
+                  "linear-gradient(180deg, #1a1230 0%, #0b0820 60%, #160c2a 100%)",
+                boxShadow:
+                  "0 0 0 1px rgba(0,0,0,0.6) inset, 0 0 8px rgba(0,0,0,0.5) inset",
+              }}
+            >
+              <span
+                className="text-[11px] font-extrabold tracking-wide"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #ffeaa8 0%, #f4c95d 45%, #b9802a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  textShadow: "0 1px 0 rgba(0,0,0,0.4)",
+                  filter: "drop-shadow(0 0 4px rgba(255,200,90,0.35))",
+                }}
+              >
+                ⚓ سوق السفن
+              </span>
+            </div>
+            {/* Gold corner studs */}
+            <span
+              aria-hidden
+              className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 30%, #fff4c2, #c8902b 70%, #5a3a0e)",
+                boxShadow: "0 0 4px rgba(255,200,90,0.8)",
+              }}
+            />
+            <span
+              aria-hidden
+              className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 30%, #fff4c2, #c8902b 70%, #5a3a0e)",
+                boxShadow: "0 0 4px rgba(255,200,90,0.8)",
+              }}
+            />
+          </div>
         </div>
+
 
         {/* Sandy ground shadow — anchors the building to the beach */}
         <div
