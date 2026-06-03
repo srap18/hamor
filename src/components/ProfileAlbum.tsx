@@ -87,8 +87,9 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
       await reload();
     } catch (e: any) {
       const msg = String(e?.message || e || "");
-      if (msg.includes("ALBUM_FULL")) flash(`الألبوم ممتلئ (${ALBUM_LIMIT} عنصر)`);
+      if (msg.includes("ALBUM_FULL") || msg.includes("ALBUM_LIMIT_EXCEEDED")) flash(`الألبوم ممتلئ (${ALBUM_LIMIT} عنصر)`);
       else if (msg.includes("VIDEO_TOO_LONG")) flash("الفيديو لا يتجاوز 30 ثانية");
+      else if (msg.includes("MEDIA_BANNED")) flash("🚫 الإدارة منعتك من رفع الصور والمقاطع");
       else flash("فشل الرفع");
     } finally {
       setUploading(false);
