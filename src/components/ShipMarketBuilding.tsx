@@ -69,13 +69,16 @@ export function ShipMarketBuilding({
   );
 
   return (
-    <Link
-      to="/ship-market"
-      onClick={() => sound.play("click")}
-      aria-label="سوق السفن"
-      className="absolute z-[14] group active:scale-95"
+    <div
+      className="absolute z-[8] pointer-events-none"
       style={{ ...style }}
     >
+      <Link
+        to="/ship-market"
+        onClick={() => sound.play("click")}
+        aria-label="سوق السفن"
+        className="block w-full h-full pointer-events-auto active:scale-95 transition-transform"
+      >
       <div className="relative w-full h-full">
         {/* Subtle reflection on the water below the structure */}
         <div
@@ -145,6 +148,7 @@ export function ShipMarketBuilding({
           {isBurned ? "🔥 محترق" : `⚓ سوق السفن · L${clampedLevel}/30`}
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
