@@ -1342,6 +1342,7 @@ export type Database = {
           last_destroyer_kind: string | null
           last_destroyer_name: string | null
           level: number
+          media_banned: boolean
           name_frame: string | null
           online_at: string
           profile_frame: string | null
@@ -1378,6 +1379,7 @@ export type Database = {
           last_destroyer_kind?: string | null
           last_destroyer_name?: string | null
           level?: number
+          media_banned?: boolean
           name_frame?: string | null
           online_at?: string
           profile_frame?: string | null
@@ -1414,6 +1416,7 @@ export type Database = {
           last_destroyer_kind?: string | null
           last_destroyer_name?: string | null
           level?: number
+          media_banned?: boolean
           name_frame?: string | null
           online_at?: string
           profile_frame?: string | null
@@ -2779,6 +2782,10 @@ export type Database = {
             Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
             Returns: Json
           }
+      admin_set_media_ban: {
+        Args: { _banned: boolean; _target: string }
+        Returns: undefined
+      }
       admin_set_player_currency: {
         Args: {
           _coins: number
@@ -2809,6 +2816,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_set_profile_fields: {
+        Args: {
+          _avatar_emoji?: string
+          _avatar_url?: string
+          _bio?: string
+          _clear_avatar?: boolean
+          _target: string
+        }
+        Returns: undefined
+      }
+      admin_set_username: {
+        Args: { _new: string; _target: string }
+        Returns: Json
+      }
+      admin_wipe_profile: { Args: { _target: string }; Returns: Json }
       apply_ship_damage: {
         Args: { _damage: number; _ship_id: string }
         Returns: {

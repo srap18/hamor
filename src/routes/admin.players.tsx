@@ -202,6 +202,11 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [displayName, setDisplayName] = useState(player.display_name);
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [usernameVal, setUsernameVal] = useState("");
+  const [bio, setBio] = useState("");
+  const [mediaBanned, setMediaBanned] = useState(false);
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [savingBio, setSavingBio] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -213,7 +218,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
       ]);
       const all: HistoryEntry[] = [
@@ -222,9 +227,58 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
       setAvatarUrl((prof as any)?.avatar_url ?? null);
+      setUsernameVal(((prof as any)?.username ?? "") as string);
+      setBio(((prof as any)?.bio ?? "") as string);
+      setMediaBanned(Boolean((prof as any)?.media_banned));
       setFishRows(((fish ?? []) as FishAdminRow[]).map((r) => ({ fish_id: r.fish_id, quantity: r.quantity ?? 0, total_caught: r.total_caught ?? 0 })));
     })();
   }, [player.id]);
+
+  const saveUsername = async () => {
+    const v = usernameVal.trim().toLowerCase();
+    if (!/^[a-z0-9_]{2,20}$/.test(v)) { toast.error("اليوزر: 2-20 حرف، a-z 0-9 _"); return; }
+    setSavingUsername(true);
+    const { error } = await (supabase as any).rpc("admin_set_username", { _target: player.id, _new: v });
+    setSavingUsername(false);
+    if (error) {
+      const m = String(error.message || "");
+      if (m.includes("USERNAME_TAKEN")) toast.error("اليوزر محجوز");
+      else if (m.includes("INVALID_USERNAME")) toast.error("صيغة اليوزر غير صحيحة");
+      else toast.error("خطأ: " + m);
+      return;
+    }
+    await logAudit("admin_set_username", player.id, { username: v });
+    toast.success("تم تعيين اليوزر");
+  };
+
+  const saveBio = async () => {
+    setSavingBio(true);
+    const { error } = await (supabase as any).rpc("admin_set_profile_fields", { _target: player.id, _bio: bio.slice(0, 200) });
+    setSavingBio(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_edit_bio", player.id, {});
+    toast.success("تم حفظ الوصف");
+  };
+
+  const toggleMediaBan = async () => {
+    const next = !mediaBanned;
+    if (next && !confirm(`منع ${player.display_name} من رفع أي صور أو مقاطع في الألبوم؟`)) return;
+    const { error } = await (supabase as any).rpc("admin_set_media_ban", { _target: player.id, _banned: next });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    setMediaBanned(next);
+    await logAudit(next ? "media_ban" : "media_unban", player.id, {});
+    toast.success(next ? "تم منع الرفع" : "تم رفع المنع");
+  };
+
+  const wipeProfile = async () => {
+    if (!confirm(`⚠️ مسح الوصف والصورة وكل الألبوم لـ ${player.display_name}؟`)) return;
+    const { data, error } = await (supabase as any).rpc("admin_wipe_profile", { _target: player.id });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    const d: any = data ?? {};
+    setBio(""); setAvatarUrl(null);
+    await logAudit("admin_wipe_profile", player.id, { deleted_media: d.deleted_media });
+    toast.success(`🧹 مُسح الملف الشخصي (${d.deleted_media ?? 0} عنصر من الألبوم)`);
+  };
 
   const saveProfile = async () => {
     setSavingProfile(true);
@@ -427,6 +481,47 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             {savingProfile ? "جاري الحفظ..." : "💾 حفظ بيانات الحساب"}
           </button>
         </div>
+
+        {/* Profile (username + bio + media ban + wipe) */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="text-sm font-semibold text-slate-300">🪪 الملف الشخصي</div>
+          <div>
+            <label className="text-xs text-slate-400">اليوزر @ (الأدمن فقط يقدر أقل من 5 حروف وبدون قيد 14 يوم)</label>
+            <div className="flex gap-2 mt-1">
+              <input dir="ltr" value={usernameVal}
+                onChange={(e) => setUsernameVal(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20))}
+                placeholder="user_or_2-20"
+                className="flex-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm font-mono focus:outline-none focus:border-indigo-500" />
+              <button onClick={saveUsername} disabled={savingUsername}
+                className="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-xs font-bold">
+                {savingUsername ? "..." : "تعيين"}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">الوصف الشخصي</label>
+            <textarea value={bio} onChange={(e) => setBio(e.target.value.slice(0, 200))} rows={2}
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 resize-none" />
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-[10px] text-slate-500">{bio.length}/200</span>
+              <button onClick={saveBio} disabled={savingBio}
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-xs font-bold">
+                {savingBio ? "..." : "💾 حفظ الوصف"}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={toggleMediaBan}
+              className={`px-3 py-2 rounded-lg text-xs font-bold ${mediaBanned ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-orange-600/40 hover:bg-orange-600/60 text-orange-100"}`}>
+              {mediaBanned ? "✅ السماح بالرفع" : "🚫 منع رفع الصور/المقاطع"}
+            </button>
+            <button onClick={wipeProfile}
+              className="px-3 py-2 rounded-lg bg-rose-600/50 hover:bg-rose-600/70 text-rose-100 text-xs font-bold">
+              🧹 مسح الوصف + الصورة + الألبوم
+            </button>
+          </div>
+        </div>
+
 
         <div className="space-y-3">
           {[
