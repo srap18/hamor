@@ -143,8 +143,8 @@ function Row({ p, action }: { p: P; action: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 p-2 bg-stone-900/60 rounded-lg border border-amber-900/40">
       <Link
-        to="/players/$playerId"
-        params={{ playerId: p.id }}
+        to="/p/$id"
+        params={{ id: p.id }}
         className="flex items-center gap-2 flex-1 min-w-0 hover:bg-amber-900/20 rounded-md -m-1 p-1 transition-colors"
       >
         <div className="w-9 h-9 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg shrink-0">{p.avatar_emoji}</div>

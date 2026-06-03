@@ -1164,8 +1164,8 @@ function Index() {
             return (
               <Link
                 key={`out-${s.id}`}
-                to="/players/$playerId"
-                params={{ playerId: s.stealingTargetUserId! }}
+                to="/p/$id"
+                params={{ id: s.stealingTargetUserId! }}
                 onClick={() => sound.play("click")}
                 className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl backdrop-blur-md shadow-2xl active:scale-95 border-2 ${
                   ready
@@ -1386,8 +1386,8 @@ function Index() {
         return (
           <Link
             key={`raid-${r.ship_id}`}
-            to="/players/$playerId"
-            params={{ playerId: r.attacker_id }}
+            to="/p/$id"
+            params={{ id: r.attacker_id }}
             className="absolute z-10 active:scale-95"
             style={{ left, top, width: "18%" }}
           >
@@ -2495,7 +2495,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               return isMe ? (
                 <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
-                <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                <Link key={p.id} to="/p/$id" params={{ id: p.id }}
                   onClick={() => { sound.play("click"); onClose(); }}
                   className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
@@ -2534,7 +2534,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               return isMe ? (
                 <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
-                <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+                <Link key={p.id} to="/p/$id" params={{ id: p.id }}
                   onClick={() => { sound.play("click"); onClose(); }}
                   className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
@@ -2578,7 +2578,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             return isMe ? (
               <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
             ) : (
-              <Link key={p.id} to="/players/$playerId" params={{ playerId: p.id }}
+              <Link key={p.id} to="/p/$id" params={{ id: p.id }}
                 onClick={() => { sound.play("click"); onClose(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                 {Inner}
@@ -2755,7 +2755,7 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                 return m.user_id === meId ? (
                   <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{row}</div>
                 ) : (
-                  <Link key={m.user_id} to="/players/$playerId" params={{ playerId: m.user_id }}
+                  <Link key={m.user_id} to="/p/$id" params={{ id: m.user_id }}
                     onClick={() => { sound.play("click"); onClose(); }}
                     className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
                     {row}

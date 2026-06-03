@@ -388,8 +388,8 @@ function ChatPage() {
                 >
                   <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100" />
                   <Link
-                    to="/players/$playerId"
-                    params={{ playerId: f.id }}
+                    to="/p/$id"
+                    params={{ id: f.id }}
                     className="relative shrink-0 active:scale-95 transition-transform"
                     aria-label={`محيط ${f.display_name}`}
                   >
@@ -712,7 +712,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
           </div>
           {isAdmin && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600 text-white">أدمن</span>}
         </div>
-        <Link to="/players/$playerId" params={{ playerId: target.id }} onClick={onClose}
+        <Link to="/p/$id" params={{ id: target.id }} onClick={onClose}
           className="block w-full py-2 rounded-lg bg-sky-600 text-white text-center font-bold text-sm">
           👤 زياره الملف الشخصي
         </Link>
