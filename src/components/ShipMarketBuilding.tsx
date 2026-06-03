@@ -77,7 +77,7 @@ export function ShipMarketBuilding({
         to="/ship-market"
         onClick={() => sound.play("click")}
         aria-label="سوق السفن"
-        className="block w-full h-full pointer-events-auto active:scale-95 transition-transform"
+        className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
       <div className="relative w-full h-full">
         {/* Subtle reflection on the water below the structure */}
