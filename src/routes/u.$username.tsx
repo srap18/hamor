@@ -187,7 +187,7 @@ function UserProfilePage() {
         </section>
 
         {/* Action buttons */}
-        {!isSelf && me && (
+        {!isSelf && (
           <section className="grid grid-cols-3 gap-2">
             <Link
               to="/players/$playerId"
@@ -197,25 +197,25 @@ function UserProfilePage() {
               🌊 زيارة المحيط
             </Link>
             <button
-              onClick={openDM}
+              onClick={() => { if (!me) { flash("سجّل الدخول أولاً"); return; } openDM(); }}
               className="rounded-xl p-3 bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-xs font-bold active:scale-95 shadow"
             >
               💬 رسالة
             </button>
-            {friendStatus === "none" && (
-              <button onClick={sendFriend} disabled={busy} className="rounded-xl p-3 bg-gradient-to-b from-fuchsia-400 to-rose-700 border-2 border-fuchsia-200 text-white text-xs font-bold active:scale-95 shadow disabled:opacity-50">
+            {(!me || friendStatus === "none") && (
+              <button onClick={() => { if (!me) { flash("سجّل الدخول أولاً"); return; } sendFriend(); }} disabled={busy} className="rounded-xl p-3 bg-gradient-to-b from-fuchsia-400 to-rose-700 border-2 border-fuchsia-200 text-white text-xs font-bold active:scale-95 shadow disabled:opacity-50">
                 ➕ إضافة صديق
               </button>
             )}
-            {friendStatus === "pending_out" && (
+            {me && friendStatus === "pending_out" && (
               <div className="rounded-xl p-3 bg-stone-700 border-2 border-stone-500 text-white/70 text-xs font-bold text-center">⏳ بانتظار الرد</div>
             )}
-            {friendStatus === "pending_in" && (
+            {me && friendStatus === "pending_in" && (
               <button onClick={acceptFriend} disabled={busy} className="rounded-xl p-3 bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 text-xs font-bold active:scale-95 shadow disabled:opacity-50">
                 ✓ قبول
               </button>
             )}
-            {friendStatus === "accepted" && (
+            {me && friendStatus === "accepted" && (
               <div className="rounded-xl p-3 bg-emerald-900/60 border-2 border-emerald-500/50 text-emerald-200 text-xs font-bold text-center">✓ صديق</div>
             )}
           </section>
