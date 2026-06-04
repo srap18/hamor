@@ -1,6 +1,14 @@
 // Dragon system constants and helpers
-import dragonEggImg from "@/assets/dragon-egg.png";
-import dragonAdultImg from "@/assets/dragon-adult.png";
+import dragonStage1 from "@/assets/dragon-stage-1.png";
+import dragonStage2 from "@/assets/dragon-stage-2.png";
+import dragonStage3 from "@/assets/dragon-stage-3.png";
+import dragonStage4 from "@/assets/dragon-stage-4.png";
+import dragonStage5 from "@/assets/dragon-stage-5.png";
+import dragonStage6 from "@/assets/dragon-stage-6.png";
+import dragonStage7 from "@/assets/dragon-stage-7.png";
+import dragonStage8 from "@/assets/dragon-stage-8.png";
+import dragonStage9 from "@/assets/dragon-stage-9.png";
+import dragonStage10 from "@/assets/dragon-stage-10.png";
 
 export type Dragon = {
   user_id: string;
@@ -25,16 +33,16 @@ export type DragonStage = {
 };
 
 export const DRAGON_STAGES: DragonStage[] = [
-  { level: 1,  name: "بيضة",          icon: "🥚", dpRequired: 0,       image: dragonEggImg },
-  { level: 2,  name: "فقس",           icon: "🐣", dpRequired: 100,     image: dragonEggImg },
-  { level: 3,  name: "تنين صغير",      icon: "🐉", dpRequired: 300,     image: dragonAdultImg },
-  { level: 4,  name: "ناشئ",          icon: "🔥", dpRequired: 800,     image: dragonAdultImg },
-  { level: 5,  name: "محارب",         icon: "⚡", dpRequired: 2000,    image: dragonAdultImg },
-  { level: 6,  name: "نخبة",          icon: "🌪️", dpRequired: 5000,    image: dragonAdultImg },
-  { level: 7,  name: "ملكي",          icon: "👑", dpRequired: 12000,   image: dragonAdultImg },
-  { level: 8,  name: "أسطوري",        icon: "🌌", dpRequired: 25000,   image: dragonAdultImg },
-  { level: 9,  name: "كوني",          icon: "☄️", dpRequired: 50000,   image: dragonAdultImg },
-  { level: 10, name: "إلهي",          icon: "🔱", dpRequired: 100000,  image: dragonAdultImg },
+  { level: 1,  name: "بيضة",          icon: "🥚", dpRequired: 0,       image: dragonStage1 },
+  { level: 2,  name: "فقس",           icon: "🐣", dpRequired: 100,     image: dragonStage2 },
+  { level: 3,  name: "تنين صغير",      icon: "🐉", dpRequired: 300,     image: dragonStage3 },
+  { level: 4,  name: "ناشئ",          icon: "🔥", dpRequired: 800,     image: dragonStage4 },
+  { level: 5,  name: "محارب",         icon: "⚡", dpRequired: 2000,    image: dragonStage5 },
+  { level: 6,  name: "نخبة",          icon: "🌪️", dpRequired: 5000,    image: dragonStage6 },
+  { level: 7,  name: "ملكي",          icon: "👑", dpRequired: 12000,   image: dragonStage7 },
+  { level: 8,  name: "أسطوري",        icon: "🌌", dpRequired: 25000,   image: dragonStage8 },
+  { level: 9,  name: "كوني",          icon: "☄️", dpRequired: 50000,   image: dragonStage9 },
+  { level: 10, name: "إلهي",          icon: "🔱", dpRequired: 100000,  image: dragonStage10 },
 ];
 
 export function getStage(stage: number): DragonStage {
