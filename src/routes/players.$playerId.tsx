@@ -16,7 +16,7 @@ import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { DragonEggButton } from "@/components/DragonEggButton";
-import woodenSignAsset from "@/assets/wooden-sign.png.asset.json";
+import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -1061,35 +1061,35 @@ function PlayerPage() {
           type="button"
           onClick={() => { sound.play("click"); setSignOpen(true); }}
           className="absolute z-30 active:scale-95 transition-transform"
-          style={{ top: "52%", left: "4%", width: "10.5rem", filter: "drop-shadow(0 8px 10px rgba(0,0,0,0.55))" }}
+          style={{ top: "44%", left: "3%", width: "9rem", filter: "drop-shadow(0 10px 14px rgba(0,0,0,0.6))" }}
           aria-label="رسالة المفجّر"
         >
-          <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+          <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
             <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
-            {/* Avatar nailed to top plank */}
-            <div className="absolute" style={{ top: "11%", left: "18%", width: "22%", aspectRatio: "1 / 1" }}>
-              <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-900/80 shadow-md bg-amber-100">
+            {/* Avatar nailed on top plank — left side */}
+            <div className="absolute" style={{ top: "29%", left: "12%", width: "22%", aspectRatio: "1 / 1" }}>
+              <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-950 shadow-md bg-amber-100">
                 {destroyerAvatar ? (
                   <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-lg">{destroyerEmoji || "🧙"}</div>
+                  <div className="w-full h-full flex items-center justify-center text-base">{destroyerEmoji || "🧙"}</div>
                 )}
               </div>
             </div>
-            {/* Name on top plank */}
+            {/* Name on top plank — right side */}
             <div className="absolute font-extrabold text-amber-950 truncate text-center"
-              style={{ top: "15%", left: "44%", right: "6%", fontSize: "0.65rem", textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}>
+              style={{ top: "33%", left: "36%", right: "8%", fontSize: "0.68rem", textShadow: "0 1px 0 rgba(255,240,200,0.4)" }}>
               {p.last_destroyer_name}
             </div>
-            {/* Message preview on middle plank */}
+            {/* Message preview on bottom plank */}
             <div className="absolute text-amber-950 font-bold text-center overflow-hidden"
-              style={{ top: "40%", left: "10%", right: "10%", fontSize: "0.6rem", lineHeight: 1.1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+              style={{ top: "51%", left: "10%", right: "10%", fontSize: "0.58rem", lineHeight: 1.15, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
               "{p.last_destroyer_message}"
             </div>
-            {/* Tap hint on bottom plank */}
-            <div className="absolute text-amber-950 font-extrabold text-center"
-              style={{ top: "67%", left: "10%", right: "10%", fontSize: "0.58rem" }}>
-              ☢️ اضغط للقراءة
+            {/* Tap hint under planks */}
+            <div className="absolute text-amber-100 font-extrabold text-center bg-amber-950/70 rounded-full px-1.5 py-0.5"
+              style={{ top: "62%", left: "22%", right: "22%", fontSize: "0.5rem" }}>
+              ☢️ اضغط
             </div>
           </div>
         </button>
@@ -1097,9 +1097,9 @@ function PlayerPage() {
 
       {/* Sign message modal */}
       {signOpen && p?.last_destroyer_message && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setSignOpen(false)}>
-          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSignOpen(false)}>
+          <div className="relative w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+            <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
               <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
               {/* Avatar */}
               <Link
@@ -1107,9 +1107,9 @@ function PlayerPage() {
                 params={p.last_destroyer_id ? { id: p.last_destroyer_id } : undefined as any}
                 onClick={() => sound.play("click")}
                 className="absolute active:scale-95"
-                style={{ top: "10%", left: "17%", width: "24%", aspectRatio: "1 / 1" }}
+                style={{ top: "28%", left: "11%", width: "24%", aspectRatio: "1 / 1" }}
               >
-                <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-amber-900/80 shadow-lg bg-amber-100">
+                <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-amber-950 shadow-lg bg-amber-100">
                   {destroyerAvatar ? (
                     <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -1118,14 +1118,14 @@ function PlayerPage() {
                 </div>
               </Link>
               <div className="absolute font-extrabold text-amber-950 truncate text-center"
-                style={{ top: "16%", left: "44%", right: "6%", fontSize: "1rem", textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}>
+                style={{ top: "33%", left: "36%", right: "8%", fontSize: "0.95rem", textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}>
                 ☢️ {p.last_destroyer_name}
               </div>
               <div className="absolute text-amber-950 font-bold text-center overflow-auto"
-                style={{ top: "40%", left: "10%", right: "10%", maxHeight: "22%", fontSize: "0.95rem", lineHeight: 1.2 }}>
+                style={{ top: "50%", left: "10%", right: "10%", maxHeight: "16%", fontSize: "0.85rem", lineHeight: 1.2 }}>
                 "{p.last_destroyer_message}"
               </div>
-              <div className="absolute flex items-center justify-center gap-2" style={{ top: "66%", left: "10%", right: "10%" }}>
+              <div className="absolute flex items-center justify-center gap-2" style={{ top: "70%", left: "10%", right: "10%" }}>
                 {p.last_destroyer_id && (
                   <Link to="/p/$id" params={{ id: p.last_destroyer_id }} onClick={() => { sound.play("click"); setSignOpen(false); }}
                     className="px-3 py-1.5 rounded-md bg-amber-900 text-amber-100 text-xs font-extrabold active:scale-95">
@@ -1141,6 +1141,8 @@ function PlayerPage() {
           </div>
         </div>
       )}
+
+
 
 
 
