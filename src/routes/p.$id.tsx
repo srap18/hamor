@@ -17,7 +17,8 @@ function PlayerRedirect() {
       if (p?.username) {
         nav({ to: "/u/$username", params: { username: p.username }, replace: true });
       } else {
-        nav({ to: "/", replace: true });
+        // Fallback: if the player has no username, send the viewer to their ocean
+        nav({ to: "/players/$playerId", params: { playerId: id }, replace: true });
       }
     })();
   }, [id, nav]);
