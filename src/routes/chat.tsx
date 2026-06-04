@@ -657,9 +657,12 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       setBusy(false);
       return;
     }
+    const ok = await confirmDialog({ title: "كتم في الشات", message: `هل أنت متأكد من كتم ${target.display_name}؟`, danger: true });
+    if (!ok) return;
     const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
     const hoursStr = prompt("مدة الكتم بالساعات (فارغ = دائم):", "24");
     const hours = hoursStr ? Number(hoursStr) : 0;
+
     const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
     setBusy(true);
     await supabase.from("chat_mutes").insert({ user_id: target.id, reason, muted_by: me, expires_at });
