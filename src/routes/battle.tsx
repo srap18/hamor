@@ -251,29 +251,28 @@ function BattlePage() {
             animation: `hov 2.6s ease-in-out infinite${shake === "me" ? ", shk 0.2s" : ""}`,
           }}>
             {me && (
-              <img src={myStageImg} alt="me" draggable={false}
-                className="w-full h-full object-contain"
-                style={{
-                  // ME on the left → native orientation
-                  filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
-                  animation: "brth 3s ease-in-out infinite",
-                }} />
+              <div className="w-full h-full" style={{ transform: "scaleX(-1)" }}>
+                <img src={myStageImg} alt="me" draggable={false}
+                  className="w-full h-full object-contain"
+                  style={{
+                    filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
+                    animation: "brth 3s ease-in-out infinite",
+                  }} />
+              </div>
             )}
           </div>
-          {/* Op dragon (right) — mirrored on a wrapper so the breathing animation doesn't cancel the direction */}
+          {/* Op dragon (right) */}
           <div className="absolute" style={{
             right: "4%", top: "40%", width: "38%", aspectRatio: "1/1",
             animation: `hov 2.4s ease-in-out infinite${shake === "op" ? ", shk 0.2s" : ""}`,
           }}>
             {op && (
-              <div className="w-full h-full" style={{ transform: "scaleX(-1)" }}>
-                <img src={opStageImg} alt="op" draggable={false}
-                  className="w-full h-full object-contain"
-                  style={{
-                    filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
-                    animation: "brth 2.8s ease-in-out infinite",
-                  }} />
-              </div>
+              <img src={opStageImg} alt="op" draggable={false}
+                className="w-full h-full object-contain"
+                style={{
+                  filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
+                  animation: "brth 2.8s ease-in-out infinite",
+                }} />
             )}
           </div>
 
