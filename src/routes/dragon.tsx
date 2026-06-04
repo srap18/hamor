@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dragon, DRAGON_STAGES, getStage, dpProgress } from "@/lib/dragon";
@@ -10,10 +10,12 @@ export const Route = createFileRoute("/dragon")({
 });
 
 function DragonPage() {
+  const location = useLocation();
   const [d, setD] = useState<Dragon | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (location.pathname !== "/dragon") return;
     (async () => {
       const { data, error } = await (supabase as never as {
         rpc: (n: string) => Promise<{ data: Dragon | null; error: { message: string } | null }>;
@@ -22,7 +24,9 @@ function DragonPage() {
       setD(data);
       setLoading(false);
     })();
-  }, []);
+  }, [location.pathname]);
+
+  if (location.pathname !== "/dragon") return <Outlet />;
 
   if (loading) {
     return (
