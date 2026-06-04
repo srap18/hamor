@@ -33,6 +33,7 @@ type Profile = {
   last_destroyer_name?: string | null;
   last_destroyer_kind?: string | null;
   last_destroyer_at?: string | null;
+  last_destroyer_message?: string | null;
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
