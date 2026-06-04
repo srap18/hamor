@@ -1106,7 +1106,7 @@ function PlayerPage() {
               </button>
 
               <div className="text-center text-stone-900 font-extrabold text-lg mb-4 mt-1">
-                المطارد {p.last_destroyer_name}
+                {p.last_destroyer_name}
               </div>
 
               <div className="flex items-center gap-2 min-h-[140px]">
