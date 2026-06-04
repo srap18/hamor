@@ -197,6 +197,24 @@ export function DragonShoreCreature() {
           />
         )}
 
+        {/* Aura ring — grows & glows for high tiers */}
+        {!isEgg && tier >= 2 && (
+          <span
+            className="absolute pointer-events-none rounded-full"
+            style={{
+              left: "50%",
+              top: "55%",
+              width: `${60 + tier * 8}%`,
+              height: `${60 + tier * 8}%`,
+              transform: "translate(-50%, -50%)",
+              background: `radial-gradient(circle, ${auraInner.replace("1)", `${0.15 + k * 0.25})`)} 0%, ${auraMid.replace(/[\d.]+\)$/, `${0.1 + k * 0.2})`)} 40%, transparent 75%)`,
+              filter: `blur(${4 + tier}px)`,
+              mixBlendMode: "screen",
+              animation: `dsc-aura-pulse ${2.8 - k * 1}s ease-in-out infinite`,
+            }}
+          />
+        )}
+
         {/* Wing flap silhouette behind body (fake wings via blurred ellipses) */}
         {!isEgg && (
           <>
@@ -205,13 +223,13 @@ export function DragonShoreCreature() {
               style={{
                 left: "-8%",
                 top: "18%",
-                width: "55%",
-                height: "45%",
+                width: `${55 + tier * 2}%`,
+                height: `${45 + tier * 2}%`,
                 background:
-                  "radial-gradient(ellipse at 80% 60%, rgba(80,30,15,0.85) 0%, rgba(40,10,5,0.5) 55%, rgba(0,0,0,0) 80%)",
-                filter: "blur(4px)",
+                  "radial-gradient(ellipse at 80% 60%, rgba(80,30,15,0.9) 0%, rgba(40,10,5,0.55) 55%, rgba(0,0,0,0) 80%)",
+                filter: `blur(${4 + k * 2}px)`,
                 transformOrigin: "85% 70%",
-                animation: "dsc-wing-flap 1.1s ease-in-out infinite",
+                animation: `dsc-wing-flap ${wingSpeed}s ease-in-out infinite`,
               }}
             />
             <span
@@ -219,13 +237,13 @@ export function DragonShoreCreature() {
               style={{
                 right: "-6%",
                 top: "20%",
-                width: "50%",
-                height: "42%",
+                width: `${50 + tier * 2}%`,
+                height: `${42 + tier * 2}%`,
                 background:
-                  "radial-gradient(ellipse at 20% 60%, rgba(80,30,15,0.8) 0%, rgba(40,10,5,0.45) 55%, rgba(0,0,0,0) 80%)",
-                filter: "blur(4px)",
+                  "radial-gradient(ellipse at 20% 60%, rgba(80,30,15,0.85) 0%, rgba(40,10,5,0.5) 55%, rgba(0,0,0,0) 80%)",
+                filter: `blur(${4 + k * 2}px)`,
                 transformOrigin: "15% 70%",
-                animation: "dsc-wing-flap 1.1s ease-in-out infinite",
+                animation: `dsc-wing-flap ${wingSpeed}s ease-in-out infinite`,
                 animationDelay: "-0.05s",
               }}
             />
