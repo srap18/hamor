@@ -36,7 +36,8 @@ function AdminPlayers() {
   const load = useCallback(async () => {
     setLoading(true);
     let q = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
-    if (search.trim()) q = q.ilike("display_name", `%${search.trim()}%`);
+    const s = search.trim();
+    if (s) q = q.or(`display_name.ilike.%${s}%,username.ilike.%${s.toLowerCase()}%`);
     const { data } = await q;
     setPlayers((data ?? []) as Player[]);
     const { data: bans } = await supabase.from("bans").select("user_id").eq("active", true);
@@ -145,7 +146,7 @@ function AdminPlayers() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث بالاسم..."
+            placeholder="ابحث بالاسم أو اليوزر..."
             className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 flex-1 md:w-64"
           />
         </div>
@@ -265,7 +266,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   const saveUsername = async () => {
     const v = usernameVal.trim().toLowerCase();
-    if (!/^[a-z0-9_]{2,20}$/.test(v)) { toast.error("اليوزر: 2-20 حرف، a-z 0-9 _"); return; }
+    if (!/^[a-z0-9_]{1,20}$/.test(v)) { toast.error("اليوزر: 1-20 حرف، a-z 0-9 _"); return; }
     setSavingUsername(true);
     const { error } = await (supabase as any).rpc("admin_set_username", { _target: player.id, _new: v });
     setSavingUsername(false);
