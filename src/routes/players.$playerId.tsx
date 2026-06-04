@@ -857,7 +857,7 @@ function PlayerPage() {
               className="active:scale-95"
             >
               <div className="relative">
-                <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+                <img src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
                 <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
                 {isMine && (
                   <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
