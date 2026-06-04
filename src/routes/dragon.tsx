@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dragon, DRAGON_STAGES, getStage, dpProgress } from "@/lib/dragon";
@@ -218,6 +218,7 @@ function DragonPage() {
           </Link>
         </div>
       </div>
+      <Outlet />
     </div>
   );
 }
