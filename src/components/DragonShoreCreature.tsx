@@ -128,6 +128,7 @@ export function DragonShoreCreature() {
           aspectRatio: "1 / 1",
           pointerEvents: "auto",
           perspective: 600,
+          ["--shake" as any]: `${shakeStrength}px`,
         }}
       >
         {/* Hard contact shadow on the ground */}
