@@ -629,9 +629,12 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       setBusy(false);
       return;
     }
+    const ok = await confirmDialog({ title: "حظر من اللعبة", message: `هل أنت متأكد من حظر ${target.display_name}؟`, danger: true });
+    if (!ok) return;
     const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
     const hoursStr = prompt("مدة الحظر بالساعات (فارغ = دائم):", "24");
     const hours = hoursStr ? Number(hoursStr) : 0;
+
     const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
     setBusy(true);
     await supabase.from("bans").insert({ user_id: target.id, reason, banned_by: me, expires_at });
