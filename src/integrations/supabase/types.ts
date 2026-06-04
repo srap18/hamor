@@ -2966,6 +2966,7 @@ export type Database = {
         Args: { p_code: string; p_target_user: string }
         Returns: Json
       }
+      admin_redeem_code_for_all: { Args: { p_code: string }; Returns: Json }
       admin_revoke_redemption:
         | { Args: { _code_id: string; _user_id: string }; Returns: Json }
         | {
