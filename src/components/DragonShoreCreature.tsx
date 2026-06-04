@@ -306,38 +306,37 @@ export function DragonShoreCreature() {
                 }}
               />
 
-              {/* Smoke puffs from nostrils (constant) */}
-              {[0, 1, 2].map((i) => (
+              {/* Smoke puffs from nostrils (count scales with stage) */}
+              {Array.from({ length: smokeCount }).map((_, i) => (
                 <span
                   key={`s${i}`}
                   className="absolute rounded-full"
                   style={{
                     left: "26%",
                     top: "34%",
-                    width: 14,
-                    height: 14,
+                    width: 14 + tier,
+                    height: 14 + tier,
                     background:
                       "radial-gradient(circle, rgba(220,220,220,0.85), rgba(140,140,140,0.4) 55%, transparent 80%)",
                     filter: "blur(3px)",
-                    animation: `dsc-smoke ${3.2 + i * 0.4}s ease-out infinite`,
-                    animationDelay: `${i * 1.1}s`,
+                    animation: `dsc-smoke ${3.2 + i * 0.4 - k * 1.2}s ease-out infinite`,
+                    animationDelay: `${i * (1.1 - k * 0.5)}s`,
                   }}
                 />
               ))}
 
-              {/* BIG periodic fire breath — core */}
+              {/* BIG periodic fire breath — core (scales width + interval) */}
               <span
                 className="absolute"
                 style={{
                   left: "8%",
                   top: "34%",
-                  width: "30%",
-                  height: "12%",
-                  background:
-                    "radial-gradient(ellipse at right center, rgba(255,255,200,1) 0%, rgba(255,200,60,1) 25%, rgba(255,90,20,0.9) 55%, rgba(140,20,5,0) 85%)",
+                  width: `${30 * fireScale}%`,
+                  height: `${12 * (1 + k * 0.5)}%`,
+                  background: `radial-gradient(ellipse at right center, ${auraInner} 0%, ${auraMid} 25%, ${auraOuter} 55%, rgba(140,20,5,0) 85%)`,
                   filter: "blur(1.5px)",
                   transformOrigin: "100% 50%",
-                  animation: "dsc-fire-burst 7s ease-out infinite, dsc-fire-core 7s linear infinite",
+                  animation: `dsc-fire-burst ${fireInterval}s ease-out infinite, dsc-fire-core ${fireInterval}s linear infinite`,
                   mixBlendMode: "screen",
                 }}
               />
@@ -347,13 +346,12 @@ export function DragonShoreCreature() {
                 style={{
                   left: "2%",
                   top: "30%",
-                  width: "38%",
-                  height: "20%",
-                  background:
-                    "radial-gradient(ellipse at right center, rgba(255,180,60,0.85) 0%, rgba(255,80,20,0.55) 40%, rgba(120,20,5,0) 80%)",
-                  filter: "blur(5px)",
+                  width: `${38 * fireScale}%`,
+                  height: `${20 * (1 + k * 0.5)}%`,
+                  background: `radial-gradient(ellipse at right center, ${auraMid.replace(/[\d.]+\)$/, "0.85)")} 0%, ${auraOuter.replace(/[\d.]+\)$/, "0.55)")} 40%, rgba(120,20,5,0) 80%)`,
+                  filter: `blur(${5 + tier * 0.5}px)`,
                   transformOrigin: "100% 50%",
-                  animation: "dsc-fire-burst 7s ease-out infinite",
+                  animation: `dsc-fire-burst ${fireInterval}s ease-out infinite`,
                   mixBlendMode: "screen",
                 }}
               />
@@ -364,32 +362,34 @@ export function DragonShoreCreature() {
                 style={{
                   left: "18%",
                   top: "33%",
-                  width: "18%",
-                  height: "9%",
+                  width: `${18 + k * 10}%`,
+                  height: `${9 + k * 4}%`,
                   background:
                     "radial-gradient(ellipse at right center, rgba(255,235,120,0.9) 0%, rgba(255,130,40,0.7) 45%, rgba(180,30,10,0) 80%)",
                   filter: "blur(2px)",
                   transformOrigin: "100% 50%",
-                  animation: "dsc-fire-burst 3.8s ease-out infinite",
+                  animation: `dsc-fire-burst ${3.8 - k * 1.5}s ease-out infinite`,
                   animationDelay: "1.2s",
                   mixBlendMode: "screen",
                 }}
               />
 
-              {/* Embers floating up */}
-              {[0, 1, 2, 3, 4].map((i) => (
+              {/* Embers floating up (count scales) */}
+              {Array.from({ length: emberCount }).map((_, i) => (
                 <span
                   key={`e${i}`}
                   className="absolute rounded-full"
                   style={{
-                    left: `${22 + i * 5}%`,
-                    top: "34%",
-                    width: 4,
-                    height: 4,
-                    background: "rgba(255,180,70,0.95)",
-                    boxShadow: "0 0 8px rgba(255,140,30,0.95)",
-                    animation: `dsc-ember ${2.2 + i * 0.35}s ease-out infinite`,
-                    animationDelay: `${i * 0.5}s`,
+                    left: `${20 + (i * 35) / Math.max(1, emberCount)}%`,
+                    top: `${32 + (i % 3) * 2}%`,
+                    width: 4 + Math.floor(k * 3),
+                    height: 4 + Math.floor(k * 3),
+                    background: stage >= 9 ? "rgba(180,220,255,0.95)" : "rgba(255,180,70,0.95)",
+                    boxShadow: stage >= 9
+                      ? "0 0 10px rgba(120,170,255,0.95)"
+                      : "0 0 8px rgba(255,140,30,0.95)",
+                    animation: `dsc-ember ${1.8 + i * 0.22}s ease-out infinite`,
+                    animationDelay: `${i * 0.28}s`,
                   }}
                 />
               ))}
