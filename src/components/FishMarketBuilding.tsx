@@ -65,15 +65,6 @@ export function FishMarketBuilding({
         className="group block w-full h-full pointer-events-auto active:scale-95 transition-transform"
       >
         <div className="relative w-full h-full">
-          <div
-            aria-hidden
-            className="absolute left-[10%] right-[10%] bottom-[2%] h-[10%] rounded-[50%] blur-md pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 70%)",
-            }}
-          />
-
           <img
             src={img}
             alt=""
@@ -83,10 +74,11 @@ export function FishMarketBuilding({
             style={{
               transform: flip ? "scaleX(-1)" : undefined,
               filter: isBurned
-                ? "saturate(0.6) brightness(0.85) contrast(1.1) drop-shadow(0 6px 6px rgba(0,0,0,0.5))"
-                : `drop-shadow(0 6px 6px rgba(0,0,0,0.45)) drop-shadow(0 0 ${4 + clampedLevel * 0.5}px rgba(120,200,255,${0.12 + clampedLevel * 0.008}))`,
+                ? "saturate(0.6) brightness(0.85) contrast(1.1)"
+                : undefined,
             }}
           />
+
 
           {isBurned && (
             <div className="absolute inset-0 pointer-events-none overflow-visible">
