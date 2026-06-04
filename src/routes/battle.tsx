@@ -254,12 +254,14 @@ function BattlePage() {
               <img src={myStageImg} alt="me" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
+                  // ME on the left → face right (toward opponent)
+                  transform: "scaleX(-1)",
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
                   animation: "brth 3s ease-in-out infinite",
                 }} />
             )}
           </div>
-          {/* Op dragon (right) — mirrored */}
+          {/* Op dragon (right) — native orientation faces left toward me */}
           <div className="absolute" style={{
             right: "4%", top: "40%", width: "38%", aspectRatio: "1/1",
             animation: `hov 2.4s ease-in-out infinite${shake === "op" ? ", shk 0.2s" : ""}`,
@@ -268,7 +270,6 @@ function BattlePage() {
               <img src={opStageImg} alt="op" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
-                  transform: "scaleX(-1)",
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
                   animation: "brth 2.8s ease-in-out infinite",
                 }} />
