@@ -653,7 +653,8 @@ function Index() {
 
   // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
   const getCrewBonuses = (ship: Ship) => {
-    const ids = new Set((ship.crew ?? []).map((c) => c.id));
+    const assigned = crewRowsRef.current.filter((r) => isCrewAssignedToShip(r.meta, ship));
+    const ids = new Set(assigned.map((r) => r.item_id));
     return {
       sailorMult: ids.has("sailor") ? 1.4 : 1,
       hasSailor: ids.has("sailor"),
