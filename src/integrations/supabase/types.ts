@@ -3249,6 +3249,7 @@ export type Database = {
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
+      fish_market_capacity: { Args: { _level: number }; Returns: number }
       fish_market_finish_upgrade_with_gems: { Args: never; Returns: number }
       fish_market_start_upgrade: {
         Args: never
@@ -3837,6 +3838,7 @@ export type Database = {
         Returns: Json
       }
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
+      user_market_remaining: { Args: { _uid: string }; Returns: number }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
       warn_overfull_tribes: { Args: never; Returns: number }
     }
