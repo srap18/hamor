@@ -159,7 +159,10 @@ function BossPage() {
       setBoss((b) => b ? { ...b, hp_current: Math.max(0, b.hp_current - (data.damage || 0)) } : b);
       setTimeout(() => setShake("none"), 220);
       setBusy(false);
-      if (data.killed) setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 600);
+      if (data.killed) {
+        setBossDefeats((n) => n + 1);
+        setTimeout(() => alert("💀 سقط الوحش! الوحش القادم أقوى."), 600);
+      }
     }, 850);
 
   }, [busy, boss, shipHp, rockets]);
