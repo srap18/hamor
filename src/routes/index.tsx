@@ -651,7 +651,7 @@ function Index() {
     return a === ship.dbId || a === String(ship.id);
   };
 
-  // Active crew bonuses for a given ship (luck doubles fish, sailor +40% speed, guide reveals fish)
+  // Active crew bonuses for a given ship (luck doubles fish, sailor +70% speed, guide reveals fish)
   const getCrewBonuses = (ship: { id: number; dbId?: string }) => {
     const nowMs = serverNowMs();
     const active = crewRowsRef.current.filter(
@@ -661,7 +661,8 @@ function Index() {
     const ids = new Set(active.map((r) => r.item_id));
     return {
       luckMult: ids.has("luck") ? 2 : 1,
-      sailorMult: ids.has("sailor") ? 1.4 : 1,
+      sailorMult: ids.has("sailor") ? 1.7 : 1,
+      hasSailor: ids.has("sailor"),
       guide: ids.has("guide"),
     };
   };
@@ -3266,6 +3267,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               ) : ship.fishing ? (
                 <div className="text-center text-[9px] text-emerald-200 font-bold tabular-nums">
                   🎣 يصطاد · {timeStr}
+                  {crews.some((c) => c.id === "sailor") && (
+                    <span className="ms-1 text-cyan-200">⛵ +70%</span>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-[9px] text-slate-200 font-bold">
