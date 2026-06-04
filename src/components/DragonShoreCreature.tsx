@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
 
 /**
- * Shore dragon — grounded on the harbor stone, NOT floating.
- * - Hard contact shadow under the body
- * - Slight perspective tilt
- * - Stage 1-2 = egg in a nest, Stage 3+ = adult dragon breathing & moving
+ * Shore dragon — LIVE creature feel.
+ * Multi-layer CSS animation: body breathing, wing flap (shadow + scale),
+ * head bob, blinking glowing eyes, periodic BIG fire breath, smoke puffs,
+ * ground heat shimmer, ember particles. No video — works for all 10 stages.
  */
 export function DragonShoreCreature() {
   const [stage, setStage] = useState<number>(1);
@@ -35,11 +35,66 @@ export function DragonShoreCreature() {
     <>
       <style>{`
         @keyframes dsc-rock { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
-        @keyframes dsc-breath { 0%,100%{transform:scaleY(1) translateY(0)} 50%{transform:scaleY(1.04) translateY(-2px)} }
-        @keyframes dsc-head { 0%,100%{transform:rotate(-6deg) translateX(-1px)} 50%{transform:rotate(5deg) translateX(2px)} }
-        @keyframes dsc-shadow { 0%,100%{transform:scaleX(1) scaleY(1);opacity:.75} 50%{transform:scaleX(.92) scaleY(.85);opacity:.55} }
-        @keyframes dsc-ember { 0%{opacity:0;transform:translateY(0) scale(.5)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-50px) scale(.2)} }
-        @keyframes dsc-fire { 0%{opacity:0;transform:translate(0,0) scale(.4)} 25%{opacity:1} 80%{opacity:.6;transform:translate(-40px,-6px) scale(1.6)} 100%{opacity:0;transform:translate(-65px,-10px) scale(2.1)} }
+        @keyframes dsc-breath {
+          0%,100%{transform:rotateX(6deg) scaleY(1) translateY(0)}
+          40%{transform:rotateX(6deg) scaleY(1.05) translateY(-3px)}
+          60%{transform:rotateX(6deg) scaleY(1.05) translateY(-3px)}
+        }
+        @keyframes dsc-head {
+          0%,100%{transform:rotate(-7deg) translateX(-2px)}
+          30%{transform:rotate(4deg) translateX(2px)}
+          55%{transform:rotate(-3deg) translateX(0)}
+          80%{transform:rotate(6deg) translateX(3px)}
+        }
+        @keyframes dsc-wing-flap {
+          0%,100%{transform:scaleX(1) scaleY(1);opacity:.35}
+          50%{transform:scaleX(1.18) scaleY(.9);opacity:.55}
+        }
+        @keyframes dsc-shadow {
+          0%,100%{transform:scaleX(1) scaleY(1);opacity:.78}
+          50%{transform:scaleX(.88) scaleY(.82);opacity:.5}
+        }
+        @keyframes dsc-ember {
+          0%{opacity:0;transform:translateY(0) translateX(0) scale(.5)}
+          20%{opacity:1}
+          100%{opacity:0;transform:translateY(-70px) translateX(-30px) scale(.15)}
+        }
+        @keyframes dsc-smoke {
+          0%{opacity:0;transform:translate(0,0) scale(.4)}
+          20%{opacity:.7}
+          100%{opacity:0;transform:translate(-55px,-50px) scale(2.6)}
+        }
+        @keyframes dsc-fire-burst {
+          0%,70%{opacity:0;transform:translate(0,0) scaleX(.2) scaleY(.4)}
+          74%{opacity:1;transform:translate(-15px,-2px) scaleX(.9) scaleY(1)}
+          82%{opacity:1;transform:translate(-55px,-8px) scaleX(2.2) scaleY(1.4)}
+          92%{opacity:.7;transform:translate(-90px,-12px) scaleX(3) scaleY(1.6)}
+          100%{opacity:0;transform:translate(-115px,-16px) scaleX(3.4) scaleY(1.7)}
+        }
+        @keyframes dsc-fire-core {
+          0%,70%{opacity:0}
+          75%,90%{opacity:1}
+          100%{opacity:0}
+        }
+        @keyframes dsc-eye-blink {
+          0%,46%,54%,100%{opacity:1;transform:scaleY(1)}
+          48%,52%{opacity:.3;transform:scaleY(.1)}
+        }
+        @keyframes dsc-eye-glow {
+          0%,100%{box-shadow:0 0 6px 2px rgba(255,180,40,.9),0 0 14px 4px rgba(255,90,20,.6)}
+          50%{box-shadow:0 0 10px 3px rgba(255,220,80,1),0 0 22px 7px rgba(255,120,30,.85)}
+        }
+        @keyframes dsc-heat-shimmer {
+          0%,100%{transform:translateY(0) scaleY(1);opacity:.45}
+          50%{transform:translateY(-2px) scaleY(1.1);opacity:.7}
+        }
+        @keyframes dsc-roar-shake {
+          0%,72%,100%{transform:rotateX(6deg) translateX(0)}
+          76%{transform:rotateX(6deg) translateX(-3px)}
+          80%{transform:rotateX(6deg) translateX(3px)}
+          84%{transform:rotateX(6deg) translateX(-2px)}
+          88%{transform:rotateX(6deg) translateX(2px)}
+        }
       `}</style>
 
       <Link
@@ -56,7 +111,7 @@ export function DragonShoreCreature() {
           perspective: 600,
         }}
       >
-        {/* Hard contact shadow on the ground — sells "standing on it" */}
+        {/* Hard contact shadow on the ground */}
         <span
           className="absolute"
           style={{
@@ -72,7 +127,25 @@ export function DragonShoreCreature() {
           }}
         />
 
-        {/* Warm ground glow (heat under the dragon) */}
+        {/* Heat shimmer band on the ground */}
+        {!isEgg && (
+          <span
+            className="absolute pointer-events-none"
+            style={{
+              left: "10%",
+              right: "10%",
+              bottom: "5%",
+              height: "10%",
+              background:
+                "radial-gradient(ellipse at center, rgba(255,170,60,0.5), rgba(255,80,20,0.15) 55%, transparent 80%)",
+              filter: "blur(5px)",
+              mixBlendMode: "screen",
+              animation: "dsc-heat-shimmer 1.8s ease-in-out infinite",
+            }}
+          />
+        )}
+
+        {/* Warm ground glow */}
         <span
           className="absolute pointer-events-none"
           style={{
@@ -87,7 +160,7 @@ export function DragonShoreCreature() {
           }}
         />
 
-        {/* Nest of stones (only when egg) — visually rests it on the ground */}
+        {/* Nest of stones (only when egg) */}
         {isEgg && (
           <span
             className="absolute"
@@ -104,6 +177,41 @@ export function DragonShoreCreature() {
           />
         )}
 
+        {/* Wing flap silhouette behind body (fake wings via blurred ellipses) */}
+        {!isEgg && (
+          <>
+            <span
+              className="absolute pointer-events-none"
+              style={{
+                left: "-8%",
+                top: "18%",
+                width: "55%",
+                height: "45%",
+                background:
+                  "radial-gradient(ellipse at 80% 60%, rgba(80,30,15,0.85) 0%, rgba(40,10,5,0.5) 55%, rgba(0,0,0,0) 80%)",
+                filter: "blur(4px)",
+                transformOrigin: "85% 70%",
+                animation: "dsc-wing-flap 1.1s ease-in-out infinite",
+              }}
+            />
+            <span
+              className="absolute pointer-events-none"
+              style={{
+                right: "-6%",
+                top: "20%",
+                width: "50%",
+                height: "42%",
+                background:
+                  "radial-gradient(ellipse at 20% 60%, rgba(80,30,15,0.8) 0%, rgba(40,10,5,0.45) 55%, rgba(0,0,0,0) 80%)",
+                filter: "blur(4px)",
+                transformOrigin: "15% 70%",
+                animation: "dsc-wing-flap 1.1s ease-in-out infinite",
+                animationDelay: "-0.05s",
+              }}
+            />
+          </>
+        )}
+
         {/* Body */}
         <div
           className="absolute"
@@ -113,11 +221,10 @@ export function DragonShoreCreature() {
             top: 0,
             bottom: isEgg ? "14%" : "8%",
             transformOrigin: "50% 100%",
-            // slight tilt so it feels like a real object on the ground
             transform: "rotateX(6deg)",
             animation: isEgg
               ? "dsc-rock 2.4s ease-in-out infinite"
-              : "dsc-breath 3.2s ease-in-out infinite",
+              : "dsc-breath 2.6s ease-in-out infinite, dsc-roar-shake 7s ease-in-out infinite",
           }}
         >
           <img
@@ -126,7 +233,7 @@ export function DragonShoreCreature() {
             draggable={false}
             className="w-full h-full object-contain object-bottom"
             style={{
-              animation: isEgg ? undefined : "dsc-head 4.8s ease-in-out infinite",
+              animation: isEgg ? undefined : "dsc-head 4.2s ease-in-out infinite",
               transformOrigin: "55% 75%",
               filter:
                 "drop-shadow(0 4px 4px rgba(0,0,0,0.85)) drop-shadow(0 0 12px rgba(255,120,40,0.45))",
@@ -134,39 +241,123 @@ export function DragonShoreCreature() {
           />
 
           {!isEgg && (
-            <span
-              className="absolute"
-              style={{
-                left: "2%",
-                top: "32%",
-                width: "32%",
-                height: "14%",
-                background:
-                  "radial-gradient(ellipse at right center, rgba(255,235,120,1) 0%, rgba(255,130,40,0.95) 40%, rgba(180,30,10,0) 75%)",
-                filter: "blur(2px)",
-                animation: "dsc-fire 3.8s ease-out infinite",
-                animationDelay: "1.2s",
-                transformOrigin: "100% 50%",
-              }}
-            />
-          )}
+            <>
+              {/* Glowing blinking eyes */}
+              <span
+                className="absolute rounded-full"
+                style={{
+                  left: "44%",
+                  top: "26%",
+                  width: 5,
+                  height: 5,
+                  background: "rgba(255,230,120,1)",
+                  animation:
+                    "dsc-eye-glow 1.8s ease-in-out infinite, dsc-eye-blink 5s ease-in-out infinite",
+                }}
+              />
+              <span
+                className="absolute rounded-full"
+                style={{
+                  left: "52%",
+                  top: "26%",
+                  width: 5,
+                  height: 5,
+                  background: "rgba(255,230,120,1)",
+                  animation:
+                    "dsc-eye-glow 1.8s ease-in-out infinite, dsc-eye-blink 5s ease-in-out infinite",
+                  animationDelay: "0s, .12s",
+                }}
+              />
 
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                left: `${28 + i * 7}%`,
-                top: "32%",
-                width: 4,
-                height: 4,
-                background: "rgba(255,180,70,0.95)",
-                boxShadow: "0 0 8px rgba(255,140,30,0.95)",
-                animation: `dsc-ember ${2.2 + i * 0.35}s ease-out infinite`,
-                animationDelay: `${i * 0.55}s`,
-              }}
-            />
-          ))}
+              {/* Smoke puffs from nostrils (constant) */}
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={`s${i}`}
+                  className="absolute rounded-full"
+                  style={{
+                    left: "26%",
+                    top: "34%",
+                    width: 14,
+                    height: 14,
+                    background:
+                      "radial-gradient(circle, rgba(220,220,220,0.85), rgba(140,140,140,0.4) 55%, transparent 80%)",
+                    filter: "blur(3px)",
+                    animation: `dsc-smoke ${3.2 + i * 0.4}s ease-out infinite`,
+                    animationDelay: `${i * 1.1}s`,
+                  }}
+                />
+              ))}
+
+              {/* BIG periodic fire breath — core */}
+              <span
+                className="absolute"
+                style={{
+                  left: "8%",
+                  top: "34%",
+                  width: "30%",
+                  height: "12%",
+                  background:
+                    "radial-gradient(ellipse at right center, rgba(255,255,200,1) 0%, rgba(255,200,60,1) 25%, rgba(255,90,20,0.9) 55%, rgba(140,20,5,0) 85%)",
+                  filter: "blur(1.5px)",
+                  transformOrigin: "100% 50%",
+                  animation: "dsc-fire-burst 7s ease-out infinite, dsc-fire-core 7s linear infinite",
+                  mixBlendMode: "screen",
+                }}
+              />
+              {/* Fire outer flare */}
+              <span
+                className="absolute"
+                style={{
+                  left: "2%",
+                  top: "30%",
+                  width: "38%",
+                  height: "20%",
+                  background:
+                    "radial-gradient(ellipse at right center, rgba(255,180,60,0.85) 0%, rgba(255,80,20,0.55) 40%, rgba(120,20,5,0) 80%)",
+                  filter: "blur(5px)",
+                  transformOrigin: "100% 50%",
+                  animation: "dsc-fire-burst 7s ease-out infinite",
+                  mixBlendMode: "screen",
+                }}
+              />
+
+              {/* Constant tiny breath flame */}
+              <span
+                className="absolute"
+                style={{
+                  left: "18%",
+                  top: "33%",
+                  width: "18%",
+                  height: "9%",
+                  background:
+                    "radial-gradient(ellipse at right center, rgba(255,235,120,0.9) 0%, rgba(255,130,40,0.7) 45%, rgba(180,30,10,0) 80%)",
+                  filter: "blur(2px)",
+                  transformOrigin: "100% 50%",
+                  animation: "dsc-fire-burst 3.8s ease-out infinite",
+                  animationDelay: "1.2s",
+                  mixBlendMode: "screen",
+                }}
+              />
+
+              {/* Embers floating up */}
+              {[0, 1, 2, 3, 4].map((i) => (
+                <span
+                  key={`e${i}`}
+                  className="absolute rounded-full"
+                  style={{
+                    left: `${22 + i * 5}%`,
+                    top: "34%",
+                    width: 4,
+                    height: 4,
+                    background: "rgba(255,180,70,0.95)",
+                    boxShadow: "0 0 8px rgba(255,140,30,0.95)",
+                    animation: `dsc-ember ${2.2 + i * 0.35}s ease-out infinite`,
+                    animationDelay: `${i * 0.5}s`,
+                  }}
+                />
+              ))}
+            </>
+          )}
         </div>
       </Link>
     </>
