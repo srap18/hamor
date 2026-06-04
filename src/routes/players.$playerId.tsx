@@ -818,7 +818,7 @@ function PlayerPage() {
           const tShipW = 22 * (fixedSlot?.scale ?? 1);
           // Keep the raider attached to the target ship, but clamp it inside the visible water band.
           top = `${Math.max(50, Math.min(74, tTop + tShipW * 0.22 + sibIdx * 5))}%`;
-          left = `${Math.max(8, Math.min(92, dockLeft + tShipW * 0.58 + 10))}%`;
+          left = `${Math.max(8, Math.min(98, dockLeft + tShipW * 0.58 + 20))}%`;
         } else {
           top = `${wTop + 8 + ((i % 3) * (vRange / 3.2))}%`;
           left = `${wLeft + ((i % 3) * 0.22) * wWidth + 2}%`;
