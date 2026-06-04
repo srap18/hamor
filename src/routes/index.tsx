@@ -3263,7 +3263,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 <div className="text-center text-[9px] text-emerald-200 font-bold tabular-nums">
                   🎣 يصطاد · {timeStr}
                   {crews.some((c) => c.id === "sailor") && (
-                    <span className="ms-1 text-cyan-200">⛵ +70%</span>
+                    <span className="ms-1 text-cyan-200">⛵ +40%</span>
                   )}
                 </div>
               ) : (
