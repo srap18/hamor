@@ -738,25 +738,37 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 
         {isAdmin && (
           <div className="pt-2 mt-2 border-t border-rose-500/30 space-y-2">
-            <div className="text-[11px] font-black text-rose-300 text-center">⚙️ أوامر الإدارة</div>
-            <button onClick={adminToggleMute} disabled={busy}
-              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
-              {isMuted ? "🔊 رفع الكتم" : "🔇 كتم في الشات"}
+            <button
+              type="button"
+              onClick={() => setAdminOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-200 font-black text-[12px]"
+            >
+              <span>⚙️ أوامر الإدارة</span>
+              <span className="text-rose-300/80">{adminOpen ? "▲" : "▼"}</span>
             </button>
-            <button onClick={adminToggleBan} disabled={busy}
-              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBanned ? "bg-stone-700" : "bg-rose-700"}`}>
-              {isBanned ? "🔓 رفع الحظر" : "🚫 حظر من اللعبة"}
-            </button>
-            <button onClick={adminDeleteAllMsgs} disabled={busy}
-              className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
-              🗑️ حذف كل رسائله
-            </button>
-            <button onClick={adminRedeemCodeFor} disabled={busy}
-              className="w-full py-2 rounded-lg bg-emerald-700 text-white font-bold text-sm disabled:opacity-50">
-              🎁 تفعيل كود لهذا اللاعب
-            </button>
+            {adminOpen && (
+              <div className="space-y-2">
+                <button onClick={adminToggleMute} disabled={busy}
+                  className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
+                  {isMuted ? "🔊 رفع الكتم" : "🔇 كتم في الشات"}
+                </button>
+                <button onClick={adminToggleBan} disabled={busy}
+                  className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBanned ? "bg-stone-700" : "bg-rose-700"}`}>
+                  {isBanned ? "🔓 رفع الحظر" : "🚫 حظر من اللعبة"}
+                </button>
+                <button onClick={adminDeleteAllMsgs} disabled={busy}
+                  className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
+                  🗑️ حذف كل رسائله
+                </button>
+                <button onClick={adminRedeemCodeFor} disabled={busy}
+                  className="w-full py-2 rounded-lg bg-emerald-700 text-white font-bold text-sm disabled:opacity-50">
+                  🎁 تفعيل كود لهذا اللاعب
+                </button>
+              </div>
+            )}
           </div>
         )}
+
 
 
         {msg && <div className="text-xs text-amber-300 text-center">{msg}</div>}
