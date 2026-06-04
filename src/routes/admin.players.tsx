@@ -446,20 +446,49 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   };
 
 
+  const giveCode = async () => {
+    const code = prompt(`🎟️ أدخل الكود الذي تريد تفعيله لـ ${player.display_name}:\n(يصل اللاعب حتى لو كان غير متصل)`, "")?.trim();
+    if (!code) return;
+    const { error } = await (supabase as any).rpc("admin_redeem_code_for", {
+      p_code: code,
+      p_target_user: player.id,
+    });
+    if (error) {
+      const raw = String(error.message || error);
+      const map: Record<string, string> = {
+        already_redeemed: "تم تفعيل هذا الكود مسبقاً لهذا اللاعب",
+        code_exhausted: "نفذ الحد الأقصى للاستخدامات",
+        code_expired: "الكود منتهي الصلاحية",
+        code_disabled: "الكود معطّل",
+        invalid_code: "كود غير صالح",
+        admin_only: "صلاحية الأدمن مطلوبة",
+        invalid_target: "اللاعب غير موجود",
+      };
+      const key = (raw.match(/(already_redeemed|code_exhausted|code_expired|code_disabled|invalid_code|admin_only|invalid_target|not_authenticated)/) || [, raw])[1];
+      toast.error("❌ " + (map[key] ?? raw));
+      return;
+    }
+    await logAudit("admin_give_code", player.id, { code, name: player.display_name });
+    toast.success(`🎁 تم تفعيل الكود "${code}" لـ ${player.display_name}`);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-slate-900 rounded-2xl border border-slate-700 p-6 max-w-3xl w-full my-8" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-3 mb-4">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
-          ) : (
-            <span className="text-3xl">{player.avatar_emoji}</span>
-          )}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold truncate">{player.display_name}</h2>
-            <div className="text-xs text-slate-500 font-mono truncate">{player.id}</div>
+    <div className="fixed inset-0 z-50 bg-black/70 overflow-y-auto overscroll-contain" onClick={onClose}>
+      <div className="min-h-full flex items-start justify-center p-3 md:p-6">
+        <div className="bg-slate-900 rounded-2xl border border-slate-700 max-w-3xl w-full my-4 md:my-8 flex flex-col max-h-[92vh] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-3 p-4 md:p-5 border-b border-slate-800 sticky top-0 bg-slate-900 rounded-t-2xl z-10">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
+            ) : (
+              <span className="text-3xl">{player.avatar_emoji}</span>
+            )}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-bold truncate">{player.display_name}</h2>
+              <div className="text-xs text-slate-500 font-mono truncate">{player.id}</div>
+            </div>
+            <button onClick={onClose} aria-label="إغلاق" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm shrink-0">✕</button>
           </div>
-        </div>
+          <div className="p-4 md:p-6 overflow-y-auto overscroll-contain">
 
         {/* Account fields */}
         <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
@@ -643,6 +672,18 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               ))}
             </div>
           )}
+        </div>
+
+        {/* Give Code */}
+        <div className="mt-4 pt-4 border-t border-emerald-900/50 space-y-2">
+          <div className="text-sm font-semibold text-emerald-300">🎟️ إعطاء كود لهذا اللاعب</div>
+          <p className="text-[11px] text-slate-400">يفعّل الكود فوراً لحساب اللاعب حتى لو كان غير متصل.</p>
+          <button onClick={giveCode} className="w-full px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold">
+            🎁 تفعيل كود لـ {player.display_name}
+          </button>
+        </div>
+
+          </div>
         </div>
       </div>
     </div>
