@@ -443,7 +443,7 @@ function ChatPage() {
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-red-500 to-red-800 border border-red-300/60 text-xs font-black text-white shadow active:scale-95">⚔️ حرب</button>
               </div>
             )}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).length === 0 && <div className="text-center text-amber-100/40 text-sm py-8">لا توجد رسائل بعد — كن أول من يكتب</div>}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
                 const p = profMap.get(m.sender_id);
