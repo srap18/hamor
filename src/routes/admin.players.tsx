@@ -673,6 +673,18 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             </div>
           )}
         </div>
+
+        {/* Give Code */}
+        <div className="mt-4 pt-4 border-t border-emerald-900/50 space-y-2">
+          <div className="text-sm font-semibold text-emerald-300">🎟️ إعطاء كود لهذا اللاعب</div>
+          <p className="text-[11px] text-slate-400">يفعّل الكود فوراً لحساب اللاعب حتى لو كان غير متصل.</p>
+          <button onClick={giveCode} className="w-full px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold">
+            🎁 تفعيل كود لـ {player.display_name}
+          </button>
+        </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );
