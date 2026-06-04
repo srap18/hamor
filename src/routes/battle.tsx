@@ -63,21 +63,37 @@ function BattlePage() {
         hp: myHp,
       });
 
-      // opponent: from ?vs= OR top arena player OR any other dragon
+      // opponent: from ?vs= OR fair match (same stage, then ±1, then any)
       let oppId: string | null = vs ?? null;
       if (!oppId) {
-        const { data: top } = await supabase.from("dragons")
-          .select("user_id,stage").neq("user_id", user.id)
-          .order("stage", { ascending: false }).limit(20);
-        if (top && top.length) oppId = top[Math.floor(Math.random() * top.length)].user_id;
+        // 1) exact stage match
+        let pool: { user_id: string; stage: number }[] = [];
+        const exact = await supabase.from("dragons")
+          .select("user_id,stage").neq("user_id", user.id).eq("stage", myStage).limit(30);
+        pool = (exact.data ?? []) as typeof pool;
+        // 2) ±1 stage
+        if (pool.length === 0) {
+          const near = await supabase.from("dragons")
+            .select("user_id,stage").neq("user_id", user.id)
+            .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1).limit(30);
+          pool = (near.data ?? []) as typeof pool;
+        }
+        // 3) anyone
+        if (pool.length === 0) {
+          const any = await supabase.from("dragons")
+            .select("user_id,stage").neq("user_id", user.id).limit(30);
+          pool = (any.data ?? []) as typeof pool;
+        }
+        if (pool.length) oppId = pool[Math.floor(Math.random() * pool.length)].user_id;
       }
       if (!oppId) return;
       const [{ data: oProf }, { data: oDragon }] = await Promise.all([
         supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", oppId).maybeSingle(),
         supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
       ]);
-      const oStage = oDragon?.stage ?? 1;
-      const oHp = 400 + oStage * 80 + Math.floor(Math.random() * 200);
+      // fair fight: match opponent HP/stage exactly to mine if stages differ
+      const oStage = oDragon?.stage ?? myStage;
+      const oHp = myHp;
       setOp({
         id: oppId,
         name: oProf?.display_name ?? "خصم",
@@ -238,12 +254,14 @@ function BattlePage() {
               <img src={myStageImg} alt="me" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
+                  // ME on the left → face right (toward opponent)
+                  transform: "scaleX(-1)",
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
                   animation: "brth 3s ease-in-out infinite",
                 }} />
             )}
           </div>
-          {/* Op dragon (right) — mirrored */}
+          {/* Op dragon (right) — native orientation faces left toward me */}
           <div className="absolute" style={{
             right: "4%", top: "40%", width: "38%", aspectRatio: "1/1",
             animation: `hov 2.4s ease-in-out infinite${shake === "op" ? ", shk 0.2s" : ""}`,
@@ -252,7 +270,6 @@ function BattlePage() {
               <img src={opStageImg} alt="op" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
-                  transform: "scaleX(-1)",
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
                   animation: "brth 2.8s ease-in-out infinite",
                 }} />
