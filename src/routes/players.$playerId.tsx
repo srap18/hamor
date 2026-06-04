@@ -113,7 +113,7 @@ function PlayerPage() {
   };
 
   // Animate a projectile from a starting screen edge toward the target ship, then explode (or sparkle if friendly)
-  const playProjectile = (targetId: string, emoji: string, friendly = false, weaponId?: string) => new Promise<void>((resolve) => {
+  const playProjectile = (targetId: string, emoji: string, friendly = false, weaponId?: string, silent = false) => new Promise<void>((resolve) => {
     const el = shipRefs.current[targetId];
     if (!el) { resolve(); return; }
     const r = el.getBoundingClientRect();
@@ -121,23 +121,21 @@ function PlayerPage() {
     const toY = r.top + r.height / 2;
     const fromX = window.innerWidth - 40;
     const fromY = window.innerHeight - 80;
-    const id = serverNowMs();
+    const id = serverNowMs() + Math.random();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
-    // whoosh during flight (only for hostile rockets)
-    if (!friendly) sound.play("whoosh");
+    // whoosh during flight (only for hostile rockets, and not when silent)
+    if (!friendly && !silent) sound.play("whoosh");
     const flyMs = weaponId === "nuke" ? 1100 : 850;
     setTimeout(() => {
       setFx((f) => f && f.id === id ? { ...f, phase: "boom" } : f);
-      if (!friendly) {
+      if (!friendly && !silent) {
         sound.play(weaponId === "nuke" ? "nuke" : "explosion");
-        // Screen shake intensity by weapon
         const intensity =
           weaponId === "nuke" ? "shake-lg" :
           weaponId === "rocket_large" ? "shake-md" :
           weaponId === "rocket_medium" ? "shake-md" :
           "shake-sm";
         setShake(intensity);
-        // Extra rumble for nuke
         if (weaponId === "nuke") {
           setTimeout(() => sound.play("explosion"), 600);
           setTimeout(() => sound.play("explosion"), 1200);
@@ -145,13 +143,14 @@ function PlayerPage() {
         } else {
           setTimeout(() => setShake(""), 900);
         }
-      } else {
+      } else if (friendly) {
         sound.play("splash");
       }
     }, flyMs);
     const totalMs = weaponId === "nuke" ? 2300 : 1700;
     setTimeout(() => { setFx((f) => (f && f.id === id ? null : f)); resolve(); }, totalMs);
   });
+
 
   useEffect(() => {
     (async () => {
