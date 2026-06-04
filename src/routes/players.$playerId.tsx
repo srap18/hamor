@@ -401,7 +401,10 @@ function PlayerPage() {
     if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
     setMode(null);
-    const targets = w.aoe ? ships : [selectedShip];
+    const aliveShips = ships.filter((s) => !s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs()));
+    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
+    if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
+
     // ─── Pre-validate on the first target BEFORE consuming the weapon ───
     // Server-side rules (3 fishing ships, market level, protection, etc.) are
     // enforced inside apply_ship_damage; we hit it once first so a failed

@@ -566,6 +566,8 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   const { isAdmin } = useIsAdmin();
   const [isBanned, setIsBanned] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -627,9 +629,12 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       setBusy(false);
       return;
     }
+    const ok = await confirmDialog({ title: "حظر من اللعبة", message: `هل أنت متأكد من حظر ${target.display_name}؟`, danger: true });
+    if (!ok) return;
     const reason = prompt("سبب الحظر:", "مخالفة قواعد اللعبة") ?? "";
     const hoursStr = prompt("مدة الحظر بالساعات (فارغ = دائم):", "24");
     const hours = hoursStr ? Number(hoursStr) : 0;
+
     const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
     setBusy(true);
     await supabase.from("bans").insert({ user_id: target.id, reason, banned_by: me, expires_at });
@@ -652,9 +657,12 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       setBusy(false);
       return;
     }
+    const ok = await confirmDialog({ title: "كتم في الشات", message: `هل أنت متأكد من كتم ${target.display_name}؟`, danger: true });
+    if (!ok) return;
     const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
     const hoursStr = prompt("مدة الكتم بالساعات (فارغ = دائم):", "24");
     const hours = hoursStr ? Number(hoursStr) : 0;
+
     const expires_at = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
     setBusy(true);
     await supabase.from("chat_mutes").insert({ user_id: target.id, reason, muted_by: me, expires_at });
@@ -676,8 +684,11 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   };
 
   const adminRedeemCodeFor = async () => {
+    const ok = await confirmDialog({ title: "تفعيل كود", message: `تفعيل كود لـ ${target.display_name}؟` });
+    if (!ok) return;
     const code = prompt(`تفعيل كود لـ ${target.display_name}\nأدخل الكود:`, "");
     if (!code || !code.trim()) return;
+
     setBusy(true); setMsg(null);
     const { data, error } = await (supabase as any).rpc("admin_redeem_code_for", {
       p_code: code.trim(),
@@ -727,25 +738,37 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 
         {isAdmin && (
           <div className="pt-2 mt-2 border-t border-rose-500/30 space-y-2">
-            <div className="text-[11px] font-black text-rose-300 text-center">⚙️ أوامر الإدارة</div>
-            <button onClick={adminToggleMute} disabled={busy}
-              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
-              {isMuted ? "🔊 رفع الكتم" : "🔇 كتم في الشات"}
+            <button
+              type="button"
+              onClick={() => setAdminOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-200 font-black text-[12px]"
+            >
+              <span>⚙️ أوامر الإدارة</span>
+              <span className="text-rose-300/80">{adminOpen ? "▲" : "▼"}</span>
             </button>
-            <button onClick={adminToggleBan} disabled={busy}
-              className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBanned ? "bg-stone-700" : "bg-rose-700"}`}>
-              {isBanned ? "🔓 رفع الحظر" : "🚫 حظر من اللعبة"}
-            </button>
-            <button onClick={adminDeleteAllMsgs} disabled={busy}
-              className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
-              🗑️ حذف كل رسائله
-            </button>
-            <button onClick={adminRedeemCodeFor} disabled={busy}
-              className="w-full py-2 rounded-lg bg-emerald-700 text-white font-bold text-sm disabled:opacity-50">
-              🎁 تفعيل كود لهذا اللاعب
-            </button>
+            {adminOpen && (
+              <div className="space-y-2">
+                <button onClick={adminToggleMute} disabled={busy}
+                  className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
+                  {isMuted ? "🔊 رفع الكتم" : "🔇 كتم في الشات"}
+                </button>
+                <button onClick={adminToggleBan} disabled={busy}
+                  className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isBanned ? "bg-stone-700" : "bg-rose-700"}`}>
+                  {isBanned ? "🔓 رفع الحظر" : "🚫 حظر من اللعبة"}
+                </button>
+                <button onClick={adminDeleteAllMsgs} disabled={busy}
+                  className="w-full py-2 rounded-lg bg-rose-900 text-white font-bold text-sm disabled:opacity-50">
+                  🗑️ حذف كل رسائله
+                </button>
+                <button onClick={adminRedeemCodeFor} disabled={busy}
+                  className="w-full py-2 rounded-lg bg-emerald-700 text-white font-bold text-sm disabled:opacity-50">
+                  🎁 تفعيل كود لهذا اللاعب
+                </button>
+              </div>
+            )}
           </div>
         )}
+
 
 
         {msg && <div className="text-xs text-amber-300 text-center">{msg}</div>}
