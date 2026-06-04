@@ -445,26 +445,21 @@ function PlayerPage() {
       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
     }
 
-    // For AOE: fire damage RPCs for ALL remaining targets in parallel up front
-    // so a slow/failed call on one ship can't block destroying the others.
-    // The FX animation still plays sequentially below for visual clarity.
+    // For AOE: fire damage RPCs for ALL remaining targets WITHOUT awaiting,
+    // so a slow/stuck RPC can never freeze the UI. We use optimistic HP=0
+    // for nuke (it always one-shots everything anyway).
     const damageResults: Array<{ new_hp: number; repair_ends_at: string | null } | null> = new Array(targets.length).fill(null);
     if (Array.isArray(firstRes) && firstRes[0]) damageResults[0] = firstRes[0];
     if (w.aoe && targets.length > 1) {
-      const extra = await Promise.all(
-        targets.slice(1).map((t) =>
-          (supabase as any)
-            .rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage })
-            .then((r: any) => (Array.isArray(r?.data) && r.data[0]) ? r.data[0] : null)
-            .catch((e: any) => { console.error("apply_ship_damage failed", e); return null; })
-        )
-      );
-      extra.forEach((row, idx) => { damageResults[idx + 1] = row; });
+      targets.slice(1).forEach((t) => {
+        (supabase as any)
+          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage })
+          .catch((e: any) => { console.error("apply_ship_damage failed", e); });
+      });
     }
 
     // For AOE (nuke): one explosion + sound for all ships simultaneously.
     if (w.aoe) {
-      // Single global sound + shake
       sound.play("whoosh");
       setTimeout(() => {
         sound.play(w.id === "nuke" ? "nuke" : "explosion");
@@ -477,12 +472,13 @@ function PlayerPage() {
           setTimeout(() => setShake(""), 900);
         }
       }, w.id === "nuke" ? 1100 : 850);
-      // Fire visual FX on all ships in parallel (silent — global sound above)
-      await Promise.all(targets.map((t) => {
+      // Fire visual FX on all ships in parallel (silent — global sound above).
+      // Don't await — let it run; we proceed immediately so UI never blocks.
+      targets.forEach((t) => {
         broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
-        return playProjectile(t.id, w.emoji, false, w.id, true);
-      }));
-      // Record results for all targets
+        playProjectile(t.id, w.emoji, false, w.id, true).catch(() => {});
+      });
+      // Record results for all targets (fire-and-forget) — nuke one-shots everything
       for (let i = 0; i < targets.length; i++) {
         const t = targets[i];
         const row: any = damageResults[i];
@@ -490,13 +486,13 @@ function PlayerPage() {
         const repEnds = row?.repair_ends_at ?? null;
         (supabase as any).rpc("record_attack", {
           _defender_id: playerId, _target_ship_id: t.id,
-          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
+          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
         (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).then(undefined, () => {});
-        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: true }).then(undefined, () => {});
 
-        setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
+        setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
       }
     } else {
       for (let i = 0; i < targets.length; i++) {
