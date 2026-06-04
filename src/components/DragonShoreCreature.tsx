@@ -262,7 +262,7 @@ export function DragonShoreCreature() {
             transform: "rotateX(6deg)",
             animation: isEgg
               ? "dsc-rock 2.4s ease-in-out infinite"
-              : "dsc-breath 2.6s ease-in-out infinite, dsc-roar-shake 7s ease-in-out infinite",
+              : `dsc-breath ${breathSpeed}s ease-in-out infinite, dsc-roar-shake ${fireInterval}s ease-in-out infinite`,
           }}
         >
           <img
@@ -271,10 +271,9 @@ export function DragonShoreCreature() {
             draggable={false}
             className="w-full h-full object-contain object-bottom"
             style={{
-              animation: isEgg ? undefined : "dsc-head 4.2s ease-in-out infinite",
+              animation: isEgg ? undefined : `dsc-head ${4.2 - k * 1.5}s ease-in-out infinite`,
               transformOrigin: "55% 75%",
-              filter:
-                "drop-shadow(0 4px 4px rgba(0,0,0,0.85)) drop-shadow(0 0 12px rgba(255,120,40,0.45))",
+              filter: `drop-shadow(0 4px 4px rgba(0,0,0,0.85)) drop-shadow(0 0 ${12 + tier * 3}px ${auraOuter.replace(/[\d.]+\)$/, `${glowAlpha})`)})`,
             }}
           />
 
