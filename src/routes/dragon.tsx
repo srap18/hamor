@@ -180,7 +180,7 @@ function DragonPage() {
                       : "bg-stone-900/40 border border-stone-700/40 opacity-60"
                   }`}
                 >
-                  <span className="text-xl">{s.icon}</span>
+                  <img src={s.image} alt={s.name} className="w-9 h-9 object-contain shrink-0" loading="lazy" />
                   <div className="flex-1">
                     <div className={`text-sm font-bold ${current ? "text-amber-100" : reached ? "text-emerald-200" : "text-stone-400"}`}>
                       {s.name}
