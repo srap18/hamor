@@ -1083,7 +1083,7 @@ function Index() {
     const baseFish = Number(row?.base_qty ?? fishGained);
     const luckBonus = Number(row?.luck_bonus ?? 0);
     if (fishGained <= 0) {
-      // Nothing caught yet — just dock the ship without rewarding/spamming.
+      // Nothing caught yet — dock the ship and let the player know why.
       setShips((curr) =>
         curr.map((x) =>
           x.id === shipId
@@ -1091,6 +1091,18 @@ function Index() {
             : x
         )
       );
+      const elapsedSec = Number(row?.elapsed_seconds ?? 0);
+      const durationSec = Number(row?.duration_seconds ?? s.duration ?? 0);
+      const pct = durationSec > 0 ? Math.min(100, Math.round((elapsedSec / durationSec) * 100)) : 0;
+      setCatchResult({
+        emoji: "🪣",
+        name: "ما في صيد بعد",
+        count: 0,
+        shipId: s.id,
+        shipLevel: s.level,
+      });
+      showToast(`⏳ أوقفت السفينة بدري — لازم تنتظر أكثر (${pct}%) عشان تصيد سمك`);
+      sound.play("error");
       syncFleetFromDb();
       return;
     }
