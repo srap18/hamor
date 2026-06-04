@@ -483,6 +483,7 @@ function FishMarket() {
           fish={sel}
           userId={user?.id ?? "anon"}
           forecast={forecastMap[sel.id] ?? []}
+          history={historyMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
           traderActive={traderActiveGlobal}
