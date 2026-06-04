@@ -810,12 +810,15 @@ function PlayerPage() {
         );
         const sibIdx = Math.max(0, siblings.findIndex((x) => x.id === r.id));
         let top: string; let left: string;
+        let raiderScale = 1;
         if (tIdx >= 0) {
           void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const tShipW = 22 * (fixedSlot?.scale ?? 1);
+          const targetScale = fixedSlot?.scale ?? 1;
+          const tShipW = 22 * targetScale;
+          raiderScale = targetScale;
           // Keep the raider attached to the target ship, but clamp it inside the visible water band.
           top = `${Math.max(50, Math.min(74, tTop + tShipW * 0.22 + sibIdx * 5))}%`;
           left = `${Math.max(8, Math.min(98, dockLeft + tShipW * 0.58 + 20))}%`;
@@ -854,7 +857,7 @@ function PlayerPage() {
               className="active:scale-95"
             >
               <div className="relative">
-                <img src={img} alt="" className="w-20 h-20 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+                <img src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
                 <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
                 {isMine && (
                   <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
