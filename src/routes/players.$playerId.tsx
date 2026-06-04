@@ -65,6 +65,9 @@ function PlayerPage() {
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
+  const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
+  const [signOpen, setSignOpen] = useState(false);
   const [deathBannerHidden, setDeathBannerHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
