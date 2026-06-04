@@ -1055,45 +1055,36 @@ function PlayerPage() {
         </div>
       )}
 
-      {/* Wooden sign — destroyer's nuke/ad-bomb message (tap to read full) */}
+      {/* Ground sign — only avatar shows; tap to read the destroyer's message */}
       {p?.last_destroyer_message && (p?.last_destroyer_kind === "nuke" || p?.last_destroyer_kind === "ad_bomb") && (
         <button
           type="button"
           onClick={() => { sound.play("click"); setSignOpen(true); }}
           className="absolute z-30 active:scale-95 transition-transform"
-          style={{ top: "36%", left: "26%", width: "11%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
+          style={{ top: "62%", left: "30%", width: "9%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
           aria-label="رسالة المفجّر"
         >
           <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
             <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
-            {/* Avatar nailed on top plank — left side */}
-            <div className="absolute" style={{ top: "29%", left: "12%", width: "22%", aspectRatio: "1 / 1" }}>
+            {/* Avatar nailed on top plank */}
+            <div className="absolute" style={{ top: "26%", left: "50%", transform: "translateX(-50%)", width: "46%", aspectRatio: "1 / 1" }}>
               <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-950 shadow-md bg-amber-100">
                 {destroyerAvatar ? (
                   <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[8px]">{destroyerEmoji || "🧙"}</div>
+                  <div className="w-full h-full flex items-center justify-center text-[10px]">{destroyerEmoji || "🧙"}</div>
                 )}
               </div>
             </div>
-            {/* Name on top plank — right side */}
-            <div className="absolute font-black text-amber-50 truncate text-center"
-              style={{ top: "33%", left: "36%", right: "8%", fontSize: "0.55rem", textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}>
-              {p.last_destroyer_name}
-            </div>
-            {/* Message preview on bottom plank */}
-            <div className="absolute text-amber-50 font-black text-center overflow-hidden"
-              style={{ top: "50%", left: "10%", right: "10%", fontSize: "0.5rem", lineHeight: 1.1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}>
-              "{p.last_destroyer_message}"
-            </div>
-            {/* Tap hint badge */}
-            <div className="absolute text-amber-100 font-extrabold text-center bg-red-900/90 rounded-full px-1 py-0.5 border border-amber-300/60 shadow"
-              style={{ top: "62.5%", left: "28%", right: "28%", fontSize: "0.42rem" }}>
-              ☢️ اضغط
+            {/* Small tap hint */}
+            <div className="absolute text-amber-100 font-extrabold text-center bg-red-900/90 rounded-full px-1 border border-amber-300/60 shadow"
+              style={{ top: "58%", left: "20%", right: "20%", fontSize: "0.4rem" }}>
+              ☢️
             </div>
           </div>
         </button>
       )}
+
 
       {/* Sign message modal */}
       {signOpen && p?.last_destroyer_message && (
