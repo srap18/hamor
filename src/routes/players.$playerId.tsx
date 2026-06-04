@@ -1061,7 +1061,7 @@ function PlayerPage() {
           type="button"
           onClick={() => { sound.play("click"); setSignOpen(true); }}
           className="absolute z-30 active:scale-95 transition-transform"
-          style={{ bottom: "8rem", left: "2%", width: "6.5rem", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
+          style={{ top: "36%", left: "26%", width: "11%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
           aria-label="رسالة المفجّر"
         >
           <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
