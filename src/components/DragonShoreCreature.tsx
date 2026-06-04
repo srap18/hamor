@@ -30,6 +30,21 @@ export function DragonShoreCreature() {
 
   const isEgg = stage <= 2;
   const stageImg = getStage(stage).image;
+  // Intensity tier — stage 3 = mild, stage 10 = god-tier
+  const tier = Math.max(0, stage - 2); // 0..8
+  const k = tier / 8; // 0..1
+  const fireInterval = 7 - k * 5; // 7s -> 2s
+  const wingSpeed = 1.1 - k * 0.55; // 1.1s -> 0.55s
+  const breathSpeed = 2.6 - k * 1.2; // 2.6s -> 1.4s
+  const fireScale = 1 + k * 1.3; // 1 -> 2.3
+  const emberCount = 5 + tier * 2; // 5 -> 21
+  const smokeCount = 3 + Math.floor(tier / 2); // 3 -> 7
+  const shakeStrength = 2 + tier; // 2 -> 10 px
+  const glowAlpha = 0.45 + k * 0.5;
+  // Aura color shifts from orange -> white-hot -> arcane blue at top stages
+  const auraInner = stage >= 9 ? "rgba(180,220,255,1)" : stage >= 7 ? "rgba(255,255,220,1)" : "rgba(255,255,200,1)";
+  const auraMid = stage >= 9 ? "rgba(120,170,255,0.9)" : stage >= 7 ? "rgba(255,220,80,1)" : "rgba(255,200,60,1)";
+  const auraOuter = stage >= 9 ? "rgba(60,80,200,0.9)" : stage >= 7 ? "rgba(255,140,40,0.9)" : "rgba(255,90,20,0.9)";
 
   return (
     <>
