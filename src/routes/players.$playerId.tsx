@@ -33,6 +33,7 @@ type Profile = {
   last_destroyer_name?: string | null;
   last_destroyer_kind?: string | null;
   last_destroyer_at?: string | null;
+  last_destroyer_message?: string | null;
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
@@ -119,8 +120,9 @@ function PlayerPage() {
     const r = el.getBoundingClientRect();
     const toX = r.left + r.width / 2;
     const toY = r.top + r.height / 2;
-    const fromX = window.innerWidth - 40;
-    const fromY = window.innerHeight - 80;
+    // Nuke drops straight from the sky; other rockets fly from bottom-right
+    const fromX = weaponId === "nuke" ? toX + (Math.random() - 0.5) * 40 : window.innerWidth - 40;
+    const fromY = weaponId === "nuke" ? -120 : window.innerHeight - 80;
     const id = serverNowMs() + Math.random();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     // whoosh during flight (only for hostile rockets, and not when silent)
@@ -1035,11 +1037,38 @@ function PlayerPage() {
         </div>
       )}
 
+      {/* Wooden sign — destroyer's nuke message visible to all visitors */}
+      {p?.last_destroyer_message && p?.last_destroyer_kind === "nuke" && (
+        <div className="absolute z-30 pointer-events-none" style={{ bottom: "5.5rem", right: "0.75rem", maxWidth: "62%" }}>
+          <div className="relative pointer-events-auto select-none" style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.6))" }}>
+            <div aria-hidden className="absolute left-3 -bottom-6 w-2 h-10 rounded-sm" style={{ background: "linear-gradient(to bottom, #6b3a1a, #2c1608)", boxShadow: "inset -2px 0 2px rgba(0,0,0,0.6)" }} />
+            <div aria-hidden className="absolute right-3 -bottom-6 w-2 h-10 rounded-sm" style={{ background: "linear-gradient(to bottom, #6b3a1a, #2c1608)", boxShadow: "inset -2px 0 2px rgba(0,0,0,0.6)" }} />
+            <div
+              className="relative rounded-md border-2 border-amber-950/80 px-2.5 py-2 overflow-hidden"
+              style={{
+                background: "repeating-linear-gradient(180deg, #8b4a1f 0px, #8b4a1f 6px, #74391a 6px, #74391a 12px), linear-gradient(135deg, #8b4a1f, #5a2a10)",
+                boxShadow: "inset 0 2px 0 rgba(255,200,140,0.25), inset 0 -3px 6px rgba(0,0,0,0.5)",
+              }}
+            >
+              <span className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
+              <span className="absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
+              <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-sm">☢️</span>
+                <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
+                  {p.last_destroyer_name}
+                </span>
+              </div>
+              <div className="text-[11px] leading-snug font-bold text-amber-50 whitespace-pre-wrap break-words drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]" style={{ wordBreak: "break-word" }}>
+                "{p.last_destroyer_message}"
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
 
-
-
-      {/* Bottom actions */}
       <div className="absolute bottom-0 left-0 right-0 z-30 p-3 flex gap-2 glass-hud border-t border-amber-400/40">
         {friendStatus === "self" ? (
           <Link to="/profile" className="flex-1 py-3 rounded-xl bg-amber-600 text-amber-950 text-center font-bold active:scale-95">⚙️ هذا أنت — حرّر الملف</Link>
