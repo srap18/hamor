@@ -113,7 +113,7 @@ function PlayerPage() {
   };
 
   // Animate a projectile from a starting screen edge toward the target ship, then explode (or sparkle if friendly)
-  const playProjectile = (targetId: string, emoji: string, friendly = false, weaponId?: string) => new Promise<void>((resolve) => {
+  const playProjectile = (targetId: string, emoji: string, friendly = false, weaponId?: string, silent = false) => new Promise<void>((resolve) => {
     const el = shipRefs.current[targetId];
     if (!el) { resolve(); return; }
     const r = el.getBoundingClientRect();
@@ -121,23 +121,21 @@ function PlayerPage() {
     const toY = r.top + r.height / 2;
     const fromX = window.innerWidth - 40;
     const fromY = window.innerHeight - 80;
-    const id = serverNowMs();
+    const id = serverNowMs() + Math.random();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
-    // whoosh during flight (only for hostile rockets)
-    if (!friendly) sound.play("whoosh");
+    // whoosh during flight (only for hostile rockets, and not when silent)
+    if (!friendly && !silent) sound.play("whoosh");
     const flyMs = weaponId === "nuke" ? 1100 : 850;
     setTimeout(() => {
       setFx((f) => f && f.id === id ? { ...f, phase: "boom" } : f);
-      if (!friendly) {
+      if (!friendly && !silent) {
         sound.play(weaponId === "nuke" ? "nuke" : "explosion");
-        // Screen shake intensity by weapon
         const intensity =
           weaponId === "nuke" ? "shake-lg" :
           weaponId === "rocket_large" ? "shake-md" :
           weaponId === "rocket_medium" ? "shake-md" :
           "shake-sm";
         setShake(intensity);
-        // Extra rumble for nuke
         if (weaponId === "nuke") {
           setTimeout(() => sound.play("explosion"), 600);
           setTimeout(() => sound.play("explosion"), 1200);
@@ -145,13 +143,14 @@ function PlayerPage() {
         } else {
           setTimeout(() => setShake(""), 900);
         }
-      } else {
+      } else if (friendly) {
         sound.play("splash");
       }
     }, flyMs);
     const totalMs = weaponId === "nuke" ? 2300 : 1700;
     setTimeout(() => { setFx((f) => (f && f.id === id ? null : f)); resolve(); }, totalMs);
   });
+
 
   useEffect(() => {
     (async () => {
@@ -447,28 +446,64 @@ function PlayerPage() {
       extra.forEach((row, idx) => { damageResults[idx + 1] = row; });
     }
 
-    for (let i = 0; i < targets.length; i++) {
-      const t = targets[i];
-      broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
-      await playProjectile(t.id, w.emoji, false, w.id);
-      let row: any = damageResults[i];
-      if (!row && !w.aoe && i > 0) {
-        const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
-        row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
+    // For AOE (nuke): one explosion + sound for all ships simultaneously.
+    if (w.aoe) {
+      // Single global sound + shake
+      sound.play("whoosh");
+      setTimeout(() => {
+        sound.play(w.id === "nuke" ? "nuke" : "explosion");
+        setShake(w.id === "nuke" ? "shake-lg" : "shake-md");
+        if (w.id === "nuke") {
+          setTimeout(() => sound.play("explosion"), 600);
+          setTimeout(() => sound.play("explosion"), 1200);
+          setTimeout(() => setShake(""), 1800);
+        } else {
+          setTimeout(() => setShake(""), 900);
+        }
+      }, w.id === "nuke" ? 1100 : 850);
+      // Fire visual FX on all ships in parallel (silent — global sound above)
+      await Promise.all(targets.map((t) => {
+        broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
+        return playProjectile(t.id, w.emoji, false, w.id, true);
+      }));
+      // Record results for all targets
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i];
+        const row: any = damageResults[i];
+        const newHp = row?.new_hp ?? 0;
+        const repEnds = row?.repair_ends_at ?? null;
+        (supabase as any).rpc("record_attack", {
+          _defender_id: playerId, _target_ship_id: t.id,
+          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
+          _xp_gain: w.xp ?? 0,
+        }).catch((e: any) => console.error("record_attack failed", e));
+        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).catch(() => {});
+        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).catch(() => {});
+        setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
-      const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - w.damage);
-      const repEnds = row?.repair_ends_at ?? null;
-      await (supabase as any).rpc("record_attack", {
-        _defender_id: playerId, _target_ship_id: t.id,
-        _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
-        _xp_gain: w.xp ?? 0,
-      }).catch((e: any) => console.error("record_attack failed", e));
-      // Dragon: award DP from damage + arena score
-      (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).catch(() => {});
-      (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).catch(() => {});
-
-      setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
+    } else {
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i];
+        broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
+        await playProjectile(t.id, w.emoji, false, w.id);
+        let row: any = damageResults[i];
+        if (!row && i > 0) {
+          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
+          row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
+        }
+        const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - w.damage);
+        const repEnds = row?.repair_ends_at ?? null;
+        await (supabase as any).rpc("record_attack", {
+          _defender_id: playerId, _target_ship_id: t.id,
+          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
+          _xp_gain: w.xp ?? 0,
+        }).catch((e: any) => console.error("record_attack failed", e));
+        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).catch(() => {});
+        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).catch(() => {});
+        setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
+      }
     }
+
 
 
     sound.play("success"); flash(`💥 ${w.name} — ${w.damage} ضرر`);
