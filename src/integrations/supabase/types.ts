@@ -1491,6 +1491,7 @@ export type Database = {
           last_destroyer_at: string | null
           last_destroyer_id: string | null
           last_destroyer_kind: string | null
+          last_destroyer_message: string | null
           last_destroyer_name: string | null
           level: number
           media_banned: boolean
@@ -1529,6 +1530,7 @@ export type Database = {
           last_destroyer_at?: string | null
           last_destroyer_id?: string | null
           last_destroyer_kind?: string | null
+          last_destroyer_message?: string | null
           last_destroyer_name?: string | null
           level?: number
           media_banned?: boolean
@@ -1567,6 +1569,7 @@ export type Database = {
           last_destroyer_at?: string | null
           last_destroyer_id?: string | null
           last_destroyer_kind?: string | null
+          last_destroyer_message?: string | null
           last_destroyer_name?: string | null
           level?: number
           media_banned?: boolean
