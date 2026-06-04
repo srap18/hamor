@@ -566,6 +566,8 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   const { isAdmin } = useIsAdmin();
   const [isBanned, setIsBanned] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+
 
   useEffect(() => {
     if (!isAdmin) return;
