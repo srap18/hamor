@@ -767,8 +767,8 @@ function PlayerPage() {
         <div className="absolute text-base animate-bird-fly" style={{ top: "20%", left: "-15%", animationDuration: "28s", animationDelay: "-8s" }}>🕊️</div>
       </div>
 
-      {/* Floating dragon egg — same spot as the glowing dragon visual in the user's reference screenshot */}
-      <DragonEggButton className="absolute top-[18%] right-[8%] z-20 w-24 h-24 active:scale-90 transition-transform" />
+      {/* Dragon — same position as in the player's own ocean (DragonShoreCreature) */}
+      <DragonEggButton className="absolute left-[3%] bottom-[10%] z-20 w-[38%] max-w-[230px] aspect-square active:scale-95 transition-transform" />
 
 
 
