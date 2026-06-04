@@ -36,7 +36,8 @@ function AdminPlayers() {
   const load = useCallback(async () => {
     setLoading(true);
     let q = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
-    if (search.trim()) q = q.ilike("display_name", `%${search.trim()}%`);
+    const s = search.trim();
+    if (s) q = q.or(`display_name.ilike.%${s}%,username.ilike.%${s.toLowerCase()}%`);
     const { data } = await q;
     setPlayers((data ?? []) as Player[]);
     const { data: bans } = await supabase.from("bans").select("user_id").eq("active", true);
