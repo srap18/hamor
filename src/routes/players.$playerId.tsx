@@ -1056,9 +1056,20 @@ function PlayerPage() {
               <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-sm">☢️</span>
-                <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
-                  {p.last_destroyer_name}
-                </span>
+                {p.last_destroyer_id ? (
+                  <Link
+                    to="/p/$id"
+                    params={{ id: p.last_destroyer_id }}
+                    onClick={() => sound.play("click")}
+                    className="text-[10px] font-extrabold text-amber-100 underline decoration-amber-300/60 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate active:scale-95"
+                  >
+                    {p.last_destroyer_name}
+                  </Link>
+                ) : (
+                  <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
+                    {p.last_destroyer_name}
+                  </span>
+                )}
               </div>
               <div className="text-[11px] leading-snug font-bold text-amber-50 whitespace-pre-wrap break-words drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]" style={{ wordBreak: "break-word" }}>
                 "{p.last_destroyer_message}"
