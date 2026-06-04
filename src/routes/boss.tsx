@@ -49,9 +49,19 @@ function BossPage() {
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState<"none" | "ship" | "boss">("none");
   const [now, setNow] = useState(Date.now());
+  const [dragonStage, setDragonStage] = useState(1);
+  const [bossDefeats, setBossDefeats] = useState(0);
   const myIdRef = useRef<string | null>(null);
   const idRef = useRef(0);
   const nextId = () => ++idRef.current;
+
+  // Difficulty multiplier: each defeat + each dragon stage cranks up boss power
+  const diffTier = dragonStage + bossDefeats * 2; // grows fast per defeat
+  const bossBaseDmg = 5 + diffTier * 3;
+  const bossSpread = 10 + diffTier * 2;
+  const bossInterval = Math.max(1800, 6500 - diffTier * 350);
+  const heavyEvery = Math.max(2, 5 - Math.floor(diffTier / 3)); // every Nth hit = heavy
+  const heavyHitsRef = useRef(0);
 
   // Initial fetch
   useEffect(() => {
