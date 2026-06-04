@@ -210,8 +210,11 @@ function InventoryTab({ items, onEquip }: { items: EquipmentItem[]; onEquip: (id
     <div className="space-y-2">
       {items.map((it) => (
         <ItemCard key={it.id} item={it} action={
-          <button onClick={() => onEquip(it.id)}
-            className={`w-full py-1.5 rounded-lg text-xs font-bold ${
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); console.log("[equip-click]", it.id); onEquip(it.id); }}
+            className={`w-full py-2 rounded-lg text-xs font-bold relative z-20 touch-manipulation ${
+
               it.equipped
                 ? "bg-stone-800 text-stone-300 border border-stone-600/50"
                 : "bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-md"
@@ -220,6 +223,7 @@ function InventoryTab({ items, onEquip }: { items: EquipmentItem[]; onEquip: (id
           </button>
         } />
       ))}
+
     </div>
   );
 }
