@@ -422,14 +422,37 @@ function PlayerPage() {
     }
     // Validation passed — now consume the weapon and run FX/damage for all targets.
     await consumeItem(weaponId, "weapon");
+
+    // For nuke (AOE): burn the target's background FIRST so it always lands,
+    // even if any per-ship damage call fails. Update local view immediately.
+    if (weaponId === "nuke") {
+      burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+    }
+
+    // For AOE: fire damage RPCs for ALL remaining targets in parallel up front
+    // so a slow/failed call on one ship can't block destroying the others.
+    // The FX animation still plays sequentially below for visual clarity.
+    const damageResults: Array<{ new_hp: number; repair_ends_at: string | null } | null> = new Array(targets.length).fill(null);
+    if (Array.isArray(firstRes) && firstRes[0]) damageResults[0] = firstRes[0];
+    if (w.aoe && targets.length > 1) {
+      const extra = await Promise.all(
+        targets.slice(1).map((t) =>
+          (supabase as any)
+            .rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage })
+            .then((r: any) => (Array.isArray(r?.data) && r.data[0]) ? r.data[0] : null)
+            .catch((e: any) => { console.error("apply_ship_damage failed", e); return null; })
+        )
+      );
+      extra.forEach((row, idx) => { damageResults[idx + 1] = row; });
+    }
+
     for (let i = 0; i < targets.length; i++) {
       const t = targets[i];
       broadcastFx({ targetId: t.id, emoji: w.emoji, friendly: false, weaponId: w.id, toast: `💥 ${myName || "لاعب"} ضرب بـ ${w.name}` });
       await playProjectile(t.id, w.emoji, false, w.id);
-      let row: any = null;
-      if (i === 0) {
-        row = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
-      } else {
+      let row: any = damageResults[i];
+      if (!row && !w.aoe && i > 0) {
         const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
         row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
       }
@@ -439,7 +462,7 @@ function PlayerPage() {
         _defender_id: playerId, _target_ship_id: t.id,
         _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
         _xp_gain: w.xp ?? 0,
-      });
+      }).catch((e: any) => console.error("record_attack failed", e));
       // Dragon: award DP from damage + arena score
       (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).catch(() => {});
       (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).catch(() => {});
@@ -452,13 +475,6 @@ function PlayerPage() {
     setBusy(false);
     // After a nuke, prompt the player to broadcast a global message
     if (weaponId === "nuke") {
-      // Scorch the target's background for 7 days (visible to everyone)
-      const burnRes = await burnTargetBg(playerId).catch((e) => ({ error: e }));
-      if ((burnRes as any)?.error) {
-        console.error("burn_target_bg failed", (burnRes as any).error);
-      }
-      // Always update local view so attacker sees burned bg immediately
-      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
