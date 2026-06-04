@@ -1083,7 +1083,7 @@ function Index() {
     const baseFish = Number(row?.base_qty ?? fishGained);
     const luckBonus = Number(row?.luck_bonus ?? 0);
     if (fishGained <= 0) {
-      // Nothing caught yet — just dock the ship without rewarding/spamming.
+      // Nothing caught yet — dock the ship and let the player know why.
       setShips((curr) =>
         curr.map((x) =>
           x.id === shipId
@@ -1091,6 +1091,18 @@ function Index() {
             : x
         )
       );
+      const elapsedSec = Number(row?.elapsed_seconds ?? 0);
+      const durationSec = Number(row?.duration_seconds ?? s.duration ?? 0);
+      const pct = durationSec > 0 ? Math.min(100, Math.round((elapsedSec / durationSec) * 100)) : 0;
+      setCatchResult({
+        emoji: "🪣",
+        name: "ما في صيد بعد",
+        count: 0,
+        shipId: s.id,
+        shipLevel: s.level,
+      });
+      showToast(`⏳ أوقفت السفينة بدري — لازم تنتظر أكثر (${pct}%) عشان تصيد سمك`);
+      sound.play("error");
       syncFleetFromDb();
       return;
     }
@@ -2110,7 +2122,11 @@ function Index() {
               )}
             </div>
             <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
-            <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            {catchResult.count > 0 ? (
+              <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            ) : (
+              <div className="mt-1 text-[12px] font-bold text-rose-200">أوقفت السفينة قبل ما تصيد — انتظر أكثر المرة الجاية ⏳</div>
+            )}
             {catchResult.luckBonus && catchResult.luckBonus > 0 ? (
               <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border border-yellow-200 text-[10px] font-black text-black shadow">
                 🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
