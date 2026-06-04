@@ -121,7 +121,7 @@ export function DragonShoreCreature() {
           }}
         >
           <img
-            src={isEgg ? dragonEggImg : dragonAdultImg}
+            src={stageImg}
             alt=""
             draggable={false}
             className="w-full h-full object-contain object-bottom"
