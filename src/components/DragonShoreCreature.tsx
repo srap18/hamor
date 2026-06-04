@@ -29,6 +29,7 @@ export function DragonShoreCreature() {
   }, []);
 
   const isEgg = stage <= 2;
+  const stageImg = getStage(stage).image;
 
   return (
     <>
