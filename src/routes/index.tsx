@@ -1193,43 +1193,22 @@ function Index() {
       {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
       {scene.burned && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-1"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 6.5rem)" }}
-        >
-          {repairBtnOpen ? (
-            <>
-              <button
-                onClick={async () => {
-                  const showToast = (v: string) => {
-                    setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
-                    setTimeout(() => setPop(null), 1800);
-                  };
-                  if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
-                  if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
-                  const { error } = await repairBurnedBg();
-                  if (error) { showToast("تعذّر الإصلاح"); return; }
-                  sound.play("success");
-                  showToast("✨ رجعت الخلفية سليمة!");
-                }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-sm font-extrabold shadow-2xl active:scale-95 flex items-center gap-1.5 animate-pulse"
-              >
-                🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
-              </button>
-              <button
-                onClick={() => setRepairBtnOpen(false)}
-                aria-label="طي"
-                className="w-8 h-8 rounded-full bg-stone-900/90 border border-emerald-300/50 text-emerald-100 text-sm font-black shadow-lg active:scale-95"
-              >×</button>
-            </>
-          ) : (
-            <button
-              onClick={() => setRepairBtnOpen(true)}
-              aria-label="فتح إصلاح الخلفية"
-              className="w-11 h-11 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-lg shadow-2xl active:scale-95 flex items-center justify-center animate-pulse"
-            >🛠️</button>
-          )}
-        </div>
+        <DraggableRepairBgButton
+          storageKey="repairBgBtnPos:self"
+          label="إصلاح الخلفية"
+          onRepair={async () => {
+            const showToast = (v: string) => {
+              setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
+              setTimeout(() => setPop(null), 1800);
+            };
+            if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+            if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+            const { error } = await repairBurnedBg();
+            if (error) { showToast("تعذّر الإصلاح"); return; }
+            sound.play("success");
+            showToast("✨ رجعت الخلفية سليمة!");
+          }}
+        />
       )}
 
       {/* Incoming raids — pirates stealing from me */}
