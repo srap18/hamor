@@ -583,6 +583,7 @@ function Index() {
     return () => { cancelled = true; window.removeEventListener("fish-stock-changed", onChanged); };
   }, [user]);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
+  const [repairBtnOpen, setRepairBtnOpen] = useState(true);
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
@@ -831,6 +832,39 @@ function Index() {
     showToast("🚔 قبضت على اللص! ممنوع من السرقة ساعة");
     reloadRaids();
   };
+
+  // Auto-catch: if police is assigned to the ship being raided, instantly catch the thief.
+  useEffect(() => {
+    if (raids.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid || cancelled) return;
+      const { data: police } = await supabase
+        .from("inventory")
+        .select("meta")
+        .eq("user_id", uid)
+        .eq("item_type", "crew")
+        .eq("item_id", "police")
+        .gt("quantity", 0);
+      const guardedShips = new Set<string>();
+      for (const row of (police ?? []) as Array<{ meta: any }>) {
+        const sid = row.meta?.assigned_ship_id;
+        const exp = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
+        if (sid && exp > Date.now()) guardedShips.add(String(sid));
+      }
+      if (guardedShips.size === 0) return;
+      for (const r of raids) {
+        if (cancelled) break;
+        if (r.target_ship_id && guardedShips.has(r.target_ship_id)) {
+          await (supabase as any).rpc("catch_thief", { _attacker_ship_id: r.ship_id });
+        }
+      }
+      if (!cancelled) { sound.play("success"); reloadRaids(); }
+    })();
+    return () => { cancelled = true; };
+  }, [raids.map((r) => r.ship_id).join(",")]);
 
   // Outgoing steal missions — my ships currently raiding others. Banner lets the
   // user jump straight back to the target harbor to watch or cancel the raid.
@@ -1149,24 +1183,43 @@ function Index() {
       {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
       {scene.burned && (
-        <button
-          onClick={async () => {
-            const showToast = (v: string) => {
-              setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
-              setTimeout(() => setPop(null), 1800);
-            };
-            if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
-            if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
-            const { error } = await repairBurnedBg();
-            if (error) { showToast("تعذّر الإصلاح"); return; }
-            sound.play("success");
-            showToast("✨ رجعت الخلفية سليمة!");
-          }}
-          className="fixed left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-sm font-extrabold shadow-2xl active:scale-95 flex items-center gap-1.5 animate-pulse"
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-1"
           style={{ bottom: "calc(env(safe-area-inset-bottom) + 6.5rem)" }}
         >
-          🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
-        </button>
+          {repairBtnOpen ? (
+            <>
+              <button
+                onClick={async () => {
+                  const showToast = (v: string) => {
+                    setPop({ id: serverNowMs(), x: window.innerWidth / 2, y: 120, v });
+                    setTimeout(() => setPop(null), 1800);
+                  };
+                  if ((profile?.gems ?? 0) < 100) { showToast("💎 تحتاج 100 جوهرة للإصلاح"); return; }
+                  if (!confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+                  const { error } = await repairBurnedBg();
+                  if (error) { showToast("تعذّر الإصلاح"); return; }
+                  sound.play("success");
+                  showToast("✨ رجعت الخلفية سليمة!");
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-sm font-extrabold shadow-2xl active:scale-95 flex items-center gap-1.5 animate-pulse"
+              >
+                🛠️ إصلاح الخلفية <span className="text-cyan-200">💎100</span>
+              </button>
+              <button
+                onClick={() => setRepairBtnOpen(false)}
+                aria-label="طي"
+                className="w-8 h-8 rounded-full bg-stone-900/90 border border-emerald-300/50 text-emerald-100 text-sm font-black shadow-lg active:scale-95"
+              >×</button>
+            </>
+          ) : (
+            <button
+              onClick={() => setRepairBtnOpen(true)}
+              aria-label="فتح إصلاح الخلفية"
+              className="w-11 h-11 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-lg shadow-2xl active:scale-95 flex items-center justify-center animate-pulse"
+            >🛠️</button>
+          )}
+        </div>
       )}
 
       {/* Incoming raids — pirates stealing from me */}
