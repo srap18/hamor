@@ -454,7 +454,7 @@ function PlayerPage() {
       targets.slice(1).forEach((t) => {
         (supabase as any)
           .rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage })
-          .catch((e: any) => { console.error("apply_ship_damage failed", e); });
+          .then(undefined, (e: any) => { console.error("apply_ship_damage failed", e); });
       });
     }
 
