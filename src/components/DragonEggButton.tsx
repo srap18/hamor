@@ -4,14 +4,39 @@ import dragonEggImg from "@/assets/dragon-egg.png";
 type Props = {
   /** Position style — defaults to top-right corner */
   className?: string;
+  /** When false, the egg is rendered as a non-interactive visual (no clicks). */
+  interactive?: boolean;
 };
 
 /**
  * Floating dragon egg button. Currently shows a "coming soon" popup
- * instead of opening the dragon page.
+ * instead of opening the dragon page. When `interactive` is false (e.g.
+ * when viewing another player's harbor), the egg is purely decorative.
  */
-export function DragonEggButton({ className }: Props) {
+export function DragonEggButton({ className, interactive = true }: Props) {
   const [showSoon, setShowSoon] = useState(false);
+  if (!interactive) {
+    return (
+      <div
+        className={
+          className ??
+          "fixed top-20 right-3 z-40 w-16 h-16 rounded-full flex items-center justify-center pointer-events-none"
+        }
+        style={{
+          filter:
+            "drop-shadow(0 0 12px rgba(251,146,60,0.7)) drop-shadow(0 0 24px rgba(220,38,38,0.5))",
+        }}
+        aria-hidden
+      >
+        <img
+          src={dragonEggImg}
+          alt=""
+          className="w-full h-full object-contain"
+          draggable={false}
+        />
+      </div>
+    );
+  }
   return (
     <>
     <button
