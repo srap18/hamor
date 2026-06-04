@@ -55,10 +55,13 @@ export function DragonEggButton({ className }: Props) {
         onClick={() => setShowSoon(false)}
         dir="rtl"
       >
-        <div className="bg-gradient-to-br from-amber-900/90 to-rose-950/90 border-2 border-amber-400/60 rounded-2xl p-6 max-w-xs text-center shadow-2xl">
-          <div className="text-5xl mb-3">🥚🔥</div>
-          <div className="text-amber-100 text-xl font-extrabold mb-2">قريبًا</div>
-          <div className="text-amber-200/80 text-sm">التنين على وشك أن يفقس... ترقّبوا!</div>
+        <div className="bg-gradient-to-br from-amber-900/95 to-rose-950/95 border-4 border-amber-400/80 rounded-3xl px-10 py-8 text-center shadow-2xl animate-in zoom-in-50 duration-300">
+          <div
+            className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-600"
+            style={{ textShadow: "0 0 30px rgba(251,146,60,0.8)" }}
+          >
+            قريبًا!!
+          </div>
         </div>
       </div>
     )}
