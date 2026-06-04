@@ -258,6 +258,11 @@ function BossPage() {
           <div className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-rose-800/60 to-amber-800/60 border border-rose-400/60">
             <span className="text-rose-100 font-extrabold">🐲 {boss.name}</span>
           </div>
+          <div className="mt-1 inline-flex ms-2 items-center gap-1 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/60 text-[10px] font-black text-rose-100">
+            <span>⚔️ صعوبة {diffTier}</span>
+            <span className="text-rose-300/80">·</span>
+            <span>💀 {bossDefeats}</span>
+          </div>
         </div>
 
         {/* Boss HP */}
