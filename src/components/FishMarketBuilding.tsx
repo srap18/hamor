@@ -41,7 +41,7 @@ export function FishMarketBuilding({
     return isFinite(ends) && ends > now;
   }, [burnedUntil, now]);
 
-  const img = isBurned ? burnedImg : t1;
+  const img = isBurned ? burnedImg : tierImage(level);
   const clampedLevel = Math.max(1, Math.min(30, Math.floor(level || 1)));
 
   const smokes = useMemo(
