@@ -94,28 +94,7 @@ const CREWS: Item[] = LIB_CREWS.map((c) => ({
   rarity: c.rarity,
 }));
 
-const SHIPS_FOR_SALE: Item[] = [
-  {
-    id: "phoenix-pack-3",
-    name: "حزمة 3 سفن عنقاء 🐉",
-    emoji: "🐉",
-    image: phoenixShipImg,
-    price: 3800,
-    currency: "gem",
-    desc: "ثلاث سفن عنقاء دفعة واحدة • كل سفينة بدمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • صيد 20 دقيقة. أفضل قيمة للقادة الطموحين!",
-    rarity: "legendary",
-  },
-  {
-    id: "phoenix-pack-1",
-    name: "سفينة عنقاء واحدة 🐉",
-    emoji: "🐉",
-    image: phoenixShipImg,
-    price: 1500,
-    currency: "gem",
-    desc: "سفينة عنقاء فردية • دمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • صيد 20 دقيقة. مثالية لتجربة قوة العنقاء.",
-    rarity: "legendary",
-  },
-];
+const SHIPS_FOR_SALE: Item[] = [];
 
 
 
