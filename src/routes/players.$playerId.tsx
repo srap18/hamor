@@ -16,6 +16,7 @@ import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { DragonEggButton } from "@/components/DragonEggButton";
+import woodenSignAsset from "@/assets/wooden-sign.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
