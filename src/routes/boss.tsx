@@ -19,6 +19,11 @@ type Boss = {
 type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null };
 type RocketRow = { id: string; item_id: string; quantity: number };
 
+function isBossReady(value: unknown): value is Boss {
+  const boss = value as Partial<Boss> | null;
+  return !!boss?.id && typeof boss.hp_max === "number" && typeof boss.hp_current === "number";
+}
+
 const ROCKETS = [
   { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",       border: "border-sky-300" },
   { id: "rocket_medium", name: "متوسط",  dmg: 4000,  color: "from-emerald-500 to-emerald-800", border: "border-emerald-300" },
@@ -34,6 +39,7 @@ type Splash = { id: number; side: "ship" | "boss"; crit?: boolean; dmg?: number 
 
 function BossPage() {
   const [boss, setBoss] = useState<Boss | null>(null);
+  const [loadingBoss, setLoadingBoss] = useState(true);
   const [ships, setShips] = useState<ShipRow[]>([]);
   const [selectedShip, setSelectedShip] = useState<ShipRow | null>(null);
   const [shipHp, setShipHp] = useState(100); // local %; cosmetic
@@ -53,7 +59,8 @@ function BossPage() {
       const { data: { user } } = await supabase.auth.getUser();
       myIdRef.current = user?.id ?? null;
       const { data: b } = await rpc("get_active_boss");
-      setBoss(b as Boss);
+      setBoss(isBossReady(b) ? (b as Boss) : null);
+      setLoadingBoss(false);
       if (!user?.id) return;
       const [{ data: sh }, { data: inv }] = await Promise.all([
         supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
@@ -137,10 +144,25 @@ function BossPage() {
     }, 850);
   }, [busy, boss, shipHp, rockets]);
 
-  if (!boss) {
+  if (loadingBoss) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center" dir="rtl">
         <div className="text-rose-300 animate-pulse">جاري إيقاظ الوحش...</div>
+      </div>
+    );
+  }
+
+  if (!boss) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center px-4" dir="rtl">
+        <div className="max-w-sm rounded-2xl border border-rose-500/50 bg-stone-950/90 p-5 text-center shadow-2xl">
+          <div className="mb-2 text-4xl">🐲</div>
+          <div className="mb-2 text-lg font-extrabold text-rose-100">ما فيه وحش نشط حالياً</div>
+          <div className="mb-4 text-sm text-rose-200/70">ارجع بعد شوي وبيظهر وحش جديد للقتال.</div>
+          <Link to="/dragon" className="inline-flex rounded-xl border border-rose-400/60 bg-rose-900/50 px-4 py-2 text-sm font-bold text-rose-100 active:scale-95">
+            ← رجوع للتنين
+          </Link>
+        </div>
       </div>
     );
   }
