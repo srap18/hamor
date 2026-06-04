@@ -35,25 +35,26 @@ export function BackgroundsPanel() {
   const [repairing, setRepairing] = useState(false);
 
   useEffect(() => {
-    setOwned(getOwnedBgIds());
     setSelected(getSelectedBgId());
-    // Sync any background granted via redemption code (stored in inventory as item_type='background')
-    if (!user) return;
+    if (!user) {
+      const base = ["celestial_colosseum"];
+      setOwned(base);
+      setOwnedBgIds(base);
+      return;
+    }
+    // Source of truth = server inventory. Premium backgrounds must exist there.
     supabase
       .from("inventory")
       .select("item_id")
       .eq("user_id", user.id)
       .eq("item_type", "background")
       .then(({ data }) => {
-        if (!data || data.length === 0) return;
-        const ids = data.map((r: any) => r.item_id as string).filter((id) => BACKGROUNDS.some((b) => b.id === id));
-        if (ids.length === 0) return;
-        const current = getOwnedBgIds();
-        const merged = Array.from(new Set([...current, ...ids]));
-        if (merged.length !== current.length) {
-          setOwnedBgIds(merged);
-          setOwned(merged);
-        }
+        const serverIds = (data || [])
+          .map((r: any) => r.item_id as string)
+          .filter((id) => BACKGROUNDS.some((b) => b.id === id));
+        const next = Array.from(new Set(["celestial_colosseum", ...serverIds]));
+        setOwned(next);
+        setOwnedBgIds(next);
       });
   }, [user]);
 
