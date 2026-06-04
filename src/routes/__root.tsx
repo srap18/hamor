@@ -43,17 +43,8 @@ if (typeof window !== "undefined") {
     document.addEventListener("gesturestart", (e) => e.preventDefault());
     document.addEventListener("gesturechange", (e) => e.preventDefault());
     document.addEventListener("gestureend", (e) => e.preventDefault());
-    let lastTouch = 0;
-    let touchMoved = false;
-    document.addEventListener("touchstart", () => { touchMoved = false; }, { passive: true });
-    document.addEventListener("touchmove", () => { touchMoved = true; }, { passive: true });
-    document.addEventListener("touchend", (e) => {
-      // Only block real double-tap (no scroll in between, and a single-touch tap)
-      if (touchMoved || (e.touches && e.touches.length > 0)) { lastTouch = 0; return; }
-      const now = Date.now();
-      if (now - lastTouch <= 300) e.preventDefault();
-      lastTouch = now;
-    }, { passive: false });
+    // Double-tap zoom is already disabled via the viewport meta
+    // (maximum-scale=1, user-scalable=no) — no touchend handler needed.
   } catch {}
 }
 
