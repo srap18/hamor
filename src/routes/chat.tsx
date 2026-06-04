@@ -1510,9 +1510,11 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     const deltaX = x - startX.current;
     const deltaY = y - startY.current;
     if (Math.abs(deltaY) > Math.abs(deltaX) + 8) { active.current = false; setDx(0); return; }
-    const clamped = Math.max(-MAX, Math.min(MAX, deltaX));
+    // Right-only swipe (positive deltaX). Ignore left drags so the page never shifts.
+    if (deltaX < 0) { setDx(0); return; }
+    const clamped = Math.min(MAX, deltaX);
     setDx(clamped);
-    if (!triggered.current && Math.abs(clamped) >= THRESHOLD) {
+    if (!triggered.current && clamped >= THRESHOLD) {
       triggered.current = true;
       try { (navigator as any).vibrate?.(20); } catch {}
       onReply();
@@ -1523,10 +1525,10 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     setDx(0);
   };
 
-  const showHint = Math.abs(dx) > 8;
+  const showHint = dx > 8;
   return (
     <div
-      className="relative touch-pan-y select-none"
+      className="relative touch-pan-y select-none overflow-x-hidden"
       onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
       onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e)}
       onTouchEnd={onEnd}
@@ -1534,8 +1536,8 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     >
       {showHint && (
         <div
-          className={`pointer-events-none absolute inset-y-0 flex items-center text-amber-300 text-lg font-black ${dx > 0 ? "left-2" : "right-2"}`}
-          style={{ opacity: Math.min(1, Math.abs(dx) / THRESHOLD) }}
+          className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-amber-300 text-lg font-black"
+          style={{ opacity: Math.min(1, dx / THRESHOLD) }}
         >
           ↩︎
         </div>
