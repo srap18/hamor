@@ -752,6 +752,27 @@ function PlayerPage() {
 
       <AdBombOverlay targetUserId={playerId} isOwner={me === playerId} onFlash={flash} />
 
+      {scene.burned && me && me !== playerId && (
+        <DraggableRepairBgButton
+          storageKey={`repairBgBtnPos:other`}
+          label={`إصلاح خلفية ${p?.display_name ?? "اللاعب"}`}
+          onRepair={async () => {
+            if (!confirm(`إصلاح خلفية ${p?.display_name ?? "اللاعب"} المحترقة مقابل 100 جوهرة؟`)) return;
+            const { error } = await (supabase as any).rpc("repair_target_burned_bg", { _target_id: playerId });
+            if (error) {
+              const msg = String(error.message ?? "");
+              if (msg.includes("not enough gems")) flash("💎 تحتاج 100 جوهرة");
+              else if (msg.includes("not burned")) flash("الخلفية ليست محترقة");
+              else flash("تعذّر الإصلاح");
+              return;
+            }
+            sound.play("success");
+            flash("✨ تم إصلاح الخلفية!");
+            setP((cur) => cur ? { ...cur, bg_burned_until: null } : cur);
+          }}
+        />
+      )}
+
       <div className="absolute top-[5.5rem] left-1/2 -translate-x-1/2 z-30 glass-hud rounded-full px-3 py-1 border border-amber-400/40 text-[10px] text-amber-200 font-bold whitespace-nowrap">
         🌅 {scene.displayName}
       </div>
