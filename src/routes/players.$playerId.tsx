@@ -476,9 +476,10 @@ function PlayerPage() {
           _defender_id: playerId, _target_ship_id: t.id,
           _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
           _xp_gain: w.xp ?? 0,
-        }).catch((e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).catch(() => {});
-        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).catch(() => {});
+        }).then(undefined, (e: any) => console.error("record_attack failed", e));
+        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).then(undefined, () => {});
+
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
     } else {
