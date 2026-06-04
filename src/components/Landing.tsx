@@ -31,9 +31,10 @@ export function Landing() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl sm:text-6xl font-bold text-amber-300 mb-4">🏴‍☠️ ملوك القراصنة</h1>
-        <p className="text-lg sm:text-2xl text-amber-100/90 mb-2">غوص في الحبار — حيث تُولد الأساطير</p>
+        <h1 className="text-4xl sm:text-6xl font-bold text-amber-300 mb-4">🏴‍☠️ ملوك القراصنة — هامور شابك</h1>
+        <p className="text-lg sm:text-2xl text-amber-100/90 mb-2">لعبة القراصنة العربية الأولى — اصطد، اغزُ، واعتلِ عرش البحار</p>
         <p className="text-base sm:text-lg text-amber-100/70 max-w-2xl mx-auto mb-10">
+          ملوك القراصنة (المعروفة أيضاً بـ هامور شابك، هامور 360، شابك 360) — لعبة قراصنة عربية مجانية متعددة اللاعبين.
           ارفع رايتك السوداء واعتلِ عرش البحار السبعة! قُد أسطولاً من سفن القراصنة الفاتكة،
           جنّد طاقماً لا يعرف الرحمة، طارد الكنوز المفقودة، اصطد وحوش الأعماق الأسطورية،
           وأشعل حرب القبائل في عالم بحري حي ينبض بالمجد. هنا لا يحكم إلا الأقوى — فهل أنت الملك القادم؟

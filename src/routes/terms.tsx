@@ -4,11 +4,13 @@ import { LegalPage } from "@/components/LegalPage";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "الشروط والأحكام — هامور شابك" },
-      { name: "description", content: "الشروط والأحكام لاستخدام لعبة هامور شابك." },
-      { property: "og:title", content: "الشروط والأحكام — هامور شابك" },
-      { property: "og:description", content: "الشروط والأحكام لاستخدام لعبة هامور شابك." },
+      { title: "الشروط والأحكام — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "الشروط والأحكام لاستخدام لعبة ملوك القراصنة (هامور شابك) — حقوق وواجبات اللاعبين." },
+      { property: "og:title", content: "الشروط والأحكام — ملوك القراصنة" },
+      { property: "og:description", content: "شروط استخدام لعبة ملوك القراصنة (هامور شابك)." },
+      { property: "og:url", content: "https://hamor.lovable.app/terms" },
     ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/terms" }],
   }),
   component: TermsPage,
 });

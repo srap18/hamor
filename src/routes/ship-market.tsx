@@ -23,9 +23,13 @@ import { serverNowMs } from "@/lib/server-time";
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
     meta: [
-      { title: "Shipyard — Ocean Catch" },
-      { name: "description", content: "ترقية سوق السفن وشراء سفن احترافية بأسلوب بحري واقعي" },
+      { title: "سوق السفن — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "اشترِ سفن قراصنة وطوّر سوقك في لعبة ملوك القراصنة (هامور شابك). أسطول كامل بانتظارك." },
+      { property: "og:title", content: "سوق السفن — ملوك القراصنة" },
+      { property: "og:description", content: "أسطول سفن قراصنة كامل في لعبة ملوك القراصنة (هامور شابك)." },
+      { property: "og:url", content: "https://hamor.lovable.app/ship-market" },
     ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/ship-market" }],
   }),
   component: ShipyardPage,
 });

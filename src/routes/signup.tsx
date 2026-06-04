@@ -5,7 +5,17 @@ import { LegalFooter } from "@/components/LegalFooter";
 import { CoinIcon } from "@/components/CurrencyIcon";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "إنشاء حساب — Ocean Catch" }] }),
+  head: () => ({
+    meta: [
+      { title: "إنشاء حساب مجاني — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "أنشئ حسابك مجاناً في ملوك القراصنة (هامور شابك) — أكبر لعبة قراصنة عربية متعددة اللاعبين. ابدأ مغامرتك البحرية الآن." },
+      { name: "keywords", content: "تسجيل ملوك القراصنة, حساب جديد هامور شابك, العب قراصنة مجاناً" },
+      { property: "og:title", content: "سجّل مجاناً — ملوك القراصنة (هامور شابك)" },
+      { property: "og:description", content: "انضم لآلاف اللاعبين في ملوك القراصنة — لعبة قراصنة عربية مجانية." },
+      { property: "og:url", content: "https://hamor.lovable.app/signup" },
+    ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/signup" }],
+  }),
   component: SignupPage,
 });
 

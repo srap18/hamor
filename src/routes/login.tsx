@@ -5,7 +5,16 @@ import { lovable } from "@/integrations/lovable";
 import { LegalFooter } from "@/components/LegalFooter";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "تسجيل الدخول — Ocean Catch" }] }),
+  head: () => ({
+    meta: [
+      { title: "تسجيل الدخول — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "ادخل إلى حسابك في ملوك القراصنة (هامور شابك) — لعبة القراصنة العربية متعددة اللاعبين." },
+      { property: "og:title", content: "تسجيل الدخول — ملوك القراصنة" },
+      { property: "og:description", content: "ادخل وأبحر فوراً في لعبة ملوك القراصنة (هامور شابك)." },
+      { property: "og:url", content: "https://hamor.lovable.app/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/login" }],
+  }),
   component: LoginPage,
 });
 
