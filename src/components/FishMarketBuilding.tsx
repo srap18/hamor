@@ -83,7 +83,7 @@ export function FishMarketBuilding({
             draggable={false}
             className="w-full h-full object-contain object-bottom select-none"
             style={{
-              transform: flip ? "scaleX(-1)" : undefined,
+              transform: `${flip ? "scaleX(-1) " : ""}translateY(${tierOffsetPct}%)`,
               filter: isBurned
                 ? "saturate(0.6) brightness(0.85) contrast(1.1)"
                 : undefined,
