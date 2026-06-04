@@ -33,7 +33,7 @@ export const CREWS: Crew[] = [
   { id: "luck",    name: "الحظ",            emoji: "🍀", image: luckImg,   price: 30,     currency: "gems",  bonus: "يضاعف عدد الأسماك في كل عملية صيد",                      rarity: "epic" },
   { id: "guide",   name: "المرشد",          emoji: "🧭", image: guideImg,  price: 600000, currency: "coins", bonus: "يكشف لك نوع الأسماك التي تصيدها سفينتك الحالية",         rarity: "rare" },
   { id: "thief",   name: "السارق",          emoji: "🥷", image: thiefImg,  price: 25,     currency: "gems",  bonus: "يرفع سرعة السرقة 40% ويتخطى الشرطي بنسبة 80%",            rarity: "legendary" },
-  { id: "sailor",  name: "بحار",            emoji: "⛵", image: sailorImg, price: 600000, currency: "coins", bonus: "يزيد سرعة الصيد بنسبة 70%",                              rarity: "common" },
+  { id: "sailor",  name: "بحار",            emoji: "⛵", image: sailorImg, price: 600000, currency: "coins", bonus: "يزيد سرعة الصيد بنسبة 40%",                              rarity: "common" },
   { id: "trader",  name: "التاجر",          emoji: "💰", image: traderImg, price: 30,     currency: "gems",  bonus: "يكشف لك أسعار السمك المستقبلية خلال 10 ساعات القادمة",    rarity: "epic" },
   { id: "police",  name: "شرطي",            emoji: "👮", image: policeImg, price: 25,     currency: "gems",  bonus: "يقبض على السارق ويحمي ذهبك",                              rarity: "rare" },
   { id: "fixer_1", name: "مصلح صغير",       emoji: "🔧", image: fixer1Img, price: 200000,  currency: "coins", bonus: "يصلح فوراً 1,000 من دم أي سفينة",      rarity: "common" },
