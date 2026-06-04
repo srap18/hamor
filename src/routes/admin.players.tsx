@@ -107,6 +107,30 @@ function AdminPlayers() {
   };
 
 
+  const giveCodeToAll = async () => {
+    const code = prompt("🎟️ أدخل الكود لإعطائه لجميع اللاعبين (يصل حتى لو غير متصلين):", "")?.trim();
+    if (!code) return;
+    if (!confirm(`تفعيل الكود "${code}" لكل اللاعبين (${players.length} لاعب على الأقل)؟ سيتم الإرسال على جميع الحسابات المسجّلة.`)) return;
+    const t = toast.loading("جاري إرسال الكود لجميع اللاعبين...");
+    const { data, error } = await (supabase as any).rpc("admin_redeem_code_for_all", { p_code: code });
+    toast.dismiss(t);
+    if (error) {
+      const raw = String(error.message || error);
+      const map: Record<string, string> = {
+        invalid_code: "كود غير صالح",
+        code_expired: "الكود منتهي",
+        code_disabled: "الكود معطّل",
+        admin_only: "صلاحية الأدمن مطلوبة",
+      };
+      const key = (raw.match(/(invalid_code|code_expired|code_disabled|admin_only|not_authenticated)/) || [, raw])[1];
+      toast.error("❌ " + (map[key] ?? raw));
+      return;
+    }
+    const d: { ok_count?: number; skipped?: number; total?: number } = data ?? {};
+    await logAudit("admin_give_code_to_all", null, { code, ok: d.ok_count, skipped: d.skipped });
+    toast.success(`🎁 تم تفعيل "${code}" لـ ${d.ok_count ?? 0} لاعب (تم تخطي ${d.skipped ?? 0} مفعّل مسبقاً)`);
+  };
+
   return (
     <div className="p-3 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
@@ -114,12 +138,17 @@ function AdminPlayers() {
           <h1 className="text-xl md:text-2xl font-bold">إدارة اللاعبين</h1>
           <p className="text-slate-400 text-xs md:text-sm mt-1">{players.length} لاعب معروض</p>
         </div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="ابحث بالاسم..."
-          className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 w-full md:w-64"
-        />
+        <div className="flex gap-2 w-full md:w-auto">
+          <button onClick={giveCodeToAll} className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold whitespace-nowrap shrink-0">
+            🎁 إعطاء كود للجميع
+          </button>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث بالاسم..."
+            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 flex-1 md:w-64"
+          />
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-x-auto">
