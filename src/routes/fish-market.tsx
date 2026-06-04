@@ -196,10 +196,11 @@ function FishMarket() {
     const loadPrices = async () => {
       const { data } = await (supabase as any)
         .from("fish_market_prices")
-        .select("fish_id, current_price, min_price, max_price, forecast");
+        .select("fish_id, current_price, min_price, max_price, forecast, history");
       const m: Record<string, { current: number; min: number; max: number }> = {};
       const fm: Record<string, number[]> = {};
-      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number; forecast?: unknown }>) {
+      const hm: Record<string, number[]> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number; min_price: number; max_price: number; forecast?: unknown; history?: unknown }>) {
         m[row.fish_id] = {
           current: Number(row.current_price) || 0,
           min: Number(row.min_price) || 0,
@@ -210,9 +211,15 @@ function FishMarket() {
             .map((v) => Number(v))
             .filter((n) => Number.isFinite(n));
         }
+        if (Array.isArray(row.history)) {
+          hm[row.fish_id] = (row.history as unknown[])
+            .map((v) => Number(v))
+            .filter((n) => Number.isFinite(n));
+        }
       }
       setPriceMap(m);
       setForecastMap(fm);
+      setHistoryMap(hm);
     };
     loadPrices();
     const ch = supabase
