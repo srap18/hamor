@@ -878,7 +878,7 @@ function PriceChart({
   currentPrice: number;
   traderActive: boolean;
 }) {
-  const W = 320, H = 160, PAD_L = 36, PAD_R = 12, PAD_T = 14, PAD_B = 22;
+  const W = 320, H = 190, PAD_L = 36, PAD_R = 12, PAD_T = 22, PAD_B = 26;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
   const totalPts = past.length + future.length;
@@ -893,6 +893,8 @@ function PriceChart({
 
   const currentX = xAt(futureStartIdx);
   const currentY = yAt(currentPrice);
+
+  const fmt = (v: number) => (v >= 100 ? Math.round(v).toString() : v.toFixed(2));
 
   return (
     <div className="w-full h-full">
@@ -910,24 +912,46 @@ function PriceChart({
         {/* Past line (red) */}
         <polyline points={pastPts} fill="none" stroke="#ee4f2e" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
 
+        {/* Per-hour price labels on past line */}
+        {past.map((v, i) => (
+          <g key={`pl-${i}`}>
+            <circle cx={xAt(i)} cy={yAt(v)} r="1.8" fill="#ee4f2e" />
+            <text x={xAt(i)} y={yAt(v) - 5} fontSize="7.5" fill="#b3300f" fontWeight="bold" textAnchor="middle">{fmt(v)}</text>
+          </g>
+        ))}
+
         {/* Future line (blue) when trader is active */}
         {traderActive && futurePts && (
           <>
             <polyline points={futurePts} fill="none" stroke="#3b82f6" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
             <line x1={currentX} y1={PAD_T} x2={currentX} y2={H - PAD_B} stroke="#6b7280" strokeWidth="0.6" />
-            <text x={W - PAD_R} y={PAD_T - 2} fontSize="9" fill="#2563eb" fontWeight="bold" textAnchor="end">السعر المستقبلي</text>
+            <text x={W - PAD_R} y={PAD_T - 8} fontSize="9" fill="#2563eb" fontWeight="bold" textAnchor="end">السعر المستقبلي</text>
+            {future.map((v, i) => (
+              <g key={`fl-${i}`}>
+                <circle cx={xAt(futureStartIdx + 1 + i)} cy={yAt(v)} r="1.8" fill="#3b82f6" />
+                <text
+                  x={xAt(futureStartIdx + 1 + i)}
+                  y={yAt(v) - 5}
+                  fontSize="7.5"
+                  fill="#1d4ed8"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                >{fmt(v)}</text>
+              </g>
+            ))}
           </>
         )}
 
         {/* Current price marker */}
         <circle cx={currentX} cy={currentY} r="4" fill="#4ade80" stroke="#fff" strokeWidth="1.2" />
-        <text x={currentX - 18} y={currentY - 8} fontSize="10" fill="#7a4a18" fontWeight="bold">{currentPrice}</text>
+        <rect x={currentX - 16} y={currentY - 18} width="32" height="11" rx="3" fill="#064e3b" opacity="0.92" />
+        <text x={currentX} y={currentY - 10} fontSize="8.5" fill="#fef3c7" fontWeight="bold" textAnchor="middle">{fmt(currentPrice)}</text>
 
         {/* X-axis hour labels */}
         {hourLabels.map((lab, i) => (
           <g key={i}>
-            <text x={xAt(i)} y={H - 8} fontSize="8" fill="#7a4a18" fontWeight="bold" textAnchor="middle">{lab.h}</text>
-            <text x={xAt(i)} y={H - 1} fontSize="7" fill="#7a4a18" textAnchor="middle">{lab.ampm}</text>
+            <text x={xAt(i)} y={H - 10} fontSize="8" fill="#7a4a18" fontWeight="bold" textAnchor="middle">{lab.h}</text>
+            <text x={xAt(i)} y={H - 2} fontSize="7" fill="#7a4a18" textAnchor="middle">{lab.ampm}</text>
           </g>
         ))}
       </svg>
