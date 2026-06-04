@@ -118,8 +118,10 @@ export function DragonShoreCreature() {
         }
       `}</style>
 
-      <Link
-        to="/dragon"
+      <button
+        type="button"
+        onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
+
         aria-label={isEgg ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
