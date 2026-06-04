@@ -810,12 +810,15 @@ function PlayerPage() {
         );
         const sibIdx = Math.max(0, siblings.findIndex((x) => x.id === r.id));
         let top: string; let left: string;
+        let raiderScale = 1;
         if (tIdx >= 0) {
           void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
           const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
           const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const tShipW = 22 * (fixedSlot?.scale ?? 1);
+          const targetScale = fixedSlot?.scale ?? 1;
+          const tShipW = 22 * targetScale;
+          raiderScale = targetScale;
           // Keep the raider attached to the target ship, but clamp it inside the visible water band.
           top = `${Math.max(50, Math.min(74, tTop + tShipW * 0.22 + sibIdx * 5))}%`;
           left = `${Math.max(8, Math.min(98, dockLeft + tShipW * 0.58 + 20))}%`;
