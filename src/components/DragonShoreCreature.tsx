@@ -105,10 +105,14 @@ export function DragonShoreCreature() {
         }
         @keyframes dsc-roar-shake {
           0%,72%,100%{transform:rotateX(6deg) translateX(0)}
-          76%{transform:rotateX(6deg) translateX(-3px)}
-          80%{transform:rotateX(6deg) translateX(3px)}
-          84%{transform:rotateX(6deg) translateX(-2px)}
-          88%{transform:rotateX(6deg) translateX(2px)}
+          76%{transform:rotateX(6deg) translateX(calc(var(--shake, 3px) * -1))}
+          80%{transform:rotateX(6deg) translateX(var(--shake, 3px))}
+          84%{transform:rotateX(6deg) translateX(calc(var(--shake, 3px) * -0.7))}
+          88%{transform:rotateX(6deg) translateX(calc(var(--shake, 3px) * 0.7))}
+        }
+        @keyframes dsc-aura-pulse {
+          0%,100%{opacity:.35;transform:scale(.9)}
+          50%{opacity:.85;transform:scale(1.1)}
         }
       `}</style>
 
