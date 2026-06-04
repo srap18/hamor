@@ -266,7 +266,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   const saveUsername = async () => {
     const v = usernameVal.trim().toLowerCase();
-    if (!/^[a-z0-9_]{2,20}$/.test(v)) { toast.error("اليوزر: 2-20 حرف، a-z 0-9 _"); return; }
+    if (!/^[a-z0-9_]{1,20}$/.test(v)) { toast.error("اليوزر: 1-20 حرف، a-z 0-9 _"); return; }
     setSavingUsername(true);
     const { error } = await (supabase as any).rpc("admin_set_username", { _target: player.id, _new: v });
     setSavingUsername(false);
