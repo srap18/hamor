@@ -583,6 +583,7 @@ function Index() {
     return () => { cancelled = true; window.removeEventListener("fish-stock-changed", onChanged); };
   }, [user]);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
+  const [repairBtnOpen, setRepairBtnOpen] = useState(true);
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
