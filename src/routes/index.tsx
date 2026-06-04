@@ -2122,7 +2122,11 @@ function Index() {
               )}
             </div>
             <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
-            <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            {catchResult.count > 0 ? (
+              <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
+            ) : (
+              <div className="mt-1 text-[12px] font-bold text-rose-200">أوقفت السفينة قبل ما تصيد — انتظر أكثر المرة الجاية ⏳</div>
+            )}
             {catchResult.luckBonus && catchResult.luckBonus > 0 ? (
               <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border border-yellow-200 text-[10px] font-black text-black shadow">
                 🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
