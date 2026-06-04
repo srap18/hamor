@@ -789,6 +789,7 @@ export type Database = {
           current_price: number
           fish_id: string
           forecast: Json
+          history: Json
           last_updated: string
           max_price: number
           min_price: number
@@ -798,6 +799,7 @@ export type Database = {
           current_price?: number
           fish_id: string
           forecast?: Json
+          history?: Json
           last_updated?: string
           max_price?: number
           min_price?: number
@@ -807,6 +809,7 @@ export type Database = {
           current_price?: number
           fish_id?: string
           forecast?: Json
+          history?: Json
           last_updated?: string
           max_price?: number
           min_price?: number
