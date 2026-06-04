@@ -2469,7 +2469,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                         <div className="text-[10px] font-black text-accent/70 px-1">🏅 الترتيب</div>
                         {board.length === 0 ? (
                           <div className="text-center text-[11px] text-accent/50 py-3">كن أول من يسجّل! 🚀</div>
-                        ) : board.slice(0, 10).map((r, i) => {
+                        ) : board.map((r, i) => {
                           const isMe = r.user_id === meId;
                           const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
                           return (
