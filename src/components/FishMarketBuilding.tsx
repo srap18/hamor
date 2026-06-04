@@ -44,6 +44,17 @@ export function FishMarketBuilding({
   const img = isBurned ? burnedImg : tierImage(level);
   const clampedLevel = Math.max(1, Math.min(30, Math.floor(level || 1)));
 
+  // Per-tier vertical offset so every level sits flush on the ground
+  // (compensates for transparent padding differences between tier images)
+  const tierOffsetPct = (() => {
+    if (isBurned) return 0;
+    if (clampedLevel <= 6) return 14;
+    if (clampedLevel <= 12) return 4;
+    if (clampedLevel <= 18) return 2;
+    if (clampedLevel <= 24) return 0;
+    return 0;
+  })();
+
   const smokes = useMemo(
     () =>
       Array.from({ length: 4 }, (_, i) => ({
