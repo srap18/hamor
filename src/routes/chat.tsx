@@ -443,7 +443,7 @@ function ChatPage() {
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-red-500 to-red-800 border border-red-300/60 text-xs font-black text-white shadow active:scale-95">⚔️ حرب</button>
               </div>
             )}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).length === 0 && <div className="text-center text-amber-100/40 text-sm py-8">لا توجد رسائل بعد — كن أول من يكتب</div>}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
                 const p = profMap.get(m.sender_id);
@@ -1510,9 +1510,11 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     const deltaX = x - startX.current;
     const deltaY = y - startY.current;
     if (Math.abs(deltaY) > Math.abs(deltaX) + 8) { active.current = false; setDx(0); return; }
-    const clamped = Math.max(-MAX, Math.min(MAX, deltaX));
+    // Right-only swipe (positive deltaX). Ignore left drags so the page never shifts.
+    if (deltaX < 0) { setDx(0); return; }
+    const clamped = Math.min(MAX, deltaX);
     setDx(clamped);
-    if (!triggered.current && Math.abs(clamped) >= THRESHOLD) {
+    if (!triggered.current && clamped >= THRESHOLD) {
       triggered.current = true;
       try { (navigator as any).vibrate?.(20); } catch {}
       onReply();
@@ -1523,10 +1525,10 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     setDx(0);
   };
 
-  const showHint = Math.abs(dx) > 8;
+  const showHint = dx > 8;
   return (
     <div
-      className="relative touch-pan-y select-none"
+      className="relative touch-pan-y select-none overflow-x-hidden"
       onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
       onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e)}
       onTouchEnd={onEnd}
@@ -1534,8 +1536,8 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     >
       {showHint && (
         <div
-          className={`pointer-events-none absolute inset-y-0 flex items-center text-amber-300 text-lg font-black ${dx > 0 ? "left-2" : "right-2"}`}
-          style={{ opacity: Math.min(1, Math.abs(dx) / THRESHOLD) }}
+          className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-amber-300 text-lg font-black"
+          style={{ opacity: Math.min(1, dx / THRESHOLD) }}
         >
           ↩︎
         </div>

@@ -3698,6 +3698,10 @@ export type Database = {
           repaired_count: number
         }[]
       }
+      repair_target_burned_bg: {
+        Args: { _target_id: string }
+        Returns: undefined
+      }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
       search_profiles_public: {
