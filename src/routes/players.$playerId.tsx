@@ -176,6 +176,16 @@ function PlayerPage() {
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
+      const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
+      if (destId) {
+        const { data: dp } = await (supabase as any).rpc("get_profiles_public", { _ids: [destId] });
+        const row = (dp || [])[0];
+        setDestroyerAvatar(row?.avatar_url || null);
+        setDestroyerEmoji(row?.avatar_emoji || null);
+      } else {
+        setDestroyerAvatar(null); setDestroyerEmoji(null);
+      }
+
 
       if (myId === playerId) setFriendStatus("self");
       else if (myId) {
