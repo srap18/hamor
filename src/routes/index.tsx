@@ -832,6 +832,39 @@ function Index() {
     reloadRaids();
   };
 
+  // Auto-catch: if police is assigned to the ship being raided, instantly catch the thief.
+  useEffect(() => {
+    if (raids.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid || cancelled) return;
+      const { data: police } = await supabase
+        .from("inventory")
+        .select("meta")
+        .eq("user_id", uid)
+        .eq("item_type", "crew")
+        .eq("item_id", "police")
+        .gt("quantity", 0);
+      const guardedShips = new Set<string>();
+      for (const row of (police ?? []) as Array<{ meta: any }>) {
+        const sid = row.meta?.assigned_ship_id;
+        const exp = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
+        if (sid && exp > Date.now()) guardedShips.add(String(sid));
+      }
+      if (guardedShips.size === 0) return;
+      for (const r of raids) {
+        if (cancelled) break;
+        if (r.target_ship_id && guardedShips.has(r.target_ship_id)) {
+          await (supabase as any).rpc("catch_thief", { _attacker_ship_id: r.ship_id });
+        }
+      }
+      if (!cancelled) { sound.play("success"); reloadRaids(); }
+    })();
+    return () => { cancelled = true; };
+  }, [raids.map((r) => r.ship_id).join(",")]);
+
   // Outgoing steal missions — my ships currently raiding others. Banner lets the
   // user jump straight back to the target harbor to watch or cancel the raid.
   const [stealTargetNames, setStealTargetNames] = useState<Record<string, { name: string; emoji: string }>>({});
