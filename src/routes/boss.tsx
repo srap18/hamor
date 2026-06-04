@@ -19,6 +19,11 @@ type Boss = {
 type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null };
 type RocketRow = { id: string; item_id: string; quantity: number };
 
+function isBossReady(value: unknown): value is Boss {
+  const boss = value as Partial<Boss> | null;
+  return !!boss?.id && typeof boss.hp_max === "number" && typeof boss.hp_current === "number";
+}
+
 const ROCKETS = [
   { id: "rocket_small",  name: "صغير",   dmg: 800,   color: "from-sky-500 to-sky-800",       border: "border-sky-300" },
   { id: "rocket_medium", name: "متوسط",  dmg: 4000,  color: "from-emerald-500 to-emerald-800", border: "border-emerald-300" },
