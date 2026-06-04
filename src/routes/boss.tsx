@@ -102,24 +102,28 @@ function BossPage() {
     return () => { supabase.removeChannel(ch); };
   }, [boss?.id]);
 
-  // Boss counter-attacks every 6–10s
+  // Boss counter-attacks — scales harder with each defeat & dragon stage
   useEffect(() => {
     if (!boss || boss.hp_current <= 0 || !selectedShip || shipHp <= 0) return;
     const t = setInterval(() => {
-      // boss projectile from boss → ship
       const pid = nextId();
       setProjectiles((p) => [...p, { id: pid, kind: "boss", key: nextId() }]);
       setTimeout(() => {
         setProjectiles((p) => p.filter((x) => x.id !== pid));
-        const dmg = 5 + Math.floor(Math.random() * 10);
-        setSplashes((s) => [...s, { id: nextId(), side: "ship", dmg }]);
+        heavyHitsRef.current += 1;
+        const isHeavy = heavyHitsRef.current % heavyEvery === 0;
+        const isCrit = Math.random() < Math.min(0.35, 0.05 + diffTier * 0.025);
+        let dmg = bossBaseDmg + Math.floor(Math.random() * bossSpread);
+        if (isHeavy) dmg = Math.floor(dmg * 2.2);
+        if (isCrit) dmg = Math.floor(dmg * 1.8);
+        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: isCrit || isHeavy, dmg }]);
         setShake("ship");
         setShipHp((hp) => Math.max(0, hp - dmg));
         setTimeout(() => setShake("none"), 220);
       }, 900);
-    }, 6500 + Math.random() * 3500);
+    }, bossInterval + Math.random() * 1500);
     return () => clearInterval(t);
-  }, [boss, selectedShip, shipHp]);
+  }, [boss, selectedShip, shipHp, bossInterval, bossBaseDmg, bossSpread, heavyEvery, diffTier]);
 
   // Cleanup splashes
   useEffect(() => {
