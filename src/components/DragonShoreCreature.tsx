@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import dragonEggImg from "@/assets/dragon-egg.png";
-import dragonAdultImg from "@/assets/dragon-adult.png";
+import { getStage } from "@/lib/dragon";
 
 /**
  * Shore dragon — grounded on the harbor stone, NOT floating.
@@ -30,6 +29,7 @@ export function DragonShoreCreature() {
   }, []);
 
   const isEgg = stage <= 2;
+  const stageImg = getStage(stage).image;
 
   return (
     <>
@@ -121,7 +121,7 @@ export function DragonShoreCreature() {
           }}
         >
           <img
-            src={isEgg ? dragonEggImg : dragonAdultImg}
+            src={stageImg}
             alt=""
             draggable={false}
             className="w-full h-full object-contain object-bottom"
