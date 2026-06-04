@@ -701,11 +701,12 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
   forecast: number[];
+  history: number[];
   freezeActive: boolean;
   freezeUntil: string | null;
   traderActive: boolean;
@@ -720,11 +721,15 @@ function SellView({
 }) {
   void userId;
   const past = useMemo(() => {
-    const startBase = fish.basePrice * 0.9;
-    const arr = forecastPrices(fish, startBase, 1337, PAST_HOURS);
-    arr.push(fish.basePrice);
-    return arr;
-  }, [fish.id, fish.basePrice]);
+    // Use real recent history from DB so past chart values match what actually happened.
+    const tail = (history ?? []).slice(-PAST_HOURS);
+    while (tail.length < PAST_HOURS) {
+      // Pad with current price if we don't have enough history yet
+      tail.unshift(fish.basePrice);
+    }
+    tail.push(fish.basePrice);
+    return tail;
+  }, [fish.id, fish.basePrice, history]);
   const currentPrice = past[past.length - 1];
   const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
 
