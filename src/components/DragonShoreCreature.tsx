@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
 
@@ -11,6 +11,8 @@ import { getStage } from "@/lib/dragon";
  */
 export function DragonShoreCreature() {
   const [stage, setStage] = useState<number>(1);
+  const [showSoon, setShowSoon] = useState(false);
+
 
   useEffect(() => {
     let alive = true;
@@ -116,8 +118,10 @@ export function DragonShoreCreature() {
         }
       `}</style>
 
-      <Link
-        to="/dragon"
+      <button
+        type="button"
+        onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
+
         aria-label={isEgg ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
@@ -396,7 +400,23 @@ export function DragonShoreCreature() {
             </>
           )}
         </div>
-      </Link>
+      </button>
+      {showSoon && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowSoon(false)}
+          dir="rtl"
+        >
+          <div className="bg-gradient-to-br from-amber-900/95 to-rose-950/95 border-4 border-amber-400/80 rounded-3xl px-10 py-8 text-center shadow-2xl">
+            <div
+              className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-600"
+              style={{ textShadow: "0 0 30px rgba(251,146,60,0.8)" }}
+            >
+              قريبًا!!
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
