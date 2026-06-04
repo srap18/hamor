@@ -16,6 +16,7 @@ import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { DragonEggButton } from "@/components/DragonEggButton";
+import woodenSignAsset from "@/assets/wooden-sign.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
@@ -64,6 +65,9 @@ function PlayerPage() {
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
+  const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
+  const [signOpen, setSignOpen] = useState(false);
   const [deathBannerHidden, setDeathBannerHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
@@ -172,6 +176,16 @@ function PlayerPage() {
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
+      const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
+      if (destId) {
+        const { data: dp } = await (supabase as any).rpc("get_profiles_public", { _ids: [destId] });
+        const row = (dp || [])[0];
+        setDestroyerAvatar(row?.avatar_url || null);
+        setDestroyerEmoji(row?.avatar_emoji || null);
+      } else {
+        setDestroyerAvatar(null); setDestroyerEmoji(null);
+      }
+
 
       if (myId === playerId) setFriendStatus("self");
       else if (myId) {
@@ -1041,47 +1055,94 @@ function PlayerPage() {
         </div>
       )}
 
-      {/* Wooden sign — destroyer's nuke message visible to all visitors */}
+      {/* Wooden sign — destroyer's nuke message (tap to read full) */}
       {p?.last_destroyer_message && p?.last_destroyer_kind === "nuke" && (
-        <div className="absolute z-30 pointer-events-none" style={{ bottom: "5.5rem", right: "0.75rem", maxWidth: "62%" }}>
-          <div className="relative pointer-events-auto select-none" style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.6))" }}>
-            <div aria-hidden className="absolute left-3 -bottom-6 w-2 h-10 rounded-sm" style={{ background: "linear-gradient(to bottom, #6b3a1a, #2c1608)", boxShadow: "inset -2px 0 2px rgba(0,0,0,0.6)" }} />
-            <div aria-hidden className="absolute right-3 -bottom-6 w-2 h-10 rounded-sm" style={{ background: "linear-gradient(to bottom, #6b3a1a, #2c1608)", boxShadow: "inset -2px 0 2px rgba(0,0,0,0.6)" }} />
-            <div
-              className="relative rounded-md border-2 border-amber-950/80 px-2.5 py-2 overflow-hidden"
-              style={{
-                background: "repeating-linear-gradient(180deg, #8b4a1f 0px, #8b4a1f 6px, #74391a 6px, #74391a 12px), linear-gradient(135deg, #8b4a1f, #5a2a10)",
-                boxShadow: "inset 0 2px 0 rgba(255,200,140,0.25), inset 0 -3px 6px rgba(0,0,0,0.5)",
-              }}
-            >
-              <span className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
-              <span className="absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
-              <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-sm">☢️</span>
-                {p.last_destroyer_id ? (
-                  <Link
-                    to="/p/$id"
-                    params={{ id: p.last_destroyer_id }}
-                    onClick={() => sound.play("click")}
-                    className="text-[10px] font-extrabold text-amber-100 underline decoration-amber-300/60 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate active:scale-95"
-                  >
-                    {p.last_destroyer_name}
-                  </Link>
+        <button
+          type="button"
+          onClick={() => { sound.play("click"); setSignOpen(true); }}
+          className="absolute z-30 active:scale-95 transition-transform"
+          style={{ bottom: "5rem", right: "0.5rem", width: "10.5rem", filter: "drop-shadow(0 8px 10px rgba(0,0,0,0.55))" }}
+          aria-label="رسالة المفجّر"
+        >
+          <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+            <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+            {/* Avatar nailed to top plank */}
+            <div className="absolute" style={{ top: "11%", left: "18%", width: "22%", aspectRatio: "1 / 1" }}>
+              <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-900/80 shadow-md bg-amber-100">
+                {destroyerAvatar ? (
+                  <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
-                    {p.last_destroyer_name}
-                  </span>
+                  <div className="w-full h-full flex items-center justify-center text-lg">{destroyerEmoji || "🧙"}</div>
                 )}
               </div>
-              <div className="text-[11px] leading-snug font-bold text-amber-50 whitespace-pre-wrap break-words drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]" style={{ wordBreak: "break-word" }}>
+            </div>
+            {/* Name on top plank */}
+            <div className="absolute font-extrabold text-amber-950 truncate text-center"
+              style={{ top: "15%", left: "44%", right: "6%", fontSize: "0.65rem", textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}>
+              {p.last_destroyer_name}
+            </div>
+            {/* Message preview on middle plank */}
+            <div className="absolute text-amber-950 font-bold text-center overflow-hidden"
+              style={{ top: "40%", left: "10%", right: "10%", fontSize: "0.6rem", lineHeight: 1.1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+              "{p.last_destroyer_message}"
+            </div>
+            {/* Tap hint on bottom plank */}
+            <div className="absolute text-amber-950 font-extrabold text-center"
+              style={{ top: "67%", left: "10%", right: "10%", fontSize: "0.58rem" }}>
+              ☢️ اضغط للقراءة
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* Sign message modal */}
+      {signOpen && p?.last_destroyer_message && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setSignOpen(false)}>
+          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+              <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+              {/* Avatar */}
+              <Link
+                to={p.last_destroyer_id ? "/p/$id" : "/"}
+                params={p.last_destroyer_id ? { id: p.last_destroyer_id } : undefined as any}
+                onClick={() => sound.play("click")}
+                className="absolute active:scale-95"
+                style={{ top: "10%", left: "17%", width: "24%", aspectRatio: "1 / 1" }}
+              >
+                <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-amber-900/80 shadow-lg bg-amber-100">
+                  {destroyerAvatar ? (
+                    <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl">{destroyerEmoji || "🧙"}</div>
+                  )}
+                </div>
+              </Link>
+              <div className="absolute font-extrabold text-amber-950 truncate text-center"
+                style={{ top: "16%", left: "44%", right: "6%", fontSize: "1rem", textShadow: "0 1px 0 rgba(255,240,200,0.5)" }}>
+                ☢️ {p.last_destroyer_name}
+              </div>
+              <div className="absolute text-amber-950 font-bold text-center overflow-auto"
+                style={{ top: "40%", left: "10%", right: "10%", maxHeight: "22%", fontSize: "0.95rem", lineHeight: 1.2 }}>
                 "{p.last_destroyer_message}"
+              </div>
+              <div className="absolute flex items-center justify-center gap-2" style={{ top: "66%", left: "10%", right: "10%" }}>
+                {p.last_destroyer_id && (
+                  <Link to="/p/$id" params={{ id: p.last_destroyer_id }} onClick={() => { sound.play("click"); setSignOpen(false); }}
+                    className="px-3 py-1.5 rounded-md bg-amber-900 text-amber-100 text-xs font-extrabold active:scale-95">
+                    👤 الملف الشخصي
+                  </Link>
+                )}
+                <button onClick={() => setSignOpen(false)}
+                  className="px-3 py-1.5 rounded-md bg-stone-800 text-amber-100 text-xs font-extrabold active:scale-95">
+                  إغلاق
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+
 
 
       <div className="absolute bottom-0 left-0 right-0 z-30 p-3 flex gap-2 glass-hud border-t border-amber-400/40">
