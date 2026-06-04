@@ -684,8 +684,11 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   };
 
   const adminRedeemCodeFor = async () => {
+    const ok = await confirmDialog({ title: "تفعيل كود", message: `تفعيل كود لـ ${target.display_name}؟` });
+    if (!ok) return;
     const code = prompt(`تفعيل كود لـ ${target.display_name}\nأدخل الكود:`, "");
     if (!code || !code.trim()) return;
+
     setBusy(true); setMsg(null);
     const { data, error } = await (supabase as any).rpc("admin_redeem_code_for", {
       p_code: code.trim(),
