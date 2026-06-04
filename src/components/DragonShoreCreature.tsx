@@ -11,6 +11,8 @@ import { getStage } from "@/lib/dragon";
  */
 export function DragonShoreCreature() {
   const [stage, setStage] = useState<number>(1);
+  const [showSoon, setShowSoon] = useState(false);
+
 
   useEffect(() => {
     let alive = true;
