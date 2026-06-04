@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import dragonEggImg from "@/assets/dragon-egg.png";
 
 type Props = {
@@ -7,14 +7,16 @@ type Props = {
 };
 
 /**
- * Floating dragon egg button that opens the /dragon page.
- * Designed to sit in the upper area of any screen (same spot as the
- * glowing dragon visual the user showed in their reference screenshot).
+ * Floating dragon egg button. Currently shows a "coming soon" popup
+ * instead of opening the dragon page.
  */
 export function DragonEggButton({ className }: Props) {
+  const [showSoon, setShowSoon] = useState(false);
   return (
-    <Link
-      to="/dragon"
+    <>
+    <button
+      type="button"
+      onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
       className={
         className ??
         "fixed top-20 right-3 z-40 w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"
