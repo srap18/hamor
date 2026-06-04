@@ -49,9 +49,19 @@ function BossPage() {
   const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState<"none" | "ship" | "boss">("none");
   const [now, setNow] = useState(Date.now());
+  const [dragonStage, setDragonStage] = useState(1);
+  const [bossDefeats, setBossDefeats] = useState(0);
   const myIdRef = useRef<string | null>(null);
   const idRef = useRef(0);
   const nextId = () => ++idRef.current;
+
+  // Difficulty multiplier: each defeat + each dragon stage cranks up boss power
+  const diffTier = dragonStage + bossDefeats * 2; // grows fast per defeat
+  const bossBaseDmg = 5 + diffTier * 3;
+  const bossSpread = 10 + diffTier * 2;
+  const bossInterval = Math.max(1800, 6500 - diffTier * 350);
+  const heavyEvery = Math.max(2, 5 - Math.floor(diffTier / 3)); // every Nth hit = heavy
+  const heavyHitsRef = useRef(0);
 
   // Initial fetch
   useEffect(() => {
@@ -62,18 +72,21 @@ function BossPage() {
       setBoss(isBossReady(b) ? (b as Boss) : null);
       setLoadingBoss(false);
       if (!user?.id) return;
-      const [{ data: sh }, { data: inv }] = await Promise.all([
+      const [{ data: sh }, { data: inv }, { data: drg }, { count: defeats }] = await Promise.all([
         supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
           .eq("user_id", user.id).eq("in_storage", false).order("acquired_at"),
         supabase.from("inventory").select("id,item_id,quantity")
           .eq("user_id", user.id).in("item_id", ["rocket_small", "rocket_medium", "rocket_large", "nuke"]),
+        supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
+        supabase.from("world_boss").select("id", { count: "exact", head: true }).not("defeated_at", "is", null),
       ]);
       const sList = (sh ?? []) as ShipRow[];
       setShips(sList);
-      // Pick strongest by template_id
       const best = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0))[0];
       setSelectedShip(best ?? null);
       setRockets((inv ?? []) as RocketRow[]);
+      if (drg?.stage) setDragonStage(drg.stage);
+      if (typeof defeats === "number") setBossDefeats(defeats);
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
@@ -89,24 +102,28 @@ function BossPage() {
     return () => { supabase.removeChannel(ch); };
   }, [boss?.id]);
 
-  // Boss counter-attacks every 6–10s
+  // Boss counter-attacks — scales harder with each defeat & dragon stage
   useEffect(() => {
     if (!boss || boss.hp_current <= 0 || !selectedShip || shipHp <= 0) return;
     const t = setInterval(() => {
-      // boss projectile from boss → ship
       const pid = nextId();
       setProjectiles((p) => [...p, { id: pid, kind: "boss", key: nextId() }]);
       setTimeout(() => {
         setProjectiles((p) => p.filter((x) => x.id !== pid));
-        const dmg = 5 + Math.floor(Math.random() * 10);
-        setSplashes((s) => [...s, { id: nextId(), side: "ship", dmg }]);
+        heavyHitsRef.current += 1;
+        const isHeavy = heavyHitsRef.current % heavyEvery === 0;
+        const isCrit = Math.random() < Math.min(0.35, 0.05 + diffTier * 0.025);
+        let dmg = bossBaseDmg + Math.floor(Math.random() * bossSpread);
+        if (isHeavy) dmg = Math.floor(dmg * 2.2);
+        if (isCrit) dmg = Math.floor(dmg * 1.8);
+        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: isCrit || isHeavy, dmg }]);
         setShake("ship");
         setShipHp((hp) => Math.max(0, hp - dmg));
         setTimeout(() => setShake("none"), 220);
       }, 900);
-    }, 6500 + Math.random() * 3500);
+    }, bossInterval + Math.random() * 1500);
     return () => clearInterval(t);
-  }, [boss, selectedShip, shipHp]);
+  }, [boss, selectedShip, shipHp, bossInterval, bossBaseDmg, bossSpread, heavyEvery, diffTier]);
 
   // Cleanup splashes
   useEffect(() => {
@@ -142,7 +159,10 @@ function BossPage() {
       setBoss((b) => b ? { ...b, hp_current: Math.max(0, b.hp_current - (data.damage || 0)) } : b);
       setTimeout(() => setShake("none"), 220);
       setBusy(false);
-      if (data.killed) setTimeout(() => alert("💀 سقط الوحش! تحقق من غنائمك"), 600);
+      if (data.killed) {
+        setBossDefeats((n) => n + 1);
+        setTimeout(() => alert("💀 سقط الوحش! الوحش القادم أقوى."), 600);
+      }
     }, 850);
 
   }, [busy, boss, shipHp, rockets]);
@@ -237,6 +257,11 @@ function BossPage() {
         <div className="text-center mb-2">
           <div className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-rose-800/60 to-amber-800/60 border border-rose-400/60">
             <span className="text-rose-100 font-extrabold">🐲 {boss.name}</span>
+          </div>
+          <div className="mt-1 inline-flex ms-2 items-center gap-1 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/60 text-[10px] font-black text-rose-100">
+            <span>⚔️ صعوبة {diffTier}</span>
+            <span className="text-rose-300/80">·</span>
+            <span>💀 {bossDefeats}</span>
           </div>
         </div>
 
