@@ -3079,8 +3079,6 @@ export type Database = {
       }
       buy_lootbox: { Args: { _type_id: string }; Returns: string }
       buy_market_freeze: { Args: { _hours: number }; Returns: string }
-      buy_phoenix_pack_1: { Args: never; Returns: string }
-      buy_phoenix_pack_3: { Args: never; Returns: string[] }
       buy_protection: {
         Args: { _coins_cost: number; _days: number; _gems_cost: number }
         Returns: string
@@ -3096,7 +3094,6 @@ export type Database = {
         Returns: string
       }
       buy_trader_unlock: { Args: never; Returns: string }
-      buy_tribe_ship: { Args: { _code: string }; Returns: string }
       buy_with_coins:
         | {
             Args: {
@@ -3201,7 +3198,6 @@ export type Database = {
       }
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
-      claim_vip_submarine: { Args: never; Returns: string }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
@@ -3839,7 +3835,6 @@ export type Database = {
       }
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
-      vip_submarine_hp: { Args: { _level: number }; Returns: number }
       warn_overfull_tribes: { Args: never; Returns: number }
     }
     Enums: {
