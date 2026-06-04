@@ -4,11 +4,13 @@ import { STORE_PACKS, type PackCategory } from "@/lib/store-catalog";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "الأسعار — هامور شابك" },
-      { name: "description", content: "أسعار الجواهر، اشتراك VIP، الدروع، والباقات في لعبة هامور شابك." },
-      { property: "og:title", content: "الأسعار — هامور شابك" },
-      { property: "og:description", content: "أسعار الجواهر، اشتراك VIP، الدروع، والباقات في لعبة هامور شابك." },
+      { title: "الأسعار والباقات — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "باقات الجواهر، اشتراك VIP، الدروع، وعروض ملوك القراصنة (هامور شابك). دفع آمن عبر Paddle." },
+      { property: "og:title", content: "الأسعار — ملوك القراصنة (هامور شابك)" },
+      { property: "og:description", content: "جميع باقات الجواهر و VIP والدروع في ملوك القراصنة." },
+      { property: "og:url", content: "https://hamor.lovable.app/pricing" },
     ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/pricing" }],
   }),
   component: PricingPage,
 });
