@@ -526,8 +526,8 @@ function PlayerPage() {
 
     sound.play("success"); flash(`💥 ${w.name} — ${w.damage} ضرر`);
     setBusy(false);
-    // After a nuke, prompt the player to broadcast a global message
-    if (weaponId === "nuke") {
+    // After a nuke or ad-bomb, prompt the player to broadcast a global message
+    if (weaponId === "nuke" || weaponId === "ad_bomb") {
       setNukeMsg("");
       setNukeMsgOpen(true);
     } else {
@@ -1055,8 +1055,8 @@ function PlayerPage() {
         </div>
       )}
 
-      {/* Wooden sign — destroyer's nuke message (tap to read full) */}
-      {p?.last_destroyer_message && p?.last_destroyer_kind === "nuke" && (
+      {/* Wooden sign — destroyer's nuke/ad-bomb message (tap to read full) */}
+      {p?.last_destroyer_message && (p?.last_destroyer_kind === "nuke" || p?.last_destroyer_kind === "ad_bomb") && (
         <button
           type="button"
           onClick={() => { sound.play("click"); setSignOpen(true); }}
