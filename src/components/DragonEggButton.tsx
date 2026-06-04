@@ -48,6 +48,20 @@ export function DragonEggButton({ className }: Props) {
         style={{ animation: "egg-pulse 3s ease-in-out infinite" }}
         draggable={false}
       />
-    </Link>
+    </button>
+    {showSoon && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+        onClick={() => setShowSoon(false)}
+        dir="rtl"
+      >
+        <div className="bg-gradient-to-br from-amber-900/90 to-rose-950/90 border-2 border-amber-400/60 rounded-2xl p-6 max-w-xs text-center shadow-2xl">
+          <div className="text-5xl mb-3">🥚🔥</div>
+          <div className="text-amber-100 text-xl font-extrabold mb-2">قريبًا</div>
+          <div className="text-amber-200/80 text-sm">التنين على وشك أن يفقس... ترقّبوا!</div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
