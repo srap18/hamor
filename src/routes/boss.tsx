@@ -72,18 +72,21 @@ function BossPage() {
       setBoss(isBossReady(b) ? (b as Boss) : null);
       setLoadingBoss(false);
       if (!user?.id) return;
-      const [{ data: sh }, { data: inv }] = await Promise.all([
+      const [{ data: sh }, { data: inv }, { data: drg }, { count: defeats }] = await Promise.all([
         supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
           .eq("user_id", user.id).eq("in_storage", false).order("acquired_at"),
         supabase.from("inventory").select("id,item_id,quantity")
           .eq("user_id", user.id).in("item_id", ["rocket_small", "rocket_medium", "rocket_large", "nuke"]),
+        supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
+        supabase.from("world_boss").select("id", { count: "exact", head: true }).not("defeated_at", "is", null),
       ]);
       const sList = (sh ?? []) as ShipRow[];
       setShips(sList);
-      // Pick strongest by template_id
       const best = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0))[0];
       setSelectedShip(best ?? null);
       setRockets((inv ?? []) as RocketRow[]);
+      if (drg?.stage) setDragonStage(drg.stage);
+      if (typeof defeats === "number") setBossDefeats(defeats);
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
