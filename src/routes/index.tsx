@@ -29,6 +29,7 @@ import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
+import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
