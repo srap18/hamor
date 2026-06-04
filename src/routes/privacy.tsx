@@ -4,11 +4,13 @@ import { LegalPage } from "@/components/LegalPage";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "سياسة الخصوصية — هامور شابك" },
-      { name: "description", content: "كيف نجمع ونستخدم بياناتك الشخصية في هامور شابك." },
-      { property: "og:title", content: "سياسة الخصوصية — هامور شابك" },
-      { property: "og:description", content: "كيف نجمع ونستخدم بياناتك الشخصية في هامور شابك." },
+      { title: "سياسة الخصوصية — ملوك القراصنة (هامور شابك)" },
+      { name: "description", content: "كيف نجمع ونحمي بياناتك الشخصية في لعبة ملوك القراصنة (هامور شابك)." },
+      { property: "og:title", content: "سياسة الخصوصية — ملوك القراصنة" },
+      { property: "og:description", content: "حماية بيانات اللاعبين في ملوك القراصنة (هامور شابك)." },
+      { property: "og:url", content: "https://hamor.lovable.app/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://hamor.lovable.app/privacy" }],
   }),
   component: PrivacyPage,
 });
