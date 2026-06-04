@@ -113,6 +113,7 @@ function FishMarket() {
   };
 
   const [forecastMap, setForecastMap] = useState<Record<string, number[]>>({});
+  const [historyMap, setHistoryMap] = useState<Record<string, number[]>>({});
 
   const loadMarketState = async () => {
     if (!user) return;
