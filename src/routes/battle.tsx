@@ -269,7 +269,7 @@ function BattlePage() {
               <img src={opStageImg} alt="op" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
-                  transform: "scaleX(-1)",
+                  filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
                   animation: "brth 2.8s ease-in-out infinite",
                 }} />
