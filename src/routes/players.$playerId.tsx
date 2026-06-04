@@ -10,6 +10,7 @@ import { buyWithCoins, buyWithGems } from "@/lib/economy";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { burnTargetBg } from "@/components/BurnedBgOverlay";
+import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
