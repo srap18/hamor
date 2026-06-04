@@ -1061,7 +1061,7 @@ function PlayerPage() {
           type="button"
           onClick={() => { sound.play("click"); setSignOpen(true); }}
           className="absolute z-30 active:scale-95 transition-transform"
-          style={{ top: "44%", left: "3%", width: "9rem", filter: "drop-shadow(0 10px 14px rgba(0,0,0,0.6))" }}
+          style={{ bottom: "8rem", left: "2%", width: "6.5rem", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
           aria-label="رسالة المفجّر"
         >
           <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
@@ -1072,23 +1072,23 @@ function PlayerPage() {
                 {destroyerAvatar ? (
                   <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-base">{destroyerEmoji || "🧙"}</div>
+                  <div className="w-full h-full flex items-center justify-center text-[8px]">{destroyerEmoji || "🧙"}</div>
                 )}
               </div>
             </div>
             {/* Name on top plank — right side */}
-            <div className="absolute font-extrabold text-amber-950 truncate text-center"
-              style={{ top: "33%", left: "36%", right: "8%", fontSize: "0.68rem", textShadow: "0 1px 0 rgba(255,240,200,0.4)" }}>
+            <div className="absolute font-black text-amber-50 truncate text-center"
+              style={{ top: "33%", left: "36%", right: "8%", fontSize: "0.55rem", textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}>
               {p.last_destroyer_name}
             </div>
             {/* Message preview on bottom plank */}
-            <div className="absolute text-amber-950 font-bold text-center overflow-hidden"
-              style={{ top: "51%", left: "10%", right: "10%", fontSize: "0.58rem", lineHeight: 1.15, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
+            <div className="absolute text-amber-50 font-black text-center overflow-hidden"
+              style={{ top: "50%", left: "10%", right: "10%", fontSize: "0.5rem", lineHeight: 1.1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}>
               "{p.last_destroyer_message}"
             </div>
-            {/* Tap hint under planks */}
-            <div className="absolute text-amber-100 font-extrabold text-center bg-amber-950/70 rounded-full px-1.5 py-0.5"
-              style={{ top: "62%", left: "22%", right: "22%", fontSize: "0.5rem" }}>
+            {/* Tap hint badge */}
+            <div className="absolute text-amber-100 font-extrabold text-center bg-red-900/90 rounded-full px-1 py-0.5 border border-amber-300/60 shadow"
+              style={{ top: "62.5%", left: "28%", right: "28%", fontSize: "0.42rem" }}>
               ☢️ اضغط
             </div>
           </div>
