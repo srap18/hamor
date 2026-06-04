@@ -1021,6 +1021,16 @@ function Index() {
       return;
     }
 
+    // Block stopping/collecting when fish market is full — would lose fish.
+    if (s.fishing && user?.id) {
+      const { data: remaining } = await (supabase as any).rpc("user_market_remaining", { _uid: user.id });
+      if (typeof remaining === "number" && remaining <= 0) {
+        showToast("⚠️ سوق السمك ممتلئ — بِع السمك أولاً قبل إيقاف السفينة");
+        sound.play("error");
+        return;
+      }
+    }
+
     // Guard against double-tap that would race the RPC and produce "not_fishing".
     if (collectingRef.current[s.dbId]) return;
     collectingRef.current[s.dbId] = true;
