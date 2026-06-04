@@ -55,11 +55,22 @@ function ForgePage() {
   const equip = async (id: string) => {
     if (busy) return;
     setBusy(true);
-    const { error } = await rpc("equip_dragon_item", { p_item_id: id });
+    // optimistic toggle so UI feels instant
+    const target = items.find((x) => x.id === id);
+    if (target) {
+      setItems((cur) => cur.map((x) =>
+        x.slot === target.slot
+          ? { ...x, equipped: x.id === id ? !target.equipped : false }
+          : x
+      ));
+    }
+    const { data, error } = await rpc("equip_dragon_item", { p_item_id: id });
     setBusy(false);
-    if (error) return flash("❌ " + error.message);
+    if (error) { flash("❌ " + error.message); reload(); return; }
+    flash(data?.equipped ? "⚔ تم التجهيز" : "↩ تم إلغاء التجهيز");
     reload();
   };
+
 
   const upgrade = async (id: string) => {
     if (busy) return;
