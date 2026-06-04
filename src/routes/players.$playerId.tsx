@@ -1016,7 +1016,11 @@ function PlayerPage() {
               <div className="relative text-red-50/95 font-bold text-[12px] leading-tight tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pe-6">
                 <span className="opacity-90 me-1">{p.last_destroyer_kind === "nuke" ? "☢️" : "📺"}</span>
                 <span className="text-amber-100/90 me-1">لافتة الموت ·</span>
-                <span className="text-amber-300 font-extrabold">{p.last_destroyer_name}</span>
+                {p.last_destroyer_id ? (
+                  <Link to="/p/$id" params={{ id: p.last_destroyer_id }} onClick={() => sound.play("click")} className="text-amber-300 font-extrabold underline decoration-amber-300/50 active:scale-95">{p.last_destroyer_name}</Link>
+                ) : (
+                  <span className="text-amber-300 font-extrabold">{p.last_destroyer_name}</span>
+                )}
                 <span className="ms-1 text-red-50/85">
                   {p.last_destroyer_kind === "nuke" ? "فجّر هذا اللاعب بالقنبلة الذرية" : "فجّر هذا اللاعب بالقنبلة الإعلانية"}
                 </span>
@@ -1056,9 +1060,20 @@ function PlayerPage() {
               <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-stone-900/80 ring-1 ring-stone-100/30" />
               <div className="flex items-center gap-1.5 mb-1">
                 <span className="text-sm">☢️</span>
-                <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
-                  {p.last_destroyer_name}
-                </span>
+                {p.last_destroyer_id ? (
+                  <Link
+                    to="/p/$id"
+                    params={{ id: p.last_destroyer_id }}
+                    onClick={() => sound.play("click")}
+                    className="text-[10px] font-extrabold text-amber-100 underline decoration-amber-300/60 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate active:scale-95"
+                  >
+                    {p.last_destroyer_name}
+                  </Link>
+                ) : (
+                  <span className="text-[10px] font-extrabold text-amber-100 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] truncate">
+                    {p.last_destroyer_name}
+                  </span>
+                )}
               </div>
               <div className="text-[11px] leading-snug font-bold text-amber-50 whitespace-pre-wrap break-words drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]" style={{ wordBreak: "break-word" }}>
                 "{p.last_destroyer_message}"
