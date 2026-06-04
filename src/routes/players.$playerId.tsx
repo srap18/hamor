@@ -120,8 +120,9 @@ function PlayerPage() {
     const r = el.getBoundingClientRect();
     const toX = r.left + r.width / 2;
     const toY = r.top + r.height / 2;
-    const fromX = window.innerWidth - 40;
-    const fromY = window.innerHeight - 80;
+    // Nuke drops straight from the sky; other rockets fly from bottom-right
+    const fromX = weaponId === "nuke" ? toX + (Math.random() - 0.5) * 40 : window.innerWidth - 40;
+    const fromY = weaponId === "nuke" ? -120 : window.innerHeight - 80;
     const id = serverNowMs() + Math.random();
     setFx({ id, emoji, fromX, fromY, toX, toY, phase: "fly", friendly, weaponId });
     // whoosh during flight (only for hostile rockets, and not when silent)
