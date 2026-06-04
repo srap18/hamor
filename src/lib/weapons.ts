@@ -66,11 +66,12 @@ export const WEAPONS: Weapon[] = [
     image: nukeImg,
     price: 100,
     currency: "gems",
-    damage: 70000,
+    damage: 9_999_999,
     xp: 500,
     rarity: "legendary",
     aoe: true,
-    desc: "تصيب جميع سفن الخصم بـ 70,000 ضرر — 500 خبرة لكل سفينة",
+    desc: "تدمّر جميع سفن الخصم فوراً مهما كان حجمها — 500 خبرة لكل سفينة",
+
   },
   {
     id: "ad_bomb",
