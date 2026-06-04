@@ -14,9 +14,8 @@ function DragonPage() {
   const [d, setD] = useState<Dragon | null>(null);
   const [loading, setLoading] = useState(true);
 
-  if (location.pathname !== "/dragon") return <Outlet />;
-
   useEffect(() => {
+    if (location.pathname !== "/dragon") return;
     (async () => {
       const { data, error } = await (supabase as never as {
         rpc: (n: string) => Promise<{ data: Dragon | null; error: { message: string } | null }>;
@@ -25,7 +24,9 @@ function DragonPage() {
       setD(data);
       setLoading(false);
     })();
-  }, []);
+  }, [location.pathname]);
+
+  if (location.pathname !== "/dragon") return <Outlet />;
 
   if (loading) {
     return (
