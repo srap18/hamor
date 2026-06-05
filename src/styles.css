@@ -207,10 +207,25 @@
 
 
   @keyframes flag-wave {
-    0%, 100% { transform: skewY(-8deg) scaleX(1); }
-    50%      { transform: skewY(8deg) scaleX(0.92); }
+    0%   { transform: perspective(220px) rotateY(-18deg) rotateX(4deg) skewY(-6deg) scaleX(1); }
+    25%  { transform: perspective(220px) rotateY(8deg)   rotateX(-3deg) skewY(4deg)  scaleX(0.96); }
+    50%  { transform: perspective(220px) rotateY(22deg)  rotateX(5deg)  skewY(8deg)  scaleX(0.9); }
+    75%  { transform: perspective(220px) rotateY(4deg)   rotateX(-2deg) skewY(2deg)  scaleX(0.95); }
+    100% { transform: perspective(220px) rotateY(-18deg) rotateX(4deg)  skewY(-6deg) scaleX(1); }
   }
-  .animate-flag-wave { animation: flag-wave 1.2s ease-in-out infinite; transform-origin: left center; }
+  .animate-flag-wave {
+    animation: flag-wave 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  @keyframes flag-shimmer {
+    0%, 100% { transform: translateX(-30%); opacity: 0; }
+    40%      { opacity: 0.55; }
+    60%      { opacity: 0.55; }
+    100%     { transform: translateX(130%); opacity: 0; }
+  }
 
   @keyframes smoke-rise {
     0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
