@@ -45,25 +45,38 @@ export function DragonShoreCreature() {
         aria-label={isEgg ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
-          left: "18%",
-          bottom: "16%",
-          width: "22%",
-          maxWidth: "150px",
+          left: "20%",
+          bottom: "13%",
+          width: "20%",
+          maxWidth: "140px",
           aspectRatio: "1 / 1",
           pointerEvents: "auto",
         }}
       >
-        {/* Ground shadow */}
+        {/* Soft ambient shadow — wider, lighter for grounding */}
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "15%",
-            right: "15%",
-            bottom: "3%",
-            height: "10%",
+            left: "6%",
+            right: "6%",
+            bottom: "-1%",
+            height: "14%",
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0) 80%)",
-            filter: "blur(3px)",
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 72%)",
+            filter: "blur(6px)",
+          }}
+        />
+        {/* Contact ground shadow — tight, dark ellipse directly under feet */}
+        <span
+          className="absolute pointer-events-none"
+          style={{
+            left: "18%",
+            right: "18%",
+            bottom: "2%",
+            height: "7%",
+            background:
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0) 78%)",
+            filter: "blur(2px)",
             animation: "dsc-shadow 3s ease-in-out infinite",
           }}
         />
@@ -76,7 +89,7 @@ export function DragonShoreCreature() {
           style={{
             animation: isEgg ? "dsc-rock 2.6s ease-in-out infinite" : "dsc-breathe 2.8s ease-in-out infinite",
             transformOrigin: "50% 100%",
-            filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.7))",
+            filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.55)) drop-shadow(0 6px 12px rgba(0,0,0,0.35)) saturate(0.9) brightness(0.93) contrast(1.04)",
           }}
         />
       </button>
