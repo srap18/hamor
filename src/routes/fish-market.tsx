@@ -488,7 +488,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={forecastMap[sel.id] ?? []}
+          forecast={(traderActiveGlobal && marketState.trader_snapshot[sel.id]?.length) ? marketState.trader_snapshot[sel.id] : (forecastMap[sel.id] ?? [])}
           history={historyMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
