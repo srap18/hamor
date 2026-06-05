@@ -1,5 +1,36 @@
-// Unified luxurious ship image used for every market level (1..30).
-import shipUnified from "@/assets/ships/ship-lvl-30.png";
+// Original 8 — kept for these market levels: 1, 4, 7, 11, 15, 19, 23, 27
+import ship01 from "@/assets/ships/ship-lvl-1.png";
+import ship04 from "@/assets/ships/ship-lvl-4.png";
+import ship07 from "@/assets/ships/ship-lvl-7.png";
+import ship11 from "@/assets/ships/ship-lvl-11.png";
+import ship15 from "@/assets/ships/ship-05-hunter.png";
+import ship19 from "@/assets/ships/ship-06-factory.png";
+import ship23 from "@/assets/ships/ship-07-legendary.png";
+import ship27 from "@/assets/ships/ship-08-mythic.png";
+
+// 22 new unique ships — one per remaining market level
+import ship02 from "@/assets/ships/ship-lvl-2.png";
+import ship03 from "@/assets/ships/ship-lvl-3.png";
+import ship05 from "@/assets/ships/ship-lvl-5.png";
+import ship06 from "@/assets/ships/ship-lvl-6.png";
+import ship08 from "@/assets/ships/ship-lvl-8.png";
+import ship09 from "@/assets/ships/ship-lvl-9.png";
+import ship10 from "@/assets/ships/ship-lvl-10.png";
+import ship12 from "@/assets/ships/ship-lvl-12.png";
+import ship13 from "@/assets/ships/ship-lvl-13.png";
+import ship14 from "@/assets/ships/ship-lvl-14.png";
+import ship16 from "@/assets/ships/ship-lvl-16.png";
+import ship17 from "@/assets/ships/ship-lvl-17.png";
+import ship18 from "@/assets/ships/ship-lvl-18.png";
+import ship20 from "@/assets/ships/ship-lvl-20.png";
+import ship21 from "@/assets/ships/ship-lvl-21.png";
+import ship22 from "@/assets/ships/ship-lvl-22.png";
+import ship24 from "@/assets/ships/ship-lvl-24.png";
+import ship25 from "@/assets/ships/ship-lvl-25.png";
+import ship26 from "@/assets/ships/ship-lvl-26.png";
+import ship28 from "@/assets/ships/ship-lvl-28.png";
+import ship29 from "@/assets/ships/ship-lvl-29.png";
+import ship30 from "@/assets/ships/ship-lvl-30.png";
 import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
@@ -22,28 +53,41 @@ export type ShipDef = {
   flavor: string;
 };
 
-// Single luxurious image used for every market level (1..30).
-// Phoenix (31) and Submarine (32) keep their own unique art.
-function imageForLevel(level: number): string {
-  if (level === 31) return shipPhoenix;
-  if (level === 32) return shipSubmarine;
-  return shipUnified;
-}
+// One unique image per market level — no duplicates.
+const IMG_BY_LEVEL: Record<number, string> = {
+  1: ship01, 2: ship02, 3: ship03, 4: ship04, 5: ship05, 6: ship06,
+  7: ship07, 8: ship08, 9: ship09, 10: ship10, 11: ship11, 12: ship12,
+  13: ship13, 14: ship14, 15: ship15, 16: ship16, 17: ship17, 18: ship18,
+  19: ship19, 20: ship20, 21: ship21, 22: ship22, 23: ship23, 24: ship24,
+  25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
+  31: shipPhoenix,
+  32: shipSubmarine,
+};
 
-// All unified-image ships face the same direction — no per-level flip needed.
-export function shipBowFacesRight(_level: number): boolean {
-  return false;
+// Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
+// Listed here so renderers can normalize every ship to the same on-screen
+// direction (toward shore when docked, toward sea when fishing, rightward in shop).
+// Verified against the local ship sprite sheet: everything not listed is bow-LEFT.
+const BOW_FACES_RIGHT: Record<number, boolean> = {
+  3: true, 4: true, 5: true, 6: true, 8: true,
+  11: true, 12: true, 13: true, 16: true,
+  19: true, 24: true, 30: true, 31: true,
+};
+
+export function shipBowFacesRight(level: number): boolean {
+  return !!BOW_FACES_RIGHT[level];
 }
 
 // ─────── المصدر الموحّد لتعريف السفن ───────
+// أي تحديث على هذه القائمة ينعكس على كل واجهات اللعبة (سوق السفن، الأسطول، الصيد ...).
 type ShipOverride = {
   ar: string;
   rarity: string;
   flavor: string;
-  storage: number;
-  price: number;
-  fishingMinutes: number;
-  fishPool: string[];
+  storage: number;       // السعة = طاقة السفينة
+  price: number;         // السعر بالذهب
+  fishingMinutes: number;// مدة الصيد بالدقائق
+  fishPool: string[];    // أنواع السمك المتاحة
 };
 
 const SHIP_DATA: Record<number, ShipOverride> = {
@@ -83,12 +127,13 @@ const SHIP_DATA: Record<number, ShipOverride> = {
 
 function buildShip(level: number): ShipDef {
   const d = SHIP_DATA[level];
+  // Phoenix ship (level 31) — special tuned values, doesn't follow the formula.
   if (level === 31) {
     return {
       code: "phoenix",
       name: d.ar,
       title: d.ar,
-      image: imageForLevel(31),
+      image: IMG_BY_LEVEL[31],
       price: d.price,
       marketLevel: 31,
       rarity: d.rarity,
@@ -96,18 +141,22 @@ function buildShip(level: number): ShipDef {
       armor: 80,
       speed: 60,
       storage: d.storage,
-      repairSeconds: 36000,
+      repairSeconds: 36000, // 10h
       fishingSeconds: Math.round(d.fishingMinutes * 60),
       fishPool: d.fishPool,
       flavor: d.flavor,
     };
   }
+  // Submarine VIP (level 32) — exclusive, premium stats.
+  // NOTE: per-instance HP/storage is scaled at claim time on the server based
+  // on the player's VIP level (60k @ VIP5 → 350k @ VIP10). The values here
+  // represent the MAX potential — actual per-ship storage comes from max_hp.
   if (level === 32) {
     return {
       code: "submarine",
       name: d.ar,
       title: d.ar,
-      image: imageForLevel(32),
+      image: IMG_BY_LEVEL[32],
       price: d.price,
       marketLevel: 32,
       rarity: d.rarity,
@@ -115,15 +164,21 @@ function buildShip(level: number): ShipDef {
       armor: 150,
       speed: 90,
       storage: d.storage,
-      repairSeconds: 86400,
+      repairSeconds: 86400, // 24h
       fishingSeconds: Math.round(d.fishingMinutes * 60),
       fishPool: d.fishPool,
       flavor: d.flavor,
     };
   }
+  // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
   const speed = 9 + Math.floor((level - 1) * 1.4);
+  // التقسيم المتدرّج لمدة إصلاح السفينة المدمَّرة (نفس صيغة قاعدة البيانات)
+  //  L1..10  : 1h  → 5h
+  //  L11..20 : 5h  → 10h
+  //  L21..25 : 11h → 20h
+  //  L26..30 : 21h → 24h
   let repairSeconds: number;
   if (level <= 10) repairSeconds = Math.round(3600  + (level - 1)  * (18000 - 3600)  / 9);
   else if (level <= 20) repairSeconds = Math.round(18000 + (level - 11) * (36000 - 18000) / 9);
@@ -134,7 +189,7 @@ function buildShip(level: number): ShipDef {
     code: `ship-lvl-${level}`,
     name: d.ar,
     title: d.ar,
-    image: imageForLevel(level),
+    image: IMG_BY_LEVEL[level],
     price: d.price,
     marketLevel: level,
     rarity: d.rarity,
@@ -149,10 +204,14 @@ function buildShip(level: number): ShipDef {
   };
 }
 
+// Regular ships (1..30) shown in the ship market.
 export const SHIPS: ShipDef[] = Array.from({ length: 30 }, (_, i) => buildShip(i + 1));
+
+// Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
 
+// Tribe-exclusive ships (level 24 base, but with 20K HP/storage and tribe-only currency).
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
@@ -161,6 +220,8 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   if (!code) return STARTER_SHIP;
   const direct = ALL_SHIPS.find((s) => s.code === code);
   if (direct) return direct;
+  // Fallback: codes like "ship-lvl-31" (phoenix in DB) or other catalog codes
+  // map back to a market level so spectators always see the real ship art.
   const m = code.match(/(\d+)\s*$/);
   if (m) {
     const lvl = parseInt(m[1], 10);
@@ -169,6 +230,8 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   return STARTER_SHIP;
 }
 
+// Map a market level (1..32) to the ship definition.
+// Level 31 = phoenix shop ship. Level 32 = VIP submarine.
 export function getShipByMarketLevel(level: number): ShipDef {
   if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
@@ -180,32 +243,57 @@ export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
 }
 
+// السعة الكاملة للسفينة = ما تحمله في رحلة واحدة (طاقة = سعة).
 export function catchPerTrip(ship: ShipDef): number {
   return Math.max(1, ship.storage);
 }
 
 // ─────── سعة سوق السمك حسب المستوى ───────
+// L1 = 10000. +10000 لكل مستوى حتى 10، +30000 من 11 إلى 20، +100000 من 21 فما فوق.
+// يمكن لمسؤول النظام تجاوز أي مستوى عبر economy_settings.
 export function fishMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  // lazy import to avoid circular dep at module init
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 10) cap += 10000;
-    else if (l <= 20) cap += 30000;
-    else cap += 100000;
+    if (l <= 10) cap += 10000;      // 2–10: +10k
+    else if (l <= 20) cap += 30000;  // 11–20: +30k
+    else cap += 100000;              // 21+: +100k
   }
   return cap;
 }
 
-// ─────── سعة سوق السفن حسب المستوى (مجموع طاقة الأسطول) ───────
+
+// ─────── سعة سوق السفن حسب المستوى ───────
+// L1 = 10,000. نفس نمط زيادات سوق السمك ×20.
+const SM_INCREMENTS: number[] = [
+  /* L2  */ 10000,
+  /* L3  */ 10000,
+  /* L4  */ 20000,
+  /* L5  */ 30000,
+  /* L6  */ 40000,
+  /* L7  */ 50000,
+  /* L8  */ 60000,
+  /* L9  */ 70000,
+  /* L10 */ 80000,
+  /* L11 */ 100000,
+  /* L12 */ 120000,
+  /* L13 */ 140000,
+  /* L14 */ 160000,
+  /* L15 */ 200000,
+];
+
 export function shipMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 10) cap += 200000;
-    else if (l <= 20) cap += 600000;
-    else cap += 2000000;
+    if (l <= 15) cap += SM_INCREMENTS[l - 2];
+    else if (l <= 23) cap += 400000;   // 16-23: +400k
+    else if (l <= 27) cap += 1000000;  // 24-27: +1M
+    else cap += 2000000;               // 28+:   +2M
   }
   return cap;
 }
+
