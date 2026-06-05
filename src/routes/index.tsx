@@ -1379,7 +1379,7 @@ function Index() {
 
       {/* TOP HUD — pirate luxury */}
       <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "max(2.75rem, calc(env(safe-area-inset-top) + 1rem))" }}>
-        <div className="flex items-start justify-end">
+        <div className="flex items-start justify-start">
           {/* Avatar + name + treasury — stacked column on the right (Jack-style) */}
           <div className="flex flex-col items-center gap-1.5 shrink-0">
             <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1 shrink-0">
