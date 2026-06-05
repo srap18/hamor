@@ -47,6 +47,8 @@ import navIconShop from "@/assets/nav-icon-shop.png";
 import navIconChat from "@/assets/nav-icon-chat.png";
 import navIconSettings from "@/assets/nav-icon-settings.png";
 import navIconTribe from "@/assets/nav-icon-tribe.png";
+import navIconRankAsset from "@/assets/nav-icon-rank.png.asset.json";
+const navIconRank = navIconRankAsset.url;
 import { ShipFlag } from "@/components/ShipFlag";
 
 
@@ -2207,7 +2209,7 @@ function Index() {
             { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread, emoji: null },
             { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0, emoji: null },
             { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0, emoji: null },
-            { src: null as any, label: "ترتيب", to: null, action: "boost" as const, badge: 0, emoji: "🏆" },
+            { src: navIconRank, label: "ترتيب", to: null, action: "boost" as const, badge: 0, emoji: null },
             { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread, emoji: null },
             { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0, emoji: null },
           ].map((it, i) => {
