@@ -1678,16 +1678,8 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         }}
       >
         <img src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
-        {/* Flag (hide when destroyed) */}
-        {!destroyed && (
-          <div className="absolute pointer-events-none" style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}>
-            <div className="w-full h-full animate-flag-wave" style={{
-              background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
-              clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
-            }} />
-          </div>
-        )}
+        {/* Flag (hide when destroyed) — mirrors owner's choice from profile */}
+        {!destroyed && <ShipFlag flagId={shipFlag} />}
         {/* Smoke when destroyed */}
         {destroyed && (
           <>
