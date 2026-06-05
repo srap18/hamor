@@ -115,8 +115,8 @@ export type DragonBonus = {
 };
 
 export function dragonMultiplier(level: number): number {
-  if (level <= 0) return 1; // egg → no bonus
-  const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  if (level < 3) return 1; // egg + levels 1-2 → no bonus, unlocks at level 3
+  const lvl = Math.max(3, Math.min(MAX_LEVEL, Math.floor(level)));
   return Math.pow(1 + DRAGON_GROWTH_RATE, lvl - 1);
 }
 
