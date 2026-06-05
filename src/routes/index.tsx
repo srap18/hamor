@@ -980,7 +980,7 @@ function Index() {
             return { ...s, sail };
           }
           if (s.dbId && !isServerClockSynced()) {
-            if (sailDelta < 0.0008 && s.progress === 0) return s;
+            if (sailDelta < 0.0008 && s.progress === 0 && s.timeLeft === s.duration) return s;
             changed = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
