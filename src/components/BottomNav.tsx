@@ -205,47 +205,72 @@ export function BottomNav({ active }: { active?: string }) {
   return (
     <>
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-3 pb-2"
-        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-2 pb-2 pt-3"
+        style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))" }}
       >
+        {/* wooden plank backdrop */}
         <div
-          className="absolute inset-x-0 bottom-0 h-28"
+          className="pointer-events-auto relative mx-auto max-w-[640px] rounded-2xl px-2 pt-3 pb-2"
           style={{
             background:
-              "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.72) 42%, rgba(3,5,12,0.98) 100%)",
+              "repeating-linear-gradient(90deg, #4a2a14 0px, #5a3418 6px, #432513 12px, #5a3418 18px, #3a1f0e 24px), linear-gradient(180deg, #5c3418 0%, #2e180a 100%)",
+            backgroundBlendMode: "multiply",
+            border: "2px solid #1a0d05",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,200,130,0.25), inset 0 -3px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(120,70,25,0.6), 0 -6px 22px rgba(0,0,0,0.6), 0 0 0 2px rgba(180,130,55,0.55)",
           }}
-        />
-        <div className="pointer-events-auto relative flex items-end justify-between gap-1">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isActive = active === item.to;
-            const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
-            return (
-              <GoldNavButton
-                key={item.to}
-                label={item.label}
-                active={isActive}
-                badge={badge}
-                onClick={() => nav({ to: item.to, viewTransition: false })}
-              >
-                <Icon />
-              </GoldNavButton>
-            );
-          })}
+        >
+          {/* top rope trim */}
+          <span
+            className="absolute -top-[6px] left-2 right-2 h-[6px] rounded-full"
+            style={{
+              background:
+                "repeating-linear-gradient(90deg, #5a3410 0px, #c8923a 4px, #fbe39a 7px, #c8923a 10px, #5a3410 14px)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,230,160,0.5)",
+            }}
+          />
+          {/* corner rivets */}
+          {[
+            { top: 5, left: 6 },
+            { top: 5, right: 6 },
+            { bottom: 5, left: 6 },
+            { bottom: 5, right: 6 },
+          ].map((p, i) => (
+            <span
+              key={i}
+              className="absolute size-[7px] rounded-full"
+              style={{
+                ...p,
+                background:
+                  "radial-gradient(circle at 35% 30%, #fde9a8 0%, #b7811d 60%, #2d1a05 100%)",
+                boxShadow: "0 0 2px rgba(0,0,0,0.9)",
+              }}
+            />
+          ))}
 
-          <GoldNavButton label="إعدادات" onClick={() => window.dispatchEvent(new CustomEvent("open-settings-modal"))}>
-            <Compass />
-          </GoldNavButton>
+          <div className="relative flex items-end justify-between gap-1">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const isActive = active === item.to;
+              const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
+              return (
+                <GoldNavButton
+                  key={item.to}
+                  label={item.label}
+                  active={isActive}
+                  badge={badge}
+                  onClick={() => nav({ to: item.to, viewTransition: false })}
+                >
+                  <Icon />
+                </GoldNavButton>
+              );
+            })}
+
+            <GoldNavButton label="إعدادات" onClick={() => window.dispatchEvent(new CustomEvent("open-settings-modal"))}>
+              <Compass />
+            </GoldNavButton>
+          </div>
         </div>
-        <div
-          className="pointer-events-none absolute bottom-0 right-2 size-11 rotate-45"
-          style={{
-            background: "linear-gradient(135deg, rgba(235,245,255,0.95) 0%, rgba(183,198,223,0.82) 55%, rgba(115,135,170,0.14) 100%)",
-            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-            filter: "drop-shadow(0 0 12px rgba(224,234,255,0.4))",
-            opacity: 0.9,
-          }}
-        />
       </div>
     </>
   );
