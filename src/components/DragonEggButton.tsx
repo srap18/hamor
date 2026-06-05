@@ -1,11 +1,14 @@
 import { useState } from "react";
 import dragonEggImg from "@/assets/dragon-egg.png";
+import { getStage } from "@/lib/dragon";
 
 type Props = {
   /** Position style — defaults to top-right corner */
   className?: string;
   /** When false, the egg is rendered as a non-interactive visual (no clicks). */
   interactive?: boolean;
+  /** Dragon stage (1..15). When provided, renders the matching dragon form image. */
+  stage?: number;
 };
 
 /**
@@ -13,8 +16,9 @@ type Props = {
  * instead of opening the dragon page. When `interactive` is false (e.g.
  * when viewing another player's harbor), the egg is purely decorative.
  */
-export function DragonEggButton({ className, interactive = true }: Props) {
+export function DragonEggButton({ className, interactive = true, stage }: Props) {
   const [showSoon, setShowSoon] = useState(false);
+  const img = stage && stage >= 1 ? getStage(stage).image : dragonEggImg;
   if (!interactive) {
     return (
       <div
@@ -29,7 +33,7 @@ export function DragonEggButton({ className, interactive = true }: Props) {
         aria-hidden
       >
         <img
-          src={dragonEggImg}
+          src={img}
           alt=""
           className="w-full h-full object-contain"
           draggable={false}
@@ -37,6 +41,7 @@ export function DragonEggButton({ className, interactive = true }: Props) {
       </div>
     );
   }
+
   return (
     <>
     <button
@@ -67,12 +72,13 @@ export function DragonEggButton({ className, interactive = true }: Props) {
         style={{ animation: "egg-glow-ring 2.4s ease-in-out infinite" }}
       />
       <img
-        src={dragonEggImg}
+        src={img}
         alt="بيضة التنين"
         className="w-full h-full object-contain relative z-10"
         style={{ animation: "egg-pulse 3s ease-in-out infinite" }}
         draggable={false}
       />
+
     </button>
     {showSoon && (
       <div
