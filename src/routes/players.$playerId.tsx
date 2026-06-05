@@ -435,7 +435,7 @@ function PlayerPage() {
 
     // Dragon attack bonus — boost weapon damage based on dragon overall level.
     // Nuke ignores the bonus (already one-shots anything).
-    const boostedDamage = w.aoe && w.id === "nuke" ? w.damage : applyDragonAttack(w.damage, myDragonLvl);
+    const boostedDamage = w.damage;
 
     // ─── Pre-validate on the first target BEFORE consuming the weapon ───
     // Server-side rules (3 fishing ships, market level, protection, etc.) are
