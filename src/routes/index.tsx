@@ -40,7 +40,7 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
-import navIconArena from "@/assets/nav-icon-arena.png";
+
 import navIconFriends from "@/assets/nav-icon-friends.png";
 import navIconInventory from "@/assets/nav-icon-inventory.png";
 import navIconShop from "@/assets/nav-icon-shop.png";
@@ -2206,7 +2206,7 @@ function Index() {
             { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
             { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0 },
             { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            
             { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
           ].map((it, i) => {
             const inner = (
