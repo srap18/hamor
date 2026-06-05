@@ -2980,7 +2980,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const destroyed = !!ship.destroyedAt && !!ship.repairEndsAt && new Date(ship.repairEndsAt).getTime() > serverNowMs();
+  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt);
   const atSea = ship.sail > 0.85 && !destroyed;
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   // Ship art is drawn facing LEFT natively (with per-level overrides for art
