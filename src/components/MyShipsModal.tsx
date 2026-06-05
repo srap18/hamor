@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
+import { withTimeout } from "@/lib/with-timeout";
 
 interface ShipRow {
   id: string;
@@ -49,13 +50,22 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const reload = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("ships_owned")
-      .select("id, template_id, acquired_at, in_storage")
-      .eq("user_id", user.id)
-      .order("acquired_at", { ascending: true });
-    setShips((data ?? []) as ShipRow[]);
-    setLoading(false);
+    try {
+      const { data } = await withTimeout(
+        supabase
+          .from("ships_owned")
+          .select("id, template_id, acquired_at, in_storage")
+          .eq("user_id", user.id)
+          .order("acquired_at", { ascending: true }),
+        15000,
+        "ships_owned",
+      );
+      setShips((data ?? []) as ShipRow[]);
+    } catch (e) {
+      showNotice("⚠️ تعذّر تحميل سفنك — تحقق من الاتصال");
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { if (open) reload(); }, [open, reload]);
@@ -66,45 +76,59 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const stored = ships.filter(s => s.in_storage);
 
   const callRpc = async (fn: string, args: any) => {
-    const { error } = await (supabase as any).rpc(fn, args);
-    if (error) {
-      const msg = (error.message || "").toLowerCase();
-      const friendly = Object.entries(ERR_MAP).find(([k]) => msg.includes(k))?.[1];
-      showNotice(friendly || error.message);
+    try {
+      const { error } = await withTimeout<any>((supabase as any).rpc(fn, args), 15000, fn);
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        const friendly = Object.entries(ERR_MAP).find(([k]) => msg.includes(k))?.[1];
+        showNotice(friendly || error.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      showNotice("⚠️ الاتصال بطيء — حاول مرة أخرى");
       return false;
     }
-    return true;
   };
 
   const moveToStorage = async (id: string) => {
     setBusyId(id);
     sound.play("click");
-    if (await callRpc("ship_to_storage", { p_ship_id: id })) {
-      showNotice("✅ تم النقل للمخزن");
-      await reload();
+    try {
+      if (await callRpc("ship_to_storage", { p_ship_id: id })) {
+        showNotice("✅ تم النقل للمخزن");
+        await reload();
+      }
+    } finally {
+      setBusyId(null);
     }
-    setBusyId(null);
   };
 
   const activate = async (id: string) => {
     setBusyId(id);
     sound.play("click");
-    if (await callRpc("ship_from_storage", { p_ship_id: id })) {
-      showNotice("⚓ تم تفعيل السفينة");
-      await reload();
+    try {
+      if (await callRpc("ship_from_storage", { p_ship_id: id })) {
+        showNotice("⚓ تم تفعيل السفينة");
+        await reload();
+      }
+    } finally {
+      setBusyId(null);
     }
-    setBusyId(null);
   };
 
   const swap = async (storageId: string, activeId: string) => {
     setBusyId(storageId);
     sound.play("click");
-    if (await callRpc("swap_ship_with_storage", { p_active_id: activeId, p_storage_id: storageId })) {
-      showNotice("🔄 تم التبديل");
-      setPickSwap(null);
-      await reload();
+    try {
+      if (await callRpc("swap_ship_with_storage", { p_active_id: activeId, p_storage_id: storageId })) {
+        showNotice("🔄 تم التبديل");
+        setPickSwap(null);
+        await reload();
+      }
+    } finally {
+      setBusyId(null);
     }
-    setBusyId(null);
   };
 
   return (

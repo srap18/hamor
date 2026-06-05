@@ -20,6 +20,7 @@ import iconStorage from "@/assets/icons/icon-storage.png";
 import iconTimer from "@/assets/icons/icon-timer.png";
 import iconUpgrade from "@/assets/icons/icon-upgrade.png";
 import { serverNowMs } from "@/lib/server-time";
+import { withTimeout } from "@/lib/with-timeout";
 
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
@@ -99,16 +100,21 @@ function ShipyardPage() {
   const loadData = async () => {
     if (!user) return;
     setLoading(true);
-    await supabase.rpc("finalize_market_upgrades");
-    const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
-      supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
-      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
-    ]);
-    const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
-    setMarket(mr);
-    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
-    setOwned((ownedRows as OwnedShip[] | null) ?? []);
-    setLoading(false);
+    try {
+      await withTimeout(supabase.rpc("finalize_market_upgrades"), 15000, "finalize_market_upgrades");
+      const [{ data: marketRow }, { data: ownedRows }] = await withTimeout(Promise.all([
+        supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
+        supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
+      ]), 15000, "ship-market-load");
+      const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
+      setMarket(mr);
+      try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
+      setOwned((ownedRows as OwnedShip[] | null) ?? []);
+    } catch (e) {
+      showToast("⚠️ تعذّر تحميل البيانات — تحقق من الاتصال");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -195,12 +201,21 @@ function ShipyardPage() {
     }
 
     setBusy(ship.code);
-    const { error } = await buyShipByCode(ship.code, ship.marketLevel, ship.price, ship.maxHp);
-    setBusy(null);
-    if (error) { showToast(error.message || "تعذر شراء السفينة"); return; }
-    await loadData();
-    showToast(`تم شراء ${ship.title}`);
-    refreshProfile();
+    try {
+      const { error } = await withTimeout<any>(
+        buyShipByCode(ship.code, ship.marketLevel, ship.price, ship.maxHp),
+        20000,
+        "buy_ship",
+      );
+      if (error) { showToast(error.message || "تعذر شراء السفينة"); return; }
+      await loadData();
+      showToast(`تم شراء ${ship.title}`);
+      refreshProfile();
+    } catch (e) {
+      showToast("⚠️ الاتصال بطيء — حاول مرة أخرى");
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (authLoading || loading) {

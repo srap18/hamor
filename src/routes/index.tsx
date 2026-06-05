@@ -2444,82 +2444,92 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (showSpinner) setLoading(true);
     if (tab === "comp") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_active_competitions");
-        if (cancelled) return;
-        const list = ((data ?? []) as CompLb[]);
-        setComps(list);
-        const entries = await Promise.all(list.map(async (c) => {
-          const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
-          return [c.id, ((lb ?? []) as CompLbRow[])] as const;
-        }));
-        if (cancelled) return;
-        setCompBoards(Object.fromEntries(entries));
-        setLoading(false);
+        try {
+          const { data } = await (supabase as any).rpc("get_active_competitions");
+          if (cancelled) return;
+          const list = ((data ?? []) as CompLb[]);
+          setComps(list);
+          const entries = await Promise.all(list.map(async (c) => {
+            const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
+            return [c.id, ((lb ?? []) as CompLbRow[])] as const;
+          }));
+          if (cancelled) return;
+          setCompBoards(Object.fromEntries(entries));
+        } catch {}
+        finally { if (!cancelled) setLoading(false); }
       })();
       return () => { cancelled = true; };
     }
     if (tab === "tribes") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
-        if (cancelled) return;
-        const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
-          id: t.tribe_id,
-          name: t.name,
-          emblem: t.emblem,
-          banner: t.banner,
-          level: t.level || 1,
-          members: t.members || 0,
-          donation_score: Number(t.donation_score || 0),
-          support_score: Number(t.support_score || 0),
-          attack_score: Number(t.attack_score || 0),
-          power: Number(t.power || 0),
-        }));
-        setTribes(list);
-        setLoading(false);
+        try {
+          const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+          if (cancelled) return;
+          const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
+            id: t.tribe_id,
+            name: t.name,
+            emblem: t.emblem,
+            banner: t.banner,
+            level: t.level || 1,
+            members: t.members || 0,
+            donation_score: Number(t.donation_score || 0),
+            support_score: Number(t.support_score || 0),
+            attack_score: Number(t.attack_score || 0),
+            power: Number(t.power || 0),
+          }));
+          setTribes(list);
+        } catch {}
+        finally { if (!cancelled) setLoading(false); }
       })();
       return () => { cancelled = true; };
     }
     if (tab === "fish") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
-        if (cancelled) return;
-        const mapped = ((data as any[]) || []).map((r) => ({
-          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
-          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
-          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-          unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
-        }));
-        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-        setLoading(false);
+        try {
+          const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
+          if (cancelled) return;
+          const mapped = ((data as any[]) || []).map((r) => ({
+            id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+            avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+            avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+            unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
+          }));
+          setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+        } catch {}
+        finally { if (!cancelled) setLoading(false); }
       })();
       return () => { cancelled = true; };
     }
     if (tab === "ships") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
-        if (cancelled) return;
-        const mapped = ((data as any[]) || []).map((r) => ({
-          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
-          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
-          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-          market_level: r.market_level,
-        }));
-        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-        setLoading(false);
+        try {
+          const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
+          if (cancelled) return;
+          const mapped = ((data as any[]) || []).map((r) => ({
+            id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+            avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+            avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+            market_level: r.market_level,
+          }));
+          setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+        } catch {}
+        finally { if (!cancelled) setLoading(false); }
       })();
       return () => { cancelled = true; };
     }
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     (async () => {
-      const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
-      if (cancelled) return;
-      const mapped = ((data as any[]) || []).map((r) => ({
-        id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
-        level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
-        avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-      })) as LbProfile[];
-      setRows(mapped);
-      setLoading(false);
+      try {
+        const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
+        if (cancelled) return;
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
+          level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+        })) as LbProfile[];
+        setRows(mapped);
+      } catch {}
+      finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
 
