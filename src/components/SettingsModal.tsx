@@ -86,9 +86,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto"
+        className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
+        <button
+          onClick={() => { sound.play("click"); onClose(); }}
+          aria-label="إغلاق"
+          className="absolute top-2 left-2 w-9 h-9 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-lg font-bold flex items-center justify-center shadow-lg border-2 border-white/20 active:scale-90 z-10"
+        >✕</button>
         <div className="text-accent font-bold text-base mb-4 text-center">⚙️ الإعدادات</div>
 
         {/* Account verification */}
