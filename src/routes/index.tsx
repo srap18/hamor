@@ -2203,13 +2203,13 @@ function Index() {
         />
         <div className="relative grid grid-cols-7 items-end gap-0">
           {[
-            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
-            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
-            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
-            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0 },
-            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            
-            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0, emoji: null as string | null },
+            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread, emoji: null },
+            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0, emoji: null },
+            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0, emoji: null },
+            { src: null as any, label: "ترتيب", to: null, action: "boost" as const, badge: 0, emoji: "🏆" },
+            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread, emoji: null },
+            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0, emoji: null },
           ].map((it, i) => {
             const inner = (
               <>
@@ -2221,15 +2221,24 @@ function Index() {
                     filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))",
                   }}
                 >
-                  <img
-                    src={it.src}
-                    alt={it.label}
-                    loading="lazy"
-                    width={110}
-                    height={110}
-                    className="size-full object-contain select-none"
-                    draggable={false}
-                  />
+                  {it.emoji ? (
+                    <span
+                      className="size-full flex items-center justify-center select-none"
+                      style={{ fontSize: "clamp(26px, 8vw, 38px)", lineHeight: 1 }}
+                    >
+                      {it.emoji}
+                    </span>
+                  ) : (
+                    <img
+                      src={it.src}
+                      alt={it.label}
+                      loading="lazy"
+                      width={110}
+                      height={110}
+                      className="size-full object-contain select-none"
+                      draggable={false}
+                    />
+                  )}
                   {it.badge > 0 && (
                     <span
                       className="absolute -top-1 right-0 z-20 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
@@ -2262,7 +2271,7 @@ function Index() {
                 onClick={() => {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
-                  
+                  else if (it.action === "boost") setBoostOpen(true);
                   else if (it.action === "tribe") { window.location.href = "/chat?tab=tribe"; }
                 }}
                 className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
