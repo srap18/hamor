@@ -78,9 +78,11 @@ export function dpProgress(d: Dragon): { current: number; next: number; pct: num
   return { current: d.dp, next: next.dpRequired, pct: Math.min(100, (rel / span) * 100) };
 }
 
-/** Overall level 1..150 derived from form (stage) + dp progress inside that form. */
+/** Overall level 0..150. Level 0 = fresh egg with no bonuses. */
 export function overallLevel(d: Dragon): number {
   const formIdx = Math.max(1, Math.min(MAX_FORMS, d.stage));
+  // Fresh egg → level 0 (no perks yet)
+  if (formIdx === 1 && d.dp <= 0) return 0;
   const next = getNextStage(formIdx);
   if (!next) return MAX_LEVEL;
   const base = getStage(formIdx).dpRequired;
@@ -113,13 +115,14 @@ export type DragonBonus = {
 };
 
 export function dragonMultiplier(level: number): number {
+  if (level <= 0) return 1; // egg → no bonus
   const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   return Math.pow(1 + DRAGON_GROWTH_RATE, lvl - 1);
 }
 
 export function dragonBonusForLevel(level: number): DragonBonus {
-  const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
-  const tier = Math.ceil(lvl / 5); // 1..30
+  const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
+  const tier = lvl === 0 ? 0 : Math.ceil(lvl / 5); // 0..30
   const mult = dragonMultiplier(lvl);
   return { tier, kind: "mult", value: mult, label: `×${mult.toFixed(2)}` };
 }
