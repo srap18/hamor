@@ -589,6 +589,36 @@ export type Database = {
         }
         Relationships: []
       }
+      destroyer_messages: {
+        Row: {
+          attacker_id: string
+          attacker_name: string | null
+          created_at: string
+          defender_id: string
+          id: string
+          kind: string
+          message: string
+        }
+        Insert: {
+          attacker_id: string
+          attacker_name?: string | null
+          created_at?: string
+          defender_id: string
+          id?: string
+          kind?: string
+          message: string
+        }
+        Update: {
+          attacker_id?: string
+          attacker_name?: string | null
+          created_at?: string
+          defender_id?: string
+          id?: string
+          kind?: string
+          message?: string
+        }
+        Relationships: []
+      }
       device_accounts: {
         Row: {
           created_at: string
@@ -3336,6 +3366,17 @@ export type Database = {
           level: number
           name_frame: string
           xp: number
+        }[]
+      }
+      get_destroyer_messages: {
+        Args: { _defender_id: string }
+        Returns: {
+          attacker_id: string
+          attacker_name: string
+          created_at: string
+          id: string
+          kind: string
+          message: string
         }[]
       }
       get_fish_leaderboard: {
