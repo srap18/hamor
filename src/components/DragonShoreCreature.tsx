@@ -45,8 +45,8 @@ export function DragonShoreCreature() {
         aria-label={isEgg ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
-          left: "18%",
-          bottom: "16%",
+          left: "20%",
+          bottom: "8%",
           width: "22%",
           maxWidth: "150px",
           aspectRatio: "1 / 1",
