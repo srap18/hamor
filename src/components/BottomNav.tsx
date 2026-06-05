@@ -1,36 +1,43 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Anchor, Coins, Compass, Crown, ScrollText, Swords, Skull, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
+import iconBattle from "@/assets/nav-icon-battle.png";
+import iconArena from "@/assets/nav-icon-arena.png";
+import iconFriends from "@/assets/nav-icon-friends.png";
+import iconInventory from "@/assets/nav-icon-inventory.png";
+import iconShop from "@/assets/nav-icon-shop.png";
+import iconChat from "@/assets/nav-icon-chat.png";
+import iconSettings from "@/assets/nav-icon-settings.png";
+
 const items = [
-  { icon: Swords, label: "تحدي", to: "/battle" as const },
-  { icon: Crown, label: "ترتيب", to: "/arena" as const },
-  { icon: Users, label: "أصدقاء", to: "/friends" as const },
-  { icon: Anchor, label: "مخزن", to: "/inventory" as const },
-  { icon: Coins, label: "متجر", to: "/shop" as const },
-  { icon: ScrollText, label: "شات", to: "/chat" as const },
+  { src: iconBattle, label: "تحدي", to: "/battle" as const },
+  { src: iconArena, label: "ترتيب", to: "/arena" as const },
+  { src: iconFriends, label: "أصدقاء", to: "/friends" as const },
+  { src: iconInventory, label: "مخزن", to: "/inventory" as const },
+  { src: iconShop, label: "متجر", to: "/shop" as const },
+  { src: iconChat, label: "شات", to: "/chat" as const },
 ] satisfies Array<{
-  icon: typeof Skull;
+  src: string;
   label: string;
   to: "/battle" | "/arena" | "/friends" | "/inventory" | "/shop" | "/chat";
 }>;
 
-function GoldNavButton({
+function NavIconButton({
   label,
+  src,
   active,
   badge,
   onClick,
-  children,
 }: {
   label: string;
+  src: string;
   active?: boolean;
   badge?: number;
   onClick: () => void;
-  children: ReactNode;
 }) {
   return (
     <button
@@ -40,95 +47,32 @@ function GoldNavButton({
       aria-label={label}
     >
       <div
-        className="relative flex size-[52px] items-center justify-center"
+        className="relative flex size-[56px] items-center justify-center"
         style={{
           filter: active
-            ? "drop-shadow(0 0 18px rgba(255,196,79,0.7)) drop-shadow(0 4px 8px rgba(0,0,0,0.6))"
-            : "drop-shadow(0 4px 10px rgba(0,0,0,0.65))",
+            ? "drop-shadow(0 0 14px rgba(255,200,90,0.7)) drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
+            : "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
         }}
       >
-        {/* outer rope ring (twisted gold rope) */}
-        <span
-          className="absolute inset-0 rounded-full"
-          style={{
-            background:
-              "conic-gradient(from 0deg, #5a3410 0deg, #c8923a 12deg, #fbe39a 22deg, #c8923a 32deg, #5a3410 44deg, #c8923a 56deg, #fbe39a 66deg, #c8923a 76deg, #5a3410 88deg, #c8923a 100deg, #fbe39a 110deg, #c8923a 120deg, #5a3410 132deg, #c8923a 144deg, #fbe39a 154deg, #c8923a 164deg, #5a3410 176deg, #c8923a 188deg, #fbe39a 198deg, #c8923a 208deg, #5a3410 220deg, #c8923a 232deg, #fbe39a 242deg, #c8923a 252deg, #5a3410 264deg, #c8923a 276deg, #fbe39a 286deg, #c8923a 296deg, #5a3410 308deg, #c8923a 320deg, #fbe39a 330deg, #c8923a 340deg, #5a3410 352deg, #5a3410 360deg)",
-            padding: 3,
-            boxShadow:
-              "0 0 0 1px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,230,160,0.35)",
-          }}
-        >
-          <span
-            className="block size-full rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 38%, #3a2210 0%, #1a0e06 55%, #07040 100%)",
-            }}
-          />
-        </span>
-
-        {/* inner brass medallion */}
-        <span
-          className="absolute inset-[6px] rounded-full"
-          style={{
-            background: active
-              ? "radial-gradient(circle at 36% 28%, #fff3c2 0%, #f4c668 22%, #b07a1f 60%, #5a3a10 100%)"
-              : "radial-gradient(circle at 36% 28%, #efd28a 0%, #c89344 28%, #7a4e16 70%, #3a2308 100%)",
-            boxShadow:
-              "inset 0 1px 2px rgba(255,240,190,0.7), inset 0 -3px 6px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(70,40,10,0.9)",
-          }}
+        <img
+          src={src}
+          alt={label}
+          loading="lazy"
+          width={112}
+          height={112}
+          className="size-full object-contain"
+          style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 200ms" }}
         />
-
-        {/* subtle inner shine */}
-        <span
-          className="absolute inset-[8px] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at 40% 22%, rgba(255,255,235,0.55) 0%, rgba(255,255,235,0) 45%)",
-          }}
-        />
-
-        {/* rivets (4 corners) */}
-        {[
-          { top: 1, left: "50%", x: "-50%", y: "0" },
-          { bottom: 1, left: "50%", x: "-50%", y: "0" },
-          { left: 1, top: "50%", x: "0", y: "-50%" },
-          { right: 1, top: "50%", x: "0", y: "-50%" },
-        ].map((p, i) => (
-          <span
-            key={i}
-            className="absolute size-[5px] rounded-full"
-            style={{
-              ...p,
-              transform: `translate(${p.x}, ${p.y})`,
-              background:
-                "radial-gradient(circle at 35% 30%, #fde9a8 0%, #b7811d 60%, #3d2509 100%)",
-              boxShadow: "0 0 2px rgba(0,0,0,0.8), inset 0 0 1px rgba(255,240,180,0.7)",
-            }}
-          />
-        ))}
-
-        <div
-          className="relative z-10 flex items-center justify-center [&_svg]:size-[22px] [&_svg]:stroke-[2.3]"
-          style={{
-            color: active ? "#2a1605" : "#3a2208",
-            filter: active
-              ? "drop-shadow(0 1px 0 rgba(255,245,200,0.8))"
-              : "drop-shadow(0 1px 0 rgba(255,230,160,0.5))",
-          }}
-        >
-          {children}
-        </div>
       </div>
 
       {typeof badge === "number" && badge > 0 && (
         <span
-          className="absolute right-0 top-0 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
+          className="absolute right-0 top-0 z-10 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
           style={{
             height: 18,
             background: "linear-gradient(180deg, #e53935 0%, #8f1212 100%)",
             border: "2px solid rgba(255,243,200,0.95)",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
           }}
         >
           {badge > 9 ? "9+" : badge}
@@ -203,76 +147,40 @@ export function BottomNav({ active }: { active?: string }) {
   const friendsBadge = useMemo(() => (unread > 0 ? unread : undefined), [unread]);
 
   return (
-    <>
+    <div
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-2"
+      style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}
+    >
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-2 pb-2 pt-3"
-        style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))" }}
-      >
-        {/* wooden plank backdrop */}
-        <div
-          className="pointer-events-auto relative mx-auto max-w-[640px] rounded-2xl px-2 pt-3 pb-2"
-          style={{
-            background:
-              "repeating-linear-gradient(90deg, #4a2a14 0px, #5a3418 6px, #432513 12px, #5a3418 18px, #3a1f0e 24px), linear-gradient(180deg, #5c3418 0%, #2e180a 100%)",
-            backgroundBlendMode: "multiply",
-            border: "2px solid #1a0d05",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,200,130,0.25), inset 0 -3px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(120,70,25,0.6), 0 -6px 22px rgba(0,0,0,0.6), 0 0 0 2px rgba(180,130,55,0.55)",
-          }}
-        >
-          {/* top rope trim */}
-          <span
-            className="absolute -top-[6px] left-2 right-2 h-[6px] rounded-full"
-            style={{
-              background:
-                "repeating-linear-gradient(90deg, #5a3410 0px, #c8923a 4px, #fbe39a 7px, #c8923a 10px, #5a3410 14px)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,230,160,0.5)",
-            }}
-          />
-          {/* corner rivets */}
-          {[
-            { top: 5, left: 6 },
-            { top: 5, right: 6 },
-            { bottom: 5, left: 6 },
-            { bottom: 5, right: 6 },
-          ].map((p, i) => (
-            <span
-              key={i}
-              className="absolute size-[7px] rounded-full"
-              style={{
-                ...p,
-                background:
-                  "radial-gradient(circle at 35% 30%, #fde9a8 0%, #b7811d 60%, #2d1a05 100%)",
-                boxShadow: "0 0 2px rgba(0,0,0,0.9)",
-              }}
+        className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.7) 45%, rgba(3,5,12,0.95) 100%)",
+        }}
+      />
+      <div className="pointer-events-auto relative flex items-end justify-between gap-0.5 pb-1">
+        {items.map((item) => {
+          const isActive = active === item.to;
+          const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
+          return (
+            <NavIconButton
+              key={item.to}
+              label={item.label}
+              src={item.src}
+              active={isActive}
+              badge={badge}
+              onClick={() => nav({ to: item.to, viewTransition: false })}
             />
-          ))}
+          );
+        })}
 
-          <div className="relative flex items-end justify-between gap-1">
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isActive = active === item.to;
-              const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
-              return (
-                <GoldNavButton
-                  key={item.to}
-                  label={item.label}
-                  active={isActive}
-                  badge={badge}
-                  onClick={() => nav({ to: item.to, viewTransition: false })}
-                >
-                  <Icon />
-                </GoldNavButton>
-              );
-            })}
-
-            <GoldNavButton label="إعدادات" onClick={() => window.dispatchEvent(new CustomEvent("open-settings-modal"))}>
-              <Compass />
-            </GoldNavButton>
-          </div>
-        </div>
+        <NavIconButton
+          label="إعدادات"
+          src={iconSettings}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-settings-modal"))}
+        />
       </div>
-    </>
+    </div>
   );
 }
 
