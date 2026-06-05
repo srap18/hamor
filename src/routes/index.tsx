@@ -141,9 +141,9 @@ function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
 // so they never overlap on screen.
 const SLOTS = [
-  { scale: 1.55, top: "42%", dockLeft: 82 },
-  { scale: 1.28, top: "55%", dockLeft: 50 },
-  { scale: 1.5, top: "30%", dockLeft: 14 },
+  { scale: 1.4, top: "42%", dockLeft: 82 },
+  { scale: 1.4, top: "55%", dockLeft: 50 },
+  { scale: 1.4, top: "30%", dockLeft: 14 },
 ];
 
 const INITIAL_SHIPS: Ship[] = [
@@ -1524,7 +1524,7 @@ function Index() {
         const vRange = Math.max(10, 60 - (wTop + 10));
         const top = `${fixedSlot?.top ?? wTop + 10 + ts[i] * vRange}%`;
 
-        const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
+        const scale = fixedSlot?.scale ?? 1.4; // unified ship size
         // Dock on the LEFT half of the water band so each ship always has
         // room to sail rightward when fishing (and visibly return to dock when recalled).
         const hOffsets = [0.05, 0.3, 0.6];
@@ -1567,7 +1567,7 @@ function Index() {
           const vRange = Math.max(10, 60 - (wTop + 10));
           const tgtTop = fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
           const tgtLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const tgtScale = fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
+          const tgtScale = fixedSlot?.scale ?? 1.4;
           const tgtShipW = 22 * tgtScale;
           const seaIsRight = (scene.seaSide ?? "right") === "right";
           top = `${Math.max(50, Math.min(74, tgtTop + tgtShipW * 0.22 + sibIdx * 5))}%`;
