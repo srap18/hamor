@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dragon, DRAGON_STAGES, getStage, dpProgress } from "@/lib/dragon";
+import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL } from "@/lib/dragon";
 
 export const Route = createFileRoute("/dragon")({
   ssr: false,
@@ -107,7 +107,10 @@ function DragonPage() {
           <div className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-600/30 via-rose-600/30 to-amber-600/30 border border-amber-400/50">
             <img src={stage.image} alt={stage.name} className="inline-block w-8 h-8 object-contain me-2 align-middle" loading="lazy" />
             <span className="text-amber-100 font-extrabold text-lg">{stage.name}</span>
-            <span className="text-amber-300/70 text-xs ms-2">المرحلة {d.stage}/10</span>
+            <span className="text-amber-300/70 text-xs ms-2">الشكل {d.stage}/{DRAGON_STAGES.length}</span>
+          </div>
+          <div className="mt-1 text-amber-200/90 text-xs font-bold">
+            ⭐ المستوى {overallLevel(d)} / {MAX_LEVEL}
           </div>
         </div>
 
