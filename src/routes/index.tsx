@@ -39,7 +39,6 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
-import navIconBattle from "@/assets/nav-icon-battle.png";
 import navIconArena from "@/assets/nav-icon-arena.png";
 import navIconFriends from "@/assets/nav-icon-friends.png";
 import navIconInventory from "@/assets/nav-icon-inventory.png";
