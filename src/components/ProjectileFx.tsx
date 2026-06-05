@@ -80,23 +80,27 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[70]" style={{ perspective: "1200px" }}>
-      {/* Smoke trail puffs */}
+      {/* Realistic smoke trail puffs (image-based) */}
       {fx.phase === "fly" && !fx.friendly && puffs.map((p) => (
-        <div
+        <img
           key={p.id}
-          className="absolute rounded-full animate-smoke-trail-fade"
+          src={smokeReal}
+          alt=""
+          aria-hidden
+          className="absolute animate-smoke-trail-fade select-none"
           style={{
             left: p.x - p.size / 2,
             top: p.y - p.size / 2,
             width: p.size,
             height: p.size,
-            background:
-              "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(200,200,200,0.55) 35%, rgba(80,80,80,0.25) 70%, transparent 100%)",
-            filter: "blur(4px)",
-            mixBlendMode: "screen",
+            opacity: 0.85,
+            mixBlendMode: "normal",
+            objectFit: "contain",
           }}
         />
       ))}
+
+
 
       {fx.phase === "fly" && (
         <div
