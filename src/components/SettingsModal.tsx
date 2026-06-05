@@ -143,6 +143,29 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
 
+        {/* Ship mast flag picker */}
+        <div className="mt-3 p-3 rounded-lg bg-black/30 border border-accent/30">
+          <div className="text-xs text-accent/80 mb-2">🚩 علم السفن</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {SHIP_FLAGS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => { setFlagId(f.id); setShipFlag(f.id); sound.play("click"); }}
+                className={`py-1.5 px-2 rounded-md text-[11px] font-bold border active:scale-95 ${
+                  flagId === f.id
+                    ? "bg-amber-600/80 border-amber-300 text-white"
+                    : "bg-stone-900/60 border-amber-700/30 text-amber-100/80"
+                }`}
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+          <div className="mt-1.5 text-[10px] text-accent/60 text-center">
+            اختر "بدون علم" لإخفاء العلم من سفنك
+          </div>
+        </div>
+
         {email && (
           <div className="mt-3 space-y-2">
             <button
