@@ -24,7 +24,7 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
   const [puffs, setPuffs] = useState<Puff[]>([]);
   const startRef = useRef<number>(performance.now());
 
-  const isNuke = fx.weaponId === "nuke";
+  const isNuke = fx.weaponId === "nuke" || fx.weaponId === "ad_bomb";
   const isLarge = fx.weaponId === "rocket_large";
   const isMed = fx.weaponId === "rocket_medium";
 
