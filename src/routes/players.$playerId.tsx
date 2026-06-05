@@ -68,6 +68,9 @@ function PlayerPage() {
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
+  type SignMsg = { id: string; attacker_id: string; attacker_name: string | null; kind: string; message: string; created_at: string };
+  const [signMessages, setSignMessages] = useState<SignMsg[]>([]);
+  const [signIdx, setSignIdx] = useState(0);
   const [deathBannerHidden, setDeathBannerHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
