@@ -622,7 +622,7 @@ function Index() {
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
-    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number }[] }[])[0] : null;
+    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number; qty?: number }[] }[])[0] : null;
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
     const groups: Record<string, { id: string; name: string; emoji: string; img?: string; qty: number }> = {};
@@ -630,10 +630,13 @@ function Index() {
       const f = FISH[it.fish_id];
       const id = it.fish_id;
       if (!groups[id]) groups[id] = { id, name: f?.name ?? "سمكة", emoji: f?.emoji ?? "🐟", img: f?.img, qty: 0 };
-      groups[id].qty += 1;
+      groups[id].qty += Math.max(1, Number(it.qty ?? 1));
     });
     setStealResult({ count: n, value: v, items: Object.values(groups), cancelled });
     sound.play(n > 0 ? "catch" : "click");
+    if (n > 0) {
+      try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+    }
   };
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
