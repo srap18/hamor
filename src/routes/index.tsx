@@ -1244,8 +1244,8 @@ function Index() {
             key={`vid-${scene.id}`}
             src={scene.displayVideo}
             poster={scene.displayImage}
-            className={`absolute inset-0 h-full w-full object-cover select-none ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
-            style={{ objectPosition: scene.objectPosition ?? "center center" }}
+            className="absolute inset-0 h-full w-full object-cover select-none"
+            style={{ objectPosition: scene.objectPosition ?? "center center", transform: "translateZ(0)" }}
             playbackRate={0.7}
           />
         ) : (
