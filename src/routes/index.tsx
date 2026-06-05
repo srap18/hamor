@@ -1377,16 +1377,39 @@ function Index() {
 
           {/* Treasury — gold + gems */}
           <div className="flex-1 flex flex-col gap-1.5">
-          <div className="rounded-xl border-2 border-amber-400/80 bg-gradient-to-r from-[#3a1f0a]/95 to-[#1a0d04]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(252,191,73,0.3)]">
+          <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+                border: "2px solid #c9a44a",
+                boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
               <CoinIcon size={22} />
-              <span className="text-sm font-black text-amber-200 tabular-nums drop-shadow">{coins.toLocaleString()}</span>
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 6px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
             </div>
-            <div className="rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-[#0a1f3a]/95 to-[#04101a]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(125,211,252,0.3)]">
+            <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #0d2a4a 0%, #051324 70%, #02080f 100%)",
+                border: "2px solid #4ac9e0",
+                boxShadow: "inset 0 1px 0 rgba(180,240,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #051324, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(74,201,224,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.35) 0%, transparent 100%)" }} />
               <GemIcon size={22} />
-              <span className="text-sm font-black text-cyan-200 tabular-nums drop-shadow">{gems.toLocaleString()}</span>
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 6px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
               <Link
                 to="/recharge"
-                className="w-6 h-6 rounded-full bg-cyan-400 text-cyan-950 text-xs font-black border border-cyan-200 active:scale-90 flex items-center justify-center shadow"
+                className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90"
+                style={{
+                  background: "radial-gradient(ellipse at 50% 30%, #d6f4ff 0%, #4ac9e0 60%, #1a7da0 100%)",
+                  color: "#04242e",
+                  border: "2px solid #bff3ff",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.5)",
+                  textShadow: "0 1px 0 rgba(255,255,255,0.6)",
+                }}
               >+</Link>
             </div>
 
