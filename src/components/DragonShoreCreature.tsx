@@ -45,51 +45,53 @@ export function DragonShoreCreature() {
         aria-label={isEgg ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
-          left: "20%",
-          bottom: "13%",
-          width: "20%",
-          maxWidth: "140px",
+          left: "14%",
+          bottom: "9%",
+          width: "32%",
+          maxWidth: "220px",
           aspectRatio: "1 / 1",
           pointerEvents: "auto",
         }}
       >
-        {/* Long cast shadow stretching across sand — matches scene light */}
+        {/* Sand depression — darker patch where dragon's weight presses */}
+        {!isEgg && (
+          <span
+            className="absolute pointer-events-none"
+            style={{
+              left: "8%",
+              right: "8%",
+              bottom: "1%",
+              height: "13%",
+              background:
+                "radial-gradient(ellipse at center, rgba(40,25,15,0.55) 0%, rgba(40,25,15,0.25) 50%, transparent 80%)",
+              filter: "blur(4px)",
+            }}
+          />
+        )}
+        {/* Long cast shadow stretching across sand */}
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "-10%",
-            right: "20%",
+            left: "-15%",
+            right: "15%",
             bottom: "-2%",
-            height: "18%",
+            height: "20%",
             background:
-              "radial-gradient(ellipse at 70% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 80%)",
-            filter: "blur(8px)",
-            transform: "skewX(-18deg)",
-          }}
-        />
-        {/* Soft ambient shadow — wider, lighter for grounding */}
-        <span
-          className="absolute pointer-events-none"
-          style={{
-            left: "6%",
-            right: "6%",
-            bottom: "0%",
-            height: "12%",
-            background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 72%)",
-            filter: "blur(5px)",
+              "radial-gradient(ellipse at 70% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0) 82%)",
+            filter: "blur(9px)",
+            transform: "skewX(-20deg)",
           }}
         />
         {/* Contact ground shadow — tight, dark ellipse directly under feet */}
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "18%",
-            right: "18%",
+            left: "16%",
+            right: "16%",
             bottom: "3%",
             height: "6%",
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 38%, rgba(0,0,0,0) 78%)",
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.62) 38%, rgba(0,0,0,0) 78%)",
             filter: "blur(1.5px)",
             animation: "dsc-shadow 3s ease-in-out infinite",
           }}
@@ -99,12 +101,12 @@ export function DragonShoreCreature() {
           <span
             className="absolute pointer-events-none"
             style={{
-              left: "22%",
-              right: "22%",
+              left: "20%",
+              right: "20%",
               bottom: "4%",
               height: "3%",
               background:
-                "radial-gradient(circle at 20% 50%, rgba(60,40,20,0.55) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(60,40,20,0.55) 0%, transparent 40%), radial-gradient(circle at 80% 50%, rgba(60,40,20,0.55) 0%, transparent 40%)",
+                "radial-gradient(circle at 15% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 38% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 62% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 85% 50%, rgba(50,30,15,0.65) 0%, transparent 38%)",
               filter: "blur(1px)",
             }}
           />
@@ -116,12 +118,12 @@ export function DragonShoreCreature() {
             animation: isEgg ? "dsc-rock 2.6s ease-in-out infinite" : "dsc-breathe 2.8s ease-in-out infinite",
             transformOrigin: "50% 100%",
             WebkitMaskImage:
-              "radial-gradient(ellipse 96% 96% at 50% 48%, #000 76%, rgba(0,0,0,0.85) 90%, transparent 100%)",
+              "radial-gradient(ellipse 98% 98% at 50% 48%, #000 78%, rgba(0,0,0,0.8) 92%, transparent 100%)",
             maskImage:
-              "radial-gradient(ellipse 96% 96% at 50% 48%, #000 76%, rgba(0,0,0,0.85) 90%, transparent 100%)",
+              "radial-gradient(ellipse 98% 98% at 50% 48%, #000 78%, rgba(0,0,0,0.8) 92%, transparent 100%)",
           }}
         >
-          {/* Base dragon — color-graded to match scene */}
+          {/* Base dragon — desaturated and dimmed to scene */}
           <img
             src={img}
             alt=""
@@ -129,10 +131,10 @@ export function DragonShoreCreature() {
             className="absolute inset-0 w-full h-full object-contain object-bottom"
             style={{
               filter:
-                "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) drop-shadow(0 8px 14px rgba(0,0,0,0.4)) saturate(0.82) brightness(0.88) contrast(1.05)",
+                "drop-shadow(0 3px 3px rgba(0,0,0,0.65)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.72) brightness(0.82) contrast(1.05)",
             }}
           />
-          {/* Cool ambient/sea reflection overlay on shadow side */}
+          {/* Cool blue/purple ambient overlay matching scene lighting */}
           <img
             src={img}
             alt=""
@@ -141,11 +143,24 @@ export function DragonShoreCreature() {
             className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
             style={{
               mixBlendMode: "overlay",
-              opacity: 0.32,
-              filter: "brightness(0.9) sepia(1) hue-rotate(170deg) saturate(1.8)",
+              opacity: 0.55,
+              filter: "brightness(0.85) sepia(1) hue-rotate(200deg) saturate(2.2)",
             }}
           />
-          {/* Warm rim light from scene */}
+          {/* Purple rim from glowing plants */}
+          <img
+            src={img}
+            alt=""
+            draggable={false}
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
+            style={{
+              mixBlendMode: "screen",
+              opacity: 0.22,
+              filter: "brightness(1.1) sepia(1) hue-rotate(245deg) saturate(2.5)",
+            }}
+          />
+          {/* Warm rim light from sky */}
           <img
             src={img}
             alt=""
@@ -154,11 +169,26 @@ export function DragonShoreCreature() {
             className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
             style={{
               mixBlendMode: "soft-light",
-              opacity: 0.5,
-              filter: "brightness(1.15) sepia(0.6) hue-rotate(-20deg) saturate(1.3)",
+              opacity: 0.45,
+              filter: "brightness(1.15) sepia(0.7) hue-rotate(-15deg) saturate(1.3)",
             }}
           />
         </div>
+
+        {/* Atmospheric mist on the lower body */}
+        <span
+          className="absolute pointer-events-none"
+          style={{
+            left: "0%",
+            right: "0%",
+            bottom: "5%",
+            height: "32%",
+            background:
+              "linear-gradient(to top, rgba(120,140,200,0.35) 0%, rgba(120,140,200,0.18) 40%, transparent 100%)",
+            filter: "blur(6px)",
+            mixBlendMode: "screen",
+          }}
+        />
       </button>
       {showSoon && (
         <div
