@@ -2186,7 +2186,7 @@ function Index() {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
                   else if (it.action === "boost") setBoostOpen(true);
-                  else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
+                  else if (it.action === "tribe") { window.location.href = "/chat?tab=tribe"; }
                 }}
                 className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
