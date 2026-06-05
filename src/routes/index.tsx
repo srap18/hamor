@@ -959,9 +959,9 @@ function Index() {
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
-          // Unified speed — same easing coefficient for going out (fishing)
-          // and coming back to shore so every ship moves at the exact same pace.
-          const smoothing = 0.22;
+          // Asymmetric smoothing: gentle when sailing out, FAST when returning
+          // to dock so stopping/collecting feels instant.
+          const smoothing = s.fishing ? 0.22 : 0.55;
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
@@ -3124,7 +3124,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   // Pivot-in-place: when bow direction changes, hold position while the flip
   // animation plays, then release so the ship slides smoothly to its new spot.
-  const TURN_MS = 700;
+  // Shorter turn when returning to dock so stop/collect feels instant.
+  const TURN_MS = ship.fishing ? 700 : 220;
   const facingRef = useRef(facing);
   const turnEndRef = useRef(0);
   const heldLeftRef = useRef(computedLeft);
@@ -3160,7 +3161,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: "left 0.5s ease-in-out",
+        transition: ship.fishing ? "left 0.5s ease-in-out" : "left 0.18s linear",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3248,7 +3249,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         style={{
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
-          transition: "transform 0.7s ease-in-out",
+          transition: ship.fishing ? "transform 0.7s ease-in-out" : "transform 0.22s ease-out",
         }}
       >
       {/* 3D ship body */}
