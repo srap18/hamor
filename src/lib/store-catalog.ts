@@ -2,8 +2,6 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
-import adBombStoreImg from "@/assets/ad-bomb-store.jpg.asset.json";
-
 export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon";
 
 export type PackInventoryItem = {
@@ -17,7 +15,6 @@ export type StorePack = {
   category: PackCategory;
   label: string;
   emoji: string;
-  image?: string;
   priceUSD: number;
   stripePriceId: string;
   subscription?: boolean;
@@ -158,9 +155,8 @@ export const STORE_PACKS: StorePack[] = [
   {
     id: "ad_bomb_pack",
     category: "weapon",
-    label: "قنبلة إعلانية",
-    emoji: "💣",
-    image: adBombStoreImg.url,
+    label: "📺 قنبلة إعلانية",
+    emoji: "📺",
     priceUSD: 1.99,
     stripePriceId: "ad_bomb_pack",
     tag: "جديد",

@@ -71,7 +71,7 @@ const IMG_BY_LEVEL: Record<number, string> = {
 const BOW_FACES_RIGHT: Record<number, boolean> = {
   3: true, 4: true, 5: true, 6: true, 8: true,
   11: true, 12: true, 13: true, 16: true,
-  19: true, 24: true, 30: true, 31: true,
+  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true,
 };
 
 export function shipBowFacesRight(level: number): boolean {
@@ -115,10 +115,10 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   22: { ar: "سفينة نجم البحر",         rarity: "Legendary", flavor: "سفينة تتلألأ كنجمٍ يهتدي به البحّارة.",              storage: 85000,  price: 150000000,   fishingMinutes: 66,   fishPool: ["whale","orca","manta"] },
   23: { ar: "سفينة أسطورة الأعماق",    rarity: "Legendary", flavor: "سفينة الأسطورة التي تجوب أعمق الأعماق.",             storage: 100000, price: 200000000,   fishingMinutes: 72,   fishPool: ["arowana","goldfish","hammerhead"] },
   24: { ar: "سفينة نهاية المحيط",      rarity: "Legendary", flavor: "سفينة نهائية تصل لحدود المحيط البعيد.",              storage: 120000, price: 300000000,   fishingMinutes: 80,   fishPool: ["pearl","koi","tang_blue"] },
-  25: { ar: "ثاوزند سني",              rarity: "Mythic",    flavor: "سفينة الأحلام بشراع الجولي روجر ورأس الأسد الذهبي.", storage: 140000, price: 650000000,   fishingMinutes: 88,   fishPool: ["orca","whale","arowana"] },
-  26: { ar: "سفينة الكيوبي",           rarity: "Mythic",    flavor: "سفينة النينجا برأس الثعلب ذو الأذناب التسعة وشعار كونوها.", storage: 165000, price: 800000000,   fishingMinutes: 96,   fishPool: ["kraken","leviathan","goldfish"] },
-  27: { ar: "سفينة كاسر الجدران",      rarity: "Mythic",    flavor: "سفينة فيلق الاستطلاع برأس العملاق المدرّع.",          storage: 190000, price: 1000000000,  fishingMinutes: 105,  fishPool: ["megalodon","sea_dragon","pearl"] },
-  28: { ar: "سفينة شينلونغ",           rarity: "Mythic",    flavor: "سفينة التنين الذهبي وكرات الدراغون السبع.",            storage: 220000, price: 2000000000,  fishingMinutes: 115,  fishPool: ["poseidon","kraken","leviathan"] },
+  25: { ar: "سفينة العرش البحري",      rarity: "Mythic",    flavor: "عرش بحري ملكي للقباطنة الأسطوريين.",                 storage: 140000, price: 650000000,   fishingMinutes: 88,   fishPool: ["orca","whale","arowana"] },
+  26: { ar: "سفينة أسد الأعماق",       rarity: "Mythic",    flavor: "سفينة الأسد المرعبة بقوة لا تُقهر.",                  storage: 165000, price: 800000000,   fishingMinutes: 96,   fishPool: ["kraken","leviathan","goldfish"] },
+  27: { ar: "سفينة التيتانيوم البحري", rarity: "Mythic",    flavor: "سفينة تيتانيوم لا يخترقها شيء.",                      storage: 190000, price: 1000000000,  fishingMinutes: 105,  fishPool: ["megalodon","sea_dragon","pearl"] },
+  28: { ar: "سفينة ملك المحيط",        rarity: "Mythic",    flavor: "سفينة ملك المحيط بلا منازع.",                         storage: 220000, price: 2000000000,  fishingMinutes: 115,  fishPool: ["poseidon","kraken","leviathan"] },
   29: { ar: "سفينة التنين البحري",     rarity: "Mythic",    flavor: "تنين بحري ينفث الرعب في الأمواج.",                    storage: 260000, price: 5000000000,  fishingMinutes: 125,  fishPool: ["black_pearl","megalodon","sea_dragon"] },
   30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 140,  fishPool: ["golden_koi","poseidon","black_pearl","kraken"] },
   31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },

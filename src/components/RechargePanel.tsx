@@ -163,12 +163,8 @@ export function RechargePanel() {
               )}
 
               <div className="flex items-center gap-2.5">
-                <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] shrink-0">
-                  {p.image ? (
-                    <img src={p.image} alt={p.label} className="w-12 h-12 object-contain" />
-                  ) : (
-                    p.emoji
-                  )}
+                <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+                  {p.emoji}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -207,7 +203,7 @@ export function RechargePanel() {
                         key={`${it.itemType}:${it.itemId}`}
                         className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
                       >
-                        💣 ×{it.qty} قنبلة إعلانية
+                        📺 ×{it.qty} قنبلة إعلانية
                       </span>
                     ))}
                   </div>

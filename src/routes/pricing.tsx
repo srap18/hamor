@@ -99,7 +99,7 @@ function PricingPage() {
         </div>
 
         <div className="mt-6 text-center text-xs text-amber-100/50">
-          البائع: Wissam Alsharari & Faisal Alsharari
+          البائع: Amira Qailan Dakhil Allah Alsharari
         </div>
       </div>
     </div>

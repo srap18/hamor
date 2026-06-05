@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
 import iconBattle from "@/assets/nav-icon-battle.png";
+import iconArena from "@/assets/nav-icon-arena.png";
 import iconFriends from "@/assets/nav-icon-friends.png";
 import iconInventory from "@/assets/nav-icon-inventory.png";
 import iconShop from "@/assets/nav-icon-shop.png";
@@ -14,6 +15,7 @@ import iconSettings from "@/assets/nav-icon-settings.png";
 
 const items = [
   { src: iconBattle, label: "تحدي", to: "/battle" as const },
+  { src: iconArena, label: "ترتيب", to: "/arena" as const },
   { src: iconFriends, label: "أصدقاء", to: "/friends" as const },
   { src: iconInventory, label: "مخزن", to: "/inventory" as const },
   { src: iconShop, label: "متجر", to: "/shop" as const },
@@ -21,7 +23,7 @@ const items = [
 ] satisfies Array<{
   src: string;
   label: string;
-  to: "/battle" | "/friends" | "/inventory" | "/shop" | "/chat";
+  to: "/battle" | "/arena" | "/friends" | "/inventory" | "/shop" | "/chat";
 }>;
 
 function NavIconButton({
@@ -45,10 +47,8 @@ function NavIconButton({
       aria-label={label}
     >
       <div
-        className="relative flex items-center justify-center"
+        className="relative flex size-[56px] items-center justify-center"
         style={{
-          width: "clamp(38px, 12.5vw, 56px)",
-          height: "clamp(38px, 12.5vw, 56px)",
           filter: active
             ? "drop-shadow(0 0 14px rgba(255,200,90,0.7)) drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
             : "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
@@ -148,8 +148,8 @@ export function BottomNav({ active }: { active?: string }) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-1"
-      style={{ paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))" }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-2"
+      style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}
     >
       <div
         className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
@@ -158,11 +158,10 @@ export function BottomNav({ active }: { active?: string }) {
             "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.7) 45%, rgba(3,5,12,0.95) 100%)",
         }}
       />
-      <div className="pointer-events-auto relative grid grid-cols-6 items-end gap-0 pb-1">
+      <div className="pointer-events-auto relative flex items-end justify-between gap-0.5 pb-1">
         {items.map((item) => {
           const isActive = active === item.to;
           const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
-          const isDisabled = item.to === "/battle";
           return (
             <NavIconButton
               key={item.to}
@@ -170,13 +169,7 @@ export function BottomNav({ active }: { active?: string }) {
               src={item.src}
               active={isActive}
               badge={badge}
-              onClick={() => {
-                if (isDisabled) {
-                  window.dispatchEvent(new CustomEvent("toast", { detail: "قريباً 🔒" }));
-                  return;
-                }
-                nav({ to: item.to, viewTransition: false });
-              }}
+              onClick={() => nav({ to: item.to, viewTransition: false })}
             />
           );
         })}

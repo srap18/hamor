@@ -2,11 +2,23 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { sound } from "@/lib/sound";
 import { serverNowMs } from "@/lib/server-time";
-import baseImg from "@/assets/buildings/fishmarket-t1.png";
+import t1 from "@/assets/buildings/fishmarket-t1.png";
+import t2 from "@/assets/buildings/fishmarket-t2.png";
+import t3 from "@/assets/buildings/fishmarket-t3.png";
+import t4 from "@/assets/buildings/fishmarket-t4.png";
+import t5 from "@/assets/buildings/fishmarket-t5.png";
+import t6 from "@/assets/buildings/fishmarket-t6.png";
+import t7 from "@/assets/buildings/fishmarket-t7.png";
+import t8 from "@/assets/buildings/fishmarket-t8.png";
+import t9 from "@/assets/buildings/fishmarket-t9.png";
+import t10 from "@/assets/buildings/fishmarket-t10.png";
 import burnedImg from "@/assets/buildings/fishmarket-burned.png";
 
-function tierImage(_level: number): string {
-  return baseImg;
+const FISHMARKET_TIERS = [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10];
+function tierImage(level: number): string {
+  const lvl = Math.max(1, Math.min(30, Math.floor(level || 1)));
+  const idx = Math.min(9, Math.floor((lvl - 1) / 3));
+  return FISHMARKET_TIERS[idx];
 }
 
 export function FishMarketBuilding({

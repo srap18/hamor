@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import harborBgAsset from "@/assets/harbor-bg.jpg.asset.json";
-const harborBg = harborBgAsset.url;
+import harborBg from "@/assets/harbor-bg.jpg";
 import harborVideo from "@/assets/harbor-bg.mp4.asset.json";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 
@@ -84,7 +83,7 @@ export function Landing() {
           <Link to="/refund" className="hover:text-amber-300">سياسة الاسترداد</Link>
         </div>
         <div className="text-center text-xs text-amber-100/40 mt-3">
-          © {new Date().getFullYear()} ملوك القراصنة — Wissam Alsharari & Faisal Alsharari
+          © {new Date().getFullYear()} ملوك القراصنة — Amira Qailan Dakhil Allah Alsharari
         </div>
       </footer>
     </div>

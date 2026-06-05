@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyShieldToInventory } from "@/lib/economy";
+import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyProtection } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CREWS as LIB_CREWS } from "@/lib/crews";
 import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
@@ -84,7 +84,7 @@ const WEAPONS: Item[] = LIB_WEAPONS.map((w) => ({
     ? `${w.desc} • ضرر ${w.aoe ? "∞" : w.damage.toLocaleString()}`
     : `ضرر ${w.damage.toLocaleString()}`,
   rarity: w.rarity,
-  image: WEAPON_IMAGES[w.id] ?? w.image,
+  image: WEAPON_IMAGES[w.id],
 }));
 
 const CREWS: Item[] = LIB_CREWS.map((c) => ({
@@ -166,18 +166,26 @@ function Shop() {
     setBusy(true);
 
     if (tab === "protection") {
-      // Shields go to INVENTORY first; user activates manually.
-      const invItemId =
-        selected.id === "shield-4h" ? "shield_4h" :
-        selected.id === "shield-1d" ? "shield_1d" :
-        selected.id === "shield-2d" ? "shield_2d" : "";
-      if (!invItemId) { setBusy(false); flash("درع غير معروف"); return; }
+      // Server-side: deduct currency AND extend protection_until atomically.
+      const days =
+        selected.id === "shield-4h" ? (qty / 6) :     // 4h × qty = qty/6 days (will round up server-side)
+        selected.id === "shield-1d" ? qty :
+        selected.id === "shield-2d" ? qty * 2 : 0;
+      const daysInt = Math.max(1, Math.ceil(days));
       const coinsCost = selected.currency === "coin" ? total : 0;
       const gemsCost = selected.currency === "gem" ? total : 0;
-      const { error } = await buyShieldToInventory(invItemId, qty, coinsCost, gemsCost);
+      const { error } = await buyProtection(daysInt, coinsCost, gemsCost);
       setBusy(false);
       if (error) {
-        flash("فشل الشراء: " + (error.message || ""), 2000);
+        const msg = error.message || "";
+        if (msg.includes("armor_cooldown")) {
+          const m = msg.match(/until\s+(.+)$/);
+          const untilMs = m ? new Date(m[1]).getTime() : NaN;
+          const days = Number.isFinite(untilMs) ? Math.ceil(Math.max(0, untilMs - serverNowMs()) / 86400000) : 7;
+          flash(`لا يمكن شراء درع جديد قبل ${Math.max(1, days)} يوم`, 2200);
+        } else {
+          flash("فشل الشراء: " + msg, 2000);
+        }
         return;
       }
     } else if (tab === "ships") {

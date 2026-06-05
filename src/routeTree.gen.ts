@@ -28,17 +28,21 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
+import { Route as DragonRouteImport } from './routes/dragon'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as BossRouteImport } from './routes/boss'
 import { Route as BattleRouteImport } from './routes/battle'
 import { Route as BackgroundsShopRouteImport } from './routes/backgrounds-shop'
+import { Route as ArenaRouteImport } from './routes/arena'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
@@ -145,6 +149,11 @@ const FishMarketRoute = FishMarketRouteImport.update({
   path: '/fish-market',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DragonRoute = DragonRouteImport.update({
+  id: '/dragon',
+  path: '/dragon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CosmeticsRoute = CosmeticsRouteImport.update({
   id: '/cosmetics',
   path: '/cosmetics',
@@ -160,6 +169,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BossRoute = BossRouteImport.update({
+  id: '/boss',
+  path: '/boss',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BattleRoute = BattleRouteImport.update({
   id: '/battle',
   path: '/battle',
@@ -168,6 +182,11 @@ const BattleRoute = BattleRouteImport.update({
 const BackgroundsShopRoute = BackgroundsShopRouteImport.update({
   id: '/backgrounds-shop',
   path: '/backgrounds-shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArenaRoute = ArenaRouteImport.update({
+  id: '/arena',
+  path: '/arena',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -199,6 +218,11 @@ const PIdRoute = PIdRouteImport.update({
   id: '/p/$id',
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DragonForgeRoute = DragonForgeRouteImport.update({
+  id: '/forge',
+  path: '/forge',
+  getParentRoute: () => DragonRoute,
 } as any)
 const AdminSanctionsRoute = AdminSanctionsRouteImport.update({
   id: '/sanctions',
@@ -255,11 +279,14 @@ const ApiPublicPaymentsWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/battle': typeof BattleRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -288,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -296,11 +324,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/battle': typeof BattleRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -329,6 +360,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -339,11 +371,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/arena': typeof ArenaRoute
   '/backgrounds-shop': typeof BackgroundsShopRoute
   '/battle': typeof BattleRoute
+  '/boss': typeof BossRoute
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/dragon': typeof DragonRouteWithChildren
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -372,6 +407,7 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/dragon/forge': typeof DragonForgeRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -383,11 +419,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/arena'
     | '/backgrounds-shop'
     | '/battle'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -416,6 +455,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -424,11 +464,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/arena'
     | '/backgrounds-shop'
     | '/battle'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -457,6 +500,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -466,11 +510,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/arena'
     | '/backgrounds-shop'
     | '/battle'
+    | '/boss'
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/dragon'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -499,6 +546,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/dragon/forge'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -509,11 +557,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ArenaRoute: typeof ArenaRoute
   BackgroundsShopRoute: typeof BackgroundsShopRoute
   BattleRoute: typeof BattleRoute
+  BossRoute: typeof BossRoute
   ChatRoute: typeof ChatRoute
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
+  DragonRoute: typeof DragonRouteWithChildren
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   FriendsRoute: typeof FriendsRoute
@@ -674,6 +725,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FishMarketRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dragon': {
+      id: '/dragon'
+      path: '/dragon'
+      fullPath: '/dragon'
+      preLoaderRoute: typeof DragonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cosmetics': {
       id: '/cosmetics'
       path: '/cosmetics'
@@ -695,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/boss': {
+      id: '/boss'
+      path: '/boss'
+      fullPath: '/boss'
+      preLoaderRoute: typeof BossRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/battle': {
       id: '/battle'
       path: '/battle'
@@ -707,6 +772,13 @@ declare module '@tanstack/react-router' {
       path: '/backgrounds-shop'
       fullPath: '/backgrounds-shop'
       preLoaderRoute: typeof BackgroundsShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arena': {
+      id: '/arena'
+      path: '/arena'
+      fullPath: '/arena'
+      preLoaderRoute: typeof ArenaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -750,6 +822,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/p/$id'
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dragon/forge': {
+      id: '/dragon/forge'
+      path: '/forge'
+      fullPath: '/dragon/forge'
+      preLoaderRoute: typeof DragonForgeRouteImport
+      parentRoute: typeof DragonRoute
     }
     '/admin/sanctions': {
       id: '/admin/sanctions'
@@ -852,14 +931,28 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface DragonRouteChildren {
+  DragonForgeRoute: typeof DragonForgeRoute
+}
+
+const DragonRouteChildren: DragonRouteChildren = {
+  DragonForgeRoute: DragonForgeRoute,
+}
+
+const DragonRouteWithChildren =
+  DragonRoute._addFileChildren(DragonRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ArenaRoute: ArenaRoute,
   BackgroundsShopRoute: BackgroundsShopRoute,
   BattleRoute: BattleRoute,
+  BossRoute: BossRoute,
   ChatRoute: ChatRoute,
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
+  DragonRoute: DragonRouteWithChildren,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   FriendsRoute: FriendsRoute,

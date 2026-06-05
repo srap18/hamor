@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Seamless looping background video using two alternating <video> elements.
+ * Seamless looping background video.
  *
- * Native `loop` often shows a tiny stall/jump at the seam. We run two decoders
- * and hand off playback ~0.3s before the active one ends, so the loop feels
- * perfectly even.
+ * Always plays the video (no static-image fallback) so the scene stays alive.
+ * - Pauses when tab is hidden to save battery, resumes on return.
+ * - Uses two crossfading videos so the loop has no visible seam.
  */
 export function SeamlessVideo({
   src,
@@ -22,67 +22,101 @@ export function SeamlessVideo({
 }) {
   const aRef = useRef<HTMLVideoElement | null>(null);
   const bRef = useRef<HTMLVideoElement | null>(null);
-  const activeRef = useRef<"a" | "b">("a");
-  const [active, setActive] = useState<"a" | "b">("a");
-  const [ready, setReady] = useState(false);
+  const [videoVisible, setVideoVisible] = useState(false);
 
   useEffect(() => {
+    setVideoVisible(false);
     const a = aRef.current;
     const b = bRef.current;
     if (!a || !b) return;
 
-    const HANDOFF = 0.25; // seconds before end to start the other decoder
+    // Reveal as soon as the first frame is decoded — don't wait for "playing".
+    const revealOnFrame = () => setVideoVisible(true);
+    a.addEventListener("loadeddata", revealOnFrame, { once: true });
+    if ("requestVideoFrameCallback" in a) {
+      try { (a as any).requestVideoFrameCallback(() => setVideoVisible(true)); } catch {}
+    }
+    if (a.readyState >= 2) setVideoVisible(true);
 
-    const setup = (v: HTMLVideoElement) => {
-      try { v.playbackRate = playbackRate; } catch {}
+    let raf = 0;
+    let bOffset = false;
+    let FADE = 1.6;
+
+    const applyRate = () => {
+      try { a.playbackRate = playbackRate; b.playbackRate = playbackRate; } catch {}
     };
-    setup(a); setup(b);
+    const offsetB = () => {
+      const dur = a.duration;
+      if (!dur || !isFinite(dur)) return;
+      // Continuous crossfade: FADE = dur/2 so the two videos are always
+      // blending. At A's loop boundary, B is at mid-clip and fully visible,
+      // completely hiding any restart jump in the source content.
+      FADE = dur / 2;
+      try { b.currentTime = dur / 2; } catch {}
+      bOffset = true;
+    };
+    const onLoaded = () => { offsetB(); applyRate(); a.play().catch(() => {}); };
+    a.addEventListener("loadedmetadata", onLoaded);
+    b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
+    b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
+    const onPlaying = () => { applyRate(); setVideoVisible(true); };
+    a.addEventListener("playing", onPlaying);
+    b.addEventListener("playing", onPlaying);
 
+    applyRate();
     a.play().catch(() => {});
-    const onA = () => { setReady(true); a.removeEventListener("playing", onA); };
-    a.addEventListener("playing", onA);
-    if (a.readyState >= 2) setReady(true);
+    b.play().catch(() => {});
 
     const tick = () => {
-      const cur = activeRef.current === "a" ? a : b;
-      const other = activeRef.current === "a" ? b : a;
-      const dur = cur.duration;
-      if (isFinite(dur) && dur > 0 && dur - cur.currentTime <= HANDOFF) {
-        if (other.paused || other.currentTime > HANDOFF) {
-          try { other.currentTime = 0; } catch {}
-          other.play().catch(() => {});
+      const dur = a.duration || 0;
+      if (dur > 0 && bOffset) {
+        const ta = a.currentTime;
+        const tb = b.currentTime;
+        const da = Math.min(ta, dur - ta);
+        const db = Math.min(tb, dur - tb);
+        const ease = (x: number) => {
+          const t = Math.max(0, Math.min(1, x));
+          return t * t * (3 - 2 * t);
+        };
+        const wa = ease(da / FADE);
+        const wb = ease(db / FADE);
+        const total = wa + wb;
+        if (total > 0.001) {
+          a.style.opacity = String(wa / total);
+          b.style.opacity = String(wb / total);
+        } else {
+          a.style.opacity = "1";
+          b.style.opacity = "0";
         }
-        if (dur - cur.currentTime <= 0.05) {
-          activeRef.current = activeRef.current === "a" ? "b" : "a";
-          setActive(activeRef.current);
-          try { cur.pause(); cur.currentTime = 0; } catch {}
-        }
+      } else {
+        a.style.opacity = "1";
+        b.style.opacity = "0";
       }
+      raf = requestAnimationFrame(tick);
     };
-    const id = window.setInterval(tick, 40);
+    raf = requestAnimationFrame(tick);
 
     const onVis = () => {
-      const cur = activeRef.current === "a" ? a : b;
       if (document.visibilityState === "visible") {
-        setup(cur);
-        cur.play().catch(() => {});
+        applyRate();
+        a.play().catch(() => {});
+        b.play().catch(() => {});
+        if (!raf) raf = requestAnimationFrame(tick);
       } else {
         try { a.pause(); b.pause(); } catch {}
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
       }
     };
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
-      window.clearInterval(id);
+      a.removeEventListener("loadedmetadata", onLoaded);
+      a.removeEventListener("playing", onPlaying);
+      b.removeEventListener("playing", onPlaying);
       document.removeEventListener("visibilitychange", onVis);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, [src, playbackRate]);
-
-  const videoStyle: React.CSSProperties = {
-    ...style,
-    transform: "translateZ(0)",
-    backfaceVisibility: "hidden",
-  };
 
   return (
     <>
@@ -95,7 +129,11 @@ export function SeamlessVideo({
           draggable={false}
           loading="eager"
           decoding="async"
-          style={{ ...style, opacity: ready ? 0 : 1, transition: "opacity 0.25s ease" }}
+          style={{
+            ...style,
+            opacity: videoVisible ? 0 : 1,
+            transition: "opacity 0.25s ease",
+          }}
         />
       )}
       <video
@@ -103,24 +141,24 @@ export function SeamlessVideo({
         src={src}
         poster={poster}
         autoPlay
+        loop
         muted
         playsInline
         preload="auto"
-        disablePictureInPicture
-        disableRemotePlayback
         className={className}
-        style={{ ...videoStyle, opacity: active === "a" ? 1 : 0 }}
+        style={style}
       />
       <video
         ref={bRef}
         src={src}
+        poster={poster}
+        autoPlay
+        loop
         muted
         playsInline
         preload="auto"
-        disablePictureInPicture
-        disableRemotePlayback
         className={className}
-        style={{ ...videoStyle, opacity: active === "b" ? 1 : 0 }}
+        style={{ ...style, opacity: 0 }}
       />
     </>
   );

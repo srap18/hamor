@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -13,25 +13,24 @@ import {
   buyWithGems,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-const DailyLoginModal = lazy(() => import("@/components/DailyLoginModal").then(m => ({ default: m.DailyLoginModal })));
+import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
-const SettingsModal = lazy(() => import("@/components/SettingsModal").then(m => ({ default: m.SettingsModal })));
+import { SettingsModal } from "@/components/SettingsModal";
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
-
+import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
-import dailyKey3d from "@/assets/icon-daily-key-3d.png";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
-const AdBombOverlay = lazy(() => import("@/components/AdBombOverlay").then(m => ({ default: m.AdBombOverlay })));
+import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
 import birdImg from "@/assets/bird-realistic.png";
@@ -40,16 +39,13 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
-
+import navIconBattle from "@/assets/nav-icon-battle.png";
+import navIconArena from "@/assets/nav-icon-arena.png";
 import navIconFriends from "@/assets/nav-icon-friends.png";
 import navIconInventory from "@/assets/nav-icon-inventory.png";
 import navIconShop from "@/assets/nav-icon-shop.png";
 import navIconChat from "@/assets/nav-icon-chat.png";
 import navIconSettings from "@/assets/nav-icon-settings.png";
-import navIconTribe from "@/assets/nav-icon-tribe.png";
-import navIconRankAsset from "@/assets/nav-icon-rank.png.asset.json";
-const navIconRank = navIconRankAsset.url;
-import { ShipFlag } from "@/components/ShipFlag";
 
 
 
@@ -143,9 +139,9 @@ function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
 // so they never overlap on screen.
 const SLOTS = [
-  { scale: 1.4, top: "42%", dockLeft: 82 },
-  { scale: 1.4, top: "55%", dockLeft: 50 },
-  { scale: 1.4, top: "30%", dockLeft: 14 },
+  { scale: 1.12, top: "42%", dockLeft: 82 },
+  { scale: 1.28, top: "55%", dockLeft: 50 },
+  { scale: 1.08, top: "30%", dockLeft: 14 },
 ];
 
 const INITIAL_SHIPS: Ship[] = [
@@ -624,7 +620,7 @@ function Index() {
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
-    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number; qty?: number }[] }[])[0] : null;
+    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number }[] }[])[0] : null;
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
     const groups: Record<string, { id: string; name: string; emoji: string; img?: string; qty: number }> = {};
@@ -632,13 +628,10 @@ function Index() {
       const f = FISH[it.fish_id];
       const id = it.fish_id;
       if (!groups[id]) groups[id] = { id, name: f?.name ?? "سمكة", emoji: f?.emoji ?? "🐟", img: f?.img, qty: 0 };
-      groups[id].qty += Math.max(1, Number(it.qty ?? 1));
+      groups[id].qty += 1;
     });
     setStealResult({ count: n, value: v, items: Object.values(groups), cancelled });
     sound.play(n > 0 ? "catch" : "click");
-    if (n > 0) {
-      try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
-    }
   };
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
@@ -953,62 +946,34 @@ function Index() {
 
 
 
-  // Progress + sail animation ticker — driven by requestAnimationFrame so it
-  // pauses when the tab is hidden and skips state updates when nothing
-  // meaningfully changes. Ships animate at 60fps only while actively sailing;
-  // once settled, progress/timer updates slow down to keep the game light.
+  // Progress + sail animation ticker — strictly time-proportional.
   useEffect(() => {
-    let raf = 0;
-    let lastTick = 0;
-    const tick = (ts: number) => {
-      raf = requestAnimationFrame(tick);
-      const movingShip = shipsRef.current.some((s) => Math.abs((s.fishing ? 1 : 0) - s.sail) > 0.001);
-      const minInterval = movingShip ? 1000 / 60 : 500;
-      if (ts - lastTick < minInterval) return;
-      lastTick = ts;
+    const id = setInterval(() => {
       const now = serverNowMs();
-      setShips((curr) => {
-        let changed = false;
-        const next = curr.map((s) => {
+      setShips((curr) =>
+        curr.map((s) => {
+          // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
-          // Realistic sailing pace: slow, smooth glide both ways.
-          // Going out (fishing) is a bit slower than returning to port.
-          const smoothing = s.fishing ? 0.018 : 0.026;
-          const rawSail = s.sail + (target - s.sail) * smoothing;
-          // Snap to target when within epsilon to let updates settle.
-          const sail = Math.abs(rawSail - target) < 0.0008 ? target : rawSail;
-          const sailDelta = Math.abs(sail - s.sail);
+          // Unified speed — same easing coefficient for going out (fishing)
+          // and coming back to shore so every ship moves at the exact same pace.
+          const smoothing = 0.22;
+          const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
-            if (sailDelta < 0.0008) return s; // idle docked ship — skip
-            changed = true;
             return { ...s, sail };
           }
           if (s.dbId && !isServerClockSynced()) {
-            if (sailDelta < 0.0008 && s.progress === 0 && s.timeLeft === s.duration) return s;
-            changed = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
-          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
+          const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
-          // Skip update if nothing perceptible changed.
-          if (
-            sailDelta < 0.0008 &&
-            progress === s.progress &&
-            Math.abs(timeLeft - s.timeLeft) < 0.5
-          ) {
-            return s;
-          }
-          changed = true;
           return { ...s, sail, progress, timeLeft };
-        });
-        return changed ? next : curr;
-      });
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+        })
+      );
+    }, 60);
+    return () => clearInterval(id);
   }, []);
 
 
@@ -1025,11 +990,10 @@ function Index() {
       if (target.dbId) delete collectingRef.current[target.dbId];
       return;
     }
-    if (!target) return;
-    // Kick off clock sync in the background — do NOT block the UI on it.
-    if (!target.fishing && !isServerClockSynced()) {
-      syncServerTime(true).catch(() => {});
+    if (!target?.fishing && !isServerClockSynced()) {
+      await syncServerTime(true);
     }
+    if (!target) return;
     const startNow = serverNowMs();
     const dbIdToSync = target.dbId;
     const nextAtSea = !target.fishing;
@@ -1047,29 +1011,23 @@ function Index() {
       })
     );
     sound.play("whoosh");
-    // Sync at_sea to DB in the background so the UI stays snappy.
+    // Sync at_sea to DB so other players see live status via realtime
     if (dbIdToSync) {
-      (async () => {
-        try {
-          const { setShipAtSea } = await import("@/lib/economy");
-          const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
-          if (error) {
-            delete seaStateOverrideRef.current[dbIdToSync];
-            delete collectingRef.current[dbIdToSync];
-            showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
-            syncFleetFromDb();
-            return;
-          }
-          clearSeaOverrideSoon(dbIdToSync);
-          delete collectingRef.current[dbIdToSync];
-          pushHarborState();
-        } catch {
-          delete collectingRef.current[dbIdToSync];
-        }
-      })();
+      const { setShipAtSea } = await import("@/lib/economy");
+      const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
+      if (error) {
+        delete seaStateOverrideRef.current[dbIdToSync];
+        delete collectingRef.current[dbIdToSync];
+        showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
+        syncFleetFromDb();
+        return;
+      }
+      clearSeaOverrideSoon(dbIdToSync);
+      delete collectingRef.current[dbIdToSync];
     }
+    // Instant push to spectators
+    pushHarborState();
   };
-
 
   const collect = async (shipId: number, e: React.MouseEvent) => {
     const targetEl = e.currentTarget as HTMLElement | null;
@@ -1246,8 +1204,8 @@ function Index() {
             key={`vid-${scene.id}`}
             src={scene.displayVideo}
             poster={scene.displayImage}
-            className="absolute inset-0 h-full w-full object-cover select-none"
-            style={{ objectPosition: scene.objectPosition ?? "center center", transform: "translateZ(0)" }}
+            className={`absolute inset-0 h-full w-full object-cover select-none ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            style={{ objectPosition: scene.objectPosition ?? "center center" }}
             playbackRate={0.7}
           />
         ) : (
@@ -1285,8 +1243,10 @@ function Index() {
         }}
       />
 
+      {/* Animated shore dragon — sits where the old fountain was, on every background */}
+      <DragonShoreCreature />
 
-      {profile?.id && <Suspense fallback={null}><AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} /></Suspense>}
+      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
       {scene.burned && (
         <DraggableRepairBgButton
@@ -1410,97 +1370,91 @@ function Index() {
 
       {/* TOP HUD — pirate luxury */}
       <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "max(2.75rem, calc(env(safe-area-inset-top) + 1rem))" }}>
-        <div className="flex items-start justify-start">
-          {/* Avatar + name + treasury — stacked column on the right (Jack-style) */}
-          <div className="flex flex-col items-center gap-1.5 shrink-0">
-            <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1 shrink-0">
-              <div className="relative w-20 h-20 flex items-center justify-center">
-                <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
-                  {(profile as any)?.avatar_url ? (
-                    <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
-                  )}
-                </div>
-                {frameById((profile as any)?.avatar_frame)?.imageUrl && (
-                  <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
+        <div className="flex items-center gap-2">
+          {/* Avatar + name only — no plaque */}
+          <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1 shrink-0">
+            <div className="relative w-20 h-20 flex items-center justify-center">
+              <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
+                {(profile as any)?.avatar_url ? (
+                  <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
                 )}
-                {/* Shield badge — top-right of avatar */}
-                <div className="absolute -top-1 -right-1 z-10" onClick={(e) => e.preventDefault()}>
-                  <ShieldBadge />
-                </div>
               </div>
-              <div className={`inline-flex max-w-[110px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
-                {profile?.display_name || "قبطان"}
-              </div>
-            </Link>
-
-
-
-            {/* Treasury — gold + gems (compact, under avatar) */}
-            <div className="flex flex-col gap-1.5 w-[150px]">
-              <div
-                className="relative rounded-full px-3 py-1 flex items-center justify-between"
-                style={{
-                  background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
-                  border: "2px solid #c9a44a",
-                  boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.25)",
-                }}
-              >
-                <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
-                <CoinIcon size={20} />
-                <span className="relative text-[13px] font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 6px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
-              </div>
-              <div
-                className="relative rounded-full px-3 py-1 flex items-center justify-between gap-1"
-                style={{
-                  background: "radial-gradient(ellipse at 50% 0%, #0d2a4a 0%, #051324 70%, #02080f 100%)",
-                  border: "2px solid #4ac9e0",
-                  boxShadow: "inset 0 1px 0 rgba(180,240,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #051324, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(74,201,224,0.25)",
-                }}
-              >
-                <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.35) 0%, transparent 100%)" }} />
-                <Link
-                  to="/recharge"
-                  className="relative w-5 h-5 rounded-full text-[11px] font-black flex items-center justify-center active:scale-90 shrink-0"
-                  style={{
-                    background: "radial-gradient(ellipse at 50% 30%, #d6f4ff 0%, #4ac9e0 60%, #1a7da0 100%)",
-                    color: "#04242e",
-                    border: "2px solid #bff3ff",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.5)",
-                    textShadow: "0 1px 0 rgba(255,255,255,0.6)",
-                  }}
-                >+</Link>
-                <span className="relative text-[13px] font-black tabular-nums" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 6px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
-                <GemIcon size={20} />
-              </div>
+              {frameById((profile as any)?.avatar_frame)?.imageUrl && (
+                <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
+              )}
             </div>
+            <div className={`inline-flex max-w-[110px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
+              {profile?.display_name || "قبطان"}
+            </div>
+          </Link>
+
+          {/* Treasury — gold + gems */}
+          <div className="flex-1 flex flex-col gap-1.5">
+          <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+                border: "2px solid #c9a44a",
+                boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
+              <CoinIcon size={22} />
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 6px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
+            </div>
+            <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #0d2a4a 0%, #051324 70%, #02080f 100%)",
+                border: "2px solid #4ac9e0",
+                boxShadow: "inset 0 1px 0 rgba(180,240,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #051324, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(74,201,224,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.35) 0%, transparent 100%)" }} />
+              <GemIcon size={22} />
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 6px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
+              <Link
+                to="/recharge"
+                className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90"
+                style={{
+                  background: "radial-gradient(ellipse at 50% 30%, #d6f4ff 0%, #4ac9e0 60%, #1a7da0 100%)",
+                  color: "#04242e",
+                  border: "2px solid #bff3ff",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.5)",
+                  textShadow: "0 1px 0 rgba(255,255,255,0.6)",
+                }}
+              >+</Link>
+            </div>
+
           </div>
+
+          {/* Ship icon removed — now in bottom nav */}
         </div>
 
-
         {/* Boost rail */}
-        {/* Fish discovered — own row at the very top, prominent */}
-        <div className="flex items-center justify-end pl-2">
+        <div className="flex items-center gap-2 pr-20">
+          {/* VIP removed */}
+
+          {/* DragonHUD removed — entry is the shore dragon itself */}
+
+
           <Link
             to="/inventory"
-            className="relative rounded-full px-3 py-1 flex items-center gap-1.5 active:scale-95"
+            className="relative rounded-full px-3 py-1.5 flex items-center gap-1.5 active:scale-95"
             title="الأسماك المكتشفة"
             style={{
               background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
               border: "2px solid #c9a44a",
-              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -2px 4px rgba(0,0,0,0.6), 0 2px 0 #1a0d04, 0 4px 10px rgba(0,0,0,0.55), 0 0 12px rgba(241,190,82,0.25)",
+              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 5px 10px rgba(0,0,0,0.5)",
             }}
           >
             <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
-            <span className="relative text-base">🐟</span>
-            <span className="relative text-[13px] font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
+            <span className="relative text-lg">🐟</span>
+            <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
           </Link>
-        </div>
-
-        <div className="flex items-center gap-2 justify-end pl-2">
           <NotificationsBell />
-
           {isAdmin && (
             <Link
               to="/admin"
@@ -1519,6 +1473,9 @@ function Index() {
             </Link>
           )}
         </div>
+        <div className="flex items-center justify-between px-1">
+          <ShieldBadge />
+        </div>
       </div>
 
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
@@ -1533,12 +1490,12 @@ function Index() {
         }}
       >
         <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
-        <img src={dailyKey3d} alt="مكافأة يومية" width={40} height={40} loading="lazy" className="relative w-10 h-10 object-contain" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.55))" }} />
+        <span className="relative text-3xl" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
         <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
-      {dailyOpen && <Suspense fallback={null}><DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} /></Suspense>}
+      <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
 
 
       {/* SHIPS — auto-placed inside the current background's open-water region.
@@ -1555,7 +1512,7 @@ function Index() {
         const vRange = Math.max(10, 60 - (wTop + 10));
         const top = `${fixedSlot?.top ?? wTop + 10 + ts[i] * vRange}%`;
 
-        const scale = fixedSlot?.scale ?? 1.4; // unified ship size
+        const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
         // Dock on the LEFT half of the water band so each ship always has
         // room to sail rightward when fishing (and visibly return to dock when recalled).
         const hOffsets = [0.05, 0.3, 0.6];
@@ -1598,7 +1555,7 @@ function Index() {
           const vRange = Math.max(10, 60 - (wTop + 10));
           const tgtTop = fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
           const tgtLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const tgtScale = fixedSlot?.scale ?? 1.4;
+          const tgtScale = fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
           const tgtShipW = 22 * tgtScale;
           const seaIsRight = (scene.seaSide ?? "right") === "right";
           top = `${Math.max(50, Math.min(74, tgtTop + tgtShipW * 0.22 + sibIdx * 5))}%`;
@@ -1963,41 +1920,19 @@ function Index() {
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
           if (!s.dbId) { setToast("حدّث الأسطول أولاً"); return; }
-
-          // Optimistic: mark this crew row as assigned to current ship immediately
-          const optimisticExpires = new Date(Date.now() + 24 * 3600_000).toISOString();
-          const prevRows = crewRowsRef.current;
-          const optimisticId = `tmp-${row.id}-${Date.now()}`;
-          let nextRows: CrewRow[];
-          if ((row.quantity ?? 1) <= 1) {
-            nextRows = prevRows.map((r) => r.id === row.id
-              ? { ...r, meta: { ...(r.meta ?? {}), assigned_ship_id: String(s.dbId), expires_at: optimisticExpires } }
-              : r);
-          } else {
-            nextRows = prevRows.map((r) => r.id === row.id ? { ...r, quantity: r.quantity - 1 } : r);
-            nextRows.push({ id: optimisticId, item_id: itemId, quantity: 1, meta: { assigned_ship_id: String(s.dbId), expires_at: optimisticExpires } });
-          }
-          setCrewRows(nextRows);
-          sound.play("success");
-          setCrewTick((t) => t + 1);
-
-          // Fire RPC in background; rollback on error
-          (async () => {
-            const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
-              _ship_id: s.dbId,
-              _crew_id: itemId,
-            });
-            if (error) {
-              setCrewRows(prevRows);
-              sound.play("error");
-              setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
-              await reloadCrews();
-              setCrewTick((t) => t + 1);
-              return;
-            }
+          const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
+            _ship_id: s.dbId,
+            _crew_id: itemId,
+          });
+          if (error) {
+            sound.play("error");
+            setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
             await reloadCrews();
-            setCrewTick((t) => t + 1);
-          })();
+            return;
+          }
+          sound.play("success");
+          await reloadCrews();
+          setCrewTick((t) => t + 1);
           } finally {
             crewBusyRef.current = false;
           }
@@ -2011,8 +1946,7 @@ function Index() {
         };
 
         return (
-          <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
             <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
@@ -2088,25 +2022,15 @@ function Index() {
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
+                    setBuyingCrewId(cid);
                     sound.play("coin");
                     setToast(`✓ تم شراء ${c.name}`);
-                    // Optimistic: add crew row immediately so UI flips to "تفعيل" instantly
-                    const prevRows = crewRowsRef.current;
-                    const optimisticRow: CrewRow = {
-                      id: `tmp-buy-${cid}-${Date.now()}`,
-                      item_id: cid,
-                      quantity: 1,
-                      meta: null,
-                    };
-                    setCrewRows([...prevRows, optimisticRow]);
-                    setBuyingCrewId(cid);
                     (async () => {
                       try {
                         const { error } = c.currency === "gems"
                           ? await buyWithGems(cid, "crew", c.price, undefined, 1)
                           : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
                         if (error) {
-                          setCrewRows(prevRows);
                           sound.play("error");
                           setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
                           return;
@@ -2195,7 +2119,7 @@ function Index() {
       {/* Dragon + Totem removed per user request */}
 
       {/* BOTTOM NAV */}
-      <div className="fixed inset-x-0 bottom-0 z-[80] px-1 pb-2" style={{ paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))" }}>
+      <div className="fixed inset-x-0 bottom-0 z-[80] px-3 pb-2" style={{ paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))" }}>
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
           style={{
@@ -2203,44 +2127,31 @@ function Index() {
               "linear-gradient(180deg, rgba(3,7,18,0) 0%, rgba(5,9,20,0.72) 45%, rgba(4,6,14,0.98) 100%)",
           }}
         />
-        <div className="relative grid grid-cols-7 items-end gap-0">
+        <div className="relative flex items-end justify-between gap-0.5">
           {[
-            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0, emoji: null as string | null },
-            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread, emoji: null },
-            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0, emoji: null },
-            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0, emoji: null },
-            { src: navIconRank, label: "ترتيب", to: null, action: "boost" as const, badge: 0, emoji: null },
-            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread, emoji: null },
-            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0, emoji: null },
+            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
+            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
+            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
+            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
+            { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
                 <div
-                  className="relative flex items-center justify-center"
-                  style={{
-                    width: "clamp(38px, 12.5vw, 55px)",
-                    height: "clamp(38px, 12.5vw, 55px)",
-                    filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))",
-                  }}
+                  className="relative flex size-[55px] items-center justify-center"
+                  style={{ filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))" }}
                 >
-                  {it.emoji ? (
-                    <span
-                      className="size-full flex items-center justify-center select-none"
-                      style={{ fontSize: "clamp(26px, 8vw, 38px)", lineHeight: 1 }}
-                    >
-                      {it.emoji}
-                    </span>
-                  ) : (
-                    <img
-                      src={it.src}
-                      alt={it.label}
-                      loading="lazy"
-                      width={110}
-                      height={110}
-                      className="size-full object-contain select-none"
-                      draggable={false}
-                    />
-                  )}
+                  <img
+                    src={it.src}
+                    alt={it.label}
+                    loading="lazy"
+                    width={110}
+                    height={110}
+                    className="size-full object-contain select-none"
+                    draggable={false}
+                  />
                   {it.badge > 0 && (
                     <span
                       className="absolute -top-1 right-0 z-20 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
@@ -2263,7 +2174,7 @@ function Index() {
                 key={i}
                 to={it.to}
                 onClick={() => sound.play("click")}
-                className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
+                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
                 {inner}
               </Link>
@@ -2274,9 +2185,9 @@ function Index() {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
                   else if (it.action === "boost") setBoostOpen(true);
-                  else if (it.action === "tribe") { window.location.href = "/chat?tab=tribe"; }
+                  else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
                 }}
-                className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
+                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
                 {inner}
               </button>
@@ -2287,7 +2198,7 @@ function Index() {
 
 
       {/* Settings modal */}
-      {settingsOpen && <Suspense fallback={null}><SettingsModal onClose={() => setSettingsOpen(false)} /></Suspense>}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
       {/* Leaderboard / players modal */}
       {boostOpen && <LeaderboardModal onClose={() => setBoostOpen(false)} />}
@@ -2492,92 +2403,82 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (showSpinner) setLoading(true);
     if (tab === "comp") {
       (async () => {
-        try {
-          const { data } = await (supabase as any).rpc("get_active_competitions");
-          if (cancelled) return;
-          const list = ((data ?? []) as CompLb[]);
-          setComps(list);
-          const entries = await Promise.all(list.map(async (c) => {
-            const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
-            return [c.id, ((lb ?? []) as CompLbRow[])] as const;
-          }));
-          if (cancelled) return;
-          setCompBoards(Object.fromEntries(entries));
-        } catch {}
-        finally { if (!cancelled) setLoading(false); }
+        const { data } = await (supabase as any).rpc("get_active_competitions");
+        if (cancelled) return;
+        const list = ((data ?? []) as CompLb[]);
+        setComps(list);
+        const entries = await Promise.all(list.map(async (c) => {
+          const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
+          return [c.id, ((lb ?? []) as CompLbRow[])] as const;
+        }));
+        if (cancelled) return;
+        setCompBoards(Object.fromEntries(entries));
+        setLoading(false);
       })();
       return () => { cancelled = true; };
     }
     if (tab === "tribes") {
       (async () => {
-        try {
-          const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
-          if (cancelled) return;
-          const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
-            id: t.tribe_id,
-            name: t.name,
-            emblem: t.emblem,
-            banner: t.banner,
-            level: t.level || 1,
-            members: t.members || 0,
-            donation_score: Number(t.donation_score || 0),
-            support_score: Number(t.support_score || 0),
-            attack_score: Number(t.attack_score || 0),
-            power: Number(t.power || 0),
-          }));
-          setTribes(list);
-        } catch {}
-        finally { if (!cancelled) setLoading(false); }
+        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        if (cancelled) return;
+        const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
+          id: t.tribe_id,
+          name: t.name,
+          emblem: t.emblem,
+          banner: t.banner,
+          level: t.level || 1,
+          members: t.members || 0,
+          donation_score: Number(t.donation_score || 0),
+          support_score: Number(t.support_score || 0),
+          attack_score: Number(t.attack_score || 0),
+          power: Number(t.power || 0),
+        }));
+        setTribes(list);
+        setLoading(false);
       })();
       return () => { cancelled = true; };
     }
     if (tab === "fish") {
       (async () => {
-        try {
-          const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
-          if (cancelled) return;
-          const mapped = ((data as any[]) || []).map((r) => ({
-            id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
-            avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
-            avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-            unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
-          }));
-          setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-        } catch {}
-        finally { if (!cancelled) setLoading(false); }
+        const { data } = await (supabase as any).rpc("get_fish_leaderboard", { _limit: 200 });
+        if (cancelled) return;
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          unique_fish: r.unique_fish, total_fish: Number(r.total_fish) || 0,
+        }));
+        setFishRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+        setLoading(false);
       })();
       return () => { cancelled = true; };
     }
     if (tab === "ships") {
       (async () => {
-        try {
-          const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
-          if (cancelled) return;
-          const mapped = ((data as any[]) || []).map((r) => ({
-            id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
-            avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
-            avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-            market_level: r.market_level,
-          }));
-          setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-        } catch {}
-        finally { if (!cancelled) setLoading(false); }
+        const { data } = await (supabase as any).rpc("get_ship_market_leaderboard", { _limit: 200 });
+        if (cancelled) return;
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji,
+          avatar_url: r.avatar_url, level: r.level, xp: 0, coins: 0, gems: 0,
+          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+          market_level: r.market_level,
+        }));
+        setShipRows(mapped.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+        setLoading(false);
       })();
       return () => { cancelled = true; };
     }
     const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
     (async () => {
-      try {
-        const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
-        if (cancelled) return;
-        const mapped = ((data as any[]) || []).map((r) => ({
-          id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
-          level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
-          avatar_frame: r.avatar_frame, name_frame: r.name_frame,
-        })) as LbProfile[];
-        setRows(mapped);
-      } catch {}
-      finally { if (!cancelled) setLoading(false); }
+      const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
+      if (cancelled) return;
+      const mapped = ((data as any[]) || []).map((r) => ({
+        id: r.id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
+        level: r.level, xp: r.xp ?? 0, coins: Number(r.coins) || 0, gems: Number(r.gems) || 0,
+        avatar_frame: r.avatar_frame, name_frame: r.name_frame,
+      })) as LbProfile[];
+      setRows(mapped);
+      setLoading(false);
     })();
     return () => { cancelled = true; };
 
@@ -3146,10 +3047,15 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const mins = Math.floor(ship.timeLeft / 60);
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  // Idle bob/sway are now CSS-driven (animate-ship-bob) for max responsiveness.
-  // Only the static directional tilt is computed in JS.
+  const t = serverNowMs() / 1000;
+  // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
+  const docked = ship.sail < 0.05 && !moving;
+  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
+  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
+  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
   const baseTilt = direction * 2.5;
-  const tilt = baseTilt;
+  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
+  const tilt = baseTilt + rockTilt;
 
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
@@ -3159,9 +3065,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
   const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
 
-  // Flip direction without holding the ship in place; movement must begin
-  // immediately when starting or stopping fishing.
-  const TURN_MS = 0;
+  // Pivot-in-place: when bow direction changes, hold position while the flip
+  // animation plays, then release so the ship slides smoothly to its new spot.
+  const TURN_MS = 700;
   const facingRef = useRef(facing);
   const turnEndRef = useRef(0);
   const heldLeftRef = useRef(computedLeft);
@@ -3186,6 +3092,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaIsRight = seaSide === "right";
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
+  const bankRoll = 0;
+  const bankPitch = 0;
+  const turnLift = 0;
+  const turnSway = 0;
 
   return (
     <div
@@ -3197,7 +3107,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: "none",
+        transition: "left 0.5s ease-in-out",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3285,21 +3195,22 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         style={{
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
-          transition: ship.fishing ? "transform 0.28s ease-out" : "transform 0.18s ease-out",
+          transition: "transform 0.7s ease-in-out",
         }}
       >
       {/* 3D ship body */}
       <div
-        className={destroyed ? "relative w-full" : "relative w-full animate-ship-bob"}
+        className="relative w-full"
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
-            : `rotateZ(${tilt * 0.6}deg)`,
+            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
+          transition: "transform 0.2s ease-out",
           filter: destroyed
-            ? "drop-shadow(0 6px 4px rgba(0,0,0,0.55)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
-            : "drop-shadow(0 8px 6px rgba(0,0,0,0.5))",
+            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
           opacity: destroyed ? 0.8 : 1,
         }}
       >
@@ -3382,8 +3293,22 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           />
 
 
-          {/* Waving flag on the mast (user-customizable, hidden when destroyed) */}
-          {!destroyed && <ShipFlag />}
+          {/* Waving flag on the mast (hidden when destroyed) */}
+          {!destroyed && (
+            <div
+              className="absolute pointer-events-none"
+              style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
+            >
+              <div
+                className="w-full h-full animate-flag-wave"
+                style={{
+                  background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
+                  clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
+                }}
+              />
+            </div>
+          )}
 
           {/* Destroyed: dark smoke billows */}
           {destroyed && (

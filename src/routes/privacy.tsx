@@ -19,7 +19,7 @@ function PrivacyPage() {
   return (
     <LegalPage title="سياسة الخصوصية">
       <p>
-        تشرح هذه السياسة كيف تقوم <strong>Wissam Alsharari & Faisal Alsharari</strong> ("نحن") بجمع واستخدام
+        تشرح هذه السياسة كيف تقوم <strong>Amira Qailan Dakhil Allah Alsharari</strong> ("نحن") بجمع واستخدام
         وحماية بياناتك الشخصية عند استخدامك لخدمة <strong>هامور شابك</strong>. نحن مسؤول التحكم بالبيانات
         (Data Controller) عن المعلومات التي نجمعها منك.
       </p>

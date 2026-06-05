@@ -83,8 +83,6 @@ type MarketState = {
   freeze_until: string | null;
   freeze_started_at: string | null;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
-  trader_snapshot: Record<string, number[]>;
-  trader_anchor: string | null;
 };
 
 function FishMarket() {
@@ -107,7 +105,7 @@ function FishMarket() {
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {}, trader_snapshot: {}, trader_anchor: null });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -121,7 +119,7 @@ function FishMarket() {
     if (!user) return;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, freeze_started_at, frozen_prices, trader_snapshot, trader_anchor")
+      .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
@@ -130,11 +128,9 @@ function FishMarket() {
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
-        trader_snapshot: (data.trader_snapshot as Record<string, number[]>) ?? {},
-        trader_anchor: data.trader_anchor ?? null,
       });
     } else {
-      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {}, trader_snapshot: {}, trader_anchor: null });
+      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
     }
   };
   useEffect(() => { loadMarketState(); }, [user?.id]);
@@ -488,19 +484,7 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={(() => {
-            const snap = marketState.trader_snapshot[sel.id];
-            if (!traderActiveGlobal || !snap?.length || !marketState.trader_anchor) {
-              return forecastMap[sel.id] ?? [];
-            }
-            // Snapshot[0] maps to wall-clock time = trader_anchor.
-            // The chart's future[0] maps to top-of-current-hour + 1h.
-            // Compute the offset so the chart shows the original locked values.
-            const anchorMs = new Date(marketState.trader_anchor).getTime();
-            const nextHourMs = (Math.floor(serverNowMs() / 3600_000) + 1) * 3600_000;
-            const offset = Math.max(0, Math.round((nextHourMs - anchorMs) / 3600_000));
-            return snap.slice(offset);
-          })()}
+          forecast={forecastMap[sel.id] ?? []}
           history={historyMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}

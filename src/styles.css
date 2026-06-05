@@ -140,11 +140,11 @@
   }
 
   @keyframes bg-drift {
-    0%, 100% { transform: scale(var(--bg-scale, 1.06)) translate3d(0, 0, 0); }
-    50%      { transform: scale(var(--bg-scale, 1.06)) translate3d(-0.6%, -0.4%, 0); }
+    0%, 100% { transform: scale(var(--bg-scale, 1.06)); }
+    50%      { transform: scale(calc(var(--bg-scale, 1.06) + 0.015)); }
   }
   .animate-bg-drift {
-    animation: bg-drift var(--bg-dur, 24s) ease-in-out infinite;
+    animation: bg-drift var(--bg-dur, 14s) ease-in-out infinite;
     will-change: transform;
     transform-origin: center center;
   }
@@ -207,25 +207,10 @@
 
 
   @keyframes flag-wave {
-    0%   { transform: perspective(220px) rotateY(-18deg) rotateX(4deg) skewY(-6deg) scaleX(1); }
-    25%  { transform: perspective(220px) rotateY(8deg)   rotateX(-3deg) skewY(4deg)  scaleX(0.96); }
-    50%  { transform: perspective(220px) rotateY(22deg)  rotateX(5deg)  skewY(8deg)  scaleX(0.9); }
-    75%  { transform: perspective(220px) rotateY(4deg)   rotateX(-2deg) skewY(2deg)  scaleX(0.95); }
-    100% { transform: perspective(220px) rotateY(-18deg) rotateX(4deg)  skewY(-6deg) scaleX(1); }
+    0%, 100% { transform: skewY(-8deg) scaleX(1); }
+    50%      { transform: skewY(8deg) scaleX(0.92); }
   }
-  .animate-flag-wave {
-    animation: flag-wave 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    transform-origin: left center;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-
-  @keyframes flag-shimmer {
-    0%, 100% { transform: translateX(-30%); opacity: 0; }
-    40%      { opacity: 0.55; }
-    60%      { opacity: 0.55; }
-    100%     { transform: translateX(130%); opacity: 0; }
-  }
+  .animate-flag-wave { animation: flag-wave 1.2s ease-in-out infinite; transform-origin: left center; }
 
   @keyframes smoke-rise {
     0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
@@ -252,12 +237,6 @@
     50%      { transform: scale(1.005, 0.997); }
   }
   .animate-sail-flap { animation: sail-flap 3.4s ease-in-out infinite; transform-origin: center 80%; }
-
-  @keyframes ship-bob {
-    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-    50%      { transform: translate3d(0, -2px, 0) rotate(0.6deg); }
-  }
-  .animate-ship-bob { animation: ship-bob 3s ease-in-out infinite; will-change: transform; }
 
   @keyframes crew-bob {
     0%, 100% { transform: translateY(0) rotate(-1deg); }
@@ -619,31 +598,26 @@ html.keyboard-open .mobile-frame-root {
 
 .mobile-frame-notch { display: none; }
 
-/* On tablets and desktops (iPad, laptops, etc.), render the app inside
-   a centered phone-shaped frame so the UI looks identical to a real phone.
-   Phones (≤ 600px) keep the full-screen fill defined above — so iPhone,
-   Android, Huawei, etc. all fill the screen identically. */
-@media (min-width: 601px) {
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
   .mobile-frame-root {
     background: #000;
     padding: 0;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
   }
   .mobile-frame-stage {
     min-height: 100dvh;
     width: 100%;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
   }
   .mobile-frame-device {
-    width: min(430px, 100vw);
-    height: min(calc(100dvh - 24px), calc(430px * 19.5 / 9));
-    max-height: 100dvh;
+    width: 100%;
+    min-height: 100dvh;
+    height: 100dvh;
     overflow: hidden;
-    border-radius: 28px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.06);
+    border-radius: 0;
+    box-shadow: none;
   }
   .mobile-frame-screen {
     height: 100%;
@@ -651,7 +625,7 @@ html.keyboard-open .mobile-frame-root {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    border-radius: 28px;
+    border-radius: 0;
   }
   .mobile-frame-notch { display: none; }
 }
