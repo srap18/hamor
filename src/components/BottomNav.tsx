@@ -195,7 +195,7 @@ export function BottomNav({ active }: { active?: string }) {
           })}
 
           <GoldNavButton label="إعدادات" onClick={() => window.dispatchEvent(new CustomEvent("open-settings-modal"))}>
-            <Settings />
+            <Compass />
           </GoldNavButton>
         </div>
         <div
