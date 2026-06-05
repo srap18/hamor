@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Landmark, MessageCircle, Package, Settings, Skull, Trophy, Users } from "lucide-react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -20,8 +21,8 @@ import { SettingsModal } from "@/components/SettingsModal";
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { DragonHUD } from "@/components/DragonHUD";
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
+
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -39,6 +40,7 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
+
 
 
 
@@ -2052,28 +2054,65 @@ function Index() {
       {/* Dragon + Totem removed per user request */}
 
       {/* BOTTOM NAV */}
-      <div className="fixed bottom-0 left-0 right-0 z-[80] px-1.5 pt-1.5 glass-hud border-t-2 border-amber-400/60 shadow-[0_-4px_14px_rgba(0,0,0,0.6)]" style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}>
-        <div className="flex items-center justify-around">
+      <div className="fixed inset-x-0 bottom-0 z-[80] px-3 pb-2" style={{ paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))" }}>
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(3,7,18,0) 0%, rgba(5,9,20,0.72) 45%, rgba(4,6,14,0.98) 100%)",
+          }}
+        />
+        <div className="relative flex items-end justify-between gap-1">
           {[
-            { e: "⚙️", l: "إعدادات", to: null, action: "settings" as const, badge: 0 },
-            { e: "💬", l: "شات", to: "/chat" as const, action: null, badge: dmUnread },
-            { e: "🏛️", l: "متجر", to: "/shop" as const, action: null, badge: 0 },
-            { e: "📦", l: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
-            { e: "👥", l: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            { e: "🏆", l: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { e: "💀", l: "تحدي", to: null, action: "challenge" as const, badge: 0 },
+            { icon: Skull, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
+            { icon: Trophy, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            { icon: Users, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
+            { icon: Package, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { icon: Landmark, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
+            { icon: MessageCircle, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
+            { icon: Settings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
           ].map((it, i) => {
+            const Icon = it.icon;
             const inner = (
               <>
-                <div className="relative w-11 h-11 rounded-xl bg-gradient-to-b from-amber-700/90 to-amber-950/90 border-2 border-amber-300/70 flex items-center justify-center text-xl shadow-[inset_0_1px_0_rgba(255,220,140,0.4),0_2px_6px_rgba(0,0,0,0.5)]">
-                  {it.e}
+                <div
+                  className="relative flex size-12 items-center justify-center"
+                  style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.55))" }}
+                >
+                  <span
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 50% 50%, rgba(29,16,9,0.97) 0%, rgba(11,7,4,0.98) 60%, rgba(5,3,2,1) 100%)",
+                      border: "1.6px solid rgba(247,212,122,0.96)",
+                      boxShadow:
+                        "inset 0 0 0 1px rgba(101,61,18,0.92), inset 0 0 16px rgba(250,211,122,0.1), 0 0 0 1px rgba(71,42,12,0.85)",
+                    }}
+                  />
+                  <span
+                    className="absolute inset-[3px] rotate-45"
+                    style={{ border: "1px solid rgba(198,148,57,0.92)", borderRadius: "10px" }}
+                  />
+                  <span
+                    className="absolute inset-[7px] rotate-45"
+                    style={{ border: "1px solid rgba(255,232,173,0.88)", borderRadius: "8px" }}
+                  />
+                  <span className="relative z-10 text-[#d7b36a] [&_svg]:size-5 [&_svg]:stroke-[2.2]"><Icon /></span>
                   {it.badge > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                    <span
+                      className="absolute -top-1 right-0 z-20 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
+                      style={{
+                        height: 18,
+                        background: "linear-gradient(180deg, #e53935 0%, #8f1212 100%)",
+                        border: "2px solid rgba(255,243,200,0.95)",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
+                      }}
+                    >
                       {it.badge > 9 ? "9+" : it.badge}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-amber-200 font-black drop-shadow mt-0.5">{it.l}</span>
+                <span className="mt-1 text-[10px] font-black leading-none text-[#ead087] drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{it.label}</span>
               </>
             );
             return it.to ? (
@@ -2081,7 +2120,7 @@ function Index() {
                 key={i}
                 to={it.to}
                 onClick={() => sound.play("click")}
-                className="flex flex-col items-center gap-0.5 px-0.5 py-1 rounded-lg active:scale-95"
+                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
                 {inner}
               </Link>
@@ -2094,14 +2133,24 @@ function Index() {
                   else if (it.action === "boost") setBoostOpen(true);
                   else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
                 }}
-                className="flex flex-col items-center gap-0.5 px-0.5 py-1 rounded-lg active:scale-95"
+                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
                 {inner}
               </button>
             );
           })}
         </div>
+        <div
+          className="pointer-events-none absolute bottom-0 right-2 size-11 rotate-45"
+          style={{
+            background: "linear-gradient(135deg, rgba(235,245,255,0.95) 0%, rgba(183,198,223,0.82) 55%, rgba(115,135,170,0.14) 100%)",
+            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+            filter: "drop-shadow(0 0 12px rgba(224,234,255,0.4))",
+            opacity: 0.9,
+          }}
+        />
       </div>
+
 
       {/* Settings modal */}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
