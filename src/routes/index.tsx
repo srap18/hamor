@@ -1498,7 +1498,7 @@ function Index() {
         }}
       >
         <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
-        <span className="relative text-3xl" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
+        <img src={dailyKey3d} alt="مكافأة يومية" width={40} height={40} loading="lazy" className="relative w-10 h-10 object-contain" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.55))" }} />
         <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
