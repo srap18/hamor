@@ -619,26 +619,31 @@ html.keyboard-open .mobile-frame-root {
 
 .mobile-frame-notch { display: none; }
 
-@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+/* On tablets and desktops (iPad, laptops, etc.), render the app inside
+   a centered phone-shaped frame so the UI looks identical to a real phone.
+   Phones (≤ 600px) keep the full-screen fill defined above — so iPhone,
+   Android, Huawei, etc. all fill the screen identically. */
+@media (min-width: 601px) {
   .mobile-frame-root {
     background: #000;
     padding: 0;
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
   }
   .mobile-frame-stage {
     min-height: 100dvh;
     width: 100%;
-    align-items: stretch;
+    align-items: center;
+    justify-content: center;
   }
   .mobile-frame-device {
-    width: 100%;
-    min-height: 100dvh;
-    height: 100dvh;
+    width: min(430px, 100vw);
+    height: min(calc(100dvh - 24px), calc(430px * 19.5 / 9));
+    max-height: 100dvh;
     overflow: hidden;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.06);
   }
   .mobile-frame-screen {
     height: 100%;
@@ -646,7 +651,7 @@ html.keyboard-open .mobile-frame-root {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    border-radius: 0;
+    border-radius: 28px;
   }
   .mobile-frame-notch { display: none; }
 }
