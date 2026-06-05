@@ -99,8 +99,14 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         {/* Dragon / egg sits inside the nest opening.
             Outer wrapper centers; inner wrapper animates (so the keyframe
             transform doesn't overwrite translateX(-50%)). */}
-        <div
-          className="absolute"
+        <button
+          type="button"
+          onClick={() => {
+            if (!interactive) return;
+            setShowSoon(true);
+            setTimeout(() => setShowSoon(false), 2200);
+          }}
+          className="absolute active:scale-95 transition-transform"
           style={{
             left: "50%",
             bottom: "18%",
@@ -108,6 +114,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             height: "38%",
             transform: "translateX(-50%)",
             zIndex: 2,
+            pointerEvents: "auto",
+            background: "transparent",
+            border: "none",
+            padding: 0,
           }}
         >
           <div
@@ -130,8 +140,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               }}
             />
           </div>
-        </div>
-      </button>
+        </button>
+      </div>
 
 
 
