@@ -46,6 +46,7 @@ function PlayerPage() {
   const [myName, setMyName] = useState<string>("");
   const [myProtectionUntil, setMyProtectionUntil] = useState<string | null>(null);
   const [p, setP] = useState<Profile | null>(null);
+  const [theirDragonStage, setTheirDragonStage] = useState<number>(1);
   const [ships, setShips] = useState<Ship[]>([]);
   const [friendStatus, setFriendStatus] = useState<"none" | "pending" | "accepted" | "self">("none");
   const [loading, setLoading] = useState(true);
