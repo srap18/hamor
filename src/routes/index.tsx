@@ -1377,16 +1377,39 @@ function Index() {
 
           {/* Treasury — gold + gems */}
           <div className="flex-1 flex flex-col gap-1.5">
-          <div className="rounded-xl border-2 border-amber-400/80 bg-gradient-to-r from-[#3a1f0a]/95 to-[#1a0d04]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(252,191,73,0.3)]">
+          <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+                border: "2px solid #c9a44a",
+                boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
               <CoinIcon size={22} />
-              <span className="text-sm font-black text-amber-200 tabular-nums drop-shadow">{coins.toLocaleString()}</span>
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 6px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
             </div>
-            <div className="rounded-xl border-2 border-cyan-400/70 bg-gradient-to-r from-[#0a1f3a]/95 to-[#04101a]/95 px-2 py-1.5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(125,211,252,0.3)]">
+            <div
+              className="relative rounded-full px-3 py-1.5 flex items-center justify-between"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #0d2a4a 0%, #051324 70%, #02080f 100%)",
+                border: "2px solid #4ac9e0",
+                boxShadow: "inset 0 1px 0 rgba(180,240,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #051324, 0 6px 14px rgba(0,0,0,0.55), 0 0 14px rgba(74,201,224,0.25)",
+              }}
+            >
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.35) 0%, transparent 100%)" }} />
               <GemIcon size={22} />
-              <span className="text-sm font-black text-cyan-200 tabular-nums drop-shadow">{gems.toLocaleString()}</span>
+              <span className="relative text-sm font-black tabular-nums" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 6px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
               <Link
                 to="/recharge"
-                className="w-6 h-6 rounded-full bg-cyan-400 text-cyan-950 text-xs font-black border border-cyan-200 active:scale-90 flex items-center justify-center shadow"
+                className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90"
+                style={{
+                  background: "radial-gradient(ellipse at 50% 30%, #d6f4ff 0%, #4ac9e0 60%, #1a7da0 100%)",
+                  color: "#04242e",
+                  border: "2px solid #bff3ff",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 2px 4px rgba(0,0,0,0.5)",
+                  textShadow: "0 1px 0 rgba(255,255,255,0.6)",
+                }}
               >+</Link>
             </div>
 
@@ -1404,20 +1427,34 @@ function Index() {
 
           <Link
             to="/inventory"
-            className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow active:scale-95"
+            className="relative rounded-full px-3 py-1.5 flex items-center gap-1.5 active:scale-95"
             title="الأسماك المكتشفة"
+            style={{
+              background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+              border: "2px solid #c9a44a",
+              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 5px 10px rgba(0,0,0,0.5)",
+            }}
           >
-            <span className="text-lg">🐟</span>
-            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}<span className="text-amber-400/70 font-bold">/{FISH_TOTAL}</span></span>
+            <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
+            <span className="relative text-lg">🐟</span>
+            <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
           </Link>
           <NotificationsBell />
           {isAdmin && (
             <Link
               to="/admin"
-              className="rounded-lg border-2 border-red-400 bg-gradient-to-b from-red-600 to-red-900 px-2 py-1.5 text-sm font-black text-white shadow active:scale-95"
+              className="relative rounded-full px-3 py-1.5 text-sm font-black active:scale-95"
               title="لوحة الإدارة"
+              style={{
+                color: "#fff5e0",
+                background: "radial-gradient(ellipse at 50% 0%, #ff8a6a 0%, #e53935 45%, #8f1212 100%)",
+                border: "2px solid #ffb59a",
+                boxShadow: "inset 0 1px 0 rgba(255,220,200,0.6), inset 0 -3px 6px rgba(60,5,5,0.6), 0 3px 0 #3a0a0a, 0 5px 12px rgba(229,57,53,0.4)",
+                textShadow: "0 1px 2px rgba(0,0,0,0.85)",
+              }}
             >
-              👑 إدارة
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,220,200,0.45) 0%, transparent 100%)" }} />
+              <span className="relative">👑 إدارة</span>
             </Link>
           )}
         </div>
@@ -1429,11 +1466,18 @@ function Index() {
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
       <button
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
-        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_20px_rgba(252,191,73,0.5)] flex flex-col items-center justify-center text-amber-50 active:scale-95"
+        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl flex flex-col items-center justify-center active:scale-95"
+        style={{
+          color: "#2a1605",
+          background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
+          border: "2px solid #ffe9a8",
+          boxShadow: "inset 0 2px 0 rgba(255,243,200,0.85), inset 0 -3px 6px rgba(80,40,10,0.65), 0 4px 0 #3a1f0a, 0 6px 16px rgba(0,0,0,0.6), 0 0 22px rgba(252,191,73,0.55)",
+        }}
       >
-        <span className="text-3xl drop-shadow">🗝️</span>
-        <span className="text-[10px] font-black mt-0.5 drop-shadow">يومي</span>
-        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center border border-amber-100 shadow">!</span>
+        <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
+        <span className="relative text-3xl" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
+        <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
+        <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
       <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
