@@ -2541,6 +2541,8 @@ export type Database = {
           freeze_started_at: string | null
           freeze_until: string | null
           frozen_prices: Json
+          trader_anchor: string | null
+          trader_snapshot: Json
           trader_until: string | null
           updated_at: string
           user_id: string
@@ -2549,6 +2551,8 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          trader_anchor?: string | null
+          trader_snapshot?: Json
           trader_until?: string | null
           updated_at?: string
           user_id: string
@@ -2557,6 +2561,8 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          trader_anchor?: string | null
+          trader_snapshot?: Json
           trader_until?: string | null
           updated_at?: string
           user_id?: string
@@ -3118,6 +3124,7 @@ export type Database = {
         Args: { _message: string; _target_id: string }
         Returns: undefined
       }
+      build_trader_snapshot: { Args: never; Returns: Json }
       burn_target_bg: { Args: { _target_id: string }; Returns: string }
       buy_background: {
         Args: { _bg_id: string; _price: number }
@@ -3905,6 +3912,7 @@ export type Database = {
         Args: { p_active_id: string; p_storage_id: string }
         Returns: Json
       }
+      trader_snapshot_anchor: { Args: never; Returns: string }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
