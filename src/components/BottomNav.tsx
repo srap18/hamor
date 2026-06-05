@@ -1,15 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  Landmark,
-  MessageCircle,
-  Package,
-  Settings,
-  Skull,
-  Store,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Landmark, MessageCircle, Package, Settings, Skull, Trophy, Users } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
@@ -38,7 +30,7 @@ function GoldNavButton({
   active?: boolean;
   badge?: number;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button

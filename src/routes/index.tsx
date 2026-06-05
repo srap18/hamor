@@ -21,8 +21,8 @@ import { SettingsModal } from "@/components/SettingsModal";
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { DragonHUD } from "@/components/DragonHUD";
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
+
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { AuthGuard } from "@/components/AuthGuard";
