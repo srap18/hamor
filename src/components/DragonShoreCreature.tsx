@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
+import shoreDragonImage from "@/assets/shore-dragon.png";
 
 /**
  * Shore dragon — the player's actual dragon form sitting on the beach.
@@ -33,6 +34,7 @@ export function DragonShoreCreature() {
 
   const isEgg = stage <= 2;
   const stageImg = getStage(stage).image;
+  const creatureImg = isEgg ? stageImg : shoreDragonImage;
 
   return (
     <>
@@ -115,7 +117,7 @@ export function DragonShoreCreature() {
         >
           {isEgg ? (
             <img
-              src={stageImg}
+              src={creatureImg}
               alt=""
               draggable={false}
               className="absolute inset-0 w-full h-full object-contain object-bottom"
@@ -125,7 +127,7 @@ export function DragonShoreCreature() {
             />
           ) : (
             <img
-              src={stageImg}
+              src={creatureImg}
               alt=""
               draggable={false}
               className="absolute inset-0 w-full h-full object-contain object-bottom"
