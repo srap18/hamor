@@ -8,6 +8,7 @@ import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { buyWithCoins, buyWithGems } from "@/lib/economy";
 import { ProjectileFx } from "@/components/ProjectileFx";
+import { ShipFlag } from "@/components/ShipFlag";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
@@ -918,7 +919,7 @@ function PlayerPage() {
           .map((c) => CREWS.find((x) => x.id === c.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} shipFlag={(p as any)?.ship_flag ?? null} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
@@ -1576,7 +1577,7 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
   );
 }
 
-function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [], seaSide = "right" }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS; seaSide?: "left" | "right" }) {
+function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [], seaSide = "right", shipFlag = null }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS; seaSide?: "left" | "right"; shipFlag?: string | null }) {
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -1678,16 +1679,8 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         }}
       >
         <img src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
-        {/* Flag (hide when destroyed) */}
-        {!destroyed && (
-          <div className="absolute pointer-events-none" style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}>
-            <div className="w-full h-full animate-flag-wave" style={{
-              background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
-              clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
-            }} />
-          </div>
-        )}
+        {/* Flag (hide when destroyed) — mirrors owner's choice from profile */}
+        {!destroyed && <ShipFlag flagId={shipFlag} />}
         {/* Smoke when destroyed */}
         {destroyed && (
           <>

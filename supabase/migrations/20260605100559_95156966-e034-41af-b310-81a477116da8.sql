@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ship_flag text NOT NULL DEFAULT 'pirate-skull';
