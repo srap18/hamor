@@ -3,6 +3,7 @@ import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { SHIP_FLAGS, getShipFlag, setShipFlag, type ShipFlagId } from "@/lib/ship-flag";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
