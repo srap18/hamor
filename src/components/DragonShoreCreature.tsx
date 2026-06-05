@@ -96,6 +96,24 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
+        {/* Static nest sitting on the shore */}
+        <img
+          src={nestImg}
+          alt=""
+          draggable={false}
+          className="absolute pointer-events-none"
+          style={{
+            left: "-4%",
+            right: "-4%",
+            bottom: "-2%",
+            width: "108%",
+            height: "55%",
+            objectFit: "contain",
+            objectPosition: "bottom center",
+            filter: "drop-shadow(0 8px 14px rgba(0,0,0,0.55))",
+          }}
+        />
+
         <div
           className="relative h-full w-full"
           style={{
@@ -107,8 +125,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             src={creatureImg}
             alt=""
             draggable={false}
-            className="absolute inset-0 h-full w-full object-contain object-bottom"
+            className="absolute h-[78%] w-[78%] object-contain object-bottom"
             style={{
+              left: "11%",
+              bottom: "18%",
               filter:
                 stageMode === "adult"
                   ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
@@ -117,6 +137,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           />
         </div>
       </button>
+
 
       {showSoon && (
         <div
