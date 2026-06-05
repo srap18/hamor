@@ -46,6 +46,8 @@ import navIconInventory from "@/assets/nav-icon-inventory.png";
 import navIconShop from "@/assets/nav-icon-shop.png";
 import navIconChat from "@/assets/nav-icon-chat.png";
 import navIconSettings from "@/assets/nav-icon-settings.png";
+import navIconTribe from "@/assets/nav-icon-tribe.png";
+import { ShipFlag } from "@/components/ShipFlag";
 
 
 
