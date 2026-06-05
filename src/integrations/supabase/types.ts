@@ -3277,6 +3277,7 @@ export type Database = {
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
+      cleanup_old_competition_catches: { Args: never; Returns: undefined }
       collect_fishing_reward:
         | { Args: { _ship_db_id: string }; Returns: Json }
         | {
