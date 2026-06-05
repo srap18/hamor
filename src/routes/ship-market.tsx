@@ -20,6 +20,7 @@ import iconStorage from "@/assets/icons/icon-storage.png";
 import iconTimer from "@/assets/icons/icon-timer.png";
 import iconUpgrade from "@/assets/icons/icon-upgrade.png";
 import { serverNowMs } from "@/lib/server-time";
+import { withTimeout } from "@/lib/with-timeout";
 
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
