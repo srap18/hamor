@@ -619,6 +619,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           ))}
         </div>
 
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="text-sm font-semibold text-slate-300 mb-2">🏪 مستويات الأسواق</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-slate-400">🚢 سوق السفن (1-30)</label>
+              <input type="number" min={1} max={30} value={shipMarketLevel} onChange={(e) => setShipMarketLevel(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400">🐟 سوق السمك (1-30)</label>
+              <input type="number" min={1} max={30} value={fishMarketLevel} onChange={(e) => setFishMarketLevel(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+          <button onClick={saveMarkets} disabled={savingMarkets} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
+            {savingMarkets ? "جاري الحفظ..." : "💾 حفظ مستويات الأسواق"}
+          </button>
+        </div>
+
+
+
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button onClick={sendBox} className="px-3 py-2 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 text-sm">🎁 إهداء صندوق</button>
           <button onClick={grantVip} className="px-3 py-2 rounded-lg bg-amber-600/40 hover:bg-amber-600/60 text-amber-100 text-sm font-bold">👑 منح VIP</button>
