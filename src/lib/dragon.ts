@@ -115,13 +115,14 @@ export type DragonBonus = {
 };
 
 export function dragonMultiplier(level: number): number {
+  if (level <= 0) return 1; // egg → no bonus
   const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
   return Math.pow(1 + DRAGON_GROWTH_RATE, lvl - 1);
 }
 
 export function dragonBonusForLevel(level: number): DragonBonus {
-  const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
-  const tier = Math.ceil(lvl / 5); // 1..30
+  const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
+  const tier = lvl === 0 ? 0 : Math.ceil(lvl / 5); // 0..30
   const mult = dragonMultiplier(lvl);
   return { tier, kind: "mult", value: mult, label: `×${mult.toFixed(2)}` };
 }
