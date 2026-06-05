@@ -6,10 +6,25 @@ import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, d
 export const Route = createFileRoute("/dragon")({
   ssr: false,
   head: () => ({ meta: [{ title: "🐉 تنيني — Ocean Catch" }] }),
-  component: DragonPage,
+  component: DragonLocked,
 });
 
-function DragonPage() {
+function DragonLocked() {
+  const location = useLocation();
+  if (location.pathname !== "/dragon") return <Outlet />;
+  return (
+    <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a14] via-[#12122a] to-[#0a0a14] flex items-center justify-center p-6" dir="rtl">
+      <div className="max-w-sm w-full text-center bg-stone-900/80 border border-amber-700/40 rounded-2xl p-6 shadow-2xl">
+        <div className="text-6xl mb-4">🔒🐉</div>
+        <div className="text-amber-200 text-xl font-extrabold mb-2">التنين مقفل مؤقتاً</div>
+        <div className="text-amber-100/70 text-sm mb-5">ميزة التنين والتطوير قيد الإعداد — راجعنا قريباً!</div>
+        <Link to="/" className="inline-block px-5 py-2 rounded-xl bg-amber-600 text-white font-bold active:scale-95">رجوع</Link>
+      </div>
+    </div>
+  );
+}
+
+function _DragonPageDisabled() {
   const location = useLocation();
   const [d, setD] = useState<Dragon | null>(null);
   const [loading, setLoading] = useState(true);
