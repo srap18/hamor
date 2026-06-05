@@ -1443,7 +1443,7 @@ function Index() {
 
 
         {/* Boost rail */}
-        <div className="flex items-center gap-2 pr-20">
+        <div className="flex items-center gap-2 justify-end pl-2">
           {/* VIP removed */}
 
           {/* DragonHUD removed — entry is the shore dragon itself */}
