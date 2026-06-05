@@ -452,7 +452,8 @@ function PlayerPage() {
     // enforced inside apply_ship_damage; we hit it once first so a failed
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
-    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage });
+    const skipFishing = w.aoe === true; // nuke & ad_bomb bypass the 3-fishing-ships rule
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");
       if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
