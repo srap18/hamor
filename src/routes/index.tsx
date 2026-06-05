@@ -140,9 +140,9 @@ function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
 // so they never overlap on screen.
 const SLOTS = [
-  { scale: 1.28, top: "42%", dockLeft: 82 },
+  { scale: 1.55, top: "42%", dockLeft: 82 },
   { scale: 1.28, top: "55%", dockLeft: 50 },
-  { scale: 1.28, top: "30%", dockLeft: 14 },
+  { scale: 1.5, top: "30%", dockLeft: 14 },
 ];
 
 const INITIAL_SHIPS: Ship[] = [
