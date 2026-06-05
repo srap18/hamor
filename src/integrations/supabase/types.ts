@@ -2244,19 +2244,25 @@ export type Database = {
       }
       tribe_members: {
         Row: {
+          donation_coins: number
           joined_at: string
+          last_donation_at: string | null
           role: string
           tribe_id: string
           user_id: string
         }
         Insert: {
+          donation_coins?: number
           joined_at?: string
+          last_donation_at?: string | null
           role?: string
           tribe_id: string
           user_id: string
         }
         Update: {
+          donation_coins?: number
           joined_at?: string
+          last_donation_at?: string | null
           role?: string
           tribe_id?: string
           user_id?: string
