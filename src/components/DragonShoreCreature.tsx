@@ -152,7 +152,7 @@ export function DragonShoreCreature() {
             />
           ) : (
             <>
-              {/* Live-action style dragon video — white BG blended out via multiply */}
+              {/* Live-action style dragon video — white BG keyed out via SVG chroma filter */}
               <video
                 src={shoreDragonVideo.url}
                 autoPlay
@@ -162,9 +162,10 @@ export function DragonShoreCreature() {
                 preload="auto"
                 className="absolute inset-0 w-full h-full object-contain object-bottom"
                 style={{
-                  mixBlendMode: "multiply",
                   filter:
-                    "drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
+                    "url(#dsc-chroma-white) drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
+                  WebkitFilter:
+                    "url(#dsc-chroma-white) drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
                 }}
               />
               {/* Cool ambient overlay matching scene lighting */}
@@ -180,7 +181,8 @@ export function DragonShoreCreature() {
                 style={{
                   mixBlendMode: "overlay",
                   opacity: 0.35,
-                  filter: "brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
+                  filter: "url(#dsc-chroma-white) brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
+                  WebkitFilter: "url(#dsc-chroma-white) brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
                 }}
               />
             </>
