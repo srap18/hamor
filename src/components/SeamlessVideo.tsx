@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Lightweight looping background video.
  *
- * Single video element (no dual-decoder crossfade) for smooth playback on
- * mobile. Pauses when tab is hidden to save battery.
+ * Single video element (no dual-decoder crossfade) for smooth playback.
+ * Masks the loop seam with a brief opacity dip near the end + slow continuous
+ * CSS pan, so the restart is not perceivable without the cost of two decoders.
  */
 export function SeamlessVideo({
   src,
@@ -36,6 +37,30 @@ export function SeamlessVideo({
     applyRate();
     v.play().catch(() => {});
 
+    // Seam-hider: fade slightly to black ~0.4s before the end, recover after
+    // the loop restarts. This is purely a CSS opacity change — no extra
+    // decoding or video copies.
+    const FADE_WINDOW = 0.45;
+    let lastT = 0;
+    const onTime = () => {
+      const dur = v.duration;
+      if (!dur || !isFinite(dur)) return;
+      const t = v.currentTime;
+      // Detect wrap-around (loop): jump back to small t after being near end.
+      if (lastT > dur - FADE_WINDOW && t < FADE_WINDOW) {
+        v.style.opacity = String(Math.min(1, t / FADE_WINDOW));
+      } else {
+        const remaining = dur - t;
+        if (remaining < FADE_WINDOW) {
+          v.style.opacity = String(Math.max(0.55, remaining / FADE_WINDOW));
+        } else {
+          v.style.opacity = "1";
+        }
+      }
+      lastT = t;
+    };
+    v.addEventListener("timeupdate", onTime);
+
     const onVis = () => {
       if (document.visibilityState === "visible") {
         applyRate();
@@ -48,6 +73,7 @@ export function SeamlessVideo({
 
     return () => {
       v.removeEventListener("playing", reveal);
+      v.removeEventListener("timeupdate", onTime);
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [src, playbackRate]);
@@ -80,7 +106,7 @@ export function SeamlessVideo({
         playsInline
         preload="auto"
         className={className}
-        style={style}
+        style={{ ...style, transition: "opacity 0.15s linear" }}
       />
     </>
   );
