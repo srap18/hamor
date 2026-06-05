@@ -291,7 +291,7 @@ function DragonPerksCard({ level }: { level: number }) {
                 <span className="text-stone-400">
                   مستوى {t.fromLevel}–{t.toLevel}
                 </span>
-                <span className={`font-extrabold ${t.kind === "flat" ? "text-emerald-300" : "text-rose-300"}`}>
+                <span className="font-extrabold text-rose-300">
                   {t.label}
                 </span>
               </div>
@@ -299,7 +299,7 @@ function DragonPerksCard({ level }: { level: number }) {
           })}
         </div>
         <div className="text-stone-400 text-[9px] text-center mt-2">
-          المرتبة 1: إضافة ثابتة +200 ضرر — بقية المراتب: مضاعفة للقيمة الأساسية
+          نمو تراكمي: +4% لكل مستوى — يُضرب في الضرر والدفاع الأساسي
         </div>
       </div>
     </div>
