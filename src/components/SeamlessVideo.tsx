@@ -110,8 +110,10 @@ export function SeamlessVideo({
         muted
         playsInline
         preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
         className={className}
-        style={{ ...style, transition: "opacity 0.15s linear" }}
+        style={{ ...style, transition: "opacity 0.15s linear", willChange: "opacity" }}
       />
     </>
   );
