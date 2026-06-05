@@ -1531,6 +1531,7 @@ export type Database = {
           protection_until: string | null
           rubies: number
           selected_bg_id: string
+          ship_flag: string
           steal_blocked_until: string | null
           tribe_gems: number
           tribe_id: string | null
@@ -1570,6 +1571,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          ship_flag?: string
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
@@ -1609,6 +1611,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          ship_flag?: string
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
