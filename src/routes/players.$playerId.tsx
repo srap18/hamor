@@ -550,10 +550,12 @@ function PlayerPage() {
 
     sound.play("success"); flash(`💥 ${w.name} — ${boostedDamage.toLocaleString()} ضرر 🐉`);
     setBusy(false);
-    // After a nuke or ad-bomb, prompt the player to broadcast a global message
+    // After a nuke or ad-bomb, wait for the explosion FX to finish before
+    // opening the global broadcast message dialog.
     if (weaponId === "nuke" || weaponId === "ad_bomb") {
       setNukeMsg("");
-      setNukeMsgOpen(true);
+      const fxDelay = weaponId === "nuke" ? 3200 : 2000;
+      setTimeout(() => setNukeMsgOpen(true), fxDelay);
     } else {
       closeMenu();
     }
