@@ -46,18 +46,13 @@ export function DragonShoreCreature() {
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
         <defs>
           <filter id="dsc-chroma-white" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-            {/* Build alpha from darkness: alpha = 1 - min(R,G,B) approx via luminance */}
             <feColorMatrix
               type="matrix"
               values="1 0 0 0 0
                       0 1 0 0 0
                       0 0 1 0 0
-                      -1 -1 -1 0 2.55"
+                      -1 -1 -1 0 2.85"
             />
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="1.8" intercept="-0.25" />
-            </feComponentTransfer>
-            <feComposite in="SourceGraphic" in2="" operator="in" />
           </filter>
         </defs>
       </svg>
