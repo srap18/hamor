@@ -439,12 +439,16 @@ function PlayerPage() {
     const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
     if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
 
+    // Dragon attack bonus — boost weapon damage based on dragon overall level.
+    // Nuke ignores the bonus (already one-shots anything).
+    const boostedDamage = w.aoe && w.id === "nuke" ? w.damage : applyDragonAttack(w.damage, myDragonLvl);
+
     // ─── Pre-validate on the first target BEFORE consuming the weapon ───
     // Server-side rules (3 fishing ships, market level, protection, etc.) are
     // enforced inside apply_ship_damage; we hit it once first so a failed
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
-    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: w.damage });
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage });
     if (firstErr) {
       const m = String(firstErr.message || "");
       if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
