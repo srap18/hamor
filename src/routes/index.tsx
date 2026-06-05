@@ -1397,11 +1397,31 @@ function Index() {
                 {frameById((profile as any)?.avatar_frame)?.imageUrl && (
                   <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
                 )}
+                {/* Shield badge — top-right of avatar */}
+                <div className="absolute -top-1 -right-1 z-10" onClick={(e) => e.preventDefault()}>
+                  <ShieldBadge />
+                </div>
               </div>
               <div className={`inline-flex max-w-[110px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
                 {profile?.display_name || "قبطان"}
               </div>
             </Link>
+
+            {/* Fish discovered counter — directly under name, above treasury */}
+            <Link
+              to="/inventory"
+              className="relative rounded-full px-2.5 py-0.5 flex items-center gap-1 active:scale-95"
+              title="الأسماك المكتشفة"
+              style={{
+                background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+                border: "1.5px solid #c9a44a",
+                boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -2px 4px rgba(0,0,0,0.6), 0 2px 0 #1a0d04, 0 3px 8px rgba(0,0,0,0.5)",
+              }}
+            >
+              <span className="relative text-sm">🐟</span>
+              <span className="relative text-[11px] font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
+            </Link>
+
 
             {/* Treasury — gold + gems (compact, under avatar) */}
             <div className="flex flex-col gap-1.5 w-[150px]">
