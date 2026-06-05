@@ -452,7 +452,8 @@ function PlayerPage() {
     // enforced inside apply_ship_damage; we hit it once first so a failed
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
-    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage });
+    const skipFishing = w.aoe === true; // nuke & ad_bomb bypass the 3-fishing-ships rule
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");
       if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
@@ -480,7 +481,7 @@ function PlayerPage() {
     if (w.aoe && targets.length > 1) {
       targets.slice(1).forEach((t) => {
         (supabase as any)
-          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage })
+          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing })
           .then(undefined, (e: any) => { console.error("apply_ship_damage failed", e); });
       });
     }
@@ -528,7 +529,7 @@ function PlayerPage() {
         await playProjectile(t.id, w.emoji, false, w.id);
         let row: any = damageResults[i];
         if (!row && i > 0) {
-          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage });
+          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
           row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
         }
         const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
