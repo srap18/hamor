@@ -107,7 +107,7 @@ function FishMarket() {
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {}, trader_snapshot: {}, trader_anchor: null });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -121,7 +121,7 @@ function FishMarket() {
     if (!user) return;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
+      .select("trader_until, freeze_until, freeze_started_at, frozen_prices, trader_snapshot, trader_anchor")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
@@ -130,9 +130,11 @@ function FishMarket() {
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
+        trader_snapshot: (data.trader_snapshot as Record<string, number[]>) ?? {},
+        trader_anchor: data.trader_anchor ?? null,
       });
     } else {
-      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {}, trader_snapshot: {}, trader_anchor: null });
     }
   };
   useEffect(() => { loadMarketState(); }, [user?.id]);
