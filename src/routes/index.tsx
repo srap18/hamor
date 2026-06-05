@@ -2070,13 +2070,13 @@ function Index() {
         />
         <div className="relative flex items-end justify-between gap-0.5">
           {[
-            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
-            { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
-            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
-            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
             { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
+            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
+            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
+            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
+            { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
