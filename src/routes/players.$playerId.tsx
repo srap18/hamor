@@ -439,6 +439,7 @@ function PlayerPage() {
     const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: w.damage });
     if (firstErr) {
       const m = String(firstErr.message || "");
+      if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
       if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
       if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); setBusy(false); return; }
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
