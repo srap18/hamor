@@ -20,8 +20,8 @@ export function ShipFlag({ tribeEmblem }: { tribeEmblem?: string | null }) {
 
   return (
     <div
-      className="absolute pointer-events-none animate-flag-wave origin-left"
-      style={{ left: "50%", top: "-4%", width: "16%", height: "13%" }}
+      className="absolute pointer-events-none animate-flag-wave origin-left z-30"
+      style={{ left: "50%", top: "-22%", width: "20%", height: "16%" }}
     >
       <FlagArt id={id} tribeEmblem={tribeEmblem} />
     </div>
