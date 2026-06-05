@@ -1,8 +1,8 @@
 // Original 8 — kept for these market levels: 1, 4, 7, 11, 15, 19, 23, 27
-import ship01 from "@/assets/ships/ship-01-wooden.png";
-import ship04 from "@/assets/ships/ship-02-motor.png";
-import ship07 from "@/assets/ships/ship-03-trawler.png";
-import ship11 from "@/assets/ships/ship-04-deepsea.png";
+import ship01 from "@/assets/ships/ship-lvl-1.png";
+import ship04 from "@/assets/ships/ship-lvl-4.png";
+import ship07 from "@/assets/ships/ship-lvl-7.png";
+import ship11 from "@/assets/ships/ship-lvl-11.png";
 import ship15 from "@/assets/ships/ship-05-hunter.png";
 import ship19 from "@/assets/ships/ship-06-factory.png";
 import ship23 from "@/assets/ships/ship-07-legendary.png";
