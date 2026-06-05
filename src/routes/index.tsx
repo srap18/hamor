@@ -142,7 +142,7 @@ function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null
 const SLOTS = [
   { scale: 1.28, top: "42%", dockLeft: 82 },
   { scale: 1.28, top: "55%", dockLeft: 50 },
-  { scale: 1.24, top: "30%", dockLeft: 14 },
+  { scale: 1.28, top: "30%", dockLeft: 14 },
 ];
 
 const INITIAL_SHIPS: Ship[] = [
