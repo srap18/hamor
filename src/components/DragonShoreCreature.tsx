@@ -52,9 +52,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
       <button
         type="button"
         onClick={() => {
+          if (!interactive) return;
           setShowSoon(true);
           setTimeout(() => setShowSoon(false), 2200);
         }}
+
         aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
