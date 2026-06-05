@@ -991,10 +991,11 @@ function Index() {
       if (target.dbId) delete collectingRef.current[target.dbId];
       return;
     }
-    if (!target?.fishing && !isServerClockSynced()) {
-      await syncServerTime(true);
-    }
     if (!target) return;
+    // Kick off clock sync in the background — do NOT block the UI on it.
+    if (!target.fishing && !isServerClockSynced()) {
+      syncServerTime(true).catch(() => {});
+    }
     const startNow = serverNowMs();
     const dbIdToSync = target.dbId;
     const nextAtSea = !target.fishing;
@@ -1012,23 +1013,29 @@ function Index() {
       })
     );
     sound.play("whoosh");
-    // Sync at_sea to DB so other players see live status via realtime
+    // Sync at_sea to DB in the background so the UI stays snappy.
     if (dbIdToSync) {
-      const { setShipAtSea } = await import("@/lib/economy");
-      const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
-      if (error) {
-        delete seaStateOverrideRef.current[dbIdToSync];
-        delete collectingRef.current[dbIdToSync];
-        showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
-        syncFleetFromDb();
-        return;
-      }
-      clearSeaOverrideSoon(dbIdToSync);
-      delete collectingRef.current[dbIdToSync];
+      (async () => {
+        try {
+          const { setShipAtSea } = await import("@/lib/economy");
+          const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
+          if (error) {
+            delete seaStateOverrideRef.current[dbIdToSync];
+            delete collectingRef.current[dbIdToSync];
+            showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
+            syncFleetFromDb();
+            return;
+          }
+          clearSeaOverrideSoon(dbIdToSync);
+          delete collectingRef.current[dbIdToSync];
+          pushHarborState();
+        } catch {
+          delete collectingRef.current[dbIdToSync];
+        }
+      })();
     }
-    // Instant push to spectators
-    pushHarborState();
   };
+
 
   const collect = async (shipId: number, e: React.MouseEvent) => {
     const targetEl = e.currentTarget as HTMLElement | null;
