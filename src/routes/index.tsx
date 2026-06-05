@@ -2203,13 +2203,13 @@ function Index() {
         />
         <div className="relative grid grid-cols-7 items-end gap-0">
           {[
-            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
-            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
-            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
-            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0 },
-            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            
-            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0, emoji: null as string | null },
+            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread, emoji: null },
+            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0, emoji: null },
+            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0, emoji: null },
+            { src: null as any, label: "ترتيب", to: null, action: "boost" as const, badge: 0, emoji: "🏆" },
+            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread, emoji: null },
+            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0, emoji: null },
           ].map((it, i) => {
             const inner = (
               <>
