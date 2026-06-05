@@ -1891,13 +1891,6 @@ function Index() {
               <div className="text-[10px] text-accent/60 text-center mb-3">
                 المستوى {s.level} — {assignedRows.length}/{slots} طاقم مفعّل · مدة التفعيل 24 ساعة
               </div>
-              <div className="mt-1 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setModal(null)}
-                  className="w-full py-2 rounded-xl bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 font-black text-sm active:scale-95"
-                >إغلاق</button>
-              </div>
 
               <div className="text-[11px] text-accent/80 font-bold mb-1">الطواقم المفعّلة</div>
               <div className="space-y-1.5 mb-3">
