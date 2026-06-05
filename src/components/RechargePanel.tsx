@@ -163,8 +163,12 @@ export function RechargePanel() {
               )}
 
               <div className="flex items-center gap-2.5">
-                <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
-                  {p.emoji}
+                <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] shrink-0">
+                  {p.image ? (
+                    <img src={p.image} alt={p.label} className="w-12 h-12 object-contain" />
+                  ) : (
+                    p.emoji
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">
