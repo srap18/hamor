@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
+import nestImg from "@/assets/dragon-nest-only.png";
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
