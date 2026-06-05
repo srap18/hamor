@@ -5,6 +5,7 @@ import rocketSmallImg from "@/assets/weapons/rocket-small.png";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
 import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import nukeImg from "@/assets/weapons/nuke.png";
+import adBombImg from "@/assets/weapons/ad-bomb.png";
 
 export type Weapon = {
   id: string;
@@ -77,6 +78,7 @@ export const WEAPONS: Weapon[] = [
     id: "ad_bomb",
     name: "قنبلة إعلانية",
     emoji: "📺",
+    image: adBombImg,
     price: 0,
     currency: "gems",
     damage: 9_999_999,
