@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Seamless looping background video.
+ * Lightweight looping background video.
  *
- * Always plays the video (no static-image fallback) so the scene stays alive.
- * - Pauses when tab is hidden to save battery, resumes on return.
- * - Uses two crossfading videos so the loop has no visible seam.
+ * Single video element (no dual-decoder crossfade) for smooth playback on
+ * mobile. Pauses when tab is hidden to save battery.
  */
 export function SeamlessVideo({
   src,
@@ -20,101 +19,36 @@ export function SeamlessVideo({
   style?: React.CSSProperties;
   playbackRate?: number;
 }) {
-  const aRef = useRef<HTMLVideoElement | null>(null);
-  const bRef = useRef<HTMLVideoElement | null>(null);
+  const vRef = useRef<HTMLVideoElement | null>(null);
   const [videoVisible, setVideoVisible] = useState(false);
 
   useEffect(() => {
     setVideoVisible(false);
-    const a = aRef.current;
-    const b = bRef.current;
-    if (!a || !b) return;
+    const v = vRef.current;
+    if (!v) return;
 
-    // Reveal as soon as the first frame is decoded — don't wait for "playing".
-    const revealOnFrame = () => setVideoVisible(true);
-    a.addEventListener("loadeddata", revealOnFrame, { once: true });
-    if ("requestVideoFrameCallback" in a) {
-      try { (a as any).requestVideoFrameCallback(() => setVideoVisible(true)); } catch {}
-    }
-    if (a.readyState >= 2) setVideoVisible(true);
+    const reveal = () => setVideoVisible(true);
+    v.addEventListener("loadeddata", reveal, { once: true });
+    v.addEventListener("playing", reveal);
+    if (v.readyState >= 2) reveal();
 
-    let raf = 0;
-    let bOffset = false;
-    let FADE = 1.6;
-
-    const applyRate = () => {
-      try { a.playbackRate = playbackRate; b.playbackRate = playbackRate; } catch {}
-    };
-    const offsetB = () => {
-      const dur = a.duration;
-      if (!dur || !isFinite(dur)) return;
-      // Continuous crossfade: FADE = dur/2 so the two videos are always
-      // blending. At A's loop boundary, B is at mid-clip and fully visible,
-      // completely hiding any restart jump in the source content.
-      FADE = dur / 2;
-      try { b.currentTime = dur / 2; } catch {}
-      bOffset = true;
-    };
-    const onLoaded = () => { offsetB(); applyRate(); a.play().catch(() => {}); };
-    a.addEventListener("loadedmetadata", onLoaded);
-    b.addEventListener("loadedmetadata", () => { offsetB(); applyRate(); });
-    b.addEventListener("seeked", () => { applyRate(); b.play().catch(() => {}); }, { once: true });
-    const onPlaying = () => { applyRate(); setVideoVisible(true); };
-    a.addEventListener("playing", onPlaying);
-    b.addEventListener("playing", onPlaying);
-
+    const applyRate = () => { try { v.playbackRate = playbackRate; } catch {} };
     applyRate();
-    a.play().catch(() => {});
-    b.play().catch(() => {});
-
-    const tick = () => {
-      const dur = a.duration || 0;
-      if (dur > 0 && bOffset) {
-        const ta = a.currentTime;
-        const tb = b.currentTime;
-        const da = Math.min(ta, dur - ta);
-        const db = Math.min(tb, dur - tb);
-        const ease = (x: number) => {
-          const t = Math.max(0, Math.min(1, x));
-          return t * t * (3 - 2 * t);
-        };
-        const wa = ease(da / FADE);
-        const wb = ease(db / FADE);
-        const total = wa + wb;
-        if (total > 0.001) {
-          a.style.opacity = String(wa / total);
-          b.style.opacity = String(wb / total);
-        } else {
-          a.style.opacity = "1";
-          b.style.opacity = "0";
-        }
-      } else {
-        a.style.opacity = "1";
-        b.style.opacity = "0";
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
+    v.play().catch(() => {});
 
     const onVis = () => {
       if (document.visibilityState === "visible") {
         applyRate();
-        a.play().catch(() => {});
-        b.play().catch(() => {});
-        if (!raf) raf = requestAnimationFrame(tick);
+        v.play().catch(() => {});
       } else {
-        try { a.pause(); b.pause(); } catch {}
-        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        try { v.pause(); } catch {}
       }
     };
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
-      a.removeEventListener("loadedmetadata", onLoaded);
-      a.removeEventListener("playing", onPlaying);
-      b.removeEventListener("playing", onPlaying);
+      v.removeEventListener("playing", reveal);
       document.removeEventListener("visibilitychange", onVis);
-      if (raf) cancelAnimationFrame(raf);
     };
   }, [src, playbackRate]);
 
@@ -137,7 +71,7 @@ export function SeamlessVideo({
         />
       )}
       <video
-        ref={aRef}
+        ref={vRef}
         src={src}
         poster={poster}
         autoPlay
@@ -147,18 +81,6 @@ export function SeamlessVideo({
         preload="auto"
         className={className}
         style={style}
-      />
-      <video
-        ref={bRef}
-        src={src}
-        poster={poster}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className={className}
-        style={{ ...style, opacity: 0 }}
       />
     </>
   );
