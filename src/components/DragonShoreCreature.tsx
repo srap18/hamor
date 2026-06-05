@@ -1,68 +1,8 @@
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
-import shoreDragonVideo from "@/assets/shore-dragon.mp4.asset.json";
-
-function ChromaDragonVideo({ className, style, ariaHidden }: { className?: string; style?: CSSProperties; ariaHidden?: boolean }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
-
-    let frame = 0;
-    const render = () => {
-      if (video.readyState >= 2) {
-        const width = video.videoWidth || 720;
-        const height = video.videoHeight || 720;
-        if (canvas.width !== width || canvas.height !== height) {
-          canvas.width = width;
-          canvas.height = height;
-        }
-        ctx.drawImage(video, 0, 0, width, height);
-        const image = ctx.getImageData(0, 0, width, height);
-        const data = image.data;
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const max = Math.max(r, g, b);
-          const min = Math.min(r, g, b);
-          const whiteAmount = Math.min(r, g, b);
-          const saturation = max - min;
-          if (whiteAmount > 206 && saturation < 46) {
-            const alpha = Math.max(0, Math.min(255, (238 - whiteAmount) * 8 + saturation * 3));
-            data[i + 3] = alpha;
-            if (alpha < 50) {
-              data[i] = 0;
-              data[i + 1] = 0;
-              data[i + 2] = 0;
-            }
-          }
-        }
-        ctx.putImageData(image, 0, 0);
-      }
-      frame = requestAnimationFrame(render);
-    };
-
-    video.play().catch(() => undefined);
-    render();
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  return (
-    <>
-      <video ref={videoRef} src={shoreDragonVideo.url} autoPlay loop muted playsInline preload="auto" className="hidden" />
-      <canvas ref={canvasRef} aria-hidden={ariaHidden} className={className} style={style} />
-    </>
-  );
-}
+import shoreDragonAnimated from "@/assets/shore-dragon-transparent.webp.asset.json";
 
 /**
  * Shore dragon — the player's actual dragon form sitting on the beach.
@@ -197,8 +137,11 @@ export function DragonShoreCreature() {
             />
           ) : (
             <>
-              {/* Live-action style dragon video with white background removed frame-by-frame */}
-              <ChromaDragonVideo
+              {/* Animated dragon with the white background permanently removed */}
+              <img
+                src={shoreDragonAnimated.url}
+                alt=""
+                draggable={false}
                 className="absolute inset-0 w-full h-full object-contain object-bottom"
                 style={{
                   filter:
@@ -208,7 +151,10 @@ export function DragonShoreCreature() {
                 }}
               />
               {/* Cool ambient overlay matching scene lighting */}
-              <ChromaDragonVideo
+              <img
+                src={shoreDragonAnimated.url}
+                alt=""
+                draggable={false}
                 aria-hidden
                 className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
                 style={{
