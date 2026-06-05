@@ -1567,7 +1567,7 @@ function Index() {
           const vRange = Math.max(10, 60 - (wTop + 10));
           const tgtTop = fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
           const tgtLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const tgtScale = fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
+          const tgtScale = fixedSlot?.scale ?? 1.4;
           const tgtShipW = 22 * tgtScale;
           const seaIsRight = (scene.seaSide ?? "right") === "right";
           top = `${Math.max(50, Math.min(74, tgtTop + tgtShipW * 0.22 + sibIdx * 5))}%`;
