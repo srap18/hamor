@@ -953,15 +953,16 @@ function Index() {
 
   // Progress + sail animation ticker — driven by requestAnimationFrame so it
   // pauses when the tab is hidden and skips state updates when nothing
-  // meaningfully changes (huge win: avoids re-rendering the whole scene at
-  // 16fps even while every ship sits idle at the dock).
+  // meaningfully changes. Ships animate at 60fps only while actively sailing;
+  // once settled, progress/timer updates slow down to keep the game light.
   useEffect(() => {
     let raf = 0;
     let lastTick = 0;
-    const MIN_INTERVAL = 1000 / 30; // cap to ~30fps; visuals stay smooth
     const tick = (ts: number) => {
       raf = requestAnimationFrame(tick);
-      if (ts - lastTick < MIN_INTERVAL) return;
+      const movingShip = shipsRef.current.some((s) => Math.abs((s.fishing ? 1 : 0) - s.sail) > 0.001);
+      const minInterval = movingShip ? 1000 / 60 : 500;
+      if (ts - lastTick < minInterval) return;
       lastTick = ts;
       const now = serverNowMs();
       setShips((curr) => {
