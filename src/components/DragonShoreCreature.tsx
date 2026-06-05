@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import dragonAdultNest from "@/assets/dragon-adult-nest.png";
-import dragonBabyNest from "@/assets/dragon-baby-nest.png";
-import dragonEggNest from "@/assets/dragon-egg-nest.png";
+import { DRAGON_STAGES, getStage } from "@/lib/dragon";
 
 export function DragonShoreCreature() {
   const [stage, setStage] = useState<number>(1);
@@ -11,20 +9,28 @@ export function DragonShoreCreature() {
 
   useEffect(() => {
     let alive = true;
-    (async () => {
+    const load = async () => {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user?.id;
       if (!uid) return;
       const { data } = await supabase.from("dragons").select("stage").eq("user_id", uid).maybeSingle();
       if (alive && data?.stage) setStage(data.stage);
-    })();
+    };
+    load();
+    // Refresh whenever the page becomes visible again (after upgrades on dragon page)
+    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", load);
     return () => {
       alive = false;
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", load);
     };
   }, []);
 
   const stageMode = stage <= 1 ? "egg" : stage <= 2 ? "hatching" : "adult";
-  const creatureImg = stageMode === "egg" ? dragonEggNest : stageMode === "hatching" ? dragonBabyNest : dragonAdultNest;
+  const creatureImg = getStage(stage).image;
+
 
   return (
     <>
