@@ -951,34 +951,59 @@ function Index() {
 
 
 
-  // Progress + sail animation ticker — strictly time-proportional.
+  // Progress + sail animation ticker — driven by requestAnimationFrame so it
+  // pauses when the tab is hidden and skips state updates when nothing
+  // meaningfully changes (huge win: avoids re-rendering the whole scene at
+  // 16fps even while every ship sits idle at the dock).
   useEffect(() => {
-    const id = setInterval(() => {
+    let raf = 0;
+    let lastTick = 0;
+    const MIN_INTERVAL = 1000 / 30; // cap to ~30fps; visuals stay smooth
+    const tick = (ts: number) => {
+      raf = requestAnimationFrame(tick);
+      if (ts - lastTick < MIN_INTERVAL) return;
+      lastTick = ts;
       const now = serverNowMs();
-      setShips((curr) =>
-        curr.map((s) => {
-          // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
+      setShips((curr) => {
+        let changed = false;
+        const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          // Asymmetric smoothing: gentle when sailing out, FAST when returning
-          // to dock so stopping/collecting feels instant.
           const smoothing = s.fishing ? 0.22 : 0.55;
-          const sail = s.sail + (target - s.sail) * smoothing;
+          const rawSail = s.sail + (target - s.sail) * smoothing;
+          // Snap to target when within epsilon to let updates settle.
+          const sail = Math.abs(rawSail - target) < 0.001 ? target : rawSail;
+          const sailDelta = Math.abs(sail - s.sail);
           if (!s.fishing || !s.startedAt) {
+            if (sailDelta < 0.0008) return s; // idle docked ship — skip
+            changed = true;
             return { ...s, sail };
           }
           if (s.dbId && !isServerClockSynced()) {
+            if (sailDelta < 0.0008 && s.progress === 0) return s;
+            changed = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
-          const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
+          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
+          // Skip update if nothing perceptible changed.
+          if (
+            sailDelta < 0.0008 &&
+            progress === s.progress &&
+            Math.abs(timeLeft - s.timeLeft) < 0.5
+          ) {
+            return s;
+          }
+          changed = true;
           return { ...s, sail, progress, timeLeft };
-        })
-      );
-    }, 60);
-    return () => clearInterval(id);
+        });
+        return changed ? next : curr;
+      });
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
 
