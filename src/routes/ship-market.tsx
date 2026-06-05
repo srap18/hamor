@@ -223,7 +223,7 @@ function ShipyardPage() {
       <div className="relative mx-auto flex min-h-full w-full max-w-7xl flex-col gap-4 px-3 pb-28 pt-3 md:px-5">
         <header className="glass-hud rounded-2xl px-4 py-4">
           <div className="flex items-start gap-3">
-            <Link to="/" className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-lg">←</Link>
+            <BackButton className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-lg">←</BackButton>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black">Shipyard</h1>
