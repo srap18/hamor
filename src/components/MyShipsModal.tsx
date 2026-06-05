@@ -77,7 +77,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
   const callRpc = async (fn: string, args: any) => {
     try {
-      const { error } = await withTimeout((supabase as any).rpc(fn, args), 15000, fn);
+      const { error } = await withTimeout<any>((supabase as any).rpc(fn, args), 15000, fn);
       if (error) {
         const msg = (error.message || "").toLowerCase();
         const friendly = Object.entries(ERR_MAP).find(([k]) => msg.includes(k))?.[1];
