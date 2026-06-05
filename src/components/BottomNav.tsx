@@ -1,18 +1,18 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Landmark, MessageCircle, Package, Settings, Skull, Trophy, Users } from "lucide-react";
+import { Anchor, Coins, Compass, Crown, ScrollText, Swords, Skull, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
 const items = [
-  { icon: Skull, label: "تحدي", to: "/battle" as const },
-  { icon: Trophy, label: "ترتيب", to: "/arena" as const },
+  { icon: Swords, label: "تحدي", to: "/battle" as const },
+  { icon: Crown, label: "ترتيب", to: "/arena" as const },
   { icon: Users, label: "أصدقاء", to: "/friends" as const },
-  { icon: Package, label: "مخزن", to: "/inventory" as const },
-  { icon: Landmark, label: "متجر", to: "/shop" as const },
-  { icon: MessageCircle, label: "شات", to: "/chat" as const },
+  { icon: Anchor, label: "مخزن", to: "/inventory" as const },
+  { icon: Coins, label: "متجر", to: "/shop" as const },
+  { icon: ScrollText, label: "شات", to: "/chat" as const },
 ] satisfies Array<{
   icon: typeof Skull;
   label: string;
