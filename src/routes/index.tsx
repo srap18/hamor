@@ -953,22 +953,23 @@ function Index() {
 
   // Progress + sail animation ticker — driven by requestAnimationFrame so it
   // pauses when the tab is hidden and skips state updates when nothing
-  // meaningfully changes (huge win: avoids re-rendering the whole scene at
-  // 16fps even while every ship sits idle at the dock).
+  // meaningfully changes. Ships animate at 60fps only while actively sailing;
+  // once settled, progress/timer updates slow down to keep the game light.
   useEffect(() => {
     let raf = 0;
     let lastTick = 0;
-    const MIN_INTERVAL = 1000 / 30; // cap to ~30fps; visuals stay smooth
     const tick = (ts: number) => {
       raf = requestAnimationFrame(tick);
-      if (ts - lastTick < MIN_INTERVAL) return;
+      const movingShip = shipsRef.current.some((s) => Math.abs((s.fishing ? 1 : 0) - s.sail) > 0.001);
+      const minInterval = movingShip ? 1000 / 60 : 500;
+      if (ts - lastTick < minInterval) return;
       lastTick = ts;
       const now = serverNowMs();
       setShips((curr) => {
         let changed = false;
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = s.fishing ? 0.22 : 0.55;
+          const smoothing = s.fishing ? 0.42 : 0.7;
           const rawSail = s.sail + (target - s.sail) * smoothing;
           // Snap to target when within epsilon to let updates settle.
           const sail = Math.abs(rawSail - target) < 0.001 ? target : rawSail;
@@ -979,7 +980,7 @@ function Index() {
             return { ...s, sail };
           }
           if (s.dbId && !isServerClockSynced()) {
-            if (sailDelta < 0.0008 && s.progress === 0) return s;
+            if (sailDelta < 0.0008 && s.progress === 0 && s.timeLeft === s.duration) return s;
             changed = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
@@ -3147,10 +3148,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
   const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
 
-  // Pivot-in-place: when bow direction changes, hold position while the flip
-  // animation plays, then release so the ship slides smoothly to its new spot.
-  // Shorter turn when returning to dock so stop/collect feels instant.
-  const TURN_MS = ship.fishing ? 700 : 220;
+  // Flip direction without holding the ship in place; movement must begin
+  // immediately when starting or stopping fishing.
+  const TURN_MS = 0;
   const facingRef = useRef(facing);
   const turnEndRef = useRef(0);
   const heldLeftRef = useRef(computedLeft);
@@ -3186,7 +3186,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: ship.fishing ? "left 0.5s ease-in-out" : "left 0.18s linear",
+        transition: "none",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3274,7 +3274,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         style={{
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
-          transition: ship.fishing ? "transform 0.7s ease-in-out" : "transform 0.22s ease-out",
+          transition: ship.fishing ? "transform 0.28s ease-out" : "transform 0.18s ease-out",
         }}
       >
       {/* 3D ship body */}
