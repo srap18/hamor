@@ -3148,10 +3148,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
   const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
 
-  // Pivot-in-place: when bow direction changes, hold position while the flip
-  // animation plays, then release so the ship slides smoothly to its new spot.
-  // Shorter turn when returning to dock so stop/collect feels instant.
-  const TURN_MS = ship.fishing ? 700 : 220;
+  // Flip direction without holding the ship in place; movement must begin
+  // immediately when starting or stopping fishing.
+  const TURN_MS = 0;
   const facingRef = useRef(facing);
   const turnEndRef = useRef(0);
   const heldLeftRef = useRef(computedLeft);
@@ -3187,7 +3186,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: ship.fishing ? "left 0.5s ease-in-out" : "left 0.18s linear",
+        transition: "none",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3275,7 +3274,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         style={{
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
-          transition: ship.fishing ? "transform 0.7s ease-in-out" : "transform 0.22s ease-out",
+          transition: ship.fishing ? "transform 0.28s ease-out" : "transform 0.18s ease-out",
         }}
       >
       {/* 3D ship body */}
