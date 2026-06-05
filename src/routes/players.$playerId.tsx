@@ -188,7 +188,7 @@ function PlayerPage() {
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
-      setTargetIsStaff(!!staffRes);
+      setTargetIsStaff(false); // temporarily allow viewing admin/mod ocean for dragon testing (was: !!staffRes)
       setTheirDragonStage(((dragonRow as any)?.stage as number) ?? 1);
 
       const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
