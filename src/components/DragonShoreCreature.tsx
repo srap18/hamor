@@ -61,10 +61,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
-          left: "9.5%",
-          bottom: "8.8%",
-          width: "39%",
-          maxWidth: "270px",
+          left: "6%",
+          bottom: "6%",
+          width: "54%",
+          maxWidth: "360px",
           aspectRatio: "1 / 1",
           pointerEvents: "auto",
         }}
@@ -72,63 +72,56 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "-8%",
-            right: "8%",
-            bottom: "0%",
-            height: "19%",
+            left: "-6%",
+            right: "6%",
+            bottom: "-2%",
+            height: "14%",
             background:
               "radial-gradient(ellipse at 55% 50%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 48%, rgba(0,0,0,0) 84%)",
             filter: "blur(10px)",
             transform: "skewX(-14deg)",
           }}
         />
-        <span
-          className="absolute pointer-events-none"
-          style={{
-            left: "14%",
-            right: "14%",
-            bottom: "6%",
-            height: "7%",
-            background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.58) 44%, rgba(0,0,0,0) 82%)",
-            filter: "blur(2px)",
-            animation: "dsc-shadow 3s ease-in-out infinite",
-          }}
-        />
 
-        {/* Static nest sitting on the shore */}
+        {/* Static nest sitting on the shore (larger, full width) */}
         <img
           src={nestImg}
           alt=""
           draggable={false}
           className="absolute pointer-events-none"
           style={{
-            left: "-4%",
-            right: "-4%",
-            bottom: "-2%",
-            width: "108%",
-            height: "55%",
+            left: "0%",
+            right: "0%",
+            bottom: "0%",
+            width: "100%",
+            height: "78%",
             objectFit: "contain",
             objectPosition: "bottom center",
-            filter: "drop-shadow(0 8px 14px rgba(0,0,0,0.55))",
+            filter: "drop-shadow(0 10px 16px rgba(0,0,0,0.6))",
+            zIndex: 1,
           }}
         />
 
+        {/* Dragon / egg sits inside the nest opening */}
         <div
-          className="relative h-full w-full"
+          className="absolute"
           style={{
+            left: "50%",
+            bottom: "22%",
+            width: "50%",
+            height: "55%",
+            transform: "translateX(-50%)",
+            zIndex: 2,
             animation: stageMode === "egg" ? "dsc-rock 2.8s ease-in-out infinite" : stageMode === "adult" ? "dsc-breathe 4s ease-in-out infinite" : undefined,
-            transformOrigin: "50% 88%",
+            transformOrigin: "50% 95%",
           }}
         >
           <img
             src={creatureImg}
             alt=""
             draggable={false}
-            className="absolute h-[78%] w-[78%] object-contain object-bottom"
+            className="absolute inset-0 h-full w-full object-contain object-bottom"
             style={{
-              left: "11%",
-              bottom: "18%",
               filter:
                 stageMode === "adult"
                   ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
@@ -137,6 +130,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           />
         </div>
       </button>
+
 
 
       {showSoon && (
