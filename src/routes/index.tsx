@@ -1427,20 +1427,34 @@ function Index() {
 
           <Link
             to="/inventory"
-            className="rounded-lg border border-amber-400/60 bg-gradient-to-b from-amber-900/90 to-black/90 px-2 py-1.5 flex items-center gap-1 shadow active:scale-95"
+            className="relative rounded-full px-3 py-1.5 flex items-center gap-1.5 active:scale-95"
             title="الأسماك المكتشفة"
+            style={{
+              background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
+              border: "2px solid #c9a44a",
+              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 5px 10px rgba(0,0,0,0.5)",
+            }}
           >
-            <span className="text-lg">🐟</span>
-            <span className="text-sm font-black text-amber-200 tabular-nums">{fish}<span className="text-amber-400/70 font-bold">/{FISH_TOTAL}</span></span>
+            <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
+            <span className="relative text-lg">🐟</span>
+            <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
           </Link>
           <NotificationsBell />
           {isAdmin && (
             <Link
               to="/admin"
-              className="rounded-lg border-2 border-red-400 bg-gradient-to-b from-red-600 to-red-900 px-2 py-1.5 text-sm font-black text-white shadow active:scale-95"
+              className="relative rounded-full px-3 py-1.5 text-sm font-black active:scale-95"
               title="لوحة الإدارة"
+              style={{
+                color: "#fff5e0",
+                background: "radial-gradient(ellipse at 50% 0%, #ff8a6a 0%, #e53935 45%, #8f1212 100%)",
+                border: "2px solid #ffb59a",
+                boxShadow: "inset 0 1px 0 rgba(255,220,200,0.6), inset 0 -3px 6px rgba(60,5,5,0.6), 0 3px 0 #3a0a0a, 0 5px 12px rgba(229,57,53,0.4)",
+                textShadow: "0 1px 2px rgba(0,0,0,0.85)",
+              }}
             >
-              👑 إدارة
+              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,220,200,0.45) 0%, transparent 100%)" }} />
+              <span className="relative">👑 إدارة</span>
             </Link>
           )}
         </div>
