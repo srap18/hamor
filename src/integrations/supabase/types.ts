@@ -1531,6 +1531,7 @@ export type Database = {
           protection_until: string | null
           rubies: number
           selected_bg_id: string
+          ship_flag: string
           steal_blocked_until: string | null
           tribe_gems: number
           tribe_id: string | null
@@ -1570,6 +1571,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          ship_flag?: string
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
@@ -1609,6 +1611,7 @@ export type Database = {
           protection_until?: string | null
           rubies?: number
           selected_bg_id?: string
+          ship_flag?: string
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
@@ -2538,6 +2541,8 @@ export type Database = {
           freeze_started_at: string | null
           freeze_until: string | null
           frozen_prices: Json
+          trader_anchor: string | null
+          trader_snapshot: Json
           trader_until: string | null
           updated_at: string
           user_id: string
@@ -2546,6 +2551,8 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          trader_anchor?: string | null
+          trader_snapshot?: Json
           trader_until?: string | null
           updated_at?: string
           user_id: string
@@ -2554,6 +2561,8 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          trader_anchor?: string | null
+          trader_snapshot?: Json
           trader_until?: string | null
           updated_at?: string
           user_id?: string
@@ -3115,6 +3124,7 @@ export type Database = {
         Args: { _message: string; _target_id: string }
         Returns: undefined
       }
+      build_trader_snapshot: { Args: never; Returns: Json }
       burn_target_bg: { Args: { _target_id: string }; Returns: string }
       buy_background: {
         Args: { _bg_id: string; _price: number }
@@ -3139,6 +3149,15 @@ export type Database = {
       buy_protection: {
         Args: { _coins_cost: number; _days: number; _gems_cost: number }
         Returns: string
+      }
+      buy_shield_to_inventory: {
+        Args: {
+          _coins_cost: number
+          _gems_cost: number
+          _item_id: string
+          _qty: number
+        }
+        Returns: Json
       }
       buy_ship: { Args: { _template_id: number }; Returns: string }
       buy_ship_by_code: {
@@ -3258,6 +3277,7 @@ export type Database = {
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
+      cleanup_old_competition_catches: { Args: never; Returns: undefined }
       collect_fishing_reward:
         | { Args: { _ship_db_id: string }; Returns: Json }
         | {
@@ -3893,6 +3913,9 @@ export type Database = {
         Args: { p_active_id: string; p_storage_id: string }
         Returns: Json
       }
+      test_steal_cancel_moves_one_fish: { Args: never; Returns: boolean }
+      test_steal_claim_moves_one_fish: { Args: never; Returns: boolean }
+      trader_snapshot_anchor: { Args: never; Returns: string }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
