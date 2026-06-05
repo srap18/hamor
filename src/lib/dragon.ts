@@ -78,9 +78,11 @@ export function dpProgress(d: Dragon): { current: number; next: number; pct: num
   return { current: d.dp, next: next.dpRequired, pct: Math.min(100, (rel / span) * 100) };
 }
 
-/** Overall level 1..150 derived from form (stage) + dp progress inside that form. */
+/** Overall level 0..150. Level 0 = fresh egg with no bonuses. */
 export function overallLevel(d: Dragon): number {
   const formIdx = Math.max(1, Math.min(MAX_FORMS, d.stage));
+  // Fresh egg → level 0 (no perks yet)
+  if (formIdx === 1 && d.dp <= 0) return 0;
   const next = getNextStage(formIdx);
   if (!next) return MAX_LEVEL;
   const base = getStage(formIdx).dpRequired;
