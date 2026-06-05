@@ -1603,7 +1603,7 @@ function Index() {
                 </div>
               )}
               {!onSteal && (() => {
-                const dead = !!s.destroyedAt && !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > serverNowMs();
+                const dead = isShipBlocked(s.destroyedAt, s.repairEndsAt);
                 const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - serverNowMs()) / 1000)) : 0;
                 const h = Math.floor(remSec / 3600);
                 const m = Math.floor((remSec % 3600) / 60);
