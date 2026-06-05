@@ -3161,7 +3161,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: "left 0.5s ease-in-out",
+        transition: ship.fishing ? "left 0.5s ease-in-out" : "left 0.18s linear",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
