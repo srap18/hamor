@@ -233,6 +233,79 @@ function DragonPage() {
   );
 }
 
+function DragonPerksCard({ level }: { level: number }) {
+  const bonus = dragonBonusForLevel(level);
+  const tiers = dragonTierTable();
+  const currentTier = bonus.tier;
+  const exampleBase = 500;
+  const exampleBoosted = applyDragonAttack(exampleBase, level);
+  const defExampleBase = 1000;
+  const defExampleBoosted = applyDragonDefense(defExampleBase, level);
+
+  return (
+    <div className="mt-4 bg-gradient-to-br from-rose-900/50 via-stone-900/70 to-amber-900/40 border-2 border-amber-400/50 rounded-2xl p-3 backdrop-blur">
+      <div className="text-center mb-3">
+        <div className="text-amber-200 font-extrabold text-base">🐉 مميزات التنين</div>
+        <div className="text-amber-300/70 text-[10px]">يعزّز هجومك ودفاعك مع تطوّر التنين</div>
+      </div>
+
+      {/* Current tier highlight */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="bg-rose-950/60 border border-rose-400/60 rounded-xl p-2 text-center">
+          <div className="text-rose-200/80 text-[10px] mb-0.5">⚔️ تعزيز الهجوم</div>
+          <div className="text-rose-100 font-extrabold text-lg leading-tight">{bonus.label}</div>
+          <div className="text-rose-300/70 text-[9px] mt-0.5">
+            مثال: {exampleBase} → <span className="text-amber-200 font-bold">{exampleBoosted.toLocaleString()}</span>
+          </div>
+        </div>
+        <div className="bg-cyan-950/60 border border-cyan-400/60 rounded-xl p-2 text-center">
+          <div className="text-cyan-200/80 text-[10px] mb-0.5">🛡️ تعزيز الدفاع</div>
+          <div className="text-cyan-100 font-extrabold text-lg leading-tight">{bonus.label}</div>
+          <div className="text-cyan-300/70 text-[9px] mt-0.5">
+            مثال: {defExampleBase} → <span className="text-amber-200 font-bold">{defExampleBoosted.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tier table */}
+      <div className="bg-stone-950/60 border border-amber-700/40 rounded-xl p-2 max-h-64 overflow-y-auto">
+        <div className="text-amber-200/80 text-[10px] font-bold text-center mb-1.5">
+          جدول التعزيز — 30 مرتبة × 5 مستويات (1 → 150)
+        </div>
+        <div className="space-y-1">
+          {tiers.map((t) => {
+            const active = t.tier === currentTier;
+            return (
+              <div
+                key={t.tier}
+                className={`flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[11px] tabular-nums ${
+                  active
+                    ? "bg-amber-500/20 border border-amber-400/70 text-amber-100"
+                    : "bg-stone-900/60 border border-stone-700/40 text-stone-300"
+                }`}
+              >
+                <span className="font-bold">
+                  المرتبة {t.tier}
+                  {active && <span className="ms-1 text-amber-300">← الآن</span>}
+                </span>
+                <span className="text-stone-400">
+                  مستوى {t.fromLevel}–{t.toLevel}
+                </span>
+                <span className={`font-extrabold ${t.kind === "flat" ? "text-emerald-300" : "text-rose-300"}`}>
+                  {t.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="text-stone-400 text-[9px] text-center mt-2">
+          المرتبة 1: إضافة ثابتة +200 ضرر — بقية المراتب: مضاعفة للقيمة الأساسية
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DailyRocketsCard() {
   const [status, setStatus] = useState<{ available: boolean; count: number; tier: number } | null>(null);
   const [busy, setBusy] = useState(false);
