@@ -140,11 +140,11 @@
   }
 
   @keyframes bg-drift {
-    0%, 100% { transform: scale(var(--bg-scale, 1.06)); }
-    50%      { transform: scale(calc(var(--bg-scale, 1.06) + 0.015)); }
+    0%, 100% { transform: scale(var(--bg-scale, 1.06)) translate3d(0, 0, 0); }
+    50%      { transform: scale(var(--bg-scale, 1.06)) translate3d(-0.6%, -0.4%, 0); }
   }
   .animate-bg-drift {
-    animation: bg-drift var(--bg-dur, 14s) ease-in-out infinite;
+    animation: bg-drift var(--bg-dur, 24s) ease-in-out infinite;
     will-change: transform;
     transform-origin: center center;
   }
