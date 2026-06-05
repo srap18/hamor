@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { STORE_PACKS, type PackCategory } from "@/lib/store-catalog";
 
 export const Route = createFileRoute("/pricing")({
