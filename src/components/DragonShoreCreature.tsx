@@ -50,23 +50,15 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.76} 50%{transform:scaleX(.94);opacity:.6} }
       `}</style>
-      <button
-        type="button"
-        onClick={() => {
-          if (!interactive) return;
-          setShowSoon(true);
-          setTimeout(() => setShowSoon(false), 2200);
-        }}
-
-        aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
-        className="absolute z-20 active:scale-95 transition-transform"
+      <div
+        className="absolute z-20"
         style={{
           left: "6%",
           bottom: "6%",
           width: "54%",
           maxWidth: "360px",
           aspectRatio: "1 / 1",
-          pointerEvents: "auto",
+          pointerEvents: "none",
         }}
       >
         <span
@@ -102,11 +94,16 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
-        {/* Dragon / egg sits inside the nest opening.
-            Outer wrapper centers; inner wrapper animates (so the keyframe
-            transform doesn't overwrite translateX(-50%)). */}
-        <div
-          className="absolute"
+        {/* Dragon / egg sits inside the nest opening — only this is tappable. */}
+        <button
+          type="button"
+          onClick={() => {
+            if (!interactive) return;
+            setShowSoon(true);
+            setTimeout(() => setShowSoon(false), 2200);
+          }}
+          aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
+          className="absolute bg-transparent border-0 p-0 active:scale-95 transition-transform"
           style={{
             left: "50%",
             bottom: "18%",
@@ -114,6 +111,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             height: "38%",
             transform: "translateX(-50%)",
             zIndex: 2,
+            pointerEvents: "auto",
           }}
         >
           <div
@@ -136,8 +134,9 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               }}
             />
           </div>
-        </div>
-      </button>
+        </button>
+      </div>
+
 
 
 
