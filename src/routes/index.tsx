@@ -2182,7 +2182,6 @@ function Index() {
               <>
                 <div
                   className="relative flex items-center justify-center"
-                  style={{ filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))" }}
                   style={{
                     width: "clamp(38px, 12.5vw, 55px)",
                     height: "clamp(38px, 12.5vw, 55px)",
