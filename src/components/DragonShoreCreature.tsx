@@ -102,34 +102,43 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
-        {/* Dragon / egg sits inside the nest opening */}
+        {/* Dragon / egg sits inside the nest opening.
+            Outer wrapper centers; inner wrapper animates (so the keyframe
+            transform doesn't overwrite translateX(-50%)). */}
         <div
           className="absolute"
           style={{
             left: "50%",
-            bottom: "22%",
-            width: "50%",
-            height: "55%",
+            bottom: "34%",
+            width: "44%",
+            height: "44%",
             transform: "translateX(-50%)",
             zIndex: 2,
-            animation: stageMode === "egg" ? "dsc-rock 2.8s ease-in-out infinite" : stageMode === "adult" ? "dsc-breathe 4s ease-in-out infinite" : undefined,
-            transformOrigin: "50% 95%",
           }}
         >
-          <img
-            src={creatureImg}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 h-full w-full object-contain object-bottom"
+          <div
+            className="relative h-full w-full"
             style={{
-              filter:
-                stageMode === "adult"
-                  ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
-                  : "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
+              animation: stageMode === "egg" ? "dsc-rock 2.8s ease-in-out infinite" : stageMode === "adult" ? "dsc-breathe 4s ease-in-out infinite" : undefined,
+              transformOrigin: "50% 95%",
             }}
-          />
+          >
+            <img
+              src={creatureImg}
+              alt=""
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-contain object-bottom"
+              style={{
+                filter:
+                  stageMode === "adult"
+                    ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
+                    : "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
+              }}
+            />
+          </div>
         </div>
       </button>
+
 
 
 
