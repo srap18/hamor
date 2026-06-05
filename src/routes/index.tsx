@@ -47,6 +47,8 @@ import navIconShop from "@/assets/nav-icon-shop.png";
 import navIconChat from "@/assets/nav-icon-chat.png";
 import navIconSettings from "@/assets/nav-icon-settings.png";
 import navIconTribe from "@/assets/nav-icon-tribe.png";
+import navIconRankAsset from "@/assets/nav-icon-rank.png.asset.json";
+const navIconRank = navIconRankAsset.url;
 import { ShipFlag } from "@/components/ShipFlag";
 
 
