@@ -221,21 +221,31 @@ export function AdBombOverlay({
   return (
     <>
       {phase === "explosion" ? (
-        /* Bomb explosion — fullscreen flash + nuke fireball + shockwaves */
+        /* Realistic 3D explosion — image-based fireball + flash */
         <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-white animate-fireball-nuke" style={{ opacity: 0.85 }} />
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="relative w-72 h-72">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-yellow-200 via-orange-500 to-red-700 animate-fireball-nuke shadow-[0_0_120px_60px_rgba(255,140,0,0.9)]" />
-              <div className="absolute inset-[15%] rounded-full bg-gradient-to-b from-white via-yellow-300 to-orange-500 animate-fireball-nuke" />
-              <div className="absolute inset-0 rounded-full border-4 border-white/90 animate-shockwave-nuke" />
-              <div className="absolute inset-0 rounded-full border-2 border-orange-300/70 animate-shockwave-nuke" style={{ animationDelay: "0.15s" }} />
-              <div className="absolute inset-0 rounded-full border-2 border-yellow-200/60 animate-shockwave-nuke" style={{ animationDelay: "0.3s" }} />
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl animate-pulse drop-shadow-[0_0_20px_rgba(255,0,0,0.9)]">📺💥</div>
-            </div>
-          </div>
+          <div
+            className="absolute inset-0 animate-flash-bang"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 55%, rgba(255,245,210,0.95) 0%, rgba(255,160,60,0.5) 22%, rgba(0,0,0,0.55) 70%)",
+              mixBlendMode: "screen",
+            }}
+          />
+          <img
+            src={nukeReal}
+            alt=""
+            aria-hidden
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[55%] animate-explosion-real-nuke select-none"
+            style={{
+              width: "min(110vw, 110vh)",
+              height: "min(110vw, 110vh)",
+              objectFit: "contain",
+              filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.7))",
+            }}
+          />
         </div>
       ) : (
+
         /* Semi-transparent looping video — harbor stays partly visible behind it */
         <div className="fixed inset-0 z-30 pointer-events-none">
           <video
