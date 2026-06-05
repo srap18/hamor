@@ -197,3 +197,15 @@ export function fishMarketCapacity(level: number): number {
   }
   return cap;
 }
+
+// ─────── سعة سوق السفن حسب المستوى (مجموع طاقة الأسطول) ───────
+export function shipMarketCapacity(level: number): number {
+  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  let cap = 10000;
+  for (let l = 2; l <= lvl; l++) {
+    if (l <= 10) cap += 200000;
+    else if (l <= 20) cap += 600000;
+    else cap += 2000000;
+  }
+  return cap;
+}
