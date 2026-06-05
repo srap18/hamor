@@ -17,6 +17,7 @@ export type StorePack = {
   category: PackCategory;
   label: string;
   emoji: string;
+  image?: string;
   priceUSD: number;
   stripePriceId: string;
   subscription?: boolean;
