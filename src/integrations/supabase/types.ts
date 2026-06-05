@@ -2895,6 +2895,10 @@ export type Database = {
         Args: { _coins_needed: number; _uid: string }
         Returns: undefined
       }
+      _ship_repair_ratio: {
+        Args: { _destroyed_at: string; _repair_ends_at: string }
+        Returns: number
+      }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       add_vip_points: {
         Args: { _pts: number; _user: string }
