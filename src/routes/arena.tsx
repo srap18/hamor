@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -67,7 +68,7 @@ function ArenaPage() {
       style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
       <div className="relative z-10 max-w-md mx-auto px-3 pt-4 pb-32">
         <div className="flex items-center justify-between mb-3">
-          <Link to="/" className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</Link>
+          <BackButton className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</BackButton>
           <div className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">
             ⏰ {days}ي {hrs}س
           </div>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
@@ -198,7 +199,7 @@ function CompetitionsPage() {
       }}/>
 
       <header className="relative sticky top-0 z-20 bg-gradient-to-b from-slate-950/95 to-slate-950/70 backdrop-blur-xl border-b border-amber-500/20 px-4 py-3 flex items-center justify-between shadow-[0_4px_20px_-8px_rgba(212,175,55,0.4)]">
-        <Link to="/" className="text-sm text-amber-200/70 hover:text-amber-200 transition-colors">← رجوع</Link>
+        <BackButton className="text-sm text-amber-200/70 hover:text-amber-200 transition-colors">← رجوع</BackButton>
         <h1 className="text-lg font-black bg-gradient-to-b from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-transparent tracking-wider drop-shadow-[0_2px_8px_rgba(212,175,55,0.5)]">
           ✦ الفعاليات الفخمة ✦
         </h1>

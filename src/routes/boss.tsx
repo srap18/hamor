@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
@@ -250,7 +251,7 @@ function BossPage() {
       <div className="relative z-10 max-w-md mx-auto px-3 pt-3 pb-4 min-h-full flex flex-col">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-2">
-          <Link to="/" className="rounded-full px-3 py-1.5 bg-stone-900/70 text-rose-200 text-sm font-bold border border-rose-500/50">← رجوع</Link>
+          <BackButton className="rounded-full px-3 py-1.5 bg-stone-900/70 text-rose-200 text-sm font-bold border border-rose-500/50">← رجوع</BackButton>
           <div className="rounded-full px-3 py-1.5 bg-stone-900/70 text-rose-200 text-sm font-bold border border-rose-500/50">⏰ {expH}س {expM}د</div>
         </div>
 

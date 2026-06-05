@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { STORE_PACKS, type PackCategory } from "@/lib/store-catalog";
 
 export const Route = createFileRoute("/pricing")({
@@ -32,7 +33,7 @@ function PricingPage() {
     }}>
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <Link to="/" className="text-amber-300 text-sm">← الرئيسية</Link>
+          <BackButton className="text-amber-300 text-sm">← الرئيسية</BackButton>
           <div className="text-xs text-amber-100/60 flex gap-3">
             <Link to="/terms" className="hover:text-amber-300">الشروط</Link>
             <Link to="/privacy" className="hover:text-amber-300">الخصوصية</Link>
