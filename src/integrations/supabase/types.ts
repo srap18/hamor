@@ -3140,6 +3140,15 @@ export type Database = {
         Args: { _coins_cost: number; _days: number; _gems_cost: number }
         Returns: string
       }
+      buy_shield_to_inventory: {
+        Args: {
+          _coins_cost: number
+          _gems_cost: number
+          _item_id: string
+          _qty: number
+        }
+        Returns: Json
+      }
       buy_ship: { Args: { _template_id: number }; Returns: string }
       buy_ship_by_code: {
         Args: {
