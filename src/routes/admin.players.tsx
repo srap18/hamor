@@ -454,6 +454,21 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     toast.success("تم حفظ السمك");
   };
 
+  const saveMarkets = async () => {
+    const s = Math.max(1, Math.min(30, Number(shipMarketLevel) | 0));
+    const f = Math.max(1, Math.min(30, Number(fishMarketLevel) | 0));
+    setSavingMarkets(true);
+    const { error } = await (supabase as any).rpc("admin_set_market_levels", {
+      _player: player.id, _ship_level: s, _fish_level: f,
+    });
+    setSavingMarkets(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_set_market_levels", player.id, { ship_level: s, fish_level: f });
+    toast.success(`تم: سوق السفن L${s} • سوق السمك L${f}`);
+  };
+
+
+
 
   const sendBox = async () => {
     const { data: types } = await supabase.from("lootbox_types").select("id, name").eq("active", true);
