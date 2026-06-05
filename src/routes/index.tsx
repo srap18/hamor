@@ -2053,15 +2053,25 @@ function Index() {
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
-                    setBuyingCrewId(cid);
                     sound.play("coin");
                     setToast(`✓ تم شراء ${c.name}`);
+                    // Optimistic: add crew row immediately so UI flips to "تفعيل" instantly
+                    const prevRows = crewRowsRef.current;
+                    const optimisticRow: CrewRow = {
+                      id: `tmp-buy-${cid}-${Date.now()}`,
+                      item_id: cid,
+                      quantity: 1,
+                      meta: null,
+                    };
+                    setCrewRows([...prevRows, optimisticRow]);
+                    setBuyingCrewId(cid);
                     (async () => {
                       try {
                         const { error } = c.currency === "gems"
                           ? await buyWithGems(cid, "crew", c.price, undefined, 1)
                           : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
                         if (error) {
+                          setCrewRows(prevRows);
                           sound.play("error");
                           setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
                           return;
