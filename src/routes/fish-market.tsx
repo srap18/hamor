@@ -83,6 +83,8 @@ type MarketState = {
   freeze_until: string | null;
   freeze_started_at: string | null;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
+  trader_snapshot: Record<string, number[]>;
+  trader_anchor: string | null;
 };
 
 function FishMarket() {
