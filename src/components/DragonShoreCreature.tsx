@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { getStage } from "@/lib/dragon";
-import shoreDragonImage from "@/assets/shore-dragon.png";
+import dragonAdultNest from "@/assets/dragon-adult-nest.png";
+import dragonBabyNest from "@/assets/dragon-baby-nest.png";
+import dragonEggNest from "@/assets/dragon-egg-nest.png";
 
-/**
- * Shore dragon — the player's actual dragon form sitting on the beach.
- * Egg stages (1–2) show the still egg art.
- * Non-egg stages show a looping live-action style video of the dragon
- * (breathing, blinking, wings shifting, fire puff) blended onto the scene.
- * For higher evolution forms (11+) we layer the stage portrait on top so the
- * player still sees their upgraded form.
- */
 export function DragonShoreCreature() {
   const [stage, setStage] = useState<number>(1);
   const [showSoon, setShowSoon] = useState(false);
@@ -22,149 +15,99 @@ export function DragonShoreCreature() {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user?.id;
       if (!uid) return;
-      const { data } = await supabase
-        .from("dragons")
-        .select("stage")
-        .eq("user_id", uid)
-        .maybeSingle();
+      const { data } = await supabase.from("dragons").select("stage").eq("user_id", uid).maybeSingle();
       if (alive && data?.stage) setStage(data.stage);
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  const isEgg = stage <= 2;
-  const stageImg = getStage(stage).image;
-  const creatureImg = isEgg ? stageImg : shoreDragonImage;
+  const stageMode = stage <= 1 ? "egg" : stage <= 2 ? "hatching" : "adult";
+  const creatureImg = stageMode === "egg" ? dragonEggNest : stageMode === "hatching" ? dragonBabyNest : dragonAdultNest;
 
   return (
     <>
       <style>{`
-        @keyframes dsc-rock { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
-        @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 45%{transform:translateY(-2%) scale(1.035)} 70%{transform:translateY(0) scale(1.01)} }
-        @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.7} 50%{transform:scaleX(.92);opacity:.55} }
+        @keyframes dsc-rock { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+        @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
+        @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.76} 50%{transform:scaleX(.94);opacity:.6} }
       `}</style>
       <button
         type="button"
-        onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
-        aria-label={isEgg ? "بيضة التنين" : "تنيني"}
+        onClick={() => {
+          setShowSoon(true);
+          setTimeout(() => setShowSoon(false), 2200);
+        }}
+        aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
-          left: "14%",
-          bottom: "9%",
-          width: "32%",
-          maxWidth: "220px",
+          left: "9.5%",
+          bottom: "8.8%",
+          width: "39%",
+          maxWidth: "270px",
           aspectRatio: "1 / 1",
           pointerEvents: "auto",
         }}
       >
-        {/* Sand depression */}
-        {!isEgg && (
-          <span
-            className="absolute pointer-events-none"
-            style={{
-              left: "8%", right: "8%", bottom: "1%", height: "13%",
-              background:
-                "radial-gradient(ellipse at center, rgba(40,25,15,0.55) 0%, rgba(40,25,15,0.25) 50%, transparent 80%)",
-              filter: "blur(4px)",
-            }}
-          />
-        )}
-        {/* Long cast shadow */}
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "-15%", right: "15%", bottom: "-2%", height: "20%",
+            left: "-8%",
+            right: "8%",
+            bottom: "0%",
+            height: "19%",
             background:
-              "radial-gradient(ellipse at 70% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0) 82%)",
-            filter: "blur(9px)",
-            transform: "skewX(-20deg)",
+              "radial-gradient(ellipse at 55% 50%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.32) 48%, rgba(0,0,0,0) 84%)",
+            filter: "blur(10px)",
+            transform: "skewX(-14deg)",
           }}
         />
-        {/* Contact ground shadow */}
         <span
           className="absolute pointer-events-none"
           style={{
-            left: "16%", right: "16%", bottom: "3%", height: "6%",
+            left: "14%",
+            right: "14%",
+            bottom: "6%",
+            height: "7%",
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.62) 38%, rgba(0,0,0,0) 78%)",
-            filter: "blur(1.5px)",
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.58) 44%, rgba(0,0,0,0) 82%)",
+            filter: "blur(2px)",
             animation: "dsc-shadow 3s ease-in-out infinite",
           }}
         />
-        {/* Claw imprints */}
-        {!isEgg && (
-          <span
-            className="absolute pointer-events-none"
-            style={{
-              left: "20%", right: "20%", bottom: "4%", height: "3%",
-              background:
-                "radial-gradient(circle at 15% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 38% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 62% 50%, rgba(50,30,15,0.65) 0%, transparent 38%), radial-gradient(circle at 85% 50%, rgba(50,30,15,0.65) 0%, transparent 38%)",
-              filter: "blur(1px)",
-            }}
-          />
-        )}
 
         <div
-          className="relative w-full h-full"
+          className="relative h-full w-full"
           style={{
-            animation: isEgg ? "dsc-rock 2.6s ease-in-out infinite" : undefined,
-            transformOrigin: "50% 100%",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 98% 98% at 50% 48%, #000 78%, rgba(0,0,0,0.8) 92%, transparent 100%)",
-            maskImage:
-              "radial-gradient(ellipse 98% 98% at 50% 48%, #000 78%, rgba(0,0,0,0.8) 92%, transparent 100%)",
+            animation: stageMode === "egg" ? "dsc-rock 2.8s ease-in-out infinite" : stageMode === "adult" ? "dsc-breathe 4s ease-in-out infinite" : undefined,
+            transformOrigin: "50% 88%",
           }}
         >
-          {isEgg ? (
-            <img
-              src={creatureImg}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 w-full h-full object-contain object-bottom"
-              style={{
-                filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.55))",
-              }}
-            />
-          ) : (
-            <img
-              src={creatureImg}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 w-full h-full object-contain object-bottom"
-              style={{
-                filter:
-                  "drop-shadow(0 3px 3px rgba(0,0,0,0.7)) drop-shadow(0 12px 22px rgba(0,0,0,0.5)) saturate(0.92) brightness(0.92) contrast(1.05)",
-                animation: "dsc-breathe 3.8s ease-in-out infinite",
-                transformOrigin: "50% 82%",
-              }}
-            />
-          )}
-        </div>
-
-        {/* Atmospheric mist */}
-        {!isEgg && (
-          <span
-            className="absolute pointer-events-none"
+          <img
+            src={creatureImg}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 h-full w-full object-contain object-bottom"
             style={{
-              left: "0%", right: "0%", bottom: "5%", height: "32%",
-              background:
-                "linear-gradient(to top, rgba(120,140,200,0.30) 0%, rgba(120,140,200,0.15) 40%, transparent 100%)",
-              filter: "blur(6px)",
-              mixBlendMode: "screen",
+              filter:
+                stageMode === "adult"
+                  ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
+                  : "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
             }}
           />
-        )}
+        </div>
       </button>
 
       {showSoon && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm"
           onClick={() => setShowSoon(false)}
           dir="rtl"
         >
-          <div className="bg-gradient-to-br from-amber-900/95 to-rose-950/95 border-4 border-amber-400/80 rounded-3xl px-10 py-8 text-center shadow-2xl">
+          <div className="rounded-3xl border-4 border-amber-400/80 bg-gradient-to-br from-amber-900/95 to-rose-950/95 px-10 py-8 text-center shadow-2xl">
             <div
-              className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-600"
+              className="bg-gradient-to-b from-amber-200 via-amber-400 to-orange-600 bg-clip-text text-6xl font-black text-transparent"
               style={{ textShadow: "0 0 30px rgba(251,146,60,0.8)" }}
             >
               قريبًا!!
@@ -175,3 +118,4 @@ export function DragonShoreCreature() {
     </>
   );
 }
+
