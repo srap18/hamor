@@ -956,7 +956,7 @@ function Index() {
           const target = s.fishing ? 1 : 0;
           // Unified speed — same easing coefficient for going out (fishing)
           // and coming back to shore so every ship moves at the exact same pace.
-          const smoothing = 0.231; // +5% faster going & returning
+          const smoothing = 0.45; // snappier ship response
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
@@ -972,7 +972,7 @@ function Index() {
           return { ...s, sail, progress, timeLeft };
         })
       );
-    }, 60);
+    }, 16);
     return () => clearInterval(id);
   }, []);
 
