@@ -750,8 +750,16 @@ function Index() {
     };
   }, [modal, crewTick]);
 
-  const [marketLevel, setMarketLevel] = useState<number>(1);
-  const [fishMarketLevel, setFishMarketLevel] = useState<number>(1);
+  const [marketLevel, setMarketLevel] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const v = Number(window.localStorage.getItem("ocean.marketLevel"));
+    return Number.isFinite(v) && v >= 1 ? Math.min(30, v) : 1;
+  });
+  const [fishMarketLevel, setFishMarketLevel] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const v = Number(window.localStorage.getItem("ocean.fishMarketLevel"));
+    return Number.isFinite(v) && v >= 1 ? Math.min(30, v) : 1;
+  });
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -764,8 +772,14 @@ function Index() {
         supabase.from("user_fish_market" as never).select("level").eq("user_id", user.id).maybeSingle(),
       ]);
       if (cancelled) return;
-      setMarketLevel(Math.max(1, Math.min(30, (shipRow as any)?.level ?? 1)));
-      setFishMarketLevel(Math.max(1, Math.min(30, (fishRow as any)?.level ?? 1)));
+      const sLvl = Math.max(1, Math.min(30, (shipRow as any)?.level ?? 1));
+      const fLvl = Math.max(1, Math.min(30, (fishRow as any)?.level ?? 1));
+      setMarketLevel(sLvl);
+      setFishMarketLevel(fLvl);
+      try {
+        window.localStorage.setItem("ocean.marketLevel", String(sLvl));
+        window.localStorage.setItem("ocean.fishMarketLevel", String(fLvl));
+      } catch {}
     };
     load();
     const ch = supabase
@@ -784,6 +798,7 @@ function Index() {
       supabase.removeChannel(ch);
     };
   }, [user]);
+
 
 
   const [bgId, setBgId] = useState<string>(() => getSelectedBgId());
