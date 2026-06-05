@@ -189,6 +189,13 @@ function PlayerPage() {
         setDestroyerAvatar(null); setDestroyerEmoji(null);
       }
 
+      // Load 48h sign history
+      try {
+        const { data: msgs } = await (supabase as any).rpc("get_destroyer_messages", { _defender_id: playerId });
+        setSignMessages((msgs || []) as SignMsg[]);
+        setSignIdx(0);
+      } catch { setSignMessages([]); }
+
 
       if (myId === playerId) setFriendStatus("self");
       else if (myId) {
