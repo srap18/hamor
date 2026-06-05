@@ -89,3 +89,68 @@ export function overallLevel(d: Dragon): number {
   const sub = Math.min(LEVELS_PER_FORM, Math.floor((rel / span) * LEVELS_PER_FORM));
   return (formIdx - 1) * LEVELS_PER_FORM + Math.max(1, sub + 1);
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Dragon combat bonuses (apply to weapon damage & ship defense)
+//
+// Tiers of 5 overall levels:
+//   Tier 1  (levels 1-5)    → flat +200 to base value
+//   Tier 2  (levels 6-10)   → ×1.5
+//   Tier 3  (levels 11-15)  → ×2.0
+//   Tier 4  (levels 16-20)  → ×2.5
+//   …
+//   Tier n  (n ≥ 2)         → ×(1.0 + 0.5·(n−1))
+//   Tier 30 (levels 146-150) → ×15.5  (max)
+// ──────────────────────────────────────────────────────────────────────────
+
+export type DragonBonus =
+  | { tier: 1; kind: "flat"; value: number; label: string }
+  | { tier: number; kind: "mult"; value: number; label: string };
+
+export function dragonBonusForLevel(level: number): DragonBonus {
+  const lvl = Math.max(1, Math.min(MAX_LEVEL, Math.floor(level)));
+  const tier = Math.ceil(lvl / 5); // 1..30
+  if (tier <= 1) {
+    return { tier: 1, kind: "flat", value: 200, label: "+200 ضرر" };
+  }
+  const mult = 1 + 0.5 * (tier - 1); // tier 2 → 1.5, tier 30 → 15.5
+  return { tier, kind: "mult", value: mult, label: `×${mult.toFixed(1)}` };
+}
+
+/** Apply the dragon attack bonus to a base weapon damage. */
+export function applyDragonAttack(baseDamage: number, level: number): number {
+  const b = dragonBonusForLevel(level);
+  if (b.kind === "flat") return Math.max(0, Math.round(baseDamage + b.value));
+  return Math.max(0, Math.round(baseDamage * b.value));
+}
+
+/** Apply the dragon defense bonus to a base defense / HP value. */
+export function applyDragonDefense(baseDefense: number, level: number): number {
+  const b = dragonBonusForLevel(level);
+  if (b.kind === "flat") return Math.max(0, Math.round(baseDefense + b.value));
+  return Math.max(0, Math.round(baseDefense * b.value));
+}
+
+/** Full tier table for UI display (30 tiers covering 150 levels). */
+export function dragonTierTable(): Array<{
+  tier: number;
+  fromLevel: number;
+  toLevel: number;
+  kind: "flat" | "mult";
+  value: number;
+  label: string;
+}> {
+  const rows = [];
+  const totalTiers = Math.ceil(MAX_LEVEL / 5); // 30
+  for (let t = 1; t <= totalTiers; t++) {
+    const fromLevel = (t - 1) * 5 + 1;
+    const toLevel = Math.min(MAX_LEVEL, t * 5);
+    if (t === 1) {
+      rows.push({ tier: t, fromLevel, toLevel, kind: "flat" as const, value: 200, label: "+200" });
+    } else {
+      const mult = 1 + 0.5 * (t - 1);
+      rows.push({ tier: t, fromLevel, toLevel, kind: "mult" as const, value: mult, label: `×${mult.toFixed(1)}` });
+    }
+  }
+  return rows;
+}
