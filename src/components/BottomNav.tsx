@@ -47,7 +47,8 @@ function NavIconButton({
       aria-label={label}
     >
       <div
-        className="relative flex size-[56px] items-center justify-center"
+        className="relative flex items-center justify-center"
+        style={{ width: "clamp(38px, 12.5vw, 56px)", height: "clamp(38px, 12.5vw, 56px)" }}
         style={{
           filter: active
             ? "drop-shadow(0 0 14px rgba(255,200,90,0.7)) drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
