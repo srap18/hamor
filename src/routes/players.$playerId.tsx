@@ -15,7 +15,7 @@ import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
-import { DragonEggButton } from "@/components/DragonEggButton";
+import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 import { applyDragonAttack, overallLevel, type Dragon } from "@/lib/dragon";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
