@@ -104,7 +104,9 @@ function ShipyardPage() {
       supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
       supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
     ]);
-    setMarket((marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null });
+    const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
+    setMarket(mr);
+    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
     setOwned((ownedRows as OwnedShip[] | null) ?? []);
     setLoading(false);
   };
