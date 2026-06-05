@@ -763,7 +763,8 @@ function PlayerPage() {
 
   // Privacy: if the visited player is an admin/moderator, render a minimal page
   // (no level, xp, ships, harbor, attack/steal UI). Only name + add friend / message.
-  if (!loading && p && targetIsStaff && friendStatus !== "self" && !p) {
+  // Temporarily disabled to allow viewing admin profile (dragon testing)
+  if (false && !loading && p && targetIsStaff && friendStatus !== "self") {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
         <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
