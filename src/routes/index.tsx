@@ -3146,10 +3146,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaIsRight = seaSide === "right";
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
-  const bankRoll = 0;
-  const bankPitch = 0;
-  const turnLift = 0;
-  const turnSway = 0;
 
   return (
     <div
