@@ -439,6 +439,7 @@ function PlayerPage() {
     const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: w.damage });
     if (firstErr) {
       const m = String(firstErr.message || "");
+      if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
       if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); setBusy(false); return; }
       if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); setBusy(false); return; }
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
@@ -620,7 +621,8 @@ function PlayerPage() {
     if (missionErr) {
       console.error("[steal] error", missionErr);
       const msg = missionErr.message || "";
-      if (msg.includes("attacker needs pvp fleet")) flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للسرقة");
+      if (msg.includes("attacker market level under 6")) flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل السرقة");
+      else if (msg.includes("attacker needs pvp fleet")) flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للسرقة");
       else if (msg.includes("no pvp fleet") || msg.includes("market level under 6")) flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6");
       else if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
       else if (msg.includes("blocked")) {
