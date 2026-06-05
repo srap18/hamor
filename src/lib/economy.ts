@@ -20,6 +20,11 @@ export async function buyProtection(days: number, coinsCost: number, gemsCost: n
   return supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost });
 }
 
+export async function buyShieldToInventory(itemId: string, qty: number, coinsCost: number, gemsCost: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase.rpc as any)("buy_shield_to_inventory", { _item_id: itemId, _qty: qty, _coins_cost: coinsCost, _gems_cost: gemsCost });
+}
+
 export async function buyShipRpc(templateId: number) {
   return supabase.rpc("buy_ship", { _template_id: templateId });
 }
