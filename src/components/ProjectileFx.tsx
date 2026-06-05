@@ -221,7 +221,8 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
       )}
 
       {fx.phase === "boom" && !fx.friendly && (
-        <div className={isNuke ? "animate-screen-shake-nuke" : "animate-screen-shake"}>
+        <div className={`fixed inset-0 ${isNuke ? "animate-screen-shake-nuke" : "animate-screen-shake"}`}>
+
           {/* Brief realistic muzzle flash */}
           <div
             className="absolute rounded-full animate-flash-bang pointer-events-none"
