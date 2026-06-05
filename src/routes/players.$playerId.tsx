@@ -476,7 +476,7 @@ function PlayerPage() {
     if (w.aoe && targets.length > 1) {
       targets.slice(1).forEach((t) => {
         (supabase as any)
-          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage })
+          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage })
           .then(undefined, (e: any) => { console.error("apply_ship_damage failed", e); });
       });
     }
@@ -509,11 +509,11 @@ function PlayerPage() {
         const repEnds = row?.repair_ends_at ?? null;
         (supabase as any).rpc("record_attack", {
           _defender_id: playerId, _target_ship_id: t.id,
-          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: true,
+          _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).then(undefined, () => {});
-        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: true }).then(undefined, () => {});
+        (supabase as any).rpc("award_dragon_dp", { p_damage: boostedDamage }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: true }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
       }
@@ -524,18 +524,18 @@ function PlayerPage() {
         await playProjectile(t.id, w.emoji, false, w.id);
         let row: any = damageResults[i];
         if (!row && i > 0) {
-          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: w.damage });
+          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage });
           row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
         }
-        const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - w.damage);
+        const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
         const repEnds = row?.repair_ends_at ?? null;
         await (supabase as any).rpc("record_attack", {
           _defender_id: playerId, _target_ship_id: t.id,
-          _damage: w.damage, _damage_dealt: w.damage, _attacker_won: newHp === 0,
+          _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: newHp === 0,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: w.damage }).then(undefined, () => {});
-        (supabase as any).rpc("award_arena_score", { p_score: w.damage, p_won: newHp === 0 }).then(undefined, () => {});
+        (supabase as any).rpc("award_dragon_dp", { p_damage: boostedDamage }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: newHp === 0 }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
@@ -543,7 +543,7 @@ function PlayerPage() {
 
 
 
-    sound.play("success"); flash(`💥 ${w.name} — ${w.damage} ضرر`);
+    sound.play("success"); flash(`💥 ${w.name} — ${boostedDamage.toLocaleString()} ضرر 🐉`);
     setBusy(false);
     // After a nuke or ad-bomb, prompt the player to broadcast a global message
     if (weaponId === "nuke" || weaponId === "ad_bomb") {
