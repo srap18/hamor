@@ -248,9 +248,11 @@ function FishMarket() {
       .eq("user_id", user.id)
       .maybeSingle();
     const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null);
-    setLvl(row?.level ?? 1);
+    const lvlVal = row?.level ?? 1;
+    setLvl(lvlVal);
     setUpgradingTo(row?.upgrading_to ?? null);
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+    try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
 
   useEffect(() => { loadMarket(); }, [user?.id]);
