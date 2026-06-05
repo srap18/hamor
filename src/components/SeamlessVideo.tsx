@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
  * Lightweight looping background video.
  *
  * Single video element (no dual-decoder crossfade) for smooth playback.
- * Masks the loop seam with a brief opacity dip near the end + slow continuous
- * CSS pan, so the restart is not perceivable without the cost of two decoders.
+ * Keeps opacity/transform fixed so the background never appears to zoom at the
+ * loop seam.
  */
 export function SeamlessVideo({
   src,
@@ -37,34 +37,7 @@ export function SeamlessVideo({
     applyRate();
     v.play().catch(() => {});
 
-    // Seam-hider: fade slightly to black ~0.4s before the end, recover after
-    // the loop restarts. Throttled to avoid touching DOM on every timeupdate.
-    const FADE_WINDOW = 0.45;
-    let lastT = 0;
-    let lastOpacity = "1";
-    const setOpacity = (val: string) => {
-      if (val !== lastOpacity) {
-        v.style.opacity = val;
-        lastOpacity = val;
-      }
-    };
-    const onTime = () => {
-      const dur = v.duration;
-      if (!dur || !isFinite(dur)) return;
-      const t = v.currentTime;
-      if (lastT > dur - FADE_WINDOW && t < FADE_WINDOW) {
-        setOpacity(String(Math.min(1, t / FADE_WINDOW)));
-      } else {
-        const remaining = dur - t;
-        if (remaining < FADE_WINDOW) {
-          setOpacity(String(Math.max(0.55, remaining / FADE_WINDOW)));
-        } else {
-          setOpacity("1");
-        }
-      }
-      lastT = t;
-    };
-    v.addEventListener("timeupdate", onTime);
+    v.style.opacity = "1";
 
     const onVis = () => {
       if (document.visibilityState === "visible") {
@@ -78,7 +51,6 @@ export function SeamlessVideo({
 
     return () => {
       v.removeEventListener("playing", reveal);
-      v.removeEventListener("timeupdate", onTime);
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [src, playbackRate]);
@@ -113,7 +85,7 @@ export function SeamlessVideo({
         disablePictureInPicture
         disableRemotePlayback
         className={className}
-        style={{ ...style, transition: "opacity 0.15s linear", willChange: "opacity" }}
+        style={{ ...style, opacity: 1, transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       />
     </>
   );
