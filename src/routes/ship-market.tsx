@@ -201,12 +201,21 @@ function ShipyardPage() {
     }
 
     setBusy(ship.code);
-    const { error } = await buyShipByCode(ship.code, ship.marketLevel, ship.price, ship.maxHp);
-    setBusy(null);
-    if (error) { showToast(error.message || "تعذر شراء السفينة"); return; }
-    await loadData();
-    showToast(`تم شراء ${ship.title}`);
-    refreshProfile();
+    try {
+      const { error } = await withTimeout<any>(
+        buyShipByCode(ship.code, ship.marketLevel, ship.price, ship.maxHp),
+        20000,
+        "buy_ship",
+      );
+      if (error) { showToast(error.message || "تعذر شراء السفينة"); return; }
+      await loadData();
+      showToast(`تم شراء ${ship.title}`);
+      refreshProfile();
+    } catch (e) {
+      showToast("⚠️ الاتصال بطيء — حاول مرة أخرى");
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (authLoading || loading) {
