@@ -7,28 +7,22 @@ import t2 from "@/assets/buildings/shipyard-t2.png";
 import t3 from "@/assets/buildings/shipyard-t3.png";
 import t4 from "@/assets/buildings/shipyard-t4.png";
 import t5 from "@/assets/buildings/shipyard-t5.png";
+import t6 from "@/assets/buildings/shipyard-t6.png";
+import t7 from "@/assets/buildings/shipyard-t7.png";
+import t8 from "@/assets/buildings/shipyard-t8.png";
+import t9 from "@/assets/buildings/shipyard-t9.png";
+import t10 from "@/assets/buildings/shipyard-t10.png";
 import burnedImg from "@/assets/buildings/shipyard-burned.png";
 
 /**
  * Animated in-world Ship Market building.
- *
- * - Tier image is picked from the player's market level (1..30):
- *     L1-6   → wooden dock
- *     L7-12  → stone harbor
- *     L13-18 → ornate copper-domed shipyard
- *     L19-24 → royal sapphire fortress
- *     L25-30 → legendary golden palace
- * - When `burnedUntil` is in the future, the burned ruins image replaces
- *   the building and animated smoke/embers float above it.
- * - Click navigates to /ship-market.
+ * 30 upgrade levels → 10 unique shapes (3 levels per shape, each grander than the last).
  */
+const SHIPYARD_TIERS = [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10];
 function tierImage(level: number): string {
   const lvl = Math.max(1, Math.min(30, Math.floor(level || 1)));
-  if (lvl <= 6) return t1;
-  if (lvl <= 12) return t2;
-  if (lvl <= 18) return t3;
-  if (lvl <= 24) return t4;
-  return t5;
+  const idx = Math.min(9, Math.floor((lvl - 1) / 3));
+  return SHIPYARD_TIERS[idx];
 }
 
 export function ShipMarketBuilding({
