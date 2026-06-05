@@ -151,7 +151,7 @@ export function BottomNav({ active }: { active?: string }) {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-1"
-      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0.75rem))" }}
+      style={{ paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))" }}
     >
       <div
         className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
@@ -160,7 +160,7 @@ export function BottomNav({ active }: { active?: string }) {
             "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.7) 45%, rgba(3,5,12,0.95) 100%)",
         }}
       />
-      <div className="pointer-events-auto relative flex items-end justify-between gap-0 pb-1">
+      <div className="pointer-events-auto relative grid grid-cols-7 items-end gap-0 pb-1">
         {items.map((item) => {
           const isActive = active === item.to;
           const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
