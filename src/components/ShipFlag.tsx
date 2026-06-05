@@ -1,20 +1,26 @@
 import { useEffect, useState } from "react";
-import { getShipFlag, type ShipFlagId } from "@/lib/ship-flag";
+import { getShipFlag, isShipFlagId, type ShipFlagId } from "@/lib/ship-flag";
 
-// 3D-styled animated flag that waves on the ship's mast. Honors user
-// preference (off / pirate / luxury / tribe) from localStorage.
-export function ShipFlag({ tribeEmblem }: { tribeEmblem?: string | null }) {
-  const [id, setId] = useState<ShipFlagId>(() => getShipFlag());
+// 3D-styled animated flag that waves on the ship's mast.
+// If `flagId` is provided (e.g. when viewing another player), it wins.
+// Otherwise the local user's saved preference is used.
+export function ShipFlag({ flagId, tribeEmblem }: { flagId?: string | null; tribeEmblem?: string | null }) {
+  const override = isShipFlagId(flagId) ? flagId : null;
+  const [localId, setLocalId] = useState<ShipFlagId>(() => getShipFlag());
 
   useEffect(() => {
-    const sync = () => setId(getShipFlag());
+    if (override) return;
+    const sync = () => setLocalId(getShipFlag());
     window.addEventListener("ship-flag-pref", sync);
     window.addEventListener("storage", sync);
     return () => {
       window.removeEventListener("ship-flag-pref", sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [override]);
+
+  const id: ShipFlagId = override ?? localId;
+
 
   if (id === "off") return null;
 
