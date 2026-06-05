@@ -10,6 +10,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
+  const [flagId, setFlagId] = useState<ShipFlagId>(() => getShipFlag());
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
