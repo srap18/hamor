@@ -162,6 +162,7 @@ export function BottomNav({ active }: { active?: string }) {
         {items.map((item) => {
           const isActive = active === item.to;
           const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
+          const isDisabled = item.to === "/battle";
           return (
             <NavIconButton
               key={item.to}
@@ -169,7 +170,13 @@ export function BottomNav({ active }: { active?: string }) {
               src={item.src}
               active={isActive}
               badge={badge}
-              onClick={() => nav({ to: item.to, viewTransition: false })}
+              onClick={() => {
+                if (isDisabled) {
+                  window.dispatchEvent(new CustomEvent("toast", { detail: "قريباً 🔒" }));
+                  return;
+                }
+                nav({ to: item.to, viewTransition: false });
+              }}
             />
           );
         })}
