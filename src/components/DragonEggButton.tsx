@@ -72,12 +72,13 @@ export function DragonEggButton({ className, interactive = true, stage }: Props)
         style={{ animation: "egg-glow-ring 2.4s ease-in-out infinite" }}
       />
       <img
-        src={dragonEggImg}
+        src={img}
         alt="بيضة التنين"
         className="w-full h-full object-contain relative z-10"
         style={{ animation: "egg-pulse 3s ease-in-out infinite" }}
         draggable={false}
       />
+
     </button>
     {showSoon && (
       <div
