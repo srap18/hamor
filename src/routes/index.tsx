@@ -3200,18 +3200,64 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         }}
       >
         <div className="relative w-full">
-          {/* Soft water reflection beneath the hull */}
+          {/* Mirror reflection of the ship on the water */}
+          {!destroyed && (
+            <img
+              src={ship.img}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="absolute left-0 w-full pointer-events-none select-none"
+              style={{
+                top: "78%",
+                transform: "scaleY(-1)",
+                opacity: 0.32,
+                filter: "blur(2px) saturate(0.8) brightness(0.85) hue-rotate(180deg)",
+                maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0) 75%)",
+                WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0) 75%)",
+                mixBlendMode: "screen",
+              }}
+            />
+          )}
+          {/* Foam ring at waterline */}
+          <div
+            aria-hidden
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none animate-pulse"
+            style={{
+              bottom: "8%",
+              width: "92%",
+              height: "14%",
+              background:
+                "radial-gradient(ellipse at center, rgba(255,255,255,0.85) 0%, rgba(220,240,255,0.5) 25%, rgba(255,255,255,0.18) 55%, rgba(255,255,255,0) 80%)",
+              filter: "blur(3px)",
+              opacity: 0.85,
+            }}
+          />
+          {/* Outer water ripple */}
           <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
             style={{
-              bottom: "-6%",
-              width: "78%",
-              height: "10%",
+              bottom: "2%",
+              width: "115%",
+              height: "8%",
               background:
-                "radial-gradient(ellipse at center, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.18) 35%, rgba(255,255,255,0) 70%)",
-              filter: "blur(4px)",
+                "radial-gradient(ellipse at center, rgba(255,255,255,0) 30%, rgba(180,220,255,0.35) 55%, rgba(255,255,255,0) 80%)",
+              filter: "blur(2px)",
               opacity: 0.7,
+            }}
+          />
+          {/* Soft shadow on water beneath hull */}
+          <div
+            aria-hidden
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            style={{
+              bottom: "4%",
+              width: "70%",
+              height: "8%",
+              background:
+                "radial-gradient(ellipse at center, rgba(0,20,40,0.55) 0%, rgba(0,20,40,0.2) 50%, rgba(0,0,0,0) 80%)",
+              filter: "blur(5px)",
             }}
           />
           <img
