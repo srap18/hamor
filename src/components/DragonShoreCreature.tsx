@@ -109,9 +109,9 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           className="absolute"
           style={{
             left: "50%",
-            bottom: "34%",
-            width: "44%",
-            height: "44%",
+            bottom: "18%",
+            width: "38%",
+            height: "38%",
             transform: "translateX(-50%)",
             zIndex: 2,
           }}
