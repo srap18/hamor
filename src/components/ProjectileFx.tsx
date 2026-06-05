@@ -63,15 +63,8 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
     return () => clearInterval(interval);
   }, [fx.id, fx.phase, fx.friendly, fx.fromX, fx.fromY, fx.toX, fx.toY, flightMs, rocketSize]);
 
-  // Debris with 3D arc
-  const debrisCount = isNuke ? 18 : isLarge ? 12 : 8;
-  const debris = Array.from({ length: debrisCount }, (_, i) => {
-    const ang = (i / debrisCount) * Math.PI * 2 + Math.random() * 0.4;
-    const dist = (isNuke ? 180 : isLarge ? 130 : 90) + Math.random() * 50;
-    return { dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist - 30, key: i };
-  });
+  // Smoke ring puffs around blast (realistic image-based)
 
-  // Smoke ring puffs around blast
   const smokeRing = Array.from({ length: isNuke ? 12 : 8 }, (_, i) => {
     const ang = (i / (isNuke ? 12 : 8)) * Math.PI * 2;
     const d = boomSize * 0.4;
