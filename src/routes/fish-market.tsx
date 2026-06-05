@@ -488,7 +488,19 @@ function FishMarket() {
         <SellView
           fish={sel}
           userId={user?.id ?? "anon"}
-          forecast={(traderActiveGlobal && marketState.trader_snapshot[sel.id]?.length) ? marketState.trader_snapshot[sel.id] : (forecastMap[sel.id] ?? [])}
+          forecast={(() => {
+            const snap = marketState.trader_snapshot[sel.id];
+            if (!traderActiveGlobal || !snap?.length || !marketState.trader_anchor) {
+              return forecastMap[sel.id] ?? [];
+            }
+            // Snapshot[0] maps to wall-clock time = trader_anchor.
+            // The chart's future[0] maps to top-of-current-hour + 1h.
+            // Compute the offset so the chart shows the original locked values.
+            const anchorMs = new Date(marketState.trader_anchor).getTime();
+            const nextHourMs = (Math.floor(serverNowMs() / 3600_000) + 1) * 3600_000;
+            const offset = Math.max(0, Math.round((nextHourMs - anchorMs) / 3600_000));
+            return snap.slice(offset);
+          })()}
           history={historyMap[sel.id] ?? []}
           freezeActive={freezeActive}
           freezeUntil={marketState.freeze_until}
