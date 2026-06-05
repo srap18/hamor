@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
-import shoreDragonAnimated from "@/assets/shore-dragon-transparent.webp.asset.json";
 
 /**
  * Shore dragon — the player's actual dragon form sitting on the beach.
@@ -33,13 +32,13 @@ export function DragonShoreCreature() {
   }, []);
 
   const isEgg = stage <= 2;
-  const showAdvancedForm = stage >= 11;
   const stageImg = getStage(stage).image;
 
   return (
     <>
       <style>{`
         @keyframes dsc-rock { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+        @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 45%{transform:translateY(-2%) scale(1.035)} 70%{transform:translateY(0) scale(1.01)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.7} 50%{transform:scaleX(.92);opacity:.55} }
       `}</style>
       <button
@@ -124,7 +123,7 @@ export function DragonShoreCreature() {
                 filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.55))",
               }}
             />
-          ) : showAdvancedForm ? (
+          ) : (
             <img
               src={stageImg}
               alt=""
@@ -133,38 +132,10 @@ export function DragonShoreCreature() {
               style={{
                 filter:
                   "drop-shadow(0 3px 3px rgba(0,0,0,0.7)) drop-shadow(0 12px 22px rgba(0,0,0,0.5)) saturate(0.92) brightness(0.92) contrast(1.05)",
+                animation: "dsc-breathe 3.8s ease-in-out infinite",
+                transformOrigin: "50% 82%",
               }}
             />
-          ) : (
-            <>
-              {/* Animated dragon with the white background permanently removed */}
-              <img
-                src={shoreDragonAnimated.url}
-                alt=""
-                draggable={false}
-                className="absolute inset-0 w-full h-full object-contain object-bottom"
-                style={{
-                  filter:
-                    "drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
-                  WebkitFilter:
-                    "drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
-                }}
-              />
-              {/* Cool ambient overlay matching scene lighting */}
-              <img
-                src={shoreDragonAnimated.url}
-                alt=""
-                draggable={false}
-                aria-hidden
-                className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
-                style={{
-                  mixBlendMode: "overlay",
-                  opacity: 0.35,
-                  filter: "brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
-                  WebkitFilter: "brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
-                }}
-              />
-            </>
           )}
         </div>
 
