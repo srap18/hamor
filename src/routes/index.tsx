@@ -1524,7 +1524,7 @@ function Index() {
         const vRange = Math.max(10, 60 - (wTop + 10));
         const top = `${fixedSlot?.top ?? wTop + 10 + ts[i] * vRange}%`;
 
-        const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
+        const scale = fixedSlot?.scale ?? 1.4; // unified ship size
         // Dock on the LEFT half of the water band so each ship always has
         // room to sail rightward when fishing (and visibly return to dock when recalled).
         const hOffsets = [0.05, 0.3, 0.6];
