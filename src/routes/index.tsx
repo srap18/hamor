@@ -954,7 +954,7 @@ function Index() {
   }, []);
 
 
-  const isDestroyed = (x: Ship) => !!x.destroyedAt && !!x.repairEndsAt && new Date(x.repairEndsAt).getTime() > serverNowMs();
+  const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt);
 
   const toggleFishing = async (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
