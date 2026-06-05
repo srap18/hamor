@@ -20,7 +20,7 @@ function TermsPage() {
     <LegalPage title="الشروط والأحكام">
       <p>
         مرحبًا بك في لعبة <strong>هامور شابك</strong> (يشار إليها بـ"الخدمة"). الخدمة مقدّمة من قبل
-        <strong> Amira Qailan Dakhil Allah Alsharari</strong> ("نحن" أو "البائع"). باستخدامك للخدمة فأنت توافق
+        <strong> Wissam Alsharari & Faisal Alsharari</strong> ("نحن" أو "البائع"). باستخدامك للخدمة فأنت توافق
         على هذه الشروط والأحكام.
       </p>
 
