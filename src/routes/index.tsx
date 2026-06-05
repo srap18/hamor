@@ -1928,19 +1928,41 @@ function Index() {
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
           if (!s.dbId) { setToast("حدّث الأسطول أولاً"); return; }
-          const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
-            _ship_id: s.dbId,
-            _crew_id: itemId,
-          });
-          if (error) {
-            sound.play("error");
-            setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
-            await reloadCrews();
-            return;
+
+          // Optimistic: mark this crew row as assigned to current ship immediately
+          const optimisticExpires = new Date(Date.now() + 24 * 3600_000).toISOString();
+          const prevRows = crewRowsRef.current;
+          const optimisticId = `tmp-${row.id}-${Date.now()}`;
+          let nextRows: CrewRow[];
+          if ((row.quantity ?? 1) <= 1) {
+            nextRows = prevRows.map((r) => r.id === row.id
+              ? { ...r, meta: { ...(r.meta ?? {}), assigned_ship_id: String(s.dbId), expires_at: optimisticExpires } }
+              : r);
+          } else {
+            nextRows = prevRows.map((r) => r.id === row.id ? { ...r, quantity: r.quantity - 1 } : r);
+            nextRows.push({ id: optimisticId, item_id: itemId, quantity: 1, meta: { assigned_ship_id: String(s.dbId), expires_at: optimisticExpires } });
           }
+          setCrewRows(nextRows);
           sound.play("success");
-          await reloadCrews();
           setCrewTick((t) => t + 1);
+
+          // Fire RPC in background; rollback on error
+          (async () => {
+            const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
+              _ship_id: s.dbId,
+              _crew_id: itemId,
+            });
+            if (error) {
+              setCrewRows(prevRows);
+              sound.play("error");
+              setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
+              await reloadCrews();
+              setCrewTick((t) => t + 1);
+              return;
+            }
+            await reloadCrews();
+            setCrewTick((t) => t + 1);
+          })();
           } finally {
             crewBusyRef.current = false;
           }
