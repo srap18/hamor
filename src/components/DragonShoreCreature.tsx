@@ -36,7 +36,7 @@ export function DragonShoreCreature() {
       <style>{`
         @keyframes dsc-rock { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-2px) scale(1.02)} }
-        @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.65} 50%{transform:scaleX(.9);opacity:.5} }
+        @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.7} 50%{transform:scaleX(.92);opacity:.55} }
       `}</style>
 
       <button
@@ -53,17 +53,31 @@ export function DragonShoreCreature() {
           pointerEvents: "auto",
         }}
       >
+        {/* Long cast shadow stretching across sand — matches scene light */}
+        <span
+          className="absolute pointer-events-none"
+          style={{
+            left: "-10%",
+            right: "20%",
+            bottom: "-2%",
+            height: "18%",
+            background:
+              "radial-gradient(ellipse at 70% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0) 80%)",
+            filter: "blur(8px)",
+            transform: "skewX(-18deg)",
+          }}
+        />
         {/* Soft ambient shadow — wider, lighter for grounding */}
         <span
           className="absolute pointer-events-none"
           style={{
             left: "6%",
             right: "6%",
-            bottom: "-1%",
-            height: "14%",
+            bottom: "0%",
+            height: "12%",
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 72%)",
-            filter: "blur(6px)",
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 72%)",
+            filter: "blur(5px)",
           }}
         />
         {/* Contact ground shadow — tight, dark ellipse directly under feet */}
@@ -72,26 +86,79 @@ export function DragonShoreCreature() {
           style={{
             left: "18%",
             right: "18%",
-            bottom: "2%",
-            height: "7%",
+            bottom: "3%",
+            height: "6%",
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0) 78%)",
-            filter: "blur(2px)",
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 38%, rgba(0,0,0,0) 78%)",
+            filter: "blur(1.5px)",
             animation: "dsc-shadow 3s ease-in-out infinite",
           }}
         />
+        {/* Claw imprints in sand */}
+        {!isEgg && (
+          <span
+            className="absolute pointer-events-none"
+            style={{
+              left: "22%",
+              right: "22%",
+              bottom: "4%",
+              height: "3%",
+              background:
+                "radial-gradient(circle at 20% 50%, rgba(60,40,20,0.55) 0%, transparent 40%), radial-gradient(circle at 50% 50%, rgba(60,40,20,0.55) 0%, transparent 40%), radial-gradient(circle at 80% 50%, rgba(60,40,20,0.55) 0%, transparent 40%)",
+              filter: "blur(1px)",
+            }}
+          />
+        )}
 
-        <img
-          src={img}
-          alt=""
-          draggable={false}
-          className="relative w-full h-full object-contain object-bottom"
+        <div
+          className="relative w-full h-full"
           style={{
             animation: isEgg ? "dsc-rock 2.6s ease-in-out infinite" : "dsc-breathe 2.8s ease-in-out infinite",
             transformOrigin: "50% 100%",
-            filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.55)) drop-shadow(0 6px 12px rgba(0,0,0,0.35)) saturate(0.9) brightness(0.93) contrast(1.04)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 96% 96% at 50% 48%, #000 76%, rgba(0,0,0,0.85) 90%, transparent 100%)",
+            maskImage:
+              "radial-gradient(ellipse 96% 96% at 50% 48%, #000 76%, rgba(0,0,0,0.85) 90%, transparent 100%)",
           }}
-        />
+        >
+          {/* Base dragon — color-graded to match scene */}
+          <img
+            src={img}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 w-full h-full object-contain object-bottom"
+            style={{
+              filter:
+                "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) drop-shadow(0 8px 14px rgba(0,0,0,0.4)) saturate(0.82) brightness(0.88) contrast(1.05)",
+            }}
+          />
+          {/* Cool ambient/sea reflection overlay on shadow side */}
+          <img
+            src={img}
+            alt=""
+            draggable={false}
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
+            style={{
+              mixBlendMode: "overlay",
+              opacity: 0.32,
+              filter: "brightness(0.9) sepia(1) hue-rotate(170deg) saturate(1.8)",
+            }}
+          />
+          {/* Warm rim light from scene */}
+          <img
+            src={img}
+            alt=""
+            draggable={false}
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-contain object-bottom pointer-events-none"
+            style={{
+              mixBlendMode: "soft-light",
+              opacity: 0.5,
+              filter: "brightness(1.15) sepia(0.6) hue-rotate(-20deg) saturate(1.3)",
+            }}
+          />
+        </div>
       </button>
       {showSoon && (
         <div
