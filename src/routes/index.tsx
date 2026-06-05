@@ -969,7 +969,7 @@ function Index() {
         let changed = false;
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = s.fishing ? 0.22 : 0.55;
+          const smoothing = s.fishing ? 0.42 : 0.7;
           const rawSail = s.sail + (target - s.sail) * smoothing;
           // Snap to target when within epsilon to let updates settle.
           const sail = Math.abs(rawSail - target) < 0.001 ? target : rawSail;
