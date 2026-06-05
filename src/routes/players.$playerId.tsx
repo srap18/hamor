@@ -16,8 +16,6 @@ import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
-import { DragonShoreCreature } from "@/components/DragonShoreCreature";
-import { applyDragonAttack, overallLevel, type Dragon } from "@/lib/dragon";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
@@ -47,7 +45,7 @@ function PlayerPage() {
   const [myName, setMyName] = useState<string>("");
   const [myProtectionUntil, setMyProtectionUntil] = useState<string | null>(null);
   const [p, setP] = useState<Profile | null>(null);
-  const [theirDragonStage, setTheirDragonStage] = useState<number>(1);
+  
   const [ships, setShips] = useState<Ship[]>([]);
   const [friendStatus, setFriendStatus] = useState<"none" | "pending" | "accepted" | "self">("none");
   const [loading, setLoading] = useState(true);
@@ -80,13 +78,6 @@ function PlayerPage() {
   const [deathBannerMin, setDeathBannerMin] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-min") === "1"; } catch { return false; }
   });
-  const [myDragonLvl, setMyDragonLvl] = useState<number>(1);
-  useEffect(() => {
-    (async () => {
-      const { data } = await (supabase as never as { rpc: (n: string) => Promise<{ data: Dragon | null }> }).rpc("get_or_init_dragon");
-      if (data) setMyDragonLvl(overallLevel(data));
-    })();
-  }, []);
   useEffect(() => {
     const onPref = () => {
       try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
@@ -181,16 +172,14 @@ function PlayerPage() {
         setMyName((myProf as any)?.display_name ?? "");
         setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
-      const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }] = await Promise.all([
+      const [{ data: prof }, { data: sh }, { data: staffRes }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
-        supabase.from("dragons").select("stage").eq("user_id", playerId).maybeSingle(),
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
-      setTheirDragonStage(((dragonRow as any)?.stage as number) ?? 1);
 
       const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
       if (destId) {
@@ -446,7 +435,7 @@ function PlayerPage() {
 
     // Dragon attack bonus — boost weapon damage based on dragon overall level.
     // Nuke ignores the bonus (already one-shots anything).
-    const boostedDamage = w.aoe && w.id === "nuke" ? w.damage : applyDragonAttack(w.damage, myDragonLvl);
+    const boostedDamage = w.damage;
 
     // ─── Pre-validate on the first target BEFORE consuming the weapon ───
     // Server-side rules (3 fishing ships, market level, protection, etc.) are
@@ -518,8 +507,6 @@ function PlayerPage() {
           _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: boostedDamage }).then(undefined, () => {});
-        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: true }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
       }
@@ -540,8 +527,6 @@ function PlayerPage() {
           _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: newHp === 0,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: boostedDamage }).then(undefined, () => {});
-        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: newHp === 0 }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
@@ -549,7 +534,7 @@ function PlayerPage() {
 
 
 
-    sound.play("success"); flash(`💥 ${w.name} — ${boostedDamage.toLocaleString()} ضرر 🐉`);
+    sound.play("success"); flash(`💥 ${w.name} — ${boostedDamage.toLocaleString()} ضرر`);
     setBusy(false);
     // After a nuke or ad-bomb, wait for the explosion FX to finish before
     // opening the global broadcast message dialog.
@@ -889,8 +874,6 @@ function PlayerPage() {
         <div className="absolute text-base animate-bird-fly" style={{ top: "20%", left: "-15%", animationDuration: "28s", animationDelay: "-8s" }}>🕊️</div>
       </div>
 
-      {/* Dragon — same position as in the player's own ocean (DragonShoreCreature) */}
-      <DragonShoreCreature userId={playerId} interactive={false} />
 
 
 

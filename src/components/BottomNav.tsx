@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 
 import iconBattle from "@/assets/nav-icon-battle.png";
-import iconArena from "@/assets/nav-icon-arena.png";
 import iconFriends from "@/assets/nav-icon-friends.png";
 import iconInventory from "@/assets/nav-icon-inventory.png";
 import iconShop from "@/assets/nav-icon-shop.png";
@@ -15,7 +14,6 @@ import iconSettings from "@/assets/nav-icon-settings.png";
 
 const items = [
   { src: iconBattle, label: "تحدي", to: "/battle" as const },
-  { src: iconArena, label: "ترتيب", to: "/arena" as const },
   { src: iconFriends, label: "أصدقاء", to: "/friends" as const },
   { src: iconInventory, label: "مخزن", to: "/inventory" as const },
   { src: iconShop, label: "متجر", to: "/shop" as const },
@@ -23,7 +21,7 @@ const items = [
 ] satisfies Array<{
   src: string;
   label: string;
-  to: "/battle" | "/arena" | "/friends" | "/inventory" | "/shop" | "/chat";
+  to: "/battle" | "/friends" | "/inventory" | "/shop" | "/chat";
 }>;
 
 function NavIconButton({
@@ -160,7 +158,7 @@ export function BottomNav({ active }: { active?: string }) {
             "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.7) 45%, rgba(3,5,12,0.95) 100%)",
         }}
       />
-      <div className="pointer-events-auto relative grid grid-cols-7 items-end gap-0 pb-1">
+      <div className="pointer-events-auto relative grid grid-cols-6 items-end gap-0 pb-1">
         {items.map((item) => {
           const isActive = active === item.to;
           const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;

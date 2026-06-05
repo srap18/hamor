@@ -20,7 +20,7 @@ const SettingsModal = lazy(() => import("@/components/SettingsModal").then(m => 
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { DragonShoreCreature } from "@/components/DragonShoreCreature";
+
 
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
@@ -1281,8 +1281,6 @@ function Index() {
         }}
       />
 
-      {/* Animated shore dragon — sits where the old fountain was, on every background */}
-      <DragonShoreCreature />
 
       {profile?.id && <Suspense fallback={null}><AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} /></Suspense>}
 
