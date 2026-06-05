@@ -429,7 +429,31 @@
     100% { opacity: 0; transform: scale(2.4); }
   }
   .animate-smoke-trail-fade { animation: smoke-trail-fade 1.4s ease-out forwards; }
+
+  /* === Realistic image-based explosion === */
+  @keyframes explosion-real-pop {
+    0%   { opacity: 0; transform: scale(0.2) rotate(-3deg); filter: brightness(1.8) saturate(1.1); }
+    18%  { opacity: 1; transform: scale(1.05) rotate(0deg); filter: brightness(1.25) saturate(1.05); }
+    55%  { opacity: 1; transform: scale(1.15) rotate(1deg); filter: brightness(1) saturate(1); }
+    100% { opacity: 0; transform: scale(1.35) rotate(2deg); filter: brightness(0.8) saturate(0.9); }
+  }
+  .animate-explosion-real { animation: explosion-real-pop 1.4s cubic-bezier(.2,.7,.3,1) forwards; will-change: transform, opacity, filter; }
+  .animate-explosion-real-nuke { animation: explosion-real-pop 2.6s cubic-bezier(.2,.7,.3,1) forwards; will-change: transform, opacity, filter; }
+
+  @keyframes smoke-rise-real {
+    0%   { opacity: 0; transform: translate(0,0) scale(0.25) rotate(var(--rot, 0deg)); }
+    20%  { opacity: 0.95; }
+    100% { opacity: 0; transform: translate(var(--dx,0), calc(var(--dy,0) - 40px)) scale(1.6) rotate(calc(var(--rot, 0deg) + 25deg)); }
+  }
+  .animate-smoke-rise-real { animation: smoke-rise-real 1.8s ease-out forwards; will-change: transform, opacity; }
+
+  @keyframes image-shock {
+    0%   { opacity: 0.9; transform: scale(0.15); border-width: 6px; }
+    100% { opacity: 0; transform: scale(2.4); border-width: 1px; }
+  }
+  .animate-image-shock { animation: image-shock 0.9s cubic-bezier(.2,.7,.3,1) forwards; }
 }
+
 
 
 

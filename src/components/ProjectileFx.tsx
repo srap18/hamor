@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import explosionReal from "@/assets/fx/explosion-real.png";
+import nukeReal from "@/assets/fx/nuke-real.png";
+import smokeReal from "@/assets/fx/smoke-real.png";
+
+
 
 export type FxState = {
   id: number;
@@ -58,15 +63,8 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
     return () => clearInterval(interval);
   }, [fx.id, fx.phase, fx.friendly, fx.fromX, fx.fromY, fx.toX, fx.toY, flightMs, rocketSize]);
 
-  // Debris with 3D arc
-  const debrisCount = isNuke ? 18 : isLarge ? 12 : 8;
-  const debris = Array.from({ length: debrisCount }, (_, i) => {
-    const ang = (i / debrisCount) * Math.PI * 2 + Math.random() * 0.4;
-    const dist = (isNuke ? 180 : isLarge ? 130 : 90) + Math.random() * 50;
-    return { dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist - 30, key: i };
-  });
+  // Smoke ring puffs around blast (realistic image-based)
 
-  // Smoke ring puffs around blast
   const smokeRing = Array.from({ length: isNuke ? 12 : 8 }, (_, i) => {
     const ang = (i / (isNuke ? 12 : 8)) * Math.PI * 2;
     const d = boomSize * 0.4;
@@ -75,23 +73,27 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[70]" style={{ perspective: "1200px" }}>
-      {/* Smoke trail puffs */}
+      {/* Realistic smoke trail puffs (image-based) */}
       {fx.phase === "fly" && !fx.friendly && puffs.map((p) => (
-        <div
+        <img
           key={p.id}
-          className="absolute rounded-full animate-smoke-trail-fade"
+          src={smokeReal}
+          alt=""
+          aria-hidden
+          className="absolute animate-smoke-trail-fade select-none"
           style={{
             left: p.x - p.size / 2,
             top: p.y - p.size / 2,
             width: p.size,
             height: p.size,
-            background:
-              "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(200,200,200,0.55) 35%, rgba(80,80,80,0.25) 70%, transparent 100%)",
-            filter: "blur(4px)",
-            mixBlendMode: "screen",
+            opacity: 0.85,
+            mixBlendMode: "normal",
+            objectFit: "contain",
           }}
         />
       ))}
+
+
 
       {fx.phase === "fly" && (
         <div
@@ -220,179 +222,75 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
 
       {fx.phase === "boom" && !fx.friendly && (
         <div className={isNuke ? "animate-screen-shake-nuke" : "animate-screen-shake"}>
+          {/* Brief realistic muzzle flash */}
           <div
-            className="absolute"
+            className="absolute rounded-full animate-flash-bang pointer-events-none"
             style={{
-              left: fx.toX - boomSize / 2,
-              top: fx.toY - boomSize / 2,
+              left: fx.toX - boomSize * 1.2,
+              top: fx.toY - boomSize * 1.2,
+              width: boomSize * 2.4,
+              height: boomSize * 2.4,
+              background:
+                "radial-gradient(circle, rgba(255,245,210,0.85) 0%, rgba(255,180,80,0.35) 28%, transparent 60%)",
+              mixBlendMode: "screen",
+            }}
+          />
+
+          {/* Outer realistic smoke puffs flying outward */}
+          {smokeRing.map((s) => (
+            <img
+              key={`sm-${s.key}`}
+              src={smokeReal}
+              alt=""
+              aria-hidden
+              className="absolute animate-smoke-rise-real select-none"
+              style={{
+                left: fx.toX - boomSize * 0.35,
+                top: fx.toY - boomSize * 0.35,
+                width: boomSize * 0.7,
+                height: boomSize * 0.7,
+                objectFit: "contain",
+                ["--dx" as never]: `${s.dx}px`,
+                ["--dy" as never]: `${s.dy}px`,
+                ["--rot" as never]: `${Math.random() * 360}deg`,
+                animationDelay: `${0.05 + Math.random() * 0.25}s`,
+                opacity: 0.95,
+              }}
+            />
+          ))}
+
+          {/* Core realistic explosion render */}
+          <img
+            src={isNuke ? nukeReal : explosionReal}
+            alt=""
+            aria-hidden
+            className={`absolute select-none ${isNuke ? "animate-explosion-real-nuke" : "animate-explosion-real"}`}
+            style={{
+              left: fx.toX - boomSize * (isNuke ? 1.0 : 0.85),
+              top: fx.toY - boomSize * (isNuke ? 1.4 : 0.95),
+              width: boomSize * (isNuke ? 2.0 : 1.7),
+              height: boomSize * (isNuke ? 2.2 : 1.7),
+              objectFit: "contain",
+              transformOrigin: isNuke ? "50% 80%" : "50% 60%",
+              filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.55))",
+            }}
+          />
+
+          {/* Subtle expanding shock ring for impact feedback */}
+          <div
+            className="absolute rounded-full border-white/40 animate-image-shock pointer-events-none"
+            style={{
+              left: fx.toX - boomSize * 0.5,
+              top: fx.toY - boomSize * 0.5,
               width: boomSize,
               height: boomSize,
-              transformStyle: "preserve-3d",
+              boxShadow: "0 0 24px rgba(255,200,120,0.4)",
             }}
-          >
-            {/* Flashbang */}
-            <div
-              className="absolute rounded-full animate-flash-bang"
-              style={{
-                left: -boomSize * 0.7,
-                top: -boomSize * 0.7,
-                width: boomSize * 2.4,
-                height: boomSize * 2.4,
-                background:
-                  "radial-gradient(circle, #ffffff 0%, rgba(255,240,200,0.85) 22%, transparent 60%)",
-                mixBlendMode: "screen",
-              }}
-            />
-
-            {/* Lens flare horizontal */}
-            <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-lens-flare"
-              style={{
-                width: boomSize * 2.6,
-                height: boomSize * 0.12,
-                background:
-                  "linear-gradient(to right, transparent, rgba(255,255,255,0.95), rgba(255,220,140,0.8), rgba(255,255,255,0.95), transparent)",
-                filter: "blur(3px)",
-                mixBlendMode: "screen",
-              }}
-            />
-
-            {/* Ground shockwave (perspective ring on floor) */}
-            <div
-              className={`absolute left-1/2 top-1/2 rounded-full border-white/90 ${isNuke ? "animate-ground-shock-nuke" : "animate-ground-shock"}`}
-              style={{
-                width: boomSize * 1.4,
-                height: boomSize * 1.4,
-                borderColor: "rgba(255,220,160,0.9)",
-                boxShadow: "0 0 30px rgba(255,180,80,0.6)",
-              }}
-            />
-            <div
-              className={`absolute left-1/2 top-1/2 rounded-full border-orange-300/70 ${isNuke ? "animate-ground-shock-nuke" : "animate-ground-shock"}`}
-              style={{
-                width: boomSize * 1.4,
-                height: boomSize * 1.4,
-                animationDelay: "0.15s",
-              }}
-            />
-
-            {/* Core fireball */}
-            <div
-              className={`absolute inset-0 rounded-full ${isNuke ? "animate-fireball-nuke" : "animate-fireball"}`}
-              style={{
-                background:
-                  "radial-gradient(circle at 45% 40%, #ffffff 0%, #fff3a0 16%, #ffb347 36%, #ff5a1f 58%, #8b1a00 80%, transparent 100%)",
-                boxShadow:
-                  "0 0 100px rgba(255,160,40,0.95), 0 0 200px rgba(255,80,0,0.7), inset 0 0 60px rgba(255,255,200,0.6)",
-                filter: "blur(0.5px) contrast(1.1)",
-              }}
-            />
-
-            {/* Inner blast disk */}
-            <div
-              className={`absolute inset-[18%] rounded-full ${isNuke ? "animate-fireball-nuke" : "animate-fireball"}`}
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 45%, #fff 0%, #ffe066 28%, #ff7a00 65%, transparent 100%)",
-                mixBlendMode: "screen",
-                animationDelay: "0.05s",
-              }}
-            />
-
-            {/* Spherical shockwave rings (camera-facing) */}
-            <div className={`absolute inset-0 rounded-full border-white/90 ${isNuke ? "animate-shockwave-nuke" : "animate-shockwave"}`} />
-            {(isNuke || isLarge) && (
-              <div
-                className={`absolute inset-0 rounded-full border-orange-300/70 ${isNuke ? "animate-shockwave-nuke" : "animate-shockwave"}`}
-                style={{ animationDelay: "0.18s" }}
-              />
-            )}
-            {isNuke && (
-              <div
-                className="absolute inset-0 rounded-full border-yellow-200/60 animate-shockwave-nuke"
-                style={{ animationDelay: "0.36s" }}
-              />
-            )}
-
-            {/* Volumetric smoke ring puffs */}
-            {smokeRing.map((s) => (
-              <div
-                key={`sm-${s.key}`}
-                className="absolute left-1/2 top-1/2 rounded-full animate-smoke-puff-3d"
-                style={{
-                  width: boomSize * 0.5,
-                  height: boomSize * 0.5,
-                  marginLeft: -boomSize * 0.25,
-                  marginTop: -boomSize * 0.25,
-                  ["--dx" as never]: `${s.dx}px`,
-                  ["--dy" as never]: `${s.dy}px`,
-                  background:
-                    "radial-gradient(circle, rgba(80,60,50,0.85) 0%, rgba(40,30,25,0.6) 45%, transparent 75%)",
-                  filter: "blur(10px)",
-                  animationDelay: `${0.1 + Math.random() * 0.2}s`,
-                }}
-              />
-            ))}
-
-            {/* Arcing debris with rotation */}
-            {debris.map((d) => (
-              <div
-                key={d.key}
-                className="absolute left-1/2 top-1/2 w-2.5 h-2.5 rounded-sm animate-debris-arc"
-                style={{
-                  ["--dx" as never]: `${d.dx}px`,
-                  ["--dy" as never]: `${d.dy}px`,
-                  boxShadow:
-                    "0 0 12px rgba(255,180,80,0.95), 0 0 22px rgba(255,90,0,0.7)",
-                  background:
-                    "linear-gradient(135deg, #fff5b0 0%, #ffb347 40%, #ff5a1f 70%, #4a1100 100%)",
-                  transform: `rotate(${Math.random() * 360}deg)`,
-                }}
-              />
-            ))}
-
-            {/* Nuke: mushroom stem + cap + dust ring */}
-            {isNuke && (
-              <>
-                <div
-                  className="absolute left-1/2 bottom-0 animate-mushroom-stem"
-                  style={{
-                    width: boomSize * 0.38,
-                    height: boomSize * 1.2,
-                    background:
-                      "linear-gradient(180deg, rgba(90,65,55,0.95) 0%, rgba(60,40,30,0.85) 50%, rgba(35,22,18,0.7) 100%)",
-                    filter: "blur(5px)",
-                    borderRadius: "40% 40% 20% 20%",
-                    transform: "translateX(-50%)",
-                    transformOrigin: "bottom center",
-                    boxShadow: "inset -10px 0 20px rgba(0,0,0,0.5), inset 10px 0 20px rgba(255,180,80,0.2)",
-                  }}
-                />
-                <div
-                  className="absolute left-1/2 top-0 animate-mushroom-cap"
-                  style={{
-                    width: boomSize * 1.2,
-                    height: boomSize * 0.75,
-                    background:
-                      "radial-gradient(ellipse at 50% 55%, rgba(255,210,130,0.95) 0%, rgba(200,100,45,0.9) 30%, rgba(80,50,35,0.9) 65%, rgba(30,18,12,0.7) 90%, transparent 100%)",
-                    filter: "blur(7px)",
-                    borderRadius: "50%",
-                    boxShadow: "inset 0 -30px 60px rgba(0,0,0,0.6), 0 0 80px rgba(255,140,40,0.5)",
-                  }}
-                />
-                <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-amber-200/60 animate-shockwave-nuke"
-                  style={{
-                    width: boomSize * 1.8,
-                    height: boomSize * 0.45,
-                    animationDelay: "0.1s",
-                  }}
-                />
-              </>
-            )}
-          </div>
+          />
         </div>
       )}
+
+
 
       {fx.phase === "boom" && fx.friendly && (
         <div className="absolute" style={{ left: fx.toX - 60, top: fx.toY - 60, width: 120, height: 120 }}>
