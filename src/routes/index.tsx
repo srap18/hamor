@@ -3106,15 +3106,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const mins = Math.floor(ship.timeLeft / 60);
   const secs = Math.floor(ship.timeLeft % 60);
   const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  const t = serverNowMs() / 1000;
-  // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
-  const docked = ship.sail < 0.05 && !moving;
-  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
-  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
-  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
+  // Idle bob/sway are now CSS-driven (animate-ship-bob) for max responsiveness.
+  // Only the static directional tilt is computed in JS.
   const baseTilt = direction * 2.5;
-  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
-  const tilt = baseTilt + rockTilt;
+  const tilt = baseTilt;
 
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
@@ -3151,10 +3146,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaIsRight = seaSide === "right";
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
-  const bankRoll = 0;
-  const bankPitch = 0;
-  const turnLift = 0;
-  const turnSway = 0;
 
   return (
     <div
@@ -3259,17 +3250,16 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       >
       {/* 3D ship body */}
       <div
-        className="relative w-full"
+        className={destroyed ? "relative w-full" : "relative w-full animate-ship-bob"}
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
-            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
+            : `rotateZ(${tilt * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
-          transition: "transform 0.2s ease-out",
           filter: destroyed
-            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
-            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+            ? "drop-shadow(0 6px 4px rgba(0,0,0,0.55)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+            : "drop-shadow(0 8px 6px rgba(0,0,0,0.5))",
           opacity: destroyed ? 0.8 : 1,
         }}
       >

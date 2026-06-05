@@ -253,6 +253,12 @@
   }
   .animate-sail-flap { animation: sail-flap 3.4s ease-in-out infinite; transform-origin: center 80%; }
 
+  @keyframes ship-bob {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50%      { transform: translate3d(0, -2px, 0) rotate(0.6deg); }
+  }
+  .animate-ship-bob { animation: ship-bob 3s ease-in-out infinite; will-change: transform; }
+
   @keyframes crew-bob {
     0%, 100% { transform: translateY(0) rotate(-1deg); }
     50%      { transform: translateY(-3px) rotate(1deg); }
