@@ -19,7 +19,7 @@ function RefundPage() {
   return (
     <LegalPage title="سياسة الاسترداد">
       <p>
-        نحن في <strong>هامور شابك</strong> (المُشغَّلة من قبل <strong>Amira Qailan Dakhil Allah Alsharari</strong>)
+        نحن في <strong>هامور شابك</strong> (المُشغَّلة من قبل <strong>Wissam Alsharari & Faisal Alsharari</strong>)
         نقدّم <strong>ضمان استرداد كامل خلال 14 يومًا</strong> من تاريخ الشراء لأي سبب كان،
         <strong> بدون أي شروط أو استثناءات أو قيود</strong>.
       </p>
