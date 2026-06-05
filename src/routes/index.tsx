@@ -2135,15 +2135,6 @@ function Index() {
             );
           })}
         </div>
-        <div
-          className="pointer-events-none absolute bottom-0 right-2 size-11 rotate-45"
-          style={{
-            background: "linear-gradient(135deg, rgba(235,245,255,0.95) 0%, rgba(183,198,223,0.82) 55%, rgba(115,135,170,0.14) 100%)",
-            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-            filter: "drop-shadow(0 0 12px rgba(224,234,255,0.4))",
-            opacity: 0.9,
-          }}
-        />
       </div>
 
 
