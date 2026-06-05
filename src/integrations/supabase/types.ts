@@ -3073,7 +3073,11 @@ export type Database = {
       }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
       apply_ship_damage: {
-        Args: { _damage: number; _ship_id: string }
+        Args: {
+          _damage: number
+          _ship_id: string
+          _skip_fishing_check?: boolean
+        }
         Returns: {
           destroyed: boolean
           new_hp: number
