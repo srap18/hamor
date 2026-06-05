@@ -1466,11 +1466,18 @@ function Index() {
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
       <button
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
-        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-400 via-amber-600 to-amber-800 shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_20px_rgba(252,191,73,0.5)] flex flex-col items-center justify-center text-amber-50 active:scale-95"
+        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl flex flex-col items-center justify-center active:scale-95"
+        style={{
+          color: "#2a1605",
+          background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
+          border: "2px solid #ffe9a8",
+          boxShadow: "inset 0 2px 0 rgba(255,243,200,0.85), inset 0 -3px 6px rgba(80,40,10,0.65), 0 4px 0 #3a1f0a, 0 6px 16px rgba(0,0,0,0.6), 0 0 22px rgba(252,191,73,0.55)",
+        }}
       >
-        <span className="text-3xl drop-shadow">🗝️</span>
-        <span className="text-[10px] font-black mt-0.5 drop-shadow">يومي</span>
-        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center border border-amber-100 shadow">!</span>
+        <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
+        <span className="relative text-3xl" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
+        <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
+        <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
       <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
