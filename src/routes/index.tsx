@@ -959,9 +959,9 @@ function Index() {
         curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
-          // Unified speed — same easing coefficient for going out (fishing)
-          // and coming back to shore so every ship moves at the exact same pace.
-          const smoothing = 0.22;
+          // Asymmetric smoothing: gentle when sailing out, FAST when returning
+          // to dock so stopping/collecting feels instant.
+          const smoothing = s.fishing ? 0.22 : 0.55;
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
             return { ...s, sail };
