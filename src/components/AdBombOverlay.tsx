@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdVideo } from "@/lib/ad-videos";
 import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import nukeReal from "@/assets/fx/nuke-real.png";
+
 
 type AdBomb = {
   id: string;
