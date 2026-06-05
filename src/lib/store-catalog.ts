@@ -2,6 +2,8 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
+import adBombStoreImg from "@/assets/ad-bomb-store.jpg.asset.json";
+
 export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon";
 
 export type PackInventoryItem = {
