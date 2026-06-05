@@ -3,12 +3,14 @@ import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { SHIP_FLAGS, getShipFlag, setShipFlag, type ShipFlagId } from "@/lib/ship-flag";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
+  const [flagId, setFlagId] = useState<ShipFlagId>(() => getShipFlag());
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
@@ -140,6 +142,29 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
+
+        {/* Ship mast flag picker */}
+        <div className="mt-3 p-3 rounded-lg bg-black/30 border border-accent/30">
+          <div className="text-xs text-accent/80 mb-2">🚩 علم السفن</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {SHIP_FLAGS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => { setFlagId(f.id); setShipFlag(f.id); sound.play("click"); }}
+                className={`py-1.5 px-2 rounded-md text-[11px] font-bold border active:scale-95 ${
+                  flagId === f.id
+                    ? "bg-amber-600/80 border-amber-300 text-white"
+                    : "bg-stone-900/60 border-amber-700/30 text-amber-100/80"
+                }`}
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+          <div className="mt-1.5 text-[10px] text-accent/60 text-center">
+            اختر "بدون علم" لإخفاء العلم من سفنك
+          </div>
+        </div>
 
         {email && (
           <div className="mt-3 space-y-2">

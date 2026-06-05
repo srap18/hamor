@@ -39,13 +39,14 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
-import navIconBattle from "@/assets/nav-icon-battle.png";
 import navIconArena from "@/assets/nav-icon-arena.png";
 import navIconFriends from "@/assets/nav-icon-friends.png";
 import navIconInventory from "@/assets/nav-icon-inventory.png";
 import navIconShop from "@/assets/nav-icon-shop.png";
 import navIconChat from "@/assets/nav-icon-chat.png";
 import navIconSettings from "@/assets/nav-icon-settings.png";
+import navIconTribe from "@/assets/nav-icon-tribe.png";
+import { ShipFlag } from "@/components/ShipFlag";
 
 
 
@@ -2135,7 +2136,7 @@ function Index() {
             { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
             { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
             { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
+            { src: navIconTribe, label: "قبيلة", to: null, action: "tribe" as const, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
@@ -2185,7 +2186,7 @@ function Index() {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
                   else if (it.action === "boost") setBoostOpen(true);
-                  else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
+                  else if (it.action === "tribe") { window.location.href = "/chat?tab=tribe"; }
                 }}
                 className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
               >
@@ -3293,22 +3294,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           />
 
 
-          {/* Waving flag on the mast (hidden when destroyed) */}
-          {!destroyed && (
-            <div
-              className="absolute pointer-events-none"
-              style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
-            >
-              <div
-                className="w-full h-full animate-flag-wave"
-                style={{
-                  background: "linear-gradient(90deg, #ef4444 0%, #ef4444 55%, #fbbf24 55%, #fbbf24 100%)",
-                  clipPath: "polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%)",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.4)",
-                }}
-              />
-            </div>
-          )}
+          {/* Waving flag on the mast (user-customizable, hidden when destroyed) */}
+          {!destroyed && <ShipFlag />}
 
           {/* Destroyed: dark smoke billows */}
           {destroyed && (
