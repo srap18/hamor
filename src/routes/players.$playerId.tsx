@@ -1255,7 +1255,14 @@ function PlayerPage() {
                     const canFire = q > 0;
                     return (
                       <div key={w.id} className="flex items-stretch gap-2">
-                        <button disabled={busy || !canFire} onClick={() => setMode("ad_bomb")}
+                        <button disabled={busy || !canFire} onClick={() => {
+                          sound.play("nuke");
+                          const cx = window.innerWidth / 2;
+                          const cy = window.innerHeight / 2;
+                          setFx({ id: Date.now(), emoji: "📺", fromX: cx, fromY: cy, toX: cx, toY: cy, phase: "boom", weaponId: "ad_bomb" });
+                          setTimeout(() => setFx(null), 1600);
+                          setTimeout(() => setMode("ad_bomb"), 1500);
+                        }}
                           className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-fuchsia-900/80 to-purple-900/80 border border-fuchsia-500/40 active:scale-95 disabled:opacity-40 text-right">
                           <span className="text-3xl">{w.emoji}</span>
                           <div className="flex-1 min-w-0">
