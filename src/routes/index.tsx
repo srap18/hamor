@@ -1492,9 +1492,6 @@ function Index() {
             </Link>
           )}
         </div>
-        <div className="flex items-center justify-between px-1">
-          <ShieldBadge />
-        </div>
       </div>
 
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
