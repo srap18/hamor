@@ -105,6 +105,29 @@ interface Ship {
   seaSide?: "left" | "right";
 }
 
+// Repair progress 0..1 based on destroyed_at → repair_ends_at window.
+function repairProgress(destroyedAt?: string | null, repairEndsAt?: string | null): number {
+  if (!destroyedAt || !repairEndsAt) return 1;
+  const start = new Date(destroyedAt).getTime();
+  const end = new Date(repairEndsAt).getTime();
+  const now = serverNowMs();
+  if (now >= end) return 1;
+  const total = end - start;
+  if (total <= 0) return 1;
+  return Math.max(0, Math.min(1, (now - start) / total));
+}
+// A ship is "blocked from fishing" only while repair progress is below 30%.
+// Past that point it can sail and fish (with capacity scaled by progress server-side),
+// while continuing to repair in the background.
+const FISH_REPAIR_MIN = 0.30;
+function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null): boolean {
+  if (!destroyedAt || !repairEndsAt) return false;
+  if (new Date(repairEndsAt).getTime() <= serverNowMs()) return false;
+  return repairProgress(destroyedAt, repairEndsAt) < FISH_REPAIR_MIN;
+}
+
+
+
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
 // so they never overlap on screen.
 const SLOTS = [
