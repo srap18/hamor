@@ -3124,7 +3124,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   // Pivot-in-place: when bow direction changes, hold position while the flip
   // animation plays, then release so the ship slides smoothly to its new spot.
-  const TURN_MS = 700;
+  // Shorter turn when returning to dock so stop/collect feels instant.
+  const TURN_MS = ship.fishing ? 700 : 220;
   const facingRef = useRef(facing);
   const turnEndRef = useRef(0);
   const heldLeftRef = useRef(computedLeft);
