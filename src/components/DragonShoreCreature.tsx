@@ -51,23 +51,16 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.76} 50%{transform:scaleX(.94);opacity:.6} }
       `}</style>
-      <button
-        type="button"
-        onClick={() => {
-          if (!interactive) return;
-          setShowSoon(true);
-          setTimeout(() => setShowSoon(false), 2200);
-        }}
-
+      <div
         aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
-        className="absolute z-20 active:scale-95 transition-transform"
+        className="absolute z-20"
         style={{
           left: "6%",
           bottom: "6%",
           width: "54%",
           maxWidth: "360px",
           aspectRatio: "1 / 1",
-          pointerEvents: "auto",
+          pointerEvents: "none",
         }}
       >
         <span
