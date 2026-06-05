@@ -63,6 +63,8 @@ export const BACKGROUNDS: SceneBg[] = [
     rarity: "legendary",
     image: celestialColosseumBg,
     burnedImage: celestialColosseumBurnedBg,
+    video: celestialColosseumVideo.url,
+    burnedVideo: celestialColosseumBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
