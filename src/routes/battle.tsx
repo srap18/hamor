@@ -2,6 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DRAGON_STAGES, getStage } from "@/lib/dragon";
+import { useAdmin } from "@/hooks/use-admin";
 import arenaBg from "@/assets/battle-arena-bg.jpg";
 
 export const Route = createFileRoute("/battle")({
@@ -10,8 +11,36 @@ export const Route = createFileRoute("/battle")({
     vs: typeof s.vs === "string" ? s.vs : undefined,
   }),
   head: () => ({ meta: [{ title: "⚔️ معركة التنين — ساحة القتال" }] }),
-  component: BattlePage,
+  component: BattleGate,
 });
+
+function BattleGate() {
+  const { isAdmin, loading } = useAdmin();
+  if (loading) return null;
+  if (!isAdmin) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-6 text-center"
+        style={{ backgroundImage: `url(${arenaBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
+      >
+        <div className="max-w-sm rounded-2xl border border-amber-400/40 bg-black/70 backdrop-blur p-6 shadow-2xl">
+          <div className="text-5xl mb-3">🔒</div>
+          <div className="text-amber-200 font-extrabold text-xl mb-2">التحدي قريباً</div>
+          <div className="text-amber-100/80 text-sm mb-4">
+            ساحة التحدي تحت الصيانة الآن. ارجع لاحقاً!
+          </div>
+          <Link
+            to="/"
+            className="inline-block px-5 py-2 rounded-full bg-gradient-to-b from-amber-500 to-amber-700 text-white font-bold border border-amber-300 active:scale-95"
+          >
+            رجوع للرئيسية
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  return <BattlePage />;
+}
 
 type Fighter = {
   id: string;
