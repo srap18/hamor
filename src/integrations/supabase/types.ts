@@ -3013,6 +3013,10 @@ export type Database = {
             Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
             Returns: Json
           }
+      admin_set_market_levels: {
+        Args: { _fish_level: number; _player: string; _ship_level: number }
+        Returns: Json
+      }
       admin_set_media_ban: {
         Args: { _banned: boolean; _target: string }
         Returns: undefined
