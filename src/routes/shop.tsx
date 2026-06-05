@@ -84,7 +84,7 @@ const WEAPONS: Item[] = LIB_WEAPONS.map((w) => ({
     ? `${w.desc} • ضرر ${w.aoe ? "∞" : w.damage.toLocaleString()}`
     : `ضرر ${w.damage.toLocaleString()}`,
   rarity: w.rarity,
-  image: WEAPON_IMAGES[w.id],
+  image: WEAPON_IMAGES[w.id] ?? w.image,
 }));
 
 const CREWS: Item[] = LIB_CREWS.map((c) => ({

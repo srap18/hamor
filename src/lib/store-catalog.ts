@@ -158,8 +158,8 @@ export const STORE_PACKS: StorePack[] = [
   {
     id: "ad_bomb_pack",
     category: "weapon",
-    label: "📺 قنبلة إعلانية",
-    emoji: "📺",
+    label: "قنبلة إعلانية",
+    emoji: "💣",
     image: adBombStoreImg.url,
     priceUSD: 1.99,
     stripePriceId: "ad_bomb_pack",
