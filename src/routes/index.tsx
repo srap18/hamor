@@ -2221,15 +2221,24 @@ function Index() {
                     filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))",
                   }}
                 >
-                  <img
-                    src={it.src}
-                    alt={it.label}
-                    loading="lazy"
-                    width={110}
-                    height={110}
-                    className="size-full object-contain select-none"
-                    draggable={false}
-                  />
+                  {it.emoji ? (
+                    <span
+                      className="size-full flex items-center justify-center select-none"
+                      style={{ fontSize: "clamp(26px, 8vw, 38px)", lineHeight: 1 }}
+                    >
+                      {it.emoji}
+                    </span>
+                  ) : (
+                    <img
+                      src={it.src}
+                      alt={it.label}
+                      loading="lazy"
+                      width={110}
+                      height={110}
+                      className="size-full object-contain select-none"
+                      draggable={false}
+                    />
+                  )}
                   {it.badge > 0 && (
                     <span
                       className="absolute -top-1 right-0 z-20 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
