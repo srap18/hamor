@@ -3249,7 +3249,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         style={{
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
-          transition: "transform 0.7s ease-in-out",
+          transition: ship.fishing ? "transform 0.7s ease-in-out" : "transform 0.22s ease-out",
         }}
       >
       {/* 3D ship body */}
