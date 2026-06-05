@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import harborBg from "@/assets/harbor-bg.jpg";
+import harborBgAsset from "@/assets/harbor-bg.jpg.asset.json";
+const harborBg = harborBgAsset.url;
 import harborVideo from "@/assets/harbor-bg.mp4.asset.json";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 

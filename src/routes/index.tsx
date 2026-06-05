@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -13,10 +13,10 @@ import {
   buyWithGems,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-import { DailyLoginModal } from "@/components/DailyLoginModal";
+const DailyLoginModal = lazy(() => import("@/components/DailyLoginModal").then(m => ({ default: m.DailyLoginModal })));
 
 import { sound } from "@/lib/sound";
-import { SettingsModal } from "@/components/SettingsModal";
+const SettingsModal = lazy(() => import("@/components/SettingsModal").then(m => ({ default: m.SettingsModal })));
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -31,7 +31,7 @@ import dailyKey3d from "@/assets/icon-daily-key-3d.png";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
-import { AdBombOverlay } from "@/components/AdBombOverlay";
+const AdBombOverlay = lazy(() => import("@/components/AdBombOverlay").then(m => ({ default: m.AdBombOverlay })));
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
 import birdImg from "@/assets/bird-realistic.png";
@@ -1255,7 +1255,7 @@ function Index() {
       {/* Animated shore dragon — sits where the old fountain was, on every background */}
       <DragonShoreCreature />
 
-      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+      {profile?.id && <Suspense fallback={null}><AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} /></Suspense>}
 
       {scene.burned && (
         <DraggableRepairBgButton
@@ -1504,7 +1504,7 @@ function Index() {
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
-      <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
+      {dailyOpen && <Suspense fallback={null}><DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} /></Suspense>}
 
 
       {/* SHIPS — auto-placed inside the current background's open-water region.
@@ -2244,7 +2244,7 @@ function Index() {
 
 
       {/* Settings modal */}
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <Suspense fallback={null}><SettingsModal onClose={() => setSettingsOpen(false)} /></Suspense>}
 
       {/* Leaderboard / players modal */}
       {boostOpen && <LeaderboardModal onClose={() => setBoostOpen(false)} />}
