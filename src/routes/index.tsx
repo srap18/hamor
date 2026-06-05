@@ -969,10 +969,12 @@ function Index() {
         let changed = false;
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = s.fishing ? 0.12 : 0.18;
+          // Realistic sailing pace: slow, smooth glide both ways.
+          // Going out (fishing) is a bit slower than returning to port.
+          const smoothing = s.fishing ? 0.018 : 0.026;
           const rawSail = s.sail + (target - s.sail) * smoothing;
           // Snap to target when within epsilon to let updates settle.
-          const sail = Math.abs(rawSail - target) < 0.001 ? target : rawSail;
+          const sail = Math.abs(rawSail - target) < 0.0008 ? target : rawSail;
           const sailDelta = Math.abs(sail - s.sail);
           if (!s.fishing || !s.startedAt) {
             if (sailDelta < 0.0008) return s; // idle docked ship — skip
