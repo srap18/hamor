@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -13,10 +13,10 @@ import {
   buyWithGems,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-import { DailyLoginModal } from "@/components/DailyLoginModal";
+const DailyLoginModal = lazy(() => import("@/components/DailyLoginModal").then(m => ({ default: m.DailyLoginModal })));
 
 import { sound } from "@/lib/sound";
-import { SettingsModal } from "@/components/SettingsModal";
+const SettingsModal = lazy(() => import("@/components/SettingsModal").then(m => ({ default: m.SettingsModal })));
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -31,7 +31,7 @@ import dailyKey3d from "@/assets/icon-daily-key-3d.png";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
-import { AdBombOverlay } from "@/components/AdBombOverlay";
+const AdBombOverlay = lazy(() => import("@/components/AdBombOverlay").then(m => ({ default: m.AdBombOverlay })));
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
 import birdImg from "@/assets/bird-realistic.png";
