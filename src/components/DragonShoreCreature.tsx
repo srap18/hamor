@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
-import shoreDragonVideo from "@/assets/shore-dragon.mp4.asset.json";
+import shoreDragonTransparentVideo from "@/assets/shore-dragon-transparent.webm";
 
 /**
  * Shore dragon — the player's actual dragon form sitting on the beach.
@@ -42,21 +42,6 @@ export function DragonShoreCreature() {
         @keyframes dsc-rock { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.7} 50%{transform:scaleX(.92);opacity:.55} }
       `}</style>
-      {/* SVG filter that keys out white/near-white pixels to transparent */}
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
-        <defs>
-          <filter id="dsc-chroma-white" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-            <feColorMatrix
-              type="matrix"
-              values="1 0 0 0 0
-                      0 1 0 0 0
-                      0 0 1 0 0
-                      -1 -1 -1 0 2.85"
-            />
-          </filter>
-        </defs>
-      </svg>
-
       <button
         type="button"
         onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
@@ -152,9 +137,9 @@ export function DragonShoreCreature() {
             />
           ) : (
             <>
-              {/* Live-action style dragon video — white BG keyed out via SVG chroma filter */}
+              {/* Live-action style dragon video with real transparent alpha background */}
               <video
-                src={shoreDragonVideo.url}
+                src={shoreDragonTransparentVideo}
                 autoPlay
                 loop
                 muted
@@ -163,14 +148,14 @@ export function DragonShoreCreature() {
                 className="absolute inset-0 w-full h-full object-contain object-bottom"
                 style={{
                   filter:
-                    "url(#dsc-chroma-white) drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
+                    "drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
                   WebkitFilter:
-                    "url(#dsc-chroma-white) drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
+                    "drop-shadow(0 3px 3px rgba(0,0,0,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.45)) saturate(0.95) brightness(0.95) contrast(1.06)",
                 }}
               />
               {/* Cool ambient overlay matching scene lighting */}
               <video
-                src={shoreDragonVideo.url}
+                src={shoreDragonTransparentVideo}
                 autoPlay
                 loop
                 muted
@@ -181,8 +166,8 @@ export function DragonShoreCreature() {
                 style={{
                   mixBlendMode: "overlay",
                   opacity: 0.35,
-                  filter: "url(#dsc-chroma-white) brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
-                  WebkitFilter: "url(#dsc-chroma-white) brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
+                  filter: "brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
+                  WebkitFilter: "brightness(0.9) sepia(1) hue-rotate(200deg) saturate(2)",
                 }}
               />
             </>
