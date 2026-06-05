@@ -1451,17 +1451,17 @@ function Index() {
 
           <Link
             to="/inventory"
-            className="relative rounded-full px-3 py-1.5 flex items-center gap-1.5 active:scale-95"
+            className="relative rounded-full px-2 py-0.5 flex items-center gap-1 active:scale-95"
             title="الأسماك المكتشفة"
             style={{
               background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
-              border: "2px solid #c9a44a",
-              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 5px 10px rgba(0,0,0,0.5)",
+              border: "1.5px solid #c9a44a",
+              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -2px 4px rgba(0,0,0,0.6), 0 2px 0 #1a0d04, 0 3px 8px rgba(0,0,0,0.5)",
             }}
           >
-            <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
-            <span className="relative text-lg">🐟</span>
-            <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
+            <span className="pointer-events-none absolute inset-x-1.5 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
+            <span className="relative text-sm">🐟</span>
+            <span className="relative text-[11px] font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
           </Link>
           <NotificationsBell />
           {isAdmin && (
