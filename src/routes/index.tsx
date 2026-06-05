@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Landmark, MessageCircle, Package, Settings, Skull, Trophy, Users } from "lucide-react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -40,6 +39,13 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
+import navIconBattle from "@/assets/nav-icon-battle.png";
+import navIconArena from "@/assets/nav-icon-arena.png";
+import navIconFriends from "@/assets/nav-icon-friends.png";
+import navIconInventory from "@/assets/nav-icon-inventory.png";
+import navIconShop from "@/assets/nav-icon-shop.png";
+import navIconChat from "@/assets/nav-icon-chat.png";
+import navIconSettings from "@/assets/nav-icon-settings.png";
 
 
 
@@ -2062,42 +2068,31 @@ function Index() {
               "linear-gradient(180deg, rgba(3,7,18,0) 0%, rgba(5,9,20,0.72) 45%, rgba(4,6,14,0.98) 100%)",
           }}
         />
-        <div className="relative flex items-end justify-between gap-1">
+        <div className="relative flex items-end justify-between gap-0.5">
           {[
-            { icon: Skull, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
-            { icon: Trophy, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { icon: Users, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
-            { icon: Package, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
-            { icon: Landmark, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
-            { icon: MessageCircle, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
-            { icon: Settings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
+            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
+            { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
+            { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
+            { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
+            { src: navIconShop, label: "متجر", to: "/shop" as const, action: null, badge: 0 },
+            { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
+            { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
           ].map((it, i) => {
-            const Icon = it.icon;
             const inner = (
               <>
                 <div
-                  className="relative flex size-12 items-center justify-center"
-                  style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.55))" }}
+                  className="relative flex size-[55px] items-center justify-center"
+                  style={{ filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))" }}
                 >
-                  <span
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background:
-                        "radial-gradient(circle at 50% 50%, rgba(29,16,9,0.97) 0%, rgba(11,7,4,0.98) 60%, rgba(5,3,2,1) 100%)",
-                      border: "1.6px solid rgba(247,212,122,0.96)",
-                      boxShadow:
-                        "inset 0 0 0 1px rgba(101,61,18,0.92), inset 0 0 16px rgba(250,211,122,0.1), 0 0 0 1px rgba(71,42,12,0.85)",
-                    }}
+                  <img
+                    src={it.src}
+                    alt={it.label}
+                    loading="lazy"
+                    width={110}
+                    height={110}
+                    className="size-full object-contain select-none"
+                    draggable={false}
                   />
-                  <span
-                    className="absolute inset-[3px] rotate-45"
-                    style={{ border: "1px solid rgba(198,148,57,0.92)", borderRadius: "10px" }}
-                  />
-                  <span
-                    className="absolute inset-[7px] rotate-45"
-                    style={{ border: "1px solid rgba(255,232,173,0.88)", borderRadius: "8px" }}
-                  />
-                  <span className="relative z-10 text-[#d7b36a] [&_svg]:size-5 [&_svg]:stroke-[2.2]"><Icon /></span>
                   {it.badge > 0 && (
                     <span
                       className="absolute -top-1 right-0 z-20 flex min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black text-white"
@@ -2112,7 +2107,7 @@ function Index() {
                     </span>
                   )}
                 </div>
-                <span className="mt-1 text-[10px] font-black leading-none text-[#ead087] drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{it.label}</span>
+                <span className="mt-0.5 text-[10px] font-black leading-none text-[#ead087] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">{it.label}</span>
               </>
             );
             return it.to ? (
