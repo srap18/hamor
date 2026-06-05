@@ -99,16 +99,21 @@ function ShipyardPage() {
   const loadData = async () => {
     if (!user) return;
     setLoading(true);
-    await supabase.rpc("finalize_market_upgrades");
-    const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
-      supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
-      supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
-    ]);
-    const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
-    setMarket(mr);
-    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
-    setOwned((ownedRows as OwnedShip[] | null) ?? []);
-    setLoading(false);
+    try {
+      await withTimeout(supabase.rpc("finalize_market_upgrades"), 15000, "finalize_market_upgrades");
+      const [{ data: marketRow }, { data: ownedRows }] = await withTimeout(Promise.all([
+        supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
+        supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
+      ]), 15000, "ship-market-load");
+      const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
+      setMarket(mr);
+      try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
+      setOwned((ownedRows as OwnedShip[] | null) ?? []);
+    } catch (e) {
+      showToast("⚠️ تعذّر تحميل البيانات — تحقق من الاتصال");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
