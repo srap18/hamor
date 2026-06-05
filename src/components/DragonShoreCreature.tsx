@@ -1,23 +1,32 @@
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { DRAGON_STAGES, getStage } from "@/lib/dragon";
+import { getStage } from "@/lib/dragon";
 
-export function DragonShoreCreature() {
+type Props = {
+  /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
+  userId?: string;
+  /** When false, disables the "coming soon" popup (e.g. visiting another player). */
+  interactive?: boolean;
+};
+
+export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
   const [stage, setStage] = useState<number>(1);
   const [showSoon, setShowSoon] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const { data: u } = await supabase.auth.getUser();
-      const uid = u.user?.id;
+      let uid = userId;
+      if (!uid) {
+        const { data: u } = await supabase.auth.getUser();
+        uid = u.user?.id;
+      }
       if (!uid) return;
       const { data } = await supabase.from("dragons").select("stage").eq("user_id", uid).maybeSingle();
       if (alive && data?.stage) setStage(data.stage);
     };
     load();
-    // Refresh whenever the page becomes visible again (after upgrades on dragon page)
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", load);
@@ -26,7 +35,8 @@ export function DragonShoreCreature() {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", load);
     };
-  }, []);
+  }, [userId]);
+
 
   const stageMode = stage <= 1 ? "egg" : stage <= 2 ? "hatching" : "adult";
   const creatureImg = getStage(stage).image;
@@ -42,9 +52,11 @@ export function DragonShoreCreature() {
       <button
         type="button"
         onClick={() => {
+          if (!interactive) return;
           setShowSoon(true);
           setTimeout(() => setShowSoon(false), 2200);
         }}
+
         aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
         className="absolute z-20 active:scale-95 transition-transform"
         style={{
