@@ -1061,14 +1061,14 @@ function PlayerPage() {
         </div>
       )}
 
-      {/* Ground sign — only avatar shows; tap to read the destroyer's message. Auto-expires after 48h. */}
-      {p?.last_destroyer_message && (p?.last_destroyer_kind === "nuke" || p?.last_destroyer_kind === "ad_bomb") && p?.last_destroyer_at && (Date.now() - new Date(p.last_destroyer_at).getTime() < 48 * 3600_000) && (
+      {/* Ground sign — visible if there's any non-expired message in history (48h). */}
+      {signMessages.length > 0 && (
         <button
           type="button"
-          onClick={() => { sound.play("click"); setSignOpen(true); }}
+          onClick={() => { sound.play("click"); setSignIdx(0); setSignOpen(true); }}
           className="absolute z-30 active:scale-95 transition-transform"
           style={{ top: "62%", left: "30%", width: "9%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }}
-          aria-label="رسالة المفجّر"
+          aria-label="رسائل المفجّرين"
         >
           <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
             <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
@@ -1083,14 +1083,20 @@ function PlayerPage() {
             </div>
             <div className="absolute text-amber-100 font-extrabold text-center bg-red-900/90 rounded-full px-1 border border-amber-300/60 shadow"
               style={{ top: "58%", left: "20%", right: "20%", fontSize: "0.4rem" }}>
-              ☢️
+              {signMessages.length > 1 ? signMessages.length : "☢️"}
             </div>
           </div>
         </button>
       )}
 
-      {/* Sign message modal — parchment scroll style matching the reference */}
-      {signOpen && p?.last_destroyer_message && (
+      {/* Sign message modal — parchment scroll style with prev/next history */}
+      {signOpen && signMessages.length > 0 && (() => {
+        const cur = signMessages[Math.min(signIdx, signMessages.length - 1)];
+        const total = signMessages.length;
+        const idx = Math.min(signIdx, total - 1);
+        const canPrev = idx < total - 1; // older
+        const canNext = idx > 0;          // newer
+        return (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSignOpen(false)}>
           <div className="relative w-full max-w-sm" onClick={(e) => e.stopPropagation()} dir="rtl">
             <div
@@ -1112,28 +1118,39 @@ function PlayerPage() {
               </button>
 
               <div className="text-center text-stone-900 font-extrabold text-lg mb-4 mt-1">
-                {p.last_destroyer_name}
+                {cur.attacker_name || "لاعب"}
               </div>
 
               <div className="flex items-center gap-2 min-h-[140px]">
-                <button disabled className="shrink-0 w-8 h-10 text-stone-700 opacity-30 text-2xl" aria-label="السابق">◀</button>
-                <div className="flex-1 text-center text-stone-900 font-bold leading-relaxed px-1" style={{ fontSize: "1rem" }}>
-                  {p.last_destroyer_message}
+                <button
+                  onClick={() => { if (canPrev) { sound.play("click"); setSignIdx(idx + 1); } }}
+                  disabled={!canPrev}
+                  className="shrink-0 w-8 h-10 text-stone-800 disabled:opacity-30 active:scale-95 text-2xl"
+                  aria-label="السابق"
+                >◀</button>
+                <div className="flex-1 text-center text-stone-900 font-bold leading-relaxed px-1 whitespace-pre-wrap break-words" style={{ fontSize: "1rem" }}>
+                  {cur.message}
                 </div>
-                <button disabled className="shrink-0 w-8 h-10 text-stone-700 opacity-30 text-2xl" aria-label="التالي">▶</button>
+                <button
+                  onClick={() => { if (canNext) { sound.play("click"); setSignIdx(idx - 1); } }}
+                  disabled={!canNext}
+                  className="shrink-0 w-8 h-10 text-stone-800 disabled:opacity-30 active:scale-95 text-2xl"
+                  aria-label="التالي"
+                >▶</button>
               </div>
 
               <div className="absolute bottom-3 left-5 right-5 flex items-center justify-between text-stone-800 text-xs font-bold">
                 <span dir="ltr">
-                  {p.last_destroyer_at ? new Date(p.last_destroyer_at).toLocaleString("ar", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
+                  {new Date(cur.created_at).toLocaleString("ar", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                 </span>
-                <span>1/1</span>
+                <span>{idx + 1}/{total}</span>
                 <span className="opacity-0">.</span>
               </div>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
 
 
