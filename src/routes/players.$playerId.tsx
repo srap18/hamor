@@ -1275,7 +1275,17 @@ function PlayerPage() {
                         {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
                         <div className="flex-1 min-w-0">
                           <div className="text-amber-200 font-bold text-sm">{w.name}</div>
-                          <div className="text-[10px] text-amber-300/70">ضرر {w.damage}{w.aoe ? " · يصيب الكل" : ""}</div>
+                          {(() => {
+                            const boosted = w.aoe && w.id === "nuke" ? w.damage : applyDragonAttack(w.damage, myDragonLvl);
+                            const hasBonus = boosted !== w.damage;
+                            return (
+                              <div className="text-[10px] text-amber-300/70">
+                                ضرر {w.damage.toLocaleString()}
+                                {hasBonus && <span className="text-emerald-300 font-bold"> → {boosted.toLocaleString()} 🐉</span>}
+                                {w.aoe ? " · يصيب الكل" : ""}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="text-xs text-amber-400 font-bold tabular-nums">×{q}</div>
                       </button>
