@@ -529,7 +529,7 @@ function PlayerPage() {
         await playProjectile(t.id, w.emoji, false, w.id);
         let row: any = damageResults[i];
         if (!row && i > 0) {
-          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage });
+          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
           row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
         }
         const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
