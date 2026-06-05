@@ -38,23 +38,28 @@ export function SeamlessVideo({
     v.play().catch(() => {});
 
     // Seam-hider: fade slightly to black ~0.4s before the end, recover after
-    // the loop restarts. This is purely a CSS opacity change — no extra
-    // decoding or video copies.
+    // the loop restarts. Throttled to avoid touching DOM on every timeupdate.
     const FADE_WINDOW = 0.45;
     let lastT = 0;
+    let lastOpacity = "1";
+    const setOpacity = (val: string) => {
+      if (val !== lastOpacity) {
+        v.style.opacity = val;
+        lastOpacity = val;
+      }
+    };
     const onTime = () => {
       const dur = v.duration;
       if (!dur || !isFinite(dur)) return;
       const t = v.currentTime;
-      // Detect wrap-around (loop): jump back to small t after being near end.
       if (lastT > dur - FADE_WINDOW && t < FADE_WINDOW) {
-        v.style.opacity = String(Math.min(1, t / FADE_WINDOW));
+        setOpacity(String(Math.min(1, t / FADE_WINDOW)));
       } else {
         const remaining = dur - t;
         if (remaining < FADE_WINDOW) {
-          v.style.opacity = String(Math.max(0.55, remaining / FADE_WINDOW));
+          setOpacity(String(Math.max(0.55, remaining / FADE_WINDOW)));
         } else {
-          v.style.opacity = "1";
+          setOpacity("1");
         }
       }
       lastT = t;
@@ -105,8 +110,10 @@ export function SeamlessVideo({
         muted
         playsInline
         preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
         className={className}
-        style={{ ...style, transition: "opacity 0.15s linear" }}
+        style={{ ...style, transition: "opacity 0.15s linear", willChange: "opacity" }}
       />
     </>
   );
