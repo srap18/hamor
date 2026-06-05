@@ -2,7 +2,7 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DRAGON_STAGES, getStage } from "@/lib/dragon";
-import { useAdmin } from "@/hooks/use-admin";
+import { useIsAdmin } from "@/hooks/use-admin";
 import arenaBg from "@/assets/battle-arena-bg.jpg";
 
 export const Route = createFileRoute("/battle")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/battle")({
 });
 
 function BattleGate() {
-  const { isAdmin, loading } = useAdmin();
+  const { isAdmin, loading } = useIsAdmin();
   if (loading) return null;
   if (!isAdmin) {
     return (
