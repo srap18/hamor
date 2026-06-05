@@ -42,6 +42,25 @@ export function DragonShoreCreature() {
         @keyframes dsc-rock { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.7} 50%{transform:scaleX(.92);opacity:.55} }
       `}</style>
+      {/* SVG filter that keys out white/near-white pixels to transparent */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+        <defs>
+          <filter id="dsc-chroma-white" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            {/* Build alpha from darkness: alpha = 1 - min(R,G,B) approx via luminance */}
+            <feColorMatrix
+              type="matrix"
+              values="1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      -1 -1 -1 0 2.55"
+            />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="1.8" intercept="-0.25" />
+            </feComponentTransfer>
+            <feComposite in="SourceGraphic" in2="" operator="in" />
+          </filter>
+        </defs>
+      </svg>
 
       <button
         type="button"
