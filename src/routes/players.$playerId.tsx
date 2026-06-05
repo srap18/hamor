@@ -78,6 +78,13 @@ function PlayerPage() {
   const [deathBannerMin, setDeathBannerMin] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-min") === "1"; } catch { return false; }
   });
+  const [myDragonLvl, setMyDragonLvl] = useState<number>(1);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as never as { rpc: (n: string) => Promise<{ data: Dragon | null }> }).rpc("get_or_init_dragon");
+      if (data) setMyDragonLvl(overallLevel(data));
+    })();
+  }, []);
   useEffect(() => {
     const onPref = () => {
       try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
