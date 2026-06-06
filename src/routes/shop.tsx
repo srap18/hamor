@@ -316,6 +316,7 @@ function Shop() {
             <BackgroundsPanel />
           ) : tab === "offers" ? (
             <OffersPanel onPurchase={() => { sound.play("coin"); sound.play("success"); refreshProfile(); }} />
+          ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
                 <ShopCard
