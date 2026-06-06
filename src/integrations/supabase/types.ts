@@ -1541,6 +1541,7 @@ export type Database = {
           vip_level: number
           vip_points: number
           vip_subs_claimed: number
+          weekly_xp: number
           xp: number
         }
         Insert: {
@@ -1581,6 +1582,7 @@ export type Database = {
           vip_level?: number
           vip_points?: number
           vip_subs_claimed?: number
+          weekly_xp?: number
           xp?: number
         }
         Update: {
@@ -1621,6 +1623,7 @@ export type Database = {
           vip_level?: number
           vip_points?: number
           vip_subs_claimed?: number
+          weekly_xp?: number
           xp?: number
         }
         Relationships: [
@@ -2750,6 +2753,63 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_xp_config: {
+        Row: {
+          description: string
+          enabled: boolean
+          id: boolean
+          last_distributed_at: string | null
+          prize_tiers: Json
+          title: string
+          updated_at: string
+          week_started_at: string
+        }
+        Insert: {
+          description?: string
+          enabled?: boolean
+          id?: boolean
+          last_distributed_at?: string | null
+          prize_tiers?: Json
+          title?: string
+          updated_at?: string
+          week_started_at?: string
+        }
+        Update: {
+          description?: string
+          enabled?: boolean
+          id?: boolean
+          last_distributed_at?: string | null
+          prize_tiers?: Json
+          title?: string
+          updated_at?: string
+          week_started_at?: string
+        }
+        Relationships: []
+      }
+      weekly_xp_history: {
+        Row: {
+          created_at: string
+          id: string
+          week_ended_at: string
+          week_started_at: string
+          winners: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          week_ended_at?: string
+          week_started_at: string
+          winners?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          week_ended_at?: string
+          week_started_at?: string
+          winners?: Json
+        }
+        Relationships: []
+      }
       world_boss: {
         Row: {
           created_at: string
@@ -3309,6 +3369,7 @@ export type Database = {
         Returns: Json
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      distribute_weekly_xp_prizes: { Args: never; Returns: Json }
       donate_to_tribe: {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json
@@ -3626,6 +3687,17 @@ export type Database = {
           power: number
           support_score: number
           tribe_id: string
+        }[]
+      }
+      get_weekly_xp_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_url: string
+          display_name: string
+          level: number
+          user_id: string
+          weekly_xp: number
         }[]
       }
       gift_gems: {
