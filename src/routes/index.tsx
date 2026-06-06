@@ -1377,7 +1377,7 @@ function Index() {
 
 
       {/* TOP HUD — pirate luxury */}
-      <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "max(3.5rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
+      <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.5rem)" }}>
         <div className="flex items-start gap-2">
           {/* Avatar + name + treasury stacked */}
           <div className="flex flex-col items-center gap-1.5 shrink-0">
