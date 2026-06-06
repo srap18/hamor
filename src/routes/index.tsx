@@ -2899,6 +2899,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           onClick={onClose}>إغلاق</button>
       </div>
       {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} />}
+      {prizesModal && <PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} />}
     </div>
   );
 }
