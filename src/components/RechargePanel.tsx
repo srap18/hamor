@@ -11,7 +11,8 @@ import { sound } from "@/lib/sound";
 import { initializePaddle, getPaddlePriceId, onPaddleEvent, getPaddleEnvironment } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
-import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
+import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
+import { RewardPopup } from "@/components/RewardPopup";
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "bundle", label: "باقات", emoji: "🎁" },
