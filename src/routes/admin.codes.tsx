@@ -907,7 +907,7 @@ function AdminCodesPage() {
                     <div className="text-[11px] text-fuchsia-200 mt-1 flex flex-wrap gap-1 items-center">
                       <span className="font-bold text-fuchsia-300">🎁 مجمّع ({c.extra_rewards.length}):</span>
                       {c.extra_rewards.slice(0, 8).map((r, idx) => {
-                        if (r.type === "coins" || !r.item_id) {
+                        if ((r.type as string) === "coins" || !r.item_id) {
                           return (
                             <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800 inline-flex items-center gap-1">
                               💰 {r.coins ?? 0}🪙
