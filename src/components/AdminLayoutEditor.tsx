@@ -241,24 +241,29 @@ export function Placeable({
       onPointerDown={onPointerDownDrag}
       onPointerMove={onPointerMoveDrag}
       onPointerUp={onPointerUpDrag}
+      onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); }}
     >
-      <div className="absolute -top-5 left-0 text-[10px] font-extrabold text-amber-200 bg-stone-900/90 px-1.5 py-0.5 rounded">
+      <div className="absolute -top-5 left-0 text-[10px] font-extrabold text-amber-200 bg-stone-900/90 px-1.5 py-0.5 rounded pointer-events-none">
         {id}
       </div>
-      <div className="absolute inset-0 pointer-events-none">
-        {children({ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, width: "100%", height: "100%" })}
+      {/* Render the child visually but force-disable ALL hit testing inside it */}
+      <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+        <div style={{ pointerEvents: "none" }} className="absolute inset-0 [&_*]:!pointer-events-none">
+          {children({ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, width: "100%", height: "100%" })}
+        </div>
       </div>
-      {/* Click-shield: intercepts taps so child buttons don't navigate while editing */}
+      {/* Click-shield on top: swallows taps so nothing inside navigates */}
       <div
-        className="absolute inset-0 z-[5]"
-        style={{ pointerEvents: "auto" }}
+        className="absolute inset-0"
+        style={{ pointerEvents: "auto", zIndex: 5 }}
         onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); }}
         onPointerDown={onPointerDownDrag}
         onPointerMove={onPointerMoveDrag}
         onPointerUp={onPointerUpDrag}
       />
       <div
-        className="absolute -right-1 -bottom-1 w-4 h-4 rounded bg-amber-300 border-2 border-amber-900 cursor-se-resize z-[10]"
+        className="absolute -right-1 -bottom-1 w-4 h-4 rounded bg-amber-300 border-2 border-amber-900 cursor-se-resize"
+        style={{ zIndex: 10 }}
         onPointerDown={onPointerDownResize}
         onPointerMove={onPointerMoveResize}
         onPointerUp={onPointerUpResize}
@@ -266,4 +271,5 @@ export function Placeable({
       />
     </div>
   );
+
 }
