@@ -2,11 +2,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 
-type NukePayload = {
-  kind?: "nuke";
+type NukeBannerData = {
+  kind: "nuke" | "ad_bomb";
   attacker_name: string;
   target_name: string;
   message: string;
+  emoji?: string;
 };
 
 type AdminPayload = {
@@ -17,14 +18,26 @@ type AdminPayload = {
 };
 
 type BannerState =
-  | ({ _t: "nuke" } & NukePayload)
+  | ({ _t: "nuke" } & NukeBannerData)
   | ({ _t: "admin" } & AdminPayload);
+
+type BannerRow = {
+  id: string;
+  kind: string;
+  attacker_name: string | null;
+  target_name: string | null;
+  message: string | null;
+  emoji: string | null;
+  title: string | null;
+  created_at: string;
+};
 
 export function GlobalBanner() {
   const [banner, setBanner] = useState<BannerState | null>(null);
   const [visible, setVisible] = useState(false);
   const hideTimer = useRef<number | null>(null);
   const clearTimer = useRef<number | null>(null);
+  const seenIds = useRef<Set<string>>(new Set());
 
   const show = useCallback((state: BannerState, durationMs: number) => {
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
@@ -38,17 +51,43 @@ export function GlobalBanner() {
     }, durationMs);
   }, []);
 
+  const handleRow = useCallback((row: BannerRow) => {
+    if (!row?.id || seenIds.current.has(row.id)) return;
+    // Ignore old rows (more than 30s) on initial load
+    const ageMs = Date.now() - new Date(row.created_at).getTime();
+    if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
+    seenIds.current.add(row.id);
+    if (row.kind === "nuke" || row.kind === "ad_bomb") {
+      show({
+        _t: "nuke",
+        kind: row.kind as "nuke" | "ad_bomb",
+        attacker_name: row.attacker_name || "لاعب",
+        target_name: row.target_name || "لاعب",
+        message: row.message || "",
+        emoji: row.emoji || (row.kind === "nuke" ? "☢️" : "📺"),
+      }, 6000);
+    } else if (row.kind === "admin") {
+      show({
+        _t: "admin", kind: "admin",
+        title: row.title || "",
+        message: row.message || "",
+        emoji: row.emoji || "📢",
+      }, 8000);
+    }
+  }, [show]);
+
   useEffect(() => {
-    const nukeCh = supabase
-      .channel("global:nuke", { config: { broadcast: { self: false } } })
-      .on("broadcast", { event: "nuke_alert" }, (msg) => {
-        const p = (msg.payload ?? {}) as NukePayload;
-        if (p.attacker_name && p.target_name) {
-          show({ _t: "nuke", ...p }, 5000);
-        }
-      })
+    // Reliable cross-user banner via postgres realtime on global_banners table
+    const ch = supabase
+      .channel("global:banners")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "global_banners" },
+        (payload) => handleRow(payload.new as BannerRow),
+      )
       .subscribe();
 
+    // Admin broadcasts still come via the old admin channel
     const adminCh = supabase
       .channel("global:admin", { config: { broadcast: { self: true } } })
       .on("broadcast", { event: "admin_banner" }, (msg) => {
@@ -60,10 +99,10 @@ export function GlobalBanner() {
       .subscribe();
 
     return () => {
-      void supabase.removeChannel(nukeCh);
+      void supabase.removeChannel(ch);
       void supabase.removeChannel(adminCh);
     };
-  }, [show]);
+  }, [show, handleRow]);
 
   if (!banner) return null;
 
