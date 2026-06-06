@@ -79,13 +79,13 @@ export const WEAPONS: Weapon[] = [
     name: "قنبلة إعلانية",
     emoji: "📺",
     image: adBombImg,
-    price: 0,
+    price: 180,
     currency: "gems",
     damage: 9_999_999,
     xp: 500,
     rarity: "epic",
     aoe: true,
-    desc: "تدمّر جميع سفن الخصم فوراً + إعلان ساعة على محيطه. 500 خبرة. تتوفر فقط عبر كود شحن.",
+    desc: "تدمّر جميع سفن الخصم فوراً + إعلان ساعة على محيطه. 500 خبرة.",
 
   },
 ];
