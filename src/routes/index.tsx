@@ -1378,60 +1378,54 @@ function Index() {
 
       {/* TOP HUD — pirate luxury */}
       <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "max(2.75rem, calc(env(safe-area-inset-top) + 1rem))" }}>
-        <div className="flex items-center gap-2">
-          {/* Avatar + name only — no plaque */}
-          <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1 shrink-0">
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
-                {(profile as any)?.avatar_url ? (
-                  <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
+        <div className="flex items-start gap-2">
+          {/* Avatar + name + treasury stacked */}
+          <div className="flex flex-col items-center gap-1.5 shrink-0">
+            <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1">
+              <div className="relative w-20 h-20 flex items-center justify-center">
+                <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
+                  {(profile as any)?.avatar_url ? (
+                    <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
+                  )}
+                </div>
+                {frameById((profile as any)?.avatar_frame)?.imageUrl && (
+                  <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
                 )}
               </div>
-              {frameById((profile as any)?.avatar_frame)?.imageUrl && (
-                <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
-              )}
-            </div>
-            <div className={`inline-flex max-w-[110px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
-              {profile?.display_name || "قبطان"}
-            </div>
-          </Link>
+              <div className={`inline-flex max-w-[120px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
+                {profile?.display_name || "قبطان"}
+              </div>
+            </Link>
 
-          {/* Treasury — unified luxurious bar */}
-          <div className="flex-1 flex flex-col gap-1.5">
+            {/* Treasury — unified luxurious bar (under avatar) */}
             <div
-              className="relative rounded-full pl-1 pr-2 py-1 flex items-stretch gap-1 overflow-hidden"
+              className="relative rounded-full pl-1 pr-1.5 py-1 flex items-stretch gap-1 overflow-hidden w-[170px]"
               style={{
                 background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
                 border: "2px solid #d9b35a",
                 boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 6px 16px rgba(0,0,0,0.6), 0 0 18px rgba(241,190,82,0.35)",
               }}
             >
-              {/* top gloss */}
               <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
-              {/* shimmer sweep */}
               <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 4.5s linear infinite" }} />
 
-              {/* Coins */}
-              <div className="relative flex-1 flex items-center justify-between gap-1 pl-2 pr-1 min-w-0">
-                <CoinIcon size={20} />
-                <span className="relative text-[13px] font-black tabular-nums truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
+              <div className="relative flex-1 flex items-center justify-between gap-1 pl-1.5 pr-0.5 min-w-0">
+                <CoinIcon size={18} />
+                <span className="relative text-[12px] font-black tabular-nums truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
               </div>
 
-              {/* Gold divider */}
               <span className="relative w-px my-1 self-stretch" style={{ background: "linear-gradient(180deg, transparent 0%, #d9b35a 25%, #fff2c2 50%, #d9b35a 75%, transparent 100%)", boxShadow: "0 0 6px rgba(241,190,82,0.6)" }} />
 
-              {/* Gems */}
-              <div className="relative flex-1 flex items-center justify-between gap-1 pl-1 pr-1 min-w-0">
-                <GemIcon size={20} />
-                <span className="relative text-[13px] font-black tabular-nums truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
+              <div className="relative flex-1 flex items-center justify-between gap-1 pl-0.5 pr-0.5 min-w-0">
+                <GemIcon size={18} />
+                <span className="relative text-[12px] font-black tabular-nums truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
               </div>
 
-              {/* + recharge */}
               <Link
                 to="/recharge"
-                className="relative w-7 h-7 self-center rounded-full text-sm font-black flex items-center justify-center active:scale-90 shrink-0"
+                className="relative w-6 h-6 self-center rounded-full text-xs font-black flex items-center justify-center active:scale-90 shrink-0"
                 style={{
                   background: "radial-gradient(ellipse at 50% 25%, #fff6c8 0%, #f1be52 45%, #b7791f 100%)",
                   color: "#3a1f0a",
@@ -1443,8 +1437,6 @@ function Index() {
               >+</Link>
             </div>
           </div>
-
-          {/* Ship icon removed — now in bottom nav */}
         </div>
         <style>{`@keyframes treasury-shimmer{0%{transform:translateX(-60%)}100%{transform:translateX(60%)}}`}</style>
 
