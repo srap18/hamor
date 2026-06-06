@@ -517,7 +517,8 @@ function PlayerPage() {
           _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
         }).then(undefined, (e: any) => console.error("record_attack failed", e));
-        (supabase as any).rpc("award_dragon_dp", { p_damage: boostedDamage }).then(undefined, () => {});
+        // PvP لا يمنح نقاط تنين — DP فقط من البوس
+
         (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: true }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
