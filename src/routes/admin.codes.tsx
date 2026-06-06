@@ -8,6 +8,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 import { VIP_TIERS } from "@/lib/vip-perks";
 import { BACKGROUNDS } from "@/lib/backgrounds";
+import { getShipByCode } from "@/lib/ships";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
@@ -49,6 +50,26 @@ const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   })),
   ...BACKGROUNDS.map((b) => ({ code: b.id, name: `🌅 ${b.name}`, kind: "background" })),
 ];
+
+// Lookup: item code → Arabic name + image/emoji (used in code list rendering)
+type ItemMeta = { name: string; image?: string; emoji?: string };
+const ITEM_META: Record<string, ItemMeta> = {};
+CREWS.forEach((c) => { ITEM_META[c.id] = { name: c.name, image: c.image, emoji: c.emoji }; });
+WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji: w.emoji }; });
+BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
+ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
+SHIELD_ITEMS.forEach((s) => { ITEM_META[s.code] = { name: s.name, emoji: "🛡️" }; });
+
+function getItemMeta(code: string, kind?: string): ItemMeta {
+  if (ITEM_META[code]) return ITEM_META[code];
+  if (kind === "ship") {
+    try {
+      const s = getShipByCode(code);
+      return { name: s.name ?? code, image: s.image, emoji: "⛵" };
+    } catch { /* fall through */ }
+  }
+  return { name: code, emoji: kind === "ship" ? "⛵" : "📦" };
+}
 
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
@@ -858,14 +879,23 @@ function AdminCodesPage() {
                       <span className="text-[10px] px-2 py-0.5 rounded bg-stone-700 text-stone-200">منتهي</span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-400 mt-1 flex flex-wrap gap-x-3">
-                    <span>
-                      {c.reward_type === "bundle"
-                        ? `💰 ${c.reward_coins} ذهب • 💎 ${c.reward_gems} جوهرة • ✨ ${c.reward_xp} خبرة`
-                        : c.reward_type === "item"
-                        ? `📦 ${c.item_id} × ${c.quantity}`
-                        : `⛵ ${c.item_id} × ${c.quantity}`}
-                    </span>
+                  <div className="text-xs text-slate-400 mt-1 flex flex-wrap gap-x-3 gap-y-1 items-center">
+                    {c.reward_type === "bundle" ? (
+                      <span>{`💰 ${c.reward_coins} ذهب • 💎 ${c.reward_gems} جوهرة • ✨ ${c.reward_xp} خبرة`}</span>
+                    ) : (() => {
+                      const meta = getItemMeta(c.item_id ?? "", c.reward_type);
+                      return (
+                        <span className="inline-flex items-center gap-1.5">
+                          {meta.image ? (
+                            <img src={meta.image} alt="" className="w-5 h-5 rounded object-cover border border-slate-700" />
+                          ) : (
+                            <span>{meta.emoji ?? (c.reward_type === "ship" ? "⛵" : "📦")}</span>
+                          )}
+                          <span className="text-slate-200">{meta.name}</span>
+                          <span className="text-slate-400">× {c.quantity}</span>
+                        </span>
+                      );
+                    })()}
                     <span>
                       {c.max_uses === 0
                         ? `استُخدم ${c.uses_count} مرة (بلا حد)`
@@ -874,13 +904,29 @@ function AdminCodesPage() {
                     {c.expires_at && <span>ينتهي: {new Date(c.expires_at).toLocaleString("ar")}</span>}
                   </div>
                   {Array.isArray(c.extra_rewards) && c.extra_rewards.length > 0 && (
-                    <div className="text-[11px] text-fuchsia-300 mt-1 flex flex-wrap gap-1">
-                      <span className="font-bold">🎁 مجمّع ({c.extra_rewards.length}):</span>
-                      {c.extra_rewards.slice(0, 8).map((r, idx) => (
-                        <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800">
-                          {r.type === "ship" ? "⛵" : r.type === "item" ? "📦" : "💰"} {r.item_id ?? `${r.coins ?? 0}🪙`} {r.quantity && r.quantity > 1 ? `×${r.quantity}` : ""}
-                        </span>
-                      ))}
+                    <div className="text-[11px] text-fuchsia-200 mt-1 flex flex-wrap gap-1 items-center">
+                      <span className="font-bold text-fuchsia-300">🎁 مجمّع ({c.extra_rewards.length}):</span>
+                      {c.extra_rewards.slice(0, 8).map((r, idx) => {
+                        if ((r.type as string) === "coins" || !r.item_id) {
+                          return (
+                            <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800 inline-flex items-center gap-1">
+                              💰 {r.coins ?? 0}🪙
+                            </span>
+                          );
+                        }
+                        const meta = getItemMeta(r.item_id, r.type);
+                        return (
+                          <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800 inline-flex items-center gap-1">
+                            {meta.image ? (
+                              <img src={meta.image} alt="" className="w-4 h-4 rounded object-cover border border-fuchsia-800/60" />
+                            ) : (
+                              <span>{meta.emoji ?? (r.type === "ship" ? "⛵" : "📦")}</span>
+                            )}
+                            <span>{meta.name}</span>
+                            {r.quantity && r.quantity > 1 ? <span className="opacity-80">×{r.quantity}</span> : null}
+                          </span>
+                        );
+                      })}
                       {c.extra_rewards.length > 8 && <span>… +{c.extra_rewards.length - 8}</span>}
                     </div>
                   )}
