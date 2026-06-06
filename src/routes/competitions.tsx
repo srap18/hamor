@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
+import { WeeklyXpCard } from "@/components/WeeklyXpCard";
 import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
 import { CoinIcon } from "@/components/CurrencyIcon";
