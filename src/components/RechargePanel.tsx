@@ -258,6 +258,11 @@ export function RechargePanel() {
 
 
                   <div className="flex flex-wrap gap-1 mt-1">
+                    {r.phoenixShips ? (
+                      <span className="text-[10px] font-extrabold text-rose-100 bg-gradient-to-r from-rose-600 to-orange-500 border border-rose-300/50 px-1.5 py-0.5 rounded">
+                        🦅 ×{r.phoenixShips} سفينة العنقاء
+                      </span>
+                    ) : null}
                     {r.gems ? (
                       <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
                         +{r.gems.toLocaleString()} 💎
