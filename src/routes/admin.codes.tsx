@@ -1492,6 +1492,8 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
 
       <div className="text-[12px] text-cyan-100/80 leading-relaxed">
         1) اختر الكود والعدد. 2) اضغط «ابدأ المسابقة» وقل في الشات «اكتبوا». 3) القائمة تتحدّث فورياً. 4) اضغط «🎁 فعّل لكل الكاتبين» لإرسال الكود لجميعهم دفعة واحدة.
+        <br />
+        <span className="text-amber-200">⚠️ يتم تلقائياً استبعاد من يكرّر نفس الرسالة (سبام).</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
