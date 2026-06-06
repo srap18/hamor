@@ -66,8 +66,8 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "📦",
     priceUSD: 14.99,
     stripePriceId: "price_1TbBbFBXfl6qYczz6puMOn2F",
-    description: "1,200 💎 + 150,000 🪙 + 30 ياقوت 🔴",
-    reward: { gems: 1_200, coins: 150_000, rubies: 30 },
+    description: "1,500 💎 + 150,000 🪙",
+    reward: { gems: 1_500, coins: 150_000 },
   },
   {
     id: "bd_pirate_chest",
@@ -78,8 +78,8 @@ export const STORE_PACKS: StorePack[] = [
     stripePriceId: "bd_pirate_chest",
     popular: true,
     tag: "الأكثر طلباً",
-    description: "2,500 💎 + 300,000 🪙 + 50 ياقوت 🔴 + درع 5 أيام 🛡️",
-    reward: { gems: 2_500, coins: 300_000, rubies: 50, shieldDays: 5 },
+    description: "3,000 💎 + 300,000 🪙 + درع 5 أيام 🛡️",
+    reward: { gems: 3_000, coins: 300_000, shieldDays: 5 },
   },
   {
     id: "bd_mega",
@@ -89,8 +89,8 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 39.99,
     stripePriceId: "bd_mega",
     tag: "أفضل قيمة",
-    description: "4,000 💎 + 500,000 🪙 + 80 ياقوت 🔴",
-    reward: { gems: 4_000, coins: 500_000, rubies: 80 },
+    description: "5,000 💎 + 500,000 🪙",
+    reward: { gems: 5_000, coins: 500_000 },
   },
   {
     id: "bd_emperor",
@@ -100,9 +100,10 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 74.99,
     stripePriceId: "bd_emperor",
     tag: "حصري",
-    description: "10,000 💎 + 1,000,000 🪙 + 150 ياقوت 🔴",
-    reward: { gems: 10_000, coins: 1_000_000, rubies: 150 },
+    description: "12,000 💎 + 1,000,000 🪙",
+    reward: { gems: 12_000, coins: 1_000_000 },
   },
+
 
   // ───── VIP Subscription ───────────────────────────────────
   {
@@ -167,8 +168,8 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "🔷",
     priceUSD: 19.99,
     stripePriceId: "price_1TbBRXBXfl6qYczz3F4CVfCM",
-    bonus: "+12% + ياقوت",
-    reward: { gems: 2_800, rubies: 20 },
+    bonus: "+12%",
+    reward: { gems: 2_800 },
   },
   {
     id: "gp_4500",
@@ -177,8 +178,8 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "🔶",
     priceUSD: 29.99,
     stripePriceId: "gp_4500",
-    bonus: "+30% + ياقوت",
-    reward: { gems: 4_500, rubies: 40 },
+    bonus: "+30%",
+    reward: { gems: 4_500 },
   },
   {
     id: "gp_7500",
@@ -187,8 +188,8 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "🏴‍☠️",
     priceUSD: 49.99,
     stripePriceId: "price_1TbBUUBXfl6qYczzVLsD6ciX",
-    bonus: "+25% + 80 ياقوت + صندوق",
-    reward: { gems: 7_500, rubies: 80 },
+    bonus: "+25% + صندوق",
+    reward: { gems: 7_500 },
   },
   {
     id: "gp_12000",
@@ -197,9 +198,9 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "💠",
     priceUSD: 74.99,
     stripePriceId: "gp_12000",
-    bonus: "+35% + 180 ياقوت",
+    bonus: "+35%",
     tag: "ملكي",
-    reward: { gems: 12_000, rubies: 180 },
+    reward: { gems: 12_000 },
   },
   {
     id: "gp_17000",
@@ -208,10 +209,11 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "👑",
     priceUSD: 99.99,
     stripePriceId: "price_1TbBXmBXfl6qYczz01Amwt8Z",
-    bonus: "+36% + 250 ياقوت + 3 صناديق",
+    bonus: "+36% + 3 صناديق",
     tag: "أفضل قيمة",
-    reward: { gems: 17_000, rubies: 250 },
+    reward: { gems: 17_000 },
   },
+
 
   // ───── Coins ──────────────────────────────────────────────
   {
@@ -231,9 +233,9 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "💰",
     priceUSD: 7.99,
     stripePriceId: "coins_250k",
-    bonus: "+ ياقوت",
-    description: "250,000 🪙 + 10 ياقوت 🔴",
-    reward: { coins: 250_000, rubies: 10 },
+    bonus: "+30%",
+    description: "250,000 🪙",
+    reward: { coins: 250_000 },
   },
   {
     id: "coins_1m",
@@ -244,9 +246,10 @@ export const STORE_PACKS: StorePack[] = [
     stripePriceId: "coins_1m",
     popular: true,
     tag: "أفضل قيمة",
-    description: "1,000,000 🪙 + 50 ياقوت 🔴",
-    reward: { coins: 1_000_000, rubies: 50 },
+    description: "1,000,000 🪙",
+    reward: { coins: 1_000_000 },
   },
+
 
   // ───── Shield (limited 2/week) ────────────────────────────
   {
