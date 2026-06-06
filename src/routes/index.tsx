@@ -669,6 +669,11 @@ function Index() {
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
+  // Safety: reset any stuck busy flag whenever the crew modal opens/closes
+  useEffect(() => {
+    crewBusyRef.current = false;
+    setCrewBusy(false);
+  }, [modal?.kind, modal?.shipId]);
 
   // Match crew row to a ship by either local numeric id OR ship UUID (dbId).
   // Support sent from other players uses the UUID (ship_id) since they don't
