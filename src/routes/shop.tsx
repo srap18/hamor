@@ -301,7 +301,9 @@ function Shop() {
                     ? "violet"
                     : tab === "backgrounds"
                       ? "indigo"
-                      : "green"
+                      : tab === "offers"
+                        ? "rose"
+                        : "green"
             }
           />
         </div>
@@ -312,7 +314,8 @@ function Shop() {
             <RechargePanel />
           ) : tab === "backgrounds" ? (
             <BackgroundsPanel />
-          ) : (
+          ) : tab === "offers" ? (
+            <OffersPanel onPurchase={() => { sound.play("coin"); sound.play("success"); refreshProfile(); }} />
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
                 <ShopCard
