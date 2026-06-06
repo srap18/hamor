@@ -2,6 +2,26 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { BACKGROUNDS } from "@/lib/backgrounds";
+import { ALL_FRAMES } from "@/lib/frames";
+import { getShipByCode } from "@/lib/ships";
+
+type ItemMeta = { name: string; image?: string; emoji?: string };
+const ITEM_META: Record<string, ItemMeta> = {};
+CREWS.forEach((c) => { ITEM_META[c.id] = { name: c.name, image: c.image, emoji: c.emoji }; });
+WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji: w.emoji }; });
+BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
+ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
+
+function getItemMeta(code: string, kind?: string): ItemMeta {
+  if (ITEM_META[code]) return ITEM_META[code];
+  if (kind === "ship") {
+    try { const s = getShipByCode(code); return { name: s.name ?? code, image: s.image, emoji: "⛵" }; } catch { /* ignore */ }
+  }
+  return { name: code, emoji: kind === "ship" ? "⛵" : "📦" };
+}
 
 type GiftMeta = {
   code?: string;
