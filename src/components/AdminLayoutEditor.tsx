@@ -69,13 +69,13 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
 
   // Allow opening edit mode from anywhere (Settings modal dispatches this).
   useEffect(() => {
-    const open = () => { if (userId) setEnabled(true); };
+    const open = () => { if (userId && !isVisiting) setEnabled(true); };
     window.addEventListener("open-layout-editor", open);
     return () => window.removeEventListener("open-layout-editor", open);
-  }, [userId]);
+  }, [userId, isVisiting]);
 
   const setPosition = (key: string, p: Position) => {
-    if (!userId) return;
+    if (!userId || isVisiting) return;
     setPositions((prev) => ({ ...prev, [key]: p }));
     supabase
       .from("user_layout")
@@ -84,17 +84,20 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
   };
 
   const resetAll = async () => {
-    if (!userId) return;
+    if (!userId || isVisiting) return;
     setPositions({});
     await supabase.from("user_layout").delete().eq("user_id", userId);
   };
 
+  const canEdit = !!userId && !isVisiting;
+
   return (
-    <EditCtx.Provider value={{ enabled, setEnabled, signedIn: !!userId, positions, setPosition, resetAll }}>
+    <EditCtx.Provider value={{ enabled, setEnabled, signedIn: canEdit, positions, setPosition, resetAll }}>
       {children}
     </EditCtx.Provider>
   );
 }
+
 
 export function useAdminLayoutEditor() {
   const ctx = useContext(EditCtx);
