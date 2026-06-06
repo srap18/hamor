@@ -24,12 +24,14 @@ export type StorePack = {
   popular?: boolean;
   bonus?: string;
   description?: string;
+  images?: string[];
   reward: {
     gems?: number;
     coins?: number;
     rubies?: number;
     shieldDays?: number;
     vipDays?: number;
+    phoenixShips?: number;
     items?: PackInventoryItem[];
   };
 };
