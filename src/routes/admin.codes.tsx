@@ -8,6 +8,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 import { VIP_TIERS } from "@/lib/vip-perks";
 import { BACKGROUNDS } from "@/lib/backgrounds";
+import { getShipByCode } from "@/lib/ships";
 
 export const Route = createFileRoute("/admin/codes")({
   component: AdminCodesPage,
