@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
+import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
@@ -2395,6 +2396,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [refreshSeq, setRefreshSeq] = useState(0);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
+  const [prizesModal, setPrizesModal] = useState<{ title: string; tiers: PrizeTier[] } | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
   const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
@@ -2640,24 +2642,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                         </div>
                       </div>
 
-                      {/* Prizes */}
+                      {/* Prizes button */}
                       {tiers.length > 0 && (
-                        <div className="p-2 border-b border-accent/20 space-y-1">
-                          <div className="text-[10px] font-black text-amber-300 px-1">🏆 الجوائز</div>
-                          {tiers.map((t, i) => {
-                            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
-                            return (
-                              <div key={i} className="flex items-center gap-2 px-2 py-1 rounded bg-secondary/60 border border-accent/20 text-[11px]">
-                                <span className="w-7 text-center font-black">{medal}</span>
-                                <div className="flex-1 flex flex-wrap gap-1 text-accent">
-                                  {t.coins > 0 && <span className="inline-flex items-center gap-0.5"><CoinIcon size={11}/>{t.coins.toLocaleString()}</span>}
-                                  {t.gems > 0 && <span>💎{t.gems}</span>}
-                                  {t.xp > 0 && <span>⭐{t.xp}</span>}
-                                  {t.text && <span>🎁{t.text}</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <div className="px-2 py-2 border-b border-accent/20">
+                          <button
+                            onClick={() => { sound.play("click"); setPrizesModal({ title: c.title, tiers: tiers as PrizeTier[] }); }}
+                            className="w-full py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-700 text-amber-50 text-[12px] font-black active:scale-95 shadow-[0_2px_8px_rgba(251,191,36,0.45)]"
+                          >
+                            🏆 عرض الجوائز ({tiers.length})
+                          </button>
                         </div>
                       )}
 
@@ -2666,22 +2659,42 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                         <div className="text-[10px] font-black text-accent/70 px-1">🏅 الترتيب</div>
                         {board.length === 0 ? (
                           <div className="text-center text-[11px] text-accent/50 py-3">كن أول من يسجّل! 🚀</div>
-                        ) : board.map((r, i) => {
-                          const isMe = r.user_id === meId;
-                          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+                        ) : (() => {
+                          const showPodium = board.length >= 3;
+                          const podiumItems: PodiumItem[] = showPodium ? board.slice(0, 3).map((r) => ({
+                            id: r.user_id,
+                            name: r.display_name || "—",
+                            avatarUrl: r.avatar_url,
+                            avatarEmoji: r.avatar_emoji,
+                            value: <>{r.score.toLocaleString()}</>,
+                            isMe: r.user_id === meId,
+                            onClick: r.user_id === meId ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: r.user_id } }); },
+                          })) : [];
+                          const rest = showPodium ? board.slice(3) : board;
+                          const startIdx = showPodium ? 3 : 0;
                           return (
-                            <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
-                              <span className="w-7 text-center text-xs font-black">{medal}</span>
-                              {r.avatar_url ? (
-                                <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
-                              ) : (
-                                <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
-                              )}
-                              <span className="flex-1 truncate text-[12px] font-bold text-accent">{r.display_name || "—"}{isMe ? " (أنت)" : ""}</span>
-                              <span className="text-[12px] font-black text-amber-300 tabular-nums">{r.score.toLocaleString()}</span>
-                            </div>
+                            <>
+                              {showPodium && <LeaderboardPodium items={podiumItems} />}
+                              {rest.map((r, idx) => {
+                                const i = idx + startIdx;
+                                const isMe = r.user_id === meId;
+                                const medal = `#${i + 1}`;
+                                return (
+                                  <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
+                                    <span className="w-7 text-center text-xs font-black">{medal}</span>
+                                    {r.avatar_url ? (
+                                      <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
+                                    ) : (
+                                      <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
+                                    )}
+                                    <span className="flex-1 truncate text-[12px] font-bold text-accent">{r.display_name || "—"}{isMe ? " (أنت)" : ""}</span>
+                                    <span className="text-[12px] font-black text-amber-300 tabular-nums">{r.score.toLocaleString()}</span>
+                                  </div>
+                                );
+                              })}
+                            </>
                           );
-                        })}
+                        })()}
                       </div>
                     </div>
                   );
@@ -2691,25 +2704,48 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           ) : tab === "tribes" ? (
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
-            ) : tribesFiltered.map((t, i) => {
-              const tier = getTribeBanner(t.level || 1);
+            ) : (() => {
+              const showPodium = tribesFiltered.length >= 3 && !tribeQ.trim();
+              const podiumItems: PodiumItem[] = showPodium ? tribesFiltered.slice(0, 3).map((t) => {
+                const tier = getTribeBanner(t.level || 1);
+                return {
+                  id: t.id,
+                  name: t.name,
+                  avatarUrl: tier.emblemUrl,
+                  avatarEmoji: "🏴",
+                  subtitle: `⭐${t.level || 1} · 👥${t.members}`,
+                  value: <>⚡ {t.power.toLocaleString()}</>,
+                  onClick: () => { sound.play("click"); setOpenTribeId(t.id); },
+                };
+              }) : [];
+              const rest = showPodium ? tribesFiltered.slice(3) : tribesFiltered;
+              const startIdx = showPodium ? 3 : 0;
               return (
-              <button key={t.id} onClick={() => { sound.play("click"); setOpenTribeId(t.id); }}
-                className="w-full text-right relative overflow-hidden flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
-                <img src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" />
-                <div className="relative w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
-                <div className="relative w-11 h-11 shrink-0 flex items-center justify-center">
-                  <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-                  <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
-                </div>
-                <div className="relative flex-1 min-w-0">
-                  <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
-                  <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} · 🤝 {(t.support_score ?? 0).toLocaleString()} · ⚔️ {(t.attack_score ?? 0).toLocaleString()}</div>
-                </div>
-                <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⚡ {t.power.toLocaleString()}</div>
-              </button>
+                <>
+                  {showPodium && <LeaderboardPodium items={podiumItems} />}
+                  {rest.map((t, idx) => {
+                    const i = idx + startIdx;
+                    const tier = getTribeBanner(t.level || 1);
+                    return (
+                    <button key={t.id} onClick={() => { sound.play("click"); setOpenTribeId(t.id); }}
+                      className="w-full text-right relative overflow-hidden flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
+                      <img src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" />
+                      <div className="relative w-6 text-center text-xs font-bold text-accent">{i + 1}</div>
+                      <div className="relative w-11 h-11 shrink-0 flex items-center justify-center">
+                        <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+                        <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                      </div>
+                      <div className="relative flex-1 min-w-0">
+                        <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
+                        <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} · 🤝 {(t.support_score ?? 0).toLocaleString()} · ⚔️ {(t.attack_score ?? 0).toLocaleString()}</div>
+                      </div>
+                      <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⚡ {t.power.toLocaleString()}</div>
+                    </button>
+                    );
+                  })}
+                </>
               );
-            })
+            })()
           ) : tab === "fish" ? (
             fishRows.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد صيادون بعد</div>
@@ -2897,6 +2933,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           onClick={onClose}>إغلاق</button>
       </div>
       {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} />}
+      {prizesModal && <PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} />}
     </div>
   );
 }
