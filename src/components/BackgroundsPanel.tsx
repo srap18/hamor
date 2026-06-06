@@ -52,7 +52,7 @@ export function BackgroundsPanel() {
         const serverIds = (data || [])
           .map((r: any) => r.item_id as string)
           .filter((id) => BACKGROUNDS.some((b) => b.id === id));
-        const next = Array.from(new Set(["celestial_colosseum", ...serverIds]));
+        const next = Array.from(new Set(["onepiece", ...serverIds]));
         setOwned(next);
         setOwnedBgIds(next);
       });
