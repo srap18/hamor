@@ -14,6 +14,7 @@ import { GiftPopup } from "@/components/GiftPopup";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
+import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
 
