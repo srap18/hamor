@@ -49,6 +49,7 @@ export function RechargePanel() {
   const [shieldsThisWeek, setShieldsThisWeek] = useState(0);
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
+  const [reward, setReward] = useState<StorePack | null>(null);
 
   const flash = (m: string) => {
     setPop(m);
