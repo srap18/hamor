@@ -381,7 +381,7 @@ export const GEM_PACKS: Pack[] = [
     id: "bd_admiral", category: "bundle", label: "باقة الأميرال", emoji: "⚔️",
     amount: 0, currency: "gem", priceUSD: 24.99,
     description: "4000 💎 + 300,000 🪙 + الخلفيتين الجديدتين + إطار ياقوتي",
-    reward: { gems: 4000, coins: 300_000, bgIds: ["celestial_colosseum", "eiffel_night"], frameIds: ["af_taurus"] },
+    reward: { gems: 4000, coins: 300_000, bgIds: ["crystal_kingdom", "eiffel_night"], frameIds: ["af_taurus"] },
   },
   {
     id: "bd_legend", category: "bundle", label: "باقة الأسطورة",  emoji: "🐉",
