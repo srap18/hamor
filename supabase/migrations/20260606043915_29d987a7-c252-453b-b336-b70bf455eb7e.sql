@@ -1,0 +1,1 @@
+UPDATE public.profiles SET xp = 0, weekly_xp = 0, level = 1;
