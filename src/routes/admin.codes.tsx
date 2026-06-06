@@ -1356,6 +1356,7 @@ type RecentSender = {
   last_body: string;
   last_at: string;
   msg_count: number;
+  distinct_count: number;
 };
 
 function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
@@ -1491,6 +1492,8 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
 
       <div className="text-[12px] text-cyan-100/80 leading-relaxed">
         1) اختر الكود والعدد. 2) اضغط «ابدأ المسابقة» وقل في الشات «اكتبوا». 3) القائمة تتحدّث فورياً. 4) اضغط «🎁 فعّل لكل الكاتبين» لإرسال الكود لجميعهم دفعة واحدة.
+        <br />
+        <span className="text-amber-200">⚠️ يتم تلقائياً استبعاد من يكرّر نفس الرسالة (سبام).</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1573,6 +1576,9 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
                 <div className="flex items-center gap-1.5">
                   <div className="text-sm font-bold text-white truncate">{r.display_name}</div>
                   <div className="text-[10px] text-cyan-300/70 shrink-0">• {timeAgo(r.last_at)}</div>
+                  <div className="text-[10px] bg-slate-700 text-cyan-200 px-1.5 rounded shrink-0" title="عدد الرسائل / المختلفة">
+                    {r.msg_count}/{r.distinct_count}
+                  </div>
                   {granted && <div className="text-[10px] bg-emerald-700 text-white px-1.5 rounded shrink-0">✓ تم</div>}
                 </div>
                 <div className="text-[11px] text-slate-300 truncate">{r.last_body}</div>
