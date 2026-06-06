@@ -368,8 +368,8 @@ export const GEM_PACKS: Pack[] = [
   {
     id: "bd_starter", category: "bundle", label: "باقة المبتدئ",  emoji: "⚓",
     amount: 0, currency: "gem", priceUSD: 2.99, tag: "لمرة واحدة فقط",
-    description: "500 💎 + 25,000 🪙 + الكولوسيوم السماوي",
-    reward: { gems: 500, coins: 25_000, bgIds: ["celestial_colosseum"] },
+    description: "500 💎 + 25,000 🪙 + مملكة البلور",
+    reward: { gems: 500, coins: 25_000, bgIds: ["crystal_kingdom"] },
   },
   {
     id: "bd_captain", category: "bundle", label: "باقة القبطان",  emoji: "🧭",
@@ -381,13 +381,13 @@ export const GEM_PACKS: Pack[] = [
     id: "bd_admiral", category: "bundle", label: "باقة الأميرال", emoji: "⚔️",
     amount: 0, currency: "gem", priceUSD: 24.99,
     description: "4000 💎 + 300,000 🪙 + الخلفيتين الجديدتين + إطار ياقوتي",
-    reward: { gems: 4000, coins: 300_000, bgIds: ["celestial_colosseum", "eiffel_night"], frameIds: ["af_taurus"] },
+    reward: { gems: 4000, coins: 300_000, bgIds: ["crystal_kingdom", "eiffel_night"], frameIds: ["af_taurus"] },
   },
   {
     id: "bd_legend", category: "bundle", label: "باقة الأسطورة",  emoji: "🐉",
     amount: 0, currency: "gem", priceUSD: 49.99, tag: "محدود",
     description: "9000 💎 + 700,000 🪙 + الخلفيتين الجديدتين + إطار التنين + لوحة الأسطورة",
-    reward: { gems: 9000, coins: 700_000, bgIds: ["celestial_colosseum", "eiffel_night"], frameIds: ["af_scorpio", "nf_leo"] },
+    reward: { gems: 9000, coins: 700_000, bgIds: ["crystal_kingdom", "eiffel_night"], frameIds: ["af_scorpio", "nf_leo"] },
   },
   {
     id: "bd_emperor", category: "bundle", label: "باقة الإمبراطور", emoji: "👑",
@@ -395,7 +395,7 @@ export const GEM_PACKS: Pack[] = [
     description: "20000 💎 + 1,500,000 🪙 + كل الخلفيات الجديدة + إطار الإمبراطور + جميع لوحات الأسماء",
     reward: {
       gems: 20_000, coins: 1_500_000,
-      bgIds: ["celestial_colosseum", "eiffel_night"],
+      bgIds: ["crystal_kingdom", "eiffel_night"],
       frameIds: ["af_pisces", "nf_scorpio", "nf_pisces"],
       rubies: 50,
     },

@@ -28,8 +28,8 @@ export function BackgroundsPanel() {
   const gems = profile?.gems ?? 0;
   const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
   const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
-  const [owned, setOwned] = useState<string[]>(["celestial_colosseum"]);
-  const [selected, setSelected] = useState<string>("celestial_colosseum");
+  const [owned, setOwned] = useState<string[]>(["onepiece"]);
+  const [selected, setSelected] = useState<string>("onepiece");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [repairing, setRepairing] = useState(false);
@@ -37,7 +37,7 @@ export function BackgroundsPanel() {
   useEffect(() => {
     setSelected(getSelectedBgId());
     if (!user) {
-      const base = ["celestial_colosseum"];
+      const base = ["onepiece"];
       setOwned(base);
       setOwnedBgIds(base);
       return;
@@ -52,7 +52,7 @@ export function BackgroundsPanel() {
         const serverIds = (data || [])
           .map((r: any) => r.item_id as string)
           .filter((id) => BACKGROUNDS.some((b) => b.id === id));
-        const next = Array.from(new Set(["celestial_colosseum", ...serverIds]));
+        const next = Array.from(new Set(["onepiece", ...serverIds]));
         setOwned(next);
         setOwnedBgIds(next);
       });

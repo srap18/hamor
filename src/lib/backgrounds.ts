@@ -1,13 +1,9 @@
-import celestialColosseumBg from "@/assets/bg-celestial-colosseum.png";
-import celestialColosseumBurnedBg from "@/assets/bg-celestial-colosseum-burned.png";
 import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
 import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import onepieceBg from "@/assets/bg-onepiece.jpg.asset.json";
 import onepieceBurnedBg from "@/assets/bg-onepiece-burned.jpg.asset.json";
-import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.json";
-import celestialColosseumBurnedVideo from "@/assets/bg-celestial-colosseum-burned.mp4.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
@@ -55,28 +51,28 @@ const UNIFIED_SHIP_SLOTS = [
   { top: 66, left: 48, scale: 1.4 },
 ] as const;
 
-const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
+
 const EIFFEL_SLOTS = UNIFIED_SHIP_SLOTS;
 
 export const BACKGROUNDS: SceneBg[] = [
   {
-    id: "celestial_colosseum",
-    name: "الكولوسيوم السماوي ✨",
-    burnedName: "الكولوسيوم السماوي المحترق 🔥",
+    id: "onepiece",
+    name: "One Piece ✨",
+    burnedName: "One Piece المحترقة 🔥",
     price: 0,
     rarity: "legendary",
-    image: celestialColosseumBg,
-    burnedImage: celestialColosseumBurnedBg,
-    video: celestialColosseumVideo.url,
-    burnedVideo: celestialColosseumBurnedVideo.url,
+    image: onepieceBg.url,
+    burnedImage: onepieceBurnedBg.url,
+    video: onepieceVideo.url,
+    burnedVideo: onepieceBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
-    waterTop: 48,
-    waterLeft: 40,
-    waterRight: 95,
-    shipSlots: [...CELESTIAL_SLOTS],
-    motion: { scale: 1.18, x: "-1.2%", y: "-1%", duration: "8s" },
+    waterTop: 50,
+    waterLeft: 45,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
   },
   {
     id: "eiffel_night",
@@ -117,25 +113,6 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
-  },
-  {
-    id: "onepiece",
-    name: "One Piece ✨",
-    burnedName: "One Piece المحترقة 🔥",
-    price: 0,
-    rarity: "legendary",
-    image: onepieceBg.url,
-    burnedImage: onepieceBurnedBg.url,
-    video: onepieceVideo.url,
-    burnedVideo: onepieceBurnedVideo.url,
-    animated: true,
-    objectPosition: "center center",
-    seaSide: "right",
-    waterTop: 50,
-    waterLeft: 45,
-    waterRight: 96,
-    shipSlots: [...UNIFIED_SHIP_SLOTS],
-    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
   },
 ];
 
