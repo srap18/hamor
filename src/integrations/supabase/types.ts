@@ -2050,6 +2050,27 @@ export type Database = {
           },
         ]
       }
+      site_layout: {
+        Row: {
+          key: string
+          position: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          key: string
+          position: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          key?: string
+          position?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       stripe_purchases: {
         Row: {
           amount_cents: number
