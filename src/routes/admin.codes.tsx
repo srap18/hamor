@@ -51,6 +51,26 @@ const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   ...BACKGROUNDS.map((b) => ({ code: b.id, name: `🌅 ${b.name}`, kind: "background" })),
 ];
 
+// Lookup: item code → Arabic name + image/emoji (used in code list rendering)
+type ItemMeta = { name: string; image?: string; emoji?: string };
+const ITEM_META: Record<string, ItemMeta> = {};
+CREWS.forEach((c) => { ITEM_META[c.id] = { name: c.name, image: c.image, emoji: c.emoji }; });
+WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji: w.emoji }; });
+BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
+ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
+SHIELD_ITEMS.forEach((s) => { ITEM_META[s.code] = { name: s.name, emoji: "🛡️" }; });
+
+function getItemMeta(code: string, kind?: string): ItemMeta {
+  if (ITEM_META[code]) return ITEM_META[code];
+  if (kind === "ship") {
+    try {
+      const s = getShipByCode(code);
+      return { name: s.name ?? code, image: s.image, emoji: "⛵" };
+    } catch { /* fall through */ }
+  }
+  return { name: code, emoji: kind === "ship" ? "⛵" : "📦" };
+}
+
 type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
 
