@@ -119,13 +119,14 @@ function WeeklyXpAdmin() {
     return <div className="p-6 text-slate-400">جاري التحميل...</div>;
   }
 
-  const weekAgo = new Date(cfg.week_started_at);
-  const nextDist = new Date(weekAgo.getTime());
-  // next Monday 00:00 UTC from now
+  // Next distribution: Friday 21:00 UTC = Saturday 00:00 KSA
   const now = new Date();
-  const day = now.getUTCDay(); // 0=Sun..1=Mon
-  const daysToMonday = (8 - day) % 7 || 7;
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysToMonday, 0, 0, 0));
+  const next = new Date(now);
+  next.setUTCHours(21, 0, 0, 0);
+  const day = now.getUTCDay();
+  let daysToFri = (5 - day + 7) % 7;
+  if (daysToFri === 0 && now.getUTCHours() >= 21) daysToFri = 7;
+  next.setUTCDate(now.getUTCDate() + daysToFri);
 
   return (
     <div className="p-3 md:p-6 max-w-4xl mx-auto" dir="rtl">
