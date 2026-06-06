@@ -606,7 +606,23 @@ iframe[id^="paddle"],
 .paddle-frame {
   position: fixed !important;
   inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
   z-index: 2147483647 !important;
+  background: #fff;
+}
+
+/* While Paddle checkout is open, hide in-app fixed UI (bottom nav, floating
+   buttons) so they don't show through the checkout iframe. */
+body.paddle-checkout-open .mobile-frame-device > div {
+  visibility: hidden !important;
+}
+body.paddle-checkout-open iframe[name^="paddle"],
+body.paddle-checkout-open iframe[id^="paddle"],
+body.paddle-checkout-open #paddle-checkout-frame,
+body.paddle-checkout-open .paddle-frame {
+  visibility: visible !important;
 }
 
 
