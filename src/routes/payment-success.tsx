@@ -99,15 +99,14 @@ function PaymentSuccess() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [claimTxn]);
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center p-6 text-white"
       dir="rtl"
       style={{
-        background:
-          "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
+        background: "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
       }}
     >
       {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
@@ -124,9 +123,7 @@ function PaymentSuccess() {
             <h1 className="text-2xl font-extrabold mb-2 text-emerald-300 text-glow">
               تم الدفع بنجاح!
             </h1>
-            <p className="text-sm text-stone-200 mb-5">
-              أُضيفت المكافآت لحسابك. استمتع باللعب!
-            </p>
+            <p className="text-sm text-stone-200 mb-5">أُضيفت المكافآت لحسابك. استمتع باللعب!</p>
             <button
               onClick={() => nav({ to: "/" })}
               className="w-full py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 font-extrabold active:scale-95"
