@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GiftPopup } from "@/components/GiftPopup";
+import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
@@ -243,6 +244,7 @@ function RootComponent() {
       <MobileFrame>
         <GlobalBanner />
         <LastAttackTicker />
+        <AdBombOverlay global />
         
         <Outlet />
         <Toaster position="top-center" richColors />
