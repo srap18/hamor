@@ -1837,6 +1837,7 @@ function Index() {
         const assignCrew = async (itemId: string) => {
           if (crewBusyRef.current) return;
           crewBusyRef.current = true;
+          setCrewBusy(true);
           try {
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
@@ -1867,9 +1868,6 @@ function Index() {
                 : x));
               return newHp - curHp;
             };
-
-
-
 
             try {
               if (itemId === "fixer_4") {
@@ -1936,14 +1934,23 @@ function Index() {
           setCrewTick((t) => t + 1);
           } finally {
             crewBusyRef.current = false;
+            setCrewBusy(false);
           }
         };
 
 
         const removeCrew = async (rowId: string) => {
-          await deleteInventoryRows([rowId]);
-          sound.play("error");
-          setCrewTick((t) => t + 1);
+          if (crewBusyRef.current) return;
+          crewBusyRef.current = true;
+          setCrewBusy(true);
+          try {
+            await deleteInventoryRows([rowId]);
+            sound.play("error");
+            setCrewTick((t) => t + 1);
+          } finally {
+            crewBusyRef.current = false;
+            setCrewBusy(false);
+          }
         };
 
         return (
