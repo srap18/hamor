@@ -86,7 +86,7 @@ export function WeeklyXpCard() {
             </div>
             <div className="text-2xl font-black text-white drop-shadow leading-tight">{cfg.title}</div>
             <div className="text-xs font-bold text-white/95 mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/25 border border-white/25">
-              ⏳ التوزيع التلقائي خلال {timeUntilNextMonday()}
+              ⏳ التوزيع التلقائي خلال {timeUntilNextDistribution()}
             </div>
           </div>
         </div>
