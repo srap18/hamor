@@ -20,11 +20,12 @@ const CATEGORY_LABEL: Record<PackCategory, string> = {
   bundle: "الباقات",
   vip: "اشتراك VIP",
   gems: "الجواهر",
+  coins: "الذهب",
   shield: "الدروع",
   weapon: "الأسلحة",
 };
 
-const CATEGORIES: PackCategory[] = ["bundle", "gems", "shield", "weapon"];
+const CATEGORIES: PackCategory[] = ["bundle", "gems", "coins", "shield", "weapon"];
 
 function PricingPage() {
   return (
