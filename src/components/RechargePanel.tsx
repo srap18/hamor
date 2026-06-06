@@ -69,6 +69,24 @@ export function RechargePanel() {
     })();
   }, [getStatus]);
 
+  useEffect(() => {
+    const off = onPaddleEvent((event) => {
+      const name = event?.name ?? "";
+      if (
+        name === "checkout.closed" ||
+        name === "checkout.completed" ||
+        name === "checkout.error" ||
+        name === "checkout.payment.failed"
+      ) {
+        setBusy(null);
+      }
+      if (name === "checkout.error" || name === "checkout.payment.failed") {
+        flash("تعذر فتح صفحة الدفع. حاول مرة ثانية.");
+      }
+    });
+    return () => { off(); };
+  }, []);
+
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
     setBusy(pack.id);
@@ -87,8 +105,10 @@ export function RechargePanel() {
           variant: "one-page",
         },
       });
-      setTimeout(() => setBusy(null), 1500);
+      // Safety net: if Paddle never fires an event, unstick the button.
+      setTimeout(() => setBusy((b) => (b === pack.id ? null : b)), 8000);
     } catch (e) {
+      console.error("[purchase] failed", e);
       flash(e instanceof Error ? e.message : "خطأ غير متوقع");
       setBusy(null);
     }
