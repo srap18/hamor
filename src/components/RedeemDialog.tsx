@@ -2,6 +2,11 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { BACKGROUNDS } from "@/lib/backgrounds";
+import { ALL_FRAMES } from "@/lib/frames";
+import { getShipByCode } from "@/lib/ships";
 
 type ExtraReward = {
   type: "bundle" | "item" | "ship";
@@ -32,13 +37,47 @@ const ERR_MSG: Record<string, string> = {
   already_redeemed: "لقد استخدمت هذا الكود من قبل",
 };
 
+// Arabic name + image lookup for item codes
+type ItemMeta = { name: string; image?: string; emoji?: string };
+const ITEM_META: Record<string, ItemMeta> = {};
+CREWS.forEach((c) => { ITEM_META[c.id] = { name: c.name, image: c.image, emoji: c.emoji }; });
+WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji: w.emoji }; });
+BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
+ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
+
+function getItemMeta(code: string | null | undefined, type?: string): ItemMeta {
+  if (!code) return { name: "", emoji: "📦" };
+  if (ITEM_META[code]) return ITEM_META[code];
+  if (type === "ship") {
+    try {
+      const s = getShipByCode(code);
+      return { name: s.name ?? code, image: s.image, emoji: "⛵" };
+    } catch { /* ignore */ }
+  }
+  return { name: code, emoji: type === "ship" ? "⛵" : "📦" };
+}
+
+function ItemLine({ code, type, qty }: { code: string | null | undefined; type: string; qty: number }) {
+  const meta = getItemMeta(code, type);
+  return (
+    <div className="flex items-center justify-end gap-2 py-0.5">
+      <span className="font-bold">{meta.name}</span>
+      {qty > 1 && <span className="text-amber-300">× {qty}</span>}
+      {meta.image ? (
+        <img src={meta.image} alt={meta.name} className="w-8 h-8 object-contain rounded" />
+      ) : (
+        <span className="text-xl">{meta.emoji ?? "📦"}</span>
+      )}
+    </div>
+  );
+}
+
 export function RedeemDialog({ onClose }: { onClose: () => void }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RedeemResult | null>(null);
 
   const submit = async () => {
-    // Normalize: uppercase, trim, strip spaces and dashes so "abcd-1234" == "ABCD1234"
     const c = code.toUpperCase().replace(/[\s-]+/g, "").trim();
     if (!c) return;
     setLoading(true);
@@ -46,7 +85,6 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
     setLoading(false);
     if (error) {
       const msg = (error.message || "").toLowerCase();
-      // Find first known error key that appears anywhere in the message
       const matched = Object.keys(ERR_MSG).find((k) => msg.includes(k));
       toast.error(matched ? ERR_MSG[matched] : `تعذر استبدال الكود: ${error.message || ""}`);
       return;
@@ -81,26 +119,21 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
                   {result.reward_xp > 0 && <div>✨ {result.reward_xp.toLocaleString()} خبرة</div>}
                 </>
               )}
-              {result.reward_type === "item" && (
-                <div>📦 {result.item_id} × {result.quantity}</div>
-              )}
-              {result.reward_type === "ship" && (
-                <div>⛵ سفينة جديدة: {result.item_id}</div>
+              {(result.reward_type === "item" || result.reward_type === "ship") && (
+                <ItemLine code={result.item_id} type={result.reward_type} qty={result.quantity || 1} />
               )}
               {Array.isArray(result.extra_rewards) && result.extra_rewards.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-emerald-700/40 space-y-1 text-right">
                   {result.extra_rewards.map((r, i) => (
                     <div key={i}>
                       {r.type === "bundle" ? (
-                        <>
+                        <div className="space-x-2 space-x-reverse">
                           {(r.coins ?? 0) > 0 && <span>💰 {(r.coins ?? 0).toLocaleString()} ذهب </span>}
                           {(r.gems ?? 0) > 0 && <span>💎 {(r.gems ?? 0).toLocaleString()} جوهرة </span>}
                           {(r.xp ?? 0) > 0 && <span>✨ {(r.xp ?? 0).toLocaleString()} خبرة</span>}
-                        </>
-                      ) : r.type === "ship" ? (
-                        <span>⛵ {r.item_id}{(r.quantity ?? 1) > 1 ? ` × ${r.quantity}` : ""}</span>
+                        </div>
                       ) : (
-                        <span>📦 {r.item_id} × {r.quantity ?? 1}</span>
+                        <ItemLine code={r.item_id} type={r.type} qty={r.quantity ?? 1} />
                       )}
                     </div>
                   ))}
