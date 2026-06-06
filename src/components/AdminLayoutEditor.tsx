@@ -18,6 +18,7 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
   const [enabled, setEnabled] = useState(false);
   const [positions, setPositions] = useState<Record<string, Position>>({});
   const [userId, setUserId] = useState<string | null>(null);
+  const [visitId, setVisitId] = useState<string | null>(null);
 
   // Track signed-in user (each player has their own layout).
   useEffect(() => {
@@ -31,13 +32,31 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
     return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, []);
 
-  // Load this user's saved layout whenever the user changes.
+  // Watch ?visit=<uuid> in the URL so visitors see the host's layout.
   useEffect(() => {
-    if (!userId) { setPositions({}); setEnabled(false); return; }
+    const read = () => {
+      try {
+        const id = new URLSearchParams(window.location.search).get("visit");
+        setVisitId(id && /^[0-9a-f-]{36}$/i.test(id) ? id : null);
+      } catch { setVisitId(null); }
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
+  }, []);
+
+  const viewUserId = visitId || userId;
+  const isVisiting = !!visitId && visitId !== userId;
+
+  // Load the viewed user's saved layout (own or host's when visiting).
+  useEffect(() => {
+    if (!viewUserId) { setPositions({}); setEnabled(false); return; }
+    if (isVisiting) setEnabled(false); // visitors cannot edit
     let cancelled = false;
     supabase
       .from("user_layout")
       .select("key,position")
+      .eq("user_id", viewUserId)
       .then(({ data }) => {
         if (cancelled || !data) return;
         const map: Record<string, Position> = {};
@@ -45,7 +64,8 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
         setPositions(map);
       });
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [viewUserId, isVisiting]);
+
 
   // Allow opening edit mode from anywhere (Settings modal dispatches this).
   useEffect(() => {
