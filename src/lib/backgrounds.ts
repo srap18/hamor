@@ -4,12 +4,16 @@ import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
 import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
+import onepieceBg from "@/assets/bg-onepiece.jpg.asset.json";
+import onepieceBurnedBg from "@/assets/bg-onepiece-burned.jpg.asset.json";
 import celestialColosseumVideo from "@/assets/bg-celestial-colosseum.mp4.asset.json";
 import celestialColosseumBurnedVideo from "@/assets/bg-celestial-colosseum-burned.mp4.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
 import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
+import onepieceVideo from "@/assets/bg-onepiece.mp4.asset.json";
+import onepieceBurnedVideo from "@/assets/bg-onepiece-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -113,6 +117,26 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
+  },
+  {
+    id: "onepiece",
+    name: "One Piece ✨",
+    burnedName: "One Piece المحترقة 🔥",
+    price: 10000,
+    currency: "gems",
+    rarity: "legendary",
+    image: onepieceBg.url,
+    burnedImage: onepieceBurnedBg.url,
+    video: onepieceVideo.url,
+    burnedVideo: onepieceBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 50,
+    waterLeft: 45,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
   },
 ];
 
