@@ -35,6 +35,7 @@ import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
+import { Placeable } from "@/components/AdminLayoutEditor";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
@@ -1343,17 +1344,31 @@ function Index() {
 
 
       {/* Fish market — takes the old ship market spot on the left beach */}
-      <FishMarketBuilding
-        level={fishMarketLevel}
-        burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ left: "22%", top: "50%", width: "20%", height: "16%" }}
-      />
+      <Placeable
+        id="fish-market"
+        defaultStyle={{ left: "22%", top: "50%", width: "20%", height: "16%" }}
+      >
+        {(style) => (
+          <FishMarketBuilding
+            level={fishMarketLevel}
+            burnedUntil={(profile as any)?.bg_burned_until}
+            style={style}
+          />
+        )}
+      </Placeable>
       {/* Ship Market — floating on the sea at the marked spot */}
-      <ShipMarketBuilding
-        level={marketLevel}
-        burnedUntil={(profile as any)?.bg_burned_until}
-        style={{ right: "15%", top: "30%", width: "20%", height: "16%" }}
-      />
+      <Placeable
+        id="ship-market"
+        defaultStyle={{ right: "15%", top: "30%", width: "20%", height: "16%" }}
+      >
+        {(style) => (
+          <ShipMarketBuilding
+            level={marketLevel}
+            burnedUntil={(profile as any)?.bg_burned_until}
+            style={style}
+          />
+        )}
+      </Placeable>
 
 
 

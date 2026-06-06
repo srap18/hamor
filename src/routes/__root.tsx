@@ -14,6 +14,7 @@ import { GiftPopup } from "@/components/GiftPopup";
 import { useEffect } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
+import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
 
@@ -240,13 +241,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MobileFrame>
-        <GlobalBanner />
-        <LastAttackTicker />
-        
-        <Outlet />
-        <Toaster position="top-center" richColors />
-      </MobileFrame>
+      <AdminLayoutEditorProvider>
+        <MobileFrame>
+          <GlobalBanner />
+          <LastAttackTicker />
+          
+          <Outlet />
+          <AdminEditToggle />
+          <Toaster position="top-center" richColors />
+        </MobileFrame>
+      </AdminLayoutEditorProvider>
     </QueryClientProvider>
   );
 }
