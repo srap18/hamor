@@ -208,6 +208,7 @@ function CompetitionsPage() {
       </header>
 
       <main className="relative max-w-3xl mx-auto p-3 md:p-5 space-y-7">
+        <WeeklyXpCard />
         {loading && <div className="text-center text-amber-200/60 py-10">جاري التحميل...</div>}
         {!loading && comps.length === 0 && (
           <div className="text-center py-16 text-slate-400">
