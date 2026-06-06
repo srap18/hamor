@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
+import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
