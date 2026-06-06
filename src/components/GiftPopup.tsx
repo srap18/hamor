@@ -181,11 +181,11 @@ export function GiftPopup() {
   );
 }
 
-function RewardRow({ icon, label, value, color, unit }: { icon: string; label: string; value: number; color: string; unit?: string }) {
+function RewardRow({ icon, image, label, value, color, unit }: { icon: string; image?: string; label: string; value: number; color: string; unit?: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-amber-700/60 bg-black/40 px-3 py-2 shadow-inner">
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-gradient-to-b ${color} shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/20`}>
-        {icon}
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-gradient-to-b ${color} shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/20 overflow-hidden`}>
+        {image ? <img src={image} alt={label} className="w-full h-full object-contain" /> : icon}
       </div>
       <div className="flex-1 text-right text-amber-100 font-bold text-sm truncate">{label}</div>
       <div className="text-amber-300 font-black text-lg drop-shadow">
