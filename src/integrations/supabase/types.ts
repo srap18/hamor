@@ -1057,6 +1057,45 @@ export type Database = {
           },
         ]
       }
+      global_banners: {
+        Row: {
+          attacker_id: string | null
+          attacker_name: string | null
+          created_at: string
+          emoji: string | null
+          id: string
+          kind: string
+          message: string | null
+          target_id: string | null
+          target_name: string | null
+          title: string | null
+        }
+        Insert: {
+          attacker_id?: string | null
+          attacker_name?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          kind: string
+          message?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          title?: string | null
+        }
+        Update: {
+          attacker_id?: string | null
+          attacker_name?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          target_id?: string | null
+          target_name?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       global_last_attack: {
         Row: {
           at: string
@@ -3337,6 +3376,7 @@ export type Database = {
       claim_vip_shield: { Args: never; Returns: Json }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
+      cleanup_global_banners: { Args: never; Returns: undefined }
       cleanup_idle_voice_rooms: { Args: never; Returns: number }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
@@ -3814,6 +3854,19 @@ export type Database = {
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
       purge_old_messages: { Args: never; Returns: undefined }
+      push_global_banner: {
+        Args: {
+          _attacker_id: string
+          _attacker_name: string
+          _emoji?: string
+          _kind: string
+          _message: string
+          _target_id: string
+          _target_name: string
+          _title?: string
+        }
+        Returns: undefined
+      }
       recompute_fish_prices: { Args: never; Returns: undefined }
       record_attack:
         | {
