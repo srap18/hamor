@@ -1989,7 +1989,8 @@ function Index() {
                         <div className="text-[10px] text-amber-300">⏳ {fmtRemaining(r.meta?.expires_at)}</div>
                       </div>
                       <button
-                        className="text-[10px] text-red-300 px-2 py-1 rounded bg-red-900/40 active:scale-95"
+                        disabled={crewBusy}
+                        className="text-[10px] text-red-300 px-2 py-1 rounded bg-red-900/40 active:scale-95 disabled:opacity-40"
                         onClick={() => removeCrew(r.id)}
                       >إزالة</button>
                     </div>
