@@ -1,8 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
 import { STORE_PACKS } from "@/lib/store-catalog";
+
+function getPaddlePackId(txn: any): string | undefined {
+  const item = txn.items?.[0];
+  return (
+    txn.custom_data?.packId ||
+    txn.customData?.packId ||
+    item?.price?.import_meta?.external_id ||
+    item?.price?.importMeta?.externalId ||
+    item?.price?.custom_data?.externalId ||
+    item?.price?.customData?.externalId ||
+    item?.price?.external_id ||
+    item?.price?.externalId
+  );
+}
 
 /**
  * Instant client-triggered grant after Paddle's `checkout.completed` event.
@@ -22,6 +35,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const res = await gatewayFetch(
       data.environment,
       `/transactions/${encodeURIComponent(data.transactionId)}`,
@@ -41,13 +55,9 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     if (ownerId && ownerId !== userId) throw new Error("transaction owner mismatch");
 
     const item = txn.items?.[0];
-    const priceExt =
-      item?.price?.custom_data?.externalId ||
-      item?.price?.name ||
-      // The Paddle REST API exposes external_id on the price object directly.
-      item?.price?.external_id;
-    // Fallback: look up the price by its internal id and read external_id.
-    let packId: string | undefined = typeof priceExt === "string" ? priceExt : undefined;
+    // Prefer checkout customData.packId. Paddle webhook payloads may omit import_meta,
+    // while the transaction API may expose it as import_meta.external_id.
+    let packId: string | undefined = getPaddlePackId(txn);
     if (!packId && item?.price?.id) {
       const pr = await gatewayFetch(
         data.environment,
@@ -55,7 +65,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       );
       if (pr.ok) {
         const pb = await pr.json();
-        packId = pb?.data?.external_id ?? undefined;
+        packId = pb?.data?.import_meta?.external_id ?? pb?.data?.importMeta?.externalId ?? pb?.data?.external_id ?? undefined;
       }
     }
     if (!packId) throw new Error("missing price external_id");
