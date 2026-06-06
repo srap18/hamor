@@ -19,12 +19,16 @@ type LbRow = {
   weekly_xp: number;
 };
 
-function timeUntilNextMonday() {
+function timeUntilNextDistribution() {
+  // Friday 21:00 UTC = Saturday 00:00 KSA (منتصف ليلة الجمعة)
   const now = new Date();
-  const day = now.getUTCDay();
-  const daysToMonday = (8 - day) % 7 || 7;
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysToMonday, 0, 0, 0));
-  const ms = next.getTime() - now.getTime();
+  const target = new Date(now);
+  target.setUTCHours(21, 0, 0, 0);
+  const day = now.getUTCDay(); // 0=Sun..5=Fri..6=Sat
+  let daysToFri = (5 - day + 7) % 7;
+  if (daysToFri === 0 && now.getUTCHours() >= 21) daysToFri = 7;
+  target.setUTCDate(now.getUTCDate() + daysToFri);
+  const ms = target.getTime() - now.getTime();
   if (ms <= 0) return "قريباً";
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
@@ -51,7 +55,7 @@ export function WeeklyXpCard() {
         const c = data as unknown as Config;
         setCfg({ ...c, prize_tiers: Array.isArray(c.prize_tiers) ? c.prize_tiers : [] });
       }
-      const { data: lb } = await supabase.rpc("get_weekly_xp_leaderboard" as never, { _limit: 20 } as never);
+      const { data: lb } = await supabase.rpc("get_weekly_xp_leaderboard" as never, { _limit: 100 } as never);
       setBoard((lb ?? []) as LbRow[]);
     })();
     const t = setInterval(() => setTick((x) => x + 1), 60000);
@@ -82,7 +86,7 @@ export function WeeklyXpCard() {
             </div>
             <div className="text-2xl font-black text-white drop-shadow leading-tight">{cfg.title}</div>
             <div className="text-xs font-bold text-white/95 mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/25 border border-white/25">
-              ⏳ التوزيع التلقائي خلال {timeUntilNextMonday()}
+              ⏳ التوزيع التلقائي خلال {timeUntilNextDistribution()}
             </div>
           </div>
         </div>
