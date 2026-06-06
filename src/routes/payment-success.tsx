@@ -29,8 +29,8 @@ function PaymentSuccess() {
         .maybeSingle();
       lastGems = p0?.gems ?? 0;
 
-      for (let i = 0; i < 15 && !cancelled; i++) {
-        await new Promise((r) => setTimeout(r, 1000));
+      for (let i = 0; i < 30 && !cancelled; i++) {
+        await new Promise((r) => setTimeout(r, 500));
         const { data: p } = await supabase
           .from("profiles")
           .select("gems")
