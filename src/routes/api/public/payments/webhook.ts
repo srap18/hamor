@@ -18,6 +18,20 @@ function rewardFor(packId: string) {
   return STORE_PACKS.find((p) => p.id === packId)?.reward ?? {};
 }
 
+function getPackIdFromTransaction(data: any): string | undefined {
+  const item = data.items?.[0];
+  return (
+    data.customData?.packId ||
+    data.custom_data?.packId ||
+    item?.price?.importMeta?.externalId ||
+    item?.price?.import_meta?.external_id ||
+    item?.price?.externalId ||
+    item?.price?.external_id ||
+    data.details?.lineItems?.[0]?.product?.importMeta?.externalId ||
+    data.details?.line_items?.[0]?.product?.import_meta?.external_id
+  );
+}
+
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
   const userId = data.customData?.userId;
   if (!userId) return console.error("No userId in customData");
@@ -81,10 +95,9 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   const userId = data.customData?.userId;
   if (!userId) return console.error("transaction: no userId in customData");
-  const item = data.items?.[0];
-  const priceExt = item?.price?.importMeta?.externalId;
+  const priceExt = getPackIdFromTransaction(data);
   if (!priceExt) {
-    console.warn("transaction: missing importMeta.externalId");
+    console.warn("transaction: missing pack id");
     return;
   }
   // For subscriptions, rewards are granted per renewal cycle too.
