@@ -2077,21 +2077,23 @@ function Index() {
                       </div>
                       {owned ? (
                         <button
-                          disabled={!canAssign}
+                          disabled={!canAssign || crewBusy}
                           onClick={() => assignCrew(cid)}
-                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 ${
-                            canAssign
+                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
+                            canAssign && !crewBusy
                               ? "bg-emerald-600/80 text-white"
                               : "bg-secondary/40 text-accent/50"
                           }`}
                         >
-                          {isFixer
-                            ? "🛠️ استخدام"
-                            : alreadyOnShip
-                              ? "مفعّل ✓"
-                              : (isGlobalCrew && globallyActive)
-                                ? "مقفول 🔒"
-                                : canAssign ? "تفعيل" : "ممتلئ"}
+                          {crewBusy
+                            ? "..."
+                            : isFixer
+                              ? "🛠️ استخدام"
+                              : alreadyOnShip
+                                ? "مفعّل ✓"
+                                : (isGlobalCrew && globallyActive)
+                                  ? "مقفول 🔒"
+                                  : canAssign ? "تفعيل" : "ممتلئ"}
                         </button>
                       ) : (
                         <button
