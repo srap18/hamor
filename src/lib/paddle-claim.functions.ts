@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
 import { STORE_PACKS } from "@/lib/store-catalog";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPaddlePackId(txn: any): string | undefined {
   const item = txn.items?.[0];
   return (
@@ -65,7 +66,11 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       );
       if (pr.ok) {
         const pb = await pr.json();
-        packId = pb?.data?.import_meta?.external_id ?? pb?.data?.importMeta?.externalId ?? pb?.data?.external_id ?? undefined;
+        packId =
+          pb?.data?.import_meta?.external_id ??
+          pb?.data?.importMeta?.externalId ??
+          pb?.data?.external_id ??
+          undefined;
       }
     }
     if (!packId) throw new Error("missing price external_id");
