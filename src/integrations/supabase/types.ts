@@ -3011,6 +3011,7 @@ export type Database = {
             Returns: {
               avatar_url: string
               display_name: string
+              distinct_count: number
               last_at: string
               last_body: string
               msg_count: number
