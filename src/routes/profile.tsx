@@ -98,7 +98,7 @@ function ProfilePage() {
     if (!userId) return;
     if (file.size > 3 * 1024 * 1024) { flash("الصورة كبيرة (الحد 3 ميجا)"); return; }
     setSaving(true);
-    // Content moderation: block NSFW / explicit images before upload.
+    // Content moderation: block NSFW / explicit images before upload (fail closed).
     try {
       flash("جاري فحص الصورة...");
       const b64 = await new Promise<string>((resolve, reject) => {
@@ -118,8 +118,11 @@ function ProfilePage() {
         flash("⚠️ الصورة مرفوضة: محتوى غير لائق");
         return;
       }
-    } catch {
-      // fail open
+    } catch (e: any) {
+      setSaving(false);
+      console.error("[avatar moderation]", e);
+      flash("⚠️ تعذّر فحص الصورة، حاول لاحقاً");
+      return;
     }
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const path = `${userId}/avatar.${ext}`;
