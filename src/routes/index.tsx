@@ -2822,12 +2822,33 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                   {Inner}
                 </Link>
               );
-            })
+            })}
+                </>
+              );
+            })()
           ) : rows.length === 0 ? (
             <div className="text-center text-accent/60 py-6 text-sm">
               {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
             </div>
-          ) : rows.map((p, i) => {
+          ) : (() => {
+            const showPodium = tab !== "search" && rows.length >= 3;
+            const podiumItems: PodiumItem[] = showPodium ? rows.slice(0, 3).map((p) => ({
+              id: p.id,
+              name: p.display_name || "—",
+              avatarUrl: p.avatar_url,
+              avatarEmoji: p.avatar_emoji,
+              subtitle: `المستوى ${p.level}`,
+              value: <>{valueIcon} {valueFor(p).toLocaleString()}</>,
+              isMe: meId === p.id,
+              onClick: meId === p.id ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: p.id } }); },
+            })) : [];
+            const rest = showPodium ? rows.slice(3) : rows;
+            const startIdx = showPodium ? 3 : 0;
+            return (
+              <>
+                {showPodium && <LeaderboardPodium items={podiumItems} />}
+                {rest.map((p, idx) => {
+            const i = idx + startIdx;
             const isMe = meId === p.id;
             const tier = tab !== "search" ? rankTier(i) : null;
             const hasNameFrame = frameById(p.name_frame)?.kind === "name";
