@@ -1399,42 +1399,49 @@ function Index() {
               </div>
             </Link>
 
-            {/* Treasury — unified luxurious bar (under avatar) */}
-            <div
-              className="relative rounded-full pl-1 pr-1.5 py-1 flex items-stretch gap-1 overflow-hidden w-[170px]"
-              style={{
-                background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
-                border: "2px solid #d9b35a",
-                boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 6px 16px rgba(0,0,0,0.6), 0 0 18px rgba(241,190,82,0.35)",
-              }}
-            >
-              <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
-              <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 4.5s linear infinite" }} />
-
-              <div className="relative flex-1 flex items-center justify-between gap-1 pl-1.5 pr-0.5 min-w-0">
-                <CoinIcon size={18} />
-                <span className="relative text-[12px] font-black tabular-nums truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }}>{coins.toLocaleString()}</span>
-              </div>
-
-              <span className="relative w-px my-1 self-stretch" style={{ background: "linear-gradient(180deg, transparent 0%, #d9b35a 25%, #fff2c2 50%, #d9b35a 75%, transparent 100%)", boxShadow: "0 0 6px rgba(241,190,82,0.6)" }} />
-
-              <div className="relative flex-1 flex items-center justify-between gap-1 pl-0.5 pr-0.5 min-w-0">
-                <GemIcon size={18} />
-                <span className="relative text-[12px] font-black tabular-nums truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }}>{gems.toLocaleString()}</span>
-              </div>
-
-              <Link
-                to="/recharge"
-                className="relative w-6 h-6 self-center rounded-full text-xs font-black flex items-center justify-center active:scale-90 shrink-0"
+            {/* Treasury — two separate luxurious bars */}
+            <div className="flex flex-col gap-1.5 w-[180px]">
+              {/* Coins */}
+              <div
+                className="relative rounded-full pl-1 pr-2 py-1 flex items-center gap-1.5 overflow-hidden"
                 style={{
-                  background: "radial-gradient(ellipse at 50% 25%, #fff6c8 0%, #f1be52 45%, #b7791f 100%)",
-                  color: "#3a1f0a",
-                  border: "2px solid #fff2c2",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 0 #3a1f0a, 0 3px 8px rgba(0,0,0,0.6), 0 0 10px rgba(241,190,82,0.6)",
-                  textShadow: "0 1px 0 rgba(255,255,255,0.6)",
+                  background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
+                  border: "2px solid #d9b35a",
+                  boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 5px 14px rgba(0,0,0,0.55), 0 0 16px rgba(241,190,82,0.35)",
                 }}
-                aria-label="شحن"
-              >+</Link>
+              >
+                <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
+                <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 4.5s linear infinite" }} />
+                <CoinIcon size={20} />
+                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }} title={coins.toLocaleString()}>{formatCompact(coins)}</span>
+              </div>
+
+              {/* Gems */}
+              <div
+                className="relative rounded-full pl-1 pr-1 py-1 flex items-center gap-1.5 overflow-hidden"
+                style={{
+                  background: "linear-gradient(180deg, #0d2a4a 0%, #051324 55%, #02080f 100%)",
+                  border: "2px solid #4ac9e0",
+                  boxShadow: "inset 0 1px 0 rgba(180,240,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #051324, 0 5px 14px rgba(0,0,0,0.55), 0 0 16px rgba(74,201,224,0.3)",
+                }}
+              >
+                <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.45) 0%, transparent 100%)" }} />
+                <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(200,240,255,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5.5s linear infinite" }} />
+                <GemIcon size={20} />
+                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }} title={gems.toLocaleString()}>{formatCompact(gems)}</span>
+                <Link
+                  to="/recharge"
+                  className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90 shrink-0"
+                  style={{
+                    background: "radial-gradient(ellipse at 50% 25%, #d6f4ff 0%, #4ac9e0 55%, #1a7da0 100%)",
+                    color: "#04242e",
+                    border: "2px solid #bff3ff",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.75), 0 2px 0 #051324, 0 3px 6px rgba(0,0,0,0.55), 0 0 8px rgba(74,201,224,0.55)",
+                    textShadow: "0 1px 0 rgba(255,255,255,0.5)",
+                  }}
+                  aria-label="شحن"
+                >+</Link>
+              </div>
             </div>
           </div>
         </div>
