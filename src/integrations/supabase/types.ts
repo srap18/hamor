@@ -2566,6 +2566,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_layout: {
+        Row: {
+          key: string
+          position: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          key: string
+          position: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          key?: string
+          position?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_market: {
         Row: {
           created_at: string
