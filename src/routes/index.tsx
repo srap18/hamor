@@ -3425,8 +3425,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           <img
             src={ship.img}
             alt="Ship"
-            onClick={onTap}
-            className={`w-full block select-none cursor-pointer pointer-events-auto active:scale-95 ${destroyed ? "" : "animate-sail-flap"}`}
+            className={`w-full block select-none pointer-events-none ${destroyed ? "" : "animate-sail-flap"}`}
             draggable={false}
             decoding="async"
             loading="eager"
@@ -3436,6 +3435,20 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               imageRendering: "auto",
               willChange: "transform",
               transform: "translateZ(0)",
+            }}
+          />
+          {/* Tight click target over the ship hull only (not the full bounding rect) */}
+          <button
+            type="button"
+            onClick={onTap}
+            aria-label="Ship"
+            className="absolute cursor-pointer pointer-events-auto active:scale-95 bg-transparent border-0 p-0"
+            style={{
+              left: "18%",
+              top: "38%",
+              width: "64%",
+              height: "44%",
+              transform: `scaleX(${flipX})`,
             }}
           />
 
