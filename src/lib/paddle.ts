@@ -37,8 +37,22 @@ export async function initializePaddle() {
         window.Paddle.Initialize({
           token: clientToken,
           eventCallback: (event: any) => {
+            const name = event?.name ?? "";
             // eslint-disable-next-line no-console
-            console.log("[Paddle]", event?.name);
+            console.log("[Paddle]", name);
+            if (typeof document !== "undefined") {
+              if (name === "checkout.loaded" || name === "checkout.opened") {
+                document.body.classList.add("paddle-checkout-open");
+              }
+              if (
+                name === "checkout.closed" ||
+                name === "checkout.completed" ||
+                name === "checkout.error" ||
+                name === "checkout.payment.failed"
+              ) {
+                document.body.classList.remove("paddle-checkout-open");
+              }
+            }
             listeners.forEach((l) => {
               try { l(event); } catch { /* noop */ }
             });
