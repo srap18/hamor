@@ -2764,7 +2764,10 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                   {Inner}
                 </Link>
               );
-            })
+            })}
+                </>
+              );
+            })()
           ) : tab === "ships" ? (
             shipRows.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد لاعبون بعد</div>
