@@ -18,6 +18,7 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
   const [enabled, setEnabled] = useState(false);
   const [positions, setPositions] = useState<Record<string, Position>>({});
   const [userId, setUserId] = useState<string | null>(null);
+  const [visitId, setVisitId] = useState<string | null>(null);
 
   // Track signed-in user (each player has their own layout).
   useEffect(() => {
@@ -31,13 +32,31 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
     return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, []);
 
-  // Load this user's saved layout whenever the user changes.
+  // Watch ?visit=<uuid> in the URL so visitors see the host's layout.
   useEffect(() => {
-    if (!userId) { setPositions({}); setEnabled(false); return; }
+    const read = () => {
+      try {
+        const id = new URLSearchParams(window.location.search).get("visit");
+        setVisitId(id && /^[0-9a-f-]{36}$/i.test(id) ? id : null);
+      } catch { setVisitId(null); }
+    };
+    read();
+    window.addEventListener("popstate", read);
+    return () => window.removeEventListener("popstate", read);
+  }, []);
+
+  const viewUserId = visitId || userId;
+  const isVisiting = !!visitId && visitId !== userId;
+
+  // Load the viewed user's saved layout (own or host's when visiting).
+  useEffect(() => {
+    if (!viewUserId) { setPositions({}); setEnabled(false); return; }
+    if (isVisiting) setEnabled(false); // visitors cannot edit
     let cancelled = false;
     supabase
       .from("user_layout")
       .select("key,position")
+      .eq("user_id", viewUserId)
       .then(({ data }) => {
         if (cancelled || !data) return;
         const map: Record<string, Position> = {};
@@ -45,17 +64,18 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
         setPositions(map);
       });
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [viewUserId, isVisiting]);
+
 
   // Allow opening edit mode from anywhere (Settings modal dispatches this).
   useEffect(() => {
-    const open = () => { if (userId) setEnabled(true); };
+    const open = () => { if (userId && !isVisiting) setEnabled(true); };
     window.addEventListener("open-layout-editor", open);
     return () => window.removeEventListener("open-layout-editor", open);
-  }, [userId]);
+  }, [userId, isVisiting]);
 
   const setPosition = (key: string, p: Position) => {
-    if (!userId) return;
+    if (!userId || isVisiting) return;
     setPositions((prev) => ({ ...prev, [key]: p }));
     supabase
       .from("user_layout")
@@ -64,17 +84,20 @@ export function AdminLayoutEditorProvider({ children }: { children: ReactNode })
   };
 
   const resetAll = async () => {
-    if (!userId) return;
+    if (!userId || isVisiting) return;
     setPositions({});
     await supabase.from("user_layout").delete().eq("user_id", userId);
   };
 
+  const canEdit = !!userId && !isVisiting;
+
   return (
-    <EditCtx.Provider value={{ enabled, setEnabled, signedIn: !!userId, positions, setPosition, resetAll }}>
+    <EditCtx.Provider value={{ enabled, setEnabled, signedIn: canEdit, positions, setPosition, resetAll }}>
       {children}
     </EditCtx.Provider>
   );
 }
+
 
 export function useAdminLayoutEditor() {
   const ctx = useContext(EditCtx);
@@ -218,24 +241,29 @@ export function Placeable({
       onPointerDown={onPointerDownDrag}
       onPointerMove={onPointerMoveDrag}
       onPointerUp={onPointerUpDrag}
+      onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); }}
     >
-      <div className="absolute -top-5 left-0 text-[10px] font-extrabold text-amber-200 bg-stone-900/90 px-1.5 py-0.5 rounded">
+      <div className="absolute -top-5 left-0 text-[10px] font-extrabold text-amber-200 bg-stone-900/90 px-1.5 py-0.5 rounded pointer-events-none">
         {id}
       </div>
-      <div className="absolute inset-0 pointer-events-none">
-        {children({ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, width: "100%", height: "100%" })}
+      {/* Render the child visually but force-disable ALL hit testing inside it */}
+      <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+        <div style={{ pointerEvents: "none" }} className="absolute inset-0 [&_*]:!pointer-events-none">
+          {children({ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, width: "100%", height: "100%" })}
+        </div>
       </div>
-      {/* Click-shield: intercepts taps so child buttons don't navigate while editing */}
+      {/* Click-shield on top: swallows taps so nothing inside navigates */}
       <div
-        className="absolute inset-0 z-[5]"
-        style={{ pointerEvents: "auto" }}
+        className="absolute inset-0"
+        style={{ pointerEvents: "auto", zIndex: 5 }}
         onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); }}
         onPointerDown={onPointerDownDrag}
         onPointerMove={onPointerMoveDrag}
         onPointerUp={onPointerUpDrag}
       />
       <div
-        className="absolute -right-1 -bottom-1 w-4 h-4 rounded bg-amber-300 border-2 border-amber-900 cursor-se-resize z-[10]"
+        className="absolute -right-1 -bottom-1 w-4 h-4 rounded bg-amber-300 border-2 border-amber-900 cursor-se-resize"
+        style={{ zIndex: 10 }}
         onPointerDown={onPointerDownResize}
         onPointerMove={onPointerMoveResize}
         onPointerUp={onPointerUpResize}
@@ -243,4 +271,5 @@ export function Placeable({
       />
     </div>
   );
+
 }
