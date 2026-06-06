@@ -155,6 +155,7 @@ export function RechargePanel() {
 
   return (
     <div className="text-white" dir="rtl">
+      {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
       <PaymentTestModeBanner />
 
       {/* Sub-tabs */}
