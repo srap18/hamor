@@ -1228,11 +1228,15 @@ function PlayerPage() {
               const myPvpReady = myPvpCount >= 3;
               const targetPvpCount = ships.filter((s) => (s.template_id ?? 0) >= 6).length;
               const targetProtected = targetPvpCount < 3;
-              const blockReason = !myPvpReady
-                ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
-                : targetProtected
-                  ? "🛡️ الخصم محمي — أقل من 3 سفن مستوى 6+"
-                  : null;
+              const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
+              const targetShielded = targetShieldedUntil > serverNowMs();
+              const blockReason = targetShielded
+                ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
+                : !myPvpReady
+                  ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
+                  : targetProtected
+                    ? "🛡️ الخصم محمي — أقل من 3 سفن مستوى 6+"
+                    : null;
               const attackDisabled = busy || targetDead || !!blockReason;
               const stealDisabled = busy || !targetFishing || !!blockReason;
               return (
