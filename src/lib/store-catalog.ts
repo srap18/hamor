@@ -394,6 +394,67 @@ export const STORE_PACKS: StorePack[] = [
     },
   },
 
+  {
+    id: "wp_rocket_mega",
+    category: "weapon",
+    label: "🚀 حزمة الصواريخ الميجا",
+    emoji: "🚀",
+    priceUSD: 14.99,
+    stripePriceId: "wp_rocket_mega",
+    tag: "خصم 40%",
+    description: "30 صاروخ كبير + 10 صواريخ متوسطة — وفّر 40%",
+    images: [rocketLargeImg, rocketMediumImg],
+    reward: {
+      items: [
+        { itemType: "weapon", itemId: "rocket_large", qty: 30 },
+        { itemType: "weapon", itemId: "rocket_medium", qty: 10 },
+      ],
+    },
+  },
+  {
+    id: "wp_ad_bomb_10",
+    category: "weapon",
+    label: "📺 عشر قنابل إعلانية",
+    emoji: "📺",
+    priceUSD: 13.99,
+    stripePriceId: "wp_ad_bomb_10",
+    tag: "أفضل قيمة",
+    description: "10 قنابل إعلانية — وفّر 30% عن الفردي",
+    images: [adBombImg],
+    reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 10 }] },
+  },
+  {
+    id: "wp_nuke_giant",
+    category: "weapon",
+    label: "☢️ باقة النوويات العملاقة",
+    emoji: "☢️",
+    priceUSD: 24.99,
+    stripePriceId: "wp_nuke_giant",
+    tag: "قوي",
+    description: "10 قنابل نووية — دمار شامل بسعر مخفض",
+    images: [nukeImg],
+    reward: { items: [{ itemType: "weapon", itemId: "nuke", qty: 10 }] },
+  },
+  {
+    id: "wp_warlord",
+    category: "weapon",
+    label: "💥 ترسانة سيد الحرب",
+    emoji: "💥",
+    priceUSD: 39.99,
+    stripePriceId: "wp_warlord",
+    popular: true,
+    tag: "أسطوري",
+    description: "50 صاروخ كبير + 5 نووية + 5 قنابل إعلانية — العرض الأقوى",
+    images: [nukeImg, rocketLargeImg],
+    reward: {
+      items: [
+        { itemType: "weapon", itemId: "rocket_large", qty: 50 },
+        { itemType: "weapon", itemId: "nuke", qty: 5 },
+        { itemType: "weapon", itemId: "ad_bomb", qty: 5 },
+      ],
+    },
+  },
+
   // ───── Crews ──────────────────────────────────────────────
   {
     id: "cr_starter",
