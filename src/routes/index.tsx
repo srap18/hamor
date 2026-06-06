@@ -665,9 +665,15 @@ function Index() {
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
+  const [crewBusy, setCrewBusy] = useState(false);
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
+  // Safety: reset any stuck busy flag whenever the crew modal opens/closes
+  useEffect(() => {
+    crewBusyRef.current = false;
+    setCrewBusy(false);
+  }, [modal?.kind, modal?.shipId]);
 
   // Match crew row to a ship by either local numeric id OR ship UUID (dbId).
   // Support sent from other players uses the UUID (ship_id) since they don't
@@ -1836,6 +1842,7 @@ function Index() {
         const assignCrew = async (itemId: string) => {
           if (crewBusyRef.current) return;
           crewBusyRef.current = true;
+          setCrewBusy(true);
           try {
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
@@ -1866,9 +1873,6 @@ function Index() {
                 : x));
               return newHp - curHp;
             };
-
-
-
 
             try {
               if (itemId === "fixer_4") {
@@ -1935,14 +1939,23 @@ function Index() {
           setCrewTick((t) => t + 1);
           } finally {
             crewBusyRef.current = false;
+            setCrewBusy(false);
           }
         };
 
 
         const removeCrew = async (rowId: string) => {
-          await deleteInventoryRows([rowId]);
-          sound.play("error");
-          setCrewTick((t) => t + 1);
+          if (crewBusyRef.current) return;
+          crewBusyRef.current = true;
+          setCrewBusy(true);
+          try {
+            await deleteInventoryRows([rowId]);
+            sound.play("error");
+            setCrewTick((t) => t + 1);
+          } finally {
+            crewBusyRef.current = false;
+            setCrewBusy(false);
+          }
         };
 
         return (
@@ -1981,7 +1994,8 @@ function Index() {
                         <div className="text-[10px] text-amber-300">⏳ {fmtRemaining(r.meta?.expires_at)}</div>
                       </div>
                       <button
-                        className="text-[10px] text-red-300 px-2 py-1 rounded bg-red-900/40 active:scale-95"
+                        disabled={crewBusy}
+                        className="text-[10px] text-red-300 px-2 py-1 rounded bg-red-900/40 active:scale-95 disabled:opacity-40"
                         onClick={() => removeCrew(r.id)}
                       >إزالة</button>
                     </div>
@@ -2068,21 +2082,23 @@ function Index() {
                       </div>
                       {owned ? (
                         <button
-                          disabled={!canAssign}
+                          disabled={!canAssign || crewBusy}
                           onClick={() => assignCrew(cid)}
-                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 ${
-                            canAssign
+                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
+                            canAssign && !crewBusy
                               ? "bg-emerald-600/80 text-white"
                               : "bg-secondary/40 text-accent/50"
                           }`}
                         >
-                          {isFixer
-                            ? "🛠️ استخدام"
-                            : alreadyOnShip
-                              ? "مفعّل ✓"
-                              : (isGlobalCrew && globallyActive)
-                                ? "مقفول 🔒"
-                                : canAssign ? "تفعيل" : "ممتلئ"}
+                          {crewBusy
+                            ? "..."
+                            : isFixer
+                              ? "🛠️ استخدام"
+                              : alreadyOnShip
+                                ? "مفعّل ✓"
+                                : (isGlobalCrew && globallyActive)
+                                  ? "مقفول 🔒"
+                                  : canAssign ? "تفعيل" : "ممتلئ"}
                         </button>
                       ) : (
                         <button
