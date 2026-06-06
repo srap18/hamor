@@ -1444,52 +1444,54 @@ function Index() {
               </div>
             </div>
           </div>
-        </div>
-        <style>{`@keyframes treasury-shimmer{0%{transform:translateX(-60%)}100%{transform:translateX(60%)}}`}</style>
 
-        {/* Boost rail */}
-        <div className="flex items-center gap-2 pr-20">
-          {/* VIP removed */}
-
-          {/* DragonHUD removed — entry is the shore dragon itself */}
-
-
-          <Link
-            to="/inventory"
-            className="relative rounded-full px-3 py-1.5 flex items-center gap-1.5 active:scale-95"
-            title="الأسماك المكتشفة"
-            style={{
-              background: "radial-gradient(ellipse at 50% 0%, #3a230e 0%, #1a0d04 70%, #0a0502 100%)",
-              border: "2px solid #c9a44a",
-              boxShadow: "inset 0 1px 0 rgba(255,230,170,0.45), inset 0 -3px 6px rgba(0,0,0,0.6), 0 3px 0 #1a0d04, 0 5px 10px rgba(0,0,0,0.5)",
-            }}
-          >
-            <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.35) 0%, transparent 100%)" }} />
-            <span className="relative text-lg">🐟</span>
-            <span className="relative text-sm font-black tabular-nums" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
-          </Link>
-          <NotificationsBell />
-          {isAdmin && (
+          {/* Action column — luxury stack opposite the avatar */}
+          <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
+            {/* Fish discovery */}
             <Link
-              to="/admin"
-              className="relative rounded-full px-3 py-1.5 text-sm font-black active:scale-95"
-              title="لوحة الإدارة"
+              to="/inventory"
+              className="relative rounded-full px-3 py-1 inline-flex items-center gap-1.5 active:scale-95 overflow-hidden"
+              title="الأسماك المكتشفة"
               style={{
-                color: "#fff5e0",
-                background: "radial-gradient(ellipse at 50% 0%, #ff8a6a 0%, #e53935 45%, #8f1212 100%)",
-                border: "2px solid #ffb59a",
-                boxShadow: "inset 0 1px 0 rgba(255,220,200,0.6), inset 0 -3px 6px rgba(60,5,5,0.6), 0 3px 0 #3a0a0a, 0 5px 12px rgba(229,57,53,0.4)",
-                textShadow: "0 1px 2px rgba(0,0,0,0.85)",
+                background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
+                border: "2px solid #d9b35a",
+                boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 5px 12px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.3)",
               }}
             >
-              <span className="pointer-events-none absolute inset-x-2 top-0.5 h-1/2 rounded-full opacity-50" style={{ background: "linear-gradient(180deg, rgba(255,220,200,0.45) 0%, transparent 100%)" }} />
-              <span className="relative">👑 إدارة</span>
+              <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
+              <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5s linear infinite" }} />
+              <span className="relative text-base leading-none">🐟</span>
+              <span className="relative text-[12px] font-black tabular-nums whitespace-nowrap" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
             </Link>
-          )}
+
+            {/* Notifications + Shield row */}
+            <div className="flex items-center gap-1.5">
+              <ShieldBadge />
+              <NotificationsBell />
+            </div>
+
+            {/* Admin */}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="relative rounded-full px-3 py-1 text-[12px] font-black active:scale-95 overflow-hidden"
+                title="لوحة الإدارة"
+                style={{
+                  color: "#fff5e0",
+                  background: "linear-gradient(180deg, #ff8a6a 0%, #e53935 55%, #8f1212 100%)",
+                  border: "2px solid #ffd2c0",
+                  boxShadow: "inset 0 1px 0 rgba(255,220,200,0.65), inset 0 -3px 6px rgba(60,5,5,0.65), 0 3px 0 #3a0a0a, 0 5px 12px rgba(229,57,53,0.45), 0 0 14px rgba(255,138,106,0.35)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.85)",
+                }}
+              >
+                <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,220,200,0.5) 0%, transparent 100%)" }} />
+                <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,220,200,0.22) 50%, transparent 65%)", animation: "treasury-shimmer 5s linear infinite" }} />
+                <span className="relative">👑 إدارة</span>
+              </Link>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-between px-1">
-          <ShieldBadge />
-        </div>
+        <style>{`@keyframes treasury-shimmer{0%{transform:translateX(-60%)}100%{transform:translateX(60%)}}`}</style>
       </div>
 
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
