@@ -37,6 +37,21 @@ export type StorePack = {
 };
 
 export const STORE_PACKS: StorePack[] = [
+  // ───── Hot Offer: Phoenix Trio ────────────────────────────
+  {
+    id: "bd_phoenix_trio",
+    category: "bundle",
+    label: "🔥 ثلاثية العنقاء + 1000 جوهرة",
+    emoji: "🦅",
+    priceUSD: 25.99,
+    stripePriceId: "bd_phoenix_trio",
+    popular: true,
+    tag: "حصري",
+    description: "3 سفن العنقاء الأسطورية + 1,000 💎 — عرض محدود",
+    images: ["/__l5e/assets-v1/ship-phoenix"],
+    reward: { gems: 1_000, phoenixShips: 3 },
+  },
+
   // ───── Bundles ────────────────────────────────────────────
   {
     id: "bd_starter",
