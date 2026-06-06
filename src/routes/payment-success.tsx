@@ -1,8 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
+import { getPack, type StorePack } from "@/lib/store-catalog";
+import { RewardPopup } from "@/components/RewardPopup";
 
 export const Route = createFileRoute("/payment-success")({
   ssr: false,
@@ -14,7 +19,9 @@ export const Route = createFileRoute("/payment-success")({
 // briefly so the user sees their new balance before navigating home.
 function PaymentSuccess() {
   const nav = useNavigate();
+  const claimTxn = useServerFn(claimPaddleTransaction);
   const [status, setStatus] = useState<"waiting" | "done">("waiting");
+  const [reward, setReward] = useState<StorePack | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,6 +29,27 @@ function PaymentSuccess() {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
+      const params = new URLSearchParams(window.location.search);
+      const txnId = params.get("_ptxn") || params.get("transaction_id") || params.get("txn_id");
+
+      if (txnId) {
+        try {
+          const claimed = await claimTxn({
+            data: { transactionId: txnId, environment: getPaddleEnvironment() },
+          });
+          const pack = claimed?.packId ? getPack(claimed.packId) : null;
+          if (!cancelled) {
+            if (pack) setReward(pack);
+            setStatus("done");
+            refreshProfile();
+            sound.play("coin");
+          }
+          return;
+        } catch (e) {
+          console.error("[payment-success] instant claim failed", e);
+        }
+      }
+
       const { data: p0 } = await supabase
         .from("profiles")
         .select("gems")
@@ -31,6 +59,24 @@ function PaymentSuccess() {
 
       for (let i = 0; i < 30 && !cancelled; i++) {
         await new Promise((r) => setTimeout(r, 500));
+        if (txnId) {
+          const { data: purchase } = await supabase
+            .from("paddle_purchases")
+            .select("pack_id, granted")
+            .eq("paddle_transaction_id", txnId)
+            .eq("granted", true)
+            .maybeSingle();
+          const pack = purchase?.pack_id ? getPack(purchase.pack_id) : null;
+          if (purchase) {
+            if (!cancelled) {
+              if (pack) setReward(pack);
+              setStatus("done");
+              refreshProfile();
+              sound.play("coin");
+            }
+            return;
+          }
+        }
         const { data: p } = await supabase
           .from("profiles")
           .select("gems")
@@ -53,17 +99,17 @@ function PaymentSuccess() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [claimTxn]);
 
   return (
     <div
       className="fixed inset-0 flex items-center justify-center p-6 text-white"
       dir="rtl"
       style={{
-        background:
-          "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
+        background: "radial-gradient(ellipse at top, #1e293b 0%, #0c1424 50%, #050912 100%)",
       }}
     >
+      {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
       <div className="w-full max-w-sm rounded-3xl border-2 border-amber-400/50 bg-gradient-to-b from-stone-900 to-stone-950 p-6 text-center shadow-[0_0_60px_rgba(251,191,36,0.4)]">
         {status === "waiting" ? (
           <>
@@ -77,9 +123,7 @@ function PaymentSuccess() {
             <h1 className="text-2xl font-extrabold mb-2 text-emerald-300 text-glow">
               تم الدفع بنجاح!
             </h1>
-            <p className="text-sm text-stone-200 mb-5">
-              أُضيفت المكافآت لحسابك. استمتع باللعب!
-            </p>
+            <p className="text-sm text-stone-200 mb-5">أُضيفت المكافآت لحسابك. استمتع باللعب!</p>
             <button
               onClick={() => nav({ to: "/" })}
               className="w-full py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 font-extrabold active:scale-95"
