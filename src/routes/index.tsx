@@ -1413,7 +1413,7 @@ function Index() {
                 <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
                 <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 4.5s linear infinite" }} />
                 <CoinIcon size={20} />
-                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }} title={coins.toLocaleString()}>{formatCompact(coins)}</span>
+                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }} title={coins.toLocaleString()}>{coins >= 1_000_000 ? (coins/1_000_000).toFixed(coins>=10_000_000?0:1).replace(/\.0$/,"")+"M" : coins >= 10_000 ? (coins/1_000).toFixed(coins>=100_000?0:1).replace(/\.0$/,"")+"K" : coins.toLocaleString()}</span>
               </div>
 
               {/* Gems */}
