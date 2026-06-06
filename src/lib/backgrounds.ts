@@ -114,25 +114,6 @@ export const BACKGROUNDS: SceneBg[] = [
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
   },
-  {
-    id: "onepiece",
-    name: "One Piece ✨",
-    burnedName: "One Piece المحترقة 🔥",
-    price: 0,
-    rarity: "legendary",
-    image: onepieceBg.url,
-    burnedImage: onepieceBurnedBg.url,
-    video: onepieceVideo.url,
-    burnedVideo: onepieceBurnedVideo.url,
-    animated: true,
-    objectPosition: "center center",
-    seaSide: "right",
-    waterTop: 50,
-    waterLeft: 45,
-    waterRight: 96,
-    shipSlots: [...UNIFIED_SHIP_SLOTS],
-    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
-  },
 ];
 
 const STORE_KEY = "ocean.bg.selected";
