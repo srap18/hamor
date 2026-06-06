@@ -14,8 +14,9 @@ const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "bundle", label: "باقات", emoji: "🎁" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "coins", label: "ذهب", emoji: "🪙" },
+  { id: "crew", label: "طواقم", emoji: "⚓" },
+  { id: "weapon", label: "أسلحة", emoji: "💣" },
   { id: "shield", label: "دروع", emoji: "🛡️" },
-  { id: "weapon", label: "أسلحة", emoji: "📺" },
 ];
 
 const TAG_STYLES: Record<string, string> = {
@@ -28,6 +29,8 @@ const TAG_STYLES: Record<string, string> = {
   "خصم 40%": "bg-gradient-to-r from-rose-500 to-amber-400 text-white",
   "حصري": "bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white",
   "ملكي": "bg-gradient-to-r from-amber-500 to-yellow-300 text-amber-950",
+  "قوي": "bg-orange-500 text-white",
+  "أسطوري": "bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white",
 };
 
 export function RechargePanel() {
