@@ -395,7 +395,7 @@ export const GEM_PACKS: Pack[] = [
     description: "20000 💎 + 1,500,000 🪙 + كل الخلفيات الجديدة + إطار الإمبراطور + جميع لوحات الأسماء",
     reward: {
       gems: 20_000, coins: 1_500_000,
-      bgIds: ["celestial_colosseum", "eiffel_night"],
+      bgIds: ["crystal_kingdom", "eiffel_night"],
       frameIds: ["af_pisces", "nf_scorpio", "nf_pisces"],
       rubies: 50,
     },
