@@ -2882,6 +2882,31 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
             const startIdx = showPodium ? 3 : 0;
             return (
               <>
+                {tab === "xp" && (
+                  <div className="mb-2">
+                    <button
+                      onClick={() => {
+                        sound.play("click");
+                        const tiers: PrizeTier[] = [
+                          { rank: 1, gems: 3000, coins: 0, xp: 0, text: "" },
+                          { rank: 2, gems: 2000, coins: 0, xp: 0, text: "" },
+                          { rank: 3, gems: 1000, coins: 0, xp: 0, text: "" },
+                          { rank: 4, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 5, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 6, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 7, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 8, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 9, gems: 500, coins: 0, xp: 0, text: "" },
+                          { rank: 10, gems: 500, coins: 0, xp: 0, text: "" },
+                        ];
+                        setPrizesModal({ title: "جوائز مسابقة XP الأسبوعية", tiers });
+                      }}
+                      className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500/30 to-amber-600/30 border border-amber-400/50 text-amber-200 text-sm font-bold active:scale-[0.98]"
+                    >
+                      🏆 عرض جوائز المسابقة الأسبوعية
+                    </button>
+                  </div>
+                )}
                 {showPodium && <LeaderboardPodium items={podiumItems} />}
                 {rest.map((p, idx) => {
             const i = idx + startIdx;
