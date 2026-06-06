@@ -202,6 +202,15 @@ export function Placeable({
       <div className="absolute inset-0 pointer-events-none">
         {children({ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, width: "100%", height: "100%" })}
       </div>
+      {/* Click-shield: intercepts taps so child buttons don't navigate while editing */}
+      <div
+        className="absolute inset-0 z-[5]"
+        style={{ pointerEvents: "auto" }}
+        onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); }}
+        onPointerDown={onPointerDownDrag}
+        onPointerMove={onPointerMoveDrag}
+        onPointerUp={onPointerUpDrag}
+      />
       {/* Resize handle bottom-right */}
       <div
         className="absolute -right-1 -bottom-1 w-4 h-4 rounded bg-amber-300 border-2 border-amber-900 cursor-se-resize"
