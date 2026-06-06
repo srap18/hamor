@@ -807,7 +807,7 @@ function PlayerPage() {
   }
 
 
-  const scene = getSceneVisual(p?.selected_bg_id || "celestial_colosseum", p?.bg_burned_until);
+  const scene = getSceneVisual(p?.selected_bg_id || "onepiece", p?.bg_burned_until);
 
   const wTop = scene.waterTop ?? 45;
   const wLeft = scene.waterLeft ?? 30;
