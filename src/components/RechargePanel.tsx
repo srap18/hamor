@@ -5,7 +5,7 @@ import {
   checkPackEligibility,
   getStorePurchaseStatus,
 } from "@/lib/paddle-checkout.functions";
-import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { initializePaddle, getPaddlePriceId, onPaddleEvent } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
