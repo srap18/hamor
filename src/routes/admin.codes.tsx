@@ -1576,6 +1576,9 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
                 <div className="flex items-center gap-1.5">
                   <div className="text-sm font-bold text-white truncate">{r.display_name}</div>
                   <div className="text-[10px] text-cyan-300/70 shrink-0">• {timeAgo(r.last_at)}</div>
+                  <div className="text-[10px] bg-slate-700 text-cyan-200 px-1.5 rounded shrink-0" title="عدد الرسائل / المختلفة">
+                    {r.msg_count}/{r.distinct_count}
+                  </div>
                   {granted && <div className="text-[10px] bg-emerald-700 text-white px-1.5 rounded shrink-0">✓ تم</div>}
                 </div>
                 <div className="text-[11px] text-slate-300 truncate">{r.last_body}</div>
