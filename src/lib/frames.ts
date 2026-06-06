@@ -368,8 +368,8 @@ export const GEM_PACKS: Pack[] = [
   {
     id: "bd_starter", category: "bundle", label: "باقة المبتدئ",  emoji: "⚓",
     amount: 0, currency: "gem", priceUSD: 2.99, tag: "لمرة واحدة فقط",
-    description: "500 💎 + 25,000 🪙 + الكولوسيوم السماوي",
-    reward: { gems: 500, coins: 25_000, bgIds: ["celestial_colosseum"] },
+    description: "500 💎 + 25,000 🪙 + مملكة البلور",
+    reward: { gems: 500, coins: 25_000, bgIds: ["crystal_kingdom"] },
   },
   {
     id: "bd_captain", category: "bundle", label: "باقة القبطان",  emoji: "🧭",
