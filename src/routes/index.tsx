@@ -1359,7 +1359,7 @@ function Index() {
       {/* Ship Market — floating on the sea at the marked spot */}
       <Placeable
         id="ship-market"
-        defaultStyle={{ right: "15%", top: "30%", width: "20%", height: "16%" }}
+        defaultStyle={{ left: "80.9%", top: "33%", width: "20%", height: "16%" }}
       >
         {(style) => (
           <ShipMarketBuilding
