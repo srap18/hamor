@@ -2771,7 +2771,23 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           ) : tab === "ships" ? (
             shipRows.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا يوجد لاعبون بعد</div>
-            ) : shipRows.map((p, i) => {
+            ) : (() => {
+              const podiumItems: PodiumItem[] = shipRows.slice(0, 3).map((p) => ({
+                id: p.id,
+                name: p.display_name || "—",
+                avatarUrl: p.avatar_url,
+                avatarEmoji: p.avatar_emoji,
+                subtitle: `المستوى ${p.level}`,
+                value: <>🏪 مستوى {p.market_level}</>,
+                isMe: meId === p.id,
+                onClick: meId === p.id ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: p.id } }); },
+              }));
+              const rest = shipRows.slice(3);
+              return (
+                <>
+                  <LeaderboardPodium items={podiumItems} />
+                  {rest.map((p, idx) => {
+              const i = idx + 3;
               const isMe = meId === p.id;
               const tier = rankTier(i);
               const hasNameFrame = frameById(p.name_frame)?.kind === "name";
