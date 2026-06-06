@@ -251,6 +251,12 @@ export function RechargePanel() {
                   </div>
                 )}
 
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-white truncate">
+                    {p.label}
+                  </div>
+
+
                   <div className="flex flex-wrap gap-1 mt-1">
                     {r.gems ? (
                       <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
