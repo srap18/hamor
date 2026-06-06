@@ -2,6 +2,9 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
+import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
+import gemIcon from "@/assets/icon-gem.png";
+
 export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
 
 export type PackInventoryItem = {
