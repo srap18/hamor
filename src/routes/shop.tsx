@@ -9,6 +9,7 @@ import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
+import { OffersPanel } from "@/components/OffersPanel";
 import { serverNowMs } from "@/lib/server-time";
 
 
