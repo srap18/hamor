@@ -64,7 +64,7 @@ function PodiumCard({ item, slot }: { item: PodiumItem; slot: Slot }) {
   return (
     <Wrapper
       onClick={item.onClick}
-      className={`relative flex-1 min-w-0 ${slot.heightClass} active:scale-[0.98] transition`}
+      className={`relative flex-1 min-w-0 ${slot.heightClass} pb-5 active:scale-[0.98] transition`}
     >
       {/* Medal banner top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
@@ -73,11 +73,11 @@ function PodiumCard({ item, slot }: { item: PodiumItem; slot: Slot }) {
         </div>
       </div>
 
-      {/* Banner / shield shape */}
+      {/* Banner / shield shape (clipped) */}
       <div
-        className={`relative bg-gradient-to-b ${slot.bgGradient} border-2 ${slot.borderColor} ${slot.shadow} px-2 pt-5 pb-3`}
+        className={`relative bg-gradient-to-b ${slot.bgGradient} border-2 ${slot.borderColor} ${slot.shadow} px-2 pt-5 pb-6`}
         style={{
-          clipPath: "polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%)",
+          clipPath: "polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%)",
         }}
       >
         {/* Avatar */}
@@ -102,9 +102,11 @@ function PodiumCard({ item, slot }: { item: PodiumItem; slot: Slot }) {
             {item.subtitle}
           </div>
         )}
+      </div>
 
-        {/* Value */}
-        <div className={`mt-1 mx-auto w-fit max-w-full px-2 py-0.5 rounded-md bg-black/30 text-amber-200 text-[11px] font-black tabular-nums inline-flex items-center gap-1 shadow-inner`}>
+      {/* Value — rendered OUTSIDE the clipped shield so coins/gems/xp never get cut off */}
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 w-[92%] flex justify-center pointer-events-none">
+        <div className={`px-2 py-0.5 rounded-md bg-black/70 text-amber-200 text-[11px] font-black tabular-nums inline-flex items-center gap-1 shadow-lg border border-amber-300/40 whitespace-nowrap`}>
           {item.value}
         </div>
       </div>
