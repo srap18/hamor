@@ -35,6 +35,7 @@ import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
+import { Placeable } from "@/components/AdminLayoutEditor";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
