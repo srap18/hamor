@@ -2642,24 +2642,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                         </div>
                       </div>
 
-                      {/* Prizes */}
+                      {/* Prizes button */}
                       {tiers.length > 0 && (
-                        <div className="p-2 border-b border-accent/20 space-y-1">
-                          <div className="text-[10px] font-black text-amber-300 px-1">🏆 الجوائز</div>
-                          {tiers.map((t, i) => {
-                            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
-                            return (
-                              <div key={i} className="flex items-center gap-2 px-2 py-1 rounded bg-secondary/60 border border-accent/20 text-[11px]">
-                                <span className="w-7 text-center font-black">{medal}</span>
-                                <div className="flex-1 flex flex-wrap gap-1 text-accent">
-                                  {t.coins > 0 && <span className="inline-flex items-center gap-0.5"><CoinIcon size={11}/>{t.coins.toLocaleString()}</span>}
-                                  {t.gems > 0 && <span>💎{t.gems}</span>}
-                                  {t.xp > 0 && <span>⭐{t.xp}</span>}
-                                  {t.text && <span>🎁{t.text}</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <div className="px-2 py-2 border-b border-accent/20">
+                          <button
+                            onClick={() => { sound.play("click"); setPrizesModal({ title: c.title, tiers: tiers as PrizeTier[] }); }}
+                            className="w-full py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-700 text-amber-50 text-[12px] font-black active:scale-95 shadow-[0_2px_8px_rgba(251,191,36,0.45)]"
+                          >
+                            🏆 عرض الجوائز ({tiers.length})
+                          </button>
                         </div>
                       )}
 
@@ -2668,22 +2659,42 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                         <div className="text-[10px] font-black text-accent/70 px-1">🏅 الترتيب</div>
                         {board.length === 0 ? (
                           <div className="text-center text-[11px] text-accent/50 py-3">كن أول من يسجّل! 🚀</div>
-                        ) : board.map((r, i) => {
-                          const isMe = r.user_id === meId;
-                          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+                        ) : (() => {
+                          const showPodium = board.length >= 3;
+                          const podiumItems: PodiumItem[] = showPodium ? board.slice(0, 3).map((r) => ({
+                            id: r.user_id,
+                            name: r.display_name || "—",
+                            avatarUrl: r.avatar_url,
+                            avatarEmoji: r.avatar_emoji,
+                            value: <>{r.score.toLocaleString()}</>,
+                            isMe: r.user_id === meId,
+                            onClick: r.user_id === meId ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: r.user_id } }); },
+                          })) : [];
+                          const rest = showPodium ? board.slice(3) : board;
+                          const startIdx = showPodium ? 3 : 0;
                           return (
-                            <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
-                              <span className="w-7 text-center text-xs font-black">{medal}</span>
-                              {r.avatar_url ? (
-                                <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
-                              ) : (
-                                <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
-                              )}
-                              <span className="flex-1 truncate text-[12px] font-bold text-accent">{r.display_name || "—"}{isMe ? " (أنت)" : ""}</span>
-                              <span className="text-[12px] font-black text-amber-300 tabular-nums">{r.score.toLocaleString()}</span>
-                            </div>
+                            <>
+                              {showPodium && <LeaderboardPodium items={podiumItems} />}
+                              {rest.map((r, idx) => {
+                                const i = idx + startIdx;
+                                const isMe = r.user_id === meId;
+                                const medal = `#${i + 1}`;
+                                return (
+                                  <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
+                                    <span className="w-7 text-center text-xs font-black">{medal}</span>
+                                    {r.avatar_url ? (
+                                      <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
+                                    ) : (
+                                      <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
+                                    )}
+                                    <span className="flex-1 truncate text-[12px] font-bold text-accent">{r.display_name || "—"}{isMe ? " (أنت)" : ""}</span>
+                                    <span className="text-[12px] font-black text-amber-300 tabular-nums">{r.score.toLocaleString()}</span>
+                                  </div>
+                                );
+                              })}
+                            </>
                           );
-                        })}
+                        })()}
                       </div>
                     </div>
                   );
