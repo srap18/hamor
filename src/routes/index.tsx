@@ -1399,11 +1399,11 @@ function Index() {
               </div>
             </Link>
 
-            {/* Treasury — two separate luxurious bars */}
-            <div className="flex flex-col gap-1.5 w-[180px]">
+            {/* Treasury — two separate luxurious bars, auto-sized to value */}
+            <div className="flex flex-col items-stretch gap-1.5 min-w-[120px]">
               {/* Coins */}
               <div
-                className="relative rounded-full pl-1 pr-2 py-1 flex items-center gap-1.5 overflow-hidden"
+                className="relative rounded-full pl-2 pr-2.5 py-1 inline-flex items-center justify-between gap-2 overflow-hidden"
                 style={{
                   background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
                   border: "2px solid #d9b35a",
@@ -1412,13 +1412,13 @@ function Index() {
               >
                 <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
                 <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 4.5s linear infinite" }} />
-                <CoinIcon size={20} />
-                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }} title={coins.toLocaleString()}>{coins >= 1_000_000 ? (coins/1_000_000).toFixed(coins>=10_000_000?0:1).replace(/\.0$/,"")+"M" : coins >= 10_000 ? (coins/1_000).toFixed(coins>=100_000?0:1).replace(/\.0$/,"")+"K" : coins.toLocaleString()}</span>
+                <CoinIcon size={18} />
+                <span className="relative text-[13px] font-black tabular-nums whitespace-nowrap" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 5px rgba(0,0,0,0.85)" }}>{coins.toLocaleString("en-US")}</span>
               </div>
 
               {/* Gems */}
               <div
-                className="relative rounded-full pl-1 pr-1 py-1 flex items-center gap-1.5 overflow-hidden"
+                className="relative rounded-full pl-2 pr-1 py-1 inline-flex items-center justify-between gap-2 overflow-hidden"
                 style={{
                   background: "linear-gradient(180deg, #0d2a4a 0%, #051324 55%, #02080f 100%)",
                   border: "2px solid #4ac9e0",
@@ -1427,8 +1427,8 @@ function Index() {
               >
                 <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.45) 0%, transparent 100%)" }} />
                 <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(200,240,255,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5.5s linear infinite" }} />
-                <GemIcon size={20} />
-                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }} title={gems.toLocaleString()}>{gems >= 1_000_000 ? (gems/1_000_000).toFixed(gems>=10_000_000?0:1).replace(/\.0$/,"")+"M" : gems >= 10_000 ? (gems/1_000).toFixed(gems>=100_000?0:1).replace(/\.0$/,"")+"K" : gems.toLocaleString()}</span>
+                <GemIcon size={18} />
+                <span className="relative flex-1 text-center text-[13px] font-black tabular-nums whitespace-nowrap" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }}>{gems.toLocaleString("en-US")}</span>
                 <Link
                   to="/recharge"
                   className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90 shrink-0"
