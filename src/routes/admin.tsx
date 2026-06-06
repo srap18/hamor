@@ -1,9 +1,10 @@
-import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate, useRouterState, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { verifyAdminAccess } from "@/lib/admin-check.functions";
 
 async function confirmSignOut(after: () => void) {
   const ok = await confirmDialog({
@@ -20,8 +21,16 @@ async function confirmSignOut(after: () => void) {
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
   ssr: false,
+  beforeLoad: async () => {
+    try {
+      await verifyAdminAccess();
+    } catch {
+      throw redirect({ to: "/" });
+    }
+  },
   head: () => ({ meta: [{ title: "لوحة التحكم — Admin" }] }),
 });
+
 
 const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> = [
   { to: "/admin", label: "نظرة عامة", icon: "📊", exact: true },
