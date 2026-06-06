@@ -675,8 +675,9 @@ function PlayerPage() {
   };
 
   const sendSupport = async (kind: "crew" | "repair", itemId: string) => {
-    if (!me || !selectedShip) return;
+    if (!me) { flash("سجّل دخول أولاً"); return; }
     if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
+    if (!selectedShip) { flash("اختر سفينة أولاً من الأعلى"); return; }
     setBusy(true); sound.play("click");
     const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
     const { error } = await (supabase as any).rpc("send_support", {
@@ -688,13 +689,10 @@ function PlayerPage() {
     if (!error) {
       broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
       await playProjectile(selectedShip.id, fxEmoji, true);
-      // Refresh local inventory so the consumed crew updates immediately
       if (kind === "crew") {
         setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
       }
-      // Refresh crew assignments so the new crew shows on the ship immediately
       if (kind === "crew") loadPlayerCrews();
-      // Refresh visited ships from DB so repair shows the real HP, not fake full HP.
       const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
       if (kind === "repair" || isFixerCrew) {
         await reloadShipsRef.current();
@@ -711,14 +709,19 @@ function PlayerPage() {
 
     } else {
       const msg = (error as any).message || "";
-      if (msg.includes("no such crew")) flash("ما عندك من هذا الطاقم");
+      if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم");
       else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
       else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
-      else flash("تعذّر إرسال الدعم");
+      else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
+      else if (msg.includes("recipient is a new player")) flash("🛡️ هذا اللاعب جديد — ما يقدر يستقبل دعم");
+      else if (msg.includes("same device")) flash("🚫 ما تقدر ترسل دعم لحساب على نفس الجهاز");
+      else if (msg.includes("target ship does not belong")) flash("السفينة المختارة مو لهذا اللاعب");
+      else if (msg.includes("banned")) flash("🚫 الحساب محظور");
+      else if (msg.includes("not authenticated")) flash("سجّل دخول أولاً");
+      else flash(`تعذّر إرسال الدعم: ${msg || "خطأ غير معروف"}`);
     }
 
     setBusy(false);
-    // Keep support panel open so the user can keep adding crews to other ships
     if (kind !== "crew") closeMenu();
   };
 
