@@ -73,6 +73,29 @@ export function RechargePanel() {
   }, [getStatus]);
 
   useEffect(() => {
+    const claim = (txnId: string) => {
+      claimPaddleTransaction({
+        data: { transactionId: txnId, environment: getPaddleEnvironment() },
+      })
+        .then((r) => {
+          if (r?.granted) {
+            refreshProfile();
+            sound.play("coin");
+            flash("✨ تم استلام مشترياتك!");
+            getStatus({ data: {} })
+              .then((s) => {
+                setShieldsThisWeek(s.shieldsThisWeek);
+                setBoughtStarter(s.hasBoughtStarter);
+              })
+              .catch(() => {});
+          }
+        })
+        .catch((e) => {
+          console.error("[claim] failed", e);
+          // Webhook will still grant it asynchronously — don't alarm the user.
+        });
+    };
+
     const off = onPaddleEvent((event) => {
       const name = event?.name ?? "";
       if (
@@ -83,12 +106,16 @@ export function RechargePanel() {
       ) {
         setBusy(null);
       }
+      if (name === "checkout.completed") {
+        const txnId = event?.data?.transaction_id ?? event?.data?.transactionId;
+        if (txnId) claim(String(txnId));
+      }
       if (name === "checkout.error" || name === "checkout.payment.failed") {
         flash("تعذر فتح صفحة الدفع. حاول مرة ثانية.");
       }
     });
     return () => { off(); };
-  }, []);
+  }, [getStatus]);
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
