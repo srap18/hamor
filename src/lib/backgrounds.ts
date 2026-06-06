@@ -51,7 +51,7 @@ const UNIFIED_SHIP_SLOTS = [
   { top: 66, left: 48, scale: 1.4 },
 ] as const;
 
-const CELESTIAL_SLOTS = UNIFIED_SHIP_SLOTS;
+
 const EIFFEL_SLOTS = UNIFIED_SHIP_SLOTS;
 
 export const BACKGROUNDS: SceneBg[] = [
