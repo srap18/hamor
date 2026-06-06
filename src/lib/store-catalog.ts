@@ -4,6 +4,10 @@
 
 import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
 import gemIcon from "@/assets/icon-gem-3d.png";
+import rocketLargeImg from "@/assets/weapons/rocket-large.png";
+import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
+import nukeImg from "@/assets/weapons/nuke.png";
+import adBombImg from "@/assets/weapons/ad-bomb.png";
 
 export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
 
