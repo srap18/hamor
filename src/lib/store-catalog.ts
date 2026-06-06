@@ -51,7 +51,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     tag: "حصري",
     description: "3 سفن العنقاء الأسطورية + 1,000 💎 — عرض محدود",
-    images: ["/__l5e/assets-v1/ship-phoenix"],
+    images: [shipPhoenixImg, gemIcon],
     reward: { gems: 1_000, phoenixShips: 3 },
   },
 
