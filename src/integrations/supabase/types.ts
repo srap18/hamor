@@ -3180,6 +3180,7 @@ export type Database = {
         Args: { _new: string; _target: string }
         Returns: Json
       }
+      admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
       apply_ship_damage: {
         Args: {
