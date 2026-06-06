@@ -31,9 +31,9 @@ export const WEAPONS: Weapon[] = [
     price: 1500,
     currency: "coins",
     damage: 800,
-    xp: 15,
+    xp: 0,
     rarity: "common",
-    desc: "يدمّر سفن المستوى 1-3 — يمنحك 15 خبرة",
+    desc: "يدمّر سفن المستوى 1-3",
   },
   {
     id: "rocket_medium",
@@ -43,9 +43,9 @@ export const WEAPONS: Weapon[] = [
     price: 15000,
     currency: "coins",
     damage: 4000,
-    xp: 60,
+    xp: 0,
     rarity: "rare",
-    desc: "يدمّر سفن المستوى 4-8 — يمنحك 60 خبرة",
+    desc: "يدمّر سفن المستوى 4-8",
   },
   {
     id: "rocket_large",
@@ -55,9 +55,9 @@ export const WEAPONS: Weapon[] = [
     price: 90000,
     currency: "coins",
     damage: 18000,
-    xp: 200,
+    xp: 50,
     rarity: "epic",
-    desc: "يدمّر سفن المستوى 9-13 — يمنحك 200 خبرة",
+    desc: "يدمّر سفن المستوى 9-13 — يمنحك 50 خبرة",
   },
 
   {
@@ -68,10 +68,10 @@ export const WEAPONS: Weapon[] = [
     price: 100,
     currency: "gems",
     damage: 9_999_999,
-    xp: 500,
+    xp: 250,
     rarity: "legendary",
     aoe: true,
-    desc: "تدمّر جميع سفن الخصم فوراً مهما كان حجمها — 500 خبرة لكل سفينة",
+    desc: "تدمّر جميع سفن الخصم فوراً مهما كان حجمها — 250 خبرة",
 
   },
   {
@@ -82,10 +82,10 @@ export const WEAPONS: Weapon[] = [
     price: 0,
     currency: "gems",
     damage: 9_999_999,
-    xp: 250,
+    xp: 500,
     rarity: "epic",
     aoe: true,
-    desc: "تدمّر جميع سفن الخصم فوراً + إعلان ساعة على محيطه. 250 خبرة لكل سفينة. تتوفر فقط عبر كود شحن.",
+    desc: "تدمّر جميع سفن الخصم فوراً + إعلان ساعة على محيطه. 500 خبرة. تتوفر فقط عبر كود شحن.",
 
   },
 ];
