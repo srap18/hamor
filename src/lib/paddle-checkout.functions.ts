@@ -23,7 +23,13 @@ export const getStorePurchaseStatus = createServerFn({ method: "POST" })
 // Pre-checkout guard: enforce one-time and weekly-limit rules before opening Paddle.
 export const checkPackEligibility = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { packId: string }) => d)
+  .inputValidator((d: { packId: string }) => {
+    if (!d?.packId || typeof d.packId !== "string" || d.packId.length > 64 || !/^[a-zA-Z0-9_-]+$/.test(d.packId)) {
+      throw new Error("invalid packId");
+    }
+    if (!STORE_PACKS.some((p) => p.id === d.packId)) throw new Error("unknown packId");
+    return d;
+  })
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const pack = getPack(data.packId);

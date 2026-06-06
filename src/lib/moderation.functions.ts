@@ -5,7 +5,8 @@ const SYS = "You are a strict image safety classifier. Reply ONLY with strict JS
 
 async function classify(images: { base64: string; mime: string }[]) {
   const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) return { safe: true, reason: "moderation_unavailable", category: "" };
+  // Fail closed: if moderation cannot run, reject upload.
+  if (!apiKey) throw new Error("moderation_unavailable");
   const content: any[] = [{ type: "text", text: "Classify these image(s). If ANY is unsafe, return safe=false." }];
   for (const im of images) {
     content.push({ type: "image_url", image_url: { url: `data:${im.mime};base64,${im.base64}` } });
@@ -19,7 +20,10 @@ async function classify(images: { base64: string; mime: string }[]) {
       temperature: 0,
     }),
   });
-  if (!res.ok) return { safe: true, reason: "moderation_error", category: "" };
+  if (!res.ok) {
+    console.error("[moderation] gateway error", res.status, await res.text().catch(() => ""));
+    throw new Error("moderation_error");
+  }
   const json = await res.json();
   const txt: string = json?.choices?.[0]?.message?.content ?? "";
   try {
@@ -31,7 +35,8 @@ async function classify(images: { base64: string; mime: string }[]) {
       category: typeof parsed.category === "string" ? parsed.category : "",
     };
   } catch {
-    return { safe: true, reason: "moderation_parse_error", category: "" };
+    console.error("[moderation] parse error", txt);
+    throw new Error("moderation_parse_error");
   }
 }
 
