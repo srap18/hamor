@@ -43,11 +43,11 @@ function NavIconButton({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex min-w-0 flex-col items-center justify-start gap-1 active:scale-95 transition-transform"
+      className="relative flex min-w-0 flex-1 flex-col items-center justify-start gap-1 active:scale-95 transition-transform"
       aria-label={label}
     >
       <div
-        className="relative flex size-[56px] items-center justify-center"
+        className="relative flex size-[44px] xs:size-[48px] sm:size-[52px] items-center justify-center"
         style={{
           filter: active
             ? "drop-shadow(0 0 14px rgba(255,200,90,0.7)) drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
@@ -64,6 +64,7 @@ function NavIconButton({
           style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 200ms" }}
         />
       </div>
+
 
       {typeof badge === "number" && badge > 0 && (
         <span
@@ -148,7 +149,7 @@ export function BottomNav({ active }: { active?: string }) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-2"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-1"
       style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}
     >
       <div
@@ -158,7 +159,8 @@ export function BottomNav({ active }: { active?: string }) {
             "linear-gradient(180deg, rgba(5,8,19,0) 0%, rgba(4,7,15,0.7) 45%, rgba(3,5,12,0.95) 100%)",
         }}
       />
-      <div className="pointer-events-auto relative flex items-end justify-between gap-0.5 pb-1">
+      <div className="pointer-events-auto relative flex items-end justify-between gap-0 pb-1">
+
         {items.map((item) => {
           const isActive = active === item.to;
           const badge = item.to === "/chat" ? dmUnread : item.to === "/friends" ? friendsBadge : undefined;
