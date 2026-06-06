@@ -2888,6 +2888,9 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
               </Link>
             );
           })}
+              </>
+            );
+          })()}
         </div>
 
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
