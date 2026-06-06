@@ -2,6 +2,26 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { BACKGROUNDS } from "@/lib/backgrounds";
+import { ALL_FRAMES } from "@/lib/frames";
+import { getShipByCode } from "@/lib/ships";
+
+type ItemMeta = { name: string; image?: string; emoji?: string };
+const ITEM_META: Record<string, ItemMeta> = {};
+CREWS.forEach((c) => { ITEM_META[c.id] = { name: c.name, image: c.image, emoji: c.emoji }; });
+WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji: w.emoji }; });
+BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
+ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
+
+function getItemMeta(code: string, kind?: string): ItemMeta {
+  if (ITEM_META[code]) return ITEM_META[code];
+  if (kind === "ship") {
+    try { const s = getShipByCode(code); return { name: s.name ?? code, image: s.image, emoji: "⛵" }; } catch { /* ignore */ }
+  }
+  return { name: code, emoji: kind === "ship" ? "⛵" : "📦" };
+}
 
 type GiftMeta = {
   code?: string;
@@ -112,12 +132,32 @@ export function GiftPopup() {
           {(m.xp ?? 0) > 0 && (
             <RewardRow icon="✨" label="خبرة" value={m.xp!} color="from-violet-300 to-violet-700" />
           )}
-          {(m.items || []).map((it, i) => (
-            <RewardRow key={`it${i}`} icon="📦" label={it.id} value={it.qty} color="from-emerald-400 to-emerald-800" />
-          ))}
-          {(m.ships || []).map((s, i) => (
-            <RewardRow key={`sh${i}`} icon="⛵" label={`سفينة ${s.id}`} value={s.qty} color="from-sky-400 to-sky-800" />
-          ))}
+          {(m.items || []).map((it, i) => {
+            const meta = getItemMeta(it.id, it.kind);
+            return (
+              <RewardRow
+                key={`it${i}`}
+                icon={meta.emoji ?? "📦"}
+                image={meta.image}
+                label={meta.name}
+                value={it.qty}
+                color="from-emerald-400 to-emerald-800"
+              />
+            );
+          })}
+          {(m.ships || []).map((s, i) => {
+            const meta = getItemMeta(s.id, "ship");
+            return (
+              <RewardRow
+                key={`sh${i}`}
+                icon={meta.emoji ?? "⛵"}
+                image={meta.image}
+                label={meta.name}
+                value={s.qty}
+                color="from-sky-400 to-sky-800"
+              />
+            );
+          })}
           {(m.shields || []).map((s, i) => (
             <RewardRow key={`sd${i}`} icon="🛡" label="درع حماية" value={s.hours} unit="ساعة" color="from-indigo-300 to-indigo-700" />
           ))}
@@ -141,11 +181,11 @@ export function GiftPopup() {
   );
 }
 
-function RewardRow({ icon, label, value, color, unit }: { icon: string; label: string; value: number; color: string; unit?: string }) {
+function RewardRow({ icon, image, label, value, color, unit }: { icon: string; image?: string; label: string; value: number; color: string; unit?: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border-2 border-amber-700/60 bg-black/40 px-3 py-2 shadow-inner">
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-gradient-to-b ${color} shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/20`}>
-        {icon}
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-gradient-to-b ${color} shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] border border-white/20 overflow-hidden`}>
+        {image ? <img src={image} alt={label} className="w-full h-full object-contain" /> : icon}
       </div>
       <div className="flex-1 text-right text-amber-100 font-bold text-sm truncate">{label}</div>
       <div className="text-amber-300 font-black text-lg drop-shadow">
