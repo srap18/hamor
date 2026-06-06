@@ -333,7 +333,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && tab !== "backgrounds" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "offers" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
