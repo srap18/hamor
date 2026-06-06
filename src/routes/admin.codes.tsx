@@ -1356,6 +1356,7 @@ type RecentSender = {
   last_body: string;
   last_at: string;
   msg_count: number;
+  distinct_count: number;
 };
 
 function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
