@@ -205,14 +205,33 @@ export function RechargePanel() {
                         👑 VIP {r.vipDays}ي
                       </span>
                     ) : null}
-                    {r.items?.map((it) => (
-                      <span
-                        key={`${it.itemType}:${it.itemId}`}
-                        className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
-                      >
-                        📺 ×{it.qty} قنبلة إعلانية
-                      </span>
-                    ))}
+                    {r.items?.map((it) => {
+                      const labels: Record<string, string> = {
+                        ad_bomb: "📺 قنبلة إعلانية",
+                        rocket_small: "🚀 صاروخ صغير",
+                        rocket_medium: "🚀 صاروخ متوسط",
+                        rocket_large: "🚀 صاروخ كبير",
+                        nuke: "☢️ نووية",
+                        thief: "🥷 السارق",
+                        police: "👮 شرطي",
+                        trader: "💰 التاجر",
+                        luck: "🍀 الحظ",
+                        sailor: "⛵ بحار",
+                        guide: "🧭 المرشد",
+                        fixer_1: "🔧 مصلح صغير",
+                        fixer_2: "🛠️ مصلح متوسط",
+                        fixer_3: "⚒️ مصلح كبير",
+                        fixer_4: "🏆 مصلح أسطوري",
+                      };
+                      return (
+                        <span
+                          key={`${it.itemType}:${it.itemId}`}
+                          className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
+                        >
+                          ×{it.qty} {labels[it.itemId] ?? it.itemId}
+                        </span>
+                      );
+                    })}
                   </div>
 
                   {p.description && (
