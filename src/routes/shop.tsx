@@ -9,7 +9,7 @@ import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
-import { OffersPanel } from "@/components/OffersPanel";
+
 import { serverNowMs } from "@/lib/server-time";
 
 
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "offers" | "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
 
 type Item = {
   id: string;
@@ -59,7 +59,7 @@ const WEAPON_IMAGES: Record<string, string> = {
 // Armor cooldown is enforced server-side in buy_protection.
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
-  { id: "offers", label: "🔥 عروض", banner: "Hot Offers" },
+  
   { id: "protection", label: "حمايه", banner: "Protection" },
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
@@ -130,7 +130,7 @@ function Shop() {
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
-  const [tab, setTab] = useState<Tab>("offers");
+  const [tab, setTab] = useState<Tab>("recharge");
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
@@ -301,9 +301,7 @@ function Shop() {
                     ? "violet"
                     : tab === "backgrounds"
                       ? "indigo"
-                      : tab === "offers"
-                        ? "rose"
-                        : "green"
+                      : "green"
             }
           />
         </div>
@@ -314,8 +312,6 @@ function Shop() {
             <RechargePanel />
           ) : tab === "backgrounds" ? (
             <BackgroundsPanel />
-          ) : tab === "offers" ? (
-            <OffersPanel onPurchase={() => { sound.play("coin"); sound.play("success"); refreshProfile(); }} />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
@@ -333,7 +329,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "offers" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
