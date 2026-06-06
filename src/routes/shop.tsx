@@ -9,6 +9,7 @@ import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
+import { OffersPanel } from "@/components/OffersPanel";
 import { serverNowMs } from "@/lib/server-time";
 
 
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
+type Tab = "offers" | "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
 
 type Item = {
   id: string;
@@ -58,6 +59,7 @@ const WEAPON_IMAGES: Record<string, string> = {
 // Armor cooldown is enforced server-side in buy_protection.
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
+  { id: "offers", label: "🔥 عروض", banner: "Hot Offers" },
   { id: "protection", label: "حمايه", banner: "Protection" },
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
@@ -128,7 +130,7 @@ function Shop() {
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
-  const [tab, setTab] = useState<Tab>("protection");
+  const [tab, setTab] = useState<Tab>("offers");
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
@@ -299,7 +301,9 @@ function Shop() {
                     ? "violet"
                     : tab === "backgrounds"
                       ? "indigo"
-                      : "green"
+                      : tab === "offers"
+                        ? "rose"
+                        : "green"
             }
           />
         </div>
@@ -310,6 +314,8 @@ function Shop() {
             <RechargePanel />
           ) : tab === "backgrounds" ? (
             <BackgroundsPanel />
+          ) : tab === "offers" ? (
+            <OffersPanel onPurchase={() => { sound.play("coin"); sound.play("success"); refreshProfile(); }} />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
@@ -327,7 +333,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && tab !== "backgrounds" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "offers" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
@@ -398,13 +404,14 @@ function Shop() {
 
 /* ───────────────── Components ───────────────── */
 
-function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" | "indigo" }) {
+function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" | "indigo" | "rose" }) {
   const colors = {
     green: "from-emerald-500 to-emerald-700 border-emerald-300",
     orange: "from-orange-500 to-orange-700 border-orange-300",
     blue: "from-sky-500 to-sky-700 border-sky-300",
     violet: "from-violet-500 to-violet-700 border-violet-300",
     indigo: "from-indigo-500 to-indigo-700 border-indigo-300",
+    rose: "from-rose-500 to-rose-700 border-rose-300",
   }[color];
   return (
     <div className="relative h-12 flex items-center justify-center">
