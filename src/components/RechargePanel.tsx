@@ -12,18 +12,22 @@ import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-cata
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "bundle", label: "باقات", emoji: "🎁" },
-  
   { id: "gems", label: "جواهر", emoji: "💎" },
+  { id: "coins", label: "ذهب", emoji: "🪙" },
   { id: "shield", label: "دروع", emoji: "🛡️" },
   { id: "weapon", label: "أسلحة", emoji: "📺" },
 ];
 
 const TAG_STYLES: Record<string, string> = {
   "أفضل قيمة": "bg-amber-400 text-amber-950",
+  "الأكثر طلباً": "bg-rose-500 text-white",
   محدود: "bg-rose-500 text-white",
   جديد: "bg-emerald-400 text-emerald-950",
   "لمرة واحدة فقط": "bg-violet-500 text-white",
   "محدود 2/أسبوع": "bg-sky-500 text-white",
+  "خصم 40%": "bg-gradient-to-r from-rose-500 to-amber-400 text-white",
+  "حصري": "bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white",
+  "ملكي": "bg-gradient-to-r from-amber-500 to-yellow-300 text-amber-950",
 };
 
 export function RechargePanel() {
