@@ -59,7 +59,7 @@ const WEAPON_IMAGES: Record<string, string> = {
 // Armor cooldown is enforced server-side in buy_protection.
 
 const TABS: { id: Tab; label: string; banner: string }[] = [
-  { id: "offers", label: "🔥 عروض", banner: "Hot Offers" },
+  
   { id: "protection", label: "حمايه", banner: "Protection" },
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
