@@ -664,6 +664,7 @@ body.paddle-checkout-open .paddle-frame {
     min-height: 0;
     max-height: 100dvh;
     overflow: hidden;
+    transform: translateZ(0);
     border-radius: 28px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255,255,255,0.04);
   }
