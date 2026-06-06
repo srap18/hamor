@@ -132,12 +132,32 @@ export function GiftPopup() {
           {(m.xp ?? 0) > 0 && (
             <RewardRow icon="✨" label="خبرة" value={m.xp!} color="from-violet-300 to-violet-700" />
           )}
-          {(m.items || []).map((it, i) => (
-            <RewardRow key={`it${i}`} icon="📦" label={it.id} value={it.qty} color="from-emerald-400 to-emerald-800" />
-          ))}
-          {(m.ships || []).map((s, i) => (
-            <RewardRow key={`sh${i}`} icon="⛵" label={`سفينة ${s.id}`} value={s.qty} color="from-sky-400 to-sky-800" />
-          ))}
+          {(m.items || []).map((it, i) => {
+            const meta = getItemMeta(it.id, it.kind);
+            return (
+              <RewardRow
+                key={`it${i}`}
+                icon={meta.emoji ?? "📦"}
+                image={meta.image}
+                label={meta.name}
+                value={it.qty}
+                color="from-emerald-400 to-emerald-800"
+              />
+            );
+          })}
+          {(m.ships || []).map((s, i) => {
+            const meta = getItemMeta(s.id, "ship");
+            return (
+              <RewardRow
+                key={`sh${i}`}
+                icon={meta.emoji ?? "⛵"}
+                image={meta.image}
+                label={meta.name}
+                value={s.qty}
+                color="from-sky-400 to-sky-800"
+              />
+            );
+          })}
           {(m.shields || []).map((s, i) => (
             <RewardRow key={`sd${i}`} icon="🛡" label="درع حماية" value={s.hours} unit="ساعة" color="from-indigo-300 to-indigo-700" />
           ))}
