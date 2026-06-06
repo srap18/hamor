@@ -164,7 +164,7 @@ function _DragonPageDisabled() {
             />
           </div>
           <div className="text-amber-300/60 text-[11px] mt-2 text-center">
-            اكسب نقاط التنين بمهاجمة الوحوش والخصوم
+            اكسب نقاط التنين بمهاجمة الوحوش (البوس)
           </div>
         </div>
 
