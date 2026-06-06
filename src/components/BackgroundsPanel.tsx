@@ -37,7 +37,7 @@ export function BackgroundsPanel() {
   useEffect(() => {
     setSelected(getSelectedBgId());
     if (!user) {
-      const base = ["celestial_colosseum"];
+      const base = ["onepiece"];
       setOwned(base);
       setOwnedBgIds(base);
       return;
