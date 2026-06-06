@@ -14,8 +14,9 @@ const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "bundle", label: "باقات", emoji: "🎁" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "coins", label: "ذهب", emoji: "🪙" },
+  { id: "crew", label: "طواقم", emoji: "⚓" },
+  { id: "weapon", label: "أسلحة", emoji: "💣" },
   { id: "shield", label: "دروع", emoji: "🛡️" },
-  { id: "weapon", label: "أسلحة", emoji: "📺" },
 ];
 
 const TAG_STYLES: Record<string, string> = {
@@ -28,6 +29,8 @@ const TAG_STYLES: Record<string, string> = {
   "خصم 40%": "bg-gradient-to-r from-rose-500 to-amber-400 text-white",
   "حصري": "bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white",
   "ملكي": "bg-gradient-to-r from-amber-500 to-yellow-300 text-amber-950",
+  "قوي": "bg-orange-500 text-white",
+  "أسطوري": "bg-gradient-to-r from-fuchsia-600 to-rose-500 text-white",
 };
 
 export function RechargePanel() {
@@ -101,7 +104,7 @@ export function RechargePanel() {
       <PaymentTestModeBanner />
 
       {/* Sub-tabs */}
-      <div className="px-2 pt-2 grid grid-cols-5 gap-1">
+      <div className="px-2 pt-2 grid grid-cols-6 gap-1">
         {SUB_TABS.map((t) => (
           <button
             key={t.id}
@@ -202,14 +205,33 @@ export function RechargePanel() {
                         👑 VIP {r.vipDays}ي
                       </span>
                     ) : null}
-                    {r.items?.map((it) => (
-                      <span
-                        key={`${it.itemType}:${it.itemId}`}
-                        className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
-                      >
-                        📺 ×{it.qty} قنبلة إعلانية
-                      </span>
-                    ))}
+                    {r.items?.map((it) => {
+                      const labels: Record<string, string> = {
+                        ad_bomb: "📺 قنبلة إعلانية",
+                        rocket_small: "🚀 صاروخ صغير",
+                        rocket_medium: "🚀 صاروخ متوسط",
+                        rocket_large: "🚀 صاروخ كبير",
+                        nuke: "☢️ نووية",
+                        thief: "🥷 السارق",
+                        police: "👮 شرطي",
+                        trader: "💰 التاجر",
+                        luck: "🍀 الحظ",
+                        sailor: "⛵ بحار",
+                        guide: "🧭 المرشد",
+                        fixer_1: "🔧 مصلح صغير",
+                        fixer_2: "🛠️ مصلح متوسط",
+                        fixer_3: "⚒️ مصلح كبير",
+                        fixer_4: "🏆 مصلح أسطوري",
+                      };
+                      return (
+                        <span
+                          key={`${it.itemType}:${it.itemId}`}
+                          className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
+                        >
+                          ×{it.qty} {labels[it.itemId] ?? it.itemId}
+                        </span>
+                      );
+                    })}
                   </div>
 
                   {p.description && (
