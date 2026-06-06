@@ -404,13 +404,14 @@ function Shop() {
 
 /* ───────────────── Components ───────────────── */
 
-function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" | "indigo" }) {
+function Banner({ text, color }: { text: string; color: "green" | "orange" | "blue" | "violet" | "indigo" | "rose" }) {
   const colors = {
     green: "from-emerald-500 to-emerald-700 border-emerald-300",
     orange: "from-orange-500 to-orange-700 border-orange-300",
     blue: "from-sky-500 to-sky-700 border-sky-300",
     violet: "from-violet-500 to-violet-700 border-violet-300",
     indigo: "from-indigo-500 to-indigo-700 border-indigo-300",
+    rose: "from-rose-500 to-rose-700 border-rose-300",
   }[color];
   return (
     <div className="relative h-12 flex items-center justify-center">
