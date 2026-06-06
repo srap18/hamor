@@ -591,11 +591,24 @@ html.keyboard-open .mobile-frame-root {
   min-height: 100%;
   background: #050b10;
   overflow: hidden;
-  transform: translateZ(0);
+  /* NOTE: do NOT add `transform` / `filter` / `perspective` here.
+     They create a containing block that breaks `position: fixed` overlays
+     (Paddle Checkout, toasts, modals) by scoping them to the phone frame. */
   isolation: isolate;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Make sure the Paddle Checkout overlay always sits above the mobile frame. */
+#paddle-checkout-frame,
+iframe[name^="paddle"],
+iframe[id^="paddle"],
+.paddle-frame {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+}
+
 
 .mobile-frame-screen {
   position: relative;
