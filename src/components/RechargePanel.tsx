@@ -83,7 +83,9 @@ export function RechargePanel() {
           if (r?.granted) {
             refreshProfile();
             sound.play("coin");
-            flash("✨ تم استلام مشترياتك!");
+            const p = r.packId ? getPack(r.packId) : null;
+            if (p) setReward(p);
+            else flash("✨ تم استلام مشترياتك!");
             getStatus({ data: {} })
               .then((s) => {
                 setShieldsThisWeek(s.shieldsThisWeek);
