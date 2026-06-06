@@ -1346,7 +1346,7 @@ function Index() {
       {/* Fish market — takes the old ship market spot on the left beach */}
       <Placeable
         id="fish-market"
-        defaultStyle={{ left: "22%", top: "50%", width: "20%", height: "16%" }}
+        defaultStyle={{ left: "37.9%", top: "38.7%", width: "20%", height: "16%" }}
       >
         {(style) => (
           <FishMarketBuilding
