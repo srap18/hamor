@@ -241,13 +241,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MobileFrame>
-        <GlobalBanner />
-        <LastAttackTicker />
-        
-        <Outlet />
-        <Toaster position="top-center" richColors />
-      </MobileFrame>
+      <AdminLayoutEditorProvider>
+        <MobileFrame>
+          <GlobalBanner />
+          <LastAttackTicker />
+          
+          <Outlet />
+          <AdminEditToggle />
+          <Toaster position="top-center" richColors />
+        </MobileFrame>
+      </AdminLayoutEditorProvider>
     </QueryClientProvider>
   );
 }
