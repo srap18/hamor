@@ -2382,6 +2382,7 @@ function compTimeLeft(iso: string) {
 }
 
 function LeaderboardModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"comp" | "xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("comp");
   const [comps, setComps] = useState<CompLb[]>([]);
   const [compBoards, setCompBoards] = useState<Record<string, CompLbRow[]>>({});
