@@ -1428,7 +1428,7 @@ function Index() {
                 <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(200,240,255,0.45) 0%, transparent 100%)" }} />
                 <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(200,240,255,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5.5s linear infinite" }} />
                 <GemIcon size={20} />
-                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }} title={gems.toLocaleString()}>{formatCompact(gems)}</span>
+                <span className="relative flex-1 text-end text-[13px] font-black tabular-nums min-w-0 truncate" style={{ color: "#bff3ff", textShadow: "0 1px 0 #051324, 0 2px 5px rgba(0,0,0,0.85)" }} title={gems.toLocaleString()}>{gems >= 1_000_000 ? (gems/1_000_000).toFixed(gems>=10_000_000?0:1).replace(/\.0$/,"")+"M" : gems >= 10_000 ? (gems/1_000).toFixed(gems>=100_000?0:1).replace(/\.0$/,"")+"K" : gems.toLocaleString()}</span>
                 <Link
                   to="/recharge"
                   className="relative w-6 h-6 rounded-full text-xs font-black flex items-center justify-center active:scale-90 shrink-0"
