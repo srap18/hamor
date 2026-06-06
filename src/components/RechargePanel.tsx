@@ -11,7 +11,8 @@ import { sound } from "@/lib/sound";
 import { initializePaddle, getPaddlePriceId, onPaddleEvent, getPaddleEnvironment } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
-import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
+import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
+import { RewardPopup } from "@/components/RewardPopup";
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "bundle", label: "باقات", emoji: "🎁" },
@@ -48,6 +49,7 @@ export function RechargePanel() {
   const [shieldsThisWeek, setShieldsThisWeek] = useState(0);
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
+  const [reward, setReward] = useState<StorePack | null>(null);
 
   const flash = (m: string) => {
     setPop(m);
@@ -81,7 +83,9 @@ export function RechargePanel() {
           if (r?.granted) {
             refreshProfile();
             sound.play("coin");
-            flash("✨ تم استلام مشترياتك!");
+            const p = r.packId ? getPack(r.packId) : null;
+            if (p) setReward(p);
+            else flash("✨ تم استلام مشترياتك!");
             getStatus({ data: {} })
               .then((s) => {
                 setShieldsThisWeek(s.shieldsThisWeek);
@@ -151,6 +155,7 @@ export function RechargePanel() {
 
   return (
     <div className="text-white" dir="rtl">
+      {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
       <PaymentTestModeBanner />
 
       {/* Sub-tabs */}
