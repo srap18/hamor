@@ -142,6 +142,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         />
 
         {email && (
+          <button
+            onClick={() => {
+              window.dispatchEvent(new Event("open-layout-editor"));
+              onClose();
+            }}
+            className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-700 text-white text-xs font-bold active:scale-95"
+          >
+            🎯 تخصيص مواقع الأيقونات
+          </button>
+        )}
+
+        {email && (
           <div className="mt-3 space-y-2">
             <button
               onClick={() => setShowEmailForm((v) => !v)}
