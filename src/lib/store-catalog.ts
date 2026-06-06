@@ -2,6 +2,9 @@
 // Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
 // file to create the checkout (never trust client price/amount).
 
+import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
+import gemIcon from "@/assets/icon-gem-3d.png";
+
 export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
 
 export type PackInventoryItem = {
@@ -24,17 +27,34 @@ export type StorePack = {
   popular?: boolean;
   bonus?: string;
   description?: string;
+  images?: string[];
   reward: {
     gems?: number;
     coins?: number;
     rubies?: number;
     shieldDays?: number;
     vipDays?: number;
+    phoenixShips?: number;
     items?: PackInventoryItem[];
   };
 };
 
 export const STORE_PACKS: StorePack[] = [
+  // ───── Hot Offer: Phoenix Trio ────────────────────────────
+  {
+    id: "bd_phoenix_trio",
+    category: "bundle",
+    label: "🔥 ثلاثية العنقاء + 1000 جوهرة",
+    emoji: "🦅",
+    priceUSD: 25.99,
+    stripePriceId: "bd_phoenix_trio",
+    popular: true,
+    tag: "حصري",
+    description: "3 سفن العنقاء الأسطورية + 1,000 💎 — عرض محدود",
+    images: [shipPhoenixImg, gemIcon],
+    reward: { gems: 1_000, phoenixShips: 3 },
+  },
+
   // ───── Bundles ────────────────────────────────────────────
   {
     id: "bd_starter",

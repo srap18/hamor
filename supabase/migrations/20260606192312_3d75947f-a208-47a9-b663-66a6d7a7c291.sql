@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.buy_offer(text);

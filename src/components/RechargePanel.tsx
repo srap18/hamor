@@ -225,16 +225,44 @@ export function RechargePanel() {
               )}
 
               <div className="flex items-center gap-2.5">
-                <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
-                  {p.emoji}
-                </div>
+                {p.images?.length ? (
+                  <div className="relative w-20 h-20 shrink-0 rounded-xl bg-gradient-to-b from-amber-900/40 to-stone-950/70 border border-amber-400/40 overflow-hidden flex items-center justify-center">
+                    <img
+                      src={p.images[0]}
+                      alt={p.label}
+                      className="w-full h-full object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+                    />
+                    {p.images[1] && (
+                      <img
+                        src={p.images[1]}
+                        alt=""
+                        className="absolute bottom-0 left-0 w-8 h-8 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
+                      />
+                    )}
+                    {p.reward.phoenixShips && p.reward.phoenixShips > 1 && (
+                      <span className="absolute top-0 right-0 bg-rose-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-bl-lg">
+                        ×{p.reward.phoenixShips}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+                    {p.emoji}
+                  </div>
+                )}
 
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm text-white truncate">
                     {p.label}
                   </div>
 
+
                   <div className="flex flex-wrap gap-1 mt-1">
+                    {r.phoenixShips ? (
+                      <span className="text-[10px] font-extrabold text-rose-100 bg-gradient-to-r from-rose-600 to-orange-500 border border-rose-300/50 px-1.5 py-0.5 rounded">
+                        🦅 ×{r.phoenixShips} سفينة العنقاء
+                      </span>
+                    ) : null}
                     {r.gems ? (
                       <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
                         +{r.gems.toLocaleString()} 💎

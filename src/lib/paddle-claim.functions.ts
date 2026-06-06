@@ -104,5 +104,17 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       }
     }
 
+    if (reward.phoenixShips && reward.phoenixShips > 0) {
+      const rows = Array.from({ length: reward.phoenixShips }, () => ({
+        user_id: userId,
+        template_id: 31,
+        hp: 13000,
+        max_hp: 13000,
+        at_sea: false,
+        catalog_code: "ship-lvl-31",
+      }));
+      await supabaseAdmin.from("ships_owned").insert(rows);
+    }
+
     return { granted: true, packId };
   });
