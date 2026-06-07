@@ -221,6 +221,7 @@ function AdminPlayers() {
 
 type HistoryEntry = { kind: "ban" | "mute"; reason: string; expires_at: string | null; created_at: string; active: boolean };
 type FishAdminRow = { fish_id: string; quantity: number; total_caught: number };
+type InvRow = { id: string; item_type: string; item_id: string; quantity: number; meta: any; acquired_at: string };
 
 function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => void }) {
   const [coins, setCoins] = useState(String(player.coins));
