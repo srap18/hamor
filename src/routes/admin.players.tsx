@@ -4,6 +4,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
 import { FISH_LIST } from "@/lib/fish";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { BACKGROUNDS } from "@/lib/backgrounds";
+import { ALL_FRAMES } from "@/lib/frames";
+import { getShipByCode } from "@/lib/ships";
+
+const ITEM_NAME_AR: Record<string, string> = {};
+CREWS.forEach((c) => { ITEM_NAME_AR[c.id] = c.name; });
+WEAPONS.forEach((w) => { ITEM_NAME_AR[w.id] = w.name; });
+BACKGROUNDS.forEach((b) => { ITEM_NAME_AR[b.id] = b.name; });
+ALL_FRAMES.forEach((f) => { ITEM_NAME_AR[f.id] = f.name; });
+FISH_LIST.forEach((f: any) => { if (f?.id && f?.name) ITEM_NAME_AR[f.id] = f.name; });
+
+const TYPE_LABEL_AR: Record<string, string> = {
+  crew: "طاقم",
+  weapon: "سلاح",
+  consumable: "مستهلك",
+  decoration: "زينة",
+  frame: "إطار",
+  background: "خلفية",
+  name_frame: "إطار اسم",
+  bubble_frame: "إطار فقاعة",
+  profile_frame: "إطار ملف",
+  shield: "درع",
+  ship: "سفينة",
+  fish: "سمكة",
+};
+
+function getItemNameAr(itemType: string, itemId: string): string {
+  if (ITEM_NAME_AR[itemId]) return ITEM_NAME_AR[itemId];
+  if (itemType === "ship") {
+    try { return getShipByCode(itemId).name ?? itemId; } catch { /* ignore */ }
+  }
+  return itemId;
+}
+
 
 
 export const Route = createFileRoute("/admin/players")({
