@@ -3106,6 +3106,17 @@ export type Database = {
           total_caught: number
         }[]
       }
+      admin_get_player_inventory: {
+        Args: { _player: string }
+        Returns: {
+          acquired_at: string
+          id: string
+          item_id: string
+          item_type: string
+          meta: Json
+          quantity: number
+        }[]
+      }
       admin_grant_code_to_online: {
         Args: { _code: string; _within_minutes: number }
         Returns: {
@@ -3113,6 +3124,15 @@ export type Database = {
           granted: number
           targeted: number
         }[]
+      }
+      admin_grant_inventory_item: {
+        Args: {
+          _item_id: string
+          _item_type: string
+          _player: string
+          _quantity: number
+        }
+        Returns: undefined
       }
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
@@ -3170,6 +3190,10 @@ export type Database = {
             Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
             Returns: Json
           }
+      admin_set_inventory_quantity: {
+        Args: { _quantity: number; _row_id: string }
+        Returns: undefined
+      }
       admin_set_market_levels: {
         Args: { _fish_level: number; _player: string; _ship_level: number }
         Returns: Json
