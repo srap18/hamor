@@ -148,6 +148,20 @@ function CosmeticsShop() {
         إطارات تظهر للجميع في بروفايلك ورسائلك — اشترِ مرة، استخدمها للأبد.
       </p>
 
+      {/* 🔥 شريط العرض */}
+      <div className="mx-3 mt-3 rounded-2xl border border-rose-300/50 bg-gradient-to-r from-rose-600/90 via-fuchsia-600/90 to-amber-500/90 px-3 py-2.5 flex items-center justify-between gap-2 shadow-[0_8px_24px_rgba(244,63,94,0.45)] animate-pulse">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🎉</span>
+          <div className="leading-tight">
+            <div className="text-[13px] font-extrabold text-white">عرض على كل إطارات البروفايل</div>
+            <div className="text-[10px] text-amber-100">الصورة • الاسم • الفقاعة • البطاقة</div>
+          </div>
+        </div>
+        <div className="bg-black/40 border border-amber-200/60 px-2.5 py-1 rounded-lg text-amber-100 font-extrabold text-sm">
+          -30%
+        </div>
+      </div>
+
       <main className="p-3 pb-10">
         <div className="grid grid-cols-2 gap-3">
           {list.map(f => {
