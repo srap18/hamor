@@ -344,6 +344,27 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_pinned: {
+        Row: {
+          body: string
+          id: boolean
+          pinned_at: string
+          pinned_by: string | null
+        }
+        Insert: {
+          body?: string
+          id?: boolean
+          pinned_at?: string
+          pinned_by?: string | null
+        }
+        Update: {
+          body?: string
+          id?: boolean
+          pinned_at?: string
+          pinned_by?: string | null
+        }
+        Relationships: []
+      }
       cheat_flags: {
         Row: {
           created_at: string
@@ -1505,6 +1526,51 @@ export type Database = {
           total_fish_fed?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profanity_warnings: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          matched_word: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          matched_word?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          matched_word?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profanity_words: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          word?: string
         }
         Relationships: []
       }
@@ -3405,6 +3471,7 @@ export type Database = {
         }[]
       }
       change_username: { Args: { _new: string }; Returns: Json }
+      check_profanity: { Args: { _body: string }; Returns: string }
       claim_daily_dragon_rockets: { Args: never; Returns: Json }
       claim_daily_login: {
         Args: never
@@ -3913,6 +3980,7 @@ export type Database = {
           seconds: number
         }[]
       }
+      normalize_for_profanity: { Args: { _t: string }; Returns: string }
       officer_set_tribe: {
         Args: { _target: string; _tribe_id: string }
         Returns: undefined
@@ -4023,6 +4091,18 @@ export type Database = {
         Args: { _refund_coins: number; _ship_id: string }
         Returns: undefined
       }
+      send_chat_message_safe: {
+        Args: {
+          _body: string
+          _channel: string
+          _recipient_id?: string
+          _reply_to_body?: string
+          _reply_to_id?: string
+          _reply_to_name?: string
+          _tribe_id?: string
+        }
+        Returns: Json
+      }
       send_friend_request: { Args: { p_target: string }; Returns: Json }
       send_support: {
         Args: {
@@ -4056,6 +4136,7 @@ export type Database = {
         }
       }
       set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
+      set_pinned_chat: { Args: { _body: string }; Returns: undefined }
       set_ship_at_sea: {
         Args: { _at_sea: boolean; _ship_id: string }
         Returns: undefined

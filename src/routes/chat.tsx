@@ -64,6 +64,7 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
 function ChatPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const [tab, setTab] = useState<Channel>("public");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
@@ -81,6 +82,9 @@ function ChatPage() {
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
   const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; body: string; name: string } | null>(null);
+  const [pinned, setPinned] = useState<{ body: string; pinned_at: string } | null>(null);
+  const [pinEditOpen, setPinEditOpen] = useState(false);
+  const [pinDraft, setPinDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Pause background music while on the chat screen, resume on leave
@@ -112,6 +116,21 @@ function ChatPage() {
         setMyMute(data as any);
       });
   }, [user]);
+
+  // Pinned admin message — live
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await (supabase as any).from("chat_pinned").select("body,pinned_at").eq("id", true).maybeSingle();
+      if (data && data.body) setPinned({ body: data.body, pinned_at: data.pinned_at });
+      else setPinned(null);
+    };
+    load();
+    const ch = supabase.channel("chat_pinned_live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_pinned" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
 
   const reloadBlocks = useCallback(async () => {
     if (!user) return;
@@ -267,15 +286,6 @@ function ChatPage() {
     }
     lastSendRef.current = { body, at: now, channel: tab, target };
 
-    const row: any = { sender_id: user.id, body, channel: tab };
-    if (tab === "tribe") row.tribe_id = profile?.tribe_id;
-    if (tab === "dm") row.recipient_id = dmWith;
-    if (replyTo) {
-      row.reply_to_id = replyTo.id;
-      row.reply_to_body = replyTo.body.slice(0, 200);
-      row.reply_to_name = replyTo.name.slice(0, 60);
-    }
-
     const tempId = `tmp-${now}-${Math.random().toString(36).slice(2, 8)}`;
     const optimistic: Msg = {
       id: tempId,
@@ -294,25 +304,46 @@ function ChatPage() {
     if (!override) setText("");
     setReplyTo(null);
 
-    supabase.from("messages").insert(row).select("*").maybeSingle().then(({ data, error }) => {
+    (supabase as any).rpc("send_chat_message_safe", {
+      _channel: tab,
+      _body: body,
+      _recipient_id: tab === "dm" ? dmWith : null,
+      _tribe_id: tab === "tribe" ? (profile?.tribe_id ?? null) : null,
+      _reply_to_id: replyTo?.id ?? null,
+      _reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
+      _reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
+    }).then(({ data, error }: { data: any; error: any }) => {
+      // remove optimistic — realtime will deliver the real row if accepted
+      setMsgs(s => s.filter(x => x.id !== tempId));
       if (error) {
-        const msg = /row-level security|policy/i.test(error.message)
-          ? "أنت مكتوم حالياً من قِبل الإدارة"
-          : "تعذر الإرسال: " + error.message;
-        showNotice(msg);
-        setMsgs(s => s.filter(x => x.id !== tempId));
+        showNotice("تعذر الإرسال: " + (error.message || ""));
         setText(t => t ? t : body);
         return;
       }
-      if (data) {
-        const real = data as Msg;
-        setMsgs(s => {
-          if (s.some(x => x.id === real.id)) return s.filter(x => x.id !== tempId);
-          return s.map(x => x.id === tempId ? real : x);
-        });
+      const status = data?.status as string | undefined;
+      if (status === "warned") {
+        showNotice("⚠️ " + (data?.message || "تحذير من السب"));
+        const warnId = `warn-${now}-${Math.random().toString(36).slice(2, 6)}`;
+        setMsgs(s => [...s, {
+          id: warnId,
+          channel: tab,
+          sender_id: "__system__",
+          recipient_id: null,
+          tribe_id: null,
+          body: `⚠️ ${data?.message || "تحذير: ممنوع السب والشتم"}`,
+          created_at: new Date().toISOString(),
+        } as any]);
+        return;
+      }
+      if (status === "muted" || status === "muted_already") {
+        const msg = data?.message || data?.reason || "تم كتمك";
+        showNotice("🔇 " + msg);
+        setMyMute({ reason: data?.reason || "profanity", expires_at: data?.expires_at ?? null });
+        return;
       }
     });
   }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
+
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
@@ -444,8 +475,34 @@ function ChatPage() {
               </div>
             )}
             <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
+              {(pinned || isAdmin) && (
+                <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-1 px-3 py-2 bg-gradient-to-b from-amber-900/95 to-amber-950/95 border-b-2 border-amber-400/70 shadow-lg backdrop-blur">
+                  <div className="flex items-start gap-2">
+                    <div className="text-amber-300 text-lg leading-none">📌</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-extrabold text-amber-300/90">رسالة مثبتة من الإدارة</div>
+                      <div className="text-xs text-amber-50 font-bold whitespace-pre-wrap break-words">
+                        {pinned?.body || (isAdmin ? <span className="text-amber-200/60 italic">لا توجد رسالة مثبتة — اضغط ✏️ للإضافة</span> : null)}
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <button
+                        onClick={() => { setPinDraft(pinned?.body || ""); setPinEditOpen(true); }}
+                        className="shrink-0 px-2 py-1 rounded-lg bg-amber-500 border border-amber-300 text-amber-950 text-xs font-black active:scale-95"
+                      >✏️</button>
+                    )}
+                  </div>
+                </div>
+              )}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).length === 0 && <div className="text-center text-amber-100/40 text-sm py-8">لا توجد رسائل بعد — كن أول من يكتب</div>}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
+                if (m.sender_id === "__system__") {
+                  return (
+                    <div key={m.id} className="mx-auto max-w-[90%] px-3 py-2 rounded-xl border-2 border-red-400/80 bg-red-950/70 text-red-100 text-xs font-extrabold text-center shadow-lg animate-pulse">
+                      {m.body}
+                    </div>
+                  );
+                }
                 const p = profMap.get(m.sender_id);
                 const mine = m.sender_id === user?.id;
                 const senderName = (mine ? (profile as any)?.display_name : p?.display_name) || "مستخدم";
@@ -553,6 +610,43 @@ function ChatPage() {
           onClose={() => setActionTarget(null)}
           onBlocksChanged={reloadBlocks}
         />
+      )}
+      {pinEditOpen && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setPinEditOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-stone-900 border-2 border-amber-400 p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-amber-200 font-extrabold text-base flex items-center gap-2">📌 رسالة الإدارة المثبتة</div>
+            <textarea
+              value={pinDraft}
+              onChange={(e) => setPinDraft(e.target.value.slice(0, 300))}
+              rows={4}
+              placeholder="اكتب رسالتك المثبتة هنا..."
+              className="w-full p-3 rounded-xl bg-stone-950 border-2 border-amber-700/60 text-amber-50 text-sm font-bold resize-none focus:outline-none focus:border-amber-400"
+              dir="rtl"
+            />
+            <div className="text-[10px] text-amber-300/70 text-end">{pinDraft.length}/300</div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  const { error } = await (supabase as any).rpc("set_pinned_chat", { _body: pinDraft.trim() });
+                  if (error) { showNotice("تعذر الحفظ: " + error.message); return; }
+                  setPinEditOpen(false);
+                }}
+                className="flex-1 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 text-white font-black text-sm active:scale-95"
+              >💾 حفظ التثبيت</button>
+              <button
+                onClick={async () => {
+                  await (supabase as any).rpc("set_pinned_chat", { _body: "" });
+                  setPinEditOpen(false);
+                }}
+                className="px-3 py-2 rounded-xl bg-stone-800 border border-stone-600 text-stone-300 font-bold text-xs active:scale-95"
+              >مسح</button>
+              <button
+                onClick={() => setPinEditOpen(false)}
+                className="px-3 py-2 rounded-xl bg-stone-800 border border-stone-600 text-stone-300 font-bold text-xs active:scale-95"
+              >إلغاء</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
