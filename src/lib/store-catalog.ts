@@ -456,7 +456,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "wp_nuke_mega_50",
-    category: "weapon",
+    category: "offers",
     label: "☢️ باقة 50 نووية",
     emoji: "☢️",
     priceUSD: 25.0,
