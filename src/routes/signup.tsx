@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalFooter } from "@/components/LegalFooter";
 import { CoinIcon } from "@/components/CurrencyIcon";
@@ -24,8 +24,23 @@ function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [refCode, setRefCode] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Capture ?ref=CODE from URL or localStorage
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("ref") || params.get("invite");
+      const stored = localStorage.getItem("pending_referral_code");
+      const code = (fromUrl || stored || "").toUpperCase().trim();
+      if (code) {
+        setRefCode(code);
+        localStorage.setItem("pending_referral_code", code);
+      }
+    } catch {}
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +51,6 @@ function SignupPage() {
       setErr("الاسم لا يتجاوز 15 حرف");
       return;
     }
-    // Check display name uniqueness (Arabic + English, case-insensitive)
     if (finalName.length >= 2) {
       try {
         const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: finalName });
@@ -47,7 +61,6 @@ function SignupPage() {
         }
       } catch {}
     }
-    // Check email blocklist (admin-managed)
     try {
       const { data: blocked } = await (supabase as any).rpc("is_email_banned", { _email: email });
       if (blocked === true) {
@@ -60,11 +73,18 @@ function SignupPage() {
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: finalName },
+        data: { display_name: finalName, referral_code: refCode || null },
       },
     });
     setLoading(false);
     if (error) { setErr(error.message); return; }
+    // Apply referral if provided (best-effort; needs authenticated session)
+    if (refCode) {
+      try {
+        await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
+        localStorage.removeItem("pending_referral_code");
+      } catch {}
+    }
     nav({ to: "/" });
   };
 
@@ -85,6 +105,8 @@ function SignupPage() {
             className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
           <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
+          <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
+            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
           {err && <div className="text-rose-400 text-xs text-center">{err}</div>}
           <button disabled={loading} type="submit" className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60">
             {loading ? "..." : "تسجيل"}
