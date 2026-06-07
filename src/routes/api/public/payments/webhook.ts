@@ -134,6 +134,20 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
       }
     }
   }
+
+  // Referral bonus: if buyer was invited, reward inviter with 30% of purchase value in gems.
+  // Game-funded — no deduction from buyer.
+  if (amountCents > 0) {
+    const { error: refErr } = await getSupabase().rpc("grant_referral_bonus", {
+      _user: userId,
+      _txn_id: data.id,
+      _amount_cents: amountCents,
+    });
+    if (refErr) {
+      console.error("grant_referral_bonus failed:", refErr);
+      // Non-fatal: don't fail the whole webhook for a bonus.
+    }
+  }
 }
 
 async function handleWebhook(req: Request, env: PaddleEnv) {
