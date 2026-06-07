@@ -469,7 +469,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "wp_bomb_box_mix",
-    category: "weapon",
+    category: "offers",
     label: "📦 صندوق القنابل المنوعة",
     emoji: "📦",
     priceUSD: 17.99,
