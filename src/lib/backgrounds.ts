@@ -4,12 +4,16 @@ import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import onepieceBg from "@/assets/bg-onepiece.jpg.asset.json";
 import onepieceBurnedBg from "@/assets/bg-onepiece-burned.jpg.asset.json";
+import eiffelBg from "@/assets/bg-eiffel.jpg.asset.json";
+import eiffelBurnedBg from "@/assets/bg-eiffel-burned.jpg.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
 import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
 import onepieceVideo from "@/assets/bg-onepiece.mp4.asset.json";
 import onepieceBurnedVideo from "@/assets/bg-onepiece-burned.mp4.asset.json";
+import eiffelVideo from "@/assets/bg-eiffel.mp4.asset.json";
+import eiffelBurnedVideo from "@/assets/bg-eiffel-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
