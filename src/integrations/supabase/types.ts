@@ -1634,6 +1634,9 @@ export type Database = {
           online_at: string
           profile_frame: string | null
           protection_until: string | null
+          referral_code: string | null
+          referral_locked_at: string | null
+          referred_by: string | null
           rubies: number
           selected_bg_id: string
           ship_flag: string
@@ -1675,6 +1678,9 @@ export type Database = {
           online_at?: string
           profile_frame?: string | null
           protection_until?: string | null
+          referral_code?: string | null
+          referral_locked_at?: string | null
+          referred_by?: string | null
           rubies?: number
           selected_bg_id?: string
           ship_flag?: string
@@ -1716,6 +1722,9 @@ export type Database = {
           online_at?: string
           profile_frame?: string | null
           protection_until?: string | null
+          referral_code?: string | null
+          referral_locked_at?: string | null
+          referred_by?: string | null
           rubies?: number
           selected_bg_id?: string
           ship_flag?: string
@@ -1845,6 +1854,36 @@ export type Database = {
           reward_vip_level?: number
           reward_xp?: number
           uses_count?: number
+        }
+        Relationships: []
+      }
+      referral_earnings: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          gems_awarded: number
+          id: string
+          invitee_id: string
+          inviter_id: string
+          txn_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          gems_awarded?: number
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          txn_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          gems_awarded?: number
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          txn_id?: string
         }
         Relationships: []
       }
@@ -3314,6 +3353,7 @@ export type Database = {
       }
       admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
+      apply_referral_code: { Args: { p_code: string }; Returns: Json }
       apply_ship_damage: {
         Args: {
           _damage: number
@@ -3594,6 +3634,7 @@ export type Database = {
       }
       forum_admin_unban: { Args: { _user_id: string }; Returns: undefined }
       free_strike_status: { Args: never; Returns: Json }
+      generate_referral_code: { Args: never; Returns: string }
       get_active_boss: { Args: never; Returns: Json }
       get_active_competitions: {
         Args: never
@@ -3907,6 +3948,10 @@ export type Database = {
           _vip_days: number
         }
         Returns: Json
+      }
+      grant_referral_bonus: {
+        Args: { _amount_cents: number; _txn_id: string; _user: string }
+        Returns: undefined
       }
       grant_stripe_purchase: {
         Args: {
