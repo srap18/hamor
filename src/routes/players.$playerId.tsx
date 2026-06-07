@@ -438,7 +438,9 @@ function PlayerPage() {
     if (!w) return;
     if (!(await confirmDropArmorIfActive())) return;
     setBusy(true); sound.play("click");
+    // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
+    setSelectedShip(null);
     const aliveShips = ships.filter((s) => !s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs()));
     const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
     if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
