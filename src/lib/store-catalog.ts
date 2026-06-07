@@ -543,7 +543,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "cr_mega_100",
-    category: "crew",
+    category: "offers",
     label: "👥 باقة 100 طاقم منوعة",
     emoji: "👥",
     priceUSD: 25.0,
