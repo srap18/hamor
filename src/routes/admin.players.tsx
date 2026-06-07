@@ -804,7 +804,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                     />
                     <button onClick={() => saveInvRow(r.id)}
                       className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
-                    <button onClick={() => deleteInvRow(r.id, `${r.item_type}:${r.item_id}`)}
+                    <button onClick={() => deleteInvRow(r.id, getItemNameAr(r.item_type, r.item_id))}
                       className="px-2 py-1 rounded bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-[11px] font-bold">🗑️</button>
                   </div>
                 );
