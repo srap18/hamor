@@ -46,7 +46,7 @@ export function RechargePanel() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
-  const [sub, setSub] = useState<PackCategory>("bundle");
+  const [sub, setSub] = useState<PackCategory>("offers");
   const [shieldsThisWeek, setShieldsThisWeek] = useState(0);
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
