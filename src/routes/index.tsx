@@ -3206,9 +3206,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const mins = Math.floor(ship.timeLeft / 60);
+  const hrs = Math.floor(ship.timeLeft / 3600);
+  const mins = Math.floor((ship.timeLeft % 3600) / 60);
   const secs = Math.floor(ship.timeLeft % 60);
-  const timeStr = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  const timeStr = hrs > 0
+    ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+    : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
