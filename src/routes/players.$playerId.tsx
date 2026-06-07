@@ -1306,8 +1306,6 @@ function PlayerPage() {
                           sound.play("success");
                           flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
                           setBusy(false);
-                          // Open the broadcast message dialog after the boom FX
-                          setTimeout(() => { setNukeMsg(""); setNukeMsgOpen(true); }, 1600);
                         }}
                           className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-fuchsia-900/80 to-purple-900/80 border border-fuchsia-500/40 active:scale-95 disabled:opacity-40 text-right">
                           <span className="text-3xl">{w.emoji}</span>
