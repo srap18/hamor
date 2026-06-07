@@ -221,6 +221,7 @@ function AdminPlayers() {
 
 type HistoryEntry = { kind: "ban" | "mute"; reason: string; expires_at: string | null; created_at: string; active: boolean };
 type FishAdminRow = { fish_id: string; quantity: number; total_caught: number };
+type InvRow = { id: string; item_type: string; item_id: string; quantity: number; meta: any; acquired_at: string };
 
 function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => void }) {
   const [coins, setCoins] = useState(String(player.coins));
@@ -245,6 +246,54 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [fishRows, setFishRows] = useState<FishAdminRow[]>([]);
   const fishMap = new Map(fishRows.map((r) => [r.fish_id, r]));
+  const [invRows, setInvRows] = useState<InvRow[]>([]);
+  const [invFilter, setInvFilter] = useState<string>("all");
+  const [invQtyEdits, setInvQtyEdits] = useState<Record<string, string>>({});
+
+  const reloadInventory = useCallback(async () => {
+    const { data, error } = await (supabase as any).rpc("admin_get_player_inventory", { _player: player.id });
+    if (error) { toast.error("فشل تحميل المخزن: " + error.message); return; }
+    setInvRows(((data ?? []) as InvRow[]));
+    setInvQtyEdits({});
+  }, [player.id]);
+
+  useEffect(() => { reloadInventory(); }, [reloadInventory]);
+
+  const saveInvRow = async (rowId: string) => {
+    const raw = invQtyEdits[rowId];
+    if (raw === undefined) return;
+    const q = Math.max(0, Number(raw) || 0);
+    const { error } = await (supabase as any).rpc("admin_set_inventory_quantity", { _row_id: rowId, _quantity: q });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success(q === 0 ? "تم حذف العنصر" : "تم تحديث الكمية");
+    await reloadInventory();
+  };
+
+  const deleteInvRow = async (rowId: string, label: string) => {
+    if (!confirm(`حذف "${label}" من المخزن؟`)) return;
+    const { error } = await (supabase as any).rpc("admin_set_inventory_quantity", { _row_id: rowId, _quantity: 0 });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success("تم الحذف");
+    await reloadInventory();
+  };
+
+  const grantItem = async () => {
+    const types = ["crew","weapon","consumable","decoration","frame","background","name_frame","bubble_frame","profile_frame","shield"];
+    const itype = prompt(`نوع العنصر:\n${types.join(", ")}`, "consumable")?.trim();
+    if (!itype || !types.includes(itype)) return;
+    const iid = prompt("معرّف العنصر (item_id):", "")?.trim();
+    if (!iid) return;
+    const qtyStr = prompt("الكمية:", "1");
+    if (qtyStr === null) return;
+    const q = Math.max(1, Number(qtyStr) || 1);
+    const { error } = await (supabase as any).rpc("admin_grant_inventory_item", {
+      _player: player.id, _item_type: itype, _item_id: iid, _quantity: q,
+    });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_grant_inventory_item", player.id, { item_type: itype, item_id: iid, quantity: q });
+    toast.success("تم إضافة العنصر");
+    await reloadInventory();
+  };
 
   useEffect(() => {
     (async () => {
@@ -671,6 +720,63 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </div>
         </div>
         <button onClick={onClose} className="w-full mt-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إغلاق</button>
+
+        {/* Inventory / مخزن اللاعب */}
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="text-sm font-semibold text-slate-300">📦 مخزن اللاعب ({invRows.length})</div>
+            <div className="flex gap-2">
+              <button onClick={reloadInventory} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs">🔄 تحديث</button>
+              <button onClick={grantItem} className="px-2 py-1 rounded bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100 text-xs font-bold">➕ إضافة عنصر</button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {(() => {
+              const types = Array.from(new Set(invRows.map(r => r.item_type)));
+              return ["all", ...types].map(t => (
+                <button key={t} onClick={() => setInvFilter(t)}
+                  className={`px-2 py-0.5 rounded text-[11px] ${invFilter === t ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+                  {t === "all" ? `الكل (${invRows.length})` : `${t} (${invRows.filter(r => r.item_type === t).length})`}
+                </button>
+              ));
+            })()}
+          </div>
+          {invRows.length === 0 ? (
+            <div className="text-xs text-slate-500 py-3 text-center">المخزن فارغ</div>
+          ) : (
+            <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+              {invRows.filter(r => invFilter === "all" || r.item_type === invFilter).map((r) => {
+                const editVal = invQtyEdits[r.id] ?? String(r.quantity);
+                const assigned = r.meta?.assigned_ship_id ? ` • مرتبط بسفينة` : "";
+                return (
+                  <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-100 truncate">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{r.item_type}</span>
+                        {r.item_id}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono truncate">
+                        {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editVal}
+                      onChange={(e) => setInvQtyEdits((s) => ({ ...s, [r.id]: e.target.value }))}
+                      className="w-16 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-center"
+                    />
+                    <button onClick={() => saveInvRow(r.id)}
+                      className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
+                    <button onClick={() => deleteInvRow(r.id, `${r.item_type}:${r.item_id}`)}
+                      className="px-2 py-1 rounded bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-[11px] font-bold">🗑️</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
 
         {/* Anti-cheat: gold tracking */}
         <div className="mt-4 pt-4 border-t border-amber-900/50 space-y-2">
