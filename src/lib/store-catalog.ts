@@ -91,6 +91,69 @@ export const STORE_PACKS: StorePack[] = [
     reward: { gems: 7_500 },
   },
 
+  // ───── Frame Offers (Paddle real-money) ───────────────────
+  {
+    id: "offer_frame_phoenix_set",
+    category: "offers",
+    label: "🔥 طقم العنقاء الكامل + 500 جوهرة",
+    emoji: "🦅",
+    priceUSD: 7.99,
+    tag: "خصم 60%",
+    popular: true,
+    description: "إطار صورة + لوحة اسم + فقاعة شات + بطاقة بروفايل (العنقاء 🔥) + 500 💎",
+    reward: {
+      gems: 500,
+      items: [
+        { itemType: "frame",         itemId: "af_phoenix", qty: 1 },
+        { itemType: "name_frame",    itemId: "nf_phoenix", qty: 1 },
+        { itemType: "bubble_frame",  itemId: "bf_phoenix", qty: 1 },
+        { itemType: "profile_frame", itemId: "pf_phoenix", qty: 1 },
+      ],
+    },
+  },
+  {
+    id: "offer_frame_legendary_set",
+    category: "offers",
+    label: "☀️ طقم الأسد الأسطوري + 1500 جوهرة",
+    emoji: "👑",
+    priceUSD: 19.99,
+    tag: "خصم 65%",
+    popular: true,
+    description: "كل إطارات الأسد الأسطورية (صورة + اسم + فقاعة + بطاقة) + 1,500 💎",
+    reward: {
+      gems: 1_500,
+      items: [
+        { itemType: "frame",         itemId: "af_leo", qty: 1 },
+        { itemType: "name_frame",    itemId: "nf_leo", qty: 1 },
+        { itemType: "bubble_frame",  itemId: "bf_leo", qty: 1 },
+        { itemType: "profile_frame", itemId: "pf_leo", qty: 1 },
+      ],
+    },
+  },
+  {
+    id: "offer_frame_mythic_set",
+    category: "offers",
+    label: "🌌 طقم الإطارات الخيالية + 3000 جوهرة",
+    emoji: "💫",
+    priceUSD: 39.99,
+    tag: "حصري",
+    description: "كل إطارات العقرب 🦂 والحوت 🐟 الخيالية (8 إطارات) + 3,000 💎 — قيمة هائلة",
+    reward: {
+      gems: 3_000,
+      items: [
+        { itemType: "frame",         itemId: "af_scorpio", qty: 1 },
+        { itemType: "name_frame",    itemId: "nf_scorpio", qty: 1 },
+        { itemType: "bubble_frame",  itemId: "bf_scorpio", qty: 1 },
+        { itemType: "profile_frame", itemId: "pf_scorpio", qty: 1 },
+        { itemType: "frame",         itemId: "af_pisces", qty: 1 },
+        { itemType: "name_frame",    itemId: "nf_pisces", qty: 1 },
+        { itemType: "bubble_frame",  itemId: "bf_pisces", qty: 1 },
+        { itemType: "profile_frame", itemId: "pf_pisces", qty: 1 },
+      ],
+    },
+  },
+
+
   // ───── Hot Offer: Phoenix Trio ────────────────────────────
   {
     id: "bd_phoenix_trio",
