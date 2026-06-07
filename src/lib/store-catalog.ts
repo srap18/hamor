@@ -22,7 +22,7 @@ export type StorePack = {
   label: string;
   emoji: string;
   priceUSD: number;
-  stripePriceId: string;
+  
   subscription?: boolean;
   weeklyLimit?: number;
   oneTime?: boolean;
