@@ -44,6 +44,58 @@ export type StorePack = {
 };
 
 export const STORE_PACKS: StorePack[] = [
+  // ───── Gem Offers: 15% Off ────────────────────────────────
+  {
+    id: "offer_gems_550_15off",
+    category: "offers",
+    label: "💎 عرض 550 جوهرة",
+    emoji: "💎",
+    priceUSD: 4.24,
+    stripePriceId: "offer_gems_550_15off",
+    tag: "خصم 15%",
+    description: "550 💎 — وفّر 15% عن السعر الأصلي ($4.99)",
+    images: [gemIcon],
+    reward: { gems: 550 },
+  },
+  {
+    id: "offer_gems_1250_15off",
+    category: "offers",
+    label: "💠 عرض 1,250 جوهرة",
+    emoji: "💠",
+    priceUSD: 8.49,
+    stripePriceId: "offer_gems_1250_15off",
+    tag: "خصم 15%",
+    popular: true,
+    description: "1,250 💎 — وفّر 15% عن السعر الأصلي ($9.99)",
+    images: [gemIcon],
+    reward: { gems: 1_250 },
+  },
+  {
+    id: "offer_gems_2800_15off",
+    category: "offers",
+    label: "🔷 عرض 2,800 جوهرة",
+    emoji: "🔷",
+    priceUSD: 16.99,
+    stripePriceId: "offer_gems_2800_15off",
+    tag: "خصم 15%",
+    description: "2,800 💎 — وفّر 15% عن السعر الأصلي ($19.99)",
+    images: [gemIcon],
+    reward: { gems: 2_800 },
+  },
+  {
+    id: "offer_gems_7500_15off",
+    category: "offers",
+    label: "🏴‍☠️ عرض 7,500 جوهرة",
+    emoji: "🏴‍☠️",
+    priceUSD: 42.49,
+    stripePriceId: "offer_gems_7500_15off",
+    tag: "خصم 15%",
+    popular: true,
+    description: "7,500 💎 — وفّر 15% عن السعر الأصلي ($49.99)",
+    images: [gemIcon],
+    reward: { gems: 7_500 },
+  },
+
   // ───── Hot Offer: Phoenix Trio ────────────────────────────
   {
     id: "bd_phoenix_trio",
