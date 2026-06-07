@@ -1,6 +1,5 @@
-// Canonical catalog of packs that map to real Stripe prices.
-// Each pack has a `stripePriceId` — the server uses ONLY the priceId from this
-// file to create the checkout (never trust client price/amount).
+// Canonical catalog of packs. The pack `id` is also the Paddle price
+// `external_id` — checkout resolves it server-side (never trust client price).
 
 import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
 import gemIcon from "@/assets/icon-gem-3d.png";
