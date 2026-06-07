@@ -541,6 +541,26 @@ export const STORE_PACKS: StorePack[] = [
       ],
     },
   },
+  {
+    id: "cr_mega_100",
+    category: "crew",
+    label: "👥 باقة 100 طاقم منوعة",
+    emoji: "👥",
+    priceUSD: 49.99,
+    stripePriceId: "cr_mega_100",
+    tag: "خصم 15%",
+    popular: true,
+    description: "25 حظ + 25 سارق + 20 تاجر + 15 شرطي + 15 بحار — خصم 15%",
+    reward: {
+      items: [
+        { itemType: "crew", itemId: "luck", qty: 25 },
+        { itemType: "crew", itemId: "thief", qty: 25 },
+        { itemType: "crew", itemId: "trader", qty: 20 },
+        { itemType: "crew", itemId: "police", qty: 15 },
+        { itemType: "crew", itemId: "sailor", qty: 15 },
+      ],
+    },
+  },
 ];
 
 export function getPack(id: string): StorePack | undefined {
