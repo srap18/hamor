@@ -245,6 +245,54 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [fishRows, setFishRows] = useState<FishAdminRow[]>([]);
   const fishMap = new Map(fishRows.map((r) => [r.fish_id, r]));
+  const [invRows, setInvRows] = useState<InvRow[]>([]);
+  const [invFilter, setInvFilter] = useState<string>("all");
+  const [invQtyEdits, setInvQtyEdits] = useState<Record<string, string>>({});
+
+  const reloadInventory = useCallback(async () => {
+    const { data, error } = await (supabase as any).rpc("admin_get_player_inventory", { _player: player.id });
+    if (error) { toast.error("فشل تحميل المخزن: " + error.message); return; }
+    setInvRows(((data ?? []) as InvRow[]));
+    setInvQtyEdits({});
+  }, [player.id]);
+
+  useEffect(() => { reloadInventory(); }, [reloadInventory]);
+
+  const saveInvRow = async (rowId: string) => {
+    const raw = invQtyEdits[rowId];
+    if (raw === undefined) return;
+    const q = Math.max(0, Number(raw) || 0);
+    const { error } = await (supabase as any).rpc("admin_set_inventory_quantity", { _row_id: rowId, _quantity: q });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success(q === 0 ? "تم حذف العنصر" : "تم تحديث الكمية");
+    await reloadInventory();
+  };
+
+  const deleteInvRow = async (rowId: string, label: string) => {
+    if (!confirm(`حذف "${label}" من المخزن؟`)) return;
+    const { error } = await (supabase as any).rpc("admin_set_inventory_quantity", { _row_id: rowId, _quantity: 0 });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success("تم الحذف");
+    await reloadInventory();
+  };
+
+  const grantItem = async () => {
+    const types = ["crew","weapon","consumable","decoration","frame","background","name_frame","bubble_frame","profile_frame","shield"];
+    const itype = prompt(`نوع العنصر:\n${types.join(", ")}`, "consumable")?.trim();
+    if (!itype || !types.includes(itype)) return;
+    const iid = prompt("معرّف العنصر (item_id):", "")?.trim();
+    if (!iid) return;
+    const qtyStr = prompt("الكمية:", "1");
+    if (qtyStr === null) return;
+    const q = Math.max(1, Number(qtyStr) || 1);
+    const { error } = await (supabase as any).rpc("admin_grant_inventory_item", {
+      _player: player.id, _item_type: itype, _item_id: iid, _quantity: q,
+    });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_grant_inventory_item", player.id, { item_type: itype, item_id: iid, quantity: q });
+    toast.success("تم إضافة العنصر");
+    await reloadInventory();
+  };
 
   useEffect(() => {
     (async () => {
