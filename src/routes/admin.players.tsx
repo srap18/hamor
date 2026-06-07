@@ -4,6 +4,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
 import { FISH_LIST } from "@/lib/fish";
+import { CREWS } from "@/lib/crews";
+import { WEAPONS } from "@/lib/weapons";
+import { BACKGROUNDS } from "@/lib/backgrounds";
+import { ALL_FRAMES } from "@/lib/frames";
+import { getShipByCode } from "@/lib/ships";
+
+const ITEM_NAME_AR: Record<string, string> = {};
+CREWS.forEach((c) => { ITEM_NAME_AR[c.id] = c.name; });
+WEAPONS.forEach((w) => { ITEM_NAME_AR[w.id] = w.name; });
+BACKGROUNDS.forEach((b) => { ITEM_NAME_AR[b.id] = b.name; });
+ALL_FRAMES.forEach((f) => { ITEM_NAME_AR[f.id] = f.name; });
+FISH_LIST.forEach((f: any) => { if (f?.id && f?.name) ITEM_NAME_AR[f.id] = f.name; });
+
+const TYPE_LABEL_AR: Record<string, string> = {
+  crew: "طاقم",
+  weapon: "سلاح",
+  consumable: "مستهلك",
+  decoration: "زينة",
+  frame: "إطار",
+  background: "خلفية",
+  name_frame: "إطار اسم",
+  bubble_frame: "إطار فقاعة",
+  profile_frame: "إطار ملف",
+  shield: "درع",
+  ship: "سفينة",
+  fish: "سمكة",
+};
+
+function getItemNameAr(itemType: string, itemId: string): string {
+  if (ITEM_NAME_AR[itemId]) return ITEM_NAME_AR[itemId];
+  if (itemType === "ship") {
+    try { return getShipByCode(itemId).name ?? itemId; } catch { /* ignore */ }
+  }
+  return itemId;
+}
+
 
 
 export const Route = createFileRoute("/admin/players")({
@@ -736,7 +772,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               return ["all", ...types].map(t => (
                 <button key={t} onClick={() => setInvFilter(t)}
                   className={`px-2 py-0.5 rounded text-[11px] ${invFilter === t ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-                  {t === "all" ? `الكل (${invRows.length})` : `${t} (${invRows.filter(r => r.item_type === t).length})`}
+                  {t === "all" ? `الكل (${invRows.length})` : `${TYPE_LABEL_AR[t] ?? t} (${invRows.filter(r => r.item_type === t).length})`}
                 </button>
               ));
             })()}
@@ -752,11 +788,11 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                   <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-slate-100 truncate">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{r.item_type}</span>
-                        {r.item_id}
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{TYPE_LABEL_AR[r.item_type] ?? r.item_type}</span>
+                        {getItemNameAr(r.item_type, r.item_id)}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-mono truncate">
-                        {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
+                      <div className="text-[10px] text-slate-500 font-mono truncate" dir="ltr">
+                        {r.item_id} • {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
                       </div>
                     </div>
                     <input
@@ -768,7 +804,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                     />
                     <button onClick={() => saveInvRow(r.id)}
                       className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
-                    <button onClick={() => deleteInvRow(r.id, `${r.item_type}:${r.item_id}`)}
+                    <button onClick={() => deleteInvRow(r.id, getItemNameAr(r.item_type, r.item_id))}
                       className="px-2 py-1 rounded bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-[11px] font-bold">🗑️</button>
                   </div>
                 );
