@@ -1268,9 +1268,9 @@ function PlayerPage() {
                           // Client-side pre-checks (mirror server validation) so
                           // FX/visuals only play when the launch will actually succeed.
                           const hasDestroyed = myShips.some((s) => !!s.destroyed_at);
-                          const hasFishing = myShips.some((s) => s.at_sea && !s.destroyed_at);
+                          const allFishing = myShips.length > 0 && myShips.every((s) => s.at_sea && !s.destroyed_at && !s.stealing_target_user_id);
                           if (hasDestroyed) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
-                          if (!hasFishing) { sound.play("error"); flash("🎣 لازم تكون عندك سفينة في وضع الصيد قبل الهجوم"); return; }
+                          if (!allFishing) { sound.play("error"); flash("🎣 لازم كل سفنك في وضع الصيد قبل الهجوم"); return; }
                           // Close the weapons list immediately so the FX doesn't render on top of it.
                           setMode(null);
                           sound.play("nuke");
