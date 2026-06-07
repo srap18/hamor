@@ -4191,6 +4191,7 @@ export type Database = {
       test_steal_cancel_moves_one_fish: { Args: never; Returns: boolean }
       test_steal_claim_moves_one_fish: { Args: never; Returns: boolean }
       trader_snapshot_anchor: { Args: never; Returns: string }
+      tribe_level_from_donations: { Args: { _d: number }; Returns: number }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
