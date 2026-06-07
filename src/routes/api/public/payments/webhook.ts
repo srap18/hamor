@@ -113,7 +113,10 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     _vip_days: reward.vipDays ?? 0,
     _env: env,
   });
-  if (error) console.error("grant_paddle_purchase failed:", error);
+  if (error) {
+    console.error("grant_paddle_purchase failed:", error);
+    throw new Error(`grant_paddle_purchase failed: ${error.message}`);
+  }
 
   // Grant inventory items (e.g. ad_bomb_pack → 1× ad_bomb)
   if (reward.items?.length) {
@@ -124,7 +127,11 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
         _item_id: it.itemId,
         _qty: it.qty,
       });
-      if (invErr) console.error("grant_inventory_item failed:", invErr, it);
+      if (invErr) {
+        console.error("grant_inventory_item failed:", invErr, it);
+        // Throw so the webhook returns 400 and Paddle retries — better than silent loss.
+        throw new Error(`grant_inventory_item failed for ${it.itemType}/${it.itemId}: ${invErr.message}`);
+      }
     }
   }
 }
