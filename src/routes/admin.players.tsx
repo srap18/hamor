@@ -788,11 +788,11 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                   <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-slate-100 truncate">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{r.item_type}</span>
-                        {r.item_id}
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{TYPE_LABEL_AR[r.item_type] ?? r.item_type}</span>
+                        {getItemNameAr(r.item_type, r.item_id)}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-mono truncate">
-                        {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
+                      <div className="text-[10px] text-slate-500 font-mono truncate" dir="ltr">
+                        {r.item_id} • {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
                       </div>
                     </div>
                     <input
