@@ -1265,6 +1265,14 @@ function PlayerPage() {
                     return (
                       <div key={w.id} className="flex items-stretch gap-2">
                         <button disabled={busy || !canFire} onClick={() => {
+                          // Client-side pre-checks (mirror server validation) so
+                          // FX/visuals only play when the launch will actually succeed.
+                          const hasDestroyed = myShips.some((s) => !!s.destroyed_at);
+                          const hasFishing = myShips.some((s) => s.at_sea && !s.destroyed_at);
+                          if (hasDestroyed) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+                          if (!hasFishing) { sound.play("error"); flash("🎣 لازم تكون عندك سفينة في وضع الصيد قبل الهجوم"); return; }
+                          // Close the weapons list immediately so the FX doesn't render on top of it.
+                          setMode(null);
                           sound.play("nuke");
                           const cx = window.innerWidth / 2;
                           const cy = window.innerHeight / 2;
