@@ -3607,10 +3607,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                   ✦ جاهز للجمع ✦
                 </div>
               ) : ship.fishing ? (
-                <div className="text-center text-[9px] text-emerald-200 font-bold tabular-nums">
-                  🎣 يصطاد · {timeStr}
+                <div className="text-center text-[10px] text-emerald-200 font-extrabold tabular-nums flex items-center justify-center gap-1">
+                  <span>🎣 يصطاد</span>
+                  <span className="px-1.5 py-0.5 rounded bg-emerald-900/70 border border-emerald-400/60 text-emerald-100 shadow-inner" dir="ltr">⏳ {timeStr}</span>
                   {crews.some((c) => c.id === "sailor") && (
-                    <span className="ms-1 text-cyan-200">⛵ +40%</span>
+                    <span className="text-cyan-200">⛵+40%</span>
                   )}
                 </div>
               ) : (
