@@ -546,7 +546,7 @@ export const STORE_PACKS: StorePack[] = [
     category: "crew",
     label: "👥 باقة 100 طاقم منوعة",
     emoji: "👥",
-    priceUSD: 44.99,
+    priceUSD: 25.0,
     stripePriceId: "cr_mega_100",
     tag: "خصم 25%",
     popular: true,
