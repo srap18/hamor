@@ -414,6 +414,8 @@ function Index() {
       const sameAll = sameLen && next.every((s, i) => {
         const c = curr[i];
         return s.dbId === c.dbId
+          && (s.hp ?? null) === (c.hp ?? null)
+          && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
           && (s.stealingEndsAt ?? null) === (c.stealingEndsAt ?? null)
           && !!s.fishing === !!c.fishing
