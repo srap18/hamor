@@ -64,6 +64,7 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
 function ChatPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isAdmin } = useIsAdmin();
   const [tab, setTab] = useState<Channel>("public");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
