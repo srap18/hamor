@@ -475,6 +475,25 @@ function ChatPage() {
               </div>
             )}
             <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
+              {(pinned || isAdmin) && (
+                <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-1 px-3 py-2 bg-gradient-to-b from-amber-900/95 to-amber-950/95 border-b-2 border-amber-400/70 shadow-lg backdrop-blur">
+                  <div className="flex items-start gap-2">
+                    <div className="text-amber-300 text-lg leading-none">📌</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-extrabold text-amber-300/90">رسالة مثبتة من الإدارة</div>
+                      <div className="text-xs text-amber-50 font-bold whitespace-pre-wrap break-words">
+                        {pinned?.body || (isAdmin ? <span className="text-amber-200/60 italic">لا توجد رسالة مثبتة — اضغط ✏️ للإضافة</span> : null)}
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <button
+                        onClick={() => { setPinDraft(pinned?.body || ""); setPinEditOpen(true); }}
+                        className="shrink-0 px-2 py-1 rounded-lg bg-amber-500 border border-amber-300 text-amber-950 text-xs font-black active:scale-95"
+                      >✏️</button>
+                    )}
+                  </div>
+                </div>
+              )}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).length === 0 && <div className="text-center text-amber-100/40 text-sm py-8">لا توجد رسائل بعد — كن أول من يكتب</div>}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
                 const p = profMap.get(m.sender_id);
