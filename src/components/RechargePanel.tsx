@@ -15,6 +15,7 @@ import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/s
 import { RewardPopup } from "@/components/RewardPopup";
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
+  { id: "offers", label: "عروض", emoji: "🔥" },
   { id: "bundle", label: "باقات", emoji: "🎁" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "coins", label: "ذهب", emoji: "🪙" },
