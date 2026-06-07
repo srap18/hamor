@@ -454,6 +454,38 @@ export const STORE_PACKS: StorePack[] = [
       ],
     },
   },
+  {
+    id: "wp_nuke_mega_50",
+    category: "weapon",
+    label: "☢️ باقة 50 نووية",
+    emoji: "☢️",
+    priceUSD: 99.99,
+    stripePriceId: "wp_nuke_mega_50",
+    tag: "خصم 15%",
+    popular: true,
+    description: "50 قنبلة نووية — خصم 15% عن السعر العادي",
+    images: [nukeImg],
+    reward: { items: [{ itemType: "weapon", itemId: "nuke", qty: 50 }] },
+  },
+  {
+    id: "wp_bomb_box_mix",
+    category: "weapon",
+    label: "📦 صندوق القنابل المنوعة",
+    emoji: "📦",
+    priceUSD: 19.99,
+    stripePriceId: "wp_bomb_box_mix",
+    tag: "جديد",
+    description: "15 صاروخ متوسط + 10 صاروخ كبير + 5 نووية + 5 قنابل إعلانية",
+    images: [nukeImg, adBombImg, rocketLargeImg],
+    reward: {
+      items: [
+        { itemType: "weapon", itemId: "rocket_medium", qty: 15 },
+        { itemType: "weapon", itemId: "rocket_large", qty: 10 },
+        { itemType: "weapon", itemId: "nuke", qty: 5 },
+        { itemType: "weapon", itemId: "ad_bomb", qty: 5 },
+      ],
+    },
+  },
 
   // ───── Crews ──────────────────────────────────────────────
   {
