@@ -772,7 +772,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               return ["all", ...types].map(t => (
                 <button key={t} onClick={() => setInvFilter(t)}
                   className={`px-2 py-0.5 rounded text-[11px] ${invFilter === t ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-                  {t === "all" ? `الكل (${invRows.length})` : `${t} (${invRows.filter(r => r.item_type === t).length})`}
+                  {t === "all" ? `الكل (${invRows.length})` : `${TYPE_LABEL_AR[t] ?? t} (${invRows.filter(r => r.item_type === t).length})`}
                 </button>
               ));
             })()}
