@@ -36,8 +36,8 @@ export const CREWS: Crew[] = [
   { id: "sailor",  name: "بحار",            emoji: "⛵", image: sailorImg, price: 600000, currency: "coins", bonus: "يقلل وقت الصيد بنسبة 50%",                              rarity: "common" },
   { id: "trader",  name: "التاجر",          emoji: "💰", image: traderImg, price: 30,     currency: "gems",  bonus: "يكشف لك أسعار السمك المستقبلية خلال 10 ساعات القادمة",    rarity: "epic" },
   { id: "police",  name: "شرطي",            emoji: "👮", image: policeImg, price: 25,     currency: "gems",  bonus: "يقبض على السارق ويحمي ذهبك",                              rarity: "rare" },
-  { id: "fixer_1", name: "مصلح صغير",       emoji: "🔧", image: fixer1Img, price: 200000,  currency: "coins", bonus: "يصلح فوراً 1,000 من دم أي سفينة",      rarity: "common" },
-  { id: "fixer_2", name: "مصلح متوسط",      emoji: "🛠️", image: fixer2Img, price: 700000,  currency: "coins", bonus: "يصلح فوراً 5,000 من دم أي سفينة",      rarity: "rare" },
-  { id: "fixer_3", name: "مصلح كبير",       emoji: "⚒️", image: fixer3Img, price: 3500000, currency: "coins", bonus: "يصلح فوراً 70,000 من دم أي سفينة",     rarity: "epic" },
-  { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 50,      currency: "gems",  bonus: "يعبّي كل سفنك الـ3 فلل فوراً (أي مستوى)", rarity: "legendary" },
+  { id: "fixer_1", name: "مصلح صغير",       emoji: "🔧", image: fixer1Img, price: 200000,  currency: "coins", bonus: "يصلح فوراً 1,000 من دم أي سفينة + حصانة من أي هجوم 60 ثانية",      rarity: "common" },
+  { id: "fixer_2", name: "مصلح متوسط",      emoji: "🛠️", image: fixer2Img, price: 700000,  currency: "coins", bonus: "يصلح فوراً 5,000 من دم أي سفينة + حصانة من أي هجوم 60 ثانية",      rarity: "rare" },
+  { id: "fixer_3", name: "مصلح كبير",       emoji: "⚒️", image: fixer3Img, price: 3500000, currency: "coins", bonus: "يصلح فوراً 70,000 من دم أي سفينة + حصانة من أي هجوم 60 ثانية",     rarity: "epic" },
+  { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 50,      currency: "gems",  bonus: "يعبّي كل سفنك الـ3 فلل فوراً + حصانة من أي هجوم 60 ثانية", rarity: "legendary" },
 ];
