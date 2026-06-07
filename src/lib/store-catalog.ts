@@ -9,7 +9,7 @@ import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
 import nukeImg from "@/assets/weapons/nuke.png";
 import adBombImg from "@/assets/weapons/ad-bomb.png";
 
-export type PackCategory = "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
+export type PackCategory = "offers" | "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
 
 export type PackInventoryItem = {
   itemType: string;
@@ -456,7 +456,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "wp_nuke_mega_50",
-    category: "weapon",
+    category: "offers",
     label: "☢️ باقة 50 نووية",
     emoji: "☢️",
     priceUSD: 25.0,
@@ -469,7 +469,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "wp_bomb_box_mix",
-    category: "weapon",
+    category: "offers",
     label: "📦 صندوق القنابل المنوعة",
     emoji: "📦",
     priceUSD: 17.99,
@@ -543,7 +543,7 @@ export const STORE_PACKS: StorePack[] = [
   },
   {
     id: "cr_mega_100",
-    category: "crew",
+    category: "offers",
     label: "👥 باقة 100 طاقم منوعة",
     emoji: "👥",
     priceUSD: 25.0,

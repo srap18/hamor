@@ -15,6 +15,7 @@ import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/s
 import { RewardPopup } from "@/components/RewardPopup";
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
+  { id: "offers", label: "عروض", emoji: "🔥" },
   { id: "bundle", label: "باقات", emoji: "🎁" },
   { id: "gems", label: "جواهر", emoji: "💎" },
   { id: "coins", label: "ذهب", emoji: "🪙" },
@@ -45,7 +46,7 @@ export function RechargePanel() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
-  const [sub, setSub] = useState<PackCategory>("bundle");
+  const [sub, setSub] = useState<PackCategory>("offers");
   const [shieldsThisWeek, setShieldsThisWeek] = useState(0);
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
@@ -159,7 +160,7 @@ export function RechargePanel() {
       <PaymentTestModeBanner />
 
       {/* Sub-tabs */}
-      <div className="px-2 pt-2 grid grid-cols-6 gap-1">
+      <div className="px-2 pt-2 grid grid-cols-7 gap-1">
         {SUB_TABS.map((t) => (
           <button
             key={t.id}

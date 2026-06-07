@@ -17,6 +17,7 @@ export const Route = createFileRoute("/pricing")({
 });
 
 const CATEGORY_LABEL: Record<PackCategory, string> = {
+  offers: "العروض",
   bundle: "الباقات",
   vip: "اشتراك VIP",
   gems: "الجواهر",
@@ -26,7 +27,7 @@ const CATEGORY_LABEL: Record<PackCategory, string> = {
   crew: "الطواقم",
 };
 
-const CATEGORIES: PackCategory[] = ["bundle", "gems", "coins", "crew", "weapon", "shield"];
+const CATEGORIES: PackCategory[] = ["offers", "bundle", "gems", "coins", "crew", "weapon", "shield"];
 
 function PricingPage() {
   return (
