@@ -611,6 +611,43 @@ function ChatPage() {
           onBlocksChanged={reloadBlocks}
         />
       )}
+      {pinEditOpen && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setPinEditOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-stone-900 border-2 border-amber-400 p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-amber-200 font-extrabold text-base flex items-center gap-2">📌 رسالة الإدارة المثبتة</div>
+            <textarea
+              value={pinDraft}
+              onChange={(e) => setPinDraft(e.target.value.slice(0, 300))}
+              rows={4}
+              placeholder="اكتب رسالتك المثبتة هنا..."
+              className="w-full p-3 rounded-xl bg-stone-950 border-2 border-amber-700/60 text-amber-50 text-sm font-bold resize-none focus:outline-none focus:border-amber-400"
+              dir="rtl"
+            />
+            <div className="text-[10px] text-amber-300/70 text-end">{pinDraft.length}/300</div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  const { error } = await (supabase as any).rpc("set_pinned_chat", { _body: pinDraft.trim() });
+                  if (error) { showNotice("تعذر الحفظ: " + error.message); return; }
+                  setPinEditOpen(false);
+                }}
+                className="flex-1 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 text-white font-black text-sm active:scale-95"
+              >💾 حفظ التثبيت</button>
+              <button
+                onClick={async () => {
+                  await (supabase as any).rpc("set_pinned_chat", { _body: "" });
+                  setPinEditOpen(false);
+                }}
+                className="px-3 py-2 rounded-xl bg-stone-800 border border-stone-600 text-stone-300 font-bold text-xs active:scale-95"
+              >مسح</button>
+              <button
+                onClick={() => setPinEditOpen(false)}
+                className="px-3 py-2 rounded-xl bg-stone-800 border border-stone-600 text-stone-300 font-bold text-xs active:scale-95"
+              >إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
