@@ -267,15 +267,6 @@ function ChatPage() {
     }
     lastSendRef.current = { body, at: now, channel: tab, target };
 
-    const row: any = { sender_id: user.id, body, channel: tab };
-    if (tab === "tribe") row.tribe_id = profile?.tribe_id;
-    if (tab === "dm") row.recipient_id = dmWith;
-    if (replyTo) {
-      row.reply_to_id = replyTo.id;
-      row.reply_to_body = replyTo.body.slice(0, 200);
-      row.reply_to_name = replyTo.name.slice(0, 60);
-    }
-
     const tempId = `tmp-${now}-${Math.random().toString(36).slice(2, 8)}`;
     const optimistic: Msg = {
       id: tempId,
@@ -294,25 +285,46 @@ function ChatPage() {
     if (!override) setText("");
     setReplyTo(null);
 
-    supabase.from("messages").insert(row).select("*").maybeSingle().then(({ data, error }) => {
+    (supabase as any).rpc("send_chat_message_safe", {
+      _channel: tab,
+      _body: body,
+      _recipient_id: tab === "dm" ? dmWith : null,
+      _tribe_id: tab === "tribe" ? (profile?.tribe_id ?? null) : null,
+      _reply_to_id: replyTo?.id ?? null,
+      _reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
+      _reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
+    }).then(({ data, error }: { data: any; error: any }) => {
+      // remove optimistic — realtime will deliver the real row if accepted
+      setMsgs(s => s.filter(x => x.id !== tempId));
       if (error) {
-        const msg = /row-level security|policy/i.test(error.message)
-          ? "أنت مكتوم حالياً من قِبل الإدارة"
-          : "تعذر الإرسال: " + error.message;
-        showNotice(msg);
-        setMsgs(s => s.filter(x => x.id !== tempId));
+        showNotice("تعذر الإرسال: " + (error.message || ""));
         setText(t => t ? t : body);
         return;
       }
-      if (data) {
-        const real = data as Msg;
-        setMsgs(s => {
-          if (s.some(x => x.id === real.id)) return s.filter(x => x.id !== tempId);
-          return s.map(x => x.id === tempId ? real : x);
-        });
+      const status = data?.status as string | undefined;
+      if (status === "warned") {
+        showNotice("⚠️ " + (data?.message || "تحذير من السب"));
+        const warnId = `warn-${now}-${Math.random().toString(36).slice(2, 6)}`;
+        setMsgs(s => [...s, {
+          id: warnId,
+          channel: tab,
+          sender_id: "__system__",
+          recipient_id: null,
+          tribe_id: null,
+          body: `⚠️ ${data?.message || "تحذير: ممنوع السب والشتم"}`,
+          created_at: new Date().toISOString(),
+        } as any]);
+        return;
+      }
+      if (status === "muted" || status === "muted_already") {
+        const msg = data?.message || data?.reason || "تم كتمك";
+        showNotice("🔇 " + msg);
+        setMyMute({ reason: data?.reason || "profanity", expires_at: data?.expires_at ?? null });
+        return;
       }
     });
   }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
+
 
 
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
