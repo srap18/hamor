@@ -496,6 +496,13 @@ function ChatPage() {
               )}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).length === 0 && <div className="text-center text-amber-100/40 text-sm py-8">لا توجد رسائل بعد — كن أول من يكتب</div>}
               {msgs.filter(m => !blockedIds.has(m.sender_id) && !blockedBy.has(m.sender_id)).map(m => {
+                if (m.sender_id === "__system__") {
+                  return (
+                    <div key={m.id} className="mx-auto max-w-[90%] px-3 py-2 rounded-xl border-2 border-red-400/80 bg-red-950/70 text-red-100 text-xs font-extrabold text-center shadow-lg animate-pulse">
+                      {m.body}
+                    </div>
+                  );
+                }
                 const p = profMap.get(m.sender_id);
                 const mine = m.sender_id === user?.id;
                 const senderName = (mine ? (profile as any)?.display_name : p?.display_name) || "مستخدم";
