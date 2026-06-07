@@ -1266,46 +1266,14 @@ function PlayerPage() {
                     const canFire = q > 0;
                     return (
                       <div key={w.id} className="flex items-stretch gap-2">
-                        <button disabled={busy || !canFire} onClick={async () => {
-                          // Pre-checks
+                        <button disabled={busy || !canFire} onClick={() => {
+                          // Pre-checks (mirror server validation)
                           const hasDestroyed = myShips.some((s) => !!s.destroyed_at);
                           const allFishing = myShips.length > 0 && myShips.every((s) => s.at_sea && !s.destroyed_at && !s.stealing_target_user_id);
                           if (hasDestroyed) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
                           if (!allFishing) { sound.play("error"); flash("🎣 لازم كل سفنك في وضع الصيد قبل الهجوم"); return; }
-                          if (!(await confirmDropArmorIfActive())) return;
-                          // Close all dialogs immediately so player sees the impact.
-                          setBusy(true);
-                          setMode(null);
-                          setSelectedShip(null);
-                          sound.play("nuke");
-                          const cx = window.innerWidth / 2;
-                          const cy = window.innerHeight / 2;
-                          setFx({ id: Date.now(), emoji: "📺", fromX: cx, fromY: cy, toX: cx, toY: cy, phase: "boom", weaponId: "ad_bomb" });
-                          setTimeout(() => setFx(null), 1600);
-                          setShake("shake-lg");
-                          setTimeout(() => setShake(""), 1500);
-                          // Fire instantly using the first ad video — no picker.
-                          const v = AD_VIDEOS[0];
-                          const { error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ error: { message: string } | null }> })
-                            .rpc("launch_ad_bomb", { _target_id: playerId, _video_key: v.key });
-                          if (error) {
-                            const m = error.message || "";
-                            setBusy(false);
-                            if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية"); return; }
-                            if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع"); return; }
-                            sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
-                          }
-                          // Decrement local inventory + scorch background + mark ships destroyed locally
-                          setInv((arr) => arr
-                            .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
-                            .filter((x) => x.quantity > 0));
-                          burnTargetBg(playerId).catch(() => {});
-                          setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
-                          const nowIso = serverNow().toISOString();
-                          setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? nowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString() })));
-                          sound.play("success");
-                          flash(`📺 تم تفجير الإعلان على ${p?.display_name || "اللاعب"}!`);
-                          setBusy(false);
+                          // Open the ad video picker
+                          setMode("ad_bomb");
                         }}
                           className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-fuchsia-900/80 to-purple-900/80 border border-fuchsia-500/40 active:scale-95 disabled:opacity-40 text-right">
                           <span className="text-3xl">{w.emoji}</span>
