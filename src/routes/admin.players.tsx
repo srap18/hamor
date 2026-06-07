@@ -721,6 +721,63 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         </div>
         <button onClick={onClose} className="w-full mt-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إغلاق</button>
 
+        {/* Inventory / مخزن اللاعب */}
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="text-sm font-semibold text-slate-300">📦 مخزن اللاعب ({invRows.length})</div>
+            <div className="flex gap-2">
+              <button onClick={reloadInventory} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs">🔄 تحديث</button>
+              <button onClick={grantItem} className="px-2 py-1 rounded bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100 text-xs font-bold">➕ إضافة عنصر</button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {(() => {
+              const types = Array.from(new Set(invRows.map(r => r.item_type)));
+              return ["all", ...types].map(t => (
+                <button key={t} onClick={() => setInvFilter(t)}
+                  className={`px-2 py-0.5 rounded text-[11px] ${invFilter === t ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+                  {t === "all" ? `الكل (${invRows.length})` : `${t} (${invRows.filter(r => r.item_type === t).length})`}
+                </button>
+              ));
+            })()}
+          </div>
+          {invRows.length === 0 ? (
+            <div className="text-xs text-slate-500 py-3 text-center">المخزن فارغ</div>
+          ) : (
+            <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+              {invRows.filter(r => invFilter === "all" || r.item_type === invFilter).map((r) => {
+                const editVal = invQtyEdits[r.id] ?? String(r.quantity);
+                const assigned = r.meta?.assigned_ship_id ? ` • مرتبط بسفينة` : "";
+                return (
+                  <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-100 truncate">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 ml-1">{r.item_type}</span>
+                        {r.item_id}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono truncate">
+                        {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editVal}
+                      onChange={(e) => setInvQtyEdits((s) => ({ ...s, [r.id]: e.target.value }))}
+                      className="w-16 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-center"
+                    />
+                    <button onClick={() => saveInvRow(r.id)}
+                      className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
+                    <button onClick={() => deleteInvRow(r.id, `${r.item_type}:${r.item_id}`)}
+                      className="px-2 py-1 rounded bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-[11px] font-bold">🗑️</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+
         {/* Anti-cheat: gold tracking */}
         <div className="mt-4 pt-4 border-t border-amber-900/50 space-y-2">
           <div className="text-sm font-semibold text-amber-300">🛡️ تتبع الذهب (مكافحة الغش)</div>
