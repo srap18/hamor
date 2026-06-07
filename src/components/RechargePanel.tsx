@@ -160,7 +160,7 @@ export function RechargePanel() {
       <PaymentTestModeBanner />
 
       {/* Sub-tabs */}
-      <div className="px-2 pt-2 grid grid-cols-6 gap-1">
+      <div className="px-2 pt-2 grid grid-cols-7 gap-1">
         {SUB_TABS.map((t) => (
           <button
             key={t.id}
