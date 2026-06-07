@@ -141,7 +141,7 @@ function buildShip(level: number): ShipDef {
       armor: 80,
       speed: 60,
       storage: d.storage,
-      repairSeconds: 36000, // 10h
+      repairSeconds: 14400, // 4h (max)
       fishingSeconds: Math.round(d.fishingMinutes * 60),
       fishPool: d.fishPool,
       flavor: d.flavor,
