@@ -546,11 +546,11 @@ export const STORE_PACKS: StorePack[] = [
     category: "crew",
     label: "👥 باقة 100 طاقم منوعة",
     emoji: "👥",
-    priceUSD: 49.99,
+    priceUSD: 44.99,
     stripePriceId: "cr_mega_100",
-    tag: "خصم 15%",
+    tag: "خصم 25%",
     popular: true,
-    description: "25 حظ + 25 سارق + 20 تاجر + 15 شرطي + 15 بحار — خصم 15%",
+    description: "25 حظ + 25 سارق + 20 تاجر + 15 شرطي + 15 بحار — خصم 25%",
     reward: {
       items: [
         { itemType: "crew", itemId: "luck", qty: 25 },
