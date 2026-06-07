@@ -4,12 +4,16 @@ import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import onepieceBg from "@/assets/bg-onepiece.jpg.asset.json";
 import onepieceBurnedBg from "@/assets/bg-onepiece-burned.jpg.asset.json";
+import eiffelBg from "@/assets/bg-eiffel.jpg.asset.json";
+import eiffelBurnedBg from "@/assets/bg-eiffel-burned.jpg.asset.json";
 import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
 import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
 import onepieceVideo from "@/assets/bg-onepiece.mp4.asset.json";
 import onepieceBurnedVideo from "@/assets/bg-onepiece-burned.mp4.asset.json";
+import eiffelVideo from "@/assets/bg-eiffel.mp4.asset.json";
+import eiffelBurnedVideo from "@/assets/bg-eiffel-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -93,6 +97,26 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...EIFFEL_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.6%", duration: "8s" },
+  },
+  {
+    id: "eiffel",
+    name: "برج إيفل ✨",
+    burnedName: "برج إيفل المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: eiffelBg.url,
+    burnedImage: eiffelBurnedBg.url,
+    video: eiffelVideo.url,
+    burnedVideo: eiffelBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1, x: "0%", y: "0%", duration: "10s" },
   },
   {
     id: "crystal_kingdom",
