@@ -459,7 +459,7 @@ export const STORE_PACKS: StorePack[] = [
     category: "weapon",
     label: "☢️ باقة 50 نووية",
     emoji: "☢️",
-    priceUSD: 49.99,
+    priceUSD: 25.0,
     stripePriceId: "wp_nuke_mega_50",
     tag: "خصم ضخم",
     popular: true,
