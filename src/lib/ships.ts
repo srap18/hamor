@@ -141,7 +141,7 @@ function buildShip(level: number): ShipDef {
       armor: 80,
       speed: 60,
       storage: d.storage,
-      repairSeconds: 36000, // 10h
+      repairSeconds: 14400, // 4h (max)
       fishingSeconds: Math.round(d.fishingMinutes * 60),
       fishPool: d.fishPool,
       flavor: d.flavor,
@@ -164,7 +164,7 @@ function buildShip(level: number): ShipDef {
       armor: 150,
       speed: 90,
       storage: d.storage,
-      repairSeconds: 86400, // 24h
+      repairSeconds: 14400, // 4h (max)
       fishingSeconds: Math.round(d.fishingMinutes * 60),
       fishPool: d.fishPool,
       flavor: d.flavor,
@@ -174,16 +174,9 @@ function buildShip(level: number): ShipDef {
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
   const speed = 9 + Math.floor((level - 1) * 1.4);
-  // التقسيم المتدرّج لمدة إصلاح السفينة المدمَّرة (نفس صيغة قاعدة البيانات)
-  //  L1..10  : 1h  → 5h
-  //  L11..20 : 5h  → 10h
-  //  L21..25 : 11h → 20h
-  //  L26..30 : 21h → 24h
-  let repairSeconds: number;
-  if (level <= 10) repairSeconds = Math.round(3600  + (level - 1)  * (18000 - 3600)  / 9);
-  else if (level <= 20) repairSeconds = Math.round(18000 + (level - 11) * (36000 - 18000) / 9);
-  else if (level <= 25) repairSeconds = Math.round(39600 + (level - 21) * (72000 - 39600) / 4);
-  else repairSeconds = Math.round(75600 + (level - 26) * (86400 - 75600) / 4);
+  // مدة إصلاح السفينة المدمَّرة (مطابقة لصيغة قاعدة البيانات):
+  // تدرّج خطي من دقيقة واحدة (L1) إلى 4 ساعات (L30).
+  const repairSeconds = Math.round(60 + (Math.min(30, Math.max(1, level)) - 1) * (14400 - 60) / 29);
   const fishingSeconds = Math.round(d.fishingMinutes * 60);
   return {
     code: `ship-lvl-${level}`,
