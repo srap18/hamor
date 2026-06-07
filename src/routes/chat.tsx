@@ -116,7 +116,21 @@ function ChatPage() {
       });
   }, [user]);
 
-  const reloadBlocks = useCallback(async () => {
+  // Pinned admin message — live
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await (supabase as any).from("chat_pinned").select("body,pinned_at").eq("id", true).maybeSingle();
+      if (data && data.body) setPinned({ body: data.body, pinned_at: data.pinned_at });
+      else setPinned(null);
+    };
+    load();
+    const ch = supabase.channel("chat_pinned_live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_pinned" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
+
     if (!user) return;
     const [a, b] = await Promise.all([
       supabase.from("user_blocks").select("blocked_id").eq("blocker_id", user.id),
