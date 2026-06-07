@@ -131,6 +131,7 @@ function ChatPage() {
   }, []);
 
 
+  const reloadBlocks = useCallback(async () => {
     if (!user) return;
     const [a, b] = await Promise.all([
       supabase.from("user_blocks").select("blocked_id").eq("blocker_id", user.id),
