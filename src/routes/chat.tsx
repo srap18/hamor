@@ -81,6 +81,9 @@ function ChatPage() {
   const [blockedBy, setBlockedBy] = useState<Set<string>>(new Set()); // people who blocked me
   const [myMute, setMyMute] = useState<{ reason: string; expires_at: string | null } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; body: string; name: string } | null>(null);
+  const [pinned, setPinned] = useState<{ body: string; pinned_at: string } | null>(null);
+  const [pinEditOpen, setPinEditOpen] = useState(false);
+  const [pinDraft, setPinDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Pause background music while on the chat screen, resume on leave
