@@ -486,6 +486,19 @@ export const STORE_PACKS: StorePack[] = [
       ],
     },
   },
+  {
+    id: "wp_ad_bomb_15",
+    category: "offers",
+    label: "📺 15 قنبلة إعلانية",
+    emoji: "📺",
+    priceUSD: 10.0,
+    stripePriceId: "wp_ad_bomb_15",
+    tag: "خصم ضخم",
+    popular: true,
+    description: "15 قنبلة إعلانية بسعر $10 فقط — أفضل عرض",
+    images: [adBombImg],
+    reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 15 }] },
+  },
 
   // ───── Crews ──────────────────────────────────────────────
   {
