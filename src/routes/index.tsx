@@ -1941,6 +1941,28 @@ function Index() {
           crewBusyRef.current = true;
           setCrewBusy(true);
           try {
+          // Golden Fisher: premium recharge crew — activates 24h auto-fishing + full protection on the whole account.
+          if (itemId === "golden_fisher") {
+            try {
+              const res = await activateGoldenFisher({ data: {} });
+              sound.play("success");
+              setToast(`🏅 تم تفعيل الصياد الذهبي 24 ساعة — صيد تلقائي + حصانة كاملة`);
+              setModal(null);
+              refreshProfile();
+              reloadCrews();
+              setCrewTick((t) => t + 1);
+              void res;
+            } catch (e: any) {
+              sound.play("error");
+              const msg = e?.message ?? "خطأ";
+              setToast(
+                /no_golden_fisher/i.test(msg)
+                  ? "لا تملك طاقم صياد ذهبي — اشترِ من الشحن"
+                  : `❌ فشل التفعيل: ${msg}`,
+              );
+            }
+            return;
+          }
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
           if (itemId.startsWith("fixer_")) {
