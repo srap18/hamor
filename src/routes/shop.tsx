@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyProtection } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
@@ -135,6 +135,7 @@ function Shop() {
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
   const [pop, setPop] = useState<string | null>(null);
 
   const flash = (m: string, ms = 1500) => { setPop(m); setTimeout(() => setPop(null), ms); };
@@ -152,7 +153,7 @@ function Shop() {
   };
 
   const buy = async () => {
-    if (!selected || busy) return;
+    if (!selected || busy || busyRef.current) return;
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     const total = selected.price * qty;
     if (selected.currency === "gem" && gems < total) { flash("لا تملك جواهر كافيه"); return; }
@@ -165,7 +166,9 @@ function Shop() {
       useGemFallback = true;
     }
 
+    busyRef.current = true;
     setBusy(true);
+    try {
 
     if (tab === "protection") {
       // Server-side: deduct currency AND extend protection_until atomically.
@@ -223,6 +226,10 @@ function Shop() {
       count: qty,
     });
     refreshProfile();
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
 
@@ -377,9 +384,10 @@ function Shop() {
 
             <button
               onClick={buy}
-              className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95"
+              disabled={busy}
+              className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
             >
-              شراء
+              {busy ? "..." : "شراء"}
             </button>
           </div>
         </div>
