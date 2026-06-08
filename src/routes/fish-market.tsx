@@ -165,6 +165,13 @@ function FishMarket() {
   const [traderPrice, setTraderPrice] = useState(30);
   useEffect(() => {
     if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); setOwnedTraderQty(0); return; }
+    const cacheKey = `fish-market:trader:${user.id}`;
+    const cached = getCached<TraderCache>(cacheKey);
+    if (cached) {
+      setTraderCrewUntil(cached.until);
+      setTraderCrewActive(cached.active);
+      setOwnedTraderQty(cached.owned);
+    }
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
@@ -185,9 +192,11 @@ function FishMarket() {
           if (bestExp == null || exp > bestExp) bestExp = exp;
         }
       }
-      setOwnedTraderQty(owned);
-      setTraderCrewActive(active);
-      setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
+      const next = { until: bestExp != null ? new Date(bestExp).toISOString() : null, active, owned };
+      setOwnedTraderQty(next.owned);
+      setTraderCrewActive(next.active);
+      setTraderCrewUntil(next.until);
+      setCached(cacheKey, next);
     };
     load();
     const ch = supabase
