@@ -254,26 +254,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
         `}} />
       </head>
       <body>
-        {/* Splash injected outside React tree via inline script to avoid hydration mismatch.
-            It paints on the very first frame (no white flash) and is removed by RootComponent
-            once React has mounted — keeping React's reconciler completely unaware of it. */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function(){
-            try{
-              if(document.getElementById('app-splash'))return;
-              var d=document.createElement('div');
-              d.id='app-splash';
-              d.setAttribute('aria-hidden','true');
-              d.innerHTML='<div class="splash-logo">ملوك القراصنة</div><div class="splash-ring"></div>';
-              // Insert as the very first child of body so it covers everything.
-              if(document.body.firstChild){document.body.insertBefore(d,document.body.firstChild);}
-              else{document.body.appendChild(d);}
-              var hidden=false;
-              window.__hideSplash=function(){if(hidden)return;hidden=true;d.classList.add('hide');setTimeout(function(){d&&d.parentNode&&d.parentNode.removeChild(d)},350)};
-              setTimeout(window.__hideSplash,4000);
-            }catch(e){}
-          })();
-        `}} />
         {children}
         <Scripts />
       </body>
