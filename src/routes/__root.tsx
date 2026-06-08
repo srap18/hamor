@@ -264,18 +264,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashMounted, setSplashMounted] = useState(true);
 
   useEffect(() => {
     loadEconomyOverrides();
   }, []);
 
-  // Warm up the main tabs once the app is interactive — first tap on any
-  // bottom-nav tab is then instant (code + data already in memory).
-  // Hide splash screen as soon as React is mounted and one frame has rendered.
+  // Hide splash after the first paint (two rAFs ensures the app has rendered).
   useEffect(() => {
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        try { (window as any).__hideSplash?.(); } catch {}
+        setSplashVisible(false);
+        // Remove from DOM after fade-out transition.
+        setTimeout(() => setSplashMounted(false), 400);
       });
     });
     return () => cancelAnimationFrame(id);
@@ -313,8 +315,6 @@ function RootComponent() {
     };
   }, []);
 
-  
-
   return (
     <QueryClientProvider client={queryClient}>
       <AdminLayoutEditorProvider>
@@ -327,6 +327,12 @@ function RootComponent() {
           <AdminEditToggle />
           <Toaster position="top-center" richColors />
         </MobileFrame>
+        {splashMounted && (
+          <div id="app-splash" aria-hidden="true" className={splashVisible ? "" : "hide"}>
+            <div className="splash-logo">ملوك القراصنة</div>
+            <div className="splash-ring"></div>
+          </div>
+        )}
       </AdminLayoutEditorProvider>
     </QueryClientProvider>
   );
