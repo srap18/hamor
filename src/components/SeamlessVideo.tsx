@@ -132,19 +132,23 @@ export function SeamlessVideo({
   }, [src, playbackRate, lite]);
 
   if (lite) {
-    return poster ? (
-      <img
-        src={poster}
-        alt=""
-        aria-hidden
+    // Single looping video — no crossfade, no rAF tick, no second decoder.
+    return (
+      <video
+        src={src}
+        poster={poster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
         className={className}
-        draggable={false}
-        loading="eager"
-        decoding="async"
         style={style}
       />
-    ) : null;
+    );
   }
+
+
 
 
   return (
