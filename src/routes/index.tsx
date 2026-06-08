@@ -1135,15 +1135,8 @@ function Index() {
       return;
     }
 
-    // Block stopping/collecting when fish market is full — would lose fish.
-    if (s.fishing && user?.id) {
-      const { data: remaining } = await (supabase as any).rpc("user_market_remaining", { _uid: user.id });
-      if (typeof remaining === "number" && remaining <= 0) {
-        showToast("⚠️ سوق السمك ممتلئ — بِع السمك أولاً قبل إيقاف السفينة");
-        sound.play("error");
-        return;
-      }
-    }
+    // Note: server-side collect_fishing_reward already caps by user_market_remaining,
+    // so no pre-check is needed — drops a network roundtrip for instant response.
 
     // Guard against double-tap that would race the RPC and produce "not_fishing".
     if (collectingRef.current[s.dbId]) return;
@@ -1152,7 +1145,9 @@ function Index() {
     // Optimistic: dock the ship instantly so stopping/collecting feels immediate.
     setSeaOverride(s.dbId, false);
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
+    sound.play("whoosh");
 
+    // Fire clock sync in background (do not block the reward RPC).
     if (!isServerClockSynced()) {
       syncServerTime(true).catch(() => {});
     }
