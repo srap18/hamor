@@ -2307,22 +2307,18 @@ function Index() {
                                       ? "⚠️ ممتلئ"
                                       : "تفعيل"}
                         </button>
-                      ) : cid === "golden_fisher" ? (
-                        <Link
-                          to="/shop"
-                          className="text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
-                        >
-                          <span>💳 الشحن</span>
-                          <span className="text-[9px]">2 بـ $20</span>
-                        </Link>
                       ) : (
                         <button
                           onClick={buyCrew}
                           disabled={!canAfford || isBuying}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight ${
-                            canAfford && !isBuying
-                              ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white border border-amber-300"
-                              : "bg-secondary/40 text-accent/50"
+                            cid === "golden_fisher"
+                              ? (canAfford && !isBuying
+                                  ? "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
+                                  : "bg-amber-900/40 text-amber-200/60 border border-amber-700/40")
+                              : canAfford && !isBuying
+                                ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white border border-amber-300"
+                                : "bg-secondary/40 text-accent/50"
                           }`}
                         >
                           <span>{isBuying ? "..." : "شراء"}</span>
