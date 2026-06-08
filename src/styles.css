@@ -639,16 +639,11 @@ body.paddle-checkout-open .paddle-frame {
   overflow-y: hidden;
 }
 
-/* On very small screens (<360px) scale the UI down slightly so nothing
-   clips horizontally, while staying readable (min 0.85). transform-origin
-   top-center keeps the layout centered. Pure transform → GPU, no reflow. */
+/* On very small screens (<360px) scale down the root font-size so rem-based
+   sizing shrinks proportionally without using `transform` (which would break
+   position:fixed overlays like modals and Paddle checkout). Min ~0.85x. */
 @media (max-width: 359px) {
-  .mobile-frame-screen {
-    transform: scale(clamp(0.85, calc(100vw / 360), 1));
-    transform-origin: top center;
-    width: calc(100% / clamp(0.85, calc(100vw / 360), 1));
-    height: calc(100% / clamp(0.85, calc(100vw / 360), 1));
-  }
+  html { font-size: clamp(13.6px, calc(16px * 100vw / 360), 16px); }
 }
 
 .mobile-frame-notch { display: none; }
