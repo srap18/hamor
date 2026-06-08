@@ -240,14 +240,18 @@ function RootComponent() {
     };
   }, []);
 
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   return (
     <QueryClientProvider client={queryClient}>
       <AdminLayoutEditorProvider>
         <MobileFrame>
           <GlobalBanner />
           <LastAttackTicker />
-          
-          <Outlet />
+
+          <div key={pathname} className="animate-fade-in contents">
+            <Outlet />
+          </div>
           <AdminEditToggle />
           <Toaster position="top-center" richColors />
         </MobileFrame>
