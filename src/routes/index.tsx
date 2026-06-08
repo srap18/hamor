@@ -15,6 +15,7 @@ import {
   buyWithGems,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
+import { useSwrCache } from "@/lib/swr-cache";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
