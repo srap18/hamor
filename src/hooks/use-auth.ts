@@ -164,6 +164,32 @@ export function refreshProfile() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event("profile:refresh"));
 }
 
+/**
+ * Optimistically apply a delta to the cached profile (coins/gems/rubies/xp).
+ * Returns a rollback function that restores the previous values.
+ * Realtime UPDATE from the server reconciles to the authoritative value after.
+ */
+export function applyOptimisticProfileDelta(
+  delta: Partial<Pick<Profile, "coins" | "gems" | "rubies" | "xp">>,
+): () => void {
+  if (!profileCache) return () => {};
+  const prev: Partial<Profile> = {};
+  const next = { ...profileCache } as Profile;
+  for (const k of Object.keys(delta) as Array<keyof typeof delta>) {
+    const d = delta[k];
+    if (typeof d !== "number" || !d) continue;
+    (prev as any)[k] = (profileCache as any)[k];
+    (next as any)[k] = Math.max(0, ((profileCache as any)[k] ?? 0) + d);
+  }
+  profileCache = next;
+  notifyProfile();
+  return () => {
+    if (!profileCache) return;
+    profileCache = { ...profileCache, ...prev } as Profile;
+    notifyProfile();
+  };
+}
+
 // Listen to the legacy event in case any code still dispatches it
 if (typeof window !== "undefined") {
   window.addEventListener("profile:refresh", () => {
