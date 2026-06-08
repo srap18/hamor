@@ -31,6 +31,7 @@ function InventoryPage() {
   const [ships, setShips] = useState<OwnedShip[]>([]);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
   const [usingCrew, setUsingCrew] = useState<string | null>(null);
+  const usingCrewRef = useRef(false);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
