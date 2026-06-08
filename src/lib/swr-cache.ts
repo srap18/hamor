@@ -90,7 +90,7 @@ export function useSwrCache<T>(
     const p = (async () => {
       try {
         const data = await fetcherRef.current();
-        cache.set(key, { data, ts: Date.now() });
+        cache.set(key, { data, ts: Date.now(), fetcher: fetcherRef.current as Fetcher, staleMs });
         notify(key);
         return data;
       } catch (e) {
@@ -99,15 +99,19 @@ export function useSwrCache<T>(
         throw e;
       }
     })();
-    cache.set(key, { ...(existing ?? { data: undefined, ts: 0 }), promise: p });
+    cache.set(key, { ...(existing ?? { data: undefined, ts: 0 }), promise: p, fetcher: fetcherRef.current as Fetcher, staleMs });
     return p;
   };
 
   useEffect(() => {
     if (!key) return;
     const entry = cache.get(key) as Entry<T> | undefined;
+    // Always keep latest fetcher reference for background revalidation
+    if (entry) cache.set(key, { ...entry, fetcher: fetcherRef.current as Fetcher, staleMs });
     const fresh = entry && Date.now() - entry.ts < staleMs;
-    if (!fresh) { refetch().catch(() => {}); }
+    // Background-throttle: skip auto-refetch while the tab is hidden.
+    // It will run automatically when the tab becomes visible again.
+    if (!fresh && isDocumentVisible()) { refetch().catch(() => {}); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
