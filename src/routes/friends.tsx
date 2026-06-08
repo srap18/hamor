@@ -121,8 +121,9 @@ function FriendsPage() {
 
         <section>
           <div className="text-sm font-bold text-amber-300 mb-1">متصلين الآن ({online.length})</div>
-          <div className="space-y-1">{online.map(p => <Row key={p.id} p={p} action={<span className="w-2 h-2 rounded-full bg-emerald-400" />} />)}</div>
+          <div className="space-y-1 cv-auto">{online.map(p => <Row key={p.id} p={p} action={<span className="w-2 h-2 rounded-full bg-emerald-400" />} />)}</div>
         </section>
+
 
         <section>
           <div className="text-sm font-bold text-amber-300 mb-1">أصدقائي ({friends.length})</div>
