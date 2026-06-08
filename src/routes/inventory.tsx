@@ -7,6 +7,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
 import { SHIPS } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
   head: () => ({
