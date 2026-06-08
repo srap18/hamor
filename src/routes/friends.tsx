@@ -20,30 +20,32 @@ function FriendsPage() {
   const [online, setOnline] = useState<P[]>([]);
   const [friends, setFriends] = useState<(F & { profile: P })[]>([]);
   const [requests, setRequests] = useState<(F & { profile: P })[]>([]);
+  const [blocked, setBlocked] = useState<P[]>([]);
 
   const reload = async () => {
     if (!user) return;
     const fiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
-    // Fire both queries in parallel instead of sequentially.
-    const [{ data: on }, { data: f }] = await Promise.all([
+    const [{ data: on }, { data: f }, { data: bl }] = await Promise.all([
       supabase.from("profiles").select("*").gte("online_at", fiveMin).neq("id", user.id).limit(20),
       supabase.from("friends").select("*").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
+      (supabase as any).from("user_blocks").select("blocked_id").eq("blocker_id", user.id),
     ]);
     setOnline((on || []) as P[]);
     const all = (f || []) as F[];
     const ids = new Set<string>();
     all.forEach(x => { ids.add(x.requester_id); ids.add(x.addressee_id); });
     ids.delete(user.id);
+    const blockedIds = ((bl as any[]) || []).map(r => r.blocked_id as string);
+    blockedIds.forEach(id => ids.add(id));
     const { data: profs } = ids.size ? await supabase.from("profiles").select("*").in("id", Array.from(ids)) : { data: [] as P[] };
     const pMap = new Map((profs || []).map((p: any) => [p.id, p as P]));
     setFriends(all.filter(x => x.status === "accepted").map(x => ({ ...x, profile: pMap.get(x.requester_id === user.id ? x.addressee_id : x.requester_id)! })).filter(x => x.profile));
     setRequests(all.filter(x => x.status === "pending" && x.addressee_id === user.id).map(x => ({ ...x, profile: pMap.get(x.requester_id)! })).filter(x => x.profile));
+    setBlocked(blockedIds.map(id => pMap.get(id)).filter(Boolean) as P[]);
   };
   useEffect(() => {
     if (!user) return;
     reload();
-    // Live updates: re-pull when any friend row touches me, so accepted/rejected
-    // requests appear instantly instead of after a manual refresh.
     const ch = supabase
       .channel(`friends-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "friends", filter: `requester_id=eq.${user.id}` }, () => reload())
@@ -51,6 +53,13 @@ function FriendsPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user]);
+
+  const unblock = async (uid: string) => {
+    if (!user) return;
+    if (!confirm("إلغاء حظر هذا اللاعب؟")) return;
+    await (supabase as any).from("user_blocks").delete().eq("blocker_id", user.id).eq("blocked_id", uid);
+    reload();
+  };
 
   const search = async () => {
     if (!q.trim()) return;
