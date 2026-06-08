@@ -8,7 +8,6 @@ import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
-import { sellFish } from "@/lib/economy";
 import { getCached, setCached } from "@/lib/swr-cache";
 
 export const Route = createFileRoute("/fish-market")({
