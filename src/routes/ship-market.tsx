@@ -9,6 +9,7 @@ import { FISH } from "@/lib/fish";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { MyShipsModal } from "@/components/MyShipsModal";
+import { getCached, setCached } from "@/lib/swr-cache";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
 import iconFishing from "@/assets/icons/icon-fishing.png";
@@ -50,6 +51,8 @@ type OwnedShip = {
   max_hp: number;
   in_storage: boolean;
 };
+
+type ShipMarketCache = { market: MarketState; owned: OwnedShip[] };
 
 
 
@@ -96,24 +99,33 @@ function ShipyardPage() {
     (showToast as typeof showToast & { t?: number }).t = window.setTimeout(() => setToast(null), 1800);
   };
 
-  const loadData = async () => {
+  const loadData = async (showSpinner = true) => {
     if (!user) return;
-    setLoading(true);
+    const cacheKey = `ship-market:${user.id}`;
+    if (showSpinner && !getCached<ShipMarketCache>(cacheKey)) setLoading(true);
     await supabase.rpc("finalize_market_upgrades");
     const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
       supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
       supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
     ]);
     const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
+    const ownedNext = (ownedRows as OwnedShip[] | null) ?? [];
     setMarket(mr);
     try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
-    setOwned((ownedRows as OwnedShip[] | null) ?? []);
+    setOwned(ownedNext);
+    setCached(cacheKey, { market: mr, owned: ownedNext });
     setLoading(false);
   };
 
   useEffect(() => {
     if (!user) return;
-    loadData();
+    const cached = getCached<ShipMarketCache>(`ship-market:${user.id}`);
+    if (cached) {
+      setMarket(cached.market);
+      setOwned(cached.owned);
+      setLoading(false);
+    }
+    loadData(!cached);
   }, [user]);
 
   useEffect(() => {
