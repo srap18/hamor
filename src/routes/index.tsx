@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
 import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -962,11 +962,13 @@ function Index() {
 
 
   // Progress + sail animation ticker — strictly time-proportional.
+  // Keep this at 1Hz so fishing countdowns don't force every ship to re-render constantly.
   useEffect(() => {
     const id = setInterval(() => {
       const now = serverNowMs();
-      setShips((curr) =>
-        curr.map((s) => {
+      setShips((curr) => {
+        let changed = false;
+        const next = curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
           // Unified speed — same easing coefficient for going out (fishing)
@@ -974,20 +976,30 @@ function Index() {
           const smoothing = 0.45; // snappier ship response
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
-            return { ...s, sail };
+            const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+            if (Math.abs(roundedSail - s.sail) < 0.001) return s;
+            changed = true;
+            return { ...s, sail: roundedSail };
           }
           if (s.dbId && !isServerClockSynced()) {
-            return { ...s, sail, progress: 0, timeLeft: s.duration };
+            const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+            if (Math.abs(roundedSail - s.sail) < 0.001 && s.progress === 0 && s.timeLeft === s.duration) return s;
+            changed = true;
+            return { ...s, sail: roundedSail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
-          const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
-          return { ...s, sail, progress, timeLeft };
-        })
-      );
-    }, 100);
+          const timeLeft = Math.ceil(Math.max(0, (s.duration - elapsed) / sailorMult));
+          const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+          if (Math.abs(roundedSail - s.sail) < 0.001 && progress === s.progress && timeLeft === s.timeLeft) return s;
+          changed = true;
+          return { ...s, sail: roundedSail, progress, timeLeft };
+        });
+        return changed ? next : curr;
+      });
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -3192,7 +3204,8 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
   );
 }
 
-function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
+function ShipSlotBase({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
+  const [displayTimeLeft, setDisplayTimeLeft] = useState(() => Math.ceil(ship.timeLeft));
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
@@ -3206,6 +3219,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const moving = Math.abs(v) > 0.0005;
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
+  useEffect(() => {
+    setDisplayTimeLeft(Math.ceil(ship.timeLeft));
+    if (!ship.fishing || ship.timeLeft <= 0) return;
+    const id = setInterval(() => {
+      setDisplayTimeLeft((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [ship.fishing, ship.startedAt, ship.timeLeft]);
   // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
   // Fishing → bow points toward the sea edge of the scene; docked → toward shore.
   const _seaSideForFacing = ship.seaSide ?? "right";
@@ -3219,9 +3240,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const hrs = Math.floor(ship.timeLeft / 3600);
-  const mins = Math.floor((ship.timeLeft % 3600) / 60);
-  const secs = Math.floor(ship.timeLeft % 60);
+  const hrs = Math.floor(displayTimeLeft / 3600);
+  const mins = Math.floor((displayTimeLeft % 3600) / 60);
+  const secs = Math.floor(displayTimeLeft % 60);
   const timeStr = hrs > 0
     ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
     : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
@@ -3642,6 +3663,38 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
     </div>
   );
 }
+
+const ShipSlot = memo(ShipSlotBase, (prev, next) => {
+  const a = prev.ship;
+  const b = next.ship;
+  const prevCrews = prev.crews ?? [];
+  const nextCrews = next.crews ?? [];
+  if (prev.active !== next.active || prevCrews.length !== nextCrews.length) return false;
+  for (let i = 0; i < prevCrews.length; i += 1) {
+    if (prevCrews[i]?.id !== nextCrews[i]?.id) return false;
+  }
+  return a.id === b.id
+    && a.dbId === b.dbId
+    && a.img === b.img
+    && a.progress === b.progress
+    && a.max === b.max
+    && a.timeLeft === b.timeLeft
+    && a.duration === b.duration
+    && a.startedAt === b.startedAt
+    && a.scale === b.scale
+    && a.top === b.top
+    && a.dockLeft === b.dockLeft
+    && a.fishing === b.fishing
+    && a.sail === b.sail
+    && a.level === b.level
+    && a.hp === b.hp
+    && a.maxHp === b.maxHp
+    && a.destroyedAt === b.destroyedAt
+    && a.repairEndsAt === b.repairEndsAt
+    && a.stealingEndsAt === b.stealingEndsAt
+    && a.stealingTargetUserId === b.stealingTargetUserId
+    && a.seaSide === b.seaSide;
+});
 
 function Hotspot({
   to,
