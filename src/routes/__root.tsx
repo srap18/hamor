@@ -189,9 +189,34 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: `
+          #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;background:radial-gradient(ellipse at center,#0d3a5c 0%,#061826 60%,#020a13 100%);transition:opacity .5s ease-out;will-change:opacity;backface-visibility:hidden;transform:translateZ(0)}
+          #app-splash.hide{opacity:0;pointer-events:none}
+          #app-splash .splash-logo{font-family:'Cairo','Tajawal',system-ui,sans-serif;font-weight:900;font-size:clamp(28px,7vw,44px);letter-spacing:.02em;text-align:center;background:linear-gradient(180deg,#ffe9a8 0%,#f5c45e 45%,#b8841f 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 8px rgba(245,196,94,.35)) drop-shadow(0 0 24px rgba(245,196,94,.2));text-shadow:0 1px 0 rgba(0,0,0,.3)}
+          #app-splash .splash-sub{font-family:'Cairo','Tajawal',system-ui,sans-serif;color:#9bb8d4;font-size:13px;letter-spacing:.15em;opacity:.7}
+          #app-splash .splash-ring{width:42px;height:42px;border-radius:50%;border:2px solid rgba(245,196,94,.18);border-top-color:#f5c45e;animation:splash-spin .9s linear infinite;will-change:transform}
+          @keyframes splash-spin{to{transform:rotate(360deg)}}
+          @media (prefers-reduced-motion:reduce){#app-splash .splash-ring{animation-duration:2s}}
+        `}} />
       </head>
       <body>
+        <div id="app-splash" aria-hidden="true">
+          <div className="splash-logo">ملوك القراصنة</div>
+          <div className="splash-ring" />
+          <div className="splash-sub">جارٍ الإبحار…</div>
+        </div>
         {children}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var s=document.getElementById('app-splash');if(!s)return;
+            var hidden=false;
+            function hide(){if(hidden)return;hidden=true;s.classList.add('hide');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s)},600)}
+            window.__hideSplash=hide;
+            function ready(){if(document.readyState==='complete'){setTimeout(hide,120)}else{window.addEventListener('load',function(){setTimeout(hide,120)},{once:true})}}
+            ready();
+            setTimeout(hide,4500);
+          })();
+        `}} />
         <Scripts />
       </body>
     </html>
@@ -208,6 +233,16 @@ function RootComponent() {
 
   // Warm up the main tabs once the app is interactive — first tap on any
   // bottom-nav tab is then instant (code + data already in memory).
+  // Hide splash screen as soon as React is mounted and one frame has rendered.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try { (window as any).__hideSplash?.(); } catch {}
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   useEffect(() => {
     const idle = (cb: () => void) =>
       (window as any).requestIdleCallback
