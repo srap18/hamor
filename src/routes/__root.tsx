@@ -254,22 +254,27 @@ function RootShell({ children }: { children: React.ReactNode }) {
         `}} />
       </head>
       <body>
-        {/* SSR-rendered splash so it paints on the very first frame — no white flash. */}
-        <div id="app-splash" aria-hidden="true">
-          <div className="splash-logo">ملوك القراصنة</div>
-          <div className="splash-ring"></div>
-        </div>
-        {children}
+        {/* Splash injected outside React tree via inline script to avoid hydration mismatch.
+            It paints on the very first frame (no white flash) and is removed by RootComponent
+            once React has mounted — keeping React's reconciler completely unaware of it. */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            var s=document.getElementById('app-splash');if(!s)return;
-            var hidden=false;
-            function hide(){if(hidden)return;hidden=true;s.classList.add('hide');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s)},350)}
-            window.__hideSplash=hide;
-            // Safety timeout in case React never mounts (max 4s)
-            setTimeout(hide,4000);
+            try{
+              if(document.getElementById('app-splash'))return;
+              var d=document.createElement('div');
+              d.id='app-splash';
+              d.setAttribute('aria-hidden','true');
+              d.innerHTML='<div class="splash-logo">ملوك القراصنة</div><div class="splash-ring"></div>';
+              // Insert as the very first child of body so it covers everything.
+              if(document.body.firstChild){document.body.insertBefore(d,document.body.firstChild);}
+              else{document.body.appendChild(d);}
+              var hidden=false;
+              window.__hideSplash=function(){if(hidden)return;hidden=true;d.classList.add('hide');setTimeout(function(){d&&d.parentNode&&d.parentNode.removeChild(d)},350)};
+              setTimeout(window.__hideSplash,4000);
+            }catch(e){}
           })();
         `}} />
+        {children}
         <Scripts />
       </body>
     </html>
