@@ -48,7 +48,55 @@ if (typeof window !== "undefined") {
     // Double-tap zoom is already disabled via the viewport meta
     // (maximum-scale=1, user-scalable=no) — no touchend handler needed.
   } catch {}
+
+  // Auto-recovery: if a dynamic chunk fails to load (network blip, tab was
+  // backgrounded for a long time and the deployed bundle changed), reload
+  // the page once instead of leaving the app stuck on a blank/frozen screen.
+  try {
+    const RELOAD_KEY = "__chunk_reload_at";
+    const isChunkError = (msg: string) =>
+      /Failed to fetch dynamically imported module/i.test(msg) ||
+      /Importing a module script failed/i.test(msg) ||
+      /ChunkLoadError/i.test(msg) ||
+      /Loading chunk \d+ failed/i.test(msg) ||
+      /error loading dynamically imported module/i.test(msg);
+
+    const tryReload = () => {
+      try {
+        const last = Number(sessionStorage.getItem(RELOAD_KEY) || "0");
+        // Throttle to avoid infinite reload loops (max once per 10s)
+        if (Date.now() - last < 10_000) return;
+        sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+      } catch {}
+      window.location.reload();
+    };
+
+    window.addEventListener("error", (e) => {
+      const msg = (e?.message || (e?.error && (e.error.message || String(e.error))) || "") + "";
+      if (isChunkError(msg)) tryReload();
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      const reason: any = e?.reason;
+      const msg = (reason && (reason.message || String(reason))) || "";
+      if (isChunkError(msg)) tryReload();
+    });
+
+    // When the tab comes back online or becomes visible after a long offline,
+    // ping the network. If the app is in a broken state, the next failed
+    // dynamic import will trigger the recovery above.
+    let wasOffline = !navigator.onLine;
+    window.addEventListener("offline", () => { wasOffline = true; });
+    window.addEventListener("online", () => {
+      if (wasOffline) {
+        wasOffline = false;
+        // Soft re-sync; if any pending dynamic import was stuck, the next
+        // navigation will retry naturally.
+        try { syncServerTime(true); } catch {}
+      }
+    });
+  } catch {}
 }
+
 
 import appCss from "../styles.css?url";
 
