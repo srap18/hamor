@@ -2220,7 +2220,7 @@ function Index() {
 
 
               <button
-                className="mt-3 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
+                className="mt-3 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95 relative z-[60]"
                 onClick={() => setModal(null)}
               >إغلاق</button>
             </div>
