@@ -36,13 +36,13 @@ async function withOptimistic<T>(
 
 export async function buyWithGems(itemId: string, itemType: string, gemsCost: number, meta?: unknown, count: number = 1) {
   return withOptimistic({ gems: -Math.abs(gemsCost) }, () =>
-    supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never, _count: count } as never) as Promise<RpcResult>,
+    supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never, _count: count } as never) as unknown as Promise<RpcResult>,
   );
 }
 
 export async function buyWithCoins(itemId: string, itemType: string, coinsCost: number, meta?: unknown, count: number = 1) {
   return withOptimistic({ coins: -Math.abs(coinsCost) }, () =>
-    supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never) as Promise<RpcResult>,
+    supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never) as unknown as Promise<RpcResult>,
   );
 }
 
@@ -56,7 +56,7 @@ export async function buyWithCoinsGemFallback(itemId: string, itemType: string, 
 
 export async function buyProtection(days: number, coinsCost: number, gemsCost: number) {
   return withOptimistic({ coins: -Math.abs(coinsCost), gems: -Math.abs(gemsCost) }, () =>
-    supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost }) as Promise<RpcResult>,
+    supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
   );
 }
 
@@ -66,19 +66,19 @@ export async function buyShipRpc(templateId: number) {
 
 export async function repairShipInstant(shipId: string, gemsCost: number) {
   return withOptimistic({ gems: -Math.abs(gemsCost) }, () =>
-    supabase.rpc("repair_ship_instant", { _ship_id: shipId, _gems_cost: gemsCost }) as Promise<RpcResult>,
+    supabase.rpc("repair_ship_instant", { _ship_id: shipId, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
   );
 }
 
 export async function giftGold(recipientId: string, amount: number) {
   return withOptimistic({ coins: -Math.abs(amount) }, () =>
-    supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount }) as Promise<RpcResult>,
+    supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
   );
 }
 
 export async function giftGems(recipientId: string, amount: number) {
   return withOptimistic({ gems: -Math.abs(amount) }, () =>
-    supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount }) as Promise<RpcResult>,
+    supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
   );
 }
 
@@ -139,7 +139,7 @@ export async function getMyWallet() {
 
 export async function sellShip(shipId: string, refundCoins: number) {
   return withOptimistic({ coins: +Math.abs(refundCoins) }, () =>
-    supabase.rpc("sell_ship", { _ship_id: shipId, _refund_coins: refundCoins }) as Promise<RpcResult>,
+    supabase.rpc("sell_ship", { _ship_id: shipId, _refund_coins: refundCoins }) as unknown as Promise<RpcResult>,
   );
 }
 
@@ -170,7 +170,7 @@ export async function adminMassGift(coins: number, gems: number, xp: number) {
 
 export async function buyShipByCode(code: string, templateId: number, priceCoins: number, maxHp: number) {
   return withOptimistic({ coins: -Math.abs(priceCoins) }, () =>
-    supabase.rpc("buy_ship_by_code", { _code: code, _template_id: templateId, _price_coins: priceCoins, _max_hp: maxHp }) as Promise<RpcResult>,
+    supabase.rpc("buy_ship_by_code", { _code: code, _template_id: templateId, _price_coins: priceCoins, _max_hp: maxHp }) as unknown as Promise<RpcResult>,
   );
 }
 
@@ -184,6 +184,6 @@ export async function marketFinishUpgradeWithGems() {
 
 export async function deductGemsForVoiceChange(userId: string, amount = 200) {
   return withOptimistic({ gems: -Math.abs(amount) }, () =>
-    supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount }) as Promise<RpcResult>,
+    supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount }) as unknown as Promise<RpcResult>,
   );
 }
