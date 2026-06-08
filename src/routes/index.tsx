@@ -267,7 +267,7 @@ function Index() {
     }, delayMs);
   }, []);
   useEffect(() => {
-    const t = setInterval(() => saveFleet(shipsRef.current), 1000);
+    const t = setInterval(() => { if (!document.hidden) saveFleet(shipsRef.current); }, 1000);
     const onHide = () => saveFleet(shipsRef.current);
     window.addEventListener("beforeunload", onHide);
     window.addEventListener("pagehide", onHide);
@@ -720,9 +720,12 @@ function Index() {
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
-  // 1-second tick for countdowns / expiry
+  // 1-second tick for countdowns / expiry — paused when tab hidden
   useEffect(() => {
-    const t = setInterval(() => setNow(serverNowMs()), 1000);
+    const t = setInterval(() => {
+      if (document.hidden) return;
+      setNow(serverNowMs());
+    }, 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -805,7 +808,7 @@ function Index() {
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
     // Poll every 5s so finished upgrades surface without a page revisit
-    const poll = setInterval(load, 5000);
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 5000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
@@ -947,6 +950,7 @@ function Index() {
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
+      if (document.hidden) return;
       const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
@@ -962,33 +966,57 @@ function Index() {
 
 
   // Progress + sail animation ticker — strictly time-proportional.
+  // Performance: rAF-driven, throttled to ~30fps, paused when tab is hidden,
+  // and short-circuited when there is no animation work to do (saves CPU/GPU
+  // when all ships are idle in the harbor → reduces device heat).
   useEffect(() => {
-    const id = setInterval(() => {
+    let raf = 0;
+    let last = 0;
+    const FRAME_MS = 33; // ~30fps cap
+    const EPS = 0.001;
+
+    const tick = (ts: number) => {
+      raf = requestAnimationFrame(tick);
+      if (document.hidden) return;
+      if (ts - last < FRAME_MS) return;
+      last = ts;
+
       const now = serverNowMs();
-      setShips((curr) =>
-        curr.map((s) => {
-          // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
+      let dirty = false;
+      setShips((curr) => {
+        const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          // Unified speed — same easing coefficient for going out (fishing)
-          // and coming back to shore so every ship moves at the exact same pace.
-          const smoothing = 0.45; // snappier ship response
-          const sail = s.sail + (target - s.sail) * smoothing;
+          const smoothing = 0.45;
+          const sailDelta = (target - s.sail) * smoothing;
+          const sailMoving = Math.abs(sailDelta) > EPS;
+          const sail = sailMoving ? s.sail + sailDelta : target;
+
           if (!s.fishing || !s.startedAt) {
+            if (!sailMoving) return s; // no change → skip re-render
+            dirty = true;
             return { ...s, sail };
           }
           if (s.dbId && !isServerClockSynced()) {
+            if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
+            dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
-          const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
+          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
+          if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
+            return s; // no visible change → skip
+          }
+          dirty = true;
           return { ...s, sail, progress, timeLeft };
-        })
-      );
-    }, 16);
-    return () => clearInterval(id);
+        });
+        return dirty ? next : curr;
+      });
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
 

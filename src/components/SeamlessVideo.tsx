@@ -67,7 +67,13 @@ export function SeamlessVideo({
     a.play().catch(() => {});
     b.play().catch(() => {});
 
-    const tick = () => {
+    let lastFrame = 0;
+    const FADE_FRAME_MS = 50; // throttle crossfade to ~20fps to save CPU/GPU
+    const tick = (ts: number) => {
+      raf = requestAnimationFrame(tick);
+      if (document.hidden) return;
+      if (ts - lastFrame < FADE_FRAME_MS) return;
+      lastFrame = ts;
       const dur = a.duration || 0;
       if (dur > 0 && bOffset) {
         const ta = a.currentTime;
@@ -92,7 +98,6 @@ export function SeamlessVideo({
         a.style.opacity = "1";
         b.style.opacity = "0";
       }
-      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
 
