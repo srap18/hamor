@@ -3205,6 +3205,7 @@ function Resource({ icon, value, color }: { icon: string; value: number; color: 
 }
 
 function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () => void; active?: boolean; crews?: typeof CREWS }) {
+  const [displayTimeLeft, setDisplayTimeLeft] = useState(() => Math.ceil(ship.timeLeft));
   const prevSailRef = useRef(ship.sail);
   const velocityRef = useRef(0);
   // Default idle orientation: bow toward the shore (left).
@@ -3218,6 +3219,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const moving = Math.abs(v) > 0.0005;
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
+  useEffect(() => {
+    setDisplayTimeLeft(Math.ceil(ship.timeLeft));
+    if (!ship.fishing || ship.timeLeft <= 0) return;
+    const id = setInterval(() => {
+      setDisplayTimeLeft((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [ship.fishing, ship.startedAt, ship.timeLeft]);
   // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
   // Fishing → bow points toward the sea edge of the scene; docked → toward shore.
   const _seaSideForFacing = ship.seaSide ?? "right";
@@ -3231,9 +3240,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const hrs = Math.floor(ship.timeLeft / 3600);
-  const mins = Math.floor((ship.timeLeft % 3600) / 60);
-  const secs = Math.floor(ship.timeLeft % 60);
+  const hrs = Math.floor(displayTimeLeft / 3600);
+  const mins = Math.floor((displayTimeLeft % 3600) / 60);
+  const secs = Math.floor(displayTimeLeft % 60);
   const timeStr = hrs > 0
     ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
     : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
