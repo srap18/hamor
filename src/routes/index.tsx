@@ -1156,9 +1156,7 @@ function Index() {
       setSeaOverride(s.dbId, false);
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
       if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
+        setShipAtSea(s.dbId!, false).catch(() => {});
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
