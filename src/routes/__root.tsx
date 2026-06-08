@@ -249,7 +249,7 @@ function RootComponent() {
           <GlobalBanner />
           <LastAttackTicker />
 
-          <div key={pathname} className="animate-fade-in contents">
+          <div key={pathname} className="animate-fade-in">
             <Outlet />
           </div>
           <AdminEditToggle />
