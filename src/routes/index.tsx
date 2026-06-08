@@ -15,6 +15,7 @@ import {
   buyWithGems,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
+import { useSwrCache } from "@/lib/swr-cache";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
@@ -475,32 +476,35 @@ function Index() {
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
   const [dailyOpen, setDailyOpen] = useState(false);
-  const [dmUnread, setDmUnread] = useState(0);
-  const [friendsUnread, setFriendsUnread] = useState(0);
+  // Cached badges — show last value instantly when returning to home, refetch in background.
+  const { data: dmUnread = 0, refetch: refetchDm } = useSwrCache<number>(
+    user ? `home:dm:${user.id}` : null,
+    async () => {
+      const { loadDmUnreadMap } = await import("@/lib/dm-unread");
+      const { total } = await loadDmUnreadMap(user!.id);
+      return total;
+    },
+  );
+  const { data: friendsUnread = 0, refetch: refetchFriends } = useSwrCache<number>(
+    user ? `home:friendsPending:${user.id}` : null,
+    async () => {
+      const { count } = await supabase.from("friends")
+        .select("id", { count: "exact", head: true })
+        .eq("addressee_id", user!.id)
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+  );
 
   useEffect(() => {
     if (!user) return;
-    let cancelled = false;
-    const loadDm = async () => {
-      const { loadDmUnreadMap } = await import("@/lib/dm-unread");
-      const { total } = await loadDmUnreadMap(user.id);
-      if (!cancelled) setDmUnread(total);
-    };
-    const loadFriends = async () => {
-      const { count } = await supabase.from("friends")
-        .select("id", { count: "exact", head: true })
-        .eq("addressee_id", user.id)
-        .eq("status", "pending");
-      if (!cancelled) setFriendsUnread(count ?? 0);
-    };
-    loadDm(); loadFriends();
     const ch = supabase.channel(`home-badges:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
-      .on("postgres_changes", { event: "*", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, loadFriends)
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_blocks" }, loadDm)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { refetchDm(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "friends", filter: `addressee_id=eq.${user.id}` }, () => { refetchFriends(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_blocks" }, () => { refetchDm(); })
       .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(ch); };
-  }, [user?.id]);
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id, refetchDm, refetchFriends]);
 
   // Instant push: spectators viewing my harbor get a broadcast on every state change
   const myHarborChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
