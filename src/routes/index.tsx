@@ -1149,14 +1149,19 @@ function Index() {
     }
 
 
-    const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
+    // Sync: keep the dock animation visible for a minimum beat so the result
+    // popup feels like a natural climax of the motion (not arriving early or late).
+    const MIN_ANIM_MS = 450;
+    const animMin = new Promise<void>((r) => window.setTimeout(r, MIN_ANIM_MS));
+    const rpcPromise = (supabase as any).rpc("collect_fishing_reward", {
       _ship_id: s.dbId,
       _requested_fish_id: requestedFishId,
     });
+    const [{ data, error }] = await Promise.all([rpcPromise, animMin]);
     if (error) {
       delete collectingRef.current[s.dbId];
       const msg = String(error.message || "");
-      // Dock locally + force-stop on server so UI stays in sync.
+      // Rollback: dock locally + force-stop on server so UI stays in sync.
       setSeaOverride(s.dbId, false);
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
       if (s.dbId) {
@@ -1164,10 +1169,14 @@ function Index() {
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
-        // Server already considers the ship docked (a previous collect/stop landed
-        // first, or realtime echo raced the tap). Silent dock — no error toast.
+        // Server already considers the ship docked — silent.
+      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("network")) {
+        showToast("⚠️ انقطع الاتصال — حاول مرة ثانية");
+        sound.play("error");
+      } else {
+        showToast(`تعذّر استلام الصيد: ${msg || "خطأ غير معروف"}`);
+        sound.play("error");
       }
-      else showToast("تعذّر استلام الصيد");
       syncFleetFromDb();
       return;
     }
