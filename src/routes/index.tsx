@@ -267,7 +267,7 @@ function Index() {
     }, delayMs);
   }, []);
   useEffect(() => {
-    const t = setInterval(() => saveFleet(shipsRef.current), 1000);
+    const t = setInterval(() => { if (!document.hidden) saveFleet(shipsRef.current); }, 1000);
     const onHide = () => saveFleet(shipsRef.current);
     window.addEventListener("beforeunload", onHide);
     window.addEventListener("pagehide", onHide);
