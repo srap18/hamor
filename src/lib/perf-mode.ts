@@ -29,7 +29,9 @@ function read(): { lowNet: boolean; lowDevice: boolean } {
   );
   const cores = n.hardwareConcurrency || 8;
   const mem = n.deviceMemory || 8;
-  const lowDevice = cores <= 4 || mem <= 3;
+  // Only mark as low-end for genuinely weak devices, otherwise animated
+  // backgrounds get disabled on normal mid-range phones (4 cores / 3GB).
+  const lowDevice = cores <= 2 && mem <= 1;
   return { lowNet, lowDevice };
 }
 
