@@ -226,6 +226,10 @@ function Shop() {
       count: qty,
     });
     refreshProfile();
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
 
