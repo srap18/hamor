@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthGuard } from "@/components/AuthGuard";
-import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/friends")({
@@ -96,7 +95,7 @@ function FriendsPage() {
         <div className="flex-1 text-center text-lg font-extrabold text-amber-300">👥 الأصدقاء</div>
         <div className="w-10" />
       </div>
-      <div className="absolute top-14 bottom-16 left-2 right-2 overflow-y-auto rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 p-3 pb-24 space-y-4">
+      <div className="absolute top-14 bottom-2 left-2 right-2 overflow-y-auto rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 p-3 pb-6 space-y-4">
         <section>
           <div className="flex gap-2 mb-2">
             <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()}
@@ -157,7 +156,6 @@ function FriendsPage() {
           </section>
         )}
       </div>
-      <BottomNav active="/friends" />
     </div>
   );
 }
