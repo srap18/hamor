@@ -276,6 +276,14 @@
     50%      { transform: translateY(-3px) rotate(1deg); }
   }
   .animate-crew-bob { animation: crew-bob 2.2s ease-in-out infinite; }
+
+  /* Gentle ship bobbing — pure CSS so we don't need per-frame React re-renders. */
+  @keyframes ship-bob {
+    0%, 100% { transform: translateY(0) rotateZ(-0.6deg); }
+    50%      { transform: translateY(-2px) rotateZ(0.6deg); }
+  }
+  .animate-ship-bob { animation: ship-bob 2.4s ease-in-out infinite; transform-origin: center 70%; will-change: transform; }
+  html.low-perf .animate-ship-bob { animation: none; }
 }
 
 @layer utilities {
