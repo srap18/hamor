@@ -233,6 +233,16 @@ function RootComponent() {
 
   // Warm up the main tabs once the app is interactive — first tap on any
   // bottom-nav tab is then instant (code + data already in memory).
+  // Hide splash screen as soon as React is mounted and one frame has rendered.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try { (window as any).__hideSplash?.(); } catch {}
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   useEffect(() => {
     const idle = (cb: () => void) =>
       (window as any).requestIdleCallback
