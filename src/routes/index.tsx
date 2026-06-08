@@ -1946,31 +1946,36 @@ function Index() {
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
           if (itemId.startsWith("fixer_")) {
-            if (!s.dbId) { sound.play("error"); return; }
+            if (!s.dbId) {
+              sound.play("error");
+              setToast("⚠️ السفينة غير جاهزة — حدّث الأسطول ثم حاول مرة ثانية");
+              return;
+            }
             const row = availableRows.find((r) => r.item_id === itemId);
-            if (!row) return;
+            if (!row) {
+              sound.play("error");
+              setToast("⚠️ لا تملك هذا الطاقم — اشترِه أولاً");
+              await reloadCrews();
+              return;
+            }
 
-            const repairBy = async (ship: typeof s, crewId: string, amount: number) => {
-              if (!ship.dbId) return 0;
-              const maxHp = ship.maxHp ?? 100;
-              const curHp = ship.hp ?? 0;
-              const optimisticHp = Math.min(maxHp, curHp + amount);
+            const repairOnServer = async (ship: typeof s, crewId: string) => {
               const { data, error } = await (supabase as any)
                 .rpc("repair_ship_with_crew", { _ship_id: ship.dbId, _crew_id: crewId });
               if (error) {
-                setToast(`فشل الإصلاح: ${error.message ?? "خطأ"}`);
-                sound.play("error");
-                return 0;
+                const msg = (error as { message?: string }).message ?? "خطأ غير معروف";
+                // Translate common server errors to clearer Arabic
+                const friendly =
+                  /no such crew/i.test(msg) ? "لا تملك هذا الطاقم" :
+                  /no ships need repair/i.test(msg) ? "لا توجد سفن تحتاج إصلاحاً" :
+                  /ship does not need repair/i.test(msg) ? "السفينة سليمة ولا تحتاج إصلاحاً" :
+                  /not your ship/i.test(msg) ? "هذه السفينة ليست ملكك" :
+                  /not authenticated/i.test(msg) ? "انتهت الجلسة — سجّل الدخول من جديد" :
+                  msg;
+                console.error("[repair_ship_with_crew]", error);
+                throw new Error(friendly);
               }
-              const result = Array.isArray(data) ? data[0] : data;
-              const newHp = Number(result?.new_hp ?? optimisticHp);
-              const newRepairEnds = result?.repair_ends_at ?? null;
-              setShips((arr) => arr.map((x) => x.id === ship.id
-                ? (newHp >= maxHp
-                    ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
-                    : { ...x, hp: newHp, repairEndsAt: newRepairEnds })
-                : x));
-              return newHp - curHp;
+              return Array.isArray(data) ? data[0] : data;
             };
 
             try {
@@ -1981,37 +1986,73 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                setToast(`🏆 تم تعبئة ${needRepair.length} سفن فلل فوراً`);
-                sound.play("success");
+                // Optimistic UI: close modal + fill all ships immediately
+                setShips((arr) => arr.map((x) => x.dbId
+                  ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                  : x));
                 setModal(null);
-                // Fire repairs + consume in background
-                (async () => {
-                  await repairBy(needRepair[0], itemId, Infinity);
+                try {
+                  const result = await repairOnServer(s, itemId);
+                  const count = Number(result?.repaired_count ?? needRepair.length);
+                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل + حصانة 60 ثانية`);
+                  sound.play("success");
+                } catch (e: any) {
+                  setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
+                  sound.play("error");
+                } finally {
                   reloadCrews();
                   syncFleetFromDb();
                   setCrewTick((t) => t + 1);
-                })();
+                }
               } else {
                 const amount = FIXER_HEAL[itemId] ?? 0;
-                if (amount <= 0) { sound.play("error"); return; }
-                const needs = (s.hp ?? 0) < (s.maxHp ?? 100) || s.destroyedAt || s.repairEndsAt;
+                if (amount <= 0) {
+                  sound.play("error");
+                  setToast("⚠️ هذا الطاقم لا يملك قيمة إصلاح");
+                  return;
+                }
+                const maxHp = s.maxHp ?? 100;
+                const curHp = s.hp ?? 0;
+                const needs = curHp < maxHp || s.destroyedAt || s.repairEndsAt;
                 if (!needs) {
-                  setToast("السفينة لا تحتاج إصلاحاً");
+                  setToast("السفينة سليمة ولا تحتاج إصلاحاً");
                   sound.play("error");
                   return;
                 }
-                setToast(`⚒️ جاري إصلاح +${amount.toLocaleString()} دم`);
-                sound.play("success");
+                // Optimistic update
+                const optimisticHp = Math.min(maxHp, curHp + amount);
+                setShips((arr) => arr.map((x) => x.id === s.id
+                  ? (optimisticHp >= maxHp
+                      ? { ...x, hp: optimisticHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                      : { ...x, hp: optimisticHp })
+                  : x));
                 setModal(null);
-                (async () => {
-                  const healed = await repairBy(s, itemId, amount);
-                  setToast(`⚒️ تم إصلاح +${(healed || amount).toLocaleString()} دم`);
+                try {
+                  const result = await repairOnServer(s, itemId);
+                  const newHp = Number(result?.new_hp ?? optimisticHp);
+                  const healed = Math.max(0, newHp - curHp);
+                  setShips((arr) => arr.map((x) => x.id === s.id
+                    ? (newHp >= maxHp
+                        ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                        : { ...x, hp: newHp, repairEndsAt: result?.repair_ends_at ?? null })
+                    : x));
+                  setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم + حصانة 60 ثانية`);
+                  sound.play("success");
+                } catch (e: any) {
+                  // Rollback optimistic
+                  setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: curHp } : x));
+                  setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
+                  sound.play("error");
+                } finally {
                   reloadCrews();
                   syncFleetFromDb();
                   setCrewTick((t) => t + 1);
-                })();
+                }
               }
-            } catch {}
+            } catch (e: any) {
+              setToast(`❌ خطأ: ${e?.message ?? "غير معروف"}`);
+              sound.play("error");
+            }
             return;
           }
           // Prevent duplicates: max 1 crew per type per ship
