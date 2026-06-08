@@ -37,34 +37,42 @@ function InventoryPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) { setLoading(false); return; }
-    const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
-      supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
-      supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
-      supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
-    ]);
-    const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
-    const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
-    const stockQty: Record<string, number> = {};
-    for (const row of summaryRows) {
-      const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
-      if (q && q > 0) stockQty[row.fish_id] = q;
-    }
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
+        supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
+        supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
+        supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
+      ]);
+      let stockQty: Record<string, number> = {};
+      try {
+        const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
+        const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
+        for (const row of summaryRows) {
+          const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
+          if (q && q > 0) stockQty[row.fish_id] = q;
+        }
+      } catch { /* non-fatal */ }
 
-    const caughtRows = (f ?? []) as FishRow[];
-    const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
-    setInv((i ?? []) as InvRow[]);
-    setShips((s as OwnedShip[] | null) ?? []);
-    setFishRows(Array.from(fishIds).map((fish_id) => {
-      const caught = caughtRows.find((r) => r.fish_id === fish_id);
-      return {
-        fish_id,
-        quantity: stockQty[fish_id] ?? 0,
-        total_caught: Math.max(caught?.total_caught ?? 0, stockQty[fish_id] ?? 0),
-      };
-    }));
-    setLoading(false);
+      const caughtRows = (f ?? []) as FishRow[];
+      const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
+      setInv((i ?? []) as InvRow[]);
+      setShips((s as OwnedShip[] | null) ?? []);
+      setFishRows(Array.from(fishIds).map((fish_id) => {
+        const caught = caughtRows.find((r) => r.fish_id === fish_id);
+        return {
+          fish_id,
+          quantity: stockQty[fish_id] ?? 0,
+          total_caught: Math.max(caught?.total_caught ?? 0, stockQty[fish_id] ?? 0),
+        };
+      }));
+    } catch (e) {
+      console.error("[inventory] load failed", e);
+      toast.error("تعذر تحميل المخزن — حاول مرة ثانية");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -87,31 +95,39 @@ function InventoryPage() {
   const useCrew = async (crewId: string, shipId?: string | null) => {
     if (usingCrewRef.current) return;
     const row = inv.find(r => r.item_type === "crew" && r.item_id === crewId && isUsableStack(r) && r.quantity > 0);
-    if (!row) { alert("ما عندك هذا الطاقم في المخزن"); return; }
+    if (!row) { toast.error("ما عندك هذا الطاقم في المخزن"); return; }
     usingCrewRef.current = true;
     setUsingCrew(crewId);
     try {
       if (crewId === "golden_fisher") {
         const { error } = await (supabase as any).rpc("activate_golden_fisher");
-        if (error) { alert("تعذر تفعيل الصياد الذهبي"); return; }
+        if (error) {
+          const m = error.message || "";
+          if (/already_active/i.test(m)) toast.info("🏅 الصياد الذهبي مفعّل عندك بالفعل");
+          else toast.error("تعذر تفعيل الصياد الذهبي");
+          return;
+        }
         setCrewToUse(null);
         await load();
         window.dispatchEvent(new Event("inventory-changed"));
-        alert("🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
+        toast.success("🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
         return;
       }
       const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
       if (error) {
         const msg = error.message || "";
-        if (msg.includes("ship already")) alert("هذه السفينة فيها نفس الطاقم بالفعل");
-        else if (msg.includes("missing ship")) alert("اختر سفينة أولًا");
-        else alert("تعذر استخدام الطاقم");
+        if (msg.includes("ship already")) toast.error("هذه السفينة فيها نفس الطاقم بالفعل");
+        else if (msg.includes("missing ship")) toast.error("اختر سفينة أولًا");
+        else toast.error("تعذر استخدام الطاقم");
         return;
       }
       setCrewToUse(null);
       await load();
       window.dispatchEvent(new Event("inventory-changed"));
-      alert(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
+      toast.success(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
+    } catch (e: any) {
+      console.error("[inventory] useCrew failed", e);
+      toast.error("حصل خطأ غير متوقع");
     } finally {
       usingCrewRef.current = false;
       setUsingCrew(null);
