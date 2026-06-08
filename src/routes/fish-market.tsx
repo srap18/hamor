@@ -221,6 +221,13 @@ function FishMarket() {
 
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
+    const cacheKey = "fish-market:prices";
+    const cached = getCached<PriceCache>(cacheKey);
+    if (cached) {
+      setPriceMap(cached.prices);
+      setForecastMap(cached.forecast);
+      setHistoryMap(cached.history);
+    }
     const loadPrices = async () => {
       const { data } = await (supabase as any)
         .from("fish_market_prices")
@@ -248,6 +255,7 @@ function FishMarket() {
       setPriceMap(m);
       setForecastMap(fm);
       setHistoryMap(hm);
+      setCached(cacheKey, { prices: m, forecast: fm, history: hm });
     };
     loadPrices();
     const ch = supabase
