@@ -143,6 +143,19 @@ function FriendsPage() {
             </div>
           } />)}</div>
         </section>
+
+        {blocked.length > 0 && (
+          <section>
+            <div className="text-sm font-bold text-rose-300 mb-1">🚫 المحظورون ({blocked.length})</div>
+            <div className="space-y-1">
+              {blocked.map(p => (
+                <Row key={p.id} p={p} action={
+                  <button onClick={() => unblock(p.id)} className="text-xs bg-emerald-600 px-2 py-1 rounded font-bold">إلغاء الحظر</button>
+                } />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
       <BottomNav active="/friends" />
     </div>
