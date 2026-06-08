@@ -1186,7 +1186,7 @@ function Index() {
     const baseFish = Number(row?.base_qty ?? fishGained);
     const luckBonus = Number(row?.luck_bonus ?? 0);
     if (fishGained <= 0) {
-      // Silent dock — لا نعرض رسالة "ما في صيد بعد".
+      // No fish (likely market full). Dock + show popup so user gets a clear result.
       setShips((curr) =>
         curr.map((x) =>
           x.id === shipId
@@ -1194,6 +1194,13 @@ function Index() {
             : x
         )
       );
+      setCatchResult({
+        emoji: "📦",
+        name: "سوق السمك ممتلئ — بيع قبل ما تصيد",
+        count: 0,
+        shipId: s.id,
+        shipLevel: s.level,
+      });
       window.setTimeout(() => { try { syncFleetFromDb(); } catch {} }, 600);
       return;
     }
