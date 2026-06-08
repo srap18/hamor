@@ -2166,7 +2166,14 @@ function Index() {
       {/* Dragon + Totem removed per user request */}
 
       {/* BOTTOM NAV */}
-      <div className="fixed inset-x-0 bottom-0 z-[80] px-3 pb-2" style={{ paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))" }}>
+      <div
+        className="fixed inset-x-0 bottom-0 z-[80] pb-2"
+        style={{
+          paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
           style={{
@@ -2174,7 +2181,7 @@ function Index() {
               "linear-gradient(180deg, rgba(3,7,18,0) 0%, rgba(5,9,20,0.72) 45%, rgba(4,6,14,0.98) 100%)",
           }}
         />
-        <div className="relative flex items-end justify-between gap-0.5">
+        <div className="relative mx-auto grid w-full max-w-[430px] grid-cols-7 items-end gap-0 overflow-visible">
           {[
             { src: navIconSettings, label: "إعدادات", to: null, action: "settings" as const, badge: 0 },
             { src: navIconChat, label: "شات", to: "/chat" as const, action: null, badge: dmUnread },
@@ -2187,7 +2194,7 @@ function Index() {
             const inner = (
               <>
                 <div
-                  className="relative flex size-[55px] items-center justify-center"
+                    className="relative flex size-[48px] xs:size-[52px] items-center justify-center"
                   style={{ filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))" }}
                 >
                   <img
@@ -2221,7 +2228,7 @@ function Index() {
                 key={i}
                 to={it.to}
                 onClick={() => sound.play("click")}
-                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
+                  className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
               >
                 {inner}
               </Link>
@@ -2234,7 +2241,7 @@ function Index() {
                   else if (it.action === "boost") setBoostOpen(true);
                   else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
                 }}
-                className="flex flex-col items-center gap-0.5 px-0.5 py-1 active:scale-95"
+                className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
               >
                 {inner}
               </button>
