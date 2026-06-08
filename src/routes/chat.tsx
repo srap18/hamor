@@ -236,6 +236,11 @@ function ChatPage() {
           return prev;
         });
       })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
+        const oldId = (payload.old as any)?.id;
+        if (!oldId) return;
+        setMsgs(s => s.filter(x => x.id !== oldId));
+      })
       .subscribe();
     return () => { active = false; supabase.removeChannel(ch); };
   }, [tab, dmWith, user, profile?.tribe_id]);
