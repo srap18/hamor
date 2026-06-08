@@ -34,3 +34,9 @@ export const isLowBandwidth = cached.lowNet;
 export const isLowEndDevice = cached.lowDevice;
 /** Any kind of weakness — use to disable heavy media/animations. */
 export const isLowPerfMode = cached.lowNet || cached.lowDevice;
+
+// Side-effect: tag the document root so CSS can disable expensive
+// continuous animations on weak devices (see styles.css `.low-perf`).
+if (typeof document !== "undefined" && isLowPerfMode) {
+  try { document.documentElement.classList.add("low-perf"); } catch {}
+}

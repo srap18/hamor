@@ -186,6 +186,36 @@
     mix-blend-mode: screen;
   }
 
+  /* Low-perf phones: disable the heavy continuous background animations.
+     The visuals stay (still backgrounds, still gradients) but the GPU
+     stops repainting them every frame, which is the main cause of phone
+     heating and stutter on weak devices. Triggered by adding
+     `.low-perf` to <html> from src/lib/perf-mode.ts. */
+  html.low-perf .animate-bg-drift,
+  html.low-perf .animate-bg-burned-pulse,
+  html.low-perf .animate-burned-glow,
+  html.low-perf .animate-sea-flow,
+  html.low-perf .animate-cloud-drift,
+  html.low-perf .animate-bird-fly,
+  html.low-perf .animate-wave-slide,
+  html.low-perf .animate-float-soft,
+  html.low-perf .animate-shimmer {
+    animation: none !important;
+  }
+  /* Honor users who have OS-level "Reduce motion" set. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bg-drift,
+    .animate-bg-burned-pulse,
+    .animate-burned-glow,
+    .animate-sea-flow,
+    .animate-cloud-drift,
+    .animate-bird-fly,
+    .animate-wave-slide,
+    .animate-float-soft,
+    .animate-shimmer {
+      animation: none !important;
+    }
+  }
 
   @keyframes fish-steal {
     0%   { transform: translateX(0) translateY(0) scale(0.6); opacity: 0; }

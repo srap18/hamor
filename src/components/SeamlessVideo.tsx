@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { isLowEndDevice, isLowBandwidth } from "@/lib/perf-mode";
 
 /**
  * Seamless looping background video.
@@ -24,7 +25,13 @@ export function SeamlessVideo({
   const bRef = useRef<HTMLVideoElement | null>(null);
   const [videoVisible, setVideoVisible] = useState(false);
 
+  // On weak phones / slow networks: skip the dual-video crossfade + rAF loop
+  // entirely. Rendering only the poster still-image saves a huge amount of
+  // CPU/GPU/battery without changing layout.
+  const lite = isLowEndDevice || isLowBandwidth;
+
   useEffect(() => {
+    if (lite) return; // poster-only path: nothing to wire up
     setVideoVisible(false);
     const a = aRef.current;
     const b = bRef.current;
@@ -121,7 +128,23 @@ export function SeamlessVideo({
       document.removeEventListener("visibilitychange", onVis);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [src, playbackRate]);
+  }, [src, playbackRate, lite]);
+
+  if (lite) {
+    return poster ? (
+      <img
+        src={poster}
+        alt=""
+        aria-hidden
+        className={className}
+        draggable={false}
+        loading="eager"
+        decoding="async"
+        style={style}
+      />
+    ) : null;
+  }
+
 
   return (
     <>
