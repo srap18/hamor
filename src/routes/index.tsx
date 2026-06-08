@@ -962,11 +962,13 @@ function Index() {
 
 
   // Progress + sail animation ticker — strictly time-proportional.
+  // Keep this at 1Hz so fishing countdowns don't force every ship to re-render constantly.
   useEffect(() => {
     const id = setInterval(() => {
       const now = serverNowMs();
-      setShips((curr) =>
-        curr.map((s) => {
+      setShips((curr) => {
+        let changed = false;
+        const next = curr.map((s) => {
           // Only stay at sea while actively fishing. Pausing/stopping → sail back to the marina.
           const target = s.fishing ? 1 : 0;
           // Unified speed — same easing coefficient for going out (fishing)
@@ -974,20 +976,30 @@ function Index() {
           const smoothing = 0.45; // snappier ship response
           const sail = s.sail + (target - s.sail) * smoothing;
           if (!s.fishing || !s.startedAt) {
-            return { ...s, sail };
+            const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+            if (Math.abs(roundedSail - s.sail) < 0.001) return s;
+            changed = true;
+            return { ...s, sail: roundedSail };
           }
           if (s.dbId && !isServerClockSynced()) {
-            return { ...s, sail, progress: 0, timeLeft: s.duration };
+            const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+            if (Math.abs(roundedSail - s.sail) < 0.001 && s.progress === 0 && s.timeLeft === s.duration) return s;
+            changed = true;
+            return { ...s, sail: roundedSail, progress: 0, timeLeft: s.duration };
           }
           const { sailorMult } = getCrewBonuses(s);
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult; // seconds, sped up by sailor
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
-          const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
-          return { ...s, sail, progress, timeLeft };
-        })
-      );
-    }, 100);
+          const timeLeft = Math.ceil(Math.max(0, (s.duration - elapsed) / sailorMult));
+          const roundedSail = Math.abs(sail - target) < 0.01 ? target : sail;
+          if (Math.abs(roundedSail - s.sail) < 0.001 && progress === s.progress && timeLeft === s.timeLeft) return s;
+          changed = true;
+          return { ...s, sail: roundedSail, progress, timeLeft };
+        });
+        return changed ? next : curr;
+      });
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
