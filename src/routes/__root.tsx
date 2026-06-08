@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GiftPopup } from "@/components/GiftPopup";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
 import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
@@ -254,22 +254,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         `}} />
       </head>
       <body>
-        {/* SSR-rendered splash so it paints on the very first frame — no white flash. */}
-        <div id="app-splash" aria-hidden="true">
-          <div className="splash-logo">ملوك القراصنة</div>
-          <div className="splash-ring"></div>
-        </div>
         {children}
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function(){
-            var s=document.getElementById('app-splash');if(!s)return;
-            var hidden=false;
-            function hide(){if(hidden)return;hidden=true;s.classList.add('hide');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s)},350)}
-            window.__hideSplash=hide;
-            // Safety timeout in case React never mounts (max 4s)
-            setTimeout(hide,4000);
-          })();
-        `}} />
         <Scripts />
       </body>
     </html>
@@ -279,18 +264,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashMounted, setSplashMounted] = useState(true);
 
   useEffect(() => {
     loadEconomyOverrides();
   }, []);
 
-  // Warm up the main tabs once the app is interactive — first tap on any
-  // bottom-nav tab is then instant (code + data already in memory).
-  // Hide splash screen as soon as React is mounted and one frame has rendered.
+  // Hide splash after the first paint (two rAFs ensures the app has rendered).
   useEffect(() => {
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        try { (window as any).__hideSplash?.(); } catch {}
+        setSplashVisible(false);
+        // Remove from DOM after fade-out transition.
+        setTimeout(() => setSplashMounted(false), 400);
       });
     });
     return () => cancelAnimationFrame(id);
@@ -328,8 +315,6 @@ function RootComponent() {
     };
   }, []);
 
-  
-
   return (
     <QueryClientProvider client={queryClient}>
       <AdminLayoutEditorProvider>
@@ -342,6 +327,12 @@ function RootComponent() {
           <AdminEditToggle />
           <Toaster position="top-center" richColors />
         </MobileFrame>
+        {splashMounted && (
+          <div id="app-splash" aria-hidden="true" className={splashVisible ? "" : "hide"}>
+            <div className="splash-logo">ملوك القراصنة</div>
+            <div className="splash-ring"></div>
+          </div>
+        )}
       </AdminLayoutEditorProvider>
     </QueryClientProvider>
   );
