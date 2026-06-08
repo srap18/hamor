@@ -25,9 +25,10 @@ export function SeamlessVideo({
   const bRef = useRef<HTMLVideoElement | null>(null);
   const [videoVisible, setVideoVisible] = useState(false);
 
-  // On weak phones / slow networks: skip the dual-video crossfade + rAF loop
-  // entirely. Rendering only the poster still-image saves a huge amount of
-  // CPU/GPU/battery without changing layout.
+  // On weak phones / slow networks: keep the video playing (the ocean must
+  // always be alive — no static fallback) but skip the dual-video crossfade
+  // and the per-frame rAF opacity loop. The single video loops natively;
+  // tiny seam at restart is acceptable on weak devices and saves ~50% GPU.
   const lite = isLowEndDevice || isLowBandwidth;
 
   useEffect(() => {
@@ -131,19 +132,23 @@ export function SeamlessVideo({
   }, [src, playbackRate, lite]);
 
   if (lite) {
-    return poster ? (
-      <img
-        src={poster}
-        alt=""
-        aria-hidden
+    // Single looping video — no crossfade, no rAF tick, no second decoder.
+    return (
+      <video
+        src={src}
+        poster={poster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
         className={className}
-        draggable={false}
-        loading="eager"
-        decoding="async"
         style={style}
       />
-    ) : null;
+    );
   }
+
+
 
 
   return (
