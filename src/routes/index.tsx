@@ -1149,15 +1149,11 @@ function Index() {
     }
 
 
-    // Sync: keep the dock animation visible for a minimum beat so the result
-    // popup feels like a natural climax of the motion (not arriving early or late).
-    const MIN_ANIM_MS = 450;
-    const animMin = new Promise<void>((r) => window.setTimeout(r, MIN_ANIM_MS));
-    const rpcPromise = (supabase as any).rpc("collect_fishing_reward", {
+    // Show the result as soon as the server responds — no artificial delay.
+    const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
       _ship_id: s.dbId,
       _requested_fish_id: requestedFishId,
     });
-    const [{ data, error }] = await Promise.all([rpcPromise, animMin]);
     if (error) {
       delete collectingRef.current[s.dbId];
       const msg = String(error.message || "");
