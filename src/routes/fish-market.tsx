@@ -452,19 +452,15 @@ function FishMarket() {
 
   const sell = async (amount: number) => {
     if (!sel || !user || selling) return;
-    const livePrice = priceMap[sel.id]?.current;
-    const rawPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : priceHistory(sel)[priceHistory(sel).length - 1];
-    const price = Math.max(0.1, Math.round(rawPrice * rotMult(sel.id) * 100) / 100);
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
     setSelling(true);
-    // Optimistic local update: remove fish from view AND credit coins.
-    const earned = Math.round(requestedQty * price);
+    // Optimistic UI: only remove fish from view. Coins are credited ONLY
+    // after the server confirms the real amount (server-side authority).
+    // This prevents the "amount jumps then drops" flicker caused by the
+    // client's price guess (rotMult) differing from the server's age-decay formula.
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
-    setPop(`+${earned.toLocaleString()} ذهب`);
-    setTimeout(() => setPop(null), 1500);
-    const rollbackCoins = applyOptimisticProfileDelta({ coins: +earned });
 
     try {
       // Server-side: deletes oldest N rows for this fish in a single call.
@@ -473,32 +469,24 @@ function FishMarket() {
         _qty: requestedQty,
       } as never);
       if (error) {
-        rollbackCoins();
         setPop(`❌ ${error.message || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
         await loadFish();
         return;
       }
-      const serverEarned = Number(data ?? earned);
+      const serverEarned = Number(data ?? 0);
       if (serverEarned <= 0) {
-        rollbackCoins();
         setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
         setTimeout(() => setPop(null), 1800);
         await loadFish();
         return;
       }
-      // Reconcile delta if server credited a different amount than we predicted.
-      if (serverEarned !== earned) {
-        rollbackCoins();
-        applyOptimisticProfileDelta({ coins: +serverEarned });
-      }
+      // Credit coins from the authoritative server value only.
+      applyOptimisticProfileDelta({ coins: +serverEarned });
       setPop(`+${serverEarned.toLocaleString()} ذهب`);
       setTimeout(() => setPop(null), 1500);
       await loadFish();
       refreshProfile();
-    } catch (e) {
-      rollbackCoins();
-      throw e;
     } finally {
       setSelling(false);
     }
