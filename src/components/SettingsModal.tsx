@@ -3,12 +3,14 @@ import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
+  const [lite, setLite] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
@@ -23,6 +25,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
     try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
+    setLite(getLiteMode());
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
@@ -140,6 +143,17 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
+        <ToggleRow
+          label="🪶 الوضع الخفيف (للأجهزة الضعيفة)"
+          value={lite}
+          onChange={(v) => {
+            setLite(v);
+            setLiteMode(v); // reloads the page to apply
+          }}
+        />
+        <div className="-mt-1 mb-2 px-1 text-[10px] text-amber-300/70 leading-snug">
+          يطفي خلفيات الفيديو والحركات الثقيلة. يحل أغلب مشاكل التعليق على الجوالات القديمة.
+        </div>
 
         {email && (
           <button
