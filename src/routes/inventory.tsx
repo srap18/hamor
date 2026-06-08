@@ -173,7 +173,7 @@ function InventoryPage() {
                   </div>
                   {n > 0 && (
                     <button
-                      onClick={() => c.id === "trader" ? useCrew(c.id, null) : setCrewToUse(c.id)}
+                      onClick={() => (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id)}
                       disabled={usingCrew === c.id}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
