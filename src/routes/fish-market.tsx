@@ -94,6 +94,7 @@ type PriceCache = {
 };
 type FishMarketLevelCache = { level: number; upgradingTo: number | null; upgradeEndsAt: string | null };
 type FishStockCache = { qty: Record<string, number>; ages: Record<string, string> };
+type SaleQuote = { sold: number; total_amount: number; effective_unit_price: number; current_price: number; rot: number };
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
@@ -548,7 +549,7 @@ function FishMarket() {
           traderUntil={effectiveTraderUntil}
           ownedTraderQty={ownedTraderQty}
           traderPrice={traderPrice}
-          rotPct={Math.round(rotMult(sel.id) * 100)}
+          rot={rotMult(sel.id)}
           selling={selling}
           onBack={() => setSelected(null)}
           onSell={sell}
