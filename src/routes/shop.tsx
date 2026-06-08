@@ -377,9 +377,10 @@ function Shop() {
 
             <button
               onClick={buy}
-              className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95"
+              disabled={busy}
+              className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
             >
-              شراء
+              {busy ? "..." : "شراء"}
             </button>
           </div>
         </div>
