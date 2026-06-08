@@ -8,7 +8,6 @@ import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
-import { sellFish } from "@/lib/economy";
 import { getCached, setCached } from "@/lib/swr-cache";
 
 export const Route = createFileRoute("/fish-market")({
@@ -94,6 +93,7 @@ type PriceCache = {
 };
 type FishMarketLevelCache = { level: number; upgradingTo: number | null; upgradeEndsAt: string | null };
 type FishStockCache = { qty: Record<string, number>; ages: Record<string, string> };
+type SaleQuote = { sold: number; total_amount: number; effective_unit_price: number; current_price: number; rot: number };
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
@@ -548,7 +548,7 @@ function FishMarket() {
           traderUntil={effectiveTraderUntil}
           ownedTraderQty={ownedTraderQty}
           traderPrice={traderPrice}
-          rotPct={Math.round(rotMult(sel.id) * 100)}
+          rot={rotMult(sel.id)}
           selling={selling}
           onBack={() => setSelected(null)}
           onSell={sell}
@@ -759,7 +759,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rot, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -771,13 +771,12 @@ function SellView({
   traderUntil: string | null;
   ownedTraderQty: number;
   traderPrice: number;
-  rotPct: number;
+  rot: number;
   selling: boolean;
   onBack: () => void;
   onSell: (amount: number) => void;
   onPurchased: () => void;
 }) {
-  void userId;
   const past = useMemo(() => {
     // Use real recent history from DB so past chart values match what actually happened.
     const tail = (history ?? []).slice(-PAST_HOURS);
@@ -789,7 +788,7 @@ function SellView({
     return tail;
   }, [fish.id, fish.basePrice, history]);
   const currentPrice = past[past.length - 1];
-  const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
+  const fallbackEffectivePrice = Math.max(0.0001, currentPrice * rot);
 
   const [now, setNow] = useState<number>(() => serverNowMs());
   useEffect(() => {
@@ -829,6 +828,24 @@ function SellView({
 
   const [amount, setAmount] = useState(fish.qty);
   useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
+  const [saleQuote, setSaleQuote] = useState<SaleQuote | null>(null);
+  useEffect(() => {
+    if (!userId || userId === "anon" || amount <= 0) { setSaleQuote(null); return; }
+    let alive = true;
+    const id = window.setTimeout(async () => {
+      const { data, error } = await (supabase as any).rpc("quote_fish_sale_by_qty", { _fish_id: fish.id, _qty: amount });
+      if (!alive) return;
+      if (error) { setSaleQuote(null); return; }
+      const row = (Array.isArray(data) ? data[0] : data) as SaleQuote | undefined;
+      setSaleQuote(row ?? null);
+    }, 120);
+    return () => { alive = false; window.clearTimeout(id); };
+  }, [userId, fish.id, amount]);
+
+  const effectivePrice = Number(saleQuote?.effective_unit_price ?? fallbackEffectivePrice);
+  const rotPct = Math.round(Number(saleQuote?.rot ?? rot) * 100);
+  const quoteReady = !!saleQuote && saleQuote.sold === Math.min(amount, fish.qty);
+  const saleTotal = quoteReady ? Number(saleQuote.total_amount) : 0;
 
   const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
   const [busy, setBusy] = useState(false);
@@ -900,9 +917,9 @@ function SellView({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{Math.round(amount * effectivePrice).toLocaleString()}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{quoteReady ? saleTotal.toLocaleString() : "..."}</span>
           </div>
-          <button onClick={() => onSell(amount)} disabled={amount === 0 || selling} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
+          <button onClick={() => onSell(amount)} disabled={amount === 0 || selling || !quoteReady} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
         </div>
       </div>
 

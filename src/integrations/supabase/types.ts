@@ -4135,6 +4135,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      quote_fish_sale_by_qty: {
+        Args: { _fish_id: string; _qty: number }
+        Returns: {
+          current_price: number
+          effective_unit_price: number
+          rot: number
+          sold: number
+          total_amount: number
+        }[]
+      }
       recompute_fish_prices: { Args: never; Returns: undefined }
       record_attack:
         | {
