@@ -2320,6 +2320,48 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_logs: {
+        Row: {
+          balance_after: number
+          balance_before: number
+          created_at: string
+          id: string
+          item_id: string | null
+          kind: string
+          meta: Json | null
+          quantity: number
+          total_amount: number
+          unit_price: number
+          user_id: string
+        }
+        Insert: {
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind: string
+          meta?: Json | null
+          quantity?: number
+          total_amount?: number
+          unit_price?: number
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          kind?: string
+          meta?: Json | null
+          quantity?: number
+          total_amount?: number
+          unit_price?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -2616,6 +2658,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_action_throttle: {
+        Row: {
+          action: string
+          last_at: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          last_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          last_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_blocks: {
         Row: {
@@ -3161,6 +3221,10 @@ export type Database = {
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
+      _enforce_rate_limit: {
+        Args: { _action: string; _min_ms: number }
+        Returns: undefined
+      }
       _gen_unique_username: { Args: never; Returns: string }
       _grant_ship_with_storage: {
         Args: { _catalog_code: string; _uid: string }
