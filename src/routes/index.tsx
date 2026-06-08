@@ -2341,11 +2341,11 @@ function Index() {
         <div
           dir="rtl"
           onClick={() => setCatchResult(null)}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="mx-4 w-full max-w-xs rounded-2xl border-2 border-cyan-300/60 bg-gradient-to-b from-sky-700 to-sky-950 p-5 shadow-2xl text-center"
+            className="mx-4 w-full max-w-xs rounded-2xl border-2 border-cyan-300/60 bg-gradient-to-b from-sky-700 to-sky-950 p-5 shadow-2xl text-center animate-scale-in"
           >
             <div className="text-xs font-black text-cyan-200 mb-2">🎣 نتيجة الصيد</div>
             <div className="mx-auto w-24 h-24 rounded-2xl bg-white/15 border-2 border-cyan-200/40 flex items-center justify-center overflow-hidden shadow-inner">
@@ -2358,9 +2358,7 @@ function Index() {
             <div className="mt-3 text-lg font-black text-white text-glow">{catchResult.name}</div>
             {catchResult.count > 0 ? (
               <div className="mt-1 text-2xl font-black text-amber-300 text-glow">×{catchResult.count.toLocaleString()}</div>
-            ) : (
-              <div className="mt-1 text-[12px] font-bold text-rose-200">أوقفت السفينة قبل ما تصيد — انتظر أكثر المرة الجاية ⏳</div>
-            )}
+            ) : null}
             {catchResult.luckBonus && catchResult.luckBonus > 0 ? (
               <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 border border-yellow-200 text-[10px] font-black text-black shadow">
                 🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
