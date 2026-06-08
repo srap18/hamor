@@ -238,12 +238,12 @@ function InventoryPage() {
             const { error } = await supabase.rpc("use_shield_from_inventory" as never, { _item_id: id } as never);
             if (error) {
               const m = error.message || "";
-              if (m.includes("not_enough")) alert("لا تملك هذا الدرع");
-              else alert("فشل تفعيل الدرع");
+              if (m.includes("not_enough")) toast.error("لا تملك هذا الدرع");
+              else toast.error("فشل تفعيل الدرع");
               return;
             }
             await load();
-            alert("🛡️ تم تفعيل الدرع!");
+            toast.success("🛡️ تم تفعيل الدرع!");
           };
           return (
             <div className="grid grid-cols-2 gap-2">
