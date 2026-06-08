@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { isLowEndDevice, isLowBandwidth } from "@/lib/perf-mode";
 
 /**
  * Seamless looping background video.
