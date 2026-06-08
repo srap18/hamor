@@ -269,7 +269,9 @@ function Index() {
     }, delayMs);
   }, []);
   useEffect(() => {
-    const t = setInterval(() => { if (!document.hidden) saveFleet(shipsRef.current); }, 1000);
+    // Save fleet snapshot every 1s normally, 3s on weak devices to cut wakeups.
+    const saveEveryMs = isLowPerfMode ? 3000 : 1000;
+    const t = setInterval(() => { if (!document.hidden) saveFleet(shipsRef.current); }, saveEveryMs);
     const onHide = () => saveFleet(shipsRef.current);
     window.addEventListener("beforeunload", onHide);
     window.addEventListener("pagehide", onHide);
