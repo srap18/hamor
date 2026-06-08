@@ -1217,7 +1217,9 @@ function Index() {
           : x
       )
     );
-    syncFleetFromDb();
+    // Delay fleet sync slightly so the server-side dock + collect commit are
+    // visible before we re-read at_sea (prevents UI flicker back to fishing).
+    window.setTimeout(() => { try { syncFleetFromDb(); } catch {} }, 600);
     // Instant push to spectators
     pushHarborState();
     // Optimistically bump the fish-market stock cache so the count shows
