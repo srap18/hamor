@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
 import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
-import { useState, useEffect, useRef, useCallback, startTransition } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -987,40 +987,36 @@ function Index() {
 
       const now = serverNowMs();
       let dirty = false;
-      // Use startTransition so the high-frequency progress bar update never
-      // blocks user input (taps on ships, stop-fishing buttons).
-      startTransition(() => {
-        setShips((curr) => {
-          const next = curr.map((s) => {
-            const target = s.fishing ? 1 : 0;
-            const smoothing = 0.45;
-            const sailDelta = (target - s.sail) * smoothing;
-            const sailMoving = Math.abs(sailDelta) > EPS;
-            const sail = sailMoving ? s.sail + sailDelta : target;
+      setShips((curr) => {
+        const next = curr.map((s) => {
+          const target = s.fishing ? 1 : 0;
+          const smoothing = 0.45;
+          const sailDelta = (target - s.sail) * smoothing;
+          const sailMoving = Math.abs(sailDelta) > EPS;
+          const sail = sailMoving ? s.sail + sailDelta : target;
 
-            if (!s.fishing || !s.startedAt) {
-              if (!sailMoving) return s; // no change → skip re-render
-              dirty = true;
-              return { ...s, sail };
-            }
-            if (s.dbId && !isServerClockSynced()) {
-              if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
-              dirty = true;
-              return { ...s, sail, progress: 0, timeLeft: s.duration };
-            }
-            const { sailorMult } = getCrewBonuses(s);
-            const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
-            const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
-            const progress = Math.round(s.max * ratio);
-            const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
-            if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
-              return s; // no visible change → skip
-            }
+          if (!s.fishing || !s.startedAt) {
+            if (!sailMoving) return s; // no change → skip re-render
             dirty = true;
-            return { ...s, sail, progress, timeLeft };
-          });
-          return dirty ? next : curr;
+            return { ...s, sail };
+          }
+          if (s.dbId && !isServerClockSynced()) {
+            if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
+            dirty = true;
+            return { ...s, sail, progress: 0, timeLeft: s.duration };
+          }
+          const { sailorMult } = getCrewBonuses(s);
+          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
+          const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
+          const progress = Math.round(s.max * ratio);
+          const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
+          if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
+            return s; // no visible change → skip
+          }
+          dirty = true;
+          return { ...s, sail, progress, timeLeft };
         });
+        return dirty ? next : curr;
       });
     };
     raf = requestAnimationFrame(tick);
