@@ -37,11 +37,12 @@ function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   return (
     <div style={style} className="relative shrink-0 flex items-center justify-center">
       {p?.avatar_url ? (
-        <img src={p.avatar_url} alt={p.display_name || ""} className={`w-[68%] h-[68%] rounded-full object-cover bg-sky-700 ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)] ${ringCls}`} />
+        <img src={p.avatar_url} alt={p.display_name || ""} loading="lazy" decoding="async" className={`w-[68%] h-[68%] rounded-full object-cover bg-sky-700 ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)] ${ringCls}`} />
       ) : (
         <div className={`w-[68%] h-[68%] rounded-full bg-sky-700 flex items-center justify-center text-xl ring-2 ring-amber-300/50 shadow-[0_0_10px_rgba(252,191,73,0.5)] ${ringCls}`}>{p?.avatar_emoji || "👤"}</div>
       )}
-      {frame?.imageUrl && <img src={frame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frame.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />}
+      {frame?.imageUrl && <img src={frame.imageUrl} alt="" loading="lazy" decoding="async" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frame.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />}
+
     </div>
   );
 }
