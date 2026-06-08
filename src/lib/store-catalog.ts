@@ -644,6 +644,21 @@ export const STORE_PACKS: StorePack[] = [
       ],
     },
   },
+
+  // ───── Golden Fisher (premium recharge-only) ────────────────
+  {
+    id: "cr_golden_fisher_2pack",
+    category: "crew",
+    label: "🏅 طاقم الصياد الذهبي × 2",
+    emoji: "🏅",
+    priceUSD: 20,
+    tag: "ذهبي حصري",
+    popular: true,
+    description: "2 طاقم صياد ذهبي — كل واحد يفعّل صيد تلقائي على كل سفنك + حصانة كاملة من الهجوم والسرقة لمدة 24 ساعة. يعمل حتى وأنت أوف لاين.",
+    reward: {
+      items: [{ itemType: "crew", itemId: "golden_fisher", qty: 2 }],
+    },
+  },
 ];
 
 export function getPack(id: string): StorePack | undefined {
