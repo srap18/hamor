@@ -720,9 +720,12 @@ function Index() {
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
-  // 1-second tick for countdowns / expiry
+  // 1-second tick for countdowns / expiry — paused when tab hidden
   useEffect(() => {
-    const t = setInterval(() => setNow(serverNowMs()), 1000);
+    const t = setInterval(() => {
+      if (document.hidden) return;
+      setNow(serverNowMs());
+    }, 1000);
     return () => clearInterval(t);
   }, []);
 
