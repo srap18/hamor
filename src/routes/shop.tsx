@@ -135,6 +135,7 @@ function Shop() {
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
   const [pop, setPop] = useState<string | null>(null);
 
   const flash = (m: string, ms = 1500) => { setPop(m); setTimeout(() => setPop(null), ms); };
