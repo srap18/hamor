@@ -95,6 +95,18 @@ if (typeof window !== "undefined") {
       }
     });
   } catch {}
+
+  // Unregister any leftover service workers so the app never serves a stale
+  // shell to returning users. We don't ship a SW, so any registration we find
+  // is leftover from an earlier deploy and is the most common cause of
+  // "I don't see the latest update".
+  try {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => { try { r.unregister(); } catch {} });
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 
