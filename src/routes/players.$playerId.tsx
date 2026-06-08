@@ -454,7 +454,7 @@ function PlayerPage() {
     // enforced inside apply_ship_damage; we hit it once first so a failed
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
-    const skipFishing = w.aoe === true; // nuke & ad_bomb bypass the 3-fishing-ships rule
+    const skipFishing = false; // كل الأسلحة، بما فيها النووية، لازم تلتزم بشروط جاهزية السفن
     const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");

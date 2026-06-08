@@ -9,6 +9,7 @@ import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { sellFish } from "@/lib/economy";
+import { getCached, setCached } from "@/lib/swr-cache";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -85,6 +86,15 @@ type MarketState = {
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
 
+type TraderCache = { until: string | null; active: boolean; owned: number };
+type PriceCache = {
+  prices: Record<string, { current: number; min: number; max: number }>;
+  forecast: Record<string, number[]>;
+  history: Record<string, number[]>;
+};
+type FishMarketLevelCache = { level: number; upgradingTo: number | null; upgradeEndsAt: string | null };
+type FishStockCache = { qty: Record<string, number>; ages: Record<string, string> };
+
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
   const [ageMap, setAgeMap] = useState<Record<string, string>>({});
@@ -117,23 +127,32 @@ function FishMarket() {
 
   const loadMarketState = async () => {
     if (!user) return;
+    const cacheKey = `fish-market:state:${user.id}`;
     const { data } = await (supabase as any)
       .from("user_market_state")
       .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
+    let nextState: MarketState;
     if (data) {
-      setMarketState({
+      nextState = {
         trader_until: data.trader_until,
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
-      });
+      };
     } else {
-      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} };
     }
+    setMarketState(nextState);
+    setCached(cacheKey, nextState);
   };
-  useEffect(() => { loadMarketState(); }, [user?.id]);
+  useEffect(() => {
+    if (!user) return;
+    const cached = getCached<MarketState>(`fish-market:state:${user.id}`);
+    if (cached) setMarketState(cached);
+    loadMarketState();
+  }, [user?.id]);
 
   // If the user has an active "trader" crew assigned to one of their ships,
   // it grants the same forecast as the paid market unlock — no 250💎 needed.
@@ -146,6 +165,13 @@ function FishMarket() {
   const [traderPrice, setTraderPrice] = useState(30);
   useEffect(() => {
     if (!user) { setTraderCrewUntil(null); setTraderCrewActive(false); setOwnedTraderQty(0); return; }
+    const cacheKey = `fish-market:trader:${user.id}`;
+    const cached = getCached<TraderCache>(cacheKey);
+    if (cached) {
+      setTraderCrewUntil(cached.until);
+      setTraderCrewActive(cached.active);
+      setOwnedTraderQty(cached.owned);
+    }
     const load = async () => {
       const { data } = await supabase
         .from("inventory")
@@ -166,9 +192,11 @@ function FishMarket() {
           if (bestExp == null || exp > bestExp) bestExp = exp;
         }
       }
-      setOwnedTraderQty(owned);
-      setTraderCrewActive(active);
-      setTraderCrewUntil(bestExp != null ? new Date(bestExp).toISOString() : null);
+      const next = { until: bestExp != null ? new Date(bestExp).toISOString() : null, active, owned };
+      setOwnedTraderQty(next.owned);
+      setTraderCrewActive(next.active);
+      setTraderCrewUntil(next.until);
+      setCached(cacheKey, next);
     };
     load();
     const ch = supabase
@@ -193,6 +221,13 @@ function FishMarket() {
 
   // Load dynamic fish prices from DB + subscribe to hourly updates
   useEffect(() => {
+    const cacheKey = "fish-market:prices";
+    const cached = getCached<PriceCache>(cacheKey);
+    if (cached) {
+      setPriceMap(cached.prices);
+      setForecastMap(cached.forecast);
+      setHistoryMap(cached.history);
+    }
     const loadPrices = async () => {
       const { data } = await (supabase as any)
         .from("fish_market_prices")
@@ -220,6 +255,7 @@ function FishMarket() {
       setPriceMap(m);
       setForecastMap(fm);
       setHistoryMap(hm);
+      setCached(cacheKey, { prices: m, forecast: fm, history: hm });
     };
     loadPrices();
     const ch = supabase
@@ -241,6 +277,7 @@ function FishMarket() {
 
   const loadMarket = async () => {
     if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
+    const cacheKey = `fish-market:level:${user.id}`;
     await supabase.rpc("finalize_fish_market_upgrades" as never);
     const { data } = await supabase
       .from("user_fish_market" as never)
@@ -252,10 +289,20 @@ function FishMarket() {
     setLvl(lvlVal);
     setUpgradingTo(row?.upgrading_to ?? null);
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+    setCached(cacheKey, { level: lvlVal, upgradingTo: row?.upgrading_to ?? null, upgradeEndsAt: row?.upgrade_ends_at ?? null });
     try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
 
-  useEffect(() => { loadMarket(); }, [user?.id]);
+  useEffect(() => {
+    if (!user) return;
+    const cached = getCached<FishMarketLevelCache>(`fish-market:level:${user.id}`);
+    if (cached) {
+      setLvl(cached.level);
+      setUpgradingTo(cached.upgradingTo);
+      setUpgradeEndsAt(cached.upgradeEndsAt);
+    }
+    loadMarket();
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -319,6 +366,7 @@ function FishMarket() {
   // tens of thousands of rows for large stocks which causes "Load failed").
   const loadFish = async () => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
+    const cacheKey = `fish-market:stock:${user.id}`;
     const { data, error } = await supabase.rpc("get_fish_stock_summary" as never);
     if (error) return;
     const rows = (data ?? []) as Array<{ fish_id: string; qty: number | string; oldest_caught_at: string }>;
@@ -332,10 +380,19 @@ function FishMarket() {
     }
     setQtyMap(map);
     setAgeMap(ages);
+    setCached(cacheKey, { qty: map, ages });
     // IDs are fetched on demand during sale to avoid huge payloads.
     setStockIdsMap({});
   };
   useEffect(() => {
+    if (user) {
+      const cached = getCached<FishStockCache>(`fish-market:stock:${user.id}`);
+      if (cached) {
+        setQtyMap(cached.qty);
+        setAgeMap(cached.ages);
+        setStockIdsMap({});
+      }
+    }
     loadFish();
     if (!user) return;
     const onFocus = () => loadFish();
