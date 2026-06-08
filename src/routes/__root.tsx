@@ -254,24 +254,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
         `}} />
       </head>
       <body>
+        {/* SSR-rendered splash so it paints on the very first frame — no white flash. */}
+        <div id="app-splash" aria-hidden="true">
+          <div className="splash-logo">ملوك القراصنة</div>
+          <div className="splash-ring"></div>
+        </div>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            if(document.getElementById('app-splash'))return;
-            var TOTAL=2;
-            var s=document.createElement('div');s.id='app-splash';s.setAttribute('aria-hidden','true');
-            s.innerHTML='<div class="splash-logo">ملوك القراصنة</div><div class="splash-ring"></div><div class="splash-count">'+TOTAL+'</div>';
-            (document.body||document.documentElement).appendChild(s);
-            var hidden=false,t0=Date.now(),timer;
-            function hide(){if(hidden)return;hidden=true;clearInterval(timer);s.classList.add('hide');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s)},400)}
+            var s=document.getElementById('app-splash');if(!s)return;
+            var hidden=false;
+            function hide(){if(hidden)return;hidden=true;s.classList.add('hide');setTimeout(function(){s&&s.parentNode&&s.parentNode.removeChild(s)},350)}
             window.__hideSplash=hide;
-            var c=s.querySelector('.splash-count');
-            timer=setInterval(function(){
-              var left=Math.max(0,TOTAL-Math.floor((Date.now()-t0)/1000));
-              if(c)c.textContent=left;
-              if(left<=0)hide();
-            },200);
-            setTimeout(hide,TOTAL*1000);
+            // Safety timeout in case React never mounts (max 4s)
+            setTimeout(hide,4000);
           })();
         `}} />
         <Scripts />
