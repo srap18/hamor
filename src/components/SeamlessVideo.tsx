@@ -128,7 +128,23 @@ export function SeamlessVideo({
       document.removeEventListener("visibilitychange", onVis);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [src, playbackRate]);
+  }, [src, playbackRate, lite]);
+
+  if (lite) {
+    return poster ? (
+      <img
+        src={poster}
+        alt=""
+        aria-hidden
+        className={className}
+        draggable={false}
+        loading="eager"
+        decoding="async"
+        style={style}
+      />
+    ) : null;
+  }
+
 
   return (
     <>
