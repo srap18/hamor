@@ -249,9 +249,8 @@ function RootComponent() {
           <GlobalBanner />
           <LastAttackTicker />
 
-          <div key={pathname} className="animate-fade-in">
-            <Outlet />
-          </div>
+          <Outlet />
+
           <AdminEditToggle />
           <Toaster position="top-center" richColors />
         </MobileFrame>
