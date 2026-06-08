@@ -26,7 +26,7 @@ const items = [
   to: "/battle" | "/arena" | "/friends" | "/inventory" | "/shop" | "/chat";
 }>;
 
-function NavIconButton({
+const NavIconButton = memo(function NavIconButton({
   label,
   src,
   active,
