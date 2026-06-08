@@ -6,7 +6,8 @@ export const activateGoldenFisher = createServerFn({ method: "POST" })
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabase } = context;
-    const { data, error } = await supabase.rpc("activate_golden_fisher");
+    // Cast to any: RPC name may not be in generated types until regeneration.
+    const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
     if (error) throw new Error(error.message);
     return data as { ok: boolean; until: string };
   });
