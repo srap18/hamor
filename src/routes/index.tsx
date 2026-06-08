@@ -2155,9 +2155,16 @@ function Index() {
                       && r.meta?.assigned_ship_id != null
                       && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
                   );
+                  // Fixer needs check: lock when ship(s) at 100% HP
+                  const fixerCanRepair = isFixer && (
+                    cid === "fixer_4"
+                      ? ships.some((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt))
+                      : ((s.hp ?? 0) < (s.maxHp ?? 100) || !!s.destroyedAt || !!s.repairEndsAt)
+                  );
+                  const slotsFull = !isFixer && !isGlobalCrew && !alreadyOnShip && assignedRows.length >= slots;
                   const canAssign = owned && (
                     isFixer
-                      ? true
+                      ? fixerCanRepair
                       : isGlobalCrew
                         ? !globallyActive
                         : (assignedRows.length < slots && !alreadyOnShip)
