@@ -31,6 +31,7 @@ export function SeamlessVideo({
   const lite = isLowEndDevice || isLowBandwidth;
 
   useEffect(() => {
+    if (lite) return; // poster-only path: nothing to wire up
     setVideoVisible(false);
     const a = aRef.current;
     const b = bRef.current;
