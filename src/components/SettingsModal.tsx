@@ -143,6 +143,17 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
+        <ToggleRow
+          label="🪶 الوضع الخفيف (للأجهزة الضعيفة)"
+          value={lite}
+          onChange={(v) => {
+            setLite(v);
+            setLiteMode(v); // reloads the page to apply
+          }}
+        />
+        <div className="-mt-1 mb-2 px-1 text-[10px] text-amber-300/70 leading-snug">
+          يطفي خلفيات الفيديو والحركات الثقيلة. يحل أغلب مشاكل التعليق على الجوالات القديمة.
+        </div>
 
         {email && (
           <button
