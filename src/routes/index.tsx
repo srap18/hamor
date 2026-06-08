@@ -2228,7 +2228,7 @@ function Index() {
                 key={i}
                 to={it.to}
                 onClick={() => sound.play("click")}
-                  className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
+                  className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
               >
                 {inner}
               </Link>
@@ -2241,7 +2241,7 @@ function Index() {
                   else if (it.action === "boost") setBoostOpen(true);
                   else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
                 }}
-                className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
+                className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
               >
                 {inner}
               </button>
