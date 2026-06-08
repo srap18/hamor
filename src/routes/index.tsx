@@ -326,9 +326,7 @@ function Index() {
             fishing = false;
             startedAt = undefined;
             if (row.at_sea) {
-              import("@/lib/economy").then(({ setShipAtSea }) => {
-                setShipAtSea(s.dbId!, false).catch(() => {});
-              });
+              setShipAtSea(s.dbId!, false).catch(() => {});
             }
           } else if (onSteal) {
             // Stealing mission: ship is sailing (at sea) but not fishing
