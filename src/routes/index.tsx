@@ -808,7 +808,7 @@ function Index() {
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
     // Poll every 5s so finished upgrades surface without a page revisit
-    const poll = setInterval(load, 5000);
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 5000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
