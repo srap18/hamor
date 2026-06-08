@@ -1064,14 +1064,12 @@ function Index() {
     // ── Background mutation (fire-and-forget with rollback) ─────────
     if (!dbIdToSync) return;
 
-    // Sync server clock in the background if needed (no UI block)
-    const clockReady = nextAtSea || isServerClockSynced()
-      ? Promise.resolve()
-      : syncServerTime(true).catch(() => {});
+    // Fire RPC immediately — clock sync runs in parallel, never blocks the request.
+    if (!nextAtSea && !isServerClockSynced()) {
+      syncServerTime(true).catch(() => {});
+    }
 
-    Promise.resolve(clockReady)
-      .then(() => import("@/lib/economy"))
-      .then(({ setShipAtSea }) => setShipAtSea(dbIdToSync, nextAtSea))
+    setShipAtSea(dbIdToSync, nextAtSea)
       .then(({ error }) => {
         if (error) throw error;
         // onSuccess
