@@ -1116,9 +1116,7 @@ function Index() {
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
       if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
+        setShipAtSea(s.dbId!, false).catch(() => {});
       }
       return;
     }
