@@ -25,6 +25,26 @@ export function SeamlessVideo({
   const bRef = useRef<HTMLVideoElement | null>(null);
   const [videoVisible, setVideoVisible] = useState(false);
 
+  // On weak phones / slow networks: skip the dual-video crossfade + rAF loop
+  // entirely. Rendering only the poster image saves a huge amount of CPU/GPU
+  // and battery without changing layout. The scene still looks correct because
+  // every video has a matching still-frame poster.
+  const lite = isLowEndDevice || isLowBandwidth;
+  if (lite) {
+    return poster ? (
+      <img
+        src={poster}
+        alt=""
+        aria-hidden
+        className={className}
+        draggable={false}
+        loading="eager"
+        decoding="async"
+        style={style}
+      />
+    ) : null;
+  }
+
   useEffect(() => {
     setVideoVisible(false);
     const a = aRef.current;
