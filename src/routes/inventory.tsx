@@ -312,19 +312,22 @@ function InventoryPage() {
             <div className="text-center text-lg font-extrabold text-emerald-200 mb-1">{pickedCrew.emoji} استخدام {pickedCrew.name}</div>
             <div className="text-center text-xs text-muted-foreground mb-3">اختر السفينة التي تريد تركيب الطاقم عليها</div>
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              {ships.length === 0 && <div className="text-center text-sm text-muted-foreground py-6">ما عندك سفن</div>}
-              {ships.map((ship) => {
-                const def = SHIPS.find(s => s.code === ship.catalog_code);
-                return (
-                  <button key={ship.id} onClick={() => useCrew(pickedCrew.id, ship.id)} disabled={!!usingCrew} className="w-full rounded-xl border border-border bg-secondary/50 p-3 flex items-center gap-3 text-right active:scale-95 disabled:opacity-60">
-                    {def?.image && <img src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold truncate">{def?.title ?? ship.catalog_code ?? "سفينة"}</div>
-                      <div className="text-[11px] text-muted-foreground">HP {ship.hp.toLocaleString()} / {ship.max_hp.toLocaleString()} {ship.in_storage ? "• في المخزن" : "• نشطة"}</div>
-                    </div>
-                  </button>
-                );
-              })}
+              {(() => {
+                const activeShips = ships.filter(s => !s.in_storage);
+                if (activeShips.length === 0) return <div className="text-center text-sm text-muted-foreground py-6">ما عندك سفن نشطة في المحيط</div>;
+                return activeShips.map((ship) => {
+                  const def = SHIPS.find(s => s.code === ship.catalog_code);
+                  return (
+                    <button key={ship.id} onClick={() => useCrew(pickedCrew.id, ship.id)} disabled={!!usingCrew} className="w-full rounded-xl border border-border bg-secondary/50 p-3 flex items-center gap-3 text-right active:scale-95 disabled:opacity-60">
+                      {def?.image && <img src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold truncate">{def?.title ?? ship.catalog_code ?? "سفينة"}</div>
+                        <div className="text-[11px] text-muted-foreground">HP {ship.hp.toLocaleString()} / {ship.max_hp.toLocaleString()} • نشطة</div>
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
             </div>
             <button onClick={() => setCrewToUse(null)} disabled={!!usingCrew} className="mt-3 w-full text-xs text-muted-foreground underline">إلغاء</button>
           </div>
