@@ -2054,7 +2054,7 @@ function Index() {
         };
 
         return (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
+          <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
             <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
