@@ -56,6 +56,7 @@ import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 
 const VipRoute = VipRouteImport.update({
   id: '/vip',
@@ -293,6 +294,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksGoldenFisherTickRoute =
+  ApiPublicHooksGoldenFisherTickRouteImport.update({
+    id: '/api/public/hooks/golden-fisher-tick',
+    path: '/api/public/hooks/golden-fisher-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -389,6 +397,7 @@ export interface FileRoutesByTo {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -439,6 +448,7 @@ export interface FileRoutesById {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin/'
+    | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -538,6 +549,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin'
+    | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -587,6 +599,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin/'
+    | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -624,6 +637,7 @@ export interface RootRouteChildren {
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   UUsernameRoute: typeof UUsernameRoute
+  ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -958,6 +972,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/golden-fisher-tick': {
+      id: '/api/public/hooks/golden-fisher-tick'
+      path: '/api/public/hooks/golden-fisher-tick'
+      fullPath: '/api/public/hooks/golden-fisher-tick'
+      preLoaderRoute: typeof ApiPublicHooksGoldenFisherTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1038,6 +1059,7 @@ const rootRouteChildren: RootRouteChildren = {
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   UUsernameRoute: UUsernameRoute,
+  ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

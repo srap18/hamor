@@ -7,6 +7,7 @@ import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
+import { activateGoldenFisher } from "@/lib/golden-fisher.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sellShip,
@@ -1939,6 +1940,28 @@ function Index() {
           crewBusyRef.current = true;
           setCrewBusy(true);
           try {
+          // Golden Fisher: premium recharge crew — activates 24h auto-fishing + full protection on the whole account.
+          if (itemId === "golden_fisher") {
+            try {
+              const res = await activateGoldenFisher({ data: {} });
+              sound.play("success");
+              setToast(`🏅 تم تفعيل الصياد الذهبي 24 ساعة — صيد تلقائي + حصانة كاملة`);
+              setModal(null);
+              refreshProfile();
+              reloadCrews();
+              setCrewTick((t) => t + 1);
+              void res;
+            } catch (e: any) {
+              sound.play("error");
+              const msg = e?.message ?? "خطأ";
+              setToast(
+                /no_golden_fisher/i.test(msg)
+                  ? "لا تملك طاقم صياد ذهبي — اشترِ من الشحن"
+                  : `❌ فشل التفعيل: ${msg}`,
+              );
+            }
+            return;
+          }
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
           if (itemId.startsWith("fixer_")) {
@@ -2230,6 +2253,10 @@ function Index() {
                           disabled={crewBusy || alreadyOnShip}
                           onClick={() => {
                             if (alreadyOnShip) return;
+                            if (cid === "golden_fisher") {
+                              assignCrew(cid);
+                              return;
+                            }
                             if (slotsFull) {
                               sound.play("error");
                               setToast(`⚠️ خانات الطاقم ممتلئة (${assignedRows.length}/${slots}) — أزل طاقماً مفعّلاً أولاً`);
@@ -2250,25 +2277,37 @@ function Index() {
                             assignCrew(cid);
                           }}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
-                            canAssign && !crewBusy
-                              ? "bg-emerald-600/80 text-white"
-                              : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
-                                ? "bg-amber-700/60 text-amber-100"
-                                : "bg-secondary/40 text-accent/50"
+                            cid === "golden_fisher"
+                              ? "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
+                              : canAssign && !crewBusy
+                                ? "bg-emerald-600/80 text-white"
+                                : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
+                                  ? "bg-amber-700/60 text-amber-100"
+                                  : "bg-secondary/40 text-accent/50"
                           }`}
                         >
                           {crewBusy
                             ? "..."
-                            : alreadyOnShip
-                              ? "مفعّل ✓"
-                              : isFixer
-                                ? (fixerCanRepair ? "🛠️ استخدام" : "🔒 ممتلئ 100%")
-                                : (isGlobalCrew && globallyActive)
-                                  ? "مقفول 🔒"
-                                  : slotsFull
-                                    ? "⚠️ ممتلئ"
-                                    : "تفعيل"}
+                            : cid === "golden_fisher"
+                              ? "🏅 تفعيل 24س"
+                              : alreadyOnShip
+                                ? "مفعّل ✓"
+                                : isFixer
+                                  ? (fixerCanRepair ? "🛠️ استخدام" : "🔒 ممتلئ 100%")
+                                  : (isGlobalCrew && globallyActive)
+                                    ? "مقفول 🔒"
+                                    : slotsFull
+                                      ? "⚠️ ممتلئ"
+                                      : "تفعيل"}
                         </button>
+                      ) : cid === "golden_fisher" ? (
+                        <Link
+                          to="/shop"
+                          className="text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
+                        >
+                          <span>💳 الشحن</span>
+                          <span className="text-[9px]">2 بـ $20</span>
+                        </Link>
                       ) : (
                         <button
                           onClick={buyCrew}
