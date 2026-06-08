@@ -100,17 +100,18 @@ function InventoryPage() {
     setUsingCrew(crewId);
     try {
       if (crewId === "golden_fisher") {
-        const { error } = await (supabase as any).rpc("activate_golden_fisher");
+        const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
         if (error) {
           const m = error.message || "";
-          if (/already_active/i.test(m)) toast.info("🏅 الصياد الذهبي مفعّل عندك بالفعل");
+          if (/no_golden_fisher/i.test(m)) toast.error("ما عندك صياد ذهبي في المخزن");
           else toast.error("تعذر تفعيل الصياد الذهبي");
           return;
         }
         setCrewToUse(null);
         await load();
         window.dispatchEvent(new Event("inventory-changed"));
-        toast.success("🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
+        const extended = (data as any)?.extended;
+        toast.success(extended ? "🏅 تم تمديد الصياد الذهبي 24 ساعة إضافية" : "🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
         return;
       }
       const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
