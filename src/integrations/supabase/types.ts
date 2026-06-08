@@ -868,6 +868,30 @@ export type Database = {
         }
         Relationships: []
       }
+      fish_price_settings: {
+        Row: {
+          fish_id: string
+          max_hourly_change: number
+          max_price: number
+          min_price: number
+          updated_at: string
+        }
+        Insert: {
+          fish_id: string
+          max_hourly_change?: number
+          max_price: number
+          min_price: number
+          updated_at?: string
+        }
+        Update: {
+          fish_id?: string
+          max_hourly_change?: number
+          max_price?: number
+          min_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fish_ship_max_level: {
         Row: {
           fish_id: string

@@ -47,6 +47,7 @@ import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
+import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
@@ -246,6 +247,11 @@ const AdminPlayersRoute = AdminPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFishRoute = AdminFishRouteImport.update({
+  id: '/fish',
+  path: '/fish',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminContentRoute = AdminContentRouteImport.update({
   id: '/content',
   path: '/content',
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -373,6 +380,7 @@ export interface FileRoutesByTo {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -422,6 +430,7 @@ export interface FileRoutesById {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/weekly-xp'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/weekly-xp'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/weekly-xp'
@@ -883,6 +895,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlayersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/fish': {
+      id: '/admin/fish'
+      path: '/fish'
+      fullPath: '/admin/fish'
+      preLoaderRoute: typeof AdminFishRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/content': {
       id: '/admin/content'
       path: '/content'
@@ -950,6 +969,7 @@ interface AdminRouteChildren {
   AdminCommunityRoute: typeof AdminCommunityRoute
   AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContentRoute: typeof AdminContentRoute
+  AdminFishRoute: typeof AdminFishRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
@@ -964,6 +984,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommunityRoute: AdminCommunityRoute,
   AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContentRoute: AdminContentRoute,
+  AdminFishRoute: AdminFishRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
@@ -1022,13 +1043,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

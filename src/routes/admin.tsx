@@ -38,6 +38,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/sanctions", label: "العقوبات", icon: "🚫" },
   { to: "/admin/broadcasts", label: "الإشعارات", icon: "📢" },
   { to: "/admin/content", label: "محتوى اللعبة", icon: "🎮" },
+  { to: "/admin/fish", label: "أسعار السمك", icon: "🐟" },
   { to: "/admin/codes", label: "أكواد الاستعمال", icon: "🎟️" },
   { to: "/admin/competitions", label: "الفعاليات", icon: "🏆" },
   { to: "/admin/weekly-xp", label: "مسابقة XP الأسبوعية", icon: "⭐" },
