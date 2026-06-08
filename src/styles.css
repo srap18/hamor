@@ -739,9 +739,12 @@ body.paddle-checkout-open .paddle-frame {
   }
 }
 
-/* ─────────── GPU-Accelerated Animation Helpers (60fps) ─────────── */
-/* Promote any element to its own compositor layer. Use sparingly on
-   elements that ACTUALLY animate (transform/opacity). */
+/* ─────────── GPU layers — selective, mobile-friendly ───────────
+   Goal: 60fps WITHOUT exploding the compositor-layer count on old phones.
+   Rule: only elements that ACTUALLY animate get their own GPU layer.
+   Static images, static videos, and static .fixed wrappers stay flattened
+   so the browser merges them into one background layer. */
+
 .gpu,
 [data-gpu] {
   transform: translateZ(0);
@@ -750,45 +753,47 @@ body.paddle-checkout-open .paddle-frame {
   -webkit-backface-visibility: hidden;
 }
 
-/* All Tailwind / project keyframe animations in this app already animate
-   transform/opacity only. Hint the compositor so they hit 60fps. */
+/* Hint to compositor on real animations only.
+   NOTE: no `transform: translateZ(0)` here — `will-change` alone is enough
+   and lets the browser drop the layer when the animation ends. */
 [class*="animate-"]:not(.animate-none) {
   will-change: transform, opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
-/* Frame cosmetics (flame/float/sparkle/wave/leaf/pulse) — composite layer */
+/* Frame cosmetics actually run continuous keyframes — promote them. */
 .frame-anim-flame,
 .frame-anim-float,
 .frame-anim-sparkle,
 .frame-anim-wave,
 .frame-anim-leaf,
 .frame-anim-pulse {
-  will-change: transform, filter, opacity;
+  will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Containment on fixed overlays so their repaints never reflow the page */
-.fixed,
-[data-fixed] {
+/* Background videos / images: flatten into one layer (was a per-element
+   layer before — costly on mobile GPUs). The video decoder still uses
+   hardware acceleration; we just don't force an extra compositor layer. */
+.bg-flat,
+[data-bg-flat] {
+  contain: strict;
+  isolation: isolate;
+}
+
+/* Containment on overlays only (toasts, banners, modals) — NOT every
+   `.fixed` Tailwind utility, which was over-broad. Opt in via class. */
+.contain-paint {
   contain: layout paint style;
 }
 
-/* Smooth media — videos & images get their own GPU layer */
-video, img {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* Off-screen long lists / cards: skip render until near viewport */
+/* Off-screen long lists: skip render until near viewport.
+   Apply to leaderboard rows, chat messages, inventory cards, etc. */
 .cv-auto {
   content-visibility: auto;
   contain-intrinsic-size: 1px 600px;
 }
+
 
 /* Tap response without 300ms delay (extra insurance over viewport meta) */
 html { touch-action: manipulation; }
