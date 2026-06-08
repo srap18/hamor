@@ -994,27 +994,35 @@ function Index() {
 
   const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt);
 
-  const toggleFishing = async (shipId: number) => {
+  const toggleFishing = (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
-    // Guard against double-tap on the start/stop fishing button.
-    if (target?.dbId && collectingRef.current[target.dbId]) return;
-    if (target?.dbId) collectingRef.current[target.dbId] = true;
-    if (target && isDestroyed(target) && !target.fishing) {
+    if (!target) return;
+
+    // Guard double-tap
+    if (target.dbId && collectingRef.current[target.dbId]) return;
+
+    // Destroyed-ship guard (sync, no awaits)
+    if (isDestroyed(target) && !target.fishing) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
       sound.play("error");
-      if (target.dbId) delete collectingRef.current[target.dbId];
       return;
     }
-    if (!target?.fishing && !isServerClockSynced()) {
-      await syncServerTime(true);
-    }
-    if (!target) return;
-    const startNow = serverNowMs();
+
     const dbIdToSync = target.dbId;
     const nextAtSea = !target.fishing;
+
+    // ── onMutate: Snapshot previous state for rollback ──────────────
+    const prevShipSnapshot: Ship = { ...target };
+    const prevSeaOverride = dbIdToSync ? seaStateOverrideRef.current[dbIdToSync] : undefined;
+
+    if (dbIdToSync) collectingRef.current[dbIdToSync] = true;
+
+    // ── Optimistic update: instant UI change, ZERO awaits ──────────
+    const startNow = serverNowMs();
     const nextStartedAt = nextAtSea
       ? startNow - Math.round(((target.max > 0 ? target.progress / target.max : 0) * target.duration * 1000))
       : undefined;
+
     if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
     setShips((curr) =>
       curr.map((x) => {
@@ -1026,22 +1034,40 @@ function Index() {
       })
     );
     sound.play("whoosh");
-    // Sync at_sea to DB so other players see live status via realtime
-    if (dbIdToSync) {
-      const { setShipAtSea } = await import("@/lib/economy");
-      const { error } = await setShipAtSea(dbIdToSync, nextAtSea);
-      if (error) {
-        delete seaStateOverrideRef.current[dbIdToSync];
-        delete collectingRef.current[dbIdToSync];
-        showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
-        syncFleetFromDb();
-        return;
-      }
-      clearSeaOverrideSoon(dbIdToSync);
-      delete collectingRef.current[dbIdToSync];
-    }
-    // Instant push to spectators
     pushHarborState();
+
+    // ── Background mutation (fire-and-forget with rollback) ─────────
+    if (!dbIdToSync) return;
+
+    // Sync server clock in the background if needed (no UI block)
+    const clockReady = nextAtSea || isServerClockSynced()
+      ? Promise.resolve()
+      : syncServerTime(true).catch(() => {});
+
+    Promise.resolve(clockReady)
+      .then(() => import("@/lib/economy"))
+      .then(({ setShipAtSea }) => setShipAtSea(dbIdToSync, nextAtSea))
+      .then(({ error }) => {
+        if (error) throw error;
+        // onSuccess
+        clearSeaOverrideSoon(dbIdToSync);
+      })
+      .catch(() => {
+        // ── onError: Rollback to snapshot ─────────────────────────────
+        if (prevSeaOverride) {
+          seaStateOverrideRef.current[dbIdToSync] = prevSeaOverride;
+        } else {
+          delete seaStateOverrideRef.current[dbIdToSync];
+        }
+        setShips((curr) => curr.map((x) => (x.id === shipId ? prevShipSnapshot : x)));
+        showToast(nextAtSea ? "تعذّر إرسال السفينة للصيد" : "تعذّر إيقاف الصيد");
+        sound.play("error");
+      })
+      .finally(() => {
+        // ── onSettled: release lock + reconcile with server ──────────
+        delete collectingRef.current[dbIdToSync];
+        syncFleetFromDb();
+      });
   };
 
   const collect = async (shipId: number, e: React.MouseEvent) => {
