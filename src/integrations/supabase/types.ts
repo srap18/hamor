@@ -4283,6 +4283,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_guide_fish: {
+        Args: { _fish_id: string; _ship_db_id: string }
+        Returns: Json
+      }
       set_my_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       set_pinned_chat: { Args: { _body: string }; Returns: undefined }
       set_ship_at_sea: {
