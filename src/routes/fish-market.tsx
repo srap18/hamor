@@ -459,11 +459,12 @@ function FishMarket() {
     if (requestedQty <= 0) return;
 
     setSelling(true);
-    // Optimistic local update
+    // Optimistic local update: remove fish from view AND credit coins.
     const earned = Math.round(requestedQty * price);
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
     setPop(`+${earned.toLocaleString()} ذهب`);
     setTimeout(() => setPop(null), 1500);
+    const rollbackCoins = applyOptimisticProfileDelta({ coins: +earned });
 
     try {
       // Server-side: deletes oldest N rows for this fish in a single call.
@@ -472,6 +473,7 @@ function FishMarket() {
         _qty: requestedQty,
       } as never);
       if (error) {
+        rollbackCoins();
         setPop(`❌ ${error.message || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
         await loadFish();
@@ -479,15 +481,24 @@ function FishMarket() {
       }
       const serverEarned = Number(data ?? earned);
       if (serverEarned <= 0) {
+        rollbackCoins();
         setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
         setTimeout(() => setPop(null), 1800);
         await loadFish();
         return;
       }
+      // Reconcile delta if server credited a different amount than we predicted.
+      if (serverEarned !== earned) {
+        rollbackCoins();
+        applyOptimisticProfileDelta({ coins: +serverEarned });
+      }
       setPop(`+${serverEarned.toLocaleString()} ذهب`);
       setTimeout(() => setPop(null), 1500);
       await loadFish();
       refreshProfile();
+    } catch (e) {
+      rollbackCoins();
+      throw e;
     } finally {
       setSelling(false);
     }
