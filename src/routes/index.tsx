@@ -2125,12 +2125,13 @@ function Index() {
                   const isBuying = buyingCrewId === cid;
 
                   const buyCrew = () => {
-                    if (isBuying) return;
+                    if (isBuying || buyingCrewRef.current) return;
                     if (!canAfford) {
                       sound.play("error");
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
+                    buyingCrewRef.current = cid;
                     setBuyingCrewId(cid);
                     sound.play("coin");
                     setToast(`✓ تم شراء ${c.name}`);
@@ -2148,6 +2149,7 @@ function Index() {
                         reloadCrews();
                         setCrewTick((t) => t + 1);
                       } finally {
+                        buyingCrewRef.current = null;
                         setBuyingCrewId(null);
                       }
                     })();
