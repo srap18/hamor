@@ -3664,6 +3664,36 @@ function ShipSlotBase({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: 
   );
 }
 
+const ShipSlot = memo(ShipSlotBase, (prev, next) => {
+  const a = prev.ship;
+  const b = next.ship;
+  if (prev.active !== next.active || prev.crews.length !== next.crews.length) return false;
+  for (let i = 0; i < prev.crews.length; i += 1) {
+    if (prev.crews[i]?.id !== next.crews[i]?.id) return false;
+  }
+  return a.id === b.id
+    && a.dbId === b.dbId
+    && a.img === b.img
+    && a.progress === b.progress
+    && a.max === b.max
+    && a.timeLeft === b.timeLeft
+    && a.duration === b.duration
+    && a.startedAt === b.startedAt
+    && a.scale === b.scale
+    && a.top === b.top
+    && a.dockLeft === b.dockLeft
+    && a.fishing === b.fishing
+    && a.sail === b.sail
+    && a.level === b.level
+    && a.hp === b.hp
+    && a.maxHp === b.maxHp
+    && a.destroyedAt === b.destroyedAt
+    && a.repairEndsAt === b.repairEndsAt
+    && a.stealingEndsAt === b.stealingEndsAt
+    && a.stealingTargetUserId === b.stealingTargetUserId
+    && a.seaSide === b.seaSide;
+});
+
 function Hotspot({
   to,
   label,
