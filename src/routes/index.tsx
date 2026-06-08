@@ -676,6 +676,7 @@ function Index() {
   const crewBusyRef = useRef(false);
   const [crewBusy, setCrewBusy] = useState(false);
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
+  const buyingCrewRef = useRef<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
