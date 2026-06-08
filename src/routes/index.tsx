@@ -3667,9 +3667,11 @@ function ShipSlotBase({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: 
 const ShipSlot = memo(ShipSlotBase, (prev, next) => {
   const a = prev.ship;
   const b = next.ship;
-  if (prev.active !== next.active || prev.crews.length !== next.crews.length) return false;
-  for (let i = 0; i < prev.crews.length; i += 1) {
-    if (prev.crews[i]?.id !== next.crews[i]?.id) return false;
+  const prevCrews = prev.crews ?? [];
+  const nextCrews = next.crews ?? [];
+  if (prev.active !== next.active || prevCrews.length !== nextCrews.length) return false;
+  for (let i = 0; i < prevCrews.length; i += 1) {
+    if (prevCrews[i]?.id !== nextCrews[i]?.id) return false;
   }
   return a.id === b.id
     && a.dbId === b.dbId
