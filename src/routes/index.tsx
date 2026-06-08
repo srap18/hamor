@@ -349,9 +349,7 @@ function Index() {
             fishing = false;
             startedAt = undefined;
             if (row.at_sea) {
-              import("@/lib/economy").then(({ setShipAtSea }) => {
-                setShipAtSea(s.dbId!, false).catch(() => {});
-              });
+              setShipAtSea(s.dbId!, false).catch(() => {});
             }
           }
           return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
