@@ -2096,12 +2096,12 @@ function Index() {
 
         return (
           <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 pt-10 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="إغلاق"
-                className="sticky top-0 float-left -mt-1 -ml-1 w-9 h-9 rounded-full bg-red-900/90 border-2 border-red-400/80 text-red-100 font-black text-lg flex items-center justify-center active:scale-95 z-[100] shadow-lg shadow-black/60"
+                className="absolute top-2 left-2 w-9 h-9 rounded-full bg-red-900/90 border-2 border-red-400/80 text-red-100 font-black text-lg flex items-center justify-center active:scale-95 z-[120] shadow-lg shadow-black/60"
               >✕</button>
               <div className="text-accent font-bold text-base mb-1 text-center">تخصيص طاقم السفينة</div>
               <div className="text-[10px] text-accent/60 text-center mb-3">
