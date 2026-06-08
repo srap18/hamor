@@ -94,7 +94,7 @@ const NavIconButton = memo(function NavIconButton({
       </span>
     </button>
   );
-}
+});
 
 export function BottomNav({ active }: { active?: string }) {
   const nav = useNavigate();
