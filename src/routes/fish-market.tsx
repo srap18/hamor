@@ -9,6 +9,7 @@ import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { sellFish } from "@/lib/economy";
+import { getCached, setCached } from "@/lib/swr-cache";
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -84,6 +85,15 @@ type MarketState = {
   freeze_started_at: string | null;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
+
+type TraderCache = { until: string | null; active: boolean; owned: number };
+type PriceCache = {
+  prices: Record<string, { current: number; min: number; max: number }>;
+  forecast: Record<string, number[]>;
+  history: Record<string, number[]>;
+};
+type FishMarketLevelCache = { level: number; upgradingTo: number | null; upgradeEndsAt: string | null };
+type FishStockCache = { qty: Record<string, number>; ages: Record<string, string> };
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
