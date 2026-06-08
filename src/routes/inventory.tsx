@@ -90,6 +90,15 @@ function InventoryPage() {
     usingCrewRef.current = true;
     setUsingCrew(crewId);
     try {
+      if (crewId === "golden_fisher") {
+        const { error } = await (supabase as any).rpc("activate_golden_fisher");
+        if (error) { alert("تعذر تفعيل الصياد الذهبي"); return; }
+        setCrewToUse(null);
+        await load();
+        window.dispatchEvent(new Event("inventory-changed"));
+        alert("🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
+        return;
+      }
       const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
       if (error) {
         const msg = error.message || "";
@@ -164,7 +173,7 @@ function InventoryPage() {
                   </div>
                   {n > 0 && (
                     <button
-                      onClick={() => c.id === "trader" ? useCrew(c.id, null) : setCrewToUse(c.id)}
+                      onClick={() => (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id)}
                       disabled={usingCrew === c.id}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
