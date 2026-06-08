@@ -16,7 +16,7 @@ import {
   setShipAtSea,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-import { useSwrCache } from "@/lib/swr-cache";
+import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
@@ -1218,8 +1218,24 @@ function Index() {
     syncFleetFromDb();
     // Instant push to spectators
     pushHarborState();
+    // Optimistically bump the fish-market stock cache so the count shows
+    // instantly the moment the user opens /fish-market (no realtime wait).
+    if (caughtId && profile?.id) {
+      try {
+        const key = `fish-market:stock:${profile.id}`;
+        const prev = getCached<{ qty: Record<string, number>; ages: Record<string, string> }>(key) ?? { qty: {}, ages: {} };
+        const nextQty = { ...prev.qty, [caughtId]: (prev.qty[caughtId] ?? 0) + fishGained };
+        const nextAges = { ...prev.ages };
+        if (!nextAges[caughtId]) nextAges[caughtId] = new Date().toISOString();
+        setCached(key, { qty: nextQty, ages: nextAges });
+      } catch {}
+      // Invalidate any list caches that depend on stock.
+      try { invalidateCache(`fish-market:list:`); } catch {}
+    }
     // Tell any open fish-market / inventory tab to reload right now (don't wait for realtime).
     try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+    // Cross-tab signal — other tabs (e.g. fish-market open in a second tab) reload immediately.
+    try { localStorage.setItem("fish-stock-ping", String(Date.now())); } catch {}
     setPop({
       id: serverNowMs(),
       x: popAnchor.left + popAnchor.width / 2,
