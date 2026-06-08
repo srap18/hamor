@@ -1329,9 +1329,26 @@ function PlayerPage() {
                     onClick={async () => {
                       if (!(await confirmDropArmorIfActive())) return;
                       setBusy(true); sound.play("click");
-                      // Close the picker immediately so the explosion shows over the ships.
+                      // Close the picker so the explosion will be visible — but DO NOT play FX yet.
                       setMode(null);
                       setSelectedShip(null);
+                      // ─── Validate FIRST on the server (same rules as other weapons) ───
+                      const { error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ error: { message: string } | null }> })
+                        .rpc("launch_ad_bomb", { _target_id: playerId, _video_key: v.key });
+                      if (error) {
+                        const m = error.message || "";
+                        setBusy(false);
+                        if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
+                        if (m.includes("attacker has destroyed ship")) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+                        if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
+                        if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
+                        if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية — احصل عليها بكود شحن"); return; }
+                        if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); return; }
+                        if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع"); return; }
+                        if (m.includes("cannot target self")) { sound.play("error"); flash("❌ لا يمكن استهداف نفسك"); return; }
+                        sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
+                      }
+                      // ─── Success: now play FX + apply local view ───
                       sound.play("nuke");
                       const cx = window.innerWidth / 2;
                       const cy = window.innerHeight / 2;
@@ -1339,15 +1356,6 @@ function PlayerPage() {
                       setTimeout(() => setFx(null), 1600);
                       setShake("shake-lg");
                       setTimeout(() => setShake(""), 1500);
-                      const { error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ error: { message: string } | null }> })
-                        .rpc("launch_ad_bomb", { _target_id: playerId, _video_key: v.key });
-                      if (error) {
-                        const m = error.message || "";
-                        setBusy(false);
-                        if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية — احصل عليها بكود شحن"); return; }
-                        if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع"); return; }
-                        sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
-                      }
                       // decrement local inventory + scorch bg + show damage locally
                       setInv((arr) => arr
                         .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
