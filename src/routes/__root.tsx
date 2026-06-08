@@ -107,7 +107,38 @@ if (typeof window !== "undefined") {
       }).catch(() => {});
     }
   } catch {}
+
+  // Auto-clear stale browser caches once per deployed build. We compare the
+  // build id baked into the bundle against what's stored locally; on mismatch
+  // we wipe Cache Storage and reload once so the user always runs the latest
+  // version without needing to hit the manual "تحديث اللعبة" button.
+  try {
+    const BUILD_ID = (import.meta as any).env?.VITE_BUILD_ID
+      || (import.meta as any).env?.MODE + ":" + ((import.meta as any).env?.DEV ? "dev" : "prod");
+    const KEY = "oc-build-id";
+    const prev = localStorage.getItem(KEY);
+    if (prev && prev !== BUILD_ID) {
+      localStorage.setItem(KEY, BUILD_ID);
+      (async () => {
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch {}
+        // Avoid infinite reload loops with a one-shot URL flag.
+        const u = new URL(window.location.href);
+        if (!u.searchParams.has("__v")) {
+          u.searchParams.set("__v", String(Date.now()));
+          window.location.replace(u.toString());
+        }
+      })();
+    } else if (!prev) {
+      localStorage.setItem(KEY, BUILD_ID);
+    }
+  } catch {}
 }
+
 
 
 import appCss from "../styles.css?url";
