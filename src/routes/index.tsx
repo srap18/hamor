@@ -950,6 +950,7 @@ function Index() {
   // Auto-claim expired steal missions — loot arrives automatically
   useEffect(() => {
     const id = setInterval(async () => {
+      if (document.hidden) return;
       const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
