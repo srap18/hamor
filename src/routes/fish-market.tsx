@@ -127,23 +127,32 @@ function FishMarket() {
 
   const loadMarketState = async () => {
     if (!user) return;
+    const cacheKey = `fish-market:state:${user.id}`;
     const { data } = await (supabase as any)
       .from("user_market_state")
       .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
+    let nextState: MarketState;
     if (data) {
-      setMarketState({
+      nextState = {
         trader_until: data.trader_until,
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
-      });
+      };
     } else {
-      setMarketState({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} };
     }
+    setMarketState(nextState);
+    setCached(cacheKey, nextState);
   };
-  useEffect(() => { loadMarketState(); }, [user?.id]);
+  useEffect(() => {
+    if (!user) return;
+    const cached = getCached<MarketState>(`fish-market:state:${user.id}`);
+    if (cached) setMarketState(cached);
+    loadMarketState();
+  }, [user?.id]);
 
   // If the user has an active "trader" crew assigned to one of their ships,
   // it grants the same forecast as the paid market unlock — no 250💎 needed.
