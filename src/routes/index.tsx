@@ -1854,6 +1854,11 @@ function Index() {
                       className="flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-secondary/70 px-3 py-2 text-xs font-black text-accent active:scale-95"
                       onClick={(e) => {
                         setShipGuide(s.id, fishId);
+                        // Persist guide preference server-side so the Golden Fisher
+                        // honors it while running offline.
+                        if (s.dbId) {
+                          void (supabase as any).rpc("set_guide_fish", { _ship_db_id: s.dbId, _fish_id: fishId });
+                        }
                         setFishPickerShipId(null);
                         collect(s.id, e);
                       }}
@@ -1955,9 +1960,11 @@ function Index() {
               sound.play("error");
               const msg = e?.message ?? "خطأ";
               setToast(
-                /no_golden_fisher/i.test(msg)
-                  ? "لا تملك طاقم صياد ذهبي — اشترِ من الشحن"
-                  : `❌ فشل التفعيل: ${msg}`,
+                /already_active/i.test(msg)
+                  ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
+                  : /no_golden_fisher/i.test(msg)
+                    ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
+                    : `❌ فشل التفعيل: ${msg}`,
               );
             }
             return;
