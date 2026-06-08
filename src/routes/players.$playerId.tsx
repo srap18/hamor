@@ -1690,9 +1690,13 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         const damaged = !destroyed && dmgRatio > 0.05;
         return (
       <div
-        className="relative w-full"
+        className={`relative w-full ${atSea && !destroyed ? "animate-ship-bob" : ""}`}
         style={{
-          transform: `translateY(${bob}px) rotateZ(${tilt + (damaged ? dmgRatio * 4 : 0)}deg)`,
+          transform: destroyed
+            ? `rotateZ(18deg)`
+            : damaged
+            ? `rotateZ(${dmgRatio * 4}deg)`
+            : undefined,
           filter: destroyed
             ? "drop-shadow(0 12px 14px rgba(0,0,0,0.45)) grayscale(0.85) brightness(0.55)"
             : damaged
