@@ -1646,6 +1646,7 @@ export type Database = {
           created_at: string
           display_name: string
           gems: number
+          golden_fisher_until: string | null
           id: string
           last_destroyer_at: string | null
           last_destroyer_id: string | null
@@ -1690,6 +1691,7 @@ export type Database = {
           created_at?: string
           display_name: string
           gems?: number
+          golden_fisher_until?: string | null
           id: string
           last_destroyer_at?: string | null
           last_destroyer_id?: string | null
@@ -1734,6 +1736,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           gems?: number
+          golden_fisher_until?: string | null
           id?: string
           last_destroyer_at?: string | null
           last_destroyer_id?: string | null
@@ -3249,6 +3252,7 @@ export type Database = {
         Returns: number
       }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
+      activate_golden_fisher: { Args: never; Returns: Json }
       add_vip_points: {
         Args: { _pts: number; _user: string }
         Returns: undefined
@@ -4012,6 +4016,7 @@ export type Database = {
         Args: { _amount: number; _recipient: string }
         Returns: undefined
       }
+      golden_fisher_tick: { Args: { _user: string }; Returns: Json }
       grant_cosmic_frame: { Args: never; Returns: Json }
       grant_inventory_item: {
         Args: {
