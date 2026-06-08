@@ -153,7 +153,7 @@ function Shop() {
   };
 
   const buy = async () => {
-    if (!selected || busy) return;
+    if (!selected || busy || busyRef.current) return;
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     const total = selected.price * qty;
     if (selected.currency === "gem" && gems < total) { flash("لا تملك جواهر كافيه"); return; }
@@ -166,7 +166,9 @@ function Shop() {
       useGemFallback = true;
     }
 
+    busyRef.current = true;
     setBusy(true);
+    try {
 
     if (tab === "protection") {
       // Server-side: deduct currency AND extend protection_until atomically.
