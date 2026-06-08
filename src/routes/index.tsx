@@ -1170,8 +1170,10 @@ function Index() {
     delete collectingRef.current[s.dbId];
     // Lock UI to "docked" so realtime echoes can't briefly flip it back to fishing.
     setSeaOverride(s.dbId, false);
-
-    clearSeaOverrideSoon(s.dbId);
+    // Force-dock on server so any stale at_sea=true row can't bounce the ship
+    // back into fishing right after collect (this was causing the "stops then
+    // suddenly re-starts" hang). Fire-and-forget; override already locks UI.
+    setShipAtSea(s.dbId, false).catch(() => {});
 
     const row = Array.isArray(data) ? data[0] : data;
     const caughtId = row?.fish_id as string | undefined;
@@ -1200,7 +1202,7 @@ function Index() {
       });
       showToast(`⏳ أوقفت السفينة بدري — لازم تنتظر أكثر (${pct}%) عشان تصيد سمك`);
       sound.play("error");
-      syncFleetFromDb();
+      window.setTimeout(() => { try { syncFleetFromDb(); } catch {} }, 600);
       return;
     }
     setFish((f) => f + fishGained);
@@ -1215,7 +1217,9 @@ function Index() {
           : x
       )
     );
-    syncFleetFromDb();
+    // Delay fleet sync slightly so the server-side dock + collect commit are
+    // visible before we re-read at_sea (prevents UI flicker back to fishing).
+    window.setTimeout(() => { try { syncFleetFromDb(); } catch {} }, 600);
     // Instant push to spectators
     pushHarborState();
     // Optimistically bump the fish-market stock cache so the count shows
