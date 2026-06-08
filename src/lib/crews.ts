@@ -41,5 +41,5 @@ export const CREWS: Crew[] = [
   { id: "fixer_2", name: "مصلح متوسط",      emoji: "🛠️", image: fixer2Img, price: 700000,  currency: "coins", bonus: "يصلح فوراً 5,000 من دم أي سفينة + حصانة من أي هجوم 60 ثانية",      rarity: "rare" },
   { id: "fixer_3", name: "مصلح كبير",       emoji: "⚒️", image: fixer3Img, price: 3500000, currency: "coins", bonus: "يصلح فوراً 70,000 من دم أي سفينة + حصانة من أي هجوم 60 ثانية",     rarity: "epic" },
   { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 50,      currency: "gems",  bonus: "يعبّي كل سفنك الـ3 فلل فوراً + حصانة من أي هجوم 60 ثانية", rarity: "legendary" },
-  { id: "golden_fisher", name: "الصياد الذهبي", emoji: "🏅", image: goldenFisherImg, price: 0, currency: "gems", bonus: "يصيد تلقائياً على كل سفنك حتى وأنت أوف لاين + حصانة كاملة من الهجوم والسرقة 24 ساعة. (يُشترى من الشحن فقط)", rarity: "legendary" },
+  { id: "golden_fisher", name: "الصياد الذهبي", emoji: "🏅", image: goldenFisherImg, price: 3000, currency: "gems", bonus: "يصيد تلقائياً على كل سفنك حتى وأنت أوف لاين + حصانة كاملة من الهجوم والسرقة 24 ساعة.", rarity: "legendary" },
 ];
