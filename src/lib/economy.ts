@@ -1,23 +1,63 @@
 import { supabase } from "@/integrations/supabase/client";
+import { applyOptimisticProfileDelta, refreshProfile } from "@/hooks/use-auth";
 
 // Thin wrappers around server-side SECURITY DEFINER RPCs.
 // All currency / inventory / ship / quest mutations MUST go through these
 // to prevent client-side cheating.
+//
+// Most "deduction" wrappers apply an Optimistic UI update to the cached
+// profile (coins/gems) immediately, then call the RPC. On error we roll
+// back the delta and surface the original error to the caller. On success
+// the realtime postgres_changes subscription on `profiles` reconciles the
+// authoritative value automatically; we also trigger refreshProfile() as a
+// safety net.
+
+type RpcResult<T = unknown> = { data: T | null; error: any };
+
+async function withOptimistic<T>(
+  delta: Parameters<typeof applyOptimisticProfileDelta>[0],
+  run: () => Promise<RpcResult<T>>,
+): Promise<RpcResult<T>> {
+  const rollback = applyOptimisticProfileDelta(delta);
+  try {
+    const res = await run();
+    if (res.error) {
+      rollback();
+    } else {
+      // Reconcile with server-truth shortly after (realtime usually wins first).
+      setTimeout(() => refreshProfile(), 50);
+    }
+    return res;
+  } catch (e) {
+    rollback();
+    throw e;
+  }
+}
 
 export async function buyWithGems(itemId: string, itemType: string, gemsCost: number, meta?: unknown, count: number = 1) {
-  return supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never, _count: count } as never);
+  return withOptimistic({ gems: -Math.abs(gemsCost) }, () =>
+    supabase.rpc("buy_with_gems", { _item_id: itemId, _item_type: itemType, _gems_cost: gemsCost, _meta: (meta ?? null) as never, _count: count } as never) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function buyWithCoins(itemId: string, itemType: string, coinsCost: number, meta?: unknown, count: number = 1) {
-  return supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
+  return withOptimistic({ coins: -Math.abs(coinsCost) }, () =>
+    supabase.rpc("buy_with_coins", { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function buyWithCoinsGemFallback(itemId: string, itemType: string, coinsCost: number, meta?: unknown, count: number = 1) {
-  return supabase.rpc("buy_with_coins_gem_fallback" as never, { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
+  // Server may pay with coins OR fall back to gems — can't predict which.
+  // Skip optimistic; rely on realtime reconcile.
+  const res = await supabase.rpc("buy_with_coins_gem_fallback" as never, { _item_id: itemId, _item_type: itemType, _coins_cost: coinsCost, _meta: (meta ?? null) as never, _count: count } as never);
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 export async function buyProtection(days: number, coinsCost: number, gemsCost: number) {
-  return supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost });
+  return withOptimistic({ coins: -Math.abs(coinsCost), gems: -Math.abs(gemsCost) }, () =>
+    supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function buyShipRpc(templateId: number) {
@@ -25,24 +65,34 @@ export async function buyShipRpc(templateId: number) {
 }
 
 export async function repairShipInstant(shipId: string, gemsCost: number) {
-  return supabase.rpc("repair_ship_instant", { _ship_id: shipId, _gems_cost: gemsCost });
+  return withOptimistic({ gems: -Math.abs(gemsCost) }, () =>
+    supabase.rpc("repair_ship_instant", { _ship_id: shipId, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function giftGold(recipientId: string, amount: number) {
-  return supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount });
+  return withOptimistic({ coins: -Math.abs(amount) }, () =>
+    supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function giftGems(recipientId: string, amount: number) {
-  return supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount });
+  return withOptimistic({ gems: -Math.abs(amount) }, () =>
+    supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function claimDailyLogin() {
-  return supabase.rpc("claim_daily_login");
+  const res = await supabase.rpc("claim_daily_login");
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 
 export async function sellFish(fishStockIds: string[]) {
-  return supabase.rpc("sell_fish", { _fish_stock_ids: fishStockIds });
+  const res = await supabase.rpc("sell_fish", { _fish_stock_ids: fishStockIds });
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 export async function setShipAtSea(shipId: string, atSea: boolean) {
@@ -50,15 +100,21 @@ export async function setShipAtSea(shipId: string, atSea: boolean) {
 }
 
 export async function buyLootbox(typeId: string) {
-  return supabase.rpc("buy_lootbox", { _type_id: typeId });
+  const res = await supabase.rpc("buy_lootbox", { _type_id: typeId });
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 export async function openLootbox(boxId: string) {
-  return supabase.rpc("open_lootbox", { _box_id: boxId });
+  const res = await supabase.rpc("open_lootbox", { _box_id: boxId });
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 export async function claimQuest(questId: string, dayKey: string) {
-  return supabase.rpc("claim_quest", { _quest_id: questId, _day_key: dayKey });
+  const res = await supabase.rpc("claim_quest", { _quest_id: questId, _day_key: dayKey });
+  if (!res.error) setTimeout(() => refreshProfile(), 50);
+  return res;
 }
 
 export async function setMyTribe(tribeId: string | null) {
@@ -82,7 +138,9 @@ export async function getMyWallet() {
 }
 
 export async function sellShip(shipId: string, refundCoins: number) {
-  return supabase.rpc("sell_ship", { _ship_id: shipId, _refund_coins: refundCoins });
+  return withOptimistic({ coins: +Math.abs(refundCoins) }, () =>
+    supabase.rpc("sell_ship", { _ship_id: shipId, _refund_coins: refundCoins }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function deleteInventoryRows(ids: string[]) {
@@ -111,7 +169,9 @@ export async function adminMassGift(coins: number, gems: number, xp: number) {
 }
 
 export async function buyShipByCode(code: string, templateId: number, priceCoins: number, maxHp: number) {
-  return supabase.rpc("buy_ship_by_code", { _code: code, _template_id: templateId, _price_coins: priceCoins, _max_hp: maxHp });
+  return withOptimistic({ coins: -Math.abs(priceCoins) }, () =>
+    supabase.rpc("buy_ship_by_code", { _code: code, _template_id: templateId, _price_coins: priceCoins, _max_hp: maxHp }) as unknown as Promise<RpcResult>,
+  );
 }
 
 export async function marketStartUpgrade() {
@@ -123,5 +183,7 @@ export async function marketFinishUpgradeWithGems() {
 }
 
 export async function deductGemsForVoiceChange(userId: string, amount = 200) {
-  return supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount });
+  return withOptimistic({ gems: -Math.abs(amount) }, () =>
+    supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount }) as unknown as Promise<RpcResult>,
+  );
 }
