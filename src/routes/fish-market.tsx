@@ -366,6 +366,7 @@ function FishMarket() {
   // tens of thousands of rows for large stocks which causes "Load failed").
   const loadFish = async () => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
+    const cacheKey = `fish-market:stock:${user.id}`;
     const { data, error } = await supabase.rpc("get_fish_stock_summary" as never);
     if (error) return;
     const rows = (data ?? []) as Array<{ fish_id: string; qty: number | string; oldest_caught_at: string }>;
@@ -379,10 +380,19 @@ function FishMarket() {
     }
     setQtyMap(map);
     setAgeMap(ages);
+    setCached(cacheKey, { qty: map, ages });
     // IDs are fetched on demand during sale to avoid huge payloads.
     setStockIdsMap({});
   };
   useEffect(() => {
+    if (user) {
+      const cached = getCached<FishStockCache>(`fish-market:stock:${user.id}`);
+      if (cached) {
+        setQtyMap(cached.qty);
+        setAgeMap(cached.ages);
+        setStockIdsMap({});
+      }
+    }
     loadFish();
     if (!user) return;
     const onFocus = () => loadFish();
