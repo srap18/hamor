@@ -320,8 +320,8 @@ function PlayerPage() {
       )
       .subscribe();
 
-    // Backstop: poll every 1.2s + refresh on tab visibility/focus so visitors
-    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 1200);
+    // Backstop: realtime + focus already cover most cases — poll slowly to save CPU
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 4000);
     const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
     const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
     document.addEventListener("visibilitychange", onVis);
@@ -386,7 +386,7 @@ function PlayerPage() {
   // Live ticker for raider counters (fish stolen so far + countdown)
   useEffect(() => {
     if (raiders.length === 0) return;
-    const id = window.setInterval(() => setNowTs(serverNowMs()), 500);
+    const id = window.setInterval(() => setNowTs(serverNowMs()), 1000);
     return () => window.clearInterval(id);
   }, [raiders.length]);
 
@@ -1612,14 +1612,8 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
 }
 
 function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, repairEndsAt, onRepaired, onTap, buttonRef, crews = [], seaSide = "right" }: { img: string; top: string; left: string; scale: number; atSea: boolean; idx: number; hp: number; maxHp: number; destroyed: boolean; repairEndsAt?: string | null; onRepaired?: () => void; onTap: () => void; buttonRef?: (el: HTMLButtonElement | null) => void; crews?: typeof CREWS; seaSide?: "left" | "right" }) {
-
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (!atSea || destroyed) return;
-    const id = setInterval(() => setTick((t) => t + 1), 80);
-    return () => clearInterval(id);
-  }, [atSea, destroyed]);
-  // 1s clock for repair countdown
+  // No per-frame React tick — bobbing is now a pure CSS animation (see styles.css .animate-ship-bob)
+  // 1s clock only when waiting on a repair countdown
   const [nowMs, setNowMs] = useState(() => serverNowMs());
   useEffect(() => {
     if (!destroyed || !repairEndsAt) return;
@@ -1631,10 +1625,6 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     const endMs = new Date(repairEndsAt).getTime();
     if (nowMs >= endMs) onRepaired?.();
   }, [nowMs, destroyed, repairEndsAt, onRepaired]);
-  const t = serverNowMs() / 1000;
-  const bob = destroyed ? 0 : Math.sin((t + idx) * 1.4) * 1.5;
-  const tilt = destroyed ? 18 : Math.sin((t + idx) * 1.8) * 0.8;
-  void tick;
   const hpPct = Math.max(0, Math.min(100, Math.round((hp / Math.max(1, maxHp)) * 100)));
   const hpColor = hpPct > 60 ? "bg-emerald-500" : hpPct > 30 ? "bg-amber-500" : "bg-red-600";
   const remainingSec = destroyed && repairEndsAt ? Math.max(0, Math.ceil((new Date(repairEndsAt).getTime() - nowMs) / 1000)) : 0;
@@ -1700,9 +1690,13 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         const damaged = !destroyed && dmgRatio > 0.05;
         return (
       <div
-        className="relative w-full"
+        className={`relative w-full ${atSea && !destroyed ? "animate-ship-bob" : ""}`}
         style={{
-          transform: `translateY(${bob}px) rotateZ(${tilt + (damaged ? dmgRatio * 4 : 0)}deg)`,
+          transform: destroyed
+            ? `rotateZ(18deg)`
+            : damaged
+            ? `rotateZ(${dmgRatio * 4}deg)`
+            : undefined,
           filter: destroyed
             ? "drop-shadow(0 12px 14px rgba(0,0,0,0.45)) grayscale(0.85) brightness(0.55)"
             : damaged
