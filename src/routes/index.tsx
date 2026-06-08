@@ -2227,23 +2227,47 @@ function Index() {
                       </div>
                       {owned ? (
                         <button
-                          disabled={!canAssign || crewBusy}
-                          onClick={() => assignCrew(cid)}
+                          disabled={crewBusy || alreadyOnShip}
+                          onClick={() => {
+                            if (alreadyOnShip) return;
+                            if (slotsFull) {
+                              sound.play("error");
+                              setToast(`⚠️ خانات الطاقم ممتلئة (${assignedRows.length}/${slots}) — أزل طاقماً مفعّلاً أولاً`);
+                              return;
+                            }
+                            if (isFixer && !fixerCanRepair) {
+                              sound.play("error");
+                              setToast(cid === "fixer_4"
+                                ? "⚠️ جميع سفنك بدمها الكامل — لا حاجة للإصلاح"
+                                : "⚠️ السفينة بدمها الكامل (100%) — لا حاجة للإصلاح");
+                              return;
+                            }
+                            if (isGlobalCrew && globallyActive) {
+                              sound.play("error");
+                              setToast("⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
+                              return;
+                            }
+                            assignCrew(cid);
+                          }}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
                             canAssign && !crewBusy
                               ? "bg-emerald-600/80 text-white"
-                              : "bg-secondary/40 text-accent/50"
+                              : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
+                                ? "bg-amber-700/60 text-amber-100"
+                                : "bg-secondary/40 text-accent/50"
                           }`}
                         >
                           {crewBusy
                             ? "..."
-                            : isFixer
-                              ? "🛠️ استخدام"
-                              : alreadyOnShip
-                                ? "مفعّل ✓"
+                            : alreadyOnShip
+                              ? "مفعّل ✓"
+                              : isFixer
+                                ? (fixerCanRepair ? "🛠️ استخدام" : "🔒 ممتلئ 100%")
                                 : (isGlobalCrew && globallyActive)
                                   ? "مقفول 🔒"
-                                  : canAssign ? "تفعيل" : "ممتلئ"}
+                                  : slotsFull
+                                    ? "⚠️ ممتلئ"
+                                    : "تفعيل"}
                         </button>
                       ) : (
                         <button
