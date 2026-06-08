@@ -2095,13 +2095,13 @@ function Index() {
         };
 
         return (
-          <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 pt-10 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="إغلاق"
-                className="absolute top-2 left-2 w-8 h-8 rounded-full bg-red-900/70 border border-red-400/60 text-red-100 font-black text-base flex items-center justify-center active:scale-95 z-10"
+                className="absolute top-2 left-2 w-9 h-9 rounded-full bg-red-900/90 border-2 border-red-400/80 text-red-100 font-black text-lg flex items-center justify-center active:scale-95 z-[120] shadow-lg shadow-black/60"
               >✕</button>
               <div className="text-accent font-bold text-base mb-1 text-center">تخصيص طاقم السفينة</div>
               <div className="text-[10px] text-accent/60 text-center mb-3">
@@ -2155,9 +2155,16 @@ function Index() {
                       && r.meta?.assigned_ship_id != null
                       && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
                   );
+                  // Fixer needs check: lock when ship(s) at 100% HP
+                  const fixerCanRepair = isFixer && (
+                    cid === "fixer_4"
+                      ? ships.some((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt))
+                      : ((s.hp ?? 0) < (s.maxHp ?? 100) || !!s.destroyedAt || !!s.repairEndsAt)
+                  );
+                  const slotsFull = !isFixer && !isGlobalCrew && !alreadyOnShip && assignedRows.length >= slots;
                   const canAssign = owned && (
                     isFixer
-                      ? true
+                      ? fixerCanRepair
                       : isGlobalCrew
                         ? !globallyActive
                         : (assignedRows.length < slots && !alreadyOnShip)
@@ -2220,23 +2227,47 @@ function Index() {
                       </div>
                       {owned ? (
                         <button
-                          disabled={!canAssign || crewBusy}
-                          onClick={() => assignCrew(cid)}
+                          disabled={crewBusy || alreadyOnShip}
+                          onClick={() => {
+                            if (alreadyOnShip) return;
+                            if (slotsFull) {
+                              sound.play("error");
+                              setToast(`⚠️ خانات الطاقم ممتلئة (${assignedRows.length}/${slots}) — أزل طاقماً مفعّلاً أولاً`);
+                              return;
+                            }
+                            if (isFixer && !fixerCanRepair) {
+                              sound.play("error");
+                              setToast(cid === "fixer_4"
+                                ? "⚠️ جميع سفنك بدمها الكامل — لا حاجة للإصلاح"
+                                : "⚠️ السفينة بدمها الكامل (100%) — لا حاجة للإصلاح");
+                              return;
+                            }
+                            if (isGlobalCrew && globallyActive) {
+                              sound.play("error");
+                              setToast("⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
+                              return;
+                            }
+                            assignCrew(cid);
+                          }}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
                             canAssign && !crewBusy
                               ? "bg-emerald-600/80 text-white"
-                              : "bg-secondary/40 text-accent/50"
+                              : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
+                                ? "bg-amber-700/60 text-amber-100"
+                                : "bg-secondary/40 text-accent/50"
                           }`}
                         >
                           {crewBusy
                             ? "..."
-                            : isFixer
-                              ? "🛠️ استخدام"
-                              : alreadyOnShip
-                                ? "مفعّل ✓"
+                            : alreadyOnShip
+                              ? "مفعّل ✓"
+                              : isFixer
+                                ? (fixerCanRepair ? "🛠️ استخدام" : "🔒 ممتلئ 100%")
                                 : (isGlobalCrew && globallyActive)
                                   ? "مقفول 🔒"
-                                  : canAssign ? "تفعيل" : "ممتلئ"}
+                                  : slotsFull
+                                    ? "⚠️ ممتلئ"
+                                    : "تفعيل"}
                         </button>
                       ) : (
                         <button
