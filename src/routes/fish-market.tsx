@@ -760,7 +760,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rotPct, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rot, selling, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -772,13 +772,12 @@ function SellView({
   traderUntil: string | null;
   ownedTraderQty: number;
   traderPrice: number;
-  rotPct: number;
+  rot: number;
   selling: boolean;
   onBack: () => void;
   onSell: (amount: number) => void;
   onPurchased: () => void;
 }) {
-  void userId;
   const past = useMemo(() => {
     // Use real recent history from DB so past chart values match what actually happened.
     const tail = (history ?? []).slice(-PAST_HOURS);
@@ -790,7 +789,7 @@ function SellView({
     return tail;
   }, [fish.id, fish.basePrice, history]);
   const currentPrice = past[past.length - 1];
-  const effectivePrice = Math.max(0.1, Math.round(currentPrice * (rotPct / 100) * 100) / 100);
+  const fallbackEffectivePrice = Math.max(0.0001, currentPrice * rot);
 
   const [now, setNow] = useState<number>(() => serverNowMs());
   useEffect(() => {
@@ -830,6 +829,25 @@ function SellView({
 
   const [amount, setAmount] = useState(fish.qty);
   useEffect(() => { setAmount(fish.qty); }, [fish.qty]);
+  const [saleQuote, setSaleQuote] = useState<SaleQuote | null>(null);
+  useEffect(() => {
+    if (!userId || userId === "anon" || amount <= 0) { setSaleQuote(null); return; }
+    let alive = true;
+    const id = window.setTimeout(async () => {
+      const { data, error } = await (supabase as any).rpc("quote_fish_sale_by_qty", { _fish_id: fish.id, _qty: amount });
+      if (!alive) return;
+      if (error) { setSaleQuote(null); return; }
+      const row = (Array.isArray(data) ? data[0] : data) as SaleQuote | undefined;
+      setSaleQuote(row ?? null);
+    }, 120);
+    return () => { alive = false; window.clearTimeout(id); };
+  }, [userId, fish.id, amount]);
+
+  const effectivePrice = Number(saleQuote?.effective_unit_price ?? fallbackEffectivePrice);
+  const rotPct = Math.round(Number(saleQuote?.rot ?? rot) * 100);
+  const saleTotal = saleQuote && saleQuote.sold === Math.min(amount, fish.qty)
+    ? Number(saleQuote.total_amount)
+    : Math.round(amount * effectivePrice);
 
   const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
   const [busy, setBusy] = useState(false);
