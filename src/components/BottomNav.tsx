@@ -149,8 +149,12 @@ export function BottomNav({ active }: { active?: string }) {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] px-1"
-      style={{ paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))" }}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80]"
+      style={{
+        paddingBottom: "max(0.4rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(0.5rem, env(safe-area-inset-left))",
+        paddingRight: "max(0.5rem, env(safe-area-inset-right))",
+      }}
     >
       <div
         className="absolute inset-x-0 bottom-0 h-32 pointer-events-none"
