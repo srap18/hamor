@@ -2925,7 +2925,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                   avatarUrl: tier.emblemUrl,
                   avatarEmoji: "🏴",
                   subtitle: `⭐${t.level || 1} · 👥${t.members}`,
-                  value: <>⚡ {t.power.toLocaleString()}</>,
+                  value: <>🤝 {(t.donation_score ?? t.power).toLocaleString()}</>,
                   onClick: () => { sound.play("click"); setOpenTribeId(t.id); },
                 };
               }) : [];
@@ -2948,9 +2948,9 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
                       </div>
                       <div className="relative flex-1 min-w-0">
                         <div className="text-sm font-bold text-accent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{t.name} <span className="text-amber-300">⭐{t.level || 1}</span></div>
-                        <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} · 🤝 {(t.support_score ?? 0).toLocaleString()} · ⚔️ {(t.attack_score ?? 0).toLocaleString()}</div>
+                        <div className="text-[10px] text-accent/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏴 {tier.name} · 👥 {t.members} · 🤝 {(t.donation_score ?? t.power).toLocaleString()}</div>
                       </div>
-                      <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⚡ {t.power.toLocaleString()}</div>
+                      <div className="relative text-xs font-bold text-accent tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🤝 {(t.donation_score ?? t.power).toLocaleString()}</div>
                     </button>
                     );
                   })}
