@@ -1960,9 +1960,11 @@ function Index() {
               sound.play("error");
               const msg = e?.message ?? "خطأ";
               setToast(
-                /no_golden_fisher/i.test(msg)
-                  ? "لا تملك طاقم صياد ذهبي — اشترِ من الشحن"
-                  : `❌ فشل التفعيل: ${msg}`,
+                /already_active/i.test(msg)
+                  ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
+                  : /no_golden_fisher/i.test(msg)
+                    ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
+                    : `❌ فشل التفعيل: ${msg}`,
               );
             }
             return;
