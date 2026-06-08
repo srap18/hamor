@@ -277,6 +277,7 @@ function FishMarket() {
 
   const loadMarket = async () => {
     if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
+    const cacheKey = `fish-market:level:${user.id}`;
     await supabase.rpc("finalize_fish_market_upgrades" as never);
     const { data } = await supabase
       .from("user_fish_market" as never)
@@ -288,10 +289,20 @@ function FishMarket() {
     setLvl(lvlVal);
     setUpgradingTo(row?.upgrading_to ?? null);
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+    setCached(cacheKey, { level: lvlVal, upgradingTo: row?.upgrading_to ?? null, upgradeEndsAt: row?.upgrade_ends_at ?? null });
     try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
 
-  useEffect(() => { loadMarket(); }, [user?.id]);
+  useEffect(() => {
+    if (!user) return;
+    const cached = getCached<FishMarketLevelCache>(`fish-market:level:${user.id}`);
+    if (cached) {
+      setLvl(cached.level);
+      setUpgradingTo(cached.upgradingTo);
+      setUpgradeEndsAt(cached.upgradeEndsAt);
+    }
+    loadMarket();
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
