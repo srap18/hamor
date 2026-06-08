@@ -13,6 +13,7 @@ import {
   deleteInventoryRows,
   buyWithCoinsGemFallback,
   buyWithGems,
+  setShipAtSea,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache } from "@/lib/swr-cache";
