@@ -738,3 +738,67 @@ body.paddle-checkout-open .paddle-frame {
     from { opacity: 0; transform: translateY(4px); }
   }
 }
+
+/* ─────────── GPU-Accelerated Animation Helpers (60fps) ─────────── */
+/* Promote any element to its own compositor layer. Use sparingly on
+   elements that ACTUALLY animate (transform/opacity). */
+.gpu,
+[data-gpu] {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* All Tailwind / project keyframe animations in this app already animate
+   transform/opacity only. Hint the compositor so they hit 60fps. */
+[class*="animate-"]:not(.animate-none) {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Frame cosmetics (flame/float/sparkle/wave/leaf/pulse) — composite layer */
+.frame-anim-flame,
+.frame-anim-float,
+.frame-anim-sparkle,
+.frame-anim-wave,
+.frame-anim-leaf,
+.frame-anim-pulse {
+  will-change: transform, filter, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Containment on fixed overlays so their repaints never reflow the page */
+.fixed,
+[data-fixed] {
+  contain: layout paint style;
+}
+
+/* Smooth media — videos & images get their own GPU layer */
+video, img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Off-screen long lists / cards: skip render until near viewport */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+
+/* Tap response without 300ms delay (extra insurance over viewport meta) */
+html { touch-action: manipulation; }
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
