@@ -1,59 +1,61 @@
-# تسريع استجابة الميناء على الجوالات الضعيفة
+# خطة التحسين الشاملة — أداء صامت + فخامة بصرية
 
-## التشخيص
+الهدف: فتح فوري بدون شاشات "جاري التحميل"، وسلاسة 60fps، **دون أي تغيير على المظهر**.
 
-بعد فحص `src/routes/index.tsx`:
-- **3789 سطر** في مكوّن واحد (الميناء كامل) — أي تغيير state يعيد رسم الصفحة كاملة.
-- **54 hook حالة** (useState/useMemo/useCallback) + **31 useEffect/timer**.
-- **7 قنوات Realtime** تشتغل بالتوازي على نفس الصفحة (`my-ships`, `home-badges`, `harbor`, `my-inv`, `my-market`, `raids`, `leaderboard-live`).
-- منطق "إيقاف الصيد" أصلاً يستخدم **optimistic update** (السطر 1142-1143) — يعني المشكلة **ليست شبكية**، بل **render thread محشور**.
+---
 
-على الجوال الضعيف: كل ضغطة تنتظر الـ JS thread يخلّص شغل القنوات والـ effects → الضغط يحس "متأخر" أو "معلّق".
+## 1. شاشة ترحيب (Splash) فخمة
 
-## الخطة (4 تحسينات بدون تغيير بصري)
+- إضافة `index.html` splash داخل `<body>` مباشرة (يظهر قبل تحميل React نفسه → فوري بصرياً).
+- تصميم: خلفية بحرية متدرجة (نفس tokens اللعبة) + شعار "ملوك القراصنة" بخط ذهبي + توهج ناعم + spinner دقيق.
+- تختفي بـ fade-out (400ms ease-out) بعد:
+  1. `document.readyState === 'complete'`
+  2. تحميل أصول core (شعار، خلفية رئيسية، أيقونات BottomNav، عملات).
+- يتم إزالتها من DOM بعد الانتقال (لا تستهلك ذاكرة).
 
-### 1. عزل ضغط السفن في handler خفيف (الأولوية الأعلى)
-- استخدام `startTransition` من React لتأجيل الـ state updates غير الحرجة بعد ضغطة "إيقاف الصيد".
-- نقل الـ optimistic update إلى `flushSync` للجزء البصري فقط (السفينة ترجع للميناء فوراً)، والباقي في transition.
-- النتيجة: حتى لو الصفحة مشغولة، الضغطة تتسجل وتعطي feedback فوري.
+## 2. التحميل المسبق الصامت (Silent Preloading)
 
-### 2. تقليل عدد الـ Realtime channels المتزامنة
-المشكلة: 7 قنوات = 7 WebSocket subscriptions + 7 سلاسل re-render مستقلة.
-- دمج `home-badges` + `harbor` + `my-market` في قناة واحدة `home:${uid}` تستمع لعدة جداول.
-- تأخير اشتراك `leaderboard-live` حتى يفتح اللاعب تبويب المتصدرين (lazy subscribe).
-- النتيجة: تقليل الضغط على main thread خصوصاً عند الجوالات الضعيفة.
+في `src/routes/__root.tsx` `head().links`:
+- `<link rel="preload" as="image" fetchpriority="high">` لـ: أيقونات العملات (coin/gem/ruby)، أيقونات BottomNav الأساسية، الخلفية الافتراضية.
+- `<link rel="prefetch">` لمسارات الـ tabs الأخرى (shop, friends, chat, fish-market) — موجود أصلاً عبر `router.preloadRoute` في `idle`، نضيف prefetch صريح للصور.
+- إضافة `loading="eager"` + `fetchpriority="high"` على أيقونات `CurrencyIcon` (حالياً `loading="lazy"` — يسبب وميض).
 
-### 3. إيقاف الـ subscriptions لما الصفحة مخفية
-- إضافة listener لـ `document.visibilitychange`: إذا `hidden` → `channel.unsubscribe()`، عند العودة → resubscribe.
-- يحل مشكلة "صغّرت الصفحة ورجعت تعلّقت" اللي ذكرتها سابقاً.
+## 3. جودة الموارد
 
-### 4. تخفيف re-renders للسفن
-- لف بطاقة كل سفينة (`ShipCard`) في `React.memo` مع مقارنة على `id, progress, fishing, hp` فقط.
-- الآن تغيير حالة سفينة واحدة يعيد رسم كل السفن. بعد التعديل: السفينة المتأثرة فقط تعيد الرسم.
+- **لن نضغط** أي شيء lossy. نُبقي PNG للأوسمة الذهبية كما هي.
+- نتحقق فقط أن أيقونات SVG الموجودة تُستخدم كـ inline (لا rasterization).
+- لا تحويل WebP الآن — مخاطرة عالية على التدرجات الذهبية، والمكسب صغير مقارنة بالخطر.
 
-### 5. (في الوضع الخفيف فقط) تقليل تكرار تحديث الـ progress bar
-- بدل تحديث كل 1s، نحدّث كل 2s إذا `isLowPerfMode === true`.
-- يقلل re-renders بمقدار النصف على الأجهزة الضعيفة بدون فقدان دقة محسوسة.
+## 4. التوافقية (Responsiveness)
 
-## الملفات المتأثرة
+- `dvh` مع fallback — **مُطبَّق مسبقاً** ✅
+- `overflow-x: hidden` على `.mobile-frame-screen` — **مُطبَّق** ✅
+- `max-w-full` — **مُطبَّق** ✅
+- `mx-auto` — **مُطبَّق** ✅
+- **رفض `transform: scale()` الديناميكي**: السبب موثّق في الذاكرة — يكسر `position: fixed` (modals, Paddle checkout, toasts, GiftPopup). البديل الحالي (`font-size` scaling للشاشات <360px) يعطي نفس النتيجة البصرية بدون أي أعراض جانبية. سأبقي عليه.
 
-1. `src/routes/index.tsx`:
-   - حقن `startTransition` + `flushSync` في handler إيقاف الصيد (~السطر 1140).
-   - دمج قنوات Realtime (~الأسطر 462, 501, 559, 805).
-   - إضافة visibility listener للقنوات.
-   - استخراج `ShipCard` كمكوّن منفصل مع `React.memo` (أو لفّ موجود).
-   - شرط `isLowPerfMode` على فاصل tick الـ progress.
+## 5. استقرار الأداء 60fps
 
-2. لا تعديل بصري، لا تغيير على الـ tokens، لا تغيير على schema قاعدة البيانات.
+- `will-change`, `backface-visibility`, `contain` — **مُطبَّقة مسبقاً** في styles.css ✅
+- مراجعة سريعة لـ `useEffect` بدون cleanup في الملفات الساخنة (`__root.tsx`, `MobileFrame`, `BottomNav`) — موجود لها cleanup ✅
+- التأكد أن SeamlessVideo يوقف التشغيل عند `visibilitychange: hidden` لتوفير GPU.
 
-## القياس بعد التطبيق
+---
 
-- قبل: ضغطة "إيقاف الصيد" على جوال ضعيف ~400-800ms تأخير محسوس.
-- متوقع بعد: <100ms (feedback فوري عبر `flushSync`).
-- قياس فعلي عبر `browser--performance_profile` على viewport جوال بعد التطبيق.
+## الملفات التي ستتغيّر
 
-## ما لن أفعله
+1. `index.html` — إضافة splash markup + CSS مدمج + سكربت إخفاء.
+2. `src/routes/__root.tsx` — إضافة `<link rel="preload">` للأصول الحرجة + استدعاء `window.__hideSplash()` بعد mount.
+3. `src/components/CurrencyIcon.tsx` — `loading="eager"` + `fetchpriority="high"` + `decoding="async"`.
+4. (اختياري) `src/components/SeamlessVideo.tsx` — pause عند `visibilitychange`.
 
-- ❌ لن أقسّم `index.tsx` إلى ملفات منفصلة (تغيير ضخم محفوف بالمخاطر).
-- ❌ لن أغيّر منطق RPC أو schema الـ DB.
-- ❌ لن أغيّر أي شيء بصري.
+---
+
+## ما لن أفعله (لحماية التصميم)
+
+- ❌ `transform: scale()` على الـ frame — يكسر modals.
+- ❌ ضغط lossy للصور الذهبية.
+- ❌ تحويل PNG → WebP للأوسمة (مخاطرة على التدرج).
+- ❌ أي تعديل على ألوان/تخطيط/خطوط.
+
+النتيجة: فتح فوري بشاشة splash فخمة، أصول حرجة جاهزة قبل أول render، ولا تغيير بصري واحد على اللعبة.

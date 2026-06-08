@@ -973,10 +973,7 @@ function Index() {
   useEffect(() => {
     let raf = 0;
     let last = 0;
-    // On weak phones, cap the progress/sail ticker at ~10fps to free the main
-    // thread for tap handlers (stop-fishing, ship taps). Visually the progress
-    // bar still advances smoothly enough; clicks become noticeably more responsive.
-    const FRAME_MS = isLowPerfMode ? 100 : 33;
+    const FRAME_MS = 33; // ~30fps cap
     const EPS = 0.001;
 
     const tick = (ts: number) => {
