@@ -987,7 +987,7 @@ function Index() {
           return { ...s, sail, progress, timeLeft };
         })
       );
-    }, 16);
+    }, 100);
     return () => clearInterval(id);
   }, []);
 
