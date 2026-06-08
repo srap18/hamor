@@ -4,7 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
+
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -240,7 +240,7 @@ function RootComponent() {
     };
   }, []);
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -249,9 +249,8 @@ function RootComponent() {
           <GlobalBanner />
           <LastAttackTicker />
 
-          <div key={pathname} className="animate-fade-in">
-            <Outlet />
-          </div>
+          <Outlet />
+
           <AdminEditToggle />
           <Toaster position="top-center" richColors />
         </MobileFrame>
