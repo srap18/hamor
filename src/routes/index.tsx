@@ -13,6 +13,7 @@ import {
   deleteInventoryRows,
   buyWithCoinsGemFallback,
   buyWithGems,
+  setShipAtSea,
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache } from "@/lib/swr-cache";
@@ -325,9 +326,7 @@ function Index() {
             fishing = false;
             startedAt = undefined;
             if (row.at_sea) {
-              import("@/lib/economy").then(({ setShipAtSea }) => {
-                setShipAtSea(s.dbId!, false).catch(() => {});
-              });
+              setShipAtSea(s.dbId!, false).catch(() => {});
             }
           } else if (onSteal) {
             // Stealing mission: ship is sailing (at sea) but not fishing
@@ -350,9 +349,7 @@ function Index() {
             fishing = false;
             startedAt = undefined;
             if (row.at_sea) {
-              import("@/lib/economy").then(({ setShipAtSea }) => {
-                setShipAtSea(s.dbId!, false).catch(() => {});
-              });
+              setShipAtSea(s.dbId!, false).catch(() => {});
             }
           }
           return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
@@ -1067,14 +1064,12 @@ function Index() {
     // ── Background mutation (fire-and-forget with rollback) ─────────
     if (!dbIdToSync) return;
 
-    // Sync server clock in the background if needed (no UI block)
-    const clockReady = nextAtSea || isServerClockSynced()
-      ? Promise.resolve()
-      : syncServerTime(true).catch(() => {});
+    // Fire RPC immediately — clock sync runs in parallel, never blocks the request.
+    if (!nextAtSea && !isServerClockSynced()) {
+      syncServerTime(true).catch(() => {});
+    }
 
-    Promise.resolve(clockReady)
-      .then(() => import("@/lib/economy"))
-      .then(({ setShipAtSea }) => setShipAtSea(dbIdToSync, nextAtSea))
+    setShipAtSea(dbIdToSync, nextAtSea)
       .then(({ error }) => {
         if (error) throw error;
         // onSuccess
@@ -1121,9 +1116,7 @@ function Index() {
         curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x)
       );
       if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
+        setShipAtSea(s.dbId!, false).catch(() => {});
       }
       return;
     }
@@ -1134,15 +1127,8 @@ function Index() {
       return;
     }
 
-    // Block stopping/collecting when fish market is full — would lose fish.
-    if (s.fishing && user?.id) {
-      const { data: remaining } = await (supabase as any).rpc("user_market_remaining", { _uid: user.id });
-      if (typeof remaining === "number" && remaining <= 0) {
-        showToast("⚠️ سوق السمك ممتلئ — بِع السمك أولاً قبل إيقاف السفينة");
-        sound.play("error");
-        return;
-      }
-    }
+    // Note: server-side collect_fishing_reward already caps by user_market_remaining,
+    // so no pre-check is needed — drops a network roundtrip for instant response.
 
     // Guard against double-tap that would race the RPC and produce "not_fishing".
     if (collectingRef.current[s.dbId]) return;
@@ -1151,7 +1137,9 @@ function Index() {
     // Optimistic: dock the ship instantly so stopping/collecting feels immediate.
     setSeaOverride(s.dbId, false);
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
+    sound.play("whoosh");
 
+    // Fire clock sync in background (do not block the reward RPC).
     if (!isServerClockSynced()) {
       syncServerTime(true).catch(() => {});
     }
@@ -1168,9 +1156,7 @@ function Index() {
       setSeaOverride(s.dbId, false);
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
       if (s.dbId) {
-        import("@/lib/economy").then(({ setShipAtSea }) => {
-          setShipAtSea(s.dbId!, false).catch(() => {});
-        });
+        setShipAtSea(s.dbId!, false).catch(() => {});
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
