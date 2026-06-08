@@ -84,22 +84,28 @@ function InventoryPage() {
   const fishDiscovered = (id: string) => (fishRows.find(r => r.fish_id === id)?.total_caught ?? 0) > 0;
   const pickedCrew = CREWS.find(c => c.id === crewToUse) ?? null;
   const useCrew = async (crewId: string, shipId?: string | null) => {
+    if (usingCrewRef.current) return;
     const row = inv.find(r => r.item_type === "crew" && r.item_id === crewId && isUsableStack(r) && r.quantity > 0);
     if (!row) { alert("ما عندك هذا الطاقم في المخزن"); return; }
+    usingCrewRef.current = true;
     setUsingCrew(crewId);
-    const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
-    setUsingCrew(null);
-    if (error) {
-      const msg = error.message || "";
-      if (msg.includes("ship already")) alert("هذه السفينة فيها نفس الطاقم بالفعل");
-      else if (msg.includes("missing ship")) alert("اختر سفينة أولًا");
-      else alert("تعذر استخدام الطاقم");
-      return;
+    try {
+      const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
+      if (error) {
+        const msg = error.message || "";
+        if (msg.includes("ship already")) alert("هذه السفينة فيها نفس الطاقم بالفعل");
+        else if (msg.includes("missing ship")) alert("اختر سفينة أولًا");
+        else alert("تعذر استخدام الطاقم");
+        return;
+      }
+      setCrewToUse(null);
+      await load();
+      window.dispatchEvent(new Event("inventory-changed"));
+      alert(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
+    } finally {
+      usingCrewRef.current = false;
+      setUsingCrew(null);
     }
-    setCrewToUse(null);
-    await load();
-    window.dispatchEvent(new Event("inventory-changed"));
-    alert(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
   };
 
   return (
