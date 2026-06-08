@@ -3588,7 +3588,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             ? "from-amber-400 to-amber-300"
             : "from-rose-500 to-rose-400";
         return (
-          <div className="absolute top-0 left-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-40" style={{ transform: `translateX(-50%) scaleX(${flipX})` }}>
+          <div className="absolute top-0 left-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-50" style={{ transform: `translateX(-50%) scaleX(${flipX})` }}>
+            {ship.fishing && !ready && (
+              <div className="text-center text-[10px] text-emerald-100 font-extrabold tabular-nums flex items-center justify-center gap-1 mb-0.5">
+                <span className="px-1.5 py-0.5 rounded bg-emerald-900/90 border border-emerald-400/70 shadow-md" dir="ltr">⏳ {timeStr}</span>
+              </div>
+            )}
             {/* HP bar — slim */}
             <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
               <div
@@ -3614,12 +3619,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
-            {ship.fishing && !ready && (
-              <div className="text-center text-[10px] text-emerald-200 font-extrabold tabular-nums flex items-center justify-center gap-1">
-                <span>🎣</span>
-                <span className="px-1.5 py-0.5 rounded bg-emerald-900/80 border border-emerald-400/60 text-emerald-100 shadow-inner" dir="ltr">⏳ {timeStr}</span>
-              </div>
-            )}
+
             {active && (
               ready ? (
                 <div className="text-center text-[9px] text-amber-200 font-bold animate-pulse">
