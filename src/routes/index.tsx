@@ -1202,7 +1202,7 @@ function Index() {
       });
       showToast(`⏳ أوقفت السفينة بدري — لازم تنتظر أكثر (${pct}%) عشان تصيد سمك`);
       sound.play("error");
-      syncFleetFromDb();
+      window.setTimeout(() => { try { syncFleetFromDb(); } catch {} }, 600);
       return;
     }
     setFish((f) => f + fishGained);
