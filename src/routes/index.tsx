@@ -2001,24 +2001,30 @@ function Index() {
                       onClick={async () => {
                         if (!s.dbId) return;
                         setUpgradeSubBusy(true);
-                        const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
-                        setUpgradeSubBusy(false);
-                        if (error) {
-                          const msg = error.message || "";
-                          showToast(
-                            /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
-                            /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
-                            /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
-                            /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
-                            /destroyed/i.test(msg) ? "السفينة مدمّرة" :
-                            "تعذّر تنفيذ الترقية"
-                          );
-                          return;
+                        try {
+                          const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
+                          if (error) {
+                            const msg = error.message || "";
+                            showToast(
+                              /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
+                              /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
+                              /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
+                              /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
+                              /destroyed/i.test(msg) ? "السفينة مدمّرة" :
+                              "تعذّر تنفيذ الترقية"
+                            );
+                            return;
+                          }
+                          const res = data as { success: boolean; stars: number; chance: number };
+                          setUpgradeSubResult(res);
+                          await syncFleetFromDb();
+                          refreshProfile?.();
+                        } catch (e: any) {
+                          showToast("تعذّر الاتصال — حاول مرة أخرى");
+                          console.error("upgrade_submarine failed", e);
+                        } finally {
+                          setUpgradeSubBusy(false);
                         }
-                        const res = data as { success: boolean; stars: number; chance: number };
-                        setUpgradeSubResult(res);
-                        await syncFleetFromDb();
-                        refreshProfile?.();
                       }}
                     >
                       {upgradeSubBusy ? "..." : "ترقية"}
