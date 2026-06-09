@@ -1191,10 +1191,21 @@ function Index() {
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
     sound.play("whoosh");
 
+    // Show an instant placeholder result popup so the user gets immediate feedback
+    // — feels offline. The real fish/qty fills in the moment the server responds.
+    setCatchResult({
+      emoji: "🎣",
+      name: "جارٍ سحب الشبكة...",
+      count: 0,
+      shipId: s.id,
+      shipLevel: s.level,
+    });
+
     // Fire clock sync in background (do not block the reward RPC).
     if (!isServerClockSynced()) {
       syncServerTime(true).catch(() => {});
     }
+
 
 
     // Show the result as soon as the server responds — no artificial delay.
