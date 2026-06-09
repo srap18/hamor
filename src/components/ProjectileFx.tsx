@@ -48,19 +48,30 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
     return () => cancelAnimationFrame(r);
   }, [fx.id, fx.toX, fx.toY]);
 
-  // Emit smoke puffs along the flight path
+  // Emit smoke puffs along the flight path — rAF-driven, throttled to ~25fps,
+  // pauses when the tab is hidden. Cheaper on mobile than a 40ms setInterval
+  // because the browser already coalesces frames with vsync + back-pressure.
   useEffect(() => {
     if (fx.phase !== "fly" || fx.friendly) return;
     let pid = 0;
-    const interval = setInterval(() => {
+    let raf = 0;
+    let lastEmit = 0;
+    const EMIT_INTERVAL = 40; // ms between puffs (~25fps)
+    const tick = (ts: number) => {
+      raf = requestAnimationFrame(tick);
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (ts - lastEmit < EMIT_INTERVAL) return;
+      lastEmit = ts;
       const t = Math.min(1, (performance.now() - startRef.current) / flightMs);
       const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
       const x = fx.fromX + (fx.toX - fx.fromX) * ease + (Math.random() - 0.5) * 6;
       const y = fx.fromY + (fx.toY - fx.fromY) * ease + (Math.random() - 0.5) * 6;
       const size = rocketSize * (0.55 + Math.random() * 0.4);
       setPuffs((p) => [...p, { id: ++pid, x, y, size }].slice(-24));
-    }, 40);
-    return () => clearInterval(interval);
+      if (t >= 1) cancelAnimationFrame(raf);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [fx.id, fx.phase, fx.friendly, fx.fromX, fx.fromY, fx.toX, fx.toY, flightMs, rocketSize]);
 
   // Smoke ring puffs around blast (realistic image-based)
