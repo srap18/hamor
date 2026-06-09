@@ -111,7 +111,7 @@ function ShipyardPage() {
     const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
     const ownedNext = (ownedRows as OwnedShip[] | null) ?? [];
     setMarket(mr);
-    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
+    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(31, mr.level || 1)))); } catch {}
     setOwned(ownedNext);
     setCached(cacheKey, { market: mr, owned: ownedNext });
     setLoading(false);
