@@ -144,7 +144,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <ToggleRow
-          label="🪶 الوضع الخفيف (للأجهزة الضعيفة)"
+          label="🔋 موفر البطارية (يقلل تسخين الجوال)"
           value={lite}
           onChange={(v) => {
             setLite(v);
@@ -152,7 +152,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <div className="-mt-1 mb-2 px-1 text-[10px] text-amber-300/70 leading-snug">
-          يطفي خلفيات الفيديو والحركات الثقيلة. يحل أغلب مشاكل التعليق على الجوالات القديمة.
+          يوقف الخلفيات المتحركة، اللهب، حركات السفن، والفيديو. يخفض حرارة الجهاز ويوفر شحن البطارية بشكل كبير — مناسب للايفون والاندرويد لما يسخن.
         </div>
 
         {email && (
