@@ -119,8 +119,14 @@ async function fetchProfileNow(userId: string) {
     profileCache = data as Profile;
     profileLoadingFlag = false;
     notifyProfile();
+    // Single-tab enforcement: if the server's active_session_id is set and
+    // does not match this tab's sid, this tab is the old one — kick it.
+    const mySid = getTabSessionId();
+    const serverSid = (data as Profile).active_session_id;
+    if (serverSid && serverSid !== mySid) { kickThisTab(); }
   }
 }
+
 
 function ensureProfileBootstrap(userId: string) {
   if (profileChannelUserId === userId) return;
