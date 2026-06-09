@@ -295,15 +295,17 @@ export function catchPerTrip(ship: ShipDef): number {
 // يمكن لمسؤول النظام تجاوز أي مستوى عبر economy_settings.
 export function fishMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
-  // lazy import to avoid circular dep at module init
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 10) cap += 10000;      // 2–10: +10k
-    else if (l <= 20) cap += 30000;  // 11–20: +30k
-    else cap += 100000;              // 21+: +100k
+    if (l <= 10) cap += 10000;        // L10 = 100k
+    else if (l <= 20) cap += 20000;   // L20 = 300k
+    else if (l <= 26) cap += 33333;   // L26 ≈ 500k
+    else cap += 125000;               // L30 = 1M
   }
+  if (lvl === 26) cap = 500000;
+  if (lvl === 30) cap = 1000000;
   return cap;
 }
 
