@@ -253,8 +253,7 @@ function PlayerPage() {
   useEffect(() => {
     if (!playerId) return;
     loadPlayerCrews();
-    const t = setInterval(loadPlayerCrews, 8000);
-    return () => clearInterval(t);
+    // The 4s backstop poll below already calls loadPlayerCrews — no extra interval needed.
   }, [playerId]);
 
   // Live broadcast channel: every spectator in THIS harbor joins, so any action
@@ -321,7 +320,7 @@ function PlayerPage() {
       .subscribe();
 
     // Backstop: realtime + focus already cover most cases — poll slowly to save CPU
-    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 4000);
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 10000);
     const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
     const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
     document.addEventListener("visibilitychange", onVis);

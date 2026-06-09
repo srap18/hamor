@@ -492,7 +492,7 @@ function Index() {
       const uid = data.user?.id;
       if (!uid) return;
       ch = supabase
-        .channel(`my-ships-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .channel(`my-ships-${uid}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${uid}` }, kick)
         .on("postgres_changes", { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${uid}` }, kick)
         .subscribe();
@@ -796,7 +796,7 @@ function Index() {
       const uid = data.user?.id;
       if (!uid) return;
       ch = supabase
-        .channel(`my-inv-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .channel(`my-inv-${uid}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "inventory", filter: `user_id=eq.${uid}` }, () => reloadCrews())
         .subscribe();
     })();
@@ -845,8 +845,8 @@ function Index() {
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
-    // Poll every 5s so finished upgrades surface without a page revisit
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 5000);
+    // Realtime channel + focus reload cover updates. Slow poll (30s) as a safety net.
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 30000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
@@ -912,18 +912,20 @@ function Index() {
   };
   useEffect(() => {
     reloadRaids();
-    let uid: string | null = null;
+    let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     (async () => {
       const { data } = await supabase.auth.getUser();
-      uid = data.user?.id ?? null;
-      if (!uid) return;
-      channel = supabase
-        .channel(`raids-${uid}-${Math.random().toString(36).slice(2, 8)}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned" }, () => reloadRaids())
+      const uid = data.user?.id ?? null;
+      if (!uid || cancelled) return;
+      const ch = supabase
+        .channel(`raids-${uid}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `stealing_target_user_id=eq.${uid}` }, () => reloadRaids())
         .subscribe();
+      if (cancelled) { supabase.removeChannel(ch); return; }
+      channel = ch;
     })();
-    return () => { if (channel) supabase.removeChannel(channel); };
+    return () => { cancelled = true; if (channel) supabase.removeChannel(channel); };
   }, []);
   const catchThief = async (shipId: string) => {
     const { error } = await (supabase as any).rpc("catch_thief", { _attacker_ship_id: shipId });
@@ -985,11 +987,15 @@ function Index() {
     })();
   }, [outgoingSteals.map((s) => s.stealingTargetUserId).join(",")]);
 
-  // Auto-claim expired steal missions — loot arrives automatically
+  // Auto-claim expired steal missions — loot arrives automatically.
+  // Use a ref for ships so the interval is created once, not on every state tick.
+  const shipsForClaimRef = useRef(ships);
+  shipsForClaimRef.current = ships;
   useEffect(() => {
     const id = setInterval(async () => {
       if (document.hidden) return;
-      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
+      const cur = shipsForClaimRef.current;
+      const expired = cur.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
@@ -997,9 +1003,9 @@ function Index() {
           syncFleetFromDb();
         }
       }
-    }, 4000);
+    }, 8000);
     return () => clearInterval(id);
-  }, [ships]);
+  }, []);
 
 
 
@@ -2001,24 +2007,30 @@ function Index() {
                       onClick={async () => {
                         if (!s.dbId) return;
                         setUpgradeSubBusy(true);
-                        const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
-                        setUpgradeSubBusy(false);
-                        if (error) {
-                          const msg = error.message || "";
-                          showToast(
-                            /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
-                            /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
-                            /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
-                            /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
-                            /destroyed/i.test(msg) ? "السفينة مدمّرة" :
-                            "تعذّر تنفيذ الترقية"
-                          );
-                          return;
+                        try {
+                          const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
+                          if (error) {
+                            const msg = error.message || "";
+                            showToast(
+                              /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
+                              /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
+                              /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
+                              /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
+                              /destroyed/i.test(msg) ? "السفينة مدمّرة" :
+                              "تعذّر تنفيذ الترقية"
+                            );
+                            return;
+                          }
+                          const res = data as { success: boolean; stars: number; chance: number };
+                          setUpgradeSubResult(res);
+                          await syncFleetFromDb();
+                          refreshProfile?.();
+                        } catch (e: any) {
+                          showToast("تعذّر الاتصال — حاول مرة أخرى");
+                          console.error("upgrade_submarine failed", e);
+                        } finally {
+                          setUpgradeSubBusy(false);
                         }
-                        const res = data as { success: boolean; stars: number; chance: number };
-                        setUpgradeSubResult(res);
-                        await syncFleetFromDb();
-                        refreshProfile?.();
                       }}
                     >
                       {upgradeSubBusy ? "..." : "ترقية"}
@@ -2119,9 +2131,11 @@ function Index() {
               setToast(
                 /already_active/i.test(msg)
                   ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
-                  : /no_golden_fisher/i.test(msg)
-                    ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
-                    : `❌ فشل التفعيل: ${msg}`,
+                  : /daily_limit/i.test(msg)
+                    ? "⏳ استعملت الصياد الذهبي اليوم — متاح بعد 24 ساعة من آخر تفعيل"
+                    : /no_golden_fisher/i.test(msg)
+                      ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
+                      : `❌ فشل التفعيل: ${msg}`,
               );
             }
             return;
