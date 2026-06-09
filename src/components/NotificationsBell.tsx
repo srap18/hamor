@@ -67,16 +67,30 @@ export function NotificationsBell() {
       .channel(`notifs:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
         const n = payload.new as Notif;
-        if (n.kind === "nuke") return; // skip nuke alerts; shown via GlobalBanner
+        if (n.kind === "nuke") return;
         if (n.recipient_id === null || n.recipient_id === user.id) {
-          setItems(s => [n, ...s].slice(0, 30));
+          setItems(s => {
+            if (s.some(x => x.id === n.id)) return s;
+            return [n, ...s].slice(0, 30);
+          });
           if (n.created_by) loadActors([n]);
           sound.play("click");
         }
       })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [user, load]);
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") load();
+      });
+    const poll = setInterval(load, 30000);
+    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    return () => {
+      supabase.removeChannel(ch);
+      clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+    };
+  }, [user, load, loadActors]);
 
   const unread = items.filter(i => !readIds.has(i.id)).length;
 
