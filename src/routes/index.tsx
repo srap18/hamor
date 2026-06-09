@@ -368,7 +368,7 @@ function Index() {
           const shipDef = code ? getShipByCode(code) : getShipByMarketLevel(row.template_id ?? s.level);
           const maxProg = catchAmountForLevel(row.template_id ?? s.level, row.max_hp);
           const imgFromCode = code
-            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
+            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(code).image)
             : s.img;
           return { ...s, level: row.template_id ?? s.level, catalogCode: code ?? s.catalogCode, img: imgFromCode, max: maxProg, duration: shipDef.fishingSeconds, timeLeft: shipDef.fishingSeconds, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
@@ -744,7 +744,8 @@ function Index() {
   };
 
   const fishPoolForShip = (ship: Ship) => {
-    const shipPool = getShipByMarketLevel(ship.level).fishPool.filter((fishId) => !!FISH[fishId]);
+    const def = ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level);
+    const shipPool = def.fishPool.filter((fishId) => !!FISH[fishId]);
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
@@ -873,7 +874,7 @@ function Index() {
   const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
 
   // Incoming raids: ships from other players currently stealing from me
-  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; target_ship_id: string | null };
+  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; catalog_code: string | null; target_ship_id: string | null };
   const [raids, setRaids] = useState<Raid[]>([]);
   const reloadRaids = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -881,10 +882,10 @@ function Index() {
     if (!uid) { setRaids([]); return; }
     const { data: ships } = await supabase
       .from("ships_owned")
-      .select("id,user_id,stealing_ends_at,template_id,stealing_target_ship_id")
+      .select("id,user_id,stealing_ends_at,template_id,catalog_code,stealing_target_ship_id")
       .eq("stealing_target_user_id", uid)
       .not("stealing_target_user_id", "is", null);
-    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; stealing_target_ship_id: string | null }[];
+    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; catalog_code: string | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaids([]); return; }
     const ids = Array.from(new Set(list.map((s) => s.user_id)));
     const { data: profs } = await supabase
@@ -897,6 +898,7 @@ function Index() {
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
       ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
+      catalog_code: s.catalog_code === "ship-lvl-31" ? "phoenix" : s.catalog_code,
       target_ship_id: s.stealing_target_ship_id,
     })));
   };
