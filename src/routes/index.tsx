@@ -1997,7 +1997,7 @@ function Index() {
                     </button>
                     <button
                       className="flex-1 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 py-3 font-extrabold active:scale-95 disabled:opacity-50"
-                      disabled={upgradeSubBusy || s.fishing || !!s.destroyedAt}
+                      disabled={upgradeSubBusy || !!s.destroyedAt}
                       onClick={async () => {
                         if (!s.dbId) return;
                         setUpgradeSubBusy(true);
