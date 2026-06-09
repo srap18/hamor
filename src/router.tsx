@@ -22,8 +22,8 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 5 * 60_000,
     defaultPreloadGcTime: 30 * 60_000,
-    defaultPreload: isLowBandwidth ? "intent" : "render",
-    defaultPreloadDelay: isLowBandwidth ? 50 : 0,
+    defaultPreload: "intent",
+    defaultPreloadDelay: isLowBandwidth ? 80 : 30,
     // Native-app feel: never flash a loading screen unless the wait is really long.
     defaultPendingMs: 2000,
     defaultPendingMinMs: 0,
