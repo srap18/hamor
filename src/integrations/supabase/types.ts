@@ -2926,115 +2926,6 @@ export type Database = {
         }
         Relationships: []
       }
-      voice_room_messages: {
-        Row: {
-          created_at: string
-          id: string
-          preset: string | null
-          room_id: string
-          text: string | null
-          user_id: string
-          voice_url: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          preset?: string | null
-          room_id: string
-          text?: string | null
-          user_id: string
-          voice_url?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          preset?: string | null
-          room_id?: string
-          text?: string | null
-          user_id?: string
-          voice_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_messages_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_participants: {
-        Row: {
-          id: string
-          is_muted: boolean
-          is_speaker: boolean
-          joined_at: string
-          room_id: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          is_muted?: boolean
-          is_speaker?: boolean
-          joined_at?: string
-          room_id: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          is_muted?: boolean
-          is_speaker?: boolean
-          joined_at?: string
-          room_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_participants_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_rooms: {
-        Row: {
-          created_at: string
-          created_by: string
-          empty_since: string | null
-          id: string
-          is_active: boolean
-          max_users: number
-          name: string
-          topic: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          empty_since?: string | null
-          id?: string
-          is_active?: boolean
-          max_users?: number
-          name: string
-          topic?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          empty_since?: string | null
-          id?: string
-          is_active?: boolean
-          max_users?: number
-          name?: string
-          topic?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       weekly_xp_config: {
         Row: {
           description: string
@@ -3269,10 +3160,6 @@ export type Database = {
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
-      admin_delete_voice_room: {
-        Args: { _room_id: string }
-        Returns: undefined
-      }
       admin_find_codes: {
         Args: { _q: string }
         Returns: {
@@ -3652,7 +3539,6 @@ export type Database = {
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
-      cleanup_idle_voice_rooms: { Args: never; Returns: number }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
       collect_fishing_reward:
