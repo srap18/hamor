@@ -84,10 +84,11 @@ const IMG_BY_LEVEL: Record<number, string> = {
   13: ship13, 14: ship14, 15: ship15, 16: ship16, 17: ship17, 18: ship18,
   19: ship19, 20: ship20, 21: ship21, 22: ship22, 23: ship23, 24: ship24,
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
-  31: shipPhoenix,
+  31: subStar1Asset.url,
   32: shipSubmarine,
-  33: subStar1Asset.url,
+  99: shipPhoenix,
 };
+
 
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
 // Listed here so renderers can normalize every ship to the same on-screen
@@ -96,8 +97,9 @@ const IMG_BY_LEVEL: Record<number, string> = {
 const BOW_FACES_RIGHT: Record<number, boolean> = {
   3: true, 4: true, 5: true, 6: true, 8: true,
   11: true, 12: true, 13: true, 16: true,
-  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true, 33: true,
+  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true, 99: true,
 };
+
 
 export function shipBowFacesRight(level: number): boolean {
   return !!BOW_FACES_RIGHT[level];
@@ -146,22 +148,23 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   28: { ar: "سفينة ملك المحيط",        rarity: "Mythic",    flavor: "سفينة ملك المحيط بلا منازع.",                         storage: 220000, price: 2000000000,  fishingMinutes: 52,   fishPool: ["poseidon","kraken","leviathan"] },
   29: { ar: "سفينة التنين البحري",     rarity: "Mythic",    flavor: "تنين بحري ينفث الرعب في الأمواج.",                    storage: 260000, price: 5000000000,  fishingMinutes: 57,   fishPool: ["black_pearl","megalodon","sea_dragon"] },
   30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 60,   fishPool: ["golden_koi","poseidon","black_pearl","kraken"] },
-  31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
+  31: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 15000000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
   32: { ar: "الغواصة الملكية VIP",     rarity: "Mythic",    flavor: "غواصة سوداء فاخرة حصرية لأعضاء VIP 5 فأعلى — تنزل لأعماق المحيط وتصيد تيتان الأعماق النادر. كل عضو VIP 5+ يستلم 3 غواصات. السعة والدمّ يتدرّجان حسب مستوى VIP وقت الاستلام: VIP 5 = 60 ألف، VIP 6 = 118 ألف، VIP 7 = 176 ألف، VIP 8 = 234 ألف، VIP 9 = 292 ألف، VIP 10 = 350 ألف.", storage: 350000, price: 0,           fishingMinutes: 45,   fishPool: ["abyss_titan"] },
-  33: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 15000000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
+  99: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
+
 };
 
 function buildShip(level: number): ShipDef {
   const d = SHIP_DATA[level];
-  // Phoenix ship (level 31) — special tuned values, doesn't follow the formula.
-  if (level === 31) {
+  // Phoenix ship (legacy level 99 slot) — shop-exclusive, doesn't follow the formula.
+  if (level === 99) {
     return {
       code: "phoenix",
       name: d.ar,
       title: d.ar,
-      image: IMG_BY_LEVEL[31],
+      image: IMG_BY_LEVEL[99],
       price: d.price,
-      marketLevel: 31,
+      marketLevel: 99,
       rarity: d.rarity,
       maxHp: 13000,
       armor: 80,
@@ -196,15 +199,15 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
-  // Upgradeable submarine (level 33) — stars-based stats (base = 1★).
-  if (level === 33) {
+  // Upgradeable submarine (level 31) — stars-based stats (base = 1★).
+  if (level === 31) {
     return {
       code: "upgrade-sub",
       name: d.ar,
       title: d.ar,
       image: SUB_STAR_IMAGES[1],
       price: d.price,
-      marketLevel: 33,
+      marketLevel: 31,
       rarity: d.rarity,
       maxHp: 350000,
       armor: 140,
@@ -243,16 +246,16 @@ function buildShip(level: number): ShipDef {
   };
 }
 
-// Regular ships in the market: 1..30 plus level 33 (upgradeable submarine).
-// Level 31 (phoenix) and 32 (VIP submarine) stay shop-exclusive.
-export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
+// Regular ships in the market: 1..30 plus level 31 (upgradeable submarine).
+// Level 32 (VIP submarine) and 99 (phoenix) stay shop-exclusive.
+export const UPGRADE_SUB_SHIP: ShipDef = buildShip(31);
 export const SHIPS: ShipDef[] = [
   ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
   UPGRADE_SUB_SHIP,
 ];
 
 // Special shop-exclusive ships (not in ship market, not sold for coins).
-export const PHOENIX_SHIP: ShipDef = buildShip(31);
+export const PHOENIX_SHIP: ShipDef = buildShip(99);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
 
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
@@ -272,14 +275,15 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
 }
 
 // Map a market level to the ship definition.
-// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
+// 31 = upgradeable submarine, 32 = VIP submarine, 99 = phoenix shop ship.
 export function getShipByMarketLevel(level: number): ShipDef {
-  if (level >= 33) return UPGRADE_SUB_SHIP;
+  if (level >= 99) return PHOENIX_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
-  if (level >= 31) return PHOENIX_SHIP;
+  if (level >= 31) return UPGRADE_SUB_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
 }
+
 
 export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
@@ -331,7 +335,8 @@ const SM_INCREMENTS: number[] = [
 ];
 
 export function shipMarketCapacity(level: number): number {
-  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  const lvl = Math.max(1, Math.min(31, Math.round(level || 1)));
+
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
     if (l <= 15) cap += SM_INCREMENTS[l - 2];
