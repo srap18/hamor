@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
 import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight } from "@/lib/ships";
+import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, getUpgradeSubImage, UPGRADE_SUB_STAR_CAPACITY, UPGRADE_SUB_SUCCESS_PCT, UPGRADE_SUB_COST } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
@@ -118,6 +118,8 @@ interface Ship {
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
   seaSide?: "left" | "right";
+  stars?: number;
+  maxStars?: number;
 }
 
 // Repair progress 0..1 based on destroyed_at → repair_ends_at window.
@@ -297,11 +299,11 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stars, max_stars")
       .eq("user_id", uid)
       .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stars: number | null; max_stars: number | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -356,7 +358,12 @@ function Index() {
               setShipAtSea(s.dbId!, false).catch(() => {});
             }
           }
-          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: row.catalog_code ? getShipByCode(row.catalog_code).image : s.img, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id };
+          const isUpSub = row.catalog_code === "upgrade-sub";
+          const subStars = row.stars ?? 1;
+          const imgFromCode = row.catalog_code
+            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
+            : s.img;
+          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: imgFromCode, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -385,12 +392,14 @@ function Index() {
           isFishing = seaOverride.atSea;
           startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
         }
+        const isUpSub = dbShip.catalog_code === "upgrade-sub";
+        const subStars = dbShip.stars ?? 1;
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
           catalogCode: dbShip.catalog_code,
           level: lvl,
-          img: shipDef.image,
+          img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
           progress: 0,
           max: maxProg,
           timeLeft: duration,
@@ -407,6 +416,8 @@ function Index() {
           repairEndsAt: dbShip.repair_ends_at,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
+          stars: dbShip.stars ?? 1,
+          maxStars: dbShip.max_stars ?? 1,
         });
       }
       const next = [...keptDb, ...newShips];
@@ -646,6 +657,9 @@ function Index() {
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
+  const [upgradeSubShipId, setUpgradeSubShipId] = useState<number | null>(null);
+  const [upgradeSubBusy, setUpgradeSubBusy] = useState(false);
+  const [upgradeSubResult, setUpgradeSubResult] = useState<{ success: boolean; stars: number; chance: number } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -1813,6 +1827,13 @@ function Index() {
                       label="طاقم"
                       onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
                     />
+                    {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
+                      <ActionBtn
+                        emoji="⭐"
+                        label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
+                        onClick={() => { setMenuShipId(null); setUpgradeSubShipId(s.id); }}
+                      />
+                    )}
                     <ActionBtn
                       emoji="💰"
                       label="بيع"
@@ -1874,6 +1895,120 @@ function Index() {
           </div>
         );
       })()}
+
+      {/* Submarine upgrade dialog */}
+      {upgradeSubShipId !== null && (() => {
+        const s = ships.find((x) => x.id === upgradeSubShipId);
+        if (!s || !s.dbId) return null;
+        const curStars = s.stars ?? 1;
+        const nextStars = Math.min(5, curStars + 1);
+        const chance = UPGRADE_SUB_SUCCESS_PCT[curStars] ?? 0;
+        const curCap = UPGRADE_SUB_STAR_CAPACITY[curStars] ?? 350000;
+        const nextCap = UPGRADE_SUB_STAR_CAPACITY[nextStars] ?? 350000;
+        const isRedNext = nextStars >= 5;
+        const closeDlg = () => {
+          if (upgradeSubBusy) return;
+          setUpgradeSubShipId(null);
+          setUpgradeSubResult(null);
+        };
+        const renderStars = (n: number) => {
+          if (n >= 5) return <span className="text-2xl text-rose-400">★</span>;
+          return <span className="text-2xl text-amber-300">{"★".repeat(n)}{"☆".repeat(4-n)}</span>;
+        };
+        return (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={closeDlg}>
+            <div className="glass-hud rounded-2xl border-2 border-amber-400/60 p-5 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
+              <div className="text-3xl mb-1">⭐ ترقية الغواصة</div>
+              <div className="flex items-center justify-around my-3">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-xs text-cyan-200/80">الحالي</div>
+                  {renderStars(curStars)}
+                  <div className="text-[10px] text-cyan-100">{curCap.toLocaleString()} سعة</div>
+                </div>
+                <div className="text-2xl text-amber-300">→</div>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-xs text-cyan-200/80">الهدف</div>
+                  {renderStars(nextStars)}
+                  <div className="text-[10px] text-cyan-100">{nextCap.toLocaleString()} سعة</div>
+                </div>
+              </div>
+              {upgradeSubResult ? (
+                <div className={`rounded-xl p-3 mb-3 ${upgradeSubResult.success ? "bg-emerald-500/20 border border-emerald-400/60" : "bg-rose-500/20 border border-rose-400/60"}`}>
+                  <div className={`text-lg font-black ${upgradeSubResult.success ? "text-emerald-200" : "text-rose-200"}`}>
+                    {upgradeSubResult.success ? "✅ نجحت الترقية!" : "❌ فشلت الترقية"}
+                  </div>
+                  <div className="text-xs text-cyan-100 mt-1">
+                    {upgradeSubResult.success
+                      ? `الغواصة الآن ${upgradeSubResult.stars >= 5 ? "نجمة حمراء ★" : "★".repeat(upgradeSubResult.stars)}`
+                      : `الغواصة رجعت إلى ${"★".repeat(upgradeSubResult.stars)}`}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={`rounded-lg px-3 py-2 mb-2 text-sm font-bold ${chance >= 95 ? "bg-emerald-500/20 text-emerald-200" : chance >= 80 ? "bg-amber-500/20 text-amber-200" : "bg-rose-500/20 text-rose-200"}`}>
+                    نسبة النجاح: {chance}%
+                  </div>
+                  {chance < 100 && (
+                    <div className="text-[11px] text-rose-300/90 mb-2">
+                      ⚠️ عند الفشل ترجع الغواصة لنجمة أدنى
+                    </div>
+                  )}
+                  {isRedNext && (
+                    <div className="text-[11px] text-rose-300 mb-2 font-bold">
+                      🔴 الترقية للنجمة الحمراء — أعلى مستوى
+                    </div>
+                  )}
+                  <div className="text-amber-200 font-extrabold text-base mb-3">
+                    💰 التكلفة: {UPGRADE_SUB_COST.toLocaleString()} ذهب
+                  </div>
+                </>
+              )}
+              <div className="flex gap-2">
+                {upgradeSubResult ? (
+                  <button className="flex-1 rounded-xl bg-accent text-accent-foreground py-3 font-extrabold active:scale-95" onClick={closeDlg}>
+                    تم
+                  </button>
+                ) : (
+                  <>
+                    <button className="flex-1 rounded-xl bg-secondary/70 py-3 font-bold text-accent active:scale-95 disabled:opacity-50" disabled={upgradeSubBusy} onClick={closeDlg}>
+                      إلغاء
+                    </button>
+                    <button
+                      className="flex-1 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950 py-3 font-extrabold active:scale-95 disabled:opacity-50"
+                      disabled={upgradeSubBusy || s.fishing || !!s.destroyedAt}
+                      onClick={async () => {
+                        if (!s.dbId) return;
+                        setUpgradeSubBusy(true);
+                        const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
+                        setUpgradeSubBusy(false);
+                        if (error) {
+                          const msg = error.message || "";
+                          showToast(
+                            /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
+                            /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
+                            /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
+                            /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
+                            /destroyed/i.test(msg) ? "السفينة مدمّرة" :
+                            "تعذّر تنفيذ الترقية"
+                          );
+                          return;
+                        }
+                        const res = data as { success: boolean; stars: number; chance: number };
+                        setUpgradeSubResult(res);
+                        await syncFleetFromDb();
+                        refreshProfile?.();
+                      }}
+                    >
+                      {upgradeSubBusy ? "..." : "ترقية"}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* Sell confirmation */}
       {modal?.kind === "sell" && (() => {

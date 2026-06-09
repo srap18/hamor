@@ -305,7 +305,8 @@ function FishMarket() {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setUpPreview(null); return; }
+    setUpPreview(null); // clear stale price until fresh value loads (prevents 500-gold exploit)
     supabase.rpc("fish_market_upgrade_cost" as never, { _level: lvl } as never).then(({ data }) => {
       const row = (data as Array<{ cost_coins: number; seconds: number }> | null)?.[0] ?? null;
       setUpPreview(row);
@@ -714,10 +715,10 @@ function StorageView({
             </div>
             <button
               onClick={onUpgrade}
-              disabled={upBusy === "start" || lvl >= 30}
+              disabled={upBusy === "start" || lvl >= 30 || !upPreview}
               className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
             >
-              {lvl >= 30 ? "أعلى مستوى" : upBusy === "start" ? "..." : "ترقية"}
+              {lvl >= 30 ? "أعلى مستوى" : !upPreview ? "..." : upBusy === "start" ? "..." : "ترقية"}
             </button>
           </>
         )}

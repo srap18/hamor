@@ -35,6 +35,30 @@ import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
 
+// Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
+import subStar1Asset from "@/assets/ships/sub-star-1.jpg.asset.json";
+import subStar2Asset from "@/assets/ships/sub-star-2.jpg.asset.json";
+import subStar3Asset from "@/assets/ships/sub-star-3.jpg.asset.json";
+import subStar4Asset from "@/assets/ships/sub-star-4.jpg.asset.json";
+import subStarRedAsset from "@/assets/ships/sub-star-red.jpg.asset.json";
+const SUB_STAR_IMAGES: Record<number, string> = {
+  1: subStar1Asset.url,
+  2: subStar2Asset.url,
+  3: subStar3Asset.url,
+  4: subStar4Asset.url,
+  5: subStarRedAsset.url,
+};
+export function getUpgradeSubImage(stars: number): string {
+  return SUB_STAR_IMAGES[Math.max(1, Math.min(5, stars || 1))];
+}
+export const UPGRADE_SUB_STAR_CAPACITY: Record<number, number> = {
+  1: 350000, 2: 500000, 3: 700000, 4: 850000, 5: 1000000,
+};
+export const UPGRADE_SUB_SUCCESS_PCT: Record<number, number> = {
+  1: 100, 2: 95, 3: 90, 4: 70,
+};
+export const UPGRADE_SUB_COST = 1_000_000_000;
+
 export type ShipDef = {
   code: string;
   name: string;
@@ -62,6 +86,7 @@ const IMG_BY_LEVEL: Record<number, string> = {
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
   31: shipPhoenix,
   32: shipSubmarine,
+  33: subStar1Asset.url,
 };
 
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
@@ -71,7 +96,7 @@ const IMG_BY_LEVEL: Record<number, string> = {
 const BOW_FACES_RIGHT: Record<number, boolean> = {
   3: true, 4: true, 5: true, 6: true, 8: true,
   11: true, 12: true, 13: true, 16: true,
-  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true,
+  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true, 33: true,
 };
 
 export function shipBowFacesRight(level: number): boolean {
@@ -123,6 +148,7 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 60,   fishPool: ["golden_koi","poseidon","black_pearl","kraken"] },
   31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
   32: { ar: "الغواصة الملكية VIP",     rarity: "Mythic",    flavor: "غواصة سوداء فاخرة حصرية لأعضاء VIP 5 فأعلى — تنزل لأعماق المحيط وتصيد تيتان الأعماق النادر. كل عضو VIP 5+ يستلم 3 غواصات. السعة والدمّ يتدرّجان حسب مستوى VIP وقت الاستلام: VIP 5 = 60 ألف، VIP 6 = 118 ألف، VIP 7 = 176 ألف، VIP 8 = 234 ألف، VIP 9 = 292 ألف، VIP 10 = 350 ألف.", storage: 350000, price: 0,           fishingMinutes: 45,   fishPool: ["abyss_titan"] },
+  33: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 15000000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
 };
 
 function buildShip(level: number): ShipDef {
@@ -170,6 +196,26 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Upgradeable submarine (level 33) — stars-based stats (base = 1★).
+  if (level === 33) {
+    return {
+      code: "upgrade-sub",
+      name: d.ar,
+      title: d.ar,
+      image: SUB_STAR_IMAGES[1],
+      price: d.price,
+      marketLevel: 33,
+      rarity: d.rarity,
+      maxHp: 350000,
+      armor: 140,
+      speed: 85,
+      storage: 350000,
+      repairSeconds: 14400,
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
@@ -197,14 +243,18 @@ function buildShip(level: number): ShipDef {
   };
 }
 
-// Regular ships (1..30) shown in the ship market.
-export const SHIPS: ShipDef[] = Array.from({ length: 30 }, (_, i) => buildShip(i + 1));
+// Regular ships in the market: 1..30 plus level 33 (upgradeable submarine).
+// Level 31 (phoenix) and 32 (VIP submarine) stay shop-exclusive.
+export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
+export const SHIPS: ShipDef[] = [
+  ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
+  UPGRADE_SUB_SHIP,
+];
 
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
 
-// Tribe-exclusive ships (level 24 base, but with 20K HP/storage and tribe-only currency).
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
@@ -213,8 +263,6 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   if (!code) return STARTER_SHIP;
   const direct = ALL_SHIPS.find((s) => s.code === code);
   if (direct) return direct;
-  // Fallback: codes like "ship-lvl-31" (phoenix in DB) or other catalog codes
-  // map back to a market level so spectators always see the real ship art.
   const m = code.match(/(\d+)\s*$/);
   if (m) {
     const lvl = parseInt(m[1], 10);
@@ -223,9 +271,10 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   return STARTER_SHIP;
 }
 
-// Map a market level (1..32) to the ship definition.
-// Level 31 = phoenix shop ship. Level 32 = VIP submarine.
+// Map a market level to the ship definition.
+// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 33) return UPGRADE_SUB_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
@@ -246,15 +295,17 @@ export function catchPerTrip(ship: ShipDef): number {
 // يمكن لمسؤول النظام تجاوز أي مستوى عبر economy_settings.
 export function fishMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
-  // lazy import to avoid circular dep at module init
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 10) cap += 10000;      // 2–10: +10k
-    else if (l <= 20) cap += 30000;  // 11–20: +30k
-    else cap += 100000;              // 21+: +100k
+    if (l <= 10) cap += 10000;        // L10 = 100k
+    else if (l <= 20) cap += 20000;   // L20 = 300k
+    else if (l <= 26) cap += 33333;   // L26 ≈ 500k
+    else cap += 125000;               // L30 = 1M
   }
+  if (lvl === 26) cap = 500000;
+  if (lvl === 30) cap = 1000000;
   return cap;
 }
 

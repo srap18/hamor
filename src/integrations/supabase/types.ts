@@ -2122,7 +2122,9 @@ export type Database = {
           in_storage: boolean
           last_fishing_reward_at: string | null
           max_hp: number
+          max_stars: number
           repair_ends_at: string | null
+          stars: number
           stealing_ends_at: string | null
           stealing_target_ship_id: string | null
           stealing_target_user_id: string | null
@@ -2140,7 +2142,9 @@ export type Database = {
           in_storage?: boolean
           last_fishing_reward_at?: string | null
           max_hp?: number
+          max_stars?: number
           repair_ends_at?: string | null
+          stars?: number
           stealing_ends_at?: string | null
           stealing_target_ship_id?: string | null
           stealing_target_user_id?: string | null
@@ -2158,7 +2162,9 @@ export type Database = {
           in_storage?: boolean
           last_fishing_reward_at?: string | null
           max_hp?: number
+          max_stars?: number
           repair_ends_at?: string | null
+          stars?: number
           stealing_ends_at?: string | null
           stealing_target_ship_id?: string | null
           stealing_target_user_id?: string | null
@@ -3844,7 +3850,9 @@ export type Database = {
           in_storage: boolean
           last_fishing_reward_at: string | null
           max_hp: number
+          max_stars: number
           repair_ends_at: string | null
+          stars: number
           stealing_ends_at: string | null
           stealing_target_ship_id: string | null
           stealing_target_user_id: string | null
@@ -4337,6 +4345,10 @@ export type Database = {
           total_value: number
         }[]
       }
+      submarine_capacity_for_stars: {
+        Args: { _stars: number }
+        Returns: number
+      }
       swap_ship_with_storage: {
         Args: { p_active_id: string; p_storage_id: string }
         Returns: Json
@@ -4356,6 +4368,7 @@ export type Database = {
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
       upgrade_dragon_item: { Args: { p_item_id: string }; Returns: Json }
+      upgrade_submarine: { Args: { _ship_id: string }; Returns: Json }
       use_crew_from_inventory: {
         Args: { _inventory_id: string; _ship_id?: string }
         Returns: Json
