@@ -67,7 +67,7 @@ export const WEAPONS: Weapon[] = [
     image: nukeImg,
     price: 100,
     currency: "gems",
-    damage: 9_999_999,
+    damage: 70_000_000,
     xp: 250,
     rarity: "legendary",
     aoe: true,
