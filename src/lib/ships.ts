@@ -264,6 +264,10 @@ export const STARTER_SHIP = SHIPS[0];
 
 export function getShipByCode(code: string | null | undefined): ShipDef {
   if (!code) return STARTER_SHIP;
+  // Legacy phoenix ships were originally stored as ship-lvl-31 before market
+  // level 31 became the upgradeable submarine. Keep that old code mapped to
+  // phoenix so cached/old rows never render as submarines.
+  if (code === "ship-lvl-31") return PHOENIX_SHIP;
   const direct = ALL_SHIPS.find((s) => s.code === code);
   if (direct) return direct;
   const m = code.match(/(\d+)\s*$/);
