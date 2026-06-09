@@ -249,7 +249,7 @@ function SectionTitle({ icon, label, hint }: { icon: string; label: string; hint
 }
 
 function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: number; primaryAction: React.ReactNode; dim?: boolean }) {
-  const def = getShipByMarketLevel(ship.template_id ?? 1);
+  const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
   const rarityClass = rarityColors[def.rarity] || rarityColors.Common;
   return (
     <div className={`relative rounded-xl border-2 p-2 flex items-center gap-3 mb-2 ${rarityClass} ${dim ? "opacity-80" : ""}`}>
