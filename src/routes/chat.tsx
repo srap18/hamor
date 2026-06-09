@@ -7,7 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
-import { VoiceRooms } from "@/components/VoiceRooms";
+
 import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/chat")({
   component: () => <AuthGuard><ChatPage /></AuthGuard>,
 });
 
-type Channel = "public" | "tribe" | "dm" | "voice" | "topics";
+type Channel = "public" | "tribe" | "dm" | "topics";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null; reply_to_id?: string | null; reply_to_body?: string | null; reply_to_name?: string | null };
 type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null };
 
@@ -373,10 +373,10 @@ function ChatPage() {
 
       <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
 
-        {(["public", "tribe", "dm", "voice", "topics"] as Channel[]).map(t => (
+        {(["public", "tribe", "dm", "topics"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "voice" ? "🎙️ صوتي" : "📝 مواضيع"}
+            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : "📝 مواضيع"}
             {t === "dm" && dmTotal > 0 && tab !== "dm" && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
                 {dmTotal > 9 ? "9+" : dmTotal}
@@ -386,10 +386,8 @@ function ChatPage() {
         ))}
       </div>
 
-      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "voice" || tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
-        {tab === "voice" ? (
-          <VoiceRooms userId={user?.id || ""} />
-        ) : tab === "topics" ? (
+      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+        {tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
           <div className="flex-1 overflow-y-auto p-3">
@@ -569,11 +567,11 @@ function ChatPage() {
         )}
       </div>
 
-      {tab !== "voice" && tab !== "topics" && (
+      {tab !== "topics" && (
         myMute ? (
           <div className="px-3 pb-3">
             <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
-              🔇 أنت مكتوم من قِبل الإدارة — لا تقدر ترسل في أي محادثة (عام/قبيلة/خاص/صوتي)
+              🔇 أنت مكتوم من قِبل الإدارة — لا تقدر ترسل في أي محادثة (عام/قبيلة/خاص)
               {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
               {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
