@@ -987,11 +987,15 @@ function Index() {
     })();
   }, [outgoingSteals.map((s) => s.stealingTargetUserId).join(",")]);
 
-  // Auto-claim expired steal missions — loot arrives automatically
+  // Auto-claim expired steal missions — loot arrives automatically.
+  // Use a ref for ships so the interval is created once, not on every state tick.
+  const shipsForClaimRef = useRef(ships);
+  shipsForClaimRef.current = ships;
   useEffect(() => {
     const id = setInterval(async () => {
       if (document.hidden) return;
-      const expired = ships.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
+      const cur = shipsForClaimRef.current;
+      const expired = cur.filter((s) => s.stealingTargetUserId && s.stealingEndsAt && new Date(s.stealingEndsAt).getTime() <= serverNowMs() && s.dbId);
       for (const s of expired) {
         const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: s.dbId, _force: false });
         if (!error) {
@@ -999,9 +1003,9 @@ function Index() {
           syncFleetFromDb();
         }
       }
-    }, 4000);
+    }, 8000);
     return () => clearInterval(id);
-  }, [ships]);
+  }, []);
 
 
 
