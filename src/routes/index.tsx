@@ -483,22 +483,25 @@ function Index() {
     // Live updates: any change to my own ships triggers an instant re-sync
     let ch: ReturnType<typeof supabase.channel> | null = null;
     let debounce: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
     const kick = () => {
       if (debounce) clearTimeout(debounce);
-      // Immediate sync for instant updates across the app
       syncFleetFromDb();
     };
     (async () => {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id;
-      if (!uid) return;
-      ch = supabase
+      if (!uid || cancelled) return;
+      const created = supabase
         .channel(`my-ships-${uid}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${uid}` }, kick)
         .on("postgres_changes", { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${uid}` }, kick)
         .subscribe();
+      if (cancelled) { supabase.removeChannel(created); return; }
+      ch = created;
     })();
     return () => {
+      cancelled = true;
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
       if (debounce) clearTimeout(debounce);
@@ -785,16 +788,20 @@ function Index() {
     const onFocus = () => reloadCrews();
     window.addEventListener("focus", onFocus);
     let ch: any;
+    let cancelled = false;
     (async () => {
       const { data } = await supabase.auth.getUser();
       const uid = data.user?.id;
-      if (!uid) return;
-      ch = supabase
+      if (!uid || cancelled) return;
+      const created = supabase
         .channel(`my-inv-${uid}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "inventory", filter: `user_id=eq.${uid}` }, () => reloadCrews())
         .subscribe();
+      if (cancelled) { supabase.removeChannel(created); return; }
+      ch = created;
     })();
     return () => {
+      cancelled = true;
       window.removeEventListener("focus", onFocus);
       if (ch) supabase.removeChannel(ch);
     };
