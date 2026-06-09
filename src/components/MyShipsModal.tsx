@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { getShipByMarketLevel } from "@/lib/ships";
+import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 
 interface ShipRow {
   id: string;
   template_id: number | null;
+  catalog_code: string | null;
   acquired_at: string;
   in_storage: boolean;
 }
@@ -51,7 +52,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     setLoading(true);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, in_storage")
+      .select("id, template_id, catalog_code, acquired_at, in_storage")
       .eq("user_id", user.id)
       .order("acquired_at", { ascending: true });
     setShips((data ?? []) as ShipRow[]);
@@ -248,7 +249,7 @@ function SectionTitle({ icon, label, hint }: { icon: string; label: string; hint
 }
 
 function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: number; primaryAction: React.ReactNode; dim?: boolean }) {
-  const def = getShipByMarketLevel(ship.template_id ?? 1);
+  const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
   const rarityClass = rarityColors[def.rarity] || rarityColors.Common;
   return (
     <div className={`relative rounded-xl border-2 p-2 flex items-center gap-3 mb-2 ${rarityClass} ${dim ? "opacity-80" : ""}`}>

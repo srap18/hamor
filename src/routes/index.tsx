@@ -732,7 +732,8 @@ function Index() {
   };
 
   const fishPoolForShip = (ship: Ship) => {
-    const shipPool = getShipByMarketLevel(ship.level).fishPool.filter((fishId) => !!FISH[fishId]);
+    const def = ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level);
+    const shipPool = def.fishPool.filter((fishId) => !!FISH[fishId]);
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
