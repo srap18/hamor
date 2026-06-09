@@ -118,6 +118,8 @@ interface Ship {
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
   seaSide?: "left" | "right";
+  stars?: number;
+  maxStars?: number;
 }
 
 // Repair progress 0..1 based on destroyed_at → repair_ends_at window.
