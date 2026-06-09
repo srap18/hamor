@@ -365,10 +365,12 @@ function Index() {
           }
           const isUpSub = code === "upgrade-sub";
           const subStars = row.stars ?? 1;
+          const shipDef = code ? getShipByCode(code) : getShipByMarketLevel(row.template_id ?? s.level);
+          const maxProg = catchAmountForLevel(row.template_id ?? s.level, row.max_hp);
           const imgFromCode = code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
             : s.img;
-          return { ...s, catalogCode: code ?? s.catalogCode, img: imgFromCode, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          return { ...s, level: row.template_id ?? s.level, catalogCode: code ?? s.catalogCode, img: imgFromCode, max: maxProg, duration: shipDef.fishingSeconds, timeLeft: shipDef.fishingSeconds, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -433,6 +435,10 @@ function Index() {
       const sameAll = sameLen && next.every((s, i) => {
         const c = curr[i];
         return s.dbId === c.dbId
+          && (s.catalogCode ?? null) === (c.catalogCode ?? null)
+          && s.img === c.img
+          && s.max === c.max
+          && s.duration === c.duration
           && (s.hp ?? null) === (c.hp ?? null)
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
