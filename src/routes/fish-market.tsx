@@ -714,10 +714,10 @@ function StorageView({
             </div>
             <button
               onClick={onUpgrade}
-              disabled={upBusy === "start" || lvl >= 30}
+              disabled={upBusy === "start" || lvl >= 30 || !upPreview}
               className="px-8 py-3 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50"
             >
-              {lvl >= 30 ? "أعلى مستوى" : upBusy === "start" ? "..." : "ترقية"}
+              {lvl >= 30 ? "أعلى مستوى" : !upPreview ? "..." : upBusy === "start" ? "..." : "ترقية"}
             </button>
           </>
         )}
