@@ -243,14 +243,18 @@ function buildShip(level: number): ShipDef {
   };
 }
 
-// Regular ships (1..30) shown in the ship market.
-export const SHIPS: ShipDef[] = Array.from({ length: 30 }, (_, i) => buildShip(i + 1));
+// Regular ships in the market: 1..30 plus level 33 (upgradeable submarine).
+// Level 31 (phoenix) and 32 (VIP submarine) stay shop-exclusive.
+export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
+export const SHIPS: ShipDef[] = [
+  ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
+  UPGRADE_SUB_SHIP,
+];
 
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
 
-// Tribe-exclusive ships (level 24 base, but with 20K HP/storage and tribe-only currency).
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
@@ -259,8 +263,6 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   if (!code) return STARTER_SHIP;
   const direct = ALL_SHIPS.find((s) => s.code === code);
   if (direct) return direct;
-  // Fallback: codes like "ship-lvl-31" (phoenix in DB) or other catalog codes
-  // map back to a market level so spectators always see the real ship art.
   const m = code.match(/(\d+)\s*$/);
   if (m) {
     const lvl = parseInt(m[1], 10);
@@ -269,9 +271,10 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
   return STARTER_SHIP;
 }
 
-// Map a market level (1..32) to the ship definition.
-// Level 31 = phoenix shop ship. Level 32 = VIP submarine.
+// Map a market level to the ship definition.
+// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 33) return UPGRADE_SUB_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
