@@ -657,6 +657,9 @@ function Index() {
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
+  const [upgradeSubShipId, setUpgradeSubShipId] = useState<number | null>(null);
+  const [upgradeSubBusy, setUpgradeSubBusy] = useState(false);
+  const [upgradeSubResult, setUpgradeSubResult] = useState<{ success: boolean; stars: number; chance: number } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
