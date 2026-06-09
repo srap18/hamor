@@ -242,7 +242,7 @@ function ShipyardPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black">Shipyard</h1>
-                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/30</span>
+                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/31</span>
                 {market?.upgrading_to && <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary">جارٍ إلى {market.upgrading_to}</span>}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">واجهة عرض بحرية احترافية للسفن الواقعية، الترقية، والتسريع بالـ Gems.</p>
