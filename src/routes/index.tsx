@@ -1698,7 +1698,7 @@ function Index() {
           top = `${wTop + 6 + slot * 8}%`;
           left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
         }
-        const img = getShipByMarketLevel(r.template_id || 1).image;
+        const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
         const flipX = nativeRight ? -1 : 1;
