@@ -86,6 +86,7 @@ const IMG_BY_LEVEL: Record<number, string> = {
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
   31: shipPhoenix,
   32: shipSubmarine,
+  33: subStar1Asset.url,
 };
 
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
