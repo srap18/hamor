@@ -302,10 +302,13 @@ export function fishMarketCapacity(level: number): number {
     if (l <= 10) cap += 10000;        // L10 = 100k
     else if (l <= 20) cap += 20000;   // L20 = 300k
     else if (l <= 26) cap += 33333;   // L26 ≈ 500k
-    else cap += 125000;               // L30 = 1M
+    else cap += 500000;               // L27=1M, L28=1.5M, L29=2M, L30=2.5M
   }
   if (lvl === 26) cap = 500000;
-  if (lvl === 30) cap = 1000000;
+  if (lvl === 27) cap = 1000000;
+  if (lvl === 28) cap = 1500000;
+  if (lvl === 29) cap = 2000000;
+  if (lvl === 30) cap = 2500000;
   return cap;
 }
 
