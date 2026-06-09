@@ -414,6 +414,18 @@ function Index() {
         }
         const isUpSub = dbShip.catalog_code === "upgrade-sub";
         const subStars = dbShip.stars ?? 1;
+        // Preserve `sailorAtStart` across re-syncs of the same active trip.
+        // If we don't know (fresh row), default to whether sailor is currently
+        // assigned — matches server-side bonus behavior on collect.
+        const prevSameTrip = curr.find(
+          (c) => c.dbId === dbShip.id && c.fishing && c.startedAt === startedAt,
+        );
+        const hasSailorNow = crewRowsRef.current.some(
+          (r) => r.item_id === "sailor" && r.meta?.assigned_ship_id === dbShip.id,
+        );
+        const sailorAtStart = prevSameTrip
+          ? !!prevSameTrip.sailorAtStart
+          : (isFishing ? hasSailorNow : false);
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
@@ -438,8 +450,10 @@ function Index() {
           stealingTargetUserId: dbShip.stealing_target_user_id,
           stars: dbShip.stars ?? 1,
           maxStars: dbShip.max_stars ?? 1,
+          sailorAtStart,
         });
       }
+
       const next = [...keptDb, ...newShips];
       // Bail only when nothing meaningful changed — including stealing state,
       // otherwise ships on steal missions won't disappear from the harbor.
