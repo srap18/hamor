@@ -121,6 +121,8 @@ interface Ship {
   seaSide?: "left" | "right";
   stars?: number;
   maxStars?: number;
+  sailorAtStart?: boolean; // true if sailor crew was assigned when this trip began
+
 }
 
 // Repair progress 0..1 based on destroyed_at → repair_ends_at window.
@@ -412,6 +414,18 @@ function Index() {
         }
         const isUpSub = dbShip.catalog_code === "upgrade-sub";
         const subStars = dbShip.stars ?? 1;
+        // Preserve `sailorAtStart` across re-syncs of the same active trip.
+        // If we don't know (fresh row), default to whether sailor is currently
+        // assigned — matches server-side bonus behavior on collect.
+        const prevSameTrip = curr.find(
+          (c) => c.dbId === dbShip.id && c.fishing && c.startedAt === startedAt,
+        );
+        const hasSailorNow = crewRowsRef.current.some(
+          (r) => r.item_id === "sailor" && r.meta?.assigned_ship_id === dbShip.id,
+        );
+        const sailorAtStart = prevSameTrip
+          ? !!prevSameTrip.sailorAtStart
+          : (isFishing ? hasSailorNow : false);
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
@@ -436,8 +450,10 @@ function Index() {
           stealingTargetUserId: dbShip.stealing_target_user_id,
           stars: dbShip.stars ?? 1,
           maxStars: dbShip.max_stars ?? 1,
+          sailorAtStart,
         });
       }
+
       const next = [...keptDb, ...newShips];
       // Bail only when nothing meaningful changed — including stealing state,
       // otherwise ships on steal missions won't disappear from the harbor.
@@ -1050,7 +1066,10 @@ function Index() {
             dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
-          const { sailorMult } = getCrewBonuses(s);
+          // Only apply sailor speed-up if sailor was assigned BEFORE this trip
+          // started. Assigning a sailor mid-trip must NOT retroactively complete
+          // the fishing (was the "instant full" bug).
+          const sailorMult = s.sailorAtStart ? 2 : 1;
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
@@ -1058,6 +1077,7 @@ function Index() {
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s; // no visible change → skip
           }
+
           dirty = true;
           return { ...s, sail, progress, timeLeft };
         });
@@ -1101,17 +1121,19 @@ function Index() {
       : undefined;
 
     if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
+    const sailorOnStart = getCrewBonuses(target).hasSailor;
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
         if (x.fishing) {
-          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration };
+          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration, sailorAtStart: false };
         }
-        return { ...x, fishing: true, startedAt: nextStartedAt };
+        return { ...x, fishing: true, startedAt: nextStartedAt, sailorAtStart: sailorOnStart };
       })
     );
     sound.play("whoosh");
     pushHarborState();
+
 
     // ── Background mutation (fire-and-forget with rollback) ─────────
     if (!dbIdToSync) return;
@@ -3958,23 +3980,27 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               />
             </div>
             {/* Fill counter — clear total/current label */}
-            <div className="relative h-3.5 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  ready
-                    ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
-                    : ship.fishing
-                    ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
-                    : "bg-gradient-to-r from-slate-400 to-slate-300"
-                }`}
-                style={{ width: `${pct}%` }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] leading-none font-black text-white whitespace-nowrap"
-                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
+            <div className="relative h-3.5">
+              <div className="absolute inset-0 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    ready
+                      ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
+                      : ship.fishing
+                      ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
+                      : "bg-gradient-to-r from-slate-400 to-slate-300"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              {/* Label sits OUTSIDE the clipped fill so long numbers are never cut off */}
+              <div className="absolute inset-0 flex items-center justify-center text-[9px] leading-none font-black text-white whitespace-nowrap pointer-events-none px-1"
+                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}>
                 <span className="tabular-nums" dir="ltr">{caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}</span>
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
+
             {active && (
               ready ? (
                 <div className="text-center text-[9px] text-amber-200 font-bold animate-pulse">
