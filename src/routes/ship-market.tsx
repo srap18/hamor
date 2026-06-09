@@ -191,7 +191,8 @@ function ShipyardPage() {
       showToast(`🚫 الأسطول والمخزن ممتلئان (${MAX_SHIPS}+${MAX_STORAGE}) — بِع سفينة أولًا`);
       return;
     }
-    if (marketLevel < ship.marketLevel) {
+    const requiredLevel = displayMarketLevel(ship.marketLevel);
+    if (marketLevel < requiredLevel) {
       showToast("ارفع مستوى السوق أولًا");
       return;
     }
