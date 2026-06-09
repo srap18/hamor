@@ -1017,13 +1017,14 @@ function Index() {
   useEffect(() => {
     let raf = 0;
     let last = 0;
-    const FRAME_MS = 33; // ~30fps cap
+    const FRAME_MS = 16; // ~60fps for buttery-smooth sailing
     const EPS = 0.001;
 
     const tick = (ts: number) => {
       raf = requestAnimationFrame(tick);
       if (document.hidden) return;
       if (ts - last < FRAME_MS) return;
+      const dt = last === 0 ? FRAME_MS : ts - last;
       last = ts;
 
       const now = serverNowMs();
@@ -1031,10 +1032,13 @@ function Index() {
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = 0.45;
+          // Frame-rate-independent exponential smoothing.
+          // Tuned so a full dock⇄sea transition completes in ~0.9s regardless of fps.
+          const smoothing = 1 - Math.exp(-dt / 220);
           const sailDelta = (target - s.sail) * smoothing;
           const sailMoving = Math.abs(sailDelta) > EPS;
           const sail = sailMoving ? s.sail + sailDelta : target;
+
 
           if (!s.fishing || !s.startedAt) {
             if (!sailMoving) return s; // no change → skip re-render
