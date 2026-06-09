@@ -356,7 +356,8 @@ function ShipyardPage() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {SHIPS.map((ship) => {
-              const locked = ship.marketLevel > marketLevel;
+              const reqLevel = displayMarketLevel(ship.marketLevel);
+              const locked = reqLevel > marketLevel;
               const count = ownedCount[ship.code] ?? 0;
               const selected = selectedCode === ship.code;
               const shipFlip = shipBowFacesRight(ship.marketLevel) ? 1 : -1;
@@ -367,8 +368,9 @@ function ShipyardPage() {
                     <div style={{ transform: `scaleX(${shipFlip})` }}>
                       <img src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
                     </div>
-                    <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {ship.marketLevel}</span>
+                    <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {reqLevel}</span>
                   </div>
+
 
                   <div className="mt-3 flex items-start justify-between gap-2">
                     <div>
