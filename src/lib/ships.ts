@@ -156,15 +156,15 @@ const SHIP_DATA: Record<number, ShipOverride> = {
 
 function buildShip(level: number): ShipDef {
   const d = SHIP_DATA[level];
-  // Phoenix ship (level 31) — special tuned values, doesn't follow the formula.
-  if (level === 31) {
+  // Phoenix ship (legacy level 99 slot) — shop-exclusive, doesn't follow the formula.
+  if (level === 99) {
     return {
       code: "phoenix",
       name: d.ar,
       title: d.ar,
-      image: IMG_BY_LEVEL[31],
+      image: IMG_BY_LEVEL[99],
       price: d.price,
-      marketLevel: 31,
+      marketLevel: 99,
       rarity: d.rarity,
       maxHp: 13000,
       armor: 80,
@@ -199,15 +199,15 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
-  // Upgradeable submarine (level 33) — stars-based stats (base = 1★).
-  if (level === 33) {
+  // Upgradeable submarine (level 31) — stars-based stats (base = 1★).
+  if (level === 31) {
     return {
       code: "upgrade-sub",
       name: d.ar,
       title: d.ar,
       image: SUB_STAR_IMAGES[1],
       price: d.price,
-      marketLevel: 33,
+      marketLevel: 31,
       rarity: d.rarity,
       maxHp: 350000,
       armor: 140,
@@ -246,16 +246,16 @@ function buildShip(level: number): ShipDef {
   };
 }
 
-// Regular ships in the market: 1..30 plus level 33 (upgradeable submarine).
-// Level 31 (phoenix) and 32 (VIP submarine) stay shop-exclusive.
-export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
+// Regular ships in the market: 1..30 plus level 31 (upgradeable submarine).
+// Level 32 (VIP submarine) and 99 (phoenix) stay shop-exclusive.
+export const UPGRADE_SUB_SHIP: ShipDef = buildShip(31);
 export const SHIPS: ShipDef[] = [
   ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
   UPGRADE_SUB_SHIP,
 ];
 
 // Special shop-exclusive ships (not in ship market, not sold for coins).
-export const PHOENIX_SHIP: ShipDef = buildShip(31);
+export const PHOENIX_SHIP: ShipDef = buildShip(99);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
 
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
@@ -275,14 +275,15 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
 }
 
 // Map a market level to the ship definition.
-// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
+// 31 = upgradeable submarine, 32 = VIP submarine, 99 = phoenix shop ship.
 export function getShipByMarketLevel(level: number): ShipDef {
-  if (level >= 33) return UPGRADE_SUB_SHIP;
+  if (level >= 99) return PHOENIX_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
-  if (level >= 31) return PHOENIX_SHIP;
+  if (level >= 31) return UPGRADE_SUB_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
 }
+
 
 export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
