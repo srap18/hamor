@@ -21,15 +21,12 @@ async function confirmSignOut(after: () => void) {
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
   ssr: false,
-  beforeLoad: async () => {
-    try {
-      await verifyAdminAccess();
-    } catch {
-      throw redirect({ to: "/" });
-    }
-  },
+  // Auth/role check happens inside the component via useIsAdmin (non-blocking).
+  // We intentionally do NOT call verifyAdminAccess() in beforeLoad — a hung
+  // server-fn would freeze the whole navigation and the page wouldn't open.
   head: () => ({ meta: [{ title: "لوحة التحكم — Admin" }] }),
 });
+
 
 
 const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> = [
