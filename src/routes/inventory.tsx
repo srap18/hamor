@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
-import { SHIPS } from "@/lib/ships";
+import { getShipByCode } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { toast } from "sonner";
 
@@ -343,7 +343,8 @@ function InventoryPage() {
                 const activeShips = ships.filter(s => !s.in_storage);
                 if (activeShips.length === 0) return <div className="text-center text-sm text-muted-foreground py-6">ما عندك سفن نشطة في المحيط</div>;
                 return activeShips.map((ship) => {
-                  const def = SHIPS.find(s => s.code === ship.catalog_code);
+                  const code = ship.catalog_code === "ship-lvl-31" ? "phoenix" : ship.catalog_code;
+                  const def = code ? getShipByCode(code) : null;
                   return (
                     <button key={ship.id} onClick={() => useCrew(pickedCrew.id, ship.id)} disabled={!!usingCrew} className="w-full rounded-xl border border-border bg-secondary/50 p-3 flex items-center gap-3 text-right active:scale-95 disabled:opacity-60">
                       {def?.image && <img src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}

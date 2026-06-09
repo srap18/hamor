@@ -321,6 +321,7 @@ function Index() {
         .map((s) => {
           const row = ownedById.get(s.dbId!);
           if (!row) return s;
+          const code = row.catalog_code === "ship-lvl-31" ? "phoenix" : row.catalog_code;
           const seaOverride = getSeaOverride(s.dbId!);
           // Restore fishing trip from DB only when local state agrees, OR
           // when local has no opinion yet (no startedAt and not fishing).
@@ -362,12 +363,14 @@ function Index() {
               setShipAtSea(s.dbId!, false).catch(() => {});
             }
           }
-          const isUpSub = row.catalog_code === "upgrade-sub";
+          const isUpSub = code === "upgrade-sub";
           const subStars = row.stars ?? 1;
-          const imgFromCode = row.catalog_code
-            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
+          const shipDef = code ? getShipByCode(code) : getShipByMarketLevel(row.template_id ?? s.level);
+          const maxProg = catchAmountForLevel(row.template_id ?? s.level, row.max_hp);
+          const imgFromCode = code
+            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(code).image)
             : s.img;
-          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: imgFromCode, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          return { ...s, level: row.template_id ?? s.level, catalogCode: code ?? s.catalogCode, img: imgFromCode, max: maxProg, duration: shipDef.fishingSeconds, timeLeft: shipDef.fishingSeconds, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -381,12 +384,13 @@ function Index() {
         const dbShip = toAdd[i];
           const seaOverride = getSeaOverride(dbShip.id);
         const lvl = dbShip.template_id ?? 1;
+        const code = dbShip.catalog_code === "ship-lvl-31" ? "phoenix" : dbShip.catalog_code;
         while (usedIds.has(nextId)) nextId++;
         usedIds.add(nextId);
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
-        const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
-        const maxProg = catchPerTrip(shipDef);
+        const shipDef = code ? getShipByCode(code) : getShipByMarketLevel(lvl);
+        const maxProg = catchAmountForLevel(lvl, dbShip.max_hp);
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
@@ -396,12 +400,12 @@ function Index() {
           isFishing = seaOverride.atSea;
           startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
         }
-        const isUpSub = dbShip.catalog_code === "upgrade-sub";
+        const isUpSub = code === "upgrade-sub";
         const subStars = dbShip.stars ?? 1;
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
-          catalogCode: dbShip.catalog_code,
+          catalogCode: code,
           level: lvl,
           img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
           progress: 0,
@@ -431,6 +435,10 @@ function Index() {
       const sameAll = sameLen && next.every((s, i) => {
         const c = curr[i];
         return s.dbId === c.dbId
+          && (s.catalogCode ?? null) === (c.catalogCode ?? null)
+          && s.img === c.img
+          && s.max === c.max
+          && s.duration === c.duration
           && (s.hp ?? null) === (c.hp ?? null)
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
@@ -736,7 +744,8 @@ function Index() {
   };
 
   const fishPoolForShip = (ship: Ship) => {
-    const shipPool = getShipByMarketLevel(ship.level).fishPool.filter((fishId) => !!FISH[fishId]);
+    const def = ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level);
+    const shipPool = def.fishPool.filter((fishId) => !!FISH[fishId]);
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
@@ -865,7 +874,7 @@ function Index() {
   const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
 
   // Incoming raids: ships from other players currently stealing from me
-  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; target_ship_id: string | null };
+  type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; catalog_code: string | null; target_ship_id: string | null };
   const [raids, setRaids] = useState<Raid[]>([]);
   const reloadRaids = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -873,10 +882,10 @@ function Index() {
     if (!uid) { setRaids([]); return; }
     const { data: ships } = await supabase
       .from("ships_owned")
-      .select("id,user_id,stealing_ends_at,template_id,stealing_target_ship_id")
+      .select("id,user_id,stealing_ends_at,template_id,catalog_code,stealing_target_ship_id")
       .eq("stealing_target_user_id", uid)
       .not("stealing_target_user_id", "is", null);
-    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; stealing_target_ship_id: string | null }[];
+    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; catalog_code: string | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaids([]); return; }
     const ids = Array.from(new Set(list.map((s) => s.user_id)));
     const { data: profs } = await supabase
@@ -889,6 +898,7 @@ function Index() {
       attacker_emoji: pmap.get(s.user_id)?.avatar_emoji || "🧑‍✈️",
       ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
+      catalog_code: s.catalog_code === "ship-lvl-31" ? "phoenix" : s.catalog_code,
       target_ship_id: s.stealing_target_ship_id,
     })));
   };
@@ -1688,7 +1698,7 @@ function Index() {
           top = `${wTop + 6 + slot * 8}%`;
           left = `${wLeft + (0.55 + slot * 0.15) * wWidth}%`;
         }
-        const img = getShipByMarketLevel(r.template_id || 1).image;
+        const img = r.catalog_code ? getShipByCode(r.catalog_code).image : getShipByMarketLevel(r.template_id || 1).image;
         const nativeRight = shipBowFacesRight(r.template_id || 1);
         // Raider bow faces shore (left)
         const flipX = nativeRight ? -1 : 1;
