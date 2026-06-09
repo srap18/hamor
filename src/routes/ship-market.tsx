@@ -211,7 +211,7 @@ function ShipyardPage() {
     }
 
     setBusy(ship.code);
-    const { error } = await buyShipByCode(ship.code, ship.marketLevel, ship.price, ship.maxHp);
+    const { error } = await buyShipByCode(ship.code, displayMarketLevel(ship.marketLevel), ship.price, ship.maxHp);
     setBusy(null);
     if (error) { showToast(error.message || "تعذر شراء السفينة"); return; }
     await loadData();
