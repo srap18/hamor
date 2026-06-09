@@ -97,8 +97,9 @@ const IMG_BY_LEVEL: Record<number, string> = {
 const BOW_FACES_RIGHT: Record<number, boolean> = {
   3: true, 4: true, 5: true, 6: true, 8: true,
   11: true, 12: true, 13: true, 16: true,
-  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true, 33: true,
+  19: true, 24: true, 26: true, 27: true, 28: true, 30: true, 31: true, 99: true,
 };
+
 
 export function shipBowFacesRight(level: number): boolean {
   return !!BOW_FACES_RIGHT[level];
