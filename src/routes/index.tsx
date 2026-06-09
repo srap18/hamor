@@ -1950,7 +1950,7 @@ function Index() {
             try {
               const res = await activateGoldenFisher({ data: {} });
               sound.play("success");
-              setToast(`🏅 تم تفعيل الصياد الذهبي 24 ساعة — صيد تلقائي + حصانة كاملة`);
+              setToast(res.already_active ? "🏅 الصياد الذهبي مفعّل عندك بالفعل" : `🏅 تم تفعيل الصياد الذهبي 24 ساعة — صيد تلقائي + حصانة كاملة`);
               setModal(null);
               refreshProfile();
               reloadCrews();
