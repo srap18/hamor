@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { getShipByMarketLevel } from "@/lib/ships";
+import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 
 interface ShipRow {
   id: string;
   template_id: number | null;
+  catalog_code: string | null;
   acquired_at: string;
   in_storage: boolean;
 }
