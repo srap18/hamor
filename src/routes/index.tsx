@@ -3980,23 +3980,27 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               />
             </div>
             {/* Fill counter — clear total/current label */}
-            <div className="relative h-3.5 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  ready
-                    ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
-                    : ship.fishing
-                    ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
-                    : "bg-gradient-to-r from-slate-400 to-slate-300"
-                }`}
-                style={{ width: `${pct}%` }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] leading-none font-black text-white whitespace-nowrap"
-                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
+            <div className="relative h-3.5">
+              <div className="absolute inset-0 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    ready
+                      ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
+                      : ship.fishing
+                      ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
+                      : "bg-gradient-to-r from-slate-400 to-slate-300"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              {/* Label sits OUTSIDE the clipped fill so long numbers are never cut off */}
+              <div className="absolute inset-0 flex items-center justify-center text-[9px] leading-none font-black text-white whitespace-nowrap pointer-events-none px-1"
+                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}>
                 <span className="tabular-nums" dir="ltr">{caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}</span>
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
+
             {active && (
               ready ? (
                 <div className="text-center text-[9px] text-amber-200 font-bold animate-pulse">
