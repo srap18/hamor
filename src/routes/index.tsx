@@ -1107,17 +1107,19 @@ function Index() {
       : undefined;
 
     if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
+    const sailorOnStart = getCrewBonuses(target).hasSailor;
     setShips((curr) =>
       curr.map((x) => {
         if (x.id !== shipId) return x;
         if (x.fishing) {
-          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration };
+          return { ...x, fishing: false, startedAt: undefined, progress: 0, timeLeft: x.duration, sailorAtStart: false };
         }
-        return { ...x, fishing: true, startedAt: nextStartedAt };
+        return { ...x, fishing: true, startedAt: nextStartedAt, sailorAtStart: sailorOnStart };
       })
     );
     sound.play("whoosh");
     pushHarborState();
+
 
     // ── Background mutation (fire-and-forget with rollback) ─────────
     if (!dbIdToSync) return;
