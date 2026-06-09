@@ -4017,6 +4017,7 @@ export type Database = {
         Returns: undefined
       }
       golden_fisher_tick: { Args: { _user: string }; Returns: Json }
+      golden_fisher_tick_all: { Args: never; Returns: Json }
       grant_cosmic_frame: { Args: never; Returns: Json }
       grant_inventory_item: {
         Args: {
