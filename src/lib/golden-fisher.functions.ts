@@ -9,5 +9,10 @@ export const activateGoldenFisher = createServerFn({ method: "POST" })
     // Cast to any: RPC name may not be in generated types until regeneration.
     const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
     if (error) throw new Error(error.message);
-    return data as { ok: boolean; until: string; already_active?: boolean; tick?: unknown };
+    return data as {
+      ok: boolean;
+      until: string;
+      already_active?: boolean;
+      tick?: { ok?: boolean; reason?: string; cycles?: number; ships?: number };
+    };
   });
