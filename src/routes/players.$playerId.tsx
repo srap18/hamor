@@ -253,8 +253,7 @@ function PlayerPage() {
   useEffect(() => {
     if (!playerId) return;
     loadPlayerCrews();
-    const t = setInterval(loadPlayerCrews, 8000);
-    return () => clearInterval(t);
+    // The 4s backstop poll below already calls loadPlayerCrews — no extra interval needed.
   }, [playerId]);
 
   // Live broadcast channel: every spectator in THIS harbor joins, so any action
