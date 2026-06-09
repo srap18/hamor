@@ -1017,13 +1017,14 @@ function Index() {
   useEffect(() => {
     let raf = 0;
     let last = 0;
-    const FRAME_MS = 33; // ~30fps cap
+    const FRAME_MS = 16; // ~60fps for buttery-smooth sailing
     const EPS = 0.001;
 
     const tick = (ts: number) => {
       raf = requestAnimationFrame(tick);
       if (document.hidden) return;
       if (ts - last < FRAME_MS) return;
+      const dt = last === 0 ? FRAME_MS : ts - last;
       last = ts;
 
       const now = serverNowMs();
@@ -1031,10 +1032,13 @@ function Index() {
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = 0.45;
+          // Frame-rate-independent exponential smoothing.
+          // Tuned so a full dock⇄sea transition completes in ~0.9s regardless of fps.
+          const smoothing = 1 - Math.exp(-dt / 220);
           const sailDelta = (target - s.sail) * smoothing;
           const sailMoving = Math.abs(sailDelta) > EPS;
           const sail = sailMoving ? s.sail + sailDelta : target;
+
 
           if (!s.fishing || !s.startedAt) {
             if (!sailMoving) return s; // no change → skip re-render
@@ -1187,10 +1191,21 @@ function Index() {
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
     sound.play("whoosh");
 
+    // Show an instant placeholder result popup so the user gets immediate feedback
+    // — feels offline. The real fish/qty fills in the moment the server responds.
+    setCatchResult({
+      emoji: "🎣",
+      name: "جارٍ سحب الشبكة...",
+      count: 0,
+      shipId: s.id,
+      shipLevel: s.level,
+    });
+
     // Fire clock sync in background (do not block the reward RPC).
     if (!isServerClockSynced()) {
       syncServerTime(true).catch(() => {});
     }
+
 
 
     // Show the result as soon as the server responds — no artificial delay.
@@ -1200,6 +1215,8 @@ function Index() {
     });
     if (error) {
       delete collectingRef.current[s.dbId];
+      setCatchResult(null);
+
       const msg = String(error.message || "");
       // Rollback: dock locally + force-stop on server so UI stays in sync.
       setSeaOverride(s.dbId, false);
