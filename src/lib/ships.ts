@@ -196,6 +196,26 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Upgradeable submarine (level 33) — stars-based stats (base = 1★).
+  if (level === 33) {
+    return {
+      code: "upgrade-sub",
+      name: d.ar,
+      title: d.ar,
+      image: SUB_STAR_IMAGES[1],
+      price: d.price,
+      marketLevel: 33,
+      rarity: d.rarity,
+      maxHp: 350000,
+      armor: 140,
+      speed: 85,
+      storage: 350000,
+      repairSeconds: 14400,
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
