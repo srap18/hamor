@@ -35,9 +35,21 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
 }
 
 
+type Payment = {
+  id: string;
+  user_id: string;
+  display_name: string;
+  pack_id: string;
+  amount_cents: number;
+  source: "paddle" | "stripe";
+  created_at: string;
+};
+type PaymentStats = { count: number; totalCents: number; recent: Payment[] };
+
 function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<Array<{ id: string; display_name: string; created_at: string; level: number }>>([]);
+  const [payments, setPayments] = useState<PaymentStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
@@ -55,6 +67,8 @@ function AdminDashboard() {
       { data: agg },
       { count: txCount },
       { data: recentProfiles },
+      { data: paddlePaid },
+      { data: stripePaid },
     ] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("*", { count: "exact", head: true }).gte("online_at", tenMinAgo),
@@ -64,6 +78,8 @@ function AdminDashboard() {
       supabase.from("profiles").select("coins, gems, xp"),
       supabase.from("transactions").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("id, display_name, created_at, level").order("created_at", { ascending: false }).limit(8),
+      supabase.from("paddle_purchases").select("id, user_id, pack_id, amount_cents, created_at, granted").eq("granted", true).order("created_at", { ascending: false }).limit(500),
+      supabase.from("stripe_purchases").select("id, user_id, pack_id, amount_cents, created_at, granted").eq("granted", true).order("created_at", { ascending: false }).limit(500),
     ]);
 
     const totals = (agg ?? []).reduce(
@@ -74,6 +90,26 @@ function AdminDashboard() {
       }),
       { coins: 0, gems: 0, xp: 0 }
     );
+
+    // Merge paid payments from both providers
+    const merged: Array<Omit<Payment, "display_name">> = [
+      ...(paddlePaid ?? []).map((r: any) => ({ id: r.id, user_id: r.user_id, pack_id: r.pack_id, amount_cents: r.amount_cents, created_at: r.created_at, source: "paddle" as const })),
+      ...(stripePaid ?? []).map((r: any) => ({ id: r.id, user_id: r.user_id, pack_id: r.pack_id, amount_cents: r.amount_cents, created_at: r.created_at, source: "stripe" as const })),
+    ];
+    merged.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+
+    const userIds = Array.from(new Set(merged.map((m) => m.user_id).filter(Boolean)));
+    const nameMap = new Map<string, string>();
+    if (userIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, display_name").in("id", userIds);
+      (profs ?? []).forEach((p: any) => nameMap.set(p.id, p.display_name || "—"));
+    }
+
+    const totalCents = merged.reduce((s, r) => s + (Number(r.amount_cents) || 0), 0);
+    const recentPays: Payment[] = merged.slice(0, 30).map((r) => ({
+      ...r,
+      display_name: nameMap.get(r.user_id) || "—",
+    }));
 
     setStats({
       players: players ?? 0,
@@ -87,6 +123,7 @@ function AdminDashboard() {
       txCount: txCount ?? 0,
     });
     setRecent((recentProfiles ?? []) as typeof recent);
+    setPayments({ count: merged.length, totalCents, recent: recentPays });
     setRefreshing(false);
   }, []);
 
@@ -95,6 +132,8 @@ function AdminDashboard() {
     const t = setInterval(loadStats, 30000);
     return () => clearInterval(t);
   }, [loadStats]);
+
+
 
 
   return (
