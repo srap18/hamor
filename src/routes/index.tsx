@@ -3545,16 +3545,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
   const pct = (ship.progress / ship.max) * 100;
-  const capacity = catchAmountForLevel(ship.level, ship.maxHp);
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const hrs = Math.floor(ship.timeLeft / 3600);
-  const mins = Math.floor((ship.timeLeft % 3600) / 60);
-  const secs = Math.floor(ship.timeLeft % 60);
-  const timeStr = hrs > 0
-    ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
-    : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
@@ -3926,8 +3920,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 style={{ width: `${hpPct}%` }}
               />
             </div>
-            {/* Fill counter — slim with tiny label */}
-            <div className="relative h-2 bg-black/70 rounded-full overflow-hidden border border-accent/40 shadow-md">
+            {/* Fill counter — clear total/current label */}
+            <div className="relative h-3.5 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   ready
@@ -3938,9 +3932,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 }`}
                 style={{ width: `${pct}%` }}
               />
-              <div className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-extrabold text-white whitespace-nowrap"
+              <div className="absolute inset-0 flex items-center justify-center text-[8px] leading-none font-black text-white whitespace-nowrap"
                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
-                <span className="tabular-nums" dir="ltr">{caughtNow}/{capacity}</span>
+                <span className="tabular-nums" dir="ltr">{caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}</span>
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
@@ -3952,7 +3946,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               ) : ship.fishing ? (
                 <div className="text-center text-[10px] text-emerald-200 font-extrabold tabular-nums flex items-center justify-center gap-1">
                   <span>🎣 يصطاد</span>
-                  <span className="px-1.5 py-0.5 rounded bg-emerald-900/70 border border-emerald-400/60 text-emerald-100 shadow-inner" dir="ltr">⏳ {timeStr}</span>
                   {crews.some((c) => c.id === "sailor") && (
                     <span className="text-cyan-200">⛵+40%</span>
                   )}
