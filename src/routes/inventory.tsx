@@ -110,8 +110,8 @@ function InventoryPage() {
         setCrewToUse(null);
         await load();
         window.dispatchEvent(new Event("inventory-changed"));
-        const extended = (data as any)?.extended;
-        toast.success(extended ? "🏅 تم تمديد الصياد الذهبي 24 ساعة إضافية" : "🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
+        const alreadyActive = (data as any)?.already_active;
+        toast.success(alreadyActive ? "🏅 الصياد الذهبي مفعّل عندك بالفعل" : "🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
         return;
       }
       const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
