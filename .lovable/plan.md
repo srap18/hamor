@@ -1,100 +1,86 @@
-## نظرة عامة
+# الخطة الشاملة
 
-طاقم جديد ذهبي يُفعَّل لمدة 24 ساعة، يقوم خلالها بـ:
-- ✅ تشغيل الصيد على السفن الـ3 تلقائياً، وكل ما تخلص دورة الصيد يجمع السمك ويعيد إطلاقها — حتى لو اللاعب أوف لاين.
-- ✅ حماية كاملة من الهجوم والسرقة طوال الفترة.
-- ✅ حماية السمك المتجمَّع كذلك (لا يسرَق).
+## 1) غواصة جديدة قابلة للترقية (مستوى السوق 33)
 
-**التسعير:** متوفر فقط في الشحن (Paddle). الباقة الوحيدة: **2 طاقم بـ $20** — غير قابلة للشراء بالذهب أو الجواهر.
+**رفع الأصول:** ٥ صور غواصات (نجمة، نجمتين، ثلاث، أربع، حمراء) كـ Lovable assets في `src/assets/ships/`.
 
----
+**كتالوج السفينة (`src/lib/ships.ts`):**
+- إضافة `marketLevel: 33` بكود `upgrade-sub`.
+- بركة سمك أسطورية: 3 أنواع (مثلاً `kraken`, `leviathan`, `poseidon`).
+- مدة صيد: ~50 دقيقة. سعر شراء أولي يتبع منحنى السوق (~15 مليار).
+- توسيع `shipMarketCapacity` و`IMG_BY_LEVEL` ليدعم 33.
 
-## ملخص الخطوات
-
-1. **Paddle**: إنشاء سعر `cr_golden_fisher_2pack` بسعر $20.
-2. **قاعدة البيانات (migration)**:
-   - عمود جديد في `profiles`: `golden_fisher_until timestamptz`.
-   - RPC `activate_golden_fisher()` — يستهلك 1 طاقم من المخزون ويضيف 24 ساعة.
-   - RPC `golden_fisher_tick(_user uuid)` — لكل سفينة تبع المستخدم: لو وقت الصيد خلص، يجمع السمك تلقائياً ويعيد إطلاقها (نسخة من `collect_fishing_reward` لكن بدون `auth.uid()`، تأخذ `_user` صراحةً).
-   - حماية: تحديث `record_attack` و `start_steal_mission` ليرفضا الهدف إذا `golden_fisher_until > now()`.
-   - منع بيع/سرقة السمك أثناء التفعيل (تحديث `steal_fish`).
-3. **Cron Job**: كل دقيقتين يتم استدعاء `/api/public/hooks/golden-fisher-tick` التي تجلب كل المستخدمين النشطين وتنادي `golden_fisher_tick` لكل واحد.
-4. **Catalog**: إضافة الباقة في `store-catalog.ts` تحت `crew`. صورة ذهبية للطاقم.
-5. **Crews UI**: إضافة الطاقم في `crews.ts` (للعرض فقط — بدون سعر بيع داخلي).
-6. **زر تفعيل**: في `index.tsx` عند الضغط على الطاقم → استدعاء `activate_golden_fisher` ويظهر عدّاد تنازلي ذهبي 24h.
-7. **عداد + شارة**: شارة ذهبية بجانب الـShield تبيّن باقي الوقت.
-
----
-
-## تفاصيل تقنية
-
-### Paddle
-- نُنشئ منتج `crew_golden_fisher_pack` وسعر واحد فقط `cr_golden_fisher_2pack` = $20 (quantity_min=1, quantity_max=1).
-- `STORE_PACKS`: `priceUSD: 20`, `reward: { items: [{ itemType: "crew", itemId: "golden_fisher", qty: 2 }] }`.
-
-### قاعدة البيانات
+**جدول البيانات — ترقية ships_owned:**
 
 ```sql
--- 1. عمود التفعيل
-ALTER TABLE profiles ADD COLUMN golden_fisher_until timestamptz;
-
--- 2. تفعيل طاقم واحد (يستهلك من inventory_items)
-CREATE FUNCTION activate_golden_fisher() RETURNS jsonb ...
--- يتحقق من توفر 1 على الأقل، يقلل العدد، ويضيف 24h فوق وقت التفعيل الحالي
--- (لو فيه تفعيل ساري يتراكم على الباقي).
-
--- 3. tick: ينفّذ دورة صيد كاملة لكل سفينة جاهزة
-CREATE FUNCTION golden_fisher_tick(_user uuid) RETURNS jsonb ...
--- لكل ship في ships_owned تبع المستخدم:
---   - لو fishing_started_at + duration <= now() → جمع المكافأة، insert في fish_caught/user_fish_market
---   - أعد ضبط fishing_started_at = now() لبدء دورة جديدة
--- يستخدم نفس منطق collect_fishing_reward لكن SECURITY DEFINER بدون auth.uid().
-
--- 4. حماية الهجوم والسرقة
--- تعديل record_attack و start_steal_mission و steal_fish:
---   IF (SELECT golden_fisher_until FROM profiles WHERE id = _target) > now() THEN
---      RAISE EXCEPTION 'هذا اللاعب محمي بطاقم الصياد الذهبي';
---   END IF;
+ALTER TABLE ships_owned 
+  ADD COLUMN stars int DEFAULT 1,
+  ADD COLUMN max_stars int DEFAULT 1,
+  ADD COLUMN is_red_star boolean DEFAULT false;
 ```
 
-### Cron
-- مسار: `src/routes/api/public/hooks/golden-fisher-tick.ts`
-- كل دقيقتين (pg_cron) → POST بدون body → يجلب `SELECT id FROM profiles WHERE golden_fisher_until > now()` ويستدعي `golden_fisher_tick(id)` لكل واحد.
+**دالة الترقية `upgrade_submarine(_ship_id)`:**
+- تكلفة: ١ مليار ذهب لكل محاولة.
+- نسب النجاح: 1→2: 100%، 2→3: 95%، 3→4: 90%، 4→حمراء: 70%.
+- فشل = نقص نجمة واحدة (الحمراء → 4 نجوم).
+- تحديث سعة السفينة + HP حسب النجمة:
+  - ★1 = 350k، ★2 = 500k، ★3 = 700k، ★4 = 850k، ★ حمراء = 1,000,000.
 
-### واجهة المستخدم
-- في صفحة الطواقم (`index.tsx`): الطاقم الذهبي يظهر فوق القائمة بتصميم مميز (إطار ذهبي + لمعان).
-- زر "تفعيل 24 ساعة" → يستدعي `activate_golden_fisher`.
-- لو التفعيل ساري: عدّاد تنازلي كبير + شارة ذهبية ثابتة في الـHUD.
-- في `RechargePanel` / `shop`: يظهر تحت تبويب "طواقم".
-
-### الحفاظ على الفخامة
-- صورة طاقم ذهبية جديدة (`/src/assets/crews/golden-fisher.png`) — تُولَّد عبر imagegen.
-- شارة ذهبية متحركة بلمعان خفيف في الـHUD.
+**واجهة المحيط (`src/routes/index.tsx`):**
+- في نافذة السفينة بالمحيط، إضافة زر "⭐ ترقية" جنب أزرار الصيد والطاقم (يظهر فقط للغواصة الجديدة).
+- نافذة تأكيد توضّح: المستوى الحالي، نسبة النجاح، التكلفة، ونتيجة الفشل.
+- Toast بعد المحاولة: نجاح / فشل + النجمة الجديدة.
 
 ---
 
-## الملفات
+## 2) إصلاح بق ترقية سوق السمك بـ 500 ذهب
 
-**جديدة:**
-- `supabase/migrations/<ts>_golden_fisher.sql`
-- `src/routes/api/public/hooks/golden-fisher-tick.ts`
-- `src/assets/crews/golden-fisher.png` (imagegen)
-- `src/lib/golden-fisher.functions.ts` — `activateGoldenFisher` serverFn
+**السبب الجذري:** الدالة `fish_market_upgrade_cost` تبدأ من 500 ذهب عند المستوى 1. الواجهة كانت تعرض القيمة الافتراضية 500 قبل تحميل السعر الحقيقي، فيقدر اللاعب يضغط "ترقية" فوراً.
 
-**معدَّلة:**
-- `src/lib/store-catalog.ts` — إضافة الباقة
-- `src/lib/crews.ts` — إضافة الطاقم (للعرض)
-- `src/routes/index.tsx` — زر التفعيل + العداد
-- `src/components/ShieldBadge.tsx` (أو شارة جديدة) — لإظهار حالة التفعيل
+**الحل:**
+- **سيرفر:** تعديل `fish_market_upgrade_cost` لرفع التكلفة الأساسية لقيمة معقولة (مقترح: 50,000 للمستوى 1، مع زيادة أعلى لكل مستوى).
+- **واجهة (`fish-market.tsx`):** إخفاء زر الترقية حتى تتحمّل القيمة من السيرفر (state `costLoaded`).
+- **حماية إضافية في الـ RPC:** تأكيد أن السعر = الناتج من الدالة وقت الاستدعاء (الكود الحالي بالفعل آمن، فقط نُصلح المعادلة).
 
 ---
 
-## التحقق
+## 3) رفع سعة المخزن من المستوى 26 → 500,000
 
-1. شراء وهمي (test mode) → 2 طاقم في المخزون.
-2. تفعيل → `golden_fisher_until` يتحدّث + شارة ذهبية تظهر.
-3. هجوم/سرقة من حساب آخر → رفض برسالة "محمي بطاقم الصياد الذهبي".
-4. انتظار دورة صيد → تشغيل الـcron يدوياً → السمك يتجمَّع بدون لمس اللعبة.
-5. بعد 24h → الشارة تختفي والحماية تنتهي.
+تعديل `fishMarketCapacity` في `src/lib/ships.ts`:
+- إعادة معايرة الزيادات بحيث المستوى 26 = 500,000 سعة.
+- المستويات 27-30 تتدرّج بنسبة أعلى.
 
-هل تعتمد الخطة؟
+---
+
+## 4) تعويض المستغلين
+
+**سكربت ترحيل يحسب:**
+- لكل لاعب: مجموع `upgrade_cost_coins` المخصومة فعلياً من سجلات الترقية السابقة (`transaction_logs` أو `user_fish_market.upgrade_cost_coins`).
+- يقرّر المستوى الأقصى الذي كان يستحقه بناءً على الذهب المدفوع وفق الجدول الجديد.
+- يخفّض `user_fish_market.level` إلى ذلك المستوى.
+- يخطر المتضررين عبر `notifications`.
+
+---
+
+## التفاصيل التقنية
+
+**ملفات للتعديل:**
+- `src/lib/ships.ts` — كتالوج السفينة 33، رفع سعة المخزن.
+- `src/routes/index.tsx` — زر الترقية في نافذة السفينة بالمحيط.
+- `src/routes/fish-market.tsx` — إخفاء زر الترقية حتى يتحمّل السعر.
+- `src/lib/submarine-upgrade.functions.ts` — server function للترقية.
+
+**ملفات جديدة:**
+- `src/assets/ships/sub-star-1.png.asset.json` (+ 2, 3, 4, red)
+
+**ترحيل قاعدة البيانات:**
+- إضافة الأعمدة على `ships_owned`.
+- تحديث `fish_market_upgrade_cost` و`fishMarketCapacity` المرادفة في DB إن وجدت.
+- إنشاء `upgrade_submarine` RPC.
+- سكربت تعويض المستوى لمستغلي بق الـ 500.
+
+**اختبارات بعد التنفيذ:**
+- شراء غواصة من السوق → تظهر بنجمة صفراء.
+- ضغط زر الترقية في المحيط → تتغير النجوم حسب النجاح/الفشل.
+- زيارة سوق السمك → السعر الصحيح يظهر قبل ظهور الزر.
+- مستوى 26 يعرض 500,000 سعة.
