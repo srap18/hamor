@@ -148,9 +148,10 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   28: { ar: "سفينة ملك المحيط",        rarity: "Mythic",    flavor: "سفينة ملك المحيط بلا منازع.",                         storage: 220000, price: 2000000000,  fishingMinutes: 52,   fishPool: ["poseidon","kraken","leviathan"] },
   29: { ar: "سفينة التنين البحري",     rarity: "Mythic",    flavor: "تنين بحري ينفث الرعب في الأمواج.",                    storage: 260000, price: 5000000000,  fishingMinutes: 57,   fishPool: ["black_pearl","megalodon","sea_dragon"] },
   30: { ar: "سفينة نهاية الأعماق",     rarity: "Mythic",    flavor: "السفينة النهائية: نهاية كل الأعماق.",                 storage: 300000, price: 9000000000,  fishingMinutes: 60,   fishPool: ["golden_koi","poseidon","black_pearl","kraken"] },
-  31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
+  31: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 15000000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
   32: { ar: "الغواصة الملكية VIP",     rarity: "Mythic",    flavor: "غواصة سوداء فاخرة حصرية لأعضاء VIP 5 فأعلى — تنزل لأعماق المحيط وتصيد تيتان الأعماق النادر. كل عضو VIP 5+ يستلم 3 غواصات. السعة والدمّ يتدرّجان حسب مستوى VIP وقت الاستلام: VIP 5 = 60 ألف، VIP 6 = 118 ألف، VIP 7 = 176 ألف، VIP 8 = 234 ألف، VIP 9 = 292 ألف، VIP 10 = 350 ألف.", storage: 350000, price: 0,           fishingMinutes: 45,   fishPool: ["abyss_titan"] },
-  33: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 15000000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
+  99: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
+
 };
 
 function buildShip(level: number): ShipDef {
