@@ -1,10 +1,10 @@
-import { createFileRoute, Outlet, Link, useNavigate, useRouterState, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { verifyAdminAccess } from "@/lib/admin-check.functions";
+
 
 async function confirmSignOut(after: () => void) {
   const ok = await confirmDialog({
