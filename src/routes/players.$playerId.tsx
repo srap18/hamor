@@ -15,6 +15,7 @@ import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import { recordAttackWithRetry } from "@/lib/record-attack";
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 import { applyDragonAttack, overallLevel, type Dragon } from "@/lib/dragon";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
@@ -514,11 +515,11 @@ function PlayerPage() {
         const row: any = damageResults[i];
         const newHp = row?.new_hp ?? 0;
         const repEnds = row?.repair_ends_at ?? null;
-        (supabase as any).rpc("record_attack", {
+        recordAttackWithRetry({
           _defender_id: playerId, _target_ship_id: t.id,
           _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
-        }).then(undefined, (e: any) => console.error("record_attack failed", e));
+        }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
 
         (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: true }).then(undefined, () => {});
@@ -537,11 +538,11 @@ function PlayerPage() {
         }
         const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
         const repEnds = row?.repair_ends_at ?? null;
-        await (supabase as any).rpc("record_attack", {
+        await recordAttackWithRetry({
           _defender_id: playerId, _target_ship_id: t.id,
           _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: newHp === 0,
           _xp_gain: w.xp ?? 0,
-        }).then(undefined, (e: any) => console.error("record_attack failed", e));
+        }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
         (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: newHp === 0 }).then(undefined, () => {});
 
