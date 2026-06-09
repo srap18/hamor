@@ -85,7 +85,10 @@ function ShipyardPage() {
     [owned],
   );
   const fleetStorageUsed = useMemo(
-    () => activeShips.reduce((sum, s) => sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0), 0),
+    () => activeShips.reduce((sum, s) => {
+      if ((s.catalog_code === "submarine" || s.catalog_code === "upgrade-sub") && s.max_hp > 0) return sum + s.max_hp;
+      return sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0);
+    }, 0),
     [activeShips],
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
