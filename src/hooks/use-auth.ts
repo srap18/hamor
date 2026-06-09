@@ -19,7 +19,34 @@ export type Profile = {
   bubble_frame?: string | null;
   profile_frame?: string | null;
   protection_until?: string | null;
+  active_session_id?: string | null;
 };
+
+/* ─────────────── Single-tab session enforcement ─────────────── */
+function getTabSessionId(): string {
+  if (typeof window === "undefined") return "ssr";
+  try {
+    let sid = sessionStorage.getItem("tab_sid");
+    if (!sid) {
+      sid = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}-${Math.random().toString(36).slice(2, 8)}`;
+      sessionStorage.setItem("tab_sid", sid);
+    }
+    return sid;
+  } catch { return `t-${Date.now()}-${Math.random()}`; }
+}
+
+let kickedAlready = false;
+async function kickThisTab() {
+  if (kickedAlready) return;
+  kickedAlready = true;
+  try { await supabase.auth.signOut(); } catch {}
+  if (typeof window !== "undefined") {
+    try { sessionStorage.removeItem("tab_sid"); } catch {}
+    alert("تم فتح حسابك في مكان آخر. تم تسجيل خروجك من هذه الصفحة.");
+    window.location.href = "/login";
+  }
+}
+
 
 /* ─────────────── Global session singleton ─────────────── */
 let sessionCache: Session | null = null;
