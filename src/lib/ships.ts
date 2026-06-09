@@ -297,18 +297,16 @@ export function fishMarketCapacity(level: number): number {
   const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
+  const landmarks: Record<number, number> = {
+    26: 1000000, 27: 2500000, 28: 4500000, 29: 7000000, 30: 10000000,
+  };
+  if (landmarks[lvl] != null) return landmarks[lvl];
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
-    if (l <= 10) cap += 10000;        // L10 = 100k
-    else if (l <= 20) cap += 20000;   // L20 = 300k
-    else if (l <= 26) cap += 33333;   // L26 ≈ 500k
-    else cap += 500000;               // L27=1M, L28=1.5M, L29=2M, L30=2.5M
+    if (l <= 10) cap += 10000;
+    else if (l <= 20) cap += 20000;
+    else cap += 116666;
   }
-  if (lvl === 26) cap = 500000;
-  if (lvl === 27) cap = 1000000;
-  if (lvl === 28) cap = 1500000;
-  if (lvl === 29) cap = 2000000;
-  if (lvl === 30) cap = 2500000;
   return cap;
 }
 
