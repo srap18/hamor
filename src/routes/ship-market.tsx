@@ -22,6 +22,9 @@ import iconTimer from "@/assets/icons/icon-timer.png";
 import iconUpgrade from "@/assets/icons/icon-upgrade.png";
 import { serverNowMs } from "@/lib/server-time";
 
+// عرض المستوى المطلوب للناس: السفينة الداخلية مستوى 33 (الغواصة الترقيّة) تظهر كأنها 31.
+const displayMarketLevel = (n: number): number => (n === 33 ? 31 : n);
+
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
     meta: [
