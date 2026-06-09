@@ -142,13 +142,25 @@ function ensureProfileBootstrap(userId: string) {
   }
   fetchProfileNow(userId);
 
+  // Claim this tab as the single active session for the account.
+  // Any other tab/device already open will receive a realtime UPDATE
+  // with a different active_session_id and sign itself out.
+  const mySid = getTabSessionId();
+  (supabase as any).rpc("claim_session", { _token: mySid });
+
   // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus; mark offline on hide/unload
   const ping = () => { (supabase as any).rpc("update_my_online_at"); };
   const offline = () => { (supabase as any).rpc("mark_me_offline"); };
   ping();
   profilePingTimer = setInterval(ping, 30_000);
   if (typeof window !== "undefined") {
-    const onVis = () => { if (document.visibilityState === "visible") ping(); else offline(); };
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        ping();
+        // Re-claim when tab regains focus so we catch any silent takeover.
+        (supabase as any).rpc("claim_session", { _token: mySid });
+      } else { offline(); }
+    };
     const onHide = () => { offline(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", ping);
@@ -163,12 +175,18 @@ function ensureProfileBootstrap(userId: string) {
       "postgres_changes",
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
-        profileCache = payload.new as Profile;
+        const next = payload.new as Profile;
+        profileCache = next;
         notifyProfile();
+        // If another tab/device claimed the session, kick this tab.
+        if (next.active_session_id && next.active_session_id !== mySid) {
+          kickThisTab();
+        }
       },
     )
     .subscribe();
 }
+
 
 export function useProfile() {
   const { user, loading: authLoading } = useAuth();
