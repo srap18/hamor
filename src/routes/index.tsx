@@ -161,7 +161,7 @@ const FLEET_KEY = "harbor_fleet_v2";
 const MAX_FLEET = 3;
 const MIN_FLEET = 1;
 
-type FleetSlot = { id: number; dbId?: string; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number };
+type FleetSlot = { id: number; dbId?: string; catalogCode?: string | null; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number; maxHp?: number; stars?: number; maxStars?: number };
 
 function loadFleet(): Ship[] {
   if (typeof window === "undefined") return INITIAL_SHIPS;
@@ -172,20 +172,24 @@ function loadFleet(): Ship[] {
     if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
-      const def = getShipByMarketLevel(s.level);
-      const realMax = catchPerTrip(def);
+      const isUpSub = s.catalogCode === "upgrade-sub";
+      const def = s.catalogCode ? getShipByCode(s.catalogCode) : getShipByMarketLevel(s.level);
+      const realMax = catchAmountForShip({ level: def.marketLevel, catalogCode: s.catalogCode, maxHp: s.maxHp });
       const realDuration = def.fishingSeconds;
       return {
-        id: s.id, dbId: s.dbId, level: s.level,
+        id: s.id, dbId: s.dbId, catalogCode: s.catalogCode ?? null, level: def.marketLevel,
         max: realMax,
         timeLeft: realDuration,
         duration: realDuration,
         startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
-        img: def.image,
+        img: isUpSub ? getUpgradeSubImage(s.stars ?? 1) : def.image,
         progress: Math.min(s.progress ?? 0, realMax),
         fishing: s.fishing ?? false,
         sail: s.sail ?? (s.fishing ? 1 : 0),
+        maxHp: s.maxHp,
+        stars: s.stars,
+        maxStars: s.maxStars,
       };
     });
   } catch {
@@ -196,9 +200,9 @@ function loadFleet(): Ship[] {
 function saveFleet(ships: Ship[]) {
   if (typeof window === "undefined") return;
   const slots: FleetSlot[] = ships.map((s) => ({
-    id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
+    id: s.id, dbId: s.dbId, catalogCode: s.catalogCode, level: s.level, max: s.max, timeLeft: s.timeLeft,
     duration: s.duration, progress: s.progress, fishing: s.fishing, sail: s.sail,
-    startedAt: s.startedAt,
+    startedAt: s.startedAt, maxHp: s.maxHp, stars: s.stars, maxStars: s.maxStars,
   }));
   window.localStorage.setItem(FLEET_KEY, JSON.stringify(slots));
 }
