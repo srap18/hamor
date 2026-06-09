@@ -84,10 +84,11 @@ const IMG_BY_LEVEL: Record<number, string> = {
   13: ship13, 14: ship14, 15: ship15, 16: ship16, 17: ship17, 18: ship18,
   19: ship19, 20: ship20, 21: ship21, 22: ship22, 23: ship23, 24: ship24,
   25: ship25, 26: ship26, 27: ship27, 28: ship28, 29: ship29, 30: ship30,
-  31: shipPhoenix,
+  31: subStar1Asset.url,
   32: shipSubmarine,
-  33: subStar1Asset.url,
+  99: shipPhoenix,
 };
+
 
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
 // Listed here so renderers can normalize every ship to the same on-screen
