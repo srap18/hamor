@@ -81,7 +81,7 @@ export const WEAPONS: Weapon[] = [
     image: adBombImg,
     price: 180,
     currency: "gems",
-    damage: 9_999_999,
+    damage: 70_000_000,
     xp: 500,
     rarity: "epic",
     aoe: true,
