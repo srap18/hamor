@@ -161,7 +161,7 @@ const FLEET_KEY = "harbor_fleet_v2";
 const MAX_FLEET = 3;
 const MIN_FLEET = 1;
 
-type FleetSlot = { id: number; dbId?: string; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number };
+type FleetSlot = { id: number; dbId?: string; catalogCode?: string | null; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number; maxHp?: number; stars?: number; maxStars?: number };
 
 function loadFleet(): Ship[] {
   if (typeof window === "undefined") return INITIAL_SHIPS;
@@ -170,22 +170,27 @@ function loadFleet(): Ship[] {
     if (!raw) return INITIAL_SHIPS;
     const slots = JSON.parse(raw) as FleetSlot[];
     if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
+    if (slots.some((s) => s.level >= 31 && !s.catalogCode)) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
-      const def = getShipByMarketLevel(s.level);
-      const realMax = catchPerTrip(def);
+      const isUpSub = s.catalogCode === "upgrade-sub";
+      const def = s.catalogCode ? getShipByCode(s.catalogCode) : getShipByMarketLevel(s.level);
+      const realMax = catchAmountForShip({ level: def.marketLevel, catalogCode: s.catalogCode, maxHp: s.maxHp });
       const realDuration = def.fishingSeconds;
       return {
-        id: s.id, dbId: s.dbId, level: s.level,
+        id: s.id, dbId: s.dbId, catalogCode: s.catalogCode ?? null, level: def.marketLevel,
         max: realMax,
         timeLeft: realDuration,
         duration: realDuration,
         startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
-        img: def.image,
+        img: isUpSub ? getUpgradeSubImage(s.stars ?? 1) : def.image,
         progress: Math.min(s.progress ?? 0, realMax),
         fishing: s.fishing ?? false,
         sail: s.sail ?? (s.fishing ? 1 : 0),
+        maxHp: s.maxHp,
+        stars: s.stars,
+        maxStars: s.maxStars,
       };
     });
   } catch {
@@ -196,9 +201,9 @@ function loadFleet(): Ship[] {
 function saveFleet(ships: Ship[]) {
   if (typeof window === "undefined") return;
   const slots: FleetSlot[] = ships.map((s) => ({
-    id: s.id, dbId: s.dbId, level: s.level, max: s.max, timeLeft: s.timeLeft,
+    id: s.id, dbId: s.dbId, catalogCode: s.catalogCode, level: s.level, max: s.max, timeLeft: s.timeLeft,
     duration: s.duration, progress: s.progress, fishing: s.fishing, sail: s.sail,
-    startedAt: s.startedAt,
+    startedAt: s.startedAt, maxHp: s.maxHp, stars: s.stars, maxStars: s.maxStars,
   }));
   window.localStorage.setItem(FLEET_KEY, JSON.stringify(slots));
 }
@@ -206,9 +211,15 @@ function saveFleet(ships: Ship[]) {
 // How many fish a ship hauls per successful catch — based on its storage stat.
 // For VIP submarines (level 32) the per-instance storage equals its max_hp,
 // which the server scales by the player's VIP level at claim time.
-function catchAmountForLevel(level: number, maxHp?: number | null): number {
-  if (level === 32 && maxHp && maxHp > 0) return maxHp;
-  return catchPerTrip(getShipByMarketLevel(level));
+function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp">): number {
+  if ((ship.catalogCode === "submarine" || ship.catalogCode === "upgrade-sub" || ship.level === 32 || ship.level === 33) && ship.maxHp && ship.maxHp > 0) {
+    return ship.maxHp;
+  }
+  return catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
+}
+
+function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?: string | null): number {
+  return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode });
 }
 
 // Optional fishing guide: when set, ship targets that specific fish id
@@ -360,10 +371,15 @@ function Index() {
           }
           const isUpSub = row.catalog_code === "upgrade-sub";
           const subStars = row.stars ?? 1;
+          const catalogCode = row.catalog_code ?? s.catalogCode ?? null;
+          const shipDef = catalogCode ? getShipByCode(catalogCode) : getShipByMarketLevel(row.template_id ?? s.level);
+          const resolvedLevel = shipDef.marketLevel;
+          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp });
+          const duration = shipDef.fishingSeconds;
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
             : s.img;
-          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: imgFromCode, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: s.fishing ? Math.min(s.timeLeft, duration) : duration, progress: Math.min(s.progress, max), hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -382,7 +398,8 @@ function Index() {
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
         const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
-        const maxProg = catchPerTrip(shipDef);
+        const resolvedLevel = shipDef.marketLevel;
+        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined });
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
@@ -398,7 +415,7 @@ function Index() {
           id: nextId,
           dbId: dbShip.id,
           catalogCode: dbShip.catalog_code,
-          level: lvl,
+          level: resolvedLevel,
           img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
           progress: 0,
           max: maxProg,
@@ -427,6 +444,10 @@ function Index() {
       const sameAll = sameLen && next.every((s, i) => {
         const c = curr[i];
         return s.dbId === c.dbId
+          && (s.catalogCode ?? null) === (c.catalogCode ?? null)
+          && s.level === c.level
+          && s.max === c.max
+          && (s.stars ?? null) === (c.stars ?? null)
           && (s.hp ?? null) === (c.hp ?? null)
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
@@ -3529,16 +3550,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
   const pct = (ship.progress / ship.max) * 100;
-  const capacity = catchAmountForLevel(ship.level, ship.maxHp);
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const hrs = Math.floor(ship.timeLeft / 3600);
-  const mins = Math.floor((ship.timeLeft % 3600) / 60);
-  const secs = Math.floor(ship.timeLeft % 60);
-  const timeStr = hrs > 0
-    ? `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
-    : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
@@ -3910,8 +3925,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 style={{ width: `${hpPct}%` }}
               />
             </div>
-            {/* Fill counter — slim with tiny label */}
-            <div className="relative h-2 bg-black/70 rounded-full overflow-hidden border border-accent/40 shadow-md">
+            {/* Fill counter — clear total/current label */}
+            <div className="relative h-3.5 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   ready
@@ -3922,9 +3937,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 }`}
                 style={{ width: `${pct}%` }}
               />
-              <div className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-extrabold text-white whitespace-nowrap"
+              <div className="absolute inset-0 flex items-center justify-center text-[8px] leading-none font-black text-white whitespace-nowrap"
                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}>
-                <span className="tabular-nums" dir="ltr">{caughtNow}/{capacity}</span>
+                <span className="tabular-nums" dir="ltr">{caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}</span>
                 {ready && <span className="ml-0.5 animate-pulse">✦</span>}
               </div>
             </div>
@@ -3936,7 +3951,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               ) : ship.fishing ? (
                 <div className="text-center text-[10px] text-emerald-200 font-extrabold tabular-nums flex items-center justify-center gap-1">
                   <span>🎣 يصطاد</span>
-                  <span className="px-1.5 py-0.5 rounded bg-emerald-900/70 border border-emerald-400/60 text-emerald-100 shadow-inner" dir="ltr">⏳ {timeStr}</span>
                   {crews.some((c) => c.id === "sailor") && (
                     <span className="text-cyan-200">⛵+40%</span>
                   )}

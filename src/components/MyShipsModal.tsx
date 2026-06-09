@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
+import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 
 interface ShipRow {
@@ -10,6 +10,8 @@ interface ShipRow {
   catalog_code: string | null;
   acquired_at: string;
   in_storage: boolean;
+  max_hp: number | null;
+  stars: number | null;
 }
 
 const rarityColors: Record<string, string> = {
@@ -52,7 +54,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     setLoading(true);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, in_storage")
+      .select("id, template_id, catalog_code, acquired_at, in_storage, max_hp, stars")
       .eq("user_id", user.id)
       .order("acquired_at", { ascending: true });
     setShips((data ?? []) as ShipRow[]);
@@ -250,12 +252,14 @@ function SectionTitle({ icon, label, hint }: { icon: string; label: string; hint
 
 function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: number; primaryAction: React.ReactNode; dim?: boolean }) {
   const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
+  const image = ship.catalog_code === "upgrade-sub" ? getUpgradeSubImage(ship.stars ?? 1) : def.image;
+  const storage = (ship.catalog_code === "upgrade-sub" || ship.catalog_code === "submarine") && ship.max_hp ? ship.max_hp : def.storage;
   const rarityClass = rarityColors[def.rarity] || rarityColors.Common;
   return (
     <div className={`relative rounded-xl border-2 p-2 flex items-center gap-3 mb-2 ${rarityClass} ${dim ? "opacity-80" : ""}`}>
       <div className="absolute top-1 left-1 text-[9px] font-black text-amber-300/70 bg-black/40 rounded px-1">#{idx}</div>
       <div className="w-20 h-20 rounded-lg bg-gradient-to-b from-amber-900/60 to-black/60 border border-amber-700/40 flex items-center justify-center overflow-hidden shrink-0">
-        <img src={def.image} alt={def.title} className="w-full h-full object-contain drop-shadow" draggable={false} />
+        <img src={image} alt={def.title} className="w-full h-full object-contain drop-shadow" draggable={false} />
       </div>
       <div className="flex-1 min-w-0 text-right">
         <div className="text-amber-100 font-black text-sm truncate drop-shadow">{def.title}</div>
@@ -263,7 +267,7 @@ function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: numbe
         <div className="flex flex-wrap gap-1 mt-1 justify-end">
           <span className="text-[9px] bg-black/40 border border-amber-700/40 rounded px-1.5 py-0.5 text-amber-200">🛡️ {def.armor}</span>
           <span className="text-[9px] bg-black/40 border border-amber-700/40 rounded px-1.5 py-0.5 text-amber-200">⚡ {def.speed}</span>
-          <span className="text-[9px] bg-black/40 border border-amber-700/40 rounded px-1.5 py-0.5 text-amber-200">📦 {def.storage.toLocaleString()}</span>
+          <span className="text-[9px] bg-black/40 border border-amber-700/40 rounded px-1.5 py-0.5 text-amber-200">📦 {storage.toLocaleString()}</span>
         </div>
         <div className="mt-1.5 flex justify-end">{primaryAction}</div>
       </div>
