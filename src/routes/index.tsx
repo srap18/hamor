@@ -170,6 +170,7 @@ function loadFleet(): Ship[] {
     if (!raw) return INITIAL_SHIPS;
     const slots = JSON.parse(raw) as FleetSlot[];
     if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
+    if (slots.some((s) => s.level >= 31 && !s.catalogCode)) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
       const isUpSub = s.catalogCode === "upgrade-sub";
@@ -443,6 +444,10 @@ function Index() {
       const sameAll = sameLen && next.every((s, i) => {
         const c = curr[i];
         return s.dbId === c.dbId
+          && (s.catalogCode ?? null) === (c.catalogCode ?? null)
+          && s.level === c.level
+          && s.max === c.max
+          && (s.stars ?? null) === (c.stars ?? null)
           && (s.hp ?? null) === (c.hp ?? null)
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
