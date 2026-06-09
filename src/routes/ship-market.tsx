@@ -450,7 +450,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>المستوى التالي</span>
-        <span className="font-black text-primary">{Math.min(30, level + 1)}</span>
+        <span className="font-black text-primary">{Math.min(31, level + 1)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>تكلفة الذهب</span>
