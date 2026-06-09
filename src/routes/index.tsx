@@ -912,18 +912,20 @@ function Index() {
   };
   useEffect(() => {
     reloadRaids();
-    let uid: string | null = null;
+    let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
     (async () => {
       const { data } = await supabase.auth.getUser();
-      uid = data.user?.id ?? null;
-      if (!uid) return;
-      channel = supabase
-        .channel(`raids-${uid}-${Math.random().toString(36).slice(2, 8)}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned" }, () => reloadRaids())
+      const uid = data.user?.id ?? null;
+      if (!uid || cancelled) return;
+      const ch = supabase
+        .channel(`raids-${uid}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `stealing_target_user_id=eq.${uid}` }, () => reloadRaids())
         .subscribe();
+      if (cancelled) { supabase.removeChannel(ch); return; }
+      channel = ch;
     })();
-    return () => { if (channel) supabase.removeChannel(channel); };
+    return () => { cancelled = true; if (channel) supabase.removeChannel(channel); };
   }, []);
   const catchThief = async (shipId: string) => {
     const { error } = await (supabase as any).rpc("catch_thief", { _attacker_ship_id: shipId });
