@@ -35,6 +35,30 @@ import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
 
+// Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
+import subStar1Asset from "@/assets/ships/sub-star-1.jpg.asset.json";
+import subStar2Asset from "@/assets/ships/sub-star-2.jpg.asset.json";
+import subStar3Asset from "@/assets/ships/sub-star-3.jpg.asset.json";
+import subStar4Asset from "@/assets/ships/sub-star-4.jpg.asset.json";
+import subStarRedAsset from "@/assets/ships/sub-star-red.jpg.asset.json";
+const SUB_STAR_IMAGES: Record<number, string> = {
+  1: subStar1Asset.url,
+  2: subStar2Asset.url,
+  3: subStar3Asset.url,
+  4: subStar4Asset.url,
+  5: subStarRedAsset.url,
+};
+export function getUpgradeSubImage(stars: number): string {
+  return SUB_STAR_IMAGES[Math.max(1, Math.min(5, stars || 1))];
+}
+export const UPGRADE_SUB_STAR_CAPACITY: Record<number, number> = {
+  1: 350000, 2: 500000, 3: 700000, 4: 850000, 5: 1000000,
+};
+export const UPGRADE_SUB_SUCCESS_PCT: Record<number, number> = {
+  1: 100, 2: 95, 3: 90, 4: 70,
+};
+export const UPGRADE_SUB_COST = 1_000_000_000;
+
 export type ShipDef = {
   code: string;
   name: string;
