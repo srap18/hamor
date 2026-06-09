@@ -845,8 +845,8 @@ function Index() {
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
-    // Poll every 5s so finished upgrades surface without a page revisit
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 5000);
+    // Realtime channel + focus reload cover updates. Slow poll (30s) as a safety net.
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 30000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
