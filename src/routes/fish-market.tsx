@@ -305,7 +305,8 @@ function FishMarket() {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setUpPreview(null); return; }
+    setUpPreview(null); // clear stale price until fresh value loads (prevents 500-gold exploit)
     supabase.rpc("fish_market_upgrade_cost" as never, { _level: lvl } as never).then(({ data }) => {
       const row = (data as Array<{ cost_coins: number; seconds: number }> | null)?.[0] ?? null;
       setUpPreview(row);
