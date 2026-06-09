@@ -1215,6 +1215,8 @@ function Index() {
     });
     if (error) {
       delete collectingRef.current[s.dbId];
+      setCatchResult(null);
+
       const msg = String(error.message || "");
       // Rollback: dock locally + force-stop on server so UI stays in sync.
       setSeaOverride(s.dbId, false);
