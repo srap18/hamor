@@ -111,7 +111,7 @@ function ShipyardPage() {
     const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
     const ownedNext = (ownedRows as OwnedShip[] | null) ?? [];
     setMarket(mr);
-    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
+    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(31, mr.level || 1)))); } catch {}
     setOwned(ownedNext);
     setCached(cacheKey, { market: mr, owned: ownedNext });
     setLoading(false);
@@ -241,7 +241,7 @@ function ShipyardPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black">Shipyard</h1>
-                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/30</span>
+                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/31</span>
                 {market?.upgrading_to && <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary">جارٍ إلى {market.upgrading_to}</span>}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">واجهة عرض بحرية احترافية للسفن الواقعية، الترقية، والتسريع بالـ Gems.</p>
@@ -446,7 +446,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>المستوى التالي</span>
-        <span className="font-black text-primary">{Math.min(30, level + 1)}</span>
+        <span className="font-black text-primary">{Math.min(31, level + 1)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>تكلفة الذهب</span>
