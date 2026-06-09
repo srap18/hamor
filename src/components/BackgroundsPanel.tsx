@@ -13,6 +13,7 @@ import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { showBanner } from "@/components/Banner";
 import { serverNowMs } from "@/lib/server-time";
+import { useServerTick } from "@/lib/use-server-tick";
 
 const RARITY_COLOR: Record<SceneBg["rarity"], string> = {
   common: "border-stone-300 from-stone-500 to-stone-700",
@@ -60,12 +61,7 @@ export function BackgroundsPanel() {
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 
-  const [now, setNow] = useState(serverNowMs());
-  useEffect(() => {
-    if (!isBurned) return;
-    const t = setInterval(() => setNow(serverNowMs()), 1000);
-    return () => clearInterval(t);
-  }, [isBurned]);
+  const now = useServerTick();
   const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;
   const fmtLeft = () => {
     const s = Math.max(0, Math.floor(msLeft / 1000));

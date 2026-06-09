@@ -43,6 +43,7 @@ import { Placeable } from "@/components/AdminLayoutEditor";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
+import { useServerTick } from "@/lib/use-server-tick";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
@@ -706,7 +707,7 @@ function Index() {
     setTimeout(() => setToast(null), 1600);
   };
 
-  const [now, setNow] = useState(() => serverNowMs());
+  const now = useServerTick();
   type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
@@ -758,14 +759,7 @@ function Index() {
     return shipPool.length > 0 ? shipPool : fishForShip(ship.level, ship.id);
   };
 
-  // 1-second tick for countdowns / expiry — paused when tab hidden
-  useEffect(() => {
-    const t = setInterval(() => {
-      if (document.hidden) return;
-      setNow(serverNowMs());
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
+  // (1-second tick is provided by the shared `useServerTick()` hook above.)
 
   // Load crew inventory rows + auto-purge expired
   const reloadCrews = async () => {
