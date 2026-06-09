@@ -43,6 +43,7 @@ import { Placeable } from "@/components/AdminLayoutEditor";
 import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
+import { useServerTick } from "@/lib/use-server-tick";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";

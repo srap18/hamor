@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdVideo } from "@/lib/ad-videos";
 import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import { useServerTick } from "@/lib/use-server-tick";
 import nukeReal from "@/assets/fx/nuke-real.png";
 
 
@@ -42,7 +43,7 @@ export function AdBombOverlay({
   const [attackerName, setAttackerName] = useState<string>("");
   const [targetName, setTargetName] = useState<string>("");
   const [meId, setMeId] = useState<string | null>(null);
-  const [now, setNow] = useState(serverNowMs());
+  const now = useServerTick();
   const [removing, setRemoving] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -110,10 +111,7 @@ export function AdBombOverlay({
   }, [targetUserId, global]);
 
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(serverNowMs()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  // (1-second tick comes from shared `useServerTick` above.)
 
   const expiresMs = bomb ? new Date(bomb.expires_at).getTime() : 0;
   const startedMs = bomb ? new Date(bomb.started_at).getTime() : 0;
