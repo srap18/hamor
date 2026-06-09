@@ -197,7 +197,57 @@ function AdminDashboard() {
               <div className="text-xs text-slate-500 mt-1">إجمالي عمليات الشراء والبيع المسجلة</div>
             </div>
           </div>
+
+          {/* 💰 Paid recharges (Paddle + Stripe) */}
+          <div className="mt-6 rounded-xl border border-emerald-700/40 bg-emerald-900/10 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <h2 className="font-semibold text-emerald-200">💰 عمليات الشحن المدفوعة</h2>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <div className="px-3 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40">
+                  <span className="text-emerald-300">عدد العمليات: </span>
+                  <span className="font-bold">{(payments?.count ?? 0).toLocaleString("en-US")}</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/40">
+                  <span className="text-amber-300">إجمالي الأرباح: </span>
+                  <span className="font-bold">${((payments?.totalCents ?? 0) / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="text-right py-2 px-2">اللاعب</th>
+                    <th className="text-right py-2 px-2">الباقة</th>
+                    <th className="text-right py-2 px-2">المبلغ</th>
+                    <th className="text-right py-2 px-2">المصدر</th>
+                    <th className="text-right py-2 px-2">التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(payments?.recent ?? []).map((p) => (
+                    <tr key={`${p.source}:${p.id}`} className="border-b border-slate-800/50 last:border-0">
+                      <td className="py-2 px-2 font-medium">{p.display_name}</td>
+                      <td className="py-2 px-2 text-xs text-slate-300">{p.pack_id}</td>
+                      <td className="py-2 px-2 text-emerald-300 font-semibold">${(p.amount_cents / 100).toFixed(2)}</td>
+                      <td className="py-2 px-2 text-xs">
+                        <span className={`px-2 py-0.5 rounded ${p.source === "paddle" ? "bg-indigo-600/30 text-indigo-200" : "bg-violet-600/30 text-violet-200"}`}>
+                          {p.source}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-xs text-slate-500">{new Date(p.created_at).toLocaleString("ar")}</td>
+                    </tr>
+                  ))}
+                  {(!payments || payments.recent.length === 0) && (
+                    <tr><td colSpan={5} className="py-4 text-center text-slate-500 text-sm">لا توجد عمليات شحن بعد</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2">يعرض آخر 30 عملية. الإجمالي يُحسب من آخر 1000 عملية مدفوعة.</p>
+          </div>
         </>
+
       )}
 
       {giftOpen && <MassGiftModal onClose={() => setGiftOpen(false)} />}
