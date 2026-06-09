@@ -52,7 +52,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     setLoading(true);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, acquired_at, in_storage")
+      .select("id, template_id, catalog_code, acquired_at, in_storage")
       .eq("user_id", user.id)
       .order("acquired_at", { ascending: true });
     setShips((data ?? []) as ShipRow[]);
