@@ -492,7 +492,7 @@ function Index() {
       const uid = data.user?.id;
       if (!uid) return;
       ch = supabase
-        .channel(`my-ships-${uid}-${Math.random().toString(36).slice(2, 8)}`)
+        .channel(`my-ships-${uid}`)
         .on("postgres_changes", { event: "*", schema: "public", table: "ships_owned", filter: `user_id=eq.${uid}` }, kick)
         .on("postgres_changes", { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${uid}` }, kick)
         .subscribe();
