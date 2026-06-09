@@ -36,11 +36,11 @@ import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json
 const shipSubmarine = shipSubmarineAsset.url;
 
 // Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
-import subStar1Asset from "@/assets/ships/sub-star-1.jpg.asset.json";
-import subStar2Asset from "@/assets/ships/sub-star-2.jpg.asset.json";
-import subStar3Asset from "@/assets/ships/sub-star-3.jpg.asset.json";
-import subStar4Asset from "@/assets/ships/sub-star-4.jpg.asset.json";
-import subStarRedAsset from "@/assets/ships/sub-star-red.jpg.asset.json";
+import subStar1Asset from "@/assets/ships/sub-star-1.png.asset.json";
+import subStar2Asset from "@/assets/ships/sub-star-2.png.asset.json";
+import subStar3Asset from "@/assets/ships/sub-star-3.png.asset.json";
+import subStar4Asset from "@/assets/ships/sub-star-4.png.asset.json";
+import subStarRedAsset from "@/assets/ships/sub-star-red.png.asset.json";
 const SUB_STAR_IMAGES: Record<number, string> = {
   1: subStar1Asset.url,
   2: subStar2Asset.url,
