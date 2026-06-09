@@ -121,6 +121,8 @@ interface Ship {
   seaSide?: "left" | "right";
   stars?: number;
   maxStars?: number;
+  sailorAtStart?: boolean; // true if sailor crew was assigned when this trip began
+
 }
 
 // Repair progress 0..1 based on destroyed_at → repair_ends_at window.
