@@ -408,8 +408,9 @@ function ShipyardPage() {
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : allFull ? "ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : activeCount >= MAX_SHIPS ? "شراء (للمخزن)" : "شراء"}
+                      {locked ? `يتطلب ${reqLevel}` : allFull ? "ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : activeCount >= MAX_SHIPS ? "شراء (للمخزن)" : "شراء"}
                     </button>
+
                   </div>
                 </button>
               );
