@@ -392,12 +392,14 @@ function Index() {
           isFishing = seaOverride.atSea;
           startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
         }
+        const isUpSub = dbShip.catalog_code === "upgrade-sub";
+        const subStars = dbShip.stars ?? 1;
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
           catalogCode: dbShip.catalog_code,
           level: lvl,
-          img: shipDef.image,
+          img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
           progress: 0,
           max: maxProg,
           timeLeft: duration,
@@ -414,6 +416,8 @@ function Index() {
           repairEndsAt: dbShip.repair_ends_at,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
+          stars: dbShip.stars ?? 1,
+          maxStars: dbShip.max_stars ?? 1,
         });
       }
       const next = [...keptDb, ...newShips];
