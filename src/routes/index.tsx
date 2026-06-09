@@ -1824,6 +1824,13 @@ function Index() {
                       label="طاقم"
                       onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
                     />
+                    {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
+                      <ActionBtn
+                        emoji="⭐"
+                        label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
+                        onClick={() => { setMenuShipId(null); setUpgradeSubShipId(s.id); }}
+                      />
+                    )}
                     <ActionBtn
                       emoji="💰"
                       label="بيع"
