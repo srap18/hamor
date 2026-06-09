@@ -22,6 +22,9 @@ import iconTimer from "@/assets/icons/icon-timer.png";
 import iconUpgrade from "@/assets/icons/icon-upgrade.png";
 import { serverNowMs } from "@/lib/server-time";
 
+// عرض المستوى المطلوب للناس: السفينة الداخلية مستوى 33 (الغواصة الترقيّة) تظهر كأنها 31.
+const displayMarketLevel = (n: number): number => (n === 33 ? 31 : n);
+
 export const Route = createFileRoute("/ship-market")({
   head: () => ({
     meta: [
@@ -111,7 +114,7 @@ function ShipyardPage() {
     const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
     const ownedNext = (ownedRows as OwnedShip[] | null) ?? [];
     setMarket(mr);
-    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(30, mr.level || 1)))); } catch {}
+    try { window.localStorage.setItem("ocean.marketLevel", String(Math.max(1, Math.min(31, mr.level || 1)))); } catch {}
     setOwned(ownedNext);
     setCached(cacheKey, { market: mr, owned: ownedNext });
     setLoading(false);
@@ -191,7 +194,8 @@ function ShipyardPage() {
       showToast(`🚫 الأسطول والمخزن ممتلئان (${MAX_SHIPS}+${MAX_STORAGE}) — بِع سفينة أولًا`);
       return;
     }
-    if (marketLevel < ship.marketLevel) {
+    const requiredLevel = displayMarketLevel(ship.marketLevel);
+    if (marketLevel < requiredLevel) {
       showToast("ارفع مستوى السوق أولًا");
       return;
     }
@@ -241,7 +245,7 @@ function ShipyardPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black">Shipyard</h1>
-                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/30</span>
+                <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-bold text-accent">مستوى السوق {marketLevel}/31</span>
                 {market?.upgrading_to && <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-[11px] font-bold text-primary">جارٍ إلى {market.upgrading_to}</span>}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">واجهة عرض بحرية احترافية للسفن الواقعية، الترقية، والتسريع بالـ Gems.</p>
@@ -355,7 +359,8 @@ function ShipyardPage() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {SHIPS.map((ship) => {
-              const locked = ship.marketLevel > marketLevel;
+              const reqLevel = displayMarketLevel(ship.marketLevel);
+              const locked = reqLevel > marketLevel;
               const count = ownedCount[ship.code] ?? 0;
               const selected = selectedCode === ship.code;
               const shipFlip = shipBowFacesRight(ship.marketLevel) ? 1 : -1;
@@ -366,8 +371,9 @@ function ShipyardPage() {
                     <div style={{ transform: `scaleX(${shipFlip})` }}>
                       <img src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
                     </div>
-                    <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {ship.marketLevel}</span>
+                    <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {reqLevel}</span>
                   </div>
+
 
                   <div className="mt-3 flex items-start justify-between gap-2">
                     <div>
@@ -405,8 +411,9 @@ function ShipyardPage() {
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
-                      {locked ? `يتطلب ${ship.marketLevel}` : allFull ? "ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : activeCount >= MAX_SHIPS ? "شراء (للمخزن)" : "شراء"}
+                      {locked ? `يتطلب ${reqLevel}` : allFull ? "ممتلئ" : busy === ship.code ? "جارٍ الشراء..." : activeCount >= MAX_SHIPS ? "شراء (للمخزن)" : "شراء"}
                     </button>
+
                   </div>
                 </button>
               );
@@ -446,7 +453,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>المستوى التالي</span>
-        <span className="font-black text-primary">{Math.min(30, level + 1)}</span>
+        <span className="font-black text-primary">{Math.min(31, level + 1)}</span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span>تكلفة الذهب</span>
@@ -456,9 +463,9 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span>المدة</span>
         <span className="font-black">{preview ? formatDuration(preview.seconds) : "..."}</span>
       </div>
-      <button onClick={onStart} disabled={busy || level >= 30} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
+      <button onClick={onStart} disabled={busy || level >= 31} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
         <img src={iconTimer} alt="Timer" className="h-5 w-5" width={512} height={512} loading="lazy" />
-        {level >= 30 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
+        {level >= 31 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
       </button>
     </div>
   );
