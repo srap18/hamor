@@ -207,9 +207,13 @@ function saveFleet(ships: Ship[]) {
 // For VIP submarines (level 32) the per-instance storage equals its max_hp,
 // which the server scales by the player's VIP level at claim time.
 function catchAmountForLevel(level: number, maxHp?: number | null): number {
-  if (level === 32 && maxHp && maxHp > 0) return maxHp;
+  // Prefer the actual per-instance max_hp (= storage capacity) when stored on the ship.
+  // This protects legacy ships like phoenix (level 31 slot, but real cap = 13k) from
+  // inheriting the new submarine's 350k capacity after market-slot reassignment.
+  if (maxHp && maxHp > 0) return maxHp;
   return catchPerTrip(getShipByMarketLevel(level));
 }
+
 
 // Optional fishing guide: when set, ship targets that specific fish id
 // Stored in localStorage as: ship_guide_<shipId> = <fishId>
