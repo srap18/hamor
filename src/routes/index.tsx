@@ -2131,9 +2131,11 @@ function Index() {
               setToast(
                 /already_active/i.test(msg)
                   ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
-                  : /no_golden_fisher/i.test(msg)
-                    ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
-                    : `❌ فشل التفعيل: ${msg}`,
+                  : /daily_limit/i.test(msg)
+                    ? "⏳ استعملت الصياد الذهبي اليوم — متاح بعد 24 ساعة من آخر تفعيل"
+                    : /no_golden_fisher/i.test(msg)
+                      ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
+                      : `❌ فشل التفعيل: ${msg}`,
               );
             }
             return;
