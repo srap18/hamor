@@ -1052,7 +1052,10 @@ function Index() {
             dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
-          const { sailorMult } = getCrewBonuses(s);
+          // Only apply sailor speed-up if sailor was assigned BEFORE this trip
+          // started. Assigning a sailor mid-trip must NOT retroactively complete
+          // the fishing (was the "instant full" bug).
+          const sailorMult = s.sailorAtStart ? 2 : 1;
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
           const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           const progress = Math.round(s.max * ratio);
@@ -1060,6 +1063,7 @@ function Index() {
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s; // no visible change → skip
           }
+
           dirty = true;
           return { ...s, sail, progress, timeLeft };
         });
