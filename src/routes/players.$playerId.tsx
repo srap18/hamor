@@ -320,7 +320,7 @@ function PlayerPage() {
       .subscribe();
 
     // Backstop: realtime + focus already cover most cases — poll slowly to save CPU
-    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 4000);
+    const poll = window.setInterval(() => { reloadShipsRef.current(); loadRaiders(); loadPlayerCrews(); }, 10000);
     const onVis = () => { if (document.visibilityState === "visible") { reloadShipsRef.current(); loadRaiders(); } };
     const onFocus = () => { reloadShipsRef.current(); loadRaiders(); };
     document.addEventListener("visibilitychange", onVis);
