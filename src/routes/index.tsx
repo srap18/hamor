@@ -370,10 +370,15 @@ function Index() {
           }
           const isUpSub = row.catalog_code === "upgrade-sub";
           const subStars = row.stars ?? 1;
+          const catalogCode = row.catalog_code ?? s.catalogCode ?? null;
+          const shipDef = catalogCode ? getShipByCode(catalogCode) : getShipByMarketLevel(row.template_id ?? s.level);
+          const resolvedLevel = shipDef.marketLevel;
+          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp });
+          const duration = shipDef.fishingSeconds;
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
             : s.img;
-          return { ...s, catalogCode: row.catalog_code ?? s.catalogCode, img: imgFromCode, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: s.fishing ? Math.min(s.timeLeft, duration) : duration, progress: Math.min(s.progress, max), hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -392,7 +397,8 @@ function Index() {
         const slotIdx = (keptDb.length + i) % SLOTS.length;
         const slot = SLOTS[slotIdx];
         const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
-        const maxProg = catchPerTrip(shipDef);
+        const resolvedLevel = shipDef.marketLevel;
+        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined });
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
@@ -408,7 +414,7 @@ function Index() {
           id: nextId,
           dbId: dbShip.id,
           catalogCode: dbShip.catalog_code,
-          level: lvl,
+          level: resolvedLevel,
           img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
           progress: 0,
           max: maxProg,
