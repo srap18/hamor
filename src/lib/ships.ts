@@ -335,7 +335,8 @@ const SM_INCREMENTS: number[] = [
 ];
 
 export function shipMarketCapacity(level: number): number {
-  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  const lvl = Math.max(1, Math.min(31, Math.round(level || 1)));
+
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
     if (l <= 15) cap += SM_INCREMENTS[l - 2];
