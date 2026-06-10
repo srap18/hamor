@@ -515,14 +515,16 @@ function PlayerPage() {
         const row: any = damageResults[i];
         const newHp = row?.new_hp ?? 0;
         const repEnds = row?.repair_ends_at ?? null;
+        const oldHp = t.hp ?? 0;
+        const actualDamage = Math.max(0, oldHp - newHp);
         recordAttackWithRetry({
           _defender_id: playerId, _target_ship_id: t.id,
-          _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: true,
+          _damage: boostedDamage, _damage_dealt: actualDamage, _attacker_won: true,
           _xp_gain: w.xp ?? 0,
         }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
 
-        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: true }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: actualDamage, p_won: true }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
       }
@@ -538,13 +540,15 @@ function PlayerPage() {
         }
         const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
         const repEnds = row?.repair_ends_at ?? null;
+        const oldHp = t.hp ?? 0;
+        const actualDamage = Math.max(0, oldHp - newHp);
         await recordAttackWithRetry({
           _defender_id: playerId, _target_ship_id: t.id,
-          _damage: boostedDamage, _damage_dealt: boostedDamage, _attacker_won: newHp === 0,
+          _damage: boostedDamage, _damage_dealt: actualDamage, _attacker_won: newHp === 0,
           _xp_gain: w.xp ?? 0,
         }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
-        (supabase as any).rpc("award_arena_score", { p_score: boostedDamage, p_won: newHp === 0 }).then(undefined, () => {});
+        (supabase as any).rpc("award_arena_score", { p_score: actualDamage, p_won: newHp === 0 }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
