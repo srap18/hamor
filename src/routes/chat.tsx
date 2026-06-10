@@ -24,7 +24,15 @@ export const Route = createFileRoute("/chat")({
 
 type Channel = "public" | "tribe" | "dm" | "topics";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null; reply_to_id?: string | null; reply_to_body?: string | null; reply_to_name?: string | null };
-type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null };
+type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null; elite_vip_level?: number | null; elite_vip_expires_at?: string | null };
+
+function getActiveEliteVip(p?: Prof | null): number {
+  const lvl = Number(p?.elite_vip_level ?? 0);
+  if (lvl < 1) return 0;
+  const exp = p?.elite_vip_expires_at ? new Date(p.elite_vip_expires_at).getTime() : null;
+  if (exp !== null && exp <= Date.now()) return 0;
+  return lvl;
+}
 
 function VipBadge(_: { level?: number | null; expiresAt?: string | null }) {
   return null;
