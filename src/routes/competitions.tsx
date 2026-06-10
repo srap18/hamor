@@ -299,6 +299,11 @@ function CompetitionsPage() {
                         <div className="text-[10px] text-white/80 tracking-widest">الحالة</div>
                         <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">⛔ انتهت</div>
                       </>
+                    ) : isUpcoming ? (
+                      <>
+                        <div className="text-[10px] text-white/80 tracking-widest">تبدأ خلال</div>
+                        <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">🚀 {timeLeft(c.starts_at)}</div>
+                      </>
                     ) : (
                       <>
                         <div className="text-[10px] text-white/80 tracking-widest">ينتهي خلال</div>
