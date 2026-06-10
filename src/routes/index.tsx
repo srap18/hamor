@@ -735,6 +735,14 @@ function Index() {
   const buyingCrewRef = useRef<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
+  // Track golden_fisher_until from profile so the per-frame ship loop can detect
+  // GF activation even when no inventory crew row exists (activate consumes it).
+  const goldenFisherUntilRef = useRef<number>(0);
+  useEffect(() => {
+    const t = (profile as any)?.golden_fisher_until;
+    goldenFisherUntilRef.current = t ? new Date(t).getTime() : 0;
+  }, [profile]);
+  const lastGfTickRef = useRef<number>(0);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
