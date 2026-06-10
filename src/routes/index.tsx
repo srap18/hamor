@@ -1622,22 +1622,41 @@ function Index() {
 
           {/* Action column — luxury stack opposite the avatar */}
           <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
-            {/* Fish discovery */}
-            <Link
-              to="/inventory"
-              className="relative rounded-full px-3 py-1 inline-flex items-center gap-1.5 active:scale-95 overflow-hidden"
-              title="الأسماك المكتشفة"
-              style={{
-                background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
-                border: "2px solid #d9b35a",
-                boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 5px 12px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.3)",
-              }}
-            >
-              <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
-              <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5s linear infinite" }} />
-              <span className="relative text-base leading-none">🐟</span>
-              <span className="relative text-[12px] font-black tabular-nums whitespace-nowrap" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
-            </Link>
+            {/* Fish discovery + Golden Fisher active indicator */}
+            <div className="flex items-center gap-1.5">
+              {crewRows.some(
+                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+              ) && (
+                <span
+                  title="🏅 الصياد الذهبي مفعّل — صيد تلقائي على كل سفنك"
+                  aria-label="الصياد الذهبي مفعّل"
+                  className="relative w-7 h-7 rounded-full flex items-center justify-center text-base shrink-0"
+                  style={{
+                    background: "radial-gradient(circle at 35% 25%, #fff4c2 0%, #f1be52 45%, #8a5a14 100%)",
+                    border: "2px solid #ffe6a1",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 12px rgba(241,190,82,0.75), 0 2px 4px rgba(0,0,0,0.5)",
+                    animation: "treasury-shimmer 3s linear infinite",
+                  }}
+                >
+                  <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>🏅</span>
+                </span>
+              )}
+              <Link
+                to="/inventory"
+                className="relative rounded-full px-3 py-1 inline-flex items-center gap-1.5 active:scale-95 overflow-hidden"
+                title="الأسماك المكتشفة"
+                style={{
+                  background: "linear-gradient(180deg, #2a1808 0%, #140903 55%, #060201 100%)",
+                  border: "2px solid #d9b35a",
+                  boxShadow: "inset 0 1px 0 rgba(255,232,170,0.55), inset 0 -3px 6px rgba(0,0,0,0.7), 0 3px 0 #140903, 0 5px 12px rgba(0,0,0,0.55), 0 0 14px rgba(241,190,82,0.3)",
+                }}
+              >
+                <span className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-full opacity-55" style={{ background: "linear-gradient(180deg, rgba(255,243,200,0.45) 0%, transparent 100%)" }} />
+                <span className="pointer-events-none absolute inset-y-0 -inset-x-4" style={{ background: "linear-gradient(110deg, transparent 35%, rgba(255,240,200,0.18) 50%, transparent 65%)", animation: "treasury-shimmer 5s linear infinite" }} />
+                <span className="relative text-base leading-none">🐟</span>
+                <span className="relative text-[12px] font-black tabular-nums whitespace-nowrap" style={{ color: "#ffe9a8", textShadow: "0 1px 0 #3a1f0a, 0 2px 4px rgba(0,0,0,0.85)" }}>{fish}<span style={{ color: "rgba(255,233,168,0.6)" }} className="font-bold">/{FISH_TOTAL}</span></span>
+              </Link>
+            </div>
 
             {/* Notifications + Shield row */}
             <div className="flex items-center gap-1.5">
