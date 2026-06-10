@@ -497,15 +497,8 @@ function AdminCompetitions() {
           </div>
         )}
 
-        <label className="flex items-start gap-2 p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/40">
-          <input type="checkbox" checked={requiresJoin} onChange={e=>setRequiresJoin(e.target.checked)} className="w-5 h-5 mt-0.5"/>
-          <span className="text-sm">
-            <b className="text-emerald-200">🎣 مسابقة بالاشتراك (حماية من الهجوم)</b>
-            <span className="block text-[11px] text-slate-400 mt-0.5">
-              اللاعب يضغط "اشترك الآن" من صفحة الفعالية، ويصبح محمياً (لا يهجم ولا يُهجم عليه) حتى انتهاء الوقت. تُحسب نقاطه على عدد الأسماك المصادة فقط.
-            </span>
-          </span>
-        </label>
+
+
 
 
 
