@@ -548,11 +548,11 @@ function ChatPage() {
                             <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
                             {!mine && (
                               <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
-                                <NameBadge p={p} />
+                                <NameBadge p={p} fishingIds={fishingIds} />
                               </button>
                             )}
                             {mine && (
-                              <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
+                              <div className="mb-0.5"><NameBadge p={profile as any} mine fishingIds={fishingIds} /></div>
                             )}
                             {m.reply_to_id && (m.reply_to_body || m.reply_to_name) && (
                               <div className="mb-1 border-r-4 border-amber-300/80 bg-black/25 rounded-md px-2 py-1 text-[11px]">
