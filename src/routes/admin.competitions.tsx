@@ -44,7 +44,10 @@ type Row = {
   starts_at: string;
   ends_at: string;
   active: boolean;
+  requires_join: boolean;
+  prizes_distributed_at: string | null;
 };
+
 
 const METRICS = [
   { id: "explode_count", label: "🔥 أكثر عدد تفجيرات" },
