@@ -336,7 +336,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url,username,bio,media_banned").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
@@ -348,10 +348,18 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
       ].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setHistory(all);
-      setAvatarUrl((prof as any)?.avatar_url ?? null);
-      setUsernameVal(((prof as any)?.username ?? "") as string);
-      setBio(((prof as any)?.bio ?? "") as string);
-      setMediaBanned(Boolean((prof as any)?.media_banned));
+      const p: any = prof ?? {};
+      setAvatarUrl(p.avatar_url ?? null);
+      setUsernameVal((p.username ?? "") as string);
+      setBio((p.bio ?? "") as string);
+      setMediaBanned(Boolean(p.media_banned));
+      // تحديث الحقول الحيّة من قاعدة البيانات (قائمة الأب قد تكون قديمة)
+      if (p.coins != null) setCoins(String(p.coins));
+      if (p.gems != null) setGems(String(p.gems));
+      if (p.rubies != null) setRubies(String(p.rubies));
+      if (p.xp != null) setXp(String(p.xp));
+      if (p.level != null) setLevel(String(p.level));
+      if (p.display_name) setDisplayName(String(p.display_name));
       setFishRows(((fish ?? []) as FishAdminRow[]).map((r) => ({ fish_id: r.fish_id, quantity: r.quantity ?? 0, total_caught: r.total_caught ?? 0 })));
     })();
   }, [player.id]);
