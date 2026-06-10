@@ -167,32 +167,48 @@ function CompetitionsPage() {
   const [loading, setLoading] = useState(true);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
   const [me, setMe] = useState<string | null>(null);
+  const [joining, setJoining] = useState<string | null>(null);
+  const [joinMsg, setJoinMsg] = useState<string | null>(null);
+  const { event: myEvent, refetch: refetchMyEvent } = useMyFishingEvent();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await syncServerTime(true);
-      const { data } = await supabase.rpc("get_active_competitions" as never);
-      const list = (data ?? []) as Comp[];
-      setComps(list);
-      setLoading(false);
-      const entries = await Promise.all(list.map(async (c) => {
-        const { data: lb } = await supabase.rpc("get_competition_leaderboard" as never, { _competition_id: c.id } as never);
-        return [c.id, (lb ?? []) as LbRow[]] as const;
-      }));
-      setBoards(Object.fromEntries(entries));
-    })();
-  }, []);
+  const loadAll = async () => {
+    setLoading(true);
+    await syncServerTime(true);
+    const { data } = await supabase.rpc("get_active_competitions" as never);
+    const list = (data ?? []) as Comp[];
+    setComps(list);
+    setLoading(false);
+    const entries = await Promise.all(list.map(async (c) => {
+      const { data: lb } = await supabase.rpc("get_competition_leaderboard" as never, { _competition_id: c.id } as never);
+      return [c.id, (lb ?? []) as LbRow[]] as const;
+    }));
+    setBoards(Object.fromEntries(entries));
+  };
+  useEffect(() => { loadAll(); }, []);
+
+  const joinComp = async (compId: string) => {
+    if (!me) { setJoinMsg("سجّل الدخول أولاً"); return; }
+    setJoining(compId);
+    setJoinMsg(null);
+    const { error } = await (supabase as any).rpc("join_competition", { _competition_id: compId });
+    setJoining(null);
+    if (error) { setJoinMsg("تعذّر الاشتراك: " + error.message); return; }
+    setJoinMsg("✓ تم اشتراكك — أنت الآن محمي من الهجوم 🛡️");
+    refetchMyEvent();
+    await loadAll();
+  };
 
   const [, setTick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setTick(x => x + 1), 60000);
     return () => clearInterval(t);
   }, []);
+
+
 
   return (
     <div dir="rtl" className="relative min-h-screen text-slate-100 overflow-hidden bg-[radial-gradient(ellipse_at_top,#1a1330_0%,#0a0816_55%,#050309_100%)]">
