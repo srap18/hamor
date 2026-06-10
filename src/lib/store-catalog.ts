@@ -177,7 +177,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 2.99,
     oneTime: true,
     tag: "لمرة واحدة فقط",
-    description: "700 💎 + 20,000 🪙 + حماية 3 أيام 🛡️ — قيمة $15",
+    description: "700 💎 + 20,000 🪙 + حماية 3 أيام 🛡️ — قيمة 56 ر.س",
     reward: { gems: 700, coins: 20_000, shieldDays: 3 },
   },
   {
@@ -569,7 +569,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 10.0,
     tag: "خصم ضخم",
     popular: true,
-    description: "15 قنبلة إعلانية بسعر $10 فقط — أفضل عرض",
+    description: "15 قنبلة إعلانية بسعر 37.5 ر.س فقط — أفضل عرض",
     images: [adBombImg],
     reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 15 }] },
   },
