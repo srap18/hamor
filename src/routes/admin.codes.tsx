@@ -7,6 +7,7 @@ import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 import { VIP_TIERS } from "@/lib/vip-perks";
+import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 import { BACKGROUNDS } from "@/lib/backgrounds";
 import { getShipByCode } from "@/lib/ships";
 
