@@ -80,7 +80,7 @@ function ChatPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { isAdmin } = useIsAdmin();
-  const fishingIds = useActiveFishingEventUserIds();
+  
   const [tab, setTab] = useState<Channel>("public");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
