@@ -76,6 +76,7 @@ function MyVipPage() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-slate-100 pb-24">
+      <style>{`@keyframes vip-rays-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       {/* Header */}
       <div className="sticky top-0 z-30 bg-slate-950/85 backdrop-blur border-b border-amber-500/30 px-4 py-3 flex items-center justify-between">
         <BackButton>رجوع</BackButton>
