@@ -1228,6 +1228,115 @@ function VipCodeCreator({ onCreated }: { onCreated: () => void }) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// 💎 Elite VIP Code Creator — grants exclusive 5-tier subscription perks
+// ════════════════════════════════════════════════════════════════════
+function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
+  const [level, setLevel] = useState<number>(1);
+  const [days, setDays] = useState<number>(30);
+  const [maxUses, setMaxUses] = useState(1);
+  const [dist, setDist] = useState<"limited" | "public">("limited");
+  const [customCode, setCustomCode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const tier = ELITE_VIP_TIERS.find((t) => t.level === level);
+
+  const create = async () => {
+    const finalCode = (customCode.trim() || randomCode()).toUpperCase();
+    if (!/^[A-Z0-9_-]{4,32}$/.test(finalCode)) { toast.error("الكود يجب أن يكون 4–32 حرف/رقم"); return; }
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("redemption_codes" as never).insert({
+      code: finalCode,
+      reward_type: "bundle",
+      reward_coins: 0, reward_gems: 0, reward_xp: 0,
+      quantity: 1,
+      max_uses: dist === "public" ? 0 : Math.max(1, maxUses),
+      expires_at: null,
+      note: `💎 Elite VIP ${level} ${tier?.nameAr ?? ""} — ${days === 0 ? "دائم" : `${days} يوم`}`,
+      extra_rewards: [],
+      reward_vip_level: 0,
+      reward_vip_days: 0,
+      reward_elite_vip_level: level,
+      reward_elite_vip_days: days,
+      created_by: user?.id,
+    } as never);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    setCustomCode("");
+    onCreated();
+  };
+
+  return (
+    <div className="rounded-xl border-2 border-fuchsia-500/60 bg-gradient-to-br from-purple-950/60 via-fuchsia-950/40 to-amber-950/30 p-3 md:p-4 space-y-3 shadow-[0_0_30px_rgba(232,121,249,0.25)]">
+      <div className="text-sm font-bold text-fuchsia-200 flex items-center gap-2">
+        💎 إنشاء كود Elite VIP — يفعّل اشتراك حصري (5 مستويات)
+        <span className="text-[10px] px-2 py-0.5 rounded bg-fuchsia-500/30 text-fuchsia-100 border border-fuchsia-400/50">حصري — لا يُكتسب باللعب</span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <label className="text-xs text-fuchsia-200 space-y-1">
+          <span>مستوى Elite VIP</span>
+          <select value={level} onChange={(e) => setLevel(Number(e.target.value))}
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100">
+            {ELITE_VIP_TIERS.map((t) => (
+              <option key={t.level} value={t.level}>{t.emoji} Elite {t.level} — {t.nameAr}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-fuchsia-200 space-y-1">
+          <span>المدة بالأيام (0 = دائم)</span>
+          <input type="number" min={0} value={days}
+            onChange={(e) => setDays(Math.max(0, Number(e.target.value) || 0))}
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold" />
+        </label>
+        <label className="text-xs text-fuchsia-200 space-y-1">
+          <span>التوزيع</span>
+          <select value={dist} onChange={(e) => setDist(e.target.value as "limited" | "public")}
+            className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100">
+            <option value="limited">🔒 محدود</option>
+            <option value="public">🌍 للجميع — مرة لكل لاعب</option>
+          </select>
+        </label>
+        {dist === "limited" && (
+          <label className="text-xs text-fuchsia-200 space-y-1">
+            <span>عدد الاستخدامات</span>
+            <input type="number" min={1} value={maxUses}
+              onChange={(e) => setMaxUses(Math.max(1, Number(e.target.value) || 1))}
+              className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold" />
+          </label>
+        )}
+      </div>
+
+      <label className="block text-xs text-fuchsia-200 space-y-1">
+        <span>الكود (فارغ = توليد تلقائي)</span>
+        <input value={customCode} onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
+          placeholder="مثلاً: ELITE5DRAGON"
+          className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 font-mono tracking-wider" />
+      </label>
+
+      {tier && (
+        <div className="text-[11px] text-fuchsia-100/90 bg-black/40 rounded-lg p-2 border border-fuchsia-900/60">
+          <div className="font-bold mb-1 flex items-center gap-2">
+            <img src={tier.badge} alt="" className="w-8 h-8 object-contain" />
+            {tier.emoji} Elite VIP {tier.level} — {tier.nameAr} (${tier.monthlyPriceUsd}/شهر)
+          </div>
+          <ul className="space-y-0.5 pr-3">
+            {tier.perks.map((p, i) => <li key={i}>• {p}</li>)}
+          </ul>
+        </div>
+      )}
+
+      <button disabled={saving} onClick={create}
+        className="w-full md:w-auto px-4 py-2 rounded-lg bg-gradient-to-b from-fuchsia-500 to-purple-700 hover:from-fuchsia-400 hover:to-purple-600 text-white font-extrabold disabled:opacity-50 shadow-lg">
+        {saving ? "جاري الإنشاء..." : "💎 إنشاء كود Elite VIP ونسخه"}
+      </button>
+    </div>
+  );
+}
+
+
+// ════════════════════════════════════════════════════════════════════
 // 🎁 Send a code to all online players (or those online within X minutes)
 // ════════════════════════════════════════════════════════════════════
 function GrantToOnlinePanel({ codes }: { codes: CodeRow[] }) {
