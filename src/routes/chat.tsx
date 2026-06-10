@@ -57,16 +57,20 @@ function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   );
 }
 
-function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
+function NameBadge({ p, mine, fishingIds }: { p?: Prof | null; mine?: boolean; fishingIds?: Set<string> }) {
   const frame = frameById(p?.name_frame);
   const cls = frame?.kind === "name" ? frame.nameClass || "" : "";
   const lvl = typeof p?.level === "number" ? p.level : null;
   const eliteLvl = getActiveEliteVip(p);
   const eliteCls = eliteVipNameClass(eliteLvl);
+  const inFishing = !!(p?.id && fishingIds?.has(p.id));
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${eliteCls || cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
       <VipBadge level={p?.vip_level} expiresAt={p?.vip_expires_at} />
       {eliteLvl > 0 && <EliteVipBadge level={eliteLvl} size="xs" />}
+      {inFishing && (
+        <span title="مشترك في فعالية الصيد — محمي من الهجوم" className="text-[11px] drop-shadow-[0_0_4px_rgba(16,185,129,0.8)]">🎣</span>
+      )}
       <span>{p?.display_name || "..."}</span>
       {lvl !== null && (
         <span className="text-[9px] px-1 rounded bg-black/40 text-amber-200 border border-amber-300/40">Lv {lvl}</span>
@@ -74,6 +78,7 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
     </span>
   );
 }
+
 
 function ChatPage() {
   const { user } = useAuth();
