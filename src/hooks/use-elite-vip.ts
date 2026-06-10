@@ -21,14 +21,20 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       return;
     }
     let cancelled = false;
+    const computeLevel = (row: { elite_vip_level?: number | null; elite_vip_expires_at?: string | null } | null): number => {
+      const lvl = Number(row?.elite_vip_level ?? 0);
+      const exp = row?.elite_vip_expires_at ? new Date(row.elite_vip_expires_at).getTime() : null;
+      if (lvl > 0 && exp !== null && exp <= Date.now()) return 0;
+      return lvl;
+    };
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("elite_vip_level")
+        .select("elite_vip_level, elite_vip_expires_at")
         .eq("id", user.id)
         .maybeSingle();
       if (cancelled) return;
-      setLevel(Number((data as { elite_vip_level?: number } | null)?.elite_vip_level ?? 0));
+      setLevel(computeLevel(data as any));
       setLoading(false);
     })();
 
@@ -40,8 +46,7 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
         (payload) => {
-          const next = (payload.new as { elite_vip_level?: number })?.elite_vip_level;
-          if (typeof next === "number") setLevel(next);
+          setLevel(computeLevel(payload.new as any));
         },
       )
       .subscribe();
