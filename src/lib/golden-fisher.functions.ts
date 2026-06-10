@@ -25,3 +25,13 @@ export const tickGoldenFisher = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return data as { ok?: boolean; reason?: string; cycles?: number; ships?: number };
   });
+
+export const removeGoldenFisher = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data, error } = await (supabase as any).rpc("remove_golden_fisher");
+    if (error) throw new Error(error.message);
+    return data as { ok: boolean };
+  });

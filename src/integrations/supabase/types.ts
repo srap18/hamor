@@ -4193,6 +4193,7 @@ export type Database = {
       redeem_code: { Args: { p_code: string }; Returns: Json }
       register_device: { Args: { _device_id: string }; Returns: Json }
       remove_ad_bombs: { Args: never; Returns: number }
+      remove_golden_fisher: { Args: never; Returns: Json }
       rename_daughter: { Args: { _name: string }; Returns: undefined }
       rename_tribe: {
         Args: { _new_name: string; _tribe_id: string }
