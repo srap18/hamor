@@ -424,6 +424,10 @@ function ProfilePage() {
           ✨ متجر الإطارات والتخصيص
         </Link>
 
+        <Link to="/my-vip" className="block text-center rounded-2xl px-4 py-3 bg-gradient-to-b from-yellow-400 via-amber-500 to-yellow-700 border-2 border-amber-200 text-amber-950 font-black shadow-[0_0_25px_rgba(251,191,36,0.5)] active:scale-95">
+          👑 اشتراكي Elite VIP — المدة المتبقية
+        </Link>
+
         <Link to="/recharge" className="block text-center rounded-2xl px-4 py-3 bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold shadow-lg active:scale-95">
           💳 شحن جواهر وياقوت
         </Link>
