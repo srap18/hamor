@@ -177,7 +177,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 2.99,
     oneTime: true,
     tag: "لمرة واحدة فقط",
-    description: "700 💎 + 20,000 🪙 + حماية 3 أيام 🛡️ — قيمة $15",
+    description: "700 💎 + 20,000 🪙 + حماية 3 أيام 🛡️ — قيمة 56 ر.س",
     reward: { gems: 700, coins: 20_000, shieldDays: 3 },
   },
   {
