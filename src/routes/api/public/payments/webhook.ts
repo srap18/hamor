@@ -30,6 +30,21 @@ function getPackIdFromTransaction(data: any): string | undefined {
   );
 }
 
+// Map Paddle price_id → elite_vip_level. Single source of truth on the server.
+function eliteLevelFromPriceId(priceId: string | undefined): number | null {
+  if (!priceId) return null;
+  const m = priceId.match(/^elite_vip_([1-5])_monthly$/);
+  return m ? Number(m[1]) : null;
+}
+
+async function setEliteVipLevel(userId: string, level: number) {
+  const { error } = await getSupabase()
+    .from("profiles")
+    .update({ elite_vip_level: level })
+    .eq("id", userId);
+  if (error) console.error("setEliteVipLevel failed:", error);
+}
+
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
   const userId = data.customData?.userId;
   if (!userId) return console.error("No userId in customData");
@@ -55,6 +70,12 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     },
     { onConflict: "paddle_subscription_id" },
   );
+
+  // Elite VIP — grant the level immediately on activation.
+  const eliteLevel = eliteLevelFromPriceId(priceId);
+  if (eliteLevel && (data.status === "active" || data.status === "trialing")) {
+    await setEliteVipLevel(userId, eliteLevel);
+  }
 }
 
 async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
@@ -69,6 +90,16 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     })
     .eq("paddle_subscription_id", data.id)
     .eq("environment", env);
+
+  // Sync elite_vip_level — if status drops to canceled/past_due/paused, revoke.
+  const userId = data.customData?.userId;
+  const item = data.items?.[0];
+  const priceId = item?.price?.importMeta?.externalId;
+  const eliteLevel = eliteLevelFromPriceId(priceId);
+  if (eliteLevel && userId) {
+    const active = data.status === "active" || data.status === "trialing";
+    await setEliteVipLevel(userId, active ? eliteLevel : 0);
+  }
 }
 
 async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
@@ -87,6 +118,13 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
     .maybeSingle();
   if (sub && (sub as any).price_id === "vip_monthly") {
     await supabase.rpc("revoke_vip_protection", { _user: (sub as any).user_id });
+  }
+  // Revoke Elite VIP level on cancel (immediate per business rule).
+  if (sub) {
+    const eliteLevel = eliteLevelFromPriceId((sub as any).price_id);
+    if (eliteLevel) {
+      await setEliteVipLevel((sub as any).user_id, 0);
+    }
   }
 }
 

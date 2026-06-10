@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GiftPopup } from "@/components/GiftPopup";
+import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
 import { useEffect, useState } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
@@ -364,6 +365,7 @@ function RootComponent() {
         <MobileFrame>
           <GlobalBanner />
           <LastAttackTicker />
+          <EliteVipLoginOverlay />
 
           <Outlet />
 
