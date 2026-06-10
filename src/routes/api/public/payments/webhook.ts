@@ -37,12 +37,22 @@ function eliteLevelFromPriceId(priceId: string | undefined): number | null {
   return m ? Number(m[1]) : null;
 }
 
-async function setEliteVipLevel(userId: string, level: number) {
+async function setEliteVipLevel(userId: string, level: number, expiresAt: string | null) {
   const { error } = await getSupabase()
     .from("profiles")
-    .update({ elite_vip_level: level })
+    .update({
+      elite_vip_level: level,
+      elite_vip_expires_at: level > 0 ? expiresAt : null,
+    })
     .eq("id", userId);
   if (error) console.error("setEliteVipLevel failed:", error);
+}
+
+// Fallback: if Paddle doesn't send currentBillingPeriod.endsAt, use +30 days
+function resolveExpiry(data: any): string {
+  const endsAt = data?.currentBillingPeriod?.endsAt;
+  if (endsAt) return new Date(endsAt).toISOString();
+  return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 }
 
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
