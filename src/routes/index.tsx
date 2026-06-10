@@ -1643,9 +1643,10 @@ function Index() {
           <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
             {/* Fish discovery + Golden Fisher active indicator */}
             <div className="flex items-center gap-1.5">
-              {crewRows.some(
-                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-              ) && (
+              {(((profile as any)?.golden_fisher_until && new Date((profile as any).golden_fisher_until).getTime() > now) ||
+                crewRows.some(
+                  (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+                )) && (
                 <span
                   title="🏅 الصياد الذهبي مفعّل — صيد تلقائي على كل سفنك"
                   aria-label="الصياد الذهبي مفعّل"
