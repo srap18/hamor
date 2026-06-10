@@ -336,7 +336,7 @@ export function RechargePanel() {
                     <span className="text-[10px]">{disabledLabel}</span>
                   ) : (
                     <>
-                      <span className="text-sm">${p.priceUSD}</span>
+                      <span className="text-sm">{(p.priceUSD * 3.75).toFixed(2)} ر.س</span>
                       <span className="text-[9px] font-bold">شراء</span>
                     </>
                   )}
