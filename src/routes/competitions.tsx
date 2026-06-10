@@ -237,6 +237,7 @@ function CompetitionsPage() {
           const tiers = tiersOf(c);
           const winnerCount = tiers.length;
           const isEnded = new Date(c.ends_at).getTime() <= serverNow().getTime();
+          const isUpcoming = new Date(c.starts_at).getTime() > serverNow().getTime();
 
           return (
             <article key={c.id} className="group relative rounded-[1.75rem] overflow-hidden shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),0_0_0_1px_rgba(212,175,55,0.25)] bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-black/95 backdrop-blur-xl">
@@ -297,6 +298,11 @@ function CompetitionsPage() {
                       <>
                         <div className="text-[10px] text-white/80 tracking-widest">الحالة</div>
                         <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">⛔ انتهت</div>
+                      </>
+                    ) : isUpcoming ? (
+                      <>
+                        <div className="text-[10px] text-white/80 tracking-widest">تبدأ خلال</div>
+                        <div className="text-base font-black text-white drop-shadow px-2.5 py-1 rounded-lg bg-black/40 border border-white/40 mt-0.5">🚀 {timeLeft(c.starts_at)}</div>
                       </>
                     ) : (
                       <>
