@@ -437,6 +437,15 @@ function AdminCompetitions() {
     await supabase.from("competitions" as never).delete().eq("id", id);
     load();
   };
+  const distributeNow = async (id: string) => {
+    if (!confirm("توزيع الجوائز فوراً وإقفال الفعالية؟ لا يمكن التراجع.")) return;
+    const { error } = await (supabase as any).rpc("finalize_competition", { _competition_id: id });
+    if (error) { alert("خطأ: " + error.message); return; }
+    alert("✓ تم توزيع الجوائز");
+    load();
+  };
+
+
 
   const editingRow = rows.find(r => r.id === editingId) ?? null;
 
