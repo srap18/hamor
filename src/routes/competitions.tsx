@@ -40,9 +40,6 @@ type Comp = {
   prize_tiers: PrizeTier[] | null;
   starts_at: string;
   ends_at: string;
-  requires_join?: boolean;
-  participants_count?: number;
-  is_joined?: boolean;
 };
 
 
