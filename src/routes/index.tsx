@@ -1071,7 +1071,14 @@ function Index() {
           // the fishing (was the "instant full" bug).
           const sailorMult = s.sailorAtStart ? 2 : 1;
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
-          const ratio = Math.min(1, elapsed / Math.max(1, s.duration));
+          let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
+          // Golden Fisher active: cap UI progress at 99% — ships must never visually reach 100%.
+          if (ratio > 0.99) {
+            const gfActive = crewRowsRef.current.some(
+              (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+            );
+            if (gfActive) ratio = 0.99;
+          }
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
