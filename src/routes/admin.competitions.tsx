@@ -415,6 +415,7 @@ function AdminCompetitions() {
       starts_at: new Date(now + startOffset * 3600_000).toISOString(),
       ends_at: new Date(now + endOffset * 3600_000).toISOString(),
       active: true,
+      requires_join: requiresJoin,
       created_by: user?.id ?? null,
     };
     const { error } = await supabase.from("competitions" as never).insert(payload as never);
