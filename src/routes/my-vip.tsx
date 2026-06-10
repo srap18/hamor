@@ -37,18 +37,31 @@ function MyVipPage() {
   const [row, setRow] = useState<{ elite_vip_level: number | null; elite_vip_expires_at: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
+  const [claimedToday, setClaimedToday] = useState<boolean>(false);
+  const [claiming, setClaiming] = useState(false);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("elite_vip_level, elite_vip_expires_at")
-        .eq("id", user.id)
-        .maybeSingle();
+      const today = new Date().toISOString().slice(0, 10);
+      const [{ data }, { data: claim }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("elite_vip_level, elite_vip_expires_at")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("elite_vip_daily_claims" as never)
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("claim_date", today)
+          .maybeSingle(),
+      ]);
       if (cancelled) return;
       setRow(data as any);
+      setClaimedToday(!!claim);
       setLoading(false);
     })();
     const ch = supabase
@@ -58,6 +71,20 @@ function MyVipPage() {
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);
+
+  const claimDailyGems = async () => {
+    setClaiming(true);
+    setClaimMsg(null);
+    const { data, error } = await (supabase as any).rpc("claim_elite_vip_daily_gems");
+    setClaiming(false);
+    if (error) {
+      setClaimMsg(error.message?.includes("already_claimed") ? "✓ تم استلام جواهر اليوم" : "خطأ: " + error.message);
+      if (error.message?.includes("already_claimed")) setClaimedToday(true);
+      return;
+    }
+    setClaimedToday(true);
+    setClaimMsg(`🎉 حصلت على ${data?.gems ?? 0} 💎`);
+  };
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -147,6 +174,20 @@ function MyVipPage() {
                 />
               </div>
             )}
+          </div>
+
+          {/* Daily gems claim */}
+          <div className="mt-4 rounded-3xl border-2 border-emerald-400/40 bg-gradient-to-br from-emerald-950/60 to-slate-900 p-5 text-center">
+            <div className="text-sm font-bold text-emerald-200">💎 جواهر يومية مجانية</div>
+            <div className="text-3xl font-black text-emerald-300 mt-1">{tier.dailyGems} 💎</div>
+            <button
+              onClick={claimDailyGems}
+              disabled={claiming || claimedToday}
+              className="mt-3 w-full py-3 rounded-xl font-extrabold bg-gradient-to-r from-emerald-500 to-green-400 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {claiming ? "..." : claimedToday ? "✓ تم الاستلام اليوم" : `استلم ${tier.dailyGems} 💎 الآن`}
+            </button>
+            {claimMsg && <div className="mt-2 text-xs text-emerald-200">{claimMsg}</div>}
           </div>
 
           {/* Perks */}
