@@ -76,15 +76,16 @@ export function EliteVipLoginOverlay() {
   return (
     <>
       <style>{`
-        @keyframes vip-slide-in { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .vip-slide-in { animation: vip-slide-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes vip-slide-in-bottom { from { transform: translateY(120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .vip-slide-in-bottom { animation: vip-slide-in-bottom 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
       `}</style>
 
       <div
-        className="pointer-events-none fixed inset-x-0 top-2 z-[9998] flex justify-center px-2"
+        className="pointer-events-none fixed inset-x-0 z-[9998] flex justify-center px-2"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
         aria-live="polite"
       >
-        <div className={`vip-slide-in pointer-events-auto relative w-full max-w-xs rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg backdrop-blur-sm`}>
+        <div className={`vip-slide-in-bottom pointer-events-auto relative w-full max-w-[260px] rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg backdrop-blur-sm`}>
           <div className="relative flex items-center gap-2 px-2 py-1.5" dir="rtl">
             <img
               src={tier.badge}
