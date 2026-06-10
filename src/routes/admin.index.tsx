@@ -44,7 +44,7 @@ function AdminDashboard() {
 
   const loadStats = useCallback(async () => {
     setRefreshing(true);
-    const tenMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const tenMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const nowIso = new Date().toISOString();
     const [
       { count: players },
