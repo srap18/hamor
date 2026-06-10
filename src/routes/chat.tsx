@@ -60,9 +60,12 @@ function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
   const frame = frameById(p?.name_frame);
   const cls = frame?.kind === "name" ? frame.nameClass || "" : "";
   const lvl = typeof p?.level === "number" ? p.level : null;
+  const eliteLvl = getActiveEliteVip(p);
+  const eliteCls = eliteVipNameClass(eliteLvl);
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${eliteCls || cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
       <VipBadge level={p?.vip_level} expiresAt={p?.vip_expires_at} />
+      {eliteLvl > 0 && <EliteVipBadge level={eliteLvl} size="xs" />}
       <span>{p?.display_name || "..."}</span>
       {lvl !== null && (
         <span className="text-[9px] px-1 rounded bg-black/40 text-amber-200 border border-amber-300/40">Lv {lvl}</span>
