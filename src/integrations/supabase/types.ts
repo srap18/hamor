@@ -1714,6 +1714,7 @@ export type Database = {
           coins: number
           created_at: string
           display_name: string
+          elite_vip_expires_at: string | null
           elite_vip_level: number
           gems: number
           golden_fisher_last_activated_at: string | null
@@ -1761,6 +1762,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name: string
+          elite_vip_expires_at?: string | null
           elite_vip_level?: number
           gems?: number
           golden_fisher_last_activated_at?: string | null
@@ -1808,6 +1810,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name?: string
+          elite_vip_expires_at?: string | null
           elite_vip_level?: number
           gems?: number
           golden_fisher_last_activated_at?: string | null
@@ -1906,6 +1909,8 @@ export type Database = {
           note: string
           quantity: number
           reward_coins: number
+          reward_elite_vip_days: number
+          reward_elite_vip_level: number
           reward_gems: number
           reward_type: string
           reward_vip_days: number
@@ -1928,6 +1933,8 @@ export type Database = {
           note?: string
           quantity?: number
           reward_coins?: number
+          reward_elite_vip_days?: number
+          reward_elite_vip_level?: number
           reward_gems?: number
           reward_type: string
           reward_vip_days?: number
@@ -1950,6 +1957,8 @@ export type Database = {
           note?: string
           quantity?: number
           reward_coins?: number
+          reward_elite_vip_days?: number
+          reward_elite_vip_level?: number
           reward_gems?: number
           reward_type?: string
           reward_vip_days?: number
@@ -3249,6 +3258,8 @@ export type Database = {
           note: string
           quantity: number
           reward_coins: number
+          reward_elite_vip_days: number
+          reward_elite_vip_level: number
           reward_gems: number
           reward_type: string
           reward_vip_days: number
