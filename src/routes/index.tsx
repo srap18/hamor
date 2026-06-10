@@ -3604,8 +3604,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
   const pct = (ship.progress / ship.max) * 100;
-  const luckMult = crews.some((c) => c.id === "luck") ? 2 : 1;
-  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode) * luckMult;
+  // Note: لا نضاعف السعة في الشريط حتى لا يبدو وقت الصيد كأنه يزيد مع طاقم الحظ.
+  // مضاعفة السمك تطبَّق من السيرفر عند الجمع وتظهر كـ "luckBonus" في النافذة.
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
