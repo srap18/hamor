@@ -320,6 +320,8 @@ function Shop() {
             <RechargePanel />
           ) : tab === "backgrounds" ? (
             <BackgroundsPanel />
+          ) : tab === "vip" ? (
+            <VipPanel />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
