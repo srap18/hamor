@@ -133,7 +133,7 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   if (sub) {
     const eliteLevel = eliteLevelFromPriceId((sub as any).price_id);
     if (eliteLevel) {
-      await setEliteVipLevel((sub as any).user_id, 0);
+      await setEliteVipLevel((sub as any).user_id, 0, null);
     }
   }
 }
