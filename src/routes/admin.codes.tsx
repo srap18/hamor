@@ -8,6 +8,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
 import { VIP_TIERS } from "@/lib/vip-perks";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
+import { formatSarFromUsd } from "@/lib/currency";
 import { BACKGROUNDS } from "@/lib/backgrounds";
 import { getShipByCode } from "@/lib/ships";
 
@@ -1319,7 +1320,7 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
         <div className="text-[11px] text-fuchsia-100/90 bg-black/40 rounded-lg p-2 border border-fuchsia-900/60">
           <div className="font-bold mb-1 flex items-center gap-2">
             <img src={tier.badge} alt="" className="w-8 h-8 object-contain" />
-            {tier.emoji} Elite VIP {tier.level} — {tier.nameAr} (${tier.monthlyPriceUsd}/شهر)
+            {tier.emoji} Elite VIP {tier.level} — {tier.nameAr} ({formatSarFromUsd(tier.monthlyPriceUsd)}/شهر)
           </div>
           <ul className="space-y-0.5 pr-3">
             {tier.perks.map((p, i) => <li key={i}>• {p}</li>)}
