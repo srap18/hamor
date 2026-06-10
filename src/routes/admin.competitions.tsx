@@ -596,9 +596,16 @@ function AdminCompetitions() {
                   <button onClick={()=>toggle(r.id, r.active)} className="text-xs px-2.5 py-1.5 rounded bg-slate-700 hover:bg-slate-600">
                     {r.active ? "تعطيل" : "تفعيل"}
                   </button>
+                  {!r.prizes_distributed_at && (
+                    <button onClick={()=>distributeNow(r.id)} className="text-xs px-2.5 py-1.5 rounded bg-emerald-700/60 hover:bg-emerald-700/80 text-emerald-100">⚡ توزيع الجوائز الآن</button>
+                  )}
+                  {r.prizes_distributed_at && (
+                    <span className="text-[10px] px-2 py-1 rounded bg-emerald-900/40 text-emerald-300 text-center">✓ وُزِّعت الجوائز</span>
+                  )}
                   <button onClick={()=>remove(r.id)} className="text-xs px-2.5 py-1.5 rounded bg-red-900/50 hover:bg-red-900/70 text-red-200">حذف</button>
                 </div>
               </div>
+
 
               <div className="mt-3 pt-3 border-t border-slate-800">
                 <div className="text-xs font-bold text-slate-300 mb-2">🏅 الترتيب الحالي</div>
