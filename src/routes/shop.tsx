@@ -9,6 +9,7 @@ import { sound } from "@/lib/sound";
 import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
+import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 
 import { serverNowMs } from "@/lib/server-time";
 
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
 
 type Item = {
   id: string;
@@ -64,6 +65,7 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "weapons", label: "أسلحه", banner: "Weapons" },
   { id: "crews", label: "طواقم", banner: "Ship Crew" },
   { id: "ships", label: "سفن", banner: "Special Ships" },
+  { id: "vip", label: "👑 VIP", banner: "Elite VIP" },
   { id: "backgrounds", label: "🖼️ خلفيات", banner: "Backgrounds" },
   { id: "recharge", label: "💳 شحن", banner: "Recharge" },
 ];
@@ -319,6 +321,8 @@ function Shop() {
             <RechargePanel />
           ) : tab === "backgrounds" ? (
             <BackgroundsPanel />
+          ) : tab === "vip" ? (
+            <VipPanel />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
@@ -336,7 +340,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && tab !== "backgrounds" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "vip" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
@@ -499,6 +503,55 @@ function BottomNav() {
           <span className="text-[8px] text-accent/90 font-medium">{it.l}</span>
         </button>
       ))}
+    </div>
+  );
+}
+
+function VipPanel() {
+  return (
+    <div className="mt-3 px-2 space-y-2">
+      <Link
+        to="/vip"
+        className="block w-full rounded-xl p-3 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 font-extrabold text-center shadow-lg active:scale-95"
+      >
+        🏆 افتح صفحة Elite VIP الكاملة
+      </Link>
+      <div className="grid grid-cols-1 gap-2">
+        {ELITE_VIP_TIERS.map((t) => (
+          <Link
+            key={t.level}
+            to="/vip"
+            className={`flex items-center gap-3 rounded-xl p-2 border-2 ${
+              t.level === 5
+                ? "bg-gradient-to-r from-purple-950/80 to-fuchsia-950/80 border-fuchsia-400/60"
+                : t.level === 4
+                  ? "bg-gradient-to-r from-indigo-950/80 to-sky-950/80 border-sky-400/50"
+                  : t.level === 3
+                    ? "bg-gradient-to-r from-amber-950/80 to-yellow-950/80 border-amber-400/50"
+                    : t.level === 2
+                      ? "bg-gradient-to-r from-slate-800/80 to-slate-950/80 border-slate-300/40"
+                      : "bg-gradient-to-r from-orange-950/80 to-rose-950/80 border-amber-700/50"
+            } active:scale-95`}
+          >
+            <img src={t.badge} alt={`VIP ${t.level}`} className="w-14 h-14 object-contain shrink-0" />
+            <div className="flex-1 text-right">
+              <div className="text-[10px] font-bold text-amber-300/80 tracking-widest">
+                ELITE VIP {t.level}
+              </div>
+              <div className={`text-base font-extrabold ${t.nameColorClass || "text-amber-100"}`}>
+                {t.emoji} {t.nameAr}
+              </div>
+              <div className="text-[11px] text-rose-100/80">
+                ⚔️ +{t.combatBonusPct}% • 🛒 -{t.shopDiscountPct}% • 💎 {t.dailyGems}/يوم
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-xl font-black text-white">${t.monthlyPriceUsd}</div>
+              <div className="text-[10px] text-slate-300">/شهر</div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
