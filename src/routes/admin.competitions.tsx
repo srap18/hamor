@@ -351,7 +351,7 @@ function AdminCompetitions() {
   const [metric, setMetric] = useState("fish_specific");
   const [targetFish, setTargetFish] = useState(FISH_LIST[0]?.id ?? "");
   const [hideTarget, setHideTarget] = useState(true);
-  const [requiresJoin, setRequiresJoin] = useState(false);
+  
 
   const [tiers, setTiers] = useState<PrizeTier[]>([emptyTier(1)]);
   const [startD, setStartD] = useState(0);
