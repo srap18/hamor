@@ -1647,10 +1647,21 @@ function Index() {
                 crewRows.some(
                   (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
                 )) && (
-                <span
-                  title="🏅 الصياد الذهبي مفعّل — صيد تلقائي على كل سفنك"
-                  aria-label="الصياد الذهبي مفعّل"
-                  className="relative w-7 h-7 rounded-full flex items-center justify-center text-base shrink-0"
+                <button
+                  type="button"
+                  title="🏅 الصياد الذهبي مفعّل — اضغط للإزالة"
+                  aria-label="إزالة الصياد الذهبي"
+                  onClick={async () => {
+                    if (!window.confirm("هل تريد إزالة الصياد الذهبي؟ سيتم إيقافه فوراً.")) return;
+                    try {
+                      await removeGoldenFisher({ data: {} });
+                      setToast("🗑️ تم إزالة الصياد الذهبي");
+                      await refetchProfile?.();
+                    } catch {
+                      setToast("تعذر إزالة الصياد الذهبي");
+                    }
+                  }}
+                  className="relative w-7 h-7 rounded-full flex items-center justify-center text-base shrink-0 active:scale-95"
                   style={{
                     background: "radial-gradient(circle at 35% 25%, #fff4c2 0%, #f1be52 45%, #8a5a14 100%)",
                     border: "2px solid #ffe6a1",
@@ -1659,7 +1670,8 @@ function Index() {
                   }}
                 >
                   <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>🏅</span>
-                </span>
+                </button>
+
               )}
               <Link
                 to="/inventory"
