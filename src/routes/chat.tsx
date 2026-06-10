@@ -8,6 +8,7 @@ import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { EliteVipBadge, eliteVipNameClass } from "@/components/EliteVipBadge";
+import { useActiveFishingEventUserIds } from "@/hooks/use-fishing-event";
 
 import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
