@@ -108,7 +108,7 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && userId) {
     const active = data.status === "active" || data.status === "trialing";
-    await setEliteVipLevel(userId, active ? eliteLevel : 0);
+    await setEliteVipLevel(userId, active ? eliteLevel : 0, active ? resolveExpiry(data) : null);
   }
 }
 
