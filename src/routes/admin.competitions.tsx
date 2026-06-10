@@ -568,6 +568,7 @@ function AdminCompetitions() {
                     {ended && <span className="text-xs px-2 py-0.5 rounded bg-slate-700">منتهية</span>}
                     {!r.active && <span className="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-200">معطّلة</span>}
                     {r.hide_target && <span className="text-xs px-2 py-0.5 rounded bg-purple-900/60 text-purple-200">🤫 مخفية</span>}
+                    {r.requires_join && <span className="text-xs px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-200">🎣 بالاشتراك</span>}
                   </div>
                   <div className="text-xs text-slate-400 mt-1">
                     {METRICS.find(m => m.id === r.metric)?.label}
