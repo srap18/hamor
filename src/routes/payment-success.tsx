@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
+import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { getPack, type StorePack } from "@/lib/store-catalog";
 import { RewardPopup } from "@/components/RewardPopup";
