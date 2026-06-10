@@ -505,3 +505,52 @@ function BottomNav() {
     </div>
   );
 }
+
+function VipPanel() {
+  return (
+    <div className="mt-3 px-2 space-y-2">
+      <Link
+        to="/vip"
+        className="block w-full rounded-xl p-3 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 font-extrabold text-center shadow-lg active:scale-95"
+      >
+        🏆 افتح صفحة Elite VIP الكاملة
+      </Link>
+      <div className="grid grid-cols-1 gap-2">
+        {ELITE_VIP_TIERS.map((t) => (
+          <Link
+            key={t.level}
+            to="/vip"
+            className={`flex items-center gap-3 rounded-xl p-2 border-2 ${
+              t.level === 5
+                ? "bg-gradient-to-r from-purple-950/80 to-fuchsia-950/80 border-fuchsia-400/60"
+                : t.level === 4
+                  ? "bg-gradient-to-r from-indigo-950/80 to-sky-950/80 border-sky-400/50"
+                  : t.level === 3
+                    ? "bg-gradient-to-r from-amber-950/80 to-yellow-950/80 border-amber-400/50"
+                    : t.level === 2
+                      ? "bg-gradient-to-r from-slate-800/80 to-slate-950/80 border-slate-300/40"
+                      : "bg-gradient-to-r from-orange-950/80 to-rose-950/80 border-amber-700/50"
+            } active:scale-95`}
+          >
+            <img src={t.badge} alt={`VIP ${t.level}`} className="w-14 h-14 object-contain shrink-0" />
+            <div className="flex-1 text-right">
+              <div className="text-[10px] font-bold text-amber-300/80 tracking-widest">
+                ELITE VIP {t.level}
+              </div>
+              <div className={`text-base font-extrabold ${t.nameColorClass || "text-amber-100"}`}>
+                {t.emoji} {t.nameAr}
+              </div>
+              <div className="text-[11px] text-rose-100/80">
+                ⚔️ +{t.combatBonusPct}% • 🛒 -{t.shopDiscountPct}% • 💎 {t.dailyGems}/يوم
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-xl font-black text-white">${t.monthlyPriceUsd}</div>
+              <div className="text-[10px] text-slate-300">/شهر</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
