@@ -64,7 +64,8 @@ function PricingPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="font-bold text-amber-100">{p.label}</div>
                       <div className="text-amber-300 font-extrabold whitespace-nowrap">
-                        ${p.priceUSD.toFixed(2)}
+                        {(p.priceUSD * 3.75).toFixed(2)} ر.س
+                        <span className="text-[10px] text-amber-100/50 ms-1">(${p.priceUSD.toFixed(2)})</span>
                         {p.subscription && <span className="text-xs text-amber-100/60">/شهر</span>}
                       </div>
                     </div>
