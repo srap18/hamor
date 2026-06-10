@@ -4333,6 +4333,7 @@ export type Database = {
         Args: { p_active_id: string; p_storage_id: string }
         Returns: Json
       }
+      sweep_expired_elite_vip: { Args: never; Returns: number }
       test_steal_cancel_moves_one_fish: { Args: never; Returns: boolean }
       test_steal_claim_moves_one_fish: { Args: never; Returns: boolean }
       trader_snapshot_anchor: { Args: never; Returns: string }
