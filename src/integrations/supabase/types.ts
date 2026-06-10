@@ -772,6 +772,75 @@ export type Database = {
         }
         Relationships: []
       }
+      elite_vip_login_broadcasts: {
+        Row: {
+          avatar_emoji: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          elite_vip_level: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name: string
+          elite_vip_level: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          avatar_emoji?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          elite_vip_level?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      elite_vip_tier_config: {
+        Row: {
+          combat_bonus_pct: number
+          daily_gems: number
+          emoji: string
+          level: number
+          monthly_price_usd: number
+          name_ar: string
+          name_color: string
+          paddle_price_id: string
+          shop_discount_pct: number
+          updated_at: string
+        }
+        Insert: {
+          combat_bonus_pct: number
+          daily_gems: number
+          emoji: string
+          level: number
+          monthly_price_usd: number
+          name_ar: string
+          name_color?: string
+          paddle_price_id: string
+          shop_discount_pct: number
+          updated_at?: string
+        }
+        Update: {
+          combat_bonus_pct?: number
+          daily_gems?: number
+          emoji?: string
+          level?: number
+          monthly_price_usd?: number
+          name_ar?: string
+          name_color?: string
+          paddle_price_id?: string
+          shop_discount_pct?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           active: boolean
@@ -1645,6 +1714,7 @@ export type Database = {
           coins: number
           created_at: string
           display_name: string
+          elite_vip_level: number
           gems: number
           golden_fisher_last_activated_at: string | null
           golden_fisher_until: string | null
@@ -1691,6 +1761,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name: string
+          elite_vip_level?: number
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_until?: string | null
@@ -1737,6 +1808,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name?: string
+          elite_vip_level?: number
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_until?: string | null
@@ -3536,6 +3608,7 @@ export type Database = {
       }
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
+      cleanup_elite_login_broadcasts: { Args: never; Returns: undefined }
       cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
@@ -3645,6 +3718,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_combat_multiplier: { Args: { _user_id: string }; Returns: number }
       get_competition_leaderboard: {
         Args: { _competition_id: string }
         Returns: {
@@ -3682,6 +3756,11 @@ export type Database = {
           message: string
         }[]
       }
+      get_effective_shop_price: {
+        Args: { _base_price: number; _user_id: string }
+        Returns: number
+      }
+      get_elite_vip_level: { Args: { _user_id: string }; Returns: number }
       get_fish_leaderboard: {
         Args: { _limit?: number }
         Returns: {
@@ -4023,6 +4102,7 @@ export type Database = {
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
+      post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
       purge_old_messages: { Args: never; Returns: undefined }
       push_global_banner: {
