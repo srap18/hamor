@@ -164,9 +164,6 @@ function CompetitionsPage() {
   const [loading, setLoading] = useState(true);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
   const [me, setMe] = useState<string | null>(null);
-  const [joining, setJoining] = useState<string | null>(null);
-  const [joinMsg, setJoinMsg] = useState<string | null>(null);
-  const { event: myEvent, refetch: refetchMyEvent } = useMyFishingEvent();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -187,17 +184,6 @@ function CompetitionsPage() {
   };
   useEffect(() => { loadAll(); }, []);
 
-  const joinComp = async (compId: string) => {
-    if (!me) { setJoinMsg("سجّل الدخول أولاً"); return; }
-    setJoining(compId);
-    setJoinMsg(null);
-    const { error } = await (supabase as any).rpc("join_competition", { _competition_id: compId });
-    setJoining(null);
-    if (error) { setJoinMsg("تعذّر الاشتراك: " + error.message); return; }
-    setJoinMsg("✓ تم اشتراكك — أنت الآن محمي من الهجوم 🛡️");
-    refetchMyEvent();
-    await loadAll();
-  };
 
   const [, setTick] = useState(0);
   useEffect(() => {
