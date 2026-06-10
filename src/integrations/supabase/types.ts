@@ -772,6 +772,33 @@ export type Database = {
         }
         Relationships: []
       }
+      elite_vip_daily_claims: {
+        Row: {
+          claim_date: string
+          claimed_at: string
+          gems: number
+          id: string
+          level: number
+          user_id: string
+        }
+        Insert: {
+          claim_date: string
+          claimed_at?: string
+          gems: number
+          id?: string
+          level: number
+          user_id: string
+        }
+        Update: {
+          claim_date?: string
+          claimed_at?: string
+          gems?: number
+          id?: string
+          level?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       elite_vip_login_broadcasts: {
         Row: {
           avatar_emoji: string | null
@@ -3603,6 +3630,7 @@ export type Database = {
           reward_type: string
         }[]
       }
+      claim_elite_vip_daily_gems: { Args: never; Returns: Json }
       claim_quest: {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
