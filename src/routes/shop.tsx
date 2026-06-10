@@ -10,6 +10,7 @@ import { RedeemDialog } from "@/components/RedeemDialog";
 import { RechargePanel } from "@/components/RechargePanel";
 import { BackgroundsPanel } from "@/components/BackgroundsPanel";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
+import { formatSarFromUsd } from "@/lib/currency";
 
 import { serverNowMs } from "@/lib/server-time";
 
@@ -546,7 +547,7 @@ function VipPanel() {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xl font-black text-white">${t.monthlyPriceUsd}</div>
+              <div className="text-xl font-black text-white">{formatSarFromUsd(t.monthlyPriceUsd)}</div>
               <div className="text-[10px] text-slate-300">/شهر</div>
             </div>
           </Link>

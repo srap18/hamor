@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
 import { STORE_PACKS, type PackCategory } from "@/lib/store-catalog";
+import { formatSarFromUsd } from "@/lib/currency";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -47,7 +48,7 @@ function PricingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-amber-300 mb-2">الأسعار</h1>
           <p className="text-amber-100/80 text-sm max-w-2xl mx-auto">
-            جميع الأسعار بالدولار الأمريكي وتشمل الضرائب المعمول بها. تتم معالجة المدفوعات بأمان عبر
+            جميع الأسعار بالريال السعودي وتشمل الضرائب المعمول بها. تتم معالجة المدفوعات بأمان عبر
             شريكنا Paddle.
           </p>
         </div>
@@ -64,8 +65,7 @@ function PricingPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="font-bold text-amber-100">{p.label}</div>
                       <div className="text-amber-300 font-extrabold whitespace-nowrap">
-                        {(p.priceUSD * 3.75).toFixed(2)} ر.س
-                        <span className="text-[10px] text-amber-100/50 ms-1">(${p.priceUSD.toFixed(2)})</span>
+                        {formatSarFromUsd(p.priceUSD)}
                         {p.subscription && <span className="text-xs text-amber-100/60">/شهر</span>}
                       </div>
                     </div>

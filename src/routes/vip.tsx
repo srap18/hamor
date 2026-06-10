@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 import { BackButton } from "@/components/BackButton";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { formatSarFromUsd } from "@/lib/currency";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/vip")({
@@ -135,7 +136,7 @@ function VipPage() {
                   {t.emoji} {t.nameAr}
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-black text-white">${t.monthlyPriceUsd}</span>
+                  <span className="text-3xl font-black text-white">{formatSarFromUsd(t.monthlyPriceUsd)}</span>
                   <span className="text-sm text-slate-400">/شهر</span>
                 </div>
               </div>
@@ -165,7 +166,7 @@ function VipPage() {
                     ? "✓ مشترك حالياً"
                     : isUpgrade
                       ? `ترقية إلى المستوى ${t.level}`
-                      : `الاشتراك الآن — $${t.monthlyPriceUsd}`}
+                      : `الاشتراك الآن — ${formatSarFromUsd(t.monthlyPriceUsd)}`}
               </button>
             </div>
           );
