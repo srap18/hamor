@@ -44,7 +44,7 @@ type Row = {
   starts_at: string;
   ends_at: string;
   active: boolean;
-  requires_join: boolean;
+  
   prizes_distributed_at: string | null;
 };
 
@@ -351,7 +351,7 @@ function AdminCompetitions() {
   const [metric, setMetric] = useState("fish_specific");
   const [targetFish, setTargetFish] = useState(FISH_LIST[0]?.id ?? "");
   const [hideTarget, setHideTarget] = useState(true);
-  const [requiresJoin, setRequiresJoin] = useState(false);
+  
 
   const [tiers, setTiers] = useState<PrizeTier[]>([emptyTier(1)]);
   const [startD, setStartD] = useState(0);
@@ -415,7 +415,6 @@ function AdminCompetitions() {
       starts_at: new Date(now + startOffset * 3600_000).toISOString(),
       ends_at: new Date(now + endOffset * 3600_000).toISOString(),
       active: true,
-      requires_join: requiresJoin,
       created_by: user?.id ?? null,
     };
     const { error } = await supabase.from("competitions" as never).insert(payload as never);
@@ -498,15 +497,8 @@ function AdminCompetitions() {
           </div>
         )}
 
-        <label className="flex items-start gap-2 p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/40">
-          <input type="checkbox" checked={requiresJoin} onChange={e=>setRequiresJoin(e.target.checked)} className="w-5 h-5 mt-0.5"/>
-          <span className="text-sm">
-            <b className="text-emerald-200">🎣 مسابقة بالاشتراك (حماية من الهجوم)</b>
-            <span className="block text-[11px] text-slate-400 mt-0.5">
-              اللاعب يضغط "اشترك الآن" من صفحة الفعالية، ويصبح محمياً (لا يهجم ولا يُهجم عليه) حتى انتهاء الوقت. تُحسب نقاطه على عدد الأسماك المصادة فقط.
-            </span>
-          </span>
-        </label>
+
+
 
 
 
@@ -568,7 +560,7 @@ function AdminCompetitions() {
                     {ended && <span className="text-xs px-2 py-0.5 rounded bg-slate-700">منتهية</span>}
                     {!r.active && <span className="text-xs px-2 py-0.5 rounded bg-red-900/60 text-red-200">معطّلة</span>}
                     {r.hide_target && <span className="text-xs px-2 py-0.5 rounded bg-purple-900/60 text-purple-200">🤫 مخفية</span>}
-                    {r.requires_join && <span className="text-xs px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-200">🎣 بالاشتراك</span>}
+                    
                   </div>
                   <div className="text-xs text-slate-400 mt-1">
                     {METRICS.find(m => m.id === r.metric)?.label}

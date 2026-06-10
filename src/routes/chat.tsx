@@ -8,7 +8,7 @@ import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { EliteVipBadge, eliteVipNameClass } from "@/components/EliteVipBadge";
-import { useActiveFishingEventUserIds } from "@/hooks/use-fishing-event";
+
 
 import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
@@ -57,20 +57,16 @@ function Avatar({ p, size = 56 }: { p?: Prof | null; size?: number }) {
   );
 }
 
-function NameBadge({ p, mine, fishingIds }: { p?: Prof | null; mine?: boolean; fishingIds?: Set<string> }) {
+function NameBadge({ p, mine }: { p?: Prof | null; mine?: boolean }) {
   const frame = frameById(p?.name_frame);
   const cls = frame?.kind === "name" ? frame.nameClass || "" : "";
   const lvl = typeof p?.level === "number" ? p.level : null;
   const eliteLvl = getActiveEliteVip(p);
   const eliteCls = eliteVipNameClass(eliteLvl);
-  const inFishing = !!(p?.id && fishingIds?.has(p.id));
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${eliteCls || cls || (mine ? "text-amber-100" : "text-amber-300")} ${frame?.animClass ?? ""}`}>
       <VipBadge level={p?.vip_level} expiresAt={p?.vip_expires_at} />
       {eliteLvl > 0 && <EliteVipBadge level={eliteLvl} size="xs" />}
-      {inFishing && (
-        <span title="مشترك في فعالية الصيد — محمي من الهجوم" className="text-[11px] drop-shadow-[0_0_4px_rgba(16,185,129,0.8)]">🎣</span>
-      )}
       <span>{p?.display_name || "..."}</span>
       {lvl !== null && (
         <span className="text-[9px] px-1 rounded bg-black/40 text-amber-200 border border-amber-300/40">Lv {lvl}</span>
@@ -84,7 +80,7 @@ function ChatPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { isAdmin } = useIsAdmin();
-  const fishingIds = useActiveFishingEventUserIds();
+  
   const [tab, setTab] = useState<Channel>("public");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
@@ -548,11 +544,11 @@ function ChatPage() {
                             <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
                             {!mine && (
                               <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
-                                <NameBadge p={p} fishingIds={fishingIds} />
+                                <NameBadge p={p} />
                               </button>
                             )}
                             {mine && (
-                              <div className="mb-0.5"><NameBadge p={profile as any} mine fishingIds={fishingIds} /></div>
+                              <div className="mb-0.5"><NameBadge p={profile as any} mine /></div>
                             )}
                             {m.reply_to_id && (m.reply_to_body || m.reply_to_name) && (
                               <div className="mb-1 border-r-4 border-amber-300/80 bg-black/25 rounded-md px-2 py-1 text-[11px]">

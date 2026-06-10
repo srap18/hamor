@@ -475,32 +475,6 @@ export type Database = {
         }
         Relationships: []
       }
-      competition_participants: {
-        Row: {
-          competition_id: string
-          joined_at: string
-          user_id: string
-        }
-        Insert: {
-          competition_id: string
-          joined_at?: string
-          user_id: string
-        }
-        Update: {
-          competition_id?: string
-          joined_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "competition_participants_competition_id_fkey"
-            columns: ["competition_id"]
-            isOneToOne: false
-            referencedRelation: "competitions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       competitions: {
         Row: {
           active: boolean
@@ -516,7 +490,6 @@ export type Database = {
           metric: string
           prize_tiers: Json
           prizes_distributed_at: string | null
-          requires_join: boolean
           reward_coins: number
           reward_gems: number
           reward_text: string
@@ -539,7 +512,6 @@ export type Database = {
           metric: string
           prize_tiers?: Json
           prizes_distributed_at?: string | null
-          requires_join?: boolean
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
@@ -562,7 +534,6 @@ export type Database = {
           metric?: string
           prize_tiers?: Json
           prizes_distributed_at?: string | null
-          requires_join?: boolean
           reward_coins?: number
           reward_gems?: number
           reward_text?: string
@@ -3263,12 +3234,6 @@ export type Database = {
       }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       activate_golden_fisher: { Args: never; Returns: Json }
-      active_fishing_event_user_ids: {
-        Args: never
-        Returns: {
-          user_id: string
-        }[]
-      }
       add_vip_points: {
         Args: { _pts: number; _user: string }
         Returns: undefined
@@ -3752,12 +3717,9 @@ export type Database = {
           ends_at: string
           hide_target: boolean
           id: string
-          is_joined: boolean
           metric: string
-          participants_count: number
           prize_tiers: Json
           prizes_distributed_at: string
-          requires_join: boolean
           reward_coins: number
           reward_gems: number
           reward_text: string
@@ -3853,14 +3815,6 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
-      }
-      get_my_fishing_event: {
-        Args: never
-        Returns: {
-          competition_id: string
-          ends_at: string
-          title: string
-        }[]
       }
       get_my_ships: {
         Args: never
@@ -4119,10 +4073,6 @@ export type Database = {
         Returns: boolean
       }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
-      is_in_active_fishing_event: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
       is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
@@ -4133,10 +4083,6 @@ export type Database = {
       is_tribe_officer: {
         Args: { _tribe_id: string; _user_id: string }
         Returns: boolean
-      }
-      join_competition: {
-        Args: { _competition_id: string }
-        Returns: undefined
       }
       join_tribe_open: { Args: { _tribe_id: string }; Returns: undefined }
       launch_ad_bomb: {

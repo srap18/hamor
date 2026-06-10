@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverNow } from "@/lib/server-time";
-import { useMyFishingEvent } from "@/hooks/use-fishing-event";
+
 
 export const Route = createFileRoute("/competitions")({
   component: CompetitionsPage,
@@ -40,9 +40,6 @@ type Comp = {
   prize_tiers: PrizeTier[] | null;
   starts_at: string;
   ends_at: string;
-  requires_join?: boolean;
-  participants_count?: number;
-  is_joined?: boolean;
 };
 
 
@@ -167,9 +164,6 @@ function CompetitionsPage() {
   const [loading, setLoading] = useState(true);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
   const [me, setMe] = useState<string | null>(null);
-  const [joining, setJoining] = useState<string | null>(null);
-  const [joinMsg, setJoinMsg] = useState<string | null>(null);
-  const { event: myEvent, refetch: refetchMyEvent } = useMyFishingEvent();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -190,17 +184,6 @@ function CompetitionsPage() {
   };
   useEffect(() => { loadAll(); }, []);
 
-  const joinComp = async (compId: string) => {
-    if (!me) { setJoinMsg("سجّل الدخول أولاً"); return; }
-    setJoining(compId);
-    setJoinMsg(null);
-    const { error } = await (supabase as any).rpc("join_competition", { _competition_id: compId });
-    setJoining(null);
-    if (error) { setJoinMsg("تعذّر الاشتراك: " + error.message); return; }
-    setJoinMsg("✓ تم اشتراكك — أنت الآن محمي من الهجوم 🛡️");
-    refetchMyEvent();
-    await loadAll();
-  };
 
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -232,28 +215,8 @@ function CompetitionsPage() {
       <main className="relative max-w-3xl mx-auto p-3 md:p-5 space-y-7">
         <WeeklyXpCard />
 
-        {myEvent && (
-          <div className="rounded-2xl border-2 border-emerald-400/60 bg-gradient-to-br from-emerald-900/40 via-slate-900/80 to-emerald-950/40 p-4 shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)]">
-            <div className="flex items-center gap-3">
-              <div className="text-4xl drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🛡️</div>
-              <div className="flex-1">
-                <div className="text-sm font-black text-emerald-200">أنت محمي من الهجوم</div>
-                <div className="text-[11px] text-emerald-100/80 mt-0.5">مشترك في: {myEvent.title}</div>
-                <div className="text-[11px] text-emerald-200/70 mt-0.5">ينتهي خلال: {timeLeft(myEvent.ends_at)}</div>
-              </div>
-              <div className="text-2xl">🎣</div>
-            </div>
-            <div className="text-[10px] text-emerald-200/70 mt-2 leading-relaxed">
-              لا أحد يقدر يهجم عليك ولا تقدر تهجم على غيرك حتى تنتهي الفعالية.
-            </div>
-          </div>
-        )}
 
-        {joinMsg && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-200 text-center">
-            {joinMsg}
-          </div>
-        )}
+
 
         {loading && <div className="text-center text-amber-200/60 py-10">جاري التحميل...</div>}
         {!loading && comps.length === 0 && (
@@ -355,38 +318,6 @@ function CompetitionsPage() {
               <div className="p-4 md:p-5 space-y-4">
                 {c.description && <p className="text-sm text-slate-300 whitespace-pre-wrap">{c.description}</p>}
 
-                {/* Join box for fishing-event-style competitions */}
-                {c.requires_join && !isEnded && (
-                  <div className={`rounded-xl border-2 p-3 ${c.is_joined ? "border-emerald-400/60 bg-emerald-950/30" : "border-amber-400/60 bg-amber-950/20"}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-3xl">🎣</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-black text-amber-200">
-                          {c.is_joined ? "✓ أنت مشترك في الفعالية" : "اشترك في الفعالية"}
-                        </div>
-                        <div className="text-[11px] text-slate-300/80 mt-0.5">
-                          🛡️ المشتركون محميون من الهجوم ولا يقدرون يهجمون. <b>{c.participants_count ?? 0}</b> مشترك حالياً.
-                        </div>
-                      </div>
-                      {!c.is_joined ? (
-                        <button
-                          onClick={() => joinComp(c.id)}
-                          disabled={joining === c.id}
-                          className="shrink-0 px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-black text-sm shadow-lg hover:from-amber-300 hover:to-amber-500 active:scale-95 disabled:opacity-50 border border-amber-300"
-                        >
-                          {joining === c.id ? "..." : "اشترك الآن"}
-                        </button>
-                      ) : (
-                        <div className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-200 font-black text-xs border border-emerald-400/40">مشترك</div>
-                      )}
-                    </div>
-                    {c.is_joined && (
-                      <div className="text-[10px] text-emerald-200/80 mt-2 leading-relaxed">
-                        لا يمكنك إلغاء الاشتراك. الحماية تنتهي تلقائياً مع انتهاء الفعالية.
-                      </div>
-                    )}
-                  </div>
-                )}
 
 
 
