@@ -109,13 +109,16 @@ function ensureProfileBootstrap(userId: string) {
   }
   fetchProfileNow(userId);
 
-  // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus; mark offline on hide/unload
+  // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus.
+  // Do NOT mark offline on visibilitychange — mobile backgrounds the tab on every
+  // screen lock / app switch and would zero out the online count for real players.
+  // Only mark offline on actual page unload.
   const ping = () => { (supabase as any).rpc("update_my_online_at"); };
   const offline = () => { (supabase as any).rpc("mark_me_offline"); };
   ping();
   profilePingTimer = setInterval(ping, 30_000);
   if (typeof window !== "undefined") {
-    const onVis = () => { if (document.visibilityState === "visible") ping(); else offline(); };
+    const onVis = () => { if (document.visibilityState === "visible") ping(); };
     const onHide = () => { offline(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", ping);
