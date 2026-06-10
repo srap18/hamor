@@ -6,7 +6,6 @@ export const activateGoldenFisher = createServerFn({ method: "POST" })
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabase } = context;
-    // Cast to any: RPC name may not be in generated types until regeneration.
     const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
     if (error) throw new Error(error.message);
     return data as {
@@ -15,4 +14,14 @@ export const activateGoldenFisher = createServerFn({ method: "POST" })
       already_active?: boolean;
       tick?: { ok?: boolean; reason?: string; cycles?: number; ships?: number };
     };
+  });
+
+export const tickGoldenFisher = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data, error } = await (supabase as any).rpc("golden_fisher_tick", { _user: userId });
+    if (error) throw new Error(error.message);
+    return data as { ok?: boolean; reason?: string; cycles?: number; ships?: number };
   });

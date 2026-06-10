@@ -7,7 +7,7 @@ import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
-import { activateGoldenFisher } from "@/lib/golden-fisher.functions";
+import { activateGoldenFisher, tickGoldenFisher } from "@/lib/golden-fisher.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sellShip,
@@ -735,6 +735,14 @@ function Index() {
   const buyingCrewRef = useRef<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
+  // Track golden_fisher_until from profile so the per-frame ship loop can detect
+  // GF activation even when no inventory crew row exists (activate consumes it).
+  const goldenFisherUntilRef = useRef<number>(0);
+  useEffect(() => {
+    const t = (profile as any)?.golden_fisher_until;
+    goldenFisherUntilRef.current = t ? new Date(t).getTime() : 0;
+  }, [profile]);
+  const lastGfTickRef = useRef<number>(0);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
@@ -1074,10 +1082,21 @@ function Index() {
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           // Golden Fisher active: cap UI progress at 99% — ships must never visually reach 100%.
           if (ratio > 0.99) {
-            const gfActive = crewRowsRef.current.some(
-              (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-            );
-            if (gfActive) ratio = 0.99;
+            const gfActive =
+              goldenFisherUntilRef.current > now ||
+              crewRowsRef.current.some(
+                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+              );
+            if (gfActive) {
+              ratio = 0.99;
+              // Trigger a server-side harvest immediately (throttled to 5s) so
+              // the ship is stopped/reset right away while the user is online,
+              // instead of waiting for the 30s cron tick.
+              if (now - lastGfTickRef.current > 5000) {
+                lastGfTickRef.current = now;
+                tickGoldenFisher({ data: {} }).catch(() => {});
+              }
+            }
           }
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
@@ -1624,9 +1643,10 @@ function Index() {
           <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
             {/* Fish discovery + Golden Fisher active indicator */}
             <div className="flex items-center gap-1.5">
-              {crewRows.some(
-                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-              ) && (
+              {(((profile as any)?.golden_fisher_until && new Date((profile as any).golden_fisher_until).getTime() > now) ||
+                crewRows.some(
+                  (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+                )) && (
                 <span
                   title="🏅 الصياد الذهبي مفعّل — صيد تلقائي على كل سفنك"
                   aria-label="الصياد الذهبي مفعّل"
