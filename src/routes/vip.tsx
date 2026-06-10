@@ -4,7 +4,7 @@ import { ELITE_VIP_TIERS, getEliteVipTier } from "@/lib/elite-vip";
 import { EliteVipBadge } from "@/components/EliteVipBadge";
 import { useEliteVipLevel } from "@/hooks/use-elite-vip";
 import { useAuth } from "@/hooks/use-auth";
-import { usePaddleCheckout } from "@/lib/paddle-checkout.functions";
+
 import { BackButton } from "@/components/BackButton";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { toast } from "sonner";
@@ -57,7 +57,7 @@ function VipPage() {
     <div dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-slate-100 pb-20">
       <PaymentTestModeBanner />
       <div className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur border-b border-amber-500/20 px-4 py-3 flex items-center justify-between">
-        <BackButton />
+        <BackButton>رجوع</BackButton>
         <h1 className="text-lg font-extrabold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
           🏆 Elite VIP الحصري
         </h1>
@@ -210,8 +210,6 @@ function usePaddleCheckoutSafe() {
         variant: "one-page",
       },
     });
-    // Suppress unused warning
     void getPaddleEnvironment;
-    void usePaddleCheckout;
   };
 }
