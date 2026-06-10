@@ -1656,7 +1656,7 @@ function Index() {
                     try {
                       await removeGoldenFisher({ data: {} });
                       setToast("🗑️ تم إزالة الصياد الذهبي");
-                      await refetchProfile?.();
+                      await refreshProfile?.();
                     } catch {
                       setToast("تعذر إزالة الصياد الذهبي");
                     }
