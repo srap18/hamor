@@ -176,6 +176,20 @@ function MyVipPage() {
             )}
           </div>
 
+          {/* Daily gems claim */}
+          <div className="mt-4 rounded-3xl border-2 border-emerald-400/40 bg-gradient-to-br from-emerald-950/60 to-slate-900 p-5 text-center">
+            <div className="text-sm font-bold text-emerald-200">💎 جواهر يومية مجانية</div>
+            <div className="text-3xl font-black text-emerald-300 mt-1">{tier.dailyGems} 💎</div>
+            <button
+              onClick={claimDailyGems}
+              disabled={claiming || claimedToday}
+              className="mt-3 w-full py-3 rounded-xl font-extrabold bg-gradient-to-r from-emerald-500 to-green-400 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {claiming ? "..." : claimedToday ? "✓ تم الاستلام اليوم" : `استلم ${tier.dailyGems} 💎 الآن`}
+            </button>
+            {claimMsg && <div className="mt-2 text-xs text-emerald-200">{claimMsg}</div>}
+          </div>
+
           {/* Perks */}
           <div className="mt-4 rounded-3xl border border-amber-400/30 bg-slate-900/70 p-5">
             <div className="text-sm font-black text-amber-200 mb-3">✨ مميزاتك الحالية</div>
