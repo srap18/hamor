@@ -171,6 +171,16 @@ function PaymentSuccess() {
             >
               للمتجر
             </Link>
+            <button
+              onClick={runRecovery}
+              disabled={recovering}
+              className="w-full py-2 mt-3 rounded-xl bg-amber-600/20 border border-amber-400/50 text-amber-100 text-xs font-bold disabled:opacity-50"
+            >
+              {recovering ? "جاري التحقق..." : "ما وصلتك المكافأة؟ اضغط هنا"}
+            </button>
+            {recoverMsg && (
+              <p className="mt-2 text-[11px] text-amber-100/80">{recoverMsg}</p>
+            )}
           </>
         )}
       </div>
