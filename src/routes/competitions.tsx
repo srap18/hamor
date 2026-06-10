@@ -6,12 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverNow } from "@/lib/server-time";
+import { useMyFishingEvent } from "@/hooks/use-fishing-event";
 
 export const Route = createFileRoute("/competitions")({
   component: CompetitionsPage,
   ssr: false,
   head: () => ({ meta: [{ title: "الفعاليات والمسابقات" }] }),
 });
+
 
 type PrizeTier = {
   rank: number;
