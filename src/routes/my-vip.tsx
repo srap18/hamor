@@ -45,13 +45,23 @@ function MyVipPage() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("elite_vip_level, elite_vip_expires_at")
-        .eq("id", user.id)
-        .maybeSingle();
+      const today = new Date().toISOString().slice(0, 10);
+      const [{ data }, { data: claim }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("elite_vip_level, elite_vip_expires_at")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("elite_vip_daily_claims" as never)
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("claim_date", today)
+          .maybeSingle(),
+      ]);
       if (cancelled) return;
       setRow(data as any);
+      setClaimedToday(!!claim);
       setLoading(false);
     })();
     const ch = supabase
@@ -61,6 +71,20 @@ function MyVipPage() {
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);
+
+  const claimDailyGems = async () => {
+    setClaiming(true);
+    setClaimMsg(null);
+    const { data, error } = await (supabase as any).rpc("claim_elite_vip_daily_gems");
+    setClaiming(false);
+    if (error) {
+      setClaimMsg(error.message?.includes("already_claimed") ? "✓ تم استلام جواهر اليوم" : "خطأ: " + error.message);
+      if (error.message?.includes("already_claimed")) setClaimedToday(true);
+      return;
+    }
+    setClaimedToday(true);
+    setClaimMsg(`🎉 حصلت على ${data?.gems ?? 0} 💎`);
+  };
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
