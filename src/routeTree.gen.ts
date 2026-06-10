@@ -23,6 +23,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
+import { Route as MyVipRouteImport } from './routes/my-vip'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -126,6 +127,11 @@ const PricingRoute = PricingRouteImport.update({
 const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
   id: '/payment-success',
   path: '/payment-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyVipRoute = MyVipRouteImport.update({
+  id: '/my-vip',
+  path: '/my-vip',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/my-vip': typeof MyVipRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/my-vip': typeof MyVipRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/my-vip': typeof MyVipRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/my-vip'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/my-vip'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/my-vip'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -620,6 +632,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
+  MyVipRoute: typeof MyVipRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -739,6 +752,13 @@ declare module '@tanstack/react-router' {
       path: '/payment-success'
       fullPath: '/payment-success'
       preLoaderRoute: typeof PaymentSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-vip': {
+      id: '/my-vip'
+      path: '/my-vip'
+      fullPath: '/my-vip'
+      preLoaderRoute: typeof MyVipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1042,6 +1062,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
+  MyVipRoute: MyVipRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1065,13 +1086,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
