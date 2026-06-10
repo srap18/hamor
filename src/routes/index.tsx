@@ -1082,10 +1082,21 @@ function Index() {
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           // Golden Fisher active: cap UI progress at 99% — ships must never visually reach 100%.
           if (ratio > 0.99) {
-            const gfActive = crewRowsRef.current.some(
-              (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-            );
-            if (gfActive) ratio = 0.99;
+            const gfActive =
+              goldenFisherUntilRef.current > now ||
+              crewRowsRef.current.some(
+                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+              );
+            if (gfActive) {
+              ratio = 0.99;
+              // Trigger a server-side harvest immediately (throttled to 5s) so
+              // the ship is stopped/reset right away while the user is online,
+              // instead of waiting for the 30s cron tick.
+              if (now - lastGfTickRef.current > 5000) {
+                lastGfTickRef.current = now;
+                tickGoldenFisher({ data: {} }).catch(() => {});
+              }
+            }
           }
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
