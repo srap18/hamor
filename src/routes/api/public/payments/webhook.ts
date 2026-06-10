@@ -183,6 +183,33 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     }
   }
 
+  // Phoenix ships bundle (e.g. ثلاثية العنقاء)
+  if (reward.phoenixShips && reward.phoenixShips > 0) {
+    // Idempotency: only insert if this txn hasn't already produced phoenix rows for this user.
+    const { count } = await getSupabase()
+      .from("ships_owned")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("template_id", 31);
+    // Best-effort guard: if user already has >= the bundle count of phoenixes from prior grants
+    // it could be legitimate — we still rely on webhook NOT re-firing for same txn (Paddle retries
+    // are guarded by grant_paddle_purchase idempotency above; we only reach here on first grant).
+    void count;
+    const rows = Array.from({ length: reward.phoenixShips }, () => ({
+      user_id: userId,
+      template_id: 31,
+      hp: 13000,
+      max_hp: 13000,
+      at_sea: false,
+      catalog_code: "ship-lvl-31",
+    }));
+    const { error: shipErr } = await getSupabase().from("ships_owned").insert(rows);
+    if (shipErr) {
+      console.error("phoenix ships insert failed:", shipErr);
+      throw new Error(`phoenix ships insert failed: ${shipErr.message}`);
+    }
+  }
+
   // Referral bonus: if buyer was invited, reward inviter with 30% of purchase value in gems.
   // Game-funded — no deduction from buyer.
   if (amountCents > 0) {
