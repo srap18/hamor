@@ -231,6 +231,30 @@ function CompetitionsPage() {
 
       <main className="relative max-w-3xl mx-auto p-3 md:p-5 space-y-7">
         <WeeklyXpCard />
+
+        {myEvent && (
+          <div className="rounded-2xl border-2 border-emerald-400/60 bg-gradient-to-br from-emerald-900/40 via-slate-900/80 to-emerald-950/40 p-4 shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)]">
+            <div className="flex items-center gap-3">
+              <div className="text-4xl drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">🛡️</div>
+              <div className="flex-1">
+                <div className="text-sm font-black text-emerald-200">أنت محمي من الهجوم</div>
+                <div className="text-[11px] text-emerald-100/80 mt-0.5">مشترك في: {myEvent.title}</div>
+                <div className="text-[11px] text-emerald-200/70 mt-0.5">ينتهي خلال: {timeLeft(myEvent.ends_at)}</div>
+              </div>
+              <div className="text-2xl">🎣</div>
+            </div>
+            <div className="text-[10px] text-emerald-200/70 mt-2 leading-relaxed">
+              لا أحد يقدر يهجم عليك ولا تقدر تهجم على غيرك حتى تنتهي الفعالية.
+            </div>
+          </div>
+        )}
+
+        {joinMsg && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-200 text-center">
+            {joinMsg}
+          </div>
+        )}
+
         {loading && <div className="text-center text-amber-200/60 py-10">جاري التحميل...</div>}
         {!loading && comps.length === 0 && (
           <div className="text-center py-16 text-slate-400">
@@ -239,6 +263,7 @@ function CompetitionsPage() {
             <div className="text-xs mt-2">ترقّب البطولات القادمة!</div>
           </div>
         )}
+
 
         {comps.map(c => {
           const meta = METRIC_LABEL[c.metric] ?? { icon: "🏆", name: c.metric, unit: "" };
