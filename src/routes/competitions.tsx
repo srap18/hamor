@@ -355,6 +355,41 @@ function CompetitionsPage() {
               <div className="p-4 md:p-5 space-y-4">
                 {c.description && <p className="text-sm text-slate-300 whitespace-pre-wrap">{c.description}</p>}
 
+                {/* Join box for fishing-event-style competitions */}
+                {c.requires_join && !isEnded && (
+                  <div className={`rounded-xl border-2 p-3 ${c.is_joined ? "border-emerald-400/60 bg-emerald-950/30" : "border-amber-400/60 bg-amber-950/20"}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">🎣</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-black text-amber-200">
+                          {c.is_joined ? "✓ أنت مشترك في الفعالية" : "اشترك في الفعالية"}
+                        </div>
+                        <div className="text-[11px] text-slate-300/80 mt-0.5">
+                          🛡️ المشتركون محميون من الهجوم ولا يقدرون يهجمون. <b>{c.participants_count ?? 0}</b> مشترك حالياً.
+                        </div>
+                      </div>
+                      {!c.is_joined ? (
+                        <button
+                          onClick={() => joinComp(c.id)}
+                          disabled={joining === c.id}
+                          className="shrink-0 px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 font-black text-sm shadow-lg hover:from-amber-300 hover:to-amber-500 active:scale-95 disabled:opacity-50 border border-amber-300"
+                        >
+                          {joining === c.id ? "..." : "اشترك الآن"}
+                        </button>
+                      ) : (
+                        <div className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-200 font-black text-xs border border-emerald-400/40">مشترك</div>
+                      )}
+                    </div>
+                    {c.is_joined && (
+                      <div className="text-[10px] text-emerald-200/80 mt-2 leading-relaxed">
+                        لا يمكنك إلغاء الاشتراك. الحماية تنتهي تلقائياً مع انتهاء الفعالية.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+
+
                 {/* Target reveal */}
                 {c.metric === "fish_specific" && (
                   <div className="rounded-xl bg-slate-950/60 border border-slate-700/50 p-3">
