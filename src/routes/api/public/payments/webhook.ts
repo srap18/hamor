@@ -84,7 +84,7 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
   // Elite VIP — grant the level immediately on activation.
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && (data.status === "active" || data.status === "trialing")) {
-    await setEliteVipLevel(userId, eliteLevel);
+    await setEliteVipLevel(userId, eliteLevel, resolveExpiry(data));
   }
 }
 
