@@ -79,7 +79,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     const reward = pack?.reward ?? {};
     const amountCents = Number(txn.details?.totals?.total ?? 0);
 
-    const { error } = await supabaseAdmin.rpc("grant_paddle_purchase", {
+    const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {
       _txn_id: txn.id,
       _user: userId,
       _pack_id: packId,
@@ -93,7 +93,11 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
-    if (reward.items?.length) {
+    // Skip extras (inventory items, phoenix ships) if the webhook (or a prior call)
+    // already granted this transaction — prevents double-grants.
+    const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
+
+    if (!alreadyGranted && reward.items?.length) {
       for (const it of reward.items) {
         await supabaseAdmin.rpc("grant_inventory_item", {
           _user: userId,
@@ -104,7 +108,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       }
     }
 
-    if (reward.phoenixShips && reward.phoenixShips > 0) {
+    if (!alreadyGranted && reward.phoenixShips && reward.phoenixShips > 0) {
       const rows = Array.from({ length: reward.phoenixShips }, () => ({
         user_id: userId,
         template_id: 31,
@@ -116,5 +120,5 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       await supabaseAdmin.from("ships_owned").insert(rows);
     }
 
-    return { granted: true, packId };
+    return { granted: true, packId, alreadyGranted };
   });
