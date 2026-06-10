@@ -37,6 +37,9 @@ function MyVipPage() {
   const [row, setRow] = useState<{ elite_vip_level: number | null; elite_vip_expires_at: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
+  const [claimedToday, setClaimedToday] = useState<boolean>(false);
+  const [claiming, setClaiming] = useState(false);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
