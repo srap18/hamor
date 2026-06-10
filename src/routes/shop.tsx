@@ -27,7 +27,7 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
 
 type Item = {
   id: string;
