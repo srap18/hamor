@@ -25,14 +25,13 @@ export const Route = createFileRoute("/chat")({
 
 type Channel = "public" | "tribe" | "dm" | "topics";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null; reply_to_id?: string | null; reply_to_body?: string | null; reply_to_name?: string | null };
-type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null; elite_vip_level?: number | null; elite_vip_expires_at?: string | null };
+type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null; elite_vip_level?: number | null };
 
 function getActiveEliteVip(p?: Prof | null): number {
-  const lvl = Number(p?.elite_vip_level ?? 0);
-  if (lvl < 1) return 0;
-  const exp = p?.elite_vip_expires_at ? new Date(p.elite_vip_expires_at).getTime() : null;
-  if (exp !== null && exp <= Date.now()) return 0;
-  return lvl;
+  // elite_vip_expires_at is no longer exposed to clients (privacy).
+  // The server-side sweep_expired_elite_vip job sets elite_vip_level back to 0
+  // when a subscription expires, so the level itself is authoritative.
+  return Math.max(0, Number(p?.elite_vip_level ?? 0));
 }
 
 function VipBadge(_: { level?: number | null; expiresAt?: string | null }) {
@@ -167,7 +166,7 @@ function ChatPage() {
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
       const ids = (f || []).map((x: any) => x.requester_id === user.id ? x.addressee_id : x.requester_id);
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         setDmFriends((ps || []) as Prof[]);
       }
     })();
@@ -228,7 +227,7 @@ function ChatPage() {
       setMsgsKey(loadKey);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         if (!active) return;
         setProfMap(new Map((ps || []).map((p: any) => [p.id, p])));
       }
@@ -245,7 +244,7 @@ function ChatPage() {
         setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m]);
         setProfMap(prev => {
           if (prev.has(m.sender_id)) return prev;
-          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
+          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
             if (p) setProfMap(s => new Map(s).set((p as any).id, p as Prof));
           });
           return prev;

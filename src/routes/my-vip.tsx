@@ -47,11 +47,7 @@ function MyVipPage() {
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
       const [{ data }, { data: claim }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("elite_vip_level, elite_vip_expires_at")
-          .eq("id", user.id)
-          .maybeSingle(),
+        (supabase as any).rpc("get_my_elite_vip"),
         supabase
           .from("elite_vip_daily_claims" as never)
           .select("id")
@@ -60,14 +56,19 @@ function MyVipPage() {
           .maybeSingle(),
       ]);
       if (cancelled) return;
-      setRow(data as any);
+      const r = Array.isArray(data) ? data[0] : data;
+      setRow(r ?? null);
       setClaimedToday(!!claim);
       setLoading(false);
     })();
     const ch = supabase
       .channel(`my-vip:${user.id}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        (payload) => setRow(payload.new as any))
+        async () => {
+          const { data } = await (supabase as any).rpc("get_my_elite_vip");
+          const r = Array.isArray(data) ? data[0] : data;
+          setRow(r ?? null);
+        })
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);

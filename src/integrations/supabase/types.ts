@@ -3301,6 +3301,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_get_elite_vip: {
+        Args: { _user_id: string }
+        Returns: {
+          elite_vip_expires_at: string
+          elite_vip_level: number
+        }[]
+      }
       admin_get_player_fish: {
         Args: { _player: string }
         Returns: {
@@ -3843,6 +3850,13 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      get_my_elite_vip: {
+        Args: never
+        Returns: {
+          elite_vip_expires_at: string
+          elite_vip_level: number
+        }[]
       }
       get_my_ships: {
         Args: never
