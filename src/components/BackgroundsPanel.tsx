@@ -8,6 +8,8 @@ import {
   setSelectedBgId,
 } from "@/lib/backgrounds";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
