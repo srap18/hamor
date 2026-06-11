@@ -71,7 +71,7 @@ export function LastAttackTicker() {
             setMinimized(false);
             try { localStorage.removeItem("death-banner-min"); } catch { /* noop */ }
           }}
-          className="pointer-events-auto px-2 py-0.5 rounded-full backdrop-blur-md bg-black/30 border border-red-400/40 text-red-100/90 text-[10px] font-bold shadow active:scale-95"
+          className="pointer-events-auto px-2 py-0.5 rounded-full bg-black/70 border border-red-400/40 text-red-100/90 text-[10px] font-bold shadow active:scale-95"
           title="إظهار شريط آخر هجوم"
         >
           {emoji} آخر هجوم
