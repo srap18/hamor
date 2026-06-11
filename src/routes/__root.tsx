@@ -20,6 +20,7 @@ import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLa
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
 import { SoftProtection } from "@/components/SoftProtection";
+import { I18nProvider } from "@/lib/i18n";
 
 
 // Install the server-time clock as early as possible on the client so every
@@ -363,6 +364,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <I18nProvider>
       <AdminLayoutEditorProvider>
         <MobileFrame>
           <GlobalBanner />
@@ -383,6 +385,7 @@ function RootComponent() {
           </div>
         )}
       </AdminLayoutEditorProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

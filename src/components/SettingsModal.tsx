@@ -7,9 +7,11 @@ import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
+import { useT, type Lang } from "@/lib/i18n";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
+  const { t, lang, setLang } = useT();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
@@ -39,7 +41,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const resend = async () => {
     if (!email || sending) return;
-    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+    if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
     setSending(true);
 
     setMsg(null);
@@ -49,39 +51,39 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       options: { emailRedirectTo: window.location.origin },
     });
     setSending(false);
-    setMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط التوثيق إلى بريدك ✓");
+    setMsg(error ? t("settings.send_failed") + error.message : t("settings.verify_sent"));
     setTimeout(() => setMsg(null), 4000);
   };
 
   const changeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail || changingEmail) return;
-    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+    if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
     setChangingEmail(true);
     const { error } = await supabase.auth.updateUser({ email: newEmail });
 
     setChangingEmail(false);
-    if (error) { flash("فشل التغيير: " + error.message); return; }
-    flash("تم إرسال رابط التأكيد إلى البريد الجديد ✓");
+    if (error) { flash(t("settings.change_failed") + error.message); return; }
+    flash(t("settings.email_change_sent"));
     setShowEmailForm(false);
     setNewEmail("");
   };
 
   const sendReset = async () => {
     if (!email) return;
-    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+    if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
 
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    flash(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط استعادة كلمة المرور ✓");
+    flash(error ? t("settings.send_failed") + error.message : t("settings.reset_sent"));
   };
 
   const signOut = async () => {
     const ok = await confirmDialog({
-      title: "تسجيل الخروج",
-      message: "هل أنت متأكد من تسجيل الخروج؟",
-      confirmText: "خروج",
+      title: t("settings.sign_out_confirm_title"),
+      message: t("settings.sign_out_confirm_msg"),
+      confirmText: t("settings.sign_out_btn"),
       danger: true,
     });
     if (!ok) return;
@@ -99,34 +101,54 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-accent font-bold text-base mb-4 text-center">⚙️ الإعدادات</div>
+        <div className="text-accent font-bold text-base mb-4 text-center">{t("settings.title")}</div>
+
+        {/* Language switcher */}
+        <div className="mb-4 p-3 rounded-lg bg-black/30 border border-accent/30">
+          <div className="text-xs text-accent/80 mb-2">{t("settings.language")}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {(["ar", "en"] as Lang[]).map((code) => (
+              <button
+                key={code}
+                onClick={() => { sound.play("click"); setLang(code); }}
+                className={`py-2 rounded-lg text-xs font-bold active:scale-95 transition-colors ${
+                  lang === code
+                    ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white"
+                    : "bg-black/40 text-accent/80 border border-accent/30"
+                }`}
+              >
+                {t(`lang.${code}`)}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Account verification */}
         <div className="mb-4 p-3 rounded-lg bg-black/30 border border-accent/30">
-          <div className="text-xs text-accent/80 mb-1">🛡️ توثيق الحساب</div>
+          <div className="text-xs text-accent/80 mb-1">{t("settings.account_verification")}</div>
           {email ? (
             <>
               <div className="text-[11px] text-accent/70 mb-2 break-all">{email}</div>
               {verified ? (
                 <div className="text-sm font-bold text-emerald-400 flex items-center gap-1">
-                  ✅ الحساب موثّق
+                  {t("settings.verified")}
                 </div>
               ) : (
                 <>
-                  <div className="text-sm font-bold text-amber-300 mb-2">⚠️ غير موثّق</div>
+                  <div className="text-sm font-bold text-amber-300 mb-2">{t("settings.not_verified")}</div>
                   <button
                     onClick={resend}
                     disabled={sending}
                     className="w-full py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
                   >
-                    {sending ? "جاري الإرسال..." : "📧 إرسال رابط التوثيق"}
+                    {sending ? t("common.sending") : t("settings.send_verify_link")}
                   </button>
                 </>
               )}
               {msg && <div className="mt-2 text-[11px] text-accent text-center">{msg}</div>}
             </>
           ) : (
-            <div className="text-xs text-accent/60">لم يتم تسجيل الدخول</div>
+            <div className="text-xs text-accent/60">{t("settings.not_signed_in")}</div>
           )}
         </div>
 
@@ -135,17 +157,17 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
 
         <ToggleRow
-          label="🎵 الموسيقى الخلفية"
+          label={t("settings.music")}
           value={music}
           onChange={(v) => { setMusic(v); sound.setMusic(v); }}
         />
         <ToggleRow
-          label="🔊 المؤثرات الصوتية"
+          label={t("settings.sfx")}
           value={sfx}
           onChange={(v) => { setSfx(v); sound.setSfx(v); sound.play("click"); }}
         />
         <ToggleRow
-          label="💀 إظهار لافتات الموت"
+          label={t("settings.death_banners")}
           value={showDeathBanner}
           onChange={(v) => {
             setShowDeathBanner(v);
@@ -157,7 +179,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <ToggleRow
-          label="🔋 موفر البطارية (يقلل تسخين الجوال)"
+          label={t("settings.lite_mode")}
           value={lite}
           onChange={(v) => {
             setLite(v);
@@ -165,7 +187,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <div className="-mt-1 mb-2 px-1 text-[10px] text-amber-300/70 leading-snug">
-          يوقف الخلفيات المتحركة، اللهب، حركات السفن، والفيديو. يخفض حرارة الجهاز ويوفر شحن البطارية بشكل كبير — مناسب للايفون والاندرويد لما يسخن.
+          {t("settings.lite_hint")}
         </div>
 
         {email && (
@@ -176,7 +198,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             }}
             className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-700 text-white text-xs font-bold active:scale-95"
           >
-            🎯 تخصيص مواقع الأيقونات
+            {t("settings.customize_icons")}
           </button>
         )}
 
@@ -186,14 +208,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               onClick={() => setShowEmailForm((v) => !v)}
               className="w-full py-2 rounded-lg bg-gradient-to-b from-sky-500 to-sky-700 text-white text-xs font-bold active:scale-95"
             >
-              ✉️ تغيير البريد الإلكتروني
+              {t("settings.change_email")}
             </button>
             {showEmailForm && (
               <form onSubmit={changeEmail} className="space-y-2 p-2 rounded-lg bg-black/30 border border-accent/30">
                 <input
                   type="email"
                   required
-                  placeholder="البريد الجديد"
+                  placeholder={t("settings.new_email")}
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   className="w-full px-2 py-1.5 rounded bg-stone-900 border border-amber-700/40 text-white text-xs"
@@ -203,22 +225,22 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                   disabled={changingEmail}
                   className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
                 >
-                  {changingEmail ? "جاري الإرسال..." : "تأكيد التغيير"}
+                  {changingEmail ? t("common.sending") : t("settings.confirm_change")}
                 </button>
-                <div className="text-[10px] text-accent/60 text-center">سيُرسَل رابط التأكيد إلى البريد الجديد</div>
+                <div className="text-[10px] text-accent/60 text-center">{t("settings.confirm_change_hint")}</div>
               </form>
             )}
             <button
               onClick={sendReset}
               className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-xs font-bold active:scale-95"
             >
-              🔑 استعادة / تغيير كلمة المرور
+              {t("settings.reset_password")}
             </button>
             <button
               onClick={signOut}
               className="w-full py-2 rounded-lg bg-gradient-to-b from-rose-600 to-rose-800 text-white text-xs font-bold active:scale-95"
             >
-              🚪 تسجيل الخروج
+              {t("settings.sign_out")}
             </button>
           </div>
         )}
@@ -243,20 +265,20 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
           className="w-full py-2 mt-2 rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-700 text-white text-xs font-bold active:scale-95"
         >
-          🔄 تحديث اللعبة لآخر إصدار
+          {t("settings.refresh_game")}
         </button>
         <div className="mt-1 px-1 text-[10px] text-cyan-300/70 text-center leading-snug">
-          اضغط هذا الزر إذا ما يظهر عندك آخر تحديث للعبة.
+          {t("settings.refresh_hint")}
         </div>
 
         <div className="mt-4 text-[10px] text-accent/60 text-center">
-          الإصدار 1.0 — Ocean Catch
+          {t("settings.version")}
         </div>
 
         <button
           className="mt-4 w-full py-2.5 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-bold active:scale-95"
           onClick={() => { sound.play("click"); onClose(); }}
-        >إغلاق</button>
+        >{t("common.close")}</button>
       </div>
     </div>
   );
