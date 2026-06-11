@@ -17,7 +17,8 @@ import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { recordAttackWithRetry } from "@/lib/record-attack";
 import { rateLimit } from "@/lib/rate-limit";
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
+
 
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 import { applyDragonAttack, overallLevel, type Dragon } from "@/lib/dragon";
