@@ -11,7 +11,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [banInfo, setBanInfo] = useState<{ reason: string } | null>(null);
   const [checking, setChecking] = useState(true);
+  const [needsMfa, setNeedsMfa] = useState(false);
+  const [mfaChecked, setMfaChecked] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
   const securityBlock = useSecurityEnforcement();
+
+  useEffect(() => {
+    if (!user) { setMfaChecked(true); return; }
+    setMfaChecked(false);
+    mfaStepUpRequired().then((req) => { setNeedsMfa(req); setMfaChecked(true); });
+  }, [user?.id]);
 
 
   useEffect(() => {
