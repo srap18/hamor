@@ -366,6 +366,8 @@ function RootComponent() {
       <AdminLayoutEditorProvider>
         <MobileFrame>
           <GlobalBanner />
+          <SoftProtection />
+
           <LastAttackTicker />
           <EliteVipLoginOverlay />
 
