@@ -3877,14 +3877,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       >
       {/* 3D ship body */}
       <div
-        className="relative w-full"
+        className={`relative w-full ${destroyed || docked ? "" : "animate-ship-bob"}`}
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
-            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
+            : `rotateX(2deg) rotateZ(${tilt * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
-          transition: "transform 0.2s ease-out",
+          transition: "transform 0.5s ease-out",
           filter: destroyed
             ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
             : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
