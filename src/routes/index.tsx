@@ -1505,10 +1505,10 @@ function Index() {
                 to="/p/$id"
                 params={{ id: s.stealingTargetUserId! }}
                 onClick={() => sound.play("click")}
-                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl backdrop-blur-md shadow-2xl active:scale-95 border-2 ${
+                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl active:scale-95 border-2 ${
                   ready
-                    ? "bg-gradient-to-r from-emerald-700/90 to-emerald-900/90 border-emerald-300 animate-pulse"
-                    : "bg-gradient-to-r from-amber-700/90 to-rose-900/90 border-amber-300"
+                    ? "bg-gradient-to-r from-emerald-700 to-emerald-900 border-emerald-300 animate-pulse"
+                    : "bg-gradient-to-r from-amber-700 to-rose-900 border-amber-300"
                 }`}
                 style={{ boxShadow: "0 0 24px rgba(251,191,36,0.45)" }}
               >
