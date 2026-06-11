@@ -1059,15 +1059,15 @@ function Index() {
     let raf = 0;
     let timeout: ReturnType<typeof setTimeout> | null = null;
     let last = 0;
-    // Lite Mode / weak devices: drop to ~6fps (165ms) — fishing progress is
-    // a slow-moving bar, no one notices, but it cuts main-thread work by ~5×
-    // on iPhone Safari and stops the "frozen" feeling.
-    const FRAME_MS = isHeavyFxDisabled ? 165 : 33;
-    const IDLE_MS = isHeavyFxDisabled ? 1000 : 500;
+    // Lite Mode / weak devices: keep ship sailing smooth enough to not look
+    // stuck, but update passive fishing timers much less often.
+    const MOVE_FRAME_MS = isHeavyFxDisabled ? 66 : 33;
+    const PROGRESS_FRAME_MS = isHeavyFxDisabled ? 500 : 33;
+    const IDLE_MS = isHeavyFxDisabled ? 250 : 500;
     const EPS = 0.001;
 
     function schedule(nextDelay: number) {
-      if (nextDelay <= FRAME_MS + 1) {
+      if (nextDelay <= MOVE_FRAME_MS + 1) {
         raf = requestAnimationFrame(tick);
       } else {
         timeout = setTimeout(() => { raf = requestAnimationFrame(tick); }, nextDelay);
@@ -1076,20 +1076,21 @@ function Index() {
 
     function tick(ts: number) {
       if (document.hidden) { schedule(IDLE_MS); return; }
-      if (ts - last < FRAME_MS) { raf = requestAnimationFrame(tick); return; }
-      const dt = last === 0 ? FRAME_MS : ts - last;
+      if (ts - last < MOVE_FRAME_MS) { raf = requestAnimationFrame(tick); return; }
+      const dt = last === 0 ? MOVE_FRAME_MS : ts - last;
       last = ts;
 
       const now = serverNowMs();
       let dirty = false;
-      let busy = false; // any ship fishing OR sail still moving?
+      let sailBusy = false;
+      let progressBusy = false;
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
           const smoothing = 1 - Math.exp(-dt / 220);
           const sailDelta = (target - s.sail) * smoothing;
           const sailMoving = Math.abs(sailDelta) > EPS;
-          if (sailMoving) busy = true;
+          if (sailMoving) sailBusy = true;
           const sail = sailMoving ? s.sail + sailDelta : target;
 
 
@@ -1098,7 +1099,7 @@ function Index() {
             dirty = true;
             return { ...s, sail };
           }
-          busy = true; // fishing ship → keep ticking
+          progressBusy = true; // fishing ship → keep ticking, but slowly in Lite Mode
           if (s.dbId && !isServerClockSynced()) {
             if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
             dirty = true;
@@ -1132,8 +1133,9 @@ function Index() {
         return dirty ? next : curr;
       });
 
-      // If no ship is animating, sleep longer to save battery/heat.
-      schedule(busy ? FRAME_MS : IDLE_MS);
+      // If only timers are running, sleep longer; if a ship is physically
+      // sailing, keep enough frames for smooth motion.
+      schedule(sailBusy ? MOVE_FRAME_MS : progressBusy ? PROGRESS_FRAME_MS : IDLE_MS);
     }
     raf = requestAnimationFrame(tick);
     return () => {
@@ -3788,7 +3790,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: "left 0.5s ease-in-out",
+          transition: isHeavyFxDisabled ? "left 0.35s linear" : "left 0.5s ease-in-out",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3845,7 +3847,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           {crews.map((c, i) => (
             <div
               key={c.id}
-              className="relative animate-crew-bob"
+              className={`relative ${isHeavyFxDisabled ? "" : "animate-crew-bob"}`}
               style={{
                 width: "28%",
                 animationDelay: `${i * 0.25}s`,
@@ -3878,11 +3880,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
           transition: "transform 0.7s ease-in-out",
+          willChange: isHeavyFxDisabled ? "auto" : "transform",
         }}
       >
       {/* 3D ship body */}
       <div
-        className={`relative w-full ${destroyed || docked ? "" : "animate-ship-bob"}`}
+        className={`relative w-full ${destroyed || docked || isHeavyFxDisabled ? "" : "animate-ship-bob"}`}
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
@@ -3890,15 +3893,17 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.5s ease-out",
-          filter: destroyed
-            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
-            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          filter: isHeavyFxDisabled
+            ? "none"
+            : destroyed
+              ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+              : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
           opacity: destroyed ? 0.8 : 1,
         }}
       >
         <div className="relative w-full">
           {/* Mirror reflection of the ship on the water */}
-          {!destroyed && (
+          {!destroyed && !isHeavyFxDisabled && (
             <img
               src={ship.img}
               alt=""
@@ -3917,7 +3922,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             />
           )}
           {/* Foam ring at waterline */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none animate-pulse"
             style={{
@@ -3929,9 +3934,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               filter: "blur(3px)",
               opacity: 0.85,
             }}
-          />
+          />}
           {/* Outer water ripple */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
             style={{
@@ -3943,9 +3948,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               filter: "blur(2px)",
               opacity: 0.7,
             }}
-          />
+          />}
           {/* Soft shadow on water beneath hull */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
             style={{
@@ -3956,11 +3961,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 "radial-gradient(ellipse at center, rgba(0,20,40,0.55) 0%, rgba(0,20,40,0.2) 50%, rgba(0,0,0,0) 80%)",
               filter: "blur(5px)",
             }}
-          />
+          />}
           <img
             src={ship.img}
             alt="Ship"
-            className={`w-full block select-none pointer-events-none ${destroyed ? "" : "animate-sail-flap"}`}
+            className={`w-full block select-none pointer-events-none ${destroyed || isHeavyFxDisabled ? "" : "animate-sail-flap"}`}
             draggable={false}
             decoding="async"
             loading="eager"
