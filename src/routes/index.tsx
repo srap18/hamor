@@ -1963,6 +1963,17 @@ function Index() {
                         collect(s.id, e);
                       }}
                     />
+                    {s.fishing && getCrewBonuses(s).guide && (
+                      <ActionBtn
+                        emoji="🧭"
+                        label="غيّر النوع"
+                        onClick={() => {
+                          setMenuShipId(null);
+                          setFishPickerChangeOnly(true);
+                          setFishPickerShipId(s.id);
+                        }}
+                      />
+                    )}
                     <ActionBtn
                       emoji="👥"
                       label="طاقم"
