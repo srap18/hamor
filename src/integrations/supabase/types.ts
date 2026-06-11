@@ -3043,6 +3043,33 @@ export type Database = {
         }
         Relationships: []
       }
+      weapons_catalog: {
+        Row: {
+          aoe: boolean
+          created_at: string
+          damage: number
+          id: string
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          aoe?: boolean
+          created_at?: string
+          damage: number
+          id: string
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          aoe?: boolean
+          created_at?: string
+          damage?: number
+          id?: string
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       weekly_xp_config: {
         Row: {
           description: string
@@ -3477,6 +3504,19 @@ export type Database = {
           _skip_fishing_check?: boolean
         }
         Returns: {
+          destroyed: boolean
+          new_hp: number
+          repair_ends_at: string
+        }[]
+      }
+      apply_ship_damage_v2: {
+        Args: {
+          _ship_id: string
+          _skip_fishing_check?: boolean
+          _weapon_id: string
+        }
+        Returns: {
+          damage_applied: number
           destroyed: boolean
           new_hp: number
           repair_ends_at: string
@@ -4464,6 +4504,14 @@ export type Database = {
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       user_market_remaining: { Args: { _uid: string }; Returns: number }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
+      verify_and_get_vip_status: {
+        Args: { _user_id: string }
+        Returns: {
+          combat_multiplier: number
+          elite_level: number
+          is_vip: boolean
+        }[]
+      }
       verify_session_integrity: { Args: { _token: string }; Returns: boolean }
       warn_overfull_tribes: { Args: never; Returns: number }
     }
