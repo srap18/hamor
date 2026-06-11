@@ -112,20 +112,34 @@ function SignupPage() {
           <div className="text-xl font-extrabold text-amber-300">حساب جديد</div>
           <div className="text-xs text-amber-100/70 inline-flex items-center justify-center gap-1 w-full">ابدأ رحلتك من 500 <CoinIcon size={12} /></div>
         </div>
-        <form onSubmit={submit} className="space-y-3">
-          <input required maxLength={15} placeholder="اسم القبطان (15 حرف كحد أقصى)" value={name} onChange={(e) => setName(e.target.value.slice(0, 15))}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
-          <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
-          <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
-          <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
-          {err && <div className="text-rose-400 text-xs text-center">{err}</div>}
-          <button disabled={loading} type="submit" className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60">
-            {loading ? "..." : "تسجيل"}
-          </button>
-        </form>
+        {pendingEmail ? (
+          <div className="space-y-3 text-center">
+            <div className="text-5xl">📧</div>
+            <div className="text-amber-200 font-bold">تحقق من بريدك الإلكتروني</div>
+            <div className="text-xs text-amber-100/70">أرسلنا رابط تأكيد إلى <span className="text-amber-300 break-all">{pendingEmail}</span>. افتح الرابط لتفعيل حسابك ثم ادخل من صفحة الدخول.</div>
+            <button onClick={resend} disabled={resending}
+              className="w-full py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
+              {resending ? "جاري الإرسال..." : "إعادة إرسال الرابط"}
+            </button>
+            {resendMsg && <div className="text-[11px] text-emerald-300">{resendMsg}</div>}
+            <Link to="/login" className="block text-amber-300 text-xs font-bold">الذهاب لتسجيل الدخول</Link>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            <input required maxLength={15} placeholder="اسم القبطان (15 حرف كحد أقصى)" value={name} onChange={(e) => setName(e.target.value.slice(0, 15))}
+              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
+            <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
+            <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
+            <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
+              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
+            {err && <div className="text-rose-400 text-xs text-center">{err}</div>}
+            <button disabled={loading} type="submit" className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60">
+              {loading ? "..." : "تسجيل"}
+            </button>
+          </form>
+        )}
         <div className="mt-4 text-center text-xs text-amber-100/70">
           عندك حساب؟ <Link to="/login" className="text-amber-300 font-bold">دخول</Link>
         </div>
