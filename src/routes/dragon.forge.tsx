@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import {
   EquipmentItem, Rarity, Slot,
   SHOP, SLOT_IMG, SLOT_LABEL, RARITY_LABEL, RARITY_COLOR,
