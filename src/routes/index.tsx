@@ -3847,7 +3847,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           {crews.map((c, i) => (
             <div
               key={c.id}
-              className="relative animate-crew-bob"
+              className={`relative ${isHeavyFxDisabled ? "" : "animate-crew-bob"}`}
               style={{
                 width: "28%",
                 animationDelay: `${i * 0.25}s`,
@@ -3885,7 +3885,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       >
       {/* 3D ship body */}
       <div
-        className={`relative w-full ${destroyed || docked ? "" : "animate-ship-bob"}`}
+        className={`relative w-full ${destroyed || docked || isHeavyFxDisabled ? "" : "animate-ship-bob"}`}
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
@@ -3965,7 +3965,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           <img
             src={ship.img}
             alt="Ship"
-            className={`w-full block select-none pointer-events-none ${destroyed ? "" : "animate-sail-flap"}`}
+            className={`w-full block select-none pointer-events-none ${destroyed || isHeavyFxDisabled ? "" : "animate-sail-flap"}`}
             draggable={false}
             decoding="async"
             loading="eager"
