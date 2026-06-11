@@ -3790,7 +3790,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         width: `${22 * ship.scale}%`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-        transition: "left 0.5s ease-in-out",
+          transition: isHeavyFxDisabled ? "left 0.35s linear" : "left 0.5s ease-in-out",
       }}
     >
       {/* Wake ripples behind — only while actually moving */}
@@ -3880,6 +3880,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           transform: `scaleX(${flipX})`,
           transformOrigin: "center center",
           transition: "transform 0.7s ease-in-out",
+          willChange: isHeavyFxDisabled ? "auto" : "transform",
         }}
       >
       {/* 3D ship body */}
@@ -3892,9 +3893,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
           transition: "transform 0.5s ease-out",
-          filter: destroyed
-            ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
-            : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
+          filter: isHeavyFxDisabled
+            ? "none"
+            : destroyed
+              ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
+              : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
           opacity: destroyed ? 0.8 : 1,
         }}
       >
