@@ -38,7 +38,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const resend = async () => {
     if (!email || sending) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setSending(true);
+
     setMsg(null);
     const { error } = await supabase.auth.resend({
       type: "signup",
