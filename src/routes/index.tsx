@@ -1396,7 +1396,7 @@ function Index() {
       }}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {scene.displayVideo && !isHeavyFxDisabled ? (
+        {scene.displayVideo && !isLowPerfMode ? (
           <SeamlessVideo
             key={`vid-${scene.id}`}
             src={scene.displayVideo}
