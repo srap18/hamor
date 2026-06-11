@@ -8,6 +8,8 @@ import {
   setSelectedBgId,
 } from "@/lib/backgrounds";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
@@ -89,6 +91,8 @@ export function BackgroundsPanel() {
     }
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     if (busy) return;
+    if (!(await rateLimit("purchase", 1000))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+
 
     if (b.currency === "gems") {
       if ((profile.gems ?? 0) < b.price) { flash(`💎 تحتاج ${b.price.toLocaleString()} جوهرة`); return; }

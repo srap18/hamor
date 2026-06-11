@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import {
   EquipmentItem, Rarity, Slot,
   SHOP, SLOT_IMG, SLOT_LABEL, RARITY_LABEL, RARITY_COLOR,
@@ -58,7 +60,9 @@ function ForgePage() {
 
   const buy = async (slot: Slot, rarity: Rarity, currency: "coins" | "gems") => {
     if (busy) return;
+    if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setBusy(true);
+
     const { data, error } = await rpc("buy_dragon_equipment", { p_slot: slot, p_rarity: rarity, p_currency: currency });
     setBusy(false);
     if (error) return flash("❌ " + error.message);
@@ -89,8 +93,10 @@ function ForgePage() {
 
   const upgrade = async (id: string) => {
     if (busy) return;
+    if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setBusy(true);
     const { data, error } = await rpc("upgrade_dragon_item", { p_item_id: id });
+
     setBusy(false);
     if (error) return flash("❌ " + error.message);
     if (data?.ok === false) return flash("❌ " + (data.error ?? "فشل الترقية"));

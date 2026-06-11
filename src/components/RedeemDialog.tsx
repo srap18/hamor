@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { CREWS } from "@/lib/crews";
@@ -80,8 +82,11 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
   const submit = async () => {
     const c = code.toUpperCase().replace(/[\s-]+/g, "").trim();
     if (!c) return;
+    if (loading) return;
+    if (!(await rateLimit("redeem", 1500))) { toast.warning("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setLoading(true);
     const { data, error } = await supabase.rpc("redeem_code", { p_code: c });
+
     setLoading(false);
     if (error) {
       const msg = (error.message || "").toLowerCase();

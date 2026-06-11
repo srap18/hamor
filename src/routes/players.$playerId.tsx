@@ -16,6 +16,10 @@ import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { recordAttackWithRetry } from "@/lib/record-attack";
+import { rateLimit } from "@/lib/rate-limit";
+import { toast as sonnerToast } from "sonner";
+
+
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 import { applyDragonAttack, overallLevel, type Dragon } from "@/lib/dragon";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
@@ -437,7 +441,13 @@ function PlayerPage() {
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
     if (!(await confirmDropArmorIfActive())) return;
+    // Server-side rate limit (also logs spam to cheat_flags)
+    if (!(await rateLimit("attack", 800))) {
+      sonnerToast.warning("تمهّل قليلاً قبل المحاولة مجدداً");
+      return;
+    }
     setBusy(true); sound.play("click");
+
     // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
     setSelectedShip(null);

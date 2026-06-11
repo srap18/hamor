@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
@@ -36,7 +38,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const resend = async () => {
     if (!email || sending) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setSending(true);
+
     setMsg(null);
     const { error } = await supabase.auth.resend({
       type: "signup",
@@ -51,8 +55,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const changeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail || changingEmail) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setChangingEmail(true);
     const { error } = await supabase.auth.updateUser({ email: newEmail });
+
     setChangingEmail(false);
     if (error) { flash("فشل التغيير: " + error.message); return; }
     flash("تم إرسال رابط التأكيد إلى البريد الجديد ✓");
@@ -62,7 +68,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const sendReset = async () => {
     if (!email) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
+
       redirectTo: `${window.location.origin}/reset-password`,
     });
     flash(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط استعادة كلمة المرور ✓");
