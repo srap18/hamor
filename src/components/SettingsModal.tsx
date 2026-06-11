@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
