@@ -72,7 +72,7 @@ function SignupPage() {
         return;
       }
     } catch {}
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
@@ -81,7 +81,7 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) { setErr(error.message); return; }
-    // Apply referral if provided (best-effort; needs authenticated session)
+    if (!data.session) { setPendingEmail(email); return; }
     if (refCode) {
       try {
         await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
@@ -89,6 +89,17 @@ function SignupPage() {
       } catch {}
     }
     nav({ to: "/" });
+  };
+
+  const resend = async () => {
+    if (!pendingEmail || resending) return;
+    setResending(true); setResendMsg(null);
+    const { error } = await supabase.auth.resend({
+      type: "signup", email: pendingEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setResending(false);
+    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إعادة إرسال الرابط ✓");
   };
 
   return (
