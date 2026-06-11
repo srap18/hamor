@@ -85,7 +85,7 @@ export function LastAttackTicker() {
       className="fixed top-0 inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
       style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}
     >
-      <div className="pointer-events-auto relative max-w-md w-full rounded-full backdrop-blur-md bg-gradient-to-r from-black/20 via-red-900/25 to-black/20 border border-red-300/30 shadow-[0_4px_14px_rgba(0,0,0,0.35)] px-3 py-1 overflow-hidden">
+      <div className="pointer-events-auto relative max-w-md w-full rounded-full bg-gradient-to-r from-black/70 via-red-900/70 to-black/70 border border-red-300/30 shadow-[0_4px_14px_rgba(0,0,0,0.35)] px-3 py-1 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/5 to-transparent" />
         <div className="relative text-center text-[11px] font-bold leading-tight tracking-wide text-red-50/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] pe-5 truncate">
           <span className="opacity-90 me-1">{emoji}</span>
