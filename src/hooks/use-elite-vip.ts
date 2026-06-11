@@ -42,8 +42,10 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        (payload) => {
-          setLevel(computeLevel(payload.new as any));
+        async () => {
+          const { data } = await (supabase as any).rpc("get_my_elite_vip");
+          const r = Array.isArray(data) ? data[0] : data;
+          setLevel(computeLevel(r as any));
         },
       )
       .subscribe();
