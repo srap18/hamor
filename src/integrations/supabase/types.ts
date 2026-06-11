@@ -2243,6 +2243,7 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
+          preferred_fish_id: string | null
           repair_ends_at: string | null
           stars: number
           stealing_ends_at: string | null
@@ -2263,6 +2264,7 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
+          preferred_fish_id?: string | null
           repair_ends_at?: string | null
           stars?: number
           stealing_ends_at?: string | null
@@ -2283,6 +2285,7 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
+          preferred_fish_id?: string | null
           repair_ends_at?: string | null
           stars?: number
           stealing_ends_at?: string | null
@@ -3949,6 +3952,7 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
+          preferred_fish_id: string | null
           repair_ends_at: string | null
           stars: number
           stealing_ends_at: string | null
