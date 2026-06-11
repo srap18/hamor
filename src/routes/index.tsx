@@ -1059,15 +1059,15 @@ function Index() {
     let raf = 0;
     let timeout: ReturnType<typeof setTimeout> | null = null;
     let last = 0;
-    // Lite Mode / weak devices: drop to ~6fps (165ms) — fishing progress is
-    // a slow-moving bar, no one notices, but it cuts main-thread work by ~5×
-    // on iPhone Safari and stops the "frozen" feeling.
-    const FRAME_MS = isHeavyFxDisabled ? 165 : 33;
-    const IDLE_MS = isHeavyFxDisabled ? 1000 : 500;
+    // Lite Mode / weak devices: keep ship sailing smooth enough to not look
+    // stuck, but update passive fishing timers much less often.
+    const MOVE_FRAME_MS = isHeavyFxDisabled ? 66 : 33;
+    const PROGRESS_FRAME_MS = isHeavyFxDisabled ? 500 : 33;
+    const IDLE_MS = isHeavyFxDisabled ? 250 : 500;
     const EPS = 0.001;
 
     function schedule(nextDelay: number) {
-      if (nextDelay <= FRAME_MS + 1) {
+      if (nextDelay <= MOVE_FRAME_MS + 1) {
         raf = requestAnimationFrame(tick);
       } else {
         timeout = setTimeout(() => { raf = requestAnimationFrame(tick); }, nextDelay);
@@ -1076,20 +1076,21 @@ function Index() {
 
     function tick(ts: number) {
       if (document.hidden) { schedule(IDLE_MS); return; }
-      if (ts - last < FRAME_MS) { raf = requestAnimationFrame(tick); return; }
-      const dt = last === 0 ? FRAME_MS : ts - last;
+      if (ts - last < MOVE_FRAME_MS) { raf = requestAnimationFrame(tick); return; }
+      const dt = last === 0 ? MOVE_FRAME_MS : ts - last;
       last = ts;
 
       const now = serverNowMs();
       let dirty = false;
-      let busy = false; // any ship fishing OR sail still moving?
+      let sailBusy = false;
+      let progressBusy = false;
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
           const smoothing = 1 - Math.exp(-dt / 220);
           const sailDelta = (target - s.sail) * smoothing;
           const sailMoving = Math.abs(sailDelta) > EPS;
-          if (sailMoving) busy = true;
+          if (sailMoving) sailBusy = true;
           const sail = sailMoving ? s.sail + sailDelta : target;
 
 
@@ -1098,7 +1099,7 @@ function Index() {
             dirty = true;
             return { ...s, sail };
           }
-          busy = true; // fishing ship → keep ticking
+          progressBusy = true; // fishing ship → keep ticking, but slowly in Lite Mode
           if (s.dbId && !isServerClockSynced()) {
             if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
             dirty = true;
@@ -1132,8 +1133,9 @@ function Index() {
         return dirty ? next : curr;
       });
 
-      // If no ship is animating, sleep longer to save battery/heat.
-      schedule(busy ? FRAME_MS : IDLE_MS);
+      // If only timers are running, sleep longer; if a ship is physically
+      // sailing, keep enough frames for smooth motion.
+      schedule(sailBusy ? MOVE_FRAME_MS : progressBusy ? PROGRESS_FRAME_MS : IDLE_MS);
     }
     raf = requestAnimationFrame(tick);
     return () => {
