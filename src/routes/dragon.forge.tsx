@@ -93,8 +93,10 @@ function ForgePage() {
 
   const upgrade = async (id: string) => {
     if (busy) return;
+    if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setBusy(true);
     const { data, error } = await rpc("upgrade_dragon_item", { p_item_id: id });
+
     setBusy(false);
     if (error) return flash("❌ " + error.message);
     if (data?.ok === false) return flash("❌ " + (data.error ?? "فشل الترقية"));
