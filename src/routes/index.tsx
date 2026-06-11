@@ -1298,6 +1298,22 @@ function Index() {
       setCatchResult(null);
 
       const msg = String(error.message || "");
+
+      // Special case: market full. The DB rolled back, the ship is STILL
+      // fishing — do NOT dock locally and do NOT touch at_sea on the server.
+      // Just revert the optimistic dock by re-syncing from DB.
+      if (msg.includes("market_full")) {
+        // Revert optimistic dock: put the ship back at sea with its original
+        // fishing_started_at so the timer keeps running, then re-sync from DB.
+        const startedAtMs = s.startedAt ?? (serverNowMs() - (s.duration - s.timeLeft) * 1000);
+        setSeaOverride(s.dbId, true, startedAtMs);
+        setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, fishing: true, startedAt: startedAtMs } : x));
+        showToast("📦 المخزن ممتلئ! بِع السمك أولاً، السفينة لا تزال تصيد");
+        sound.play("error");
+        syncFleetFromDb();
+        return;
+      }
+
       // Rollback: dock locally + force-stop on server so UI stays in sync.
       setSeaOverride(s.dbId, false);
       setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
