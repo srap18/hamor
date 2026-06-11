@@ -1471,7 +1471,7 @@ function Index() {
             const secsLeft = Math.max(0, Math.ceil((new Date(r.ends_at).getTime() - now) / 1000));
             return (
               <div key={r.ship_id}
-                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/85 border-2 border-rose-500/70 backdrop-blur-sm shadow-lg animate-pulse">
+                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/95 border-2 border-rose-500/70 shadow-lg animate-pulse">
                 <span className="text-2xl">🏴‍☠️</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-rose-100 text-xs font-bold truncate">
@@ -1505,10 +1505,10 @@ function Index() {
                 to="/p/$id"
                 params={{ id: s.stealingTargetUserId! }}
                 onClick={() => sound.play("click")}
-                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl backdrop-blur-md shadow-2xl active:scale-95 border-2 ${
+                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl active:scale-95 border-2 ${
                   ready
-                    ? "bg-gradient-to-r from-emerald-700/90 to-emerald-900/90 border-emerald-300 animate-pulse"
-                    : "bg-gradient-to-r from-amber-700/90 to-rose-900/90 border-amber-300"
+                    ? "bg-gradient-to-r from-emerald-700 to-emerald-900 border-emerald-300 animate-pulse"
+                    : "bg-gradient-to-r from-amber-700 to-rose-900 border-amber-300"
                 }`}
                 style={{ boxShadow: "0 0 24px rgba(251,191,36,0.45)" }}
               >
