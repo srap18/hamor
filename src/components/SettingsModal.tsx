@@ -55,8 +55,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const changeEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail || changingEmail) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setChangingEmail(true);
     const { error } = await supabase.auth.updateUser({ email: newEmail });
+
     setChangingEmail(false);
     if (error) { flash("فشل التغيير: " + error.message); return; }
     flash("تم إرسال رابط التأكيد إلى البريد الجديد ✓");
