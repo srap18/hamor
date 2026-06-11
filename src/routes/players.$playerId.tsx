@@ -440,7 +440,13 @@ function PlayerPage() {
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
     if (!(await confirmDropArmorIfActive())) return;
+    // Server-side rate limit (also logs spam to cheat_flags)
+    if (!(await rateLimit("attack", 800))) {
+      toast.warning("تمهّل قليلاً قبل المحاولة مجدداً");
+      return;
+    }
     setBusy(true); sound.play("click");
+
     // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
     setSelectedShip(null);
