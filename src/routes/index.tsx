@@ -3725,7 +3725,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const t = serverNowMs() / 1000;
+  // (idle bobbing is CSS-driven; no per-frame time needed here)
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
   // Bobbing / sway / rocking are handled by a pure-CSS keyframe (`animate-ship-bob`)
