@@ -3903,7 +3903,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       >
         <div className="relative w-full">
           {/* Mirror reflection of the ship on the water */}
-          {!destroyed && (
+          {!destroyed && !isHeavyFxDisabled && (
             <img
               src={ship.img}
               alt=""
@@ -3922,7 +3922,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             />
           )}
           {/* Foam ring at waterline */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none animate-pulse"
             style={{
@@ -3934,9 +3934,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               filter: "blur(3px)",
               opacity: 0.85,
             }}
-          />
+          />}
           {/* Outer water ripple */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
             style={{
@@ -3948,9 +3948,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               filter: "blur(2px)",
               opacity: 0.7,
             }}
-          />
+          />}
           {/* Soft shadow on water beneath hull */}
-          <div
+          {!isHeavyFxDisabled && <div
             aria-hidden
             className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
             style={{
@@ -3961,7 +3961,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 "radial-gradient(ellipse at center, rgba(0,20,40,0.55) 0%, rgba(0,20,40,0.2) 50%, rgba(0,0,0,0) 80%)",
               filter: "blur(5px)",
             }}
-          />
+          />}
           <img
             src={ship.img}
             alt="Ship"
