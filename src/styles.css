@@ -300,12 +300,29 @@
   }
   .animate-crew-bob { animation: crew-bob 2.2s ease-in-out infinite; }
 
-  /* Gentle ship bobbing — pure CSS so we don't need per-frame React re-renders. */
+  /* Realistic ocean motion — combined pitch (rotateX), roll (rotateZ),
+     heave (translateY) and a touch of sway (translateX) at different
+     frequencies so the ship never looks like it's repeating. Pure CSS
+     so we don't pay per-frame React cost. */
   @keyframes ship-bob {
-    0%, 100% { transform: translateY(0) rotateZ(-0.6deg); }
-    50%      { transform: translateY(-2px) rotateZ(0.6deg); }
+    0%   { transform: translate3d(0, 0,         0) rotateX(1.5deg)  rotateZ(-0.8deg); }
+    20%  { transform: translate3d(0.6px, -1.4px, 0) rotateX(2.2deg)  rotateZ(0.2deg); }
+    40%  { transform: translate3d(0.2px, -2.4px, 0) rotateX(2.8deg)  rotateZ(0.9deg); }
+    55%  { transform: translate3d(-0.4px, -2.0px, 0) rotateX(2.4deg) rotateZ(0.6deg); }
+    70%  { transform: translate3d(-0.7px, -0.8px, 0) rotateX(1.8deg) rotateZ(-0.3deg); }
+    85%  { transform: translate3d(-0.3px,  0.4px, 0) rotateX(1.2deg) rotateZ(-0.9deg); }
+    100% { transform: translate3d(0, 0,         0) rotateX(1.5deg)  rotateZ(-0.8deg); }
   }
-  .animate-ship-bob { animation: ship-bob 2.4s ease-in-out infinite; transform-origin: center 70%; will-change: transform; }
+  .animate-ship-bob {
+    animation: ship-bob 4.8s ease-in-out infinite;
+    transform-origin: center 78%;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  /* Stagger ships so they don't all rock in lock-step. */
+  .animate-ship-bob:nth-child(odd)         { animation-duration: 5.2s; animation-delay: -0.7s; }
+  .animate-ship-bob:nth-child(3n)          { animation-duration: 4.4s; animation-delay: -1.6s; }
+  .animate-ship-bob:nth-child(4n+1)        { animation-duration: 5.6s; animation-delay: -2.3s; }
   html.low-perf .animate-ship-bob { animation: none; }
 }
 
