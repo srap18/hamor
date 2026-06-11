@@ -1040,27 +1040,36 @@ function Index() {
   // when all ships are idle in the harbor → reduces device heat).
   useEffect(() => {
     let raf = 0;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     let last = 0;
-    const FRAME_MS = 16; // ~60fps for buttery-smooth sailing
+    const FRAME_MS = 33; // ~30fps — half the CPU/GPU of 60fps, still smooth
+    const IDLE_MS = 500; // when nothing animates, recheck twice a second
     const EPS = 0.001;
 
+    const schedule = (nextDelay: number) => {
+      if (nextDelay <= FRAME_MS + 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        timeout = setTimeout(() => { raf = requestAnimationFrame(tick); }, nextDelay);
+      }
+    };
+
     const tick = (ts: number) => {
-      raf = requestAnimationFrame(tick);
-      if (document.hidden) return;
-      if (ts - last < FRAME_MS) return;
+      if (document.hidden) { schedule(IDLE_MS); return; }
+      if (ts - last < FRAME_MS) { raf = requestAnimationFrame(tick); return; }
       const dt = last === 0 ? FRAME_MS : ts - last;
       last = ts;
 
       const now = serverNowMs();
       let dirty = false;
+      let busy = false; // any ship fishing OR sail still moving?
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          // Frame-rate-independent exponential smoothing.
-          // Tuned so a full dock⇄sea transition completes in ~0.9s regardless of fps.
           const smoothing = 1 - Math.exp(-dt / 220);
           const sailDelta = (target - s.sail) * smoothing;
           const sailMoving = Math.abs(sailDelta) > EPS;
+          if (sailMoving) busy = true;
           const sail = sailMoving ? s.sail + sailDelta : target;
 
 
@@ -1069,18 +1078,15 @@ function Index() {
             dirty = true;
             return { ...s, sail };
           }
+          busy = true; // fishing ship → keep ticking
           if (s.dbId && !isServerClockSynced()) {
             if (!sailMoving && s.progress === 0 && s.timeLeft === s.duration) return s;
             dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
-          // Only apply sailor speed-up if sailor was assigned BEFORE this trip
-          // started. Assigning a sailor mid-trip must NOT retroactively complete
-          // the fishing (was the "instant full" bug).
           const sailorMult = s.sailorAtStart ? 2 : 1;
           const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
-          // Golden Fisher active: cap UI progress at 99% — ships must never visually reach 100%.
           if (ratio > 0.99) {
             const gfActive =
               goldenFisherUntilRef.current > now ||
@@ -1089,9 +1095,6 @@ function Index() {
               );
             if (gfActive) {
               ratio = 0.99;
-              // Trigger a server-side harvest immediately (throttled to 5s) so
-              // the ship is stopped/reset right away while the user is online,
-              // instead of waiting for the 30s cron tick.
               if (now - lastGfTickRef.current > 5000) {
                 lastGfTickRef.current = now;
                 tickGoldenFisher({ data: {} }).catch(() => {});
@@ -1101,7 +1104,7 @@ function Index() {
           const progress = Math.round(s.max * ratio);
           const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
-            return s; // no visible change → skip
+            return s;
           }
 
           dirty = true;
@@ -1109,9 +1112,15 @@ function Index() {
         });
         return dirty ? next : curr;
       });
+
+      // If no ship is animating, sleep longer to save battery/heat.
+      schedule(busy ? FRAME_MS : IDLE_MS);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
 
