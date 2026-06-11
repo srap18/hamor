@@ -1471,7 +1471,7 @@ function Index() {
             const secsLeft = Math.max(0, Math.ceil((new Date(r.ends_at).getTime() - now) / 1000));
             return (
               <div key={r.ship_id}
-                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/85 border-2 border-rose-500/70 backdrop-blur-sm shadow-lg animate-pulse">
+                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/95 border-2 border-rose-500/70 shadow-lg animate-pulse">
                 <span className="text-2xl">🏴‍☠️</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-rose-100 text-xs font-bold truncate">
