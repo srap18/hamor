@@ -68,7 +68,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const sendReset = async () => {
     if (!email) return;
+    if (!(await rateLimit("settings", 1500))) { flash("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
+
       redirectTo: `${window.location.origin}/reset-password`,
     });
     flash(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط استعادة كلمة المرور ✓");
