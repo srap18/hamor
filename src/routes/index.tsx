@@ -729,7 +729,7 @@ function Index() {
   };
 
   const now = useServerTick();
-  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; expires_at?: string } | null };
+  type CrewRow = { id: string; item_id: string; quantity: number; meta: { assigned_ship_id?: number | string; assigned_at?: string; expires_at?: string } | null };
   const [crewRows, setCrewRows] = useState<CrewRow[]>([]);
   const crewBusyRef = useRef(false);
   const [crewBusy, setCrewBusy] = useState(false);
@@ -773,6 +773,21 @@ function Index() {
       hasSailor: ids.has("sailor"),
       guide: ids.has("guide"),
     };
+  };
+
+  const getEffectiveFishingElapsed = (ship: Ship, nowMs: number) => {
+    if (!ship.startedAt) return { elapsed: 0, activeMult: 1 };
+    const elapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
+    const sailor = crewRowsRef.current.find((r) => {
+      if (r.item_id !== "sailor" || !isCrewAssignedToShip(r.meta, ship)) return false;
+      const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : Infinity;
+      return exp > nowMs;
+    });
+    if (!sailor) return { elapsed, activeMult: 1 };
+    const assignedAt = sailor.meta?.assigned_at ? new Date(sailor.meta.assigned_at).getTime() : undefined;
+    if (!assignedAt || assignedAt <= ship.startedAt) return { elapsed: elapsed * 2, activeMult: 2 };
+    const boostedElapsed = Math.max(0, (nowMs - Math.max(assignedAt, ship.startedAt)) / 1000);
+    return { elapsed: elapsed + boostedElapsed, activeMult: 2 };
   };
 
   // Deterministic per-trip fish pick so the Guide crew's preview matches the actual catch.
@@ -1086,8 +1101,7 @@ function Index() {
             dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
-          const sailorMult = s.sailorAtStart ? 2 : 1;
-          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
+          const { elapsed, activeMult } = getEffectiveFishingElapsed(s, now);
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           if (ratio > 0.99) {
             const gfActive =
@@ -1104,7 +1118,7 @@ function Index() {
             }
           }
           const progress = Math.round(s.max * ratio);
-          const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
+          const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
