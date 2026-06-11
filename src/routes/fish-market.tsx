@@ -8,6 +8,7 @@ import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
+import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
 
 export const Route = createFileRoute("/fish-market")({
@@ -313,17 +314,13 @@ function FishMarket() {
     });
   }, [user?.id, lvl]);
 
+  const tickNow = useServerTick();
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
-    const tick = () => {
-      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - serverNowMs()) / 1000));
-      setSecondsLeft(diff);
-      if (diff === 0) loadMarket();
-    };
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [upgradeEndsAt]);
+    const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
+    setSecondsLeft(diff);
+    if (diff === 0) loadMarket();
+  }, [upgradeEndsAt, tickNow]);
 
   const startFishUpgrade = async () => {
     if (!user || upgradingTo) return;
@@ -794,11 +791,7 @@ function SellView({
   const currentPrice = past[past.length - 1];
   const fallbackEffectivePrice = Math.max(0.0001, currentPrice * rot);
 
-  const [now, setNow] = useState<number>(() => serverNowMs());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(serverNowMs()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
+  const now = useServerTick();
 
   const traderMs = traderUntil ? Math.max(0, new Date(traderUntil).getTime() - now) : 0;
   const freezeMs = freezeUntil ? Math.max(0, new Date(freezeUntil).getTime() - now) : 0;
