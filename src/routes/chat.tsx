@@ -166,7 +166,7 @@ function ChatPage() {
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
       const ids = (f || []).map((x: any) => x.requester_id === user.id ? x.addressee_id : x.requester_id);
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         setDmFriends((ps || []) as Prof[]);
       }
     })();
@@ -227,7 +227,7 @@ function ChatPage() {
       setMsgsKey(loadKey);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").in("id", ids);
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         if (!active) return;
         setProfMap(new Map((ps || []).map((p: any) => [p.id, p])));
       }
@@ -244,7 +244,7 @@ function ChatPage() {
         setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m]);
         setProfMap(prev => {
           if (prev.has(m.sender_id)) return prev;
-          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level,elite_vip_expires_at").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
+          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
             if (p) setProfMap(s => new Map(s).set((p as any).id, p as Prof));
           });
           return prev;
