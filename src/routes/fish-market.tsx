@@ -791,11 +791,7 @@ function SellView({
   const currentPrice = past[past.length - 1];
   const fallbackEffectivePrice = Math.max(0.0001, currentPrice * rot);
 
-  const [now, setNow] = useState<number>(() => serverNowMs());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(serverNowMs()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
+  const now = useServerTick();
 
   const traderMs = traderUntil ? Math.max(0, new Date(traderUntil).getTime() - now) : 0;
   const freezeMs = freezeUntil ? Math.max(0, new Date(freezeUntil).getTime() - now) : 0;
