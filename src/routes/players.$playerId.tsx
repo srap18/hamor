@@ -465,7 +465,9 @@ function PlayerPage() {
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
     const skipFishing = false; // كل الأسلحة، بما فيها النووية، لازم تلتزم بشروط جاهزية السفن
-    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
+    // SECURE: server computes damage from weapon catalog + VIP multiplier.
+    // Client only sends the weapon id; any local "damage" value is ignored by the server.
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage_v2", { _ship_id: firstTarget.id, _weapon_id: w.id, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");
       if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
