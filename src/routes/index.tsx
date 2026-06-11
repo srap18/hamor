@@ -1115,7 +1115,7 @@ function Index() {
 
       // If no ship is animating, sleep longer to save battery/heat.
       schedule(busy ? FRAME_MS : IDLE_MS);
-    };
+    }
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
