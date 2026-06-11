@@ -443,7 +443,7 @@ function PlayerPage() {
     if (!(await confirmDropArmorIfActive())) return;
     // Server-side rate limit (also logs spam to cheat_flags)
     if (!(await rateLimit("attack", 800))) {
-      toast.warning("تمهّل قليلاً قبل المحاولة مجدداً");
+      sonnerToast.warning("تمهّل قليلاً قبل المحاولة مجدداً");
       return;
     }
     setBusy(true); sound.play("click");
