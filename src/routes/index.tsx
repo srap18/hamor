@@ -1046,13 +1046,13 @@ function Index() {
     const IDLE_MS = 500; // when nothing animates, recheck twice a second
     const EPS = 0.001;
 
-    const schedule = (nextDelay: number) => {
+    function schedule(nextDelay: number) {
       if (nextDelay <= FRAME_MS + 1) {
         raf = requestAnimationFrame(tick);
       } else {
         timeout = setTimeout(() => { raf = requestAnimationFrame(tick); }, nextDelay);
       }
-    };
+    }
 
     const tick = (ts: number) => {
       if (document.hidden) { schedule(IDLE_MS); return; }
