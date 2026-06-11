@@ -698,6 +698,8 @@ function Index() {
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
+  // When true, the picker only updates the guide's preferred fish without launching/collecting.
+  const [fishPickerChangeOnly, setFishPickerChangeOnly] = useState(false);
   const [upgradeSubShipId, setUpgradeSubShipId] = useState<number | null>(null);
   const [upgradeSubBusy, setUpgradeSubBusy] = useState(false);
   const [upgradeSubResult, setUpgradeSubResult] = useState<{ success: boolean; stars: number; chance: number } | null>(null);
