@@ -3728,12 +3728,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const t = serverNowMs() / 1000;
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
-  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
-  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
-  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
-  const baseTilt = direction * 2.5;
-  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
-  const tilt = baseTilt + rockTilt;
+  // Bobbing / sway / rocking are handled by a pure-CSS keyframe (`animate-ship-bob`)
+  // so we don't re-render every frame for sine-wave motion. The only JS-driven
+  // tilt is the direction lean while turning, which changes rarely.
+  const tilt = direction * 2.5;
 
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
