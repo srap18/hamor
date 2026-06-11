@@ -19,6 +19,8 @@ import { MobileFrame } from "@/components/MobileFrame";
 import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
+import { SoftProtection } from "@/components/SoftProtection";
+
 
 // Install the server-time clock as early as possible on the client so every
 // Date.now() / new Date() call across the app reflects server time, not the
@@ -364,6 +366,8 @@ function RootComponent() {
       <AdminLayoutEditorProvider>
         <MobileFrame>
           <GlobalBanner />
+          <SoftProtection />
+
           <LastAttackTicker />
           <EliteVipLoginOverlay />
 

@@ -1730,6 +1730,9 @@ export type Database = {
       profiles: {
         Row: {
           active_session_id: string | null
+          active_session_ip: string | null
+          active_session_started_at: string | null
+          active_session_ua: string | null
           album_privacy: string
           armor_last_bought_at: string | null
           avatar_emoji: string
@@ -1778,6 +1781,9 @@ export type Database = {
         }
         Insert: {
           active_session_id?: string | null
+          active_session_ip?: string | null
+          active_session_started_at?: string | null
+          active_session_ua?: string | null
           album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
@@ -1826,6 +1832,9 @@ export type Database = {
         }
         Update: {
           active_session_id?: string | null
+          active_session_ip?: string | null
+          active_session_started_at?: string | null
+          active_session_ua?: string | null
           album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
@@ -3229,6 +3238,8 @@ export type Database = {
       }
     }
     Functions: {
+      _client_ip: { Args: never; Returns: string }
+      _client_ua: { Args: never; Returns: string }
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
@@ -4269,8 +4280,16 @@ export type Database = {
         Args: { _target_id: string }
         Returns: undefined
       }
+      report_cheat: {
+        Args: { _details: Json; _kind: string }
+        Returns: undefined
+      }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
+      rl_guard: {
+        Args: { _action: string; _min_interval_ms: number }
+        Returns: number
+      }
       search_profiles_public: {
         Args: { _limit?: number; _q: string }
         Returns: {
@@ -4438,6 +4457,7 @@ export type Database = {
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       user_market_remaining: { Args: { _uid: string }; Returns: number }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
+      verify_session_integrity: { Args: { _token: string }; Returns: boolean }
       warn_overfull_tribes: { Args: never; Returns: number }
     }
     Enums: {

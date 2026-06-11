@@ -74,20 +74,45 @@ export function useSecurityEnforcement(): SecurityBlock | null {
           { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
           (payload) => {
             const remote = (payload.new as { active_session_id?: string | null }).active_session_id;
-            if (remote && remote !== localToken) {
+            if (!remote) {
+              // Server cleared it (hijack detected or admin action)
+              setBlock({ kind: "kicked", message: "تم إنهاء الجلسة لأسباب أمنية — أعد تسجيل الدخول" });
+              supabase.auth.signOut();
+            } else if (remote !== localToken) {
               setBlock({ kind: "kicked", message: "تم تسجيل الدخول من جهاز/متصفح آخر — انتهت هذه الجلسة" });
               supabase.auth.signOut();
             }
           },
         )
         .subscribe();
+
+      // 4) Periodic session integrity check (every 60s).
+      //    Server compares IP/UA fingerprint and clears the session if hijack suspected.
+      const integrityTick = async () => {
+        if (cancelled) return;
+        try {
+          const { data } = await (supabase as any).rpc("verify_session_integrity", { _token: localToken });
+          if (data === false && !cancelled) {
+            setBlock({ kind: "kicked", message: "تم رصد تغيّر مشبوه في الجلسة — تم إنهاؤها لحماية الحساب" });
+            await supabase.auth.signOut();
+          }
+        } catch {}
+      };
+      const interval = setInterval(integrityTick, 60_000);
+      // Initial check after 5s so the IP/UA had time to be stored
+      const initial = setTimeout(integrityTick, 5_000);
+      (channel as any).__cleanup = () => { clearInterval(interval); clearTimeout(initial); };
     })();
 
     return () => {
       cancelled = true;
-      if (channel) supabase.removeChannel(channel);
+      if (channel) {
+        try { (channel as any).__cleanup?.(); } catch {}
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 
   return block;
 }
+
