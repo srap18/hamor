@@ -1485,6 +1485,14 @@ function Index() {
 
       {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
+      {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
+      {profile?.id && (
+        <DestroyerSign
+          playerId={profile.id}
+          destroyerEmoji={(profile as { avatar_emoji?: string } | null)?.avatar_emoji ?? null}
+        />
+      )}
+
       {scene.burned && (
         <DraggableRepairBgButton
           storageKey="repairBgBtnPos:self"
