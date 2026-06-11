@@ -3858,6 +3858,32 @@ export type Database = {
           elite_vip_level: number
         }[]
       }
+      get_my_profile_private: {
+        Args: never
+        Returns: {
+          active_session_id: string
+          album_privacy: string
+          armor_last_bought_at: string
+          bg_burned_until: string
+          golden_fisher_last_activated_at: string
+          golden_fisher_until: string
+          last_destroyer_at: string
+          last_destroyer_id: string
+          last_destroyer_kind: string
+          last_destroyer_message: string
+          last_destroyer_name: string
+          media_banned: boolean
+          protection_until: string
+          referral_code: string
+          referral_locked_at: string
+          referred_by: string
+          steal_blocked_until: string
+          username_changed_at: string
+          vip_expires_at: string
+          vip_points: number
+          vip_subs_claimed: number
+        }[]
+      }
       get_my_ships: {
         Args: never
         Returns: {
@@ -3886,6 +3912,17 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_my_ships_private: {
+        Args: never
+        Returns: {
+          fishing_started_at: string
+          id: string
+          last_fishing_reward_at: string
+          stealing_ends_at: string
+          stealing_target_ship_id: string
+          stealing_target_user_id: string
+        }[]
       }
       get_my_wallet: {
         Args: never
