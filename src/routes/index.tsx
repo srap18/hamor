@@ -18,7 +18,7 @@ import {
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
-import { isLowPerfMode } from "@/lib/perf-mode";
+import { isLowPerfMode, isHeavyFxDisabled, isIOSDevice } from "@/lib/perf-mode";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
