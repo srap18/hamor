@@ -1230,10 +1230,12 @@ function Index() {
       await toggleFishing(shipId);
       return;
     }
-    const { guide } = getCrewBonuses(s);
-    const pool = fishPoolForShip(s);
+    // Always forward the user's chosen fish (if any) — the server validates
+    // that the guide crew is actually assigned and the fish is in the pool.
+    // Don't gate on the local `guide` bool: crew rows may not have refreshed
+    // yet after a fresh assignment, which would silently drop the request.
     const storedGuide = getShipGuide(s.id);
-    const requestedFishId = guide && storedGuide && pool.includes(storedGuide) ? storedGuide : null;
+    const requestedFishId = storedGuide || null;
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
       showToast("السفينة مدمّرة — انتظر حتى يكتمل الإصلاح");
