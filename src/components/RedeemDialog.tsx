@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { rateLimit } from "@/lib/rate-limit";
+
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { CREWS } from "@/lib/crews";
