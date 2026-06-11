@@ -1054,7 +1054,7 @@ function Index() {
       }
     }
 
-    const tick = (ts: number) => {
+    function tick(ts: number) {
       if (document.hidden) { schedule(IDLE_MS); return; }
       if (ts - last < FRAME_MS) { raf = requestAnimationFrame(tick); return; }
       const dt = last === 0 ? FRAME_MS : ts - last;
