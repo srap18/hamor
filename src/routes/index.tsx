@@ -37,6 +37,7 @@ import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
+import { DestroyerSign } from "@/components/DestroyerSign";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
 import { Placeable } from "@/components/AdminLayoutEditor";
@@ -1483,6 +1484,14 @@ function Index() {
       <DragonShoreCreature />
 
       {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+
+      {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
+      {profile?.id && (
+        <DestroyerSign
+          playerId={profile.id}
+          destroyerEmoji={(profile as { avatar_emoji?: string } | null)?.avatar_emoji ?? null}
+        />
+      )}
 
       {scene.burned && (
         <DraggableRepairBgButton
