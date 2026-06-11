@@ -130,6 +130,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
+        {email && <MfaSetupSection />}
+
+
+
         <ToggleRow
           label="🎵 الموسيقى الخلفية"
           value={music}
