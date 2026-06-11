@@ -60,7 +60,9 @@ function ForgePage() {
 
   const buy = async (slot: Slot, rarity: Rarity, currency: "coins" | "gems") => {
     if (busy) return;
+    if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setBusy(true);
+
     const { data, error } = await rpc("buy_dragon_equipment", { p_slot: slot, p_rarity: rarity, p_currency: currency });
     setBusy(false);
     if (error) return flash("❌ " + error.message);
