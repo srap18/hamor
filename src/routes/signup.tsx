@@ -27,6 +27,9 @@ function SignupPage() {
   const [refCode, setRefCode] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   // Capture ?ref=CODE from URL or localStorage
   useEffect(() => {
