@@ -38,14 +38,26 @@ function read(): { lowNet: boolean; lowDevice: boolean } {
 const cached = read();
 const userLite = readUserLite();
 
+function detectIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const isIPad = /iPad|Macintosh/.test(ua) && typeof document !== "undefined" && "ontouchend" in document;
+  return /iPhone|iPod/.test(ua) || isIPad;
+}
+
 /** True when network is slow or save-data is on. */
 export const isLowBandwidth = cached.lowNet;
 /** True when CPU/memory is constrained. */
 export const isLowEndDevice = cached.lowDevice;
+/** True on iOS — Safari struggles with looping video bg + many CSS-animated blurred layers (overheating). */
+export const isIOSDevice = detectIOS();
 /** Any kind of weakness OR user opted into Lite Mode — disable heavy media. */
 export const isLowPerfMode = cached.lowNet || cached.lowDevice || userLite;
+/** Heavy continuous GPU effects (video bg, blurred particles, many animated images) should be skipped. */
+export const isHeavyFxDisabled = isLowPerfMode || isIOSDevice;
 /** True only when the user explicitly enabled Lite Mode. */
 export const isUserLiteMode = userLite;
+
 
 export function getLiteMode(): boolean {
   return readUserLite();

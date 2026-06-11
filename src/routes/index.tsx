@@ -18,7 +18,7 @@ import {
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
-import { isLowPerfMode } from "@/lib/perf-mode";
+import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
 
 import { sound } from "@/lib/sound";
@@ -1396,7 +1396,7 @@ function Index() {
       }}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {scene.displayVideo && !isLowPerfMode ? (
+        {scene.displayVideo && !isHeavyFxDisabled ? (
           <SeamlessVideo
             key={`vid-${scene.id}`}
             src={scene.displayVideo}
@@ -1410,7 +1410,7 @@ function Index() {
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
-            className={`absolute inset-0 h-full w-full object-cover select-none ${isLowPerfMode ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            className={`absolute inset-0 h-full w-full object-cover select-none ${isHeavyFxDisabled ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
             style={{
               objectPosition: scene.objectPosition ?? "center center",
               ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
@@ -1561,20 +1561,24 @@ function Index() {
 
 
 
-      {/* Realistic drifting clouds */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+      {/* Realistic drifting clouds — disabled on iOS / low-perf to reduce GPU heat */}
+      {!isHeavyFxDisabled && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "6%", left: "-20%", width: "26%", opacity: 0.85, animationDuration: "90s", filter: "drop-shadow(0 4px 10px rgba(255,255,255,0.15))" }} draggable={false} />
+          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "16%", left: "-30%", width: "18%", opacity: 0.7, animationDuration: "120s", animationDelay: "-30s", transform: "scaleX(-1)" }} draggable={false} />
+          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "2%", left: "-45%", width: "32%", opacity: 0.9, animationDuration: "150s", animationDelay: "-70s" }} draggable={false} />
+        </div>
+      )}
 
-        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "6%", left: "-20%", width: "26%", opacity: 0.85, animationDuration: "90s", filter: "drop-shadow(0 4px 10px rgba(255,255,255,0.15))" }} draggable={false} />
-        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "16%", left: "-30%", width: "18%", opacity: 0.7, animationDuration: "120s", animationDelay: "-30s", transform: "scaleX(-1)" }} draggable={false} />
-        <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "2%", left: "-45%", width: "32%", opacity: 0.9, animationDuration: "150s", animationDelay: "-70s" }} draggable={false} />
-      </div>
+      {/* Realistic flying seagulls — disabled on iOS / low-perf */}
+      {!isHeavyFxDisabled && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[6]">
+          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "12%", left: "-10%", width: "5%", animationDuration: "28s", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))" }} draggable={false} />
+          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "20%", left: "-15%", width: "3.5%", animationDuration: "36s", animationDelay: "-10s" }} draggable={false} />
+          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "6%", left: "-20%", width: "4%", animationDuration: "44s", animationDelay: "-22s" }} draggable={false} />
+        </div>
+      )}
 
-      {/* Realistic flying seagulls */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[6]">
-        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "12%", left: "-10%", width: "5%", animationDuration: "28s", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))" }} draggable={false} />
-        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "20%", left: "-15%", width: "3.5%", animationDuration: "36s", animationDelay: "-10s" }} draggable={false} />
-        <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "6%", left: "-20%", width: "4%", animationDuration: "44s", animationDelay: "-22s" }} draggable={false} />
-      </div>
 
 
 
@@ -3755,8 +3759,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         </div>
       )}
 
-      {/* Foamy water trail behind ship when actually moving */}
-      {moving && (
+      {/* Foamy water trail behind ship when actually moving — skipped on iOS to reduce GPU heat */}
+      {moving && !isHeavyFxDisabled && (
         <div
           className="absolute pointer-events-none"
           style={{
@@ -3783,6 +3787,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           ))}
         </div>
       )}
+
 
       {/* Crew characters standing on the ship deck */}
       {crews.length > 0 && (
@@ -3963,14 +3968,15 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             </>
           )}
 
-          {/* Chimney smoke when sailing */}
-          {moving && !destroyed && (
+          {/* Chimney smoke when sailing — skipped on iOS (blur particles overheat the GPU) */}
+          {moving && !destroyed && !isHeavyFxDisabled && (
             <>
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/60 blur-[2px] animate-smoke-rise" />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/40 blur-[2px] animate-smoke-rise" style={{ animationDelay: "0.8s" }} />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/50 blur-[2px] animate-smoke-rise" style={{ animationDelay: "1.6s" }} />
             </>
           )}
+
 
           {/* Bow splash spray when moving */}
           {moving && (
