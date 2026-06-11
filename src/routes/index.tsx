@@ -3968,14 +3968,15 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             </>
           )}
 
-          {/* Chimney smoke when sailing */}
-          {moving && !destroyed && (
+          {/* Chimney smoke when sailing — skipped on iOS (blur particles overheat the GPU) */}
+          {moving && !destroyed && !isHeavyFxDisabled && (
             <>
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/60 blur-[2px] animate-smoke-rise" />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/40 blur-[2px] animate-smoke-rise" style={{ animationDelay: "0.8s" }} />
               <div className="absolute left-[42%] top-[18%] w-3 h-3 rounded-full bg-white/50 blur-[2px] animate-smoke-rise" style={{ animationDelay: "1.6s" }} />
             </>
           )}
+
 
           {/* Bow splash spray when moving */}
           {moving && (
