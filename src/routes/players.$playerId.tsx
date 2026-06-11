@@ -465,7 +465,9 @@ function PlayerPage() {
     // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
     const skipFishing = false; // كل الأسلحة، بما فيها النووية، لازم تلتزم بشروط جاهزية السفن
-    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: firstTarget.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
+    // SECURE: server computes damage from weapon catalog + VIP multiplier.
+    // Client only sends the weapon id; any local "damage" value is ignored by the server.
+    const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage_v2", { _ship_id: firstTarget.id, _weapon_id: w.id, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");
       if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); setBusy(false); return; }
@@ -494,8 +496,8 @@ function PlayerPage() {
     if (w.aoe && targets.length > 1) {
       targets.slice(1).forEach((t) => {
         (supabase as any)
-          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing })
-          .then(undefined, (e: any) => { console.error("apply_ship_damage failed", e); });
+          .rpc("apply_ship_damage_v2", { _ship_id: t.id, _weapon_id: w.id, _skip_fishing_check: skipFishing })
+          .then(undefined, (e: any) => { console.error("apply_ship_damage_v2 failed", e); });
       });
     }
 
@@ -545,7 +547,7 @@ function PlayerPage() {
         await playProjectile(t.id, w.emoji, false, w.id);
         let row: any = damageResults[i];
         if (!row && i > 0) {
-          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing });
+          const { data: dmgRes } = await (supabase as any).rpc("apply_ship_damage_v2", { _ship_id: t.id, _weapon_id: w.id, _skip_fishing_check: skipFishing });
           row = Array.isArray(dmgRes) && dmgRes[0] ? dmgRes[0] : null;
         }
         const newHp = row?.new_hp ?? Math.max(0, (t.hp ?? 100) - boostedDamage);
