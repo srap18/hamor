@@ -3759,8 +3759,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         </div>
       )}
 
-      {/* Foamy water trail behind ship when actually moving */}
-      {moving && (
+      {/* Foamy water trail behind ship when actually moving — skipped on iOS to reduce GPU heat */}
+      {moving && !isHeavyFxDisabled && (
         <div
           className="absolute pointer-events-none"
           style={{
@@ -3787,6 +3787,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           ))}
         </div>
       )}
+
 
       {/* Crew characters standing on the ship deck */}
       {crews.length > 0 && (
