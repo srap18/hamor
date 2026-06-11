@@ -496,8 +496,8 @@ function PlayerPage() {
     if (w.aoe && targets.length > 1) {
       targets.slice(1).forEach((t) => {
         (supabase as any)
-          .rpc("apply_ship_damage", { _ship_id: t.id, _damage: boostedDamage, _skip_fishing_check: skipFishing })
-          .then(undefined, (e: any) => { console.error("apply_ship_damage failed", e); });
+          .rpc("apply_ship_damage_v2", { _ship_id: t.id, _weapon_id: w.id, _skip_fishing_check: skipFishing })
+          .then(undefined, (e: any) => { console.error("apply_ship_damage_v2 failed", e); });
       });
     }
 
