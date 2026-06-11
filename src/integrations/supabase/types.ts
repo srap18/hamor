@@ -3935,6 +3935,13 @@ export type Database = {
           stealing_target_user_id: string
         }[]
       }
+      get_my_vip: {
+        Args: never
+        Returns: {
+          vip_expires_at: string
+          vip_level: number
+        }[]
+      }
       get_my_wallet: {
         Args: never
         Returns: {

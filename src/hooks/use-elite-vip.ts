@@ -21,22 +21,22 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       return;
     }
     let cancelled = false;
-    const computeLevel = (row: { elite_vip_level?: number | null; elite_vip_expires_at?: string | null } | null): number => {
-      const lvl = Number(row?.elite_vip_level ?? 0);
-      const exp = row?.elite_vip_expires_at ? new Date(row.elite_vip_expires_at).getTime() : null;
-      if (lvl > 0 && exp !== null && exp <= Date.now()) return 0;
-      return lvl;
-    };
+    // Server returns the EFFECTIVE level (already enforces expires_at and
+    // lazy-resets the DB row). The client must NOT recompute it — visual
+    // tampering on the device cannot grant any real perk because every
+    // sensitive RPC (combat/shop) re-checks server-side too.
+    const readLevel = (row: { elite_vip_level?: number | null } | null): number =>
+      Math.max(0, Number(row?.elite_vip_level ?? 0));
+
     (async () => {
       const { data } = await (supabase as any).rpc("get_my_elite_vip");
       if (cancelled) return;
       const r = Array.isArray(data) ? data[0] : data;
-      setLevel(computeLevel(r as any));
+      setLevel(readLevel(r as any));
       setLoading(false);
     })();
 
-    // Realtime sync — if subscription webhook updates the row, the badge
-    // appears immediately without a page reload.
+    // Realtime sync — if subscription webhook updates the row, re-read.
     const channel = supabase
       .channel(`elite-vip:${user.id}`)
       .on(
@@ -45,7 +45,7 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
         async () => {
           const { data } = await (supabase as any).rpc("get_my_elite_vip");
           const r = Array.isArray(data) ? data[0] : data;
-          setLevel(computeLevel(r as any));
+          setLevel(readLevel(r as any));
         },
       )
       .subscribe();
