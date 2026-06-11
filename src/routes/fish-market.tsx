@@ -314,17 +314,13 @@ function FishMarket() {
     });
   }, [user?.id, lvl]);
 
+  const tickNow = useServerTick();
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
-    const tick = () => {
-      const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - serverNowMs()) / 1000));
-      setSecondsLeft(diff);
-      if (diff === 0) loadMarket();
-    };
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [upgradeEndsAt]);
+    const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
+    setSecondsLeft(diff);
+    if (diff === 0) loadMarket();
+  }, [upgradeEndsAt, tickNow]);
 
   const startFishUpgrade = async () => {
     if (!user || upgradingTo) return;
