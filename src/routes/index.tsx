@@ -1059,8 +1059,11 @@ function Index() {
     let raf = 0;
     let timeout: ReturnType<typeof setTimeout> | null = null;
     let last = 0;
-    const FRAME_MS = 33; // ~30fps — half the CPU/GPU of 60fps, still smooth
-    const IDLE_MS = 500; // when nothing animates, recheck twice a second
+    // Lite Mode / weak devices: drop to ~6fps (165ms) — fishing progress is
+    // a slow-moving bar, no one notices, but it cuts main-thread work by ~5×
+    // on iPhone Safari and stops the "frozen" feeling.
+    const FRAME_MS = isHeavyFxDisabled ? 165 : 33;
+    const IDLE_MS = isHeavyFxDisabled ? 1000 : 500;
     const EPS = 0.001;
 
     function schedule(nextDelay: number) {
