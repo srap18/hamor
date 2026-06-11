@@ -28,13 +28,10 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       return lvl;
     };
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("elite_vip_level, elite_vip_expires_at")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data } = await (supabase as any).rpc("get_my_elite_vip");
       if (cancelled) return;
-      setLevel(computeLevel(data as any));
+      const r = Array.isArray(data) ? data[0] : data;
+      setLevel(computeLevel(r as any));
       setLoading(false);
     })();
 
