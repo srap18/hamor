@@ -1101,8 +1101,7 @@ function Index() {
             dirty = true;
             return { ...s, sail, progress: 0, timeLeft: s.duration };
           }
-          const sailorMult = s.sailorAtStart ? 2 : 1;
-          const elapsed = ((now - s.startedAt) / 1000) * sailorMult;
+          const { elapsed, activeMult } = getEffectiveFishingElapsed(s, now);
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
           if (ratio > 0.99) {
             const gfActive =
@@ -1119,7 +1118,7 @@ function Index() {
             }
           }
           const progress = Math.round(s.max * ratio);
-          const timeLeft = Math.max(0, (s.duration - elapsed) / sailorMult);
+          const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
