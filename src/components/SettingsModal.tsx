@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
+import { MfaSetupSection } from "@/components/MfaSetupSection";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
