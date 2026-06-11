@@ -3725,15 +3725,13 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const t = serverNowMs() / 1000;
+  // (idle bobbing is CSS-driven; no per-frame time needed here)
   // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
   const docked = ship.sail < 0.05 && !moving;
-  const bobAmp = docked ? 0 : (moving ? 2.5 : 1.2);
-  const bob = docked ? 0 : Math.sin((t + ship.id) * 1.4) * bobAmp;
-  const sway = docked ? 0 : (moving ? Math.sin((t + ship.id) * 0.9) * 1.5 : 0);
-  const baseTilt = direction * 2.5;
-  const rockTilt = docked ? 0 : Math.sin((t + ship.id) * 1.8) * (moving ? 1.2 : 0.5);
-  const tilt = baseTilt + rockTilt;
+  // Bobbing / sway / rocking are handled by a pure-CSS keyframe (`animate-ship-bob`)
+  // so we don't re-render every frame for sine-wave motion. The only JS-driven
+  // tilt is the direction lean while turning, which changes rarely.
+  const tilt = direction * 2.5;
 
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
@@ -3879,14 +3877,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       >
       {/* 3D ship body */}
       <div
-        className="relative w-full"
+        className={`relative w-full ${destroyed || docked ? "" : "animate-ship-bob"}`}
         style={{
           transform: destroyed
             ? `translate(0px, 2px) rotateX(2deg) rotateZ(18deg)`
-            : `translate(${sway + turnSway}px, ${bob + turnLift}px) rotateX(${2 + bankPitch * 0.4}deg) rotateZ(${tilt * 0.6 + bankRoll * 0.6}deg)`,
+            : `rotateX(2deg) rotateZ(${tilt * 0.6}deg)`,
           transformStyle: "preserve-3d",
           transformOrigin: "center 80%",
-          transition: "transform 0.2s ease-out",
+          transition: "transform 0.5s ease-out",
           filter: destroyed
             ? "drop-shadow(0 10px 8px rgba(0,0,0,0.6)) grayscale(0.7) brightness(0.55) sepia(0.3) hue-rotate(-20deg)"
             : "drop-shadow(0 14px 10px rgba(0,0,0,0.55)) drop-shadow(0 4px 2px rgba(0,0,0,0.35)) saturate(1.12) contrast(1.08)",
