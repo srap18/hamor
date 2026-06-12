@@ -1,25 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { getDragonVideoForLevel } from "@/lib/dragon-videos";
+import { getDragonVideoForStage } from "@/lib/dragon-videos";
 
 type Props = {
-  /** Overall dragon level 1..150. */
-  level: number;
+  /** Dragon form 1..15 — drives which clip plays. Stable: only changes on promotion. */
+  stage: number;
   className?: string;
   style?: CSSProperties;
   loop?: boolean;
 };
 
 /**
- * Plays the correct dragon evolution clip for the given level and removes the
- * solid background (green / black / white — whatever the clip uses) via an
- * adaptive canvas chroma key: the background color is auto-detected from the
- * four corner pixels of the first frame, then every pixel close enough to that
- * color is made transparent. Falls back to multiply blending only if canvas
- * access is denied (cross-origin taint).
+ * Plays the clip bound to the dragon's current form (1..15) and removes the
+ * solid background via an adaptive canvas chroma key (auto-detected from the
+ * four corner pixels of the first frame), so green/black/white backgrounds all
+ * become transparent.
  */
-export function DragonEvolutionVideo({ level, className, style, loop = true }: Props) {
-  const { url, stage } = useMemo(() => getDragonVideoForLevel(level), [level]);
+export function DragonEvolutionVideo({ stage, className, style, loop = true }: Props) {
+  const { url, stage: stageKind } = useMemo(() => getDragonVideoForStage(stage), [stage]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const keyColorRef = useRef<{ r: number; g: number; b: number } | null>(null);
