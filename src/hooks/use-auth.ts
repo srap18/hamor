@@ -75,12 +75,31 @@ export function useAuth() {
 }
 
 /* ─────────────── Global profile singleton ─────────────── */
+const PROFILE_LS_KEY = "lov_profile_cache_v1";
 let profileCache: Profile | null = null;
 let profileLoadingFlag = false;
 let profileChannelUserId: string | null = null;
 let profilePingTimer: ReturnType<typeof setInterval> | null = null;
 const profileSubs = new Set<() => void>();
 const notifyProfile = () => profileSubs.forEach((fn) => { try { fn(); } catch {} });
+
+function persistProfile(p: Profile | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(p));
+    else window.localStorage.removeItem(PROFILE_LS_KEY);
+  } catch {}
+}
+
+function loadPersistedProfile(userId: string): Profile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PROFILE_LS_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Profile;
+    return p && p.id === userId ? p : null;
+  } catch { return null; }
+}
 
 async function fetchProfileNow(userId: string) {
   const { data } = await supabase
@@ -91,9 +110,11 @@ async function fetchProfileNow(userId: string) {
   if (data) {
     profileCache = data as Profile;
     profileLoadingFlag = false;
+    persistProfile(profileCache);
     notifyProfile();
   }
 }
+
 
 function ensureProfileBootstrap(userId: string) {
   if (profileChannelUserId === userId) return;
