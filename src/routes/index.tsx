@@ -479,6 +479,7 @@ function Index() {
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
           && (s.stealingEndsAt ?? null) === (c.stealingEndsAt ?? null)
           && !!s.fishing === !!c.fishing
+          && (s.startedAt ?? null) === (c.startedAt ?? null)
           && !!s.sailorAtStart === !!c.sailorAtStart
           && (s.destroyedAt ?? null) === (c.destroyedAt ?? null)
           && (s.repairEndsAt ?? null) === (c.repairEndsAt ?? null);
@@ -1204,9 +1205,7 @@ function Index() {
 
     // ── Optimistic update: instant UI change, ZERO awaits ──────────
     const startNow = serverNowMs();
-    const nextStartedAt = nextAtSea
-      ? startNow - Math.round(((target.max > 0 ? target.progress / target.max : 0) * target.duration * 1000))
-      : undefined;
+    const nextStartedAt = nextAtSea ? startNow : undefined;
 
     if (dbIdToSync) setSeaOverride(dbIdToSync, nextAtSea, nextStartedAt);
     const sailorOnStart = getCrewBonuses(target).hasSailor;
