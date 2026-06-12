@@ -356,8 +356,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             src={hatchVideo.url}
             loop={false}
             onEnded={finishHatch}
-            className="relative max-h-full max-w-full"
-            style={{ objectFit: "contain" }}
+            className="relative"
+            style={{ width: "100vw", height: "100vh", objectFit: "contain" }}
           />
           <button
             type="button"
