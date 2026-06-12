@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 
 export type Profile = {
   id: string;
@@ -121,7 +122,7 @@ function primeProfileForUser(userId: string) {
 async function fetchProfileNow(userId: string, attempt = 0) {
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_PUBLIC_COLUMNS)
     .eq("id", userId)
     .maybeSingle();
   if ((error || !data) && attempt < 2) {
