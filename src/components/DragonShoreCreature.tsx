@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
 
