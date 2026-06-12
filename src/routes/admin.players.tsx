@@ -286,6 +286,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [invRows, setInvRows] = useState<InvRow[]>([]);
   const [invFilter, setInvFilter] = useState<string>("all");
   const [invQtyEdits, setInvQtyEdits] = useState<Record<string, string>>({});
+  const [linkedLoading, setLinkedLoading] = useState(false);
+  const [linkedData, setLinkedData] = useState<{
+    self: { user_id: string; email: string | null; devices: { device_id: string; created_at: string; updated_at: string }[]; ips: { ip: string; first_seen: string; last_seen: string; hits: number }[] };
+    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[] }>;
+  } | null>(null);
+
+  const loadLinked = useCallback(async () => {
+    setLinkedLoading(true);
+    try {
+      const { adminGetLinkedAccounts } = await import("@/lib/admin-linked-accounts.functions");
+      const res = await adminGetLinkedAccounts({ data: { userId: player.id } });
+      setLinkedData(res as never);
+    } catch (e: any) {
+      toast.error("فشل تحميل الحسابات المرتبطة: " + (e?.message ?? ""));
+    }
+    setLinkedLoading(false);
+  }, [player.id]);
+
+  useEffect(() => { loadLinked(); }, [loadLinked]);
 
   const reloadInventory = useCallback(async () => {
     const { data, error } = await (supabase as any).rpc("admin_get_player_inventory", { _player: player.id });
