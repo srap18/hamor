@@ -211,12 +211,26 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
 
       {playingHatch && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
+          className="fixed inset-0 z-[60] flex items-center justify-center"
           onClick={finishHatch}
           dir="rtl"
+          style={{ pointerEvents: "auto" }}
         >
-          {/* White flat backdrop so the multiply-blended video drops its white BG cleanly */}
-          <div className="absolute inset-0 bg-white" />
+          {/* Subtle dim of the harbor behind */}
+          <div className="absolute inset-0 bg-black/55" />
+          {/* The video is rendered with mix-blend-mode: screen over a deep-dark layer:
+              white BG of the video → white added to dark = white wash → but we want it gone.
+              Better: render the video with mix-blend-mode: multiply on a near-white plate
+              so the dragon stays visible while the white BG blends into the plate. We then
+              tint the plate to match the harbor mood (warm dusk). */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, #fde8c8 0%, #f6c98a 55%, #b97a3a 100%)",
+              opacity: 0.92,
+            }}
+          />
           <video
             ref={videoRef}
             src={hatchVideo.url}
@@ -230,7 +244,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           <button
             type="button"
             onClick={finishHatch}
-            className="absolute top-4 right-4 rounded-full bg-black/60 px-4 py-2 text-sm font-bold text-white"
+            className="absolute top-4 right-4 z-10 rounded-full bg-black/60 px-4 py-2 text-sm font-bold text-white"
           >
             تخطي
           </button>
