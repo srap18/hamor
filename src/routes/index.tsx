@@ -383,7 +383,8 @@ function Index() {
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
             : s.img;
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: s.fishing ? Math.min(s.timeLeft, duration) : duration, progress: Math.min(s.progress, max), hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          const sameTrip = !!s.fishing && !!fishing && s.startedAt === startedAt;
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -778,17 +779,20 @@ function Index() {
 
   const getEffectiveFishingElapsed = (ship: Ship, nowMs: number) => {
     if (!ship.startedAt) return { elapsed: 0, activeMult: 1 };
-    const elapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
-    const sailor = crewRowsRef.current.find((r) => {
-      if (r.item_id !== "sailor" || !isCrewAssignedToShip(r.meta, ship)) return false;
-      const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : Infinity;
-      return exp > nowMs;
-    });
-    if (!sailor) return { elapsed, activeMult: 1 };
-    const assignedAt = sailor.meta?.assigned_at ? new Date(sailor.meta.assigned_at).getTime() : undefined;
-    if (!assignedAt || assignedAt <= ship.startedAt) return { elapsed: elapsed * 2, activeMult: 2 };
-    const boostedElapsed = Math.max(0, (nowMs - Math.max(assignedAt, ship.startedAt)) / 1000);
-    return { elapsed: elapsed + boostedElapsed, activeMult: 2 };
+    const wallElapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
+    let bonusElapsed = 0;
+    let activeMult = 1;
+    for (const row of crewRowsRef.current) {
+      if (row.item_id !== "sailor" || !isCrewAssignedToShip(row.meta, ship)) continue;
+      const assignedAt = row.meta?.assigned_at ? new Date(row.meta.assigned_at).getTime() : ship.startedAt;
+      const expiresAt = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
+      if (expiresAt <= ship.startedAt || assignedAt > nowMs) continue;
+      const boostStart = Math.max(ship.startedAt, assignedAt || ship.startedAt);
+      const boostEnd = Math.min(nowMs, expiresAt);
+      if (boostEnd > boostStart) bonusElapsed += (boostEnd - boostStart) / 1000;
+      if (expiresAt > nowMs) activeMult = 2;
+    }
+    return { elapsed: wallElapsed + bonusElapsed, activeMult };
   };
 
   // Deterministic per-trip fish pick so the Guide crew's preview matches the actual catch.
@@ -817,13 +821,17 @@ function Index() {
       .eq("user_id", uid)
       .eq("item_type", "crew");
     const rows = (data ?? []) as CrewRow[];
-    // purge expired
+    // Keep expired assigned crew rows as trip history until the ship is collected.
+    // Deleting them on reload made completed 13,000 trips display/collect as ~6,000
+    // because the sailor speed interval was lost after reopening the game.
     const nowMs = serverNowMs();
     const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
-    if (expired.length) {
-      await deleteInventoryRows(expired.map((r) => r.id));
-    }
-    setCrewRows(rows.filter((r) => !expired.includes(r)));
+    const activeShipIds = new Set(shipsRef.current.filter((s) => s.fishing && s.dbId).map((s) => s.dbId!));
+    setCrewRows(rows.filter((r) => {
+      if (!expired.includes(r)) return true;
+      const assignedShipId = r.meta?.assigned_ship_id;
+      return typeof assignedShipId === "string" && activeShipIds.has(assignedShipId);
+    }));
   };
   useEffect(() => {
     reloadCrews();
@@ -1122,7 +1130,10 @@ function Index() {
               }
             }
           }
-          const progress = Math.round(s.max * ratio);
+          // Same fishing trip should never visually go backwards. On reopen the
+          // fleet snapshot may show 13,000 before crew history finishes loading;
+          // keep that full value instead of dropping to the unboosted ~6,000.
+          const progress = Math.max(s.progress, Math.round(s.max * ratio));
           const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
