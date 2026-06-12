@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
@@ -186,7 +187,7 @@ function PlayerPage() {
         setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
       const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", playerId).maybeSingle(),
+        supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
         supabase.from("dragons").select("stage").eq("user_id", playerId).maybeSingle(),

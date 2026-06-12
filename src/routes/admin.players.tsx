@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
 import { FISH_LIST } from "@/lib/fish";
@@ -71,7 +72,7 @@ function AdminPlayers() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let q = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
+    let q = supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).order("created_at", { ascending: false }).limit(200);
     const s = search.trim();
     if (s) q = q.or(`display_name.ilike.%${s}%,username.ilike.%${s.toLowerCase()}%`);
     const { data } = await q;
