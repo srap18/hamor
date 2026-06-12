@@ -20,6 +20,8 @@ type Props = {
  */
 export function DragonEggButton({ className, interactive = true, stage }: Props) {
   const [showSoon, setShowSoon] = useState(false);
+  const navigate = useNavigate();
+  const unlocked = useDragonUnlocked();
   const img = stage && stage >= 1 ? getStage(stage).image : dragonEggImg;
   if (!interactive) {
     return (
