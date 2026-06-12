@@ -31,8 +31,10 @@ function KeyedWhiteVideo({
 }) {
   const sourceRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [fallback, setFallback] = useState(false);
 
   useEffect(() => {
+    if (fallback) return;
     const video = sourceRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d", { willReadFrequently: true });
@@ -51,20 +53,26 @@ function KeyedWhiteVideo({
           canvas.height = height;
         }
 
-        ctx.drawImage(video, 0, 0, width, height);
-        const frame = ctx.getImageData(0, 0, width, height);
-        const pixels = frame.data;
-        for (let i = 0; i < pixels.length; i += 4) {
-          const r = pixels[i];
-          const g = pixels[i + 1];
-          const b = pixels[i + 2];
-          const whiteness = Math.min(r, g, b);
-          const spread = Math.max(r, g, b) - whiteness;
-          if (whiteness > 218 && spread < 34) {
-            pixels[i + 3] = Math.max(0, 255 - (whiteness - 218) * 7);
+        try {
+          ctx.drawImage(video, 0, 0, width, height);
+          const frame = ctx.getImageData(0, 0, width, height);
+          const pixels = frame.data;
+          for (let i = 0; i < pixels.length; i += 4) {
+            const r = pixels[i];
+            const g = pixels[i + 1];
+            const b = pixels[i + 2];
+            const whiteness = Math.min(r, g, b);
+            const spread = Math.max(r, g, b) - whiteness;
+            if (whiteness > 218 && spread < 34) {
+              pixels[i + 3] = Math.max(0, 255 - (whiteness - 218) * 7);
+            }
           }
+          ctx.putImageData(frame, 0, 0);
+        } catch {
+          cancelled = true;
+          setFallback(true);
+          return;
         }
-        ctx.putImageData(frame, 0, 0);
       }
       raf = requestAnimationFrame(draw);
     };
@@ -75,7 +83,22 @@ function KeyedWhiteVideo({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [src]);
+  }, [src, fallback]);
+
+  if (fallback) {
+    return (
+      <video
+        src={src}
+        autoPlay
+        loop={loop}
+        muted
+        playsInline
+        onEnded={onEnded}
+        className={className}
+        style={{ ...style, mixBlendMode: "multiply" }}
+      />
+    );
+  }
 
   return (
     <>
@@ -88,6 +111,7 @@ function KeyedWhiteVideo({
         playsInline
         crossOrigin="anonymous"
         onEnded={onEnded}
+        onError={() => setFallback(true)}
         className="pointer-events-none absolute h-px w-px opacity-0"
       />
       <canvas ref={canvasRef} className={className} style={style} aria-hidden />
