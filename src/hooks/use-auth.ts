@@ -44,6 +44,7 @@ function ensureSessionBootstrap() {
     // When the user changes, drop the cached profile so we refetch
     if (s?.user?.id !== profileCache?.id) {
       profileCache = null;
+      if (!s?.user) persistProfile(null);
       notifyProfile();
     }
   });
@@ -75,12 +76,31 @@ export function useAuth() {
 }
 
 /* ─────────────── Global profile singleton ─────────────── */
+const PROFILE_LS_KEY = "lov_profile_cache_v1";
 let profileCache: Profile | null = null;
 let profileLoadingFlag = false;
 let profileChannelUserId: string | null = null;
 let profilePingTimer: ReturnType<typeof setInterval> | null = null;
 const profileSubs = new Set<() => void>();
 const notifyProfile = () => profileSubs.forEach((fn) => { try { fn(); } catch {} });
+
+function persistProfile(p: Profile | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(p));
+    else window.localStorage.removeItem(PROFILE_LS_KEY);
+  } catch {}
+}
+
+function loadPersistedProfile(userId: string): Profile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PROFILE_LS_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Profile;
+    return p && p.id === userId ? p : null;
+  } catch { return null; }
+}
 
 async function fetchProfileNow(userId: string) {
   const { data } = await supabase
@@ -91,9 +111,11 @@ async function fetchProfileNow(userId: string) {
   if (data) {
     profileCache = data as Profile;
     profileLoadingFlag = false;
+    persistProfile(profileCache);
     notifyProfile();
   }
 }
+
 
 function ensureProfileBootstrap(userId: string) {
   if (profileChannelUserId === userId) return;
@@ -103,11 +125,20 @@ function ensureProfileBootstrap(userId: string) {
     // realtime channels are auto-cleaned when we swap; not strictly removing
   }
   profileChannelUserId = userId;
+  // Rehydrate from localStorage instantly so name/avatar appear without a network round-trip.
   if (!profileCache || profileCache.id !== userId) {
-    profileLoadingFlag = true;
-    notifyProfile();
+    const persisted = loadPersistedProfile(userId);
+    if (persisted) {
+      profileCache = persisted;
+      profileLoadingFlag = false;
+      notifyProfile();
+    } else {
+      profileLoadingFlag = true;
+      notifyProfile();
+    }
   }
   fetchProfileNow(userId);
+
 
   // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus.
   // Do NOT mark offline on visibilitychange — mobile backgrounds the tab on every
@@ -134,6 +165,7 @@ function ensureProfileBootstrap(userId: string) {
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
         profileCache = payload.new as Profile;
+        persistProfile(profileCache);
         notifyProfile();
       },
     )
