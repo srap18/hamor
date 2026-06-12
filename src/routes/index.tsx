@@ -3829,6 +3829,36 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           transition: isHeavyFxDisabled ? "left 0.35s linear" : "left 0.5s ease-in-out",
       }}
     >
+      {/* Lightweight per-ship timer (fishing time-left, or repair countdown). */}
+      {(() => {
+        let label = "";
+        if (destroyed && ship.repairEndsAt) {
+          const rem = Math.max(0, Math.ceil((new Date(ship.repairEndsAt).getTime() - serverNowMs()) / 1000));
+          if (rem > 0) {
+            const h = Math.floor(rem / 3600);
+            const m = Math.floor((rem % 3600) / 60);
+            const s = rem % 60;
+            label = `🔧 ${h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}ث`}`;
+          }
+        } else if (ship.fishing && !ready) {
+          const rem = Math.max(0, Math.ceil(ship.timeLeft));
+          const m = Math.floor(rem / 60);
+          const s = rem % 60;
+          label = `⏱ ${m}:${String(s).padStart(2, "0")}`;
+        } else if (ship.fishing && ready) {
+          label = "✅ جاهز";
+        }
+        if (!label) return null;
+        return (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-black/65 border border-white/15 text-white text-[10px] font-bold whitespace-nowrap pointer-events-none z-20 tabular-nums"
+            style={{ top: "-14px", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+          >
+            {label}
+          </div>
+        );
+      })()}
+
       {/* Wake ripples behind — only while actually moving */}
       {moving && (
         <div
