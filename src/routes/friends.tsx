@@ -26,7 +26,7 @@ function FriendsPage() {
     if (!user) return;
     const fiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
     const [{ data: on }, { data: f }, { data: bl }] = await Promise.all([
-      supabase.from("profiles").select("*").gte("online_at", fiveMin).neq("id", user.id).limit(20),
+      supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).gte("online_at", fiveMin).neq("id", user.id).limit(20),
       supabase.from("friends").select("*").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
       (supabase as any).from("user_blocks").select("blocked_id").eq("blocker_id", user.id),
     ]);
@@ -37,7 +37,7 @@ function FriendsPage() {
     ids.delete(user.id);
     const blockedIds = ((bl as any[]) || []).map(r => r.blocked_id as string);
     blockedIds.forEach(id => ids.add(id));
-    const { data: profs } = ids.size ? await supabase.from("profiles").select("*").in("id", Array.from(ids)) : { data: [] as P[] };
+    const { data: profs } = ids.size ? await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).in("id", Array.from(ids)) : { data: [] as P[] };
     const pMap = new Map((profs || []).map((p: any) => [p.id, p as P]));
     setFriends(all.filter(x => x.status === "accepted").map(x => ({ ...x, profile: pMap.get(x.requester_id === user.id ? x.addressee_id : x.requester_id)! })).filter(x => x.profile));
     setRequests(all.filter(x => x.status === "pending" && x.addressee_id === user.id).map(x => ({ ...x, profile: pMap.get(x.requester_id)! })).filter(x => x.profile));
@@ -63,7 +63,7 @@ function FriendsPage() {
 
   const search = async () => {
     if (!q.trim()) return;
-    const { data } = await supabase.from("profiles").select("*").ilike("display_name", `%${q}%`).neq("id", user?.id || "").limit(20);
+    const { data } = await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).ilike("display_name", `%${q}%`).neq("id", user?.id || "").limit(20);
     setResults((data || []) as P[]);
   };
 
