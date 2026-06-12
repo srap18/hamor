@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { getDragonVideoForStage } from "@/lib/dragon-videos";
+import dragonEgg from "@/assets/dragon-egg.png";
 
 type Props = {
   /** Dragon form 1..15 — drives which clip plays. Stable: only changes on promotion. */
@@ -18,6 +19,7 @@ type Props = {
  */
 export function DragonEvolutionVideo({ stage, className, style, loop = true }: Props) {
   const { url, stage: stageKind } = useMemo(() => getDragonVideoForStage(stage), [stage]);
+  const isStaticEgg = stageKind === "egg";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const keyColorRef = useRef<{ r: number; g: number; b: number } | null>(null);
@@ -25,13 +27,15 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
   const [canvasDisabled, setCanvasDisabled] = useState(false);
 
   useEffect(() => {
+    if (isStaticEgg) return;
     // Reset on clip change so the new background is re-detected.
     keyColorRef.current = null;
     setCanvasReady(false);
     setCanvasDisabled(false);
-  }, [url]);
+  }, [url, isStaticEgg]);
 
   useEffect(() => {
+    if (isStaticEgg) return;
     if (canvasDisabled) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -133,7 +137,25 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [url, canvasDisabled]);
+  }, [url, canvasDisabled, isStaticEgg]);
+
+  if (isStaticEgg) {
+    return (
+      <span
+        className={className}
+        style={{ ...style, display: "block", position: "relative" }}
+        data-dragon-stage={stageKind}
+      >
+        <img
+          src={dragonEgg}
+          alt="بيضة التنين"
+          draggable={false}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{ objectFit: "contain", objectPosition: "bottom center" }}
+        />
+      </span>
+    );
+  }
 
   return (
     <span
