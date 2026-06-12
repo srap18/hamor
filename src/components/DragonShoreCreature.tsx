@@ -109,7 +109,6 @@ function KeyedWhiteVideo({
         loop={loop}
         muted
         playsInline
-        crossOrigin="anonymous"
         onEnded={onEnded}
         onError={() => setFallback(true)}
         className="pointer-events-none absolute h-px w-px opacity-0"
