@@ -165,18 +165,33 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               transformOrigin: "50% 95%",
             }}
           >
-            <img
-              src={creatureImg}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-contain object-bottom"
-              style={{
-                filter:
-                  stageMode === "adult"
-                    ? "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.03)"
-                    : "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
-              }}
-            />
+            {stageMode === "adult" ? (
+              <video
+                src={hatchVideo.url}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 h-full w-full"
+                style={{
+                  objectFit: "contain",
+                  objectPosition: "bottom center",
+                  mixBlendMode: "multiply",
+                  filter:
+                    "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05)",
+                }}
+              />
+            ) : (
+              <img
+                src={creatureImg}
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-contain object-bottom"
+                style={{
+                  filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
+                }}
+              />
+            )}
 
             {canHatch && (
               <span
