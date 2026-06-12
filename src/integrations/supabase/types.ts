@@ -4262,6 +4262,15 @@ export type Database = {
         }[]
       }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
+      notify_steal_started: {
+        Args: {
+          _attacker_emoji: string
+          _attacker_name: string
+          _attacker_user_id: string
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
       officer_set_tribe: {
         Args: { _target: string; _tribe_id: string }
         Returns: undefined
