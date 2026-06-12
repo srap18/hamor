@@ -50,12 +50,15 @@ function ensureSessionBootstrap() {
       if (!s?.user) persistProfile(null);
       notifyProfile();
     }
+    if (nextUserId) primeProfileForUser(nextUserId);
   });
   supabase.auth.getSession().then(({ data }) => {
     sessionCache = data.session;
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
     notifySession();
+    const userId = data.session?.user?.id;
+    if (userId) primeProfileForUser(userId);
   }).catch(() => {
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
@@ -103,6 +106,16 @@ function loadPersistedProfile(userId: string): Profile | null {
     const p = JSON.parse(raw) as Profile;
     return p && p.id === userId ? p : null;
   } catch { return null; }
+}
+
+function primeProfileForUser(userId: string) {
+  if (!profileCache || profileCache.id !== userId) {
+    const persisted = loadPersistedProfile(userId);
+    if (persisted) profileCache = persisted;
+  }
+  profileLoadingFlag = !profileCache || profileCache.id !== userId;
+  notifyProfile();
+  fetchProfileNow(userId);
 }
 
 async function fetchProfileNow(userId: string) {
