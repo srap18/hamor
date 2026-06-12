@@ -1,10 +1,14 @@
-// Dragon evolution video mapping by overall level (1..150).
+// Dragon evolution video mapping — one clip per dragon form (1..15).
 //
-// Bands (provided by product):
-//   1-2     → eggs            (videos 3, 4)
-//   3-30    → small dragon    (videos 13, 5, 2, 6, 11, 14)
-//   31-70   → teen dragon     (videos 7, 8, 9, 10)
-//   71-150  → mature dragon   (videos 1, 15, 12)
+// We bind the dragon's `stage` (1..15 from src/lib/dragon.ts) directly to a
+// clip so the video is stable: it only swaps when the dragon promotes to the
+// next form, never on every DP tick.
+//
+// Stage bands (matches the levels the product gave us):
+//   stage 1-2   → egg          → clips 3, 4
+//   stage 3-8   → small dragon → clips 13, 5, 2, 6, 11, 14
+//   stage 9-12  → teen dragon  → clips 7, 8, 9, 10
+//   stage 13-15 → mature       → clips 1, 15, 12
 
 import v1 from "@/assets/dragon-evo/dragon-evo-1.mp4.asset.json";
 import v2 from "@/assets/dragon-evo/dragon-evo-2.mp4.asset.json";
@@ -26,32 +30,39 @@ const ALL = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15];
 
 export type DragonEvoStage = "egg" | "small" | "teen" | "mature";
 
-type Band = {
-  stage: DragonEvoStage;
-  fromLevel: number;
-  toLevel: number;
-  /** 1-based indices into ALL */
-  clips: number[];
-};
-
-const BANDS: Band[] = [
-  { stage: "egg",    fromLevel: 1,  toLevel: 2,   clips: [3, 4] },
-  { stage: "small",  fromLevel: 3,  toLevel: 30,  clips: [13, 5, 2, 6, 11, 14] },
-  { stage: "teen",   fromLevel: 31, toLevel: 70,  clips: [7, 8, 9, 10] },
-  { stage: "mature", fromLevel: 71, toLevel: 150, clips: [1, 15, 12] },
+// One entry per dragon form (index = stage 1..15). clipIndex is 1-based into ALL.
+const STAGE_TO_CLIP: Array<{ clipIndex: number; stage: DragonEvoStage }> = [
+  { clipIndex: 3,  stage: "egg"    }, // form 1
+  { clipIndex: 4,  stage: "egg"    }, // form 2
+  { clipIndex: 13, stage: "small"  }, // form 3
+  { clipIndex: 5,  stage: "small"  }, // form 4
+  { clipIndex: 2,  stage: "small"  }, // form 5
+  { clipIndex: 6,  stage: "small"  }, // form 6
+  { clipIndex: 11, stage: "small"  }, // form 7
+  { clipIndex: 14, stage: "small"  }, // form 8
+  { clipIndex: 7,  stage: "teen"   }, // form 9
+  { clipIndex: 8,  stage: "teen"   }, // form 10
+  { clipIndex: 9,  stage: "teen"   }, // form 11
+  { clipIndex: 10, stage: "teen"   }, // form 12
+  { clipIndex: 1,  stage: "mature" }, // form 13
+  { clipIndex: 15, stage: "mature" }, // form 14
+  { clipIndex: 12, stage: "mature" }, // form 15
 ];
 
-export function getDragonVideoForLevel(level: number): {
+/** Returns the fixed clip for a dragon form (stage 1..15). */
+export function getDragonVideoForStage(stage: number): {
   url: string;
   stage: DragonEvoStage;
-  clipIndex: number; // 1..15
+  clipIndex: number;
 } {
+  const s = Math.max(1, Math.min(STAGE_TO_CLIP.length, Math.floor(stage || 1)));
+  const entry = STAGE_TO_CLIP[s - 1];
+  return { url: ALL[entry.clipIndex - 1].url, stage: entry.stage, clipIndex: entry.clipIndex };
+}
+
+/** Back-compat: convert an overall level (1..150) to a form (1..15) and look up. */
+export function getDragonVideoForLevel(level: number) {
   const lvl = Math.max(1, Math.min(150, Math.floor(level || 1)));
-  const band = BANDS.find((b) => lvl >= b.fromLevel && lvl <= b.toLevel) ?? BANDS[0];
-  const span = band.toLevel - band.fromLevel + 1;
-  const rel = lvl - band.fromLevel;
-  // Distribute the band's levels evenly across its clips so every clip is used.
-  const idx = Math.min(band.clips.length - 1, Math.floor((rel / span) * band.clips.length));
-  const clipIndex = band.clips[idx];
-  return { url: ALL[clipIndex - 1].url, stage: band.stage, clipIndex };
+  const form = Math.min(15, Math.max(1, Math.ceil(lvl / 10)));
+  return getDragonVideoForStage(form);
 }

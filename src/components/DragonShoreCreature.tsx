@@ -290,7 +290,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               }}
             >
               <DragonEvolutionVideo
-                level={displayLevel}
+                stage={showEgg ? Math.min(2, stage) : stage}
                 className="absolute inset-0 h-full w-full"
                 style={{ objectFit: "contain", objectPosition: "bottom center" }}
               />
