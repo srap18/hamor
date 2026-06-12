@@ -676,6 +676,71 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </button>
         </div>
 
+        {/* Linked accounts (same device / same IP) */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-sm font-semibold text-slate-300">🔗 الحسابات المرتبطة (نفس الجهاز / IP)</div>
+            <button onClick={loadLinked} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs">🔄 تحديث</button>
+          </div>
+          {linkedData?.self?.email && (
+            <div className="text-[11px] text-slate-400 font-mono break-all" dir="ltr">
+              📧 {linkedData.self.email}
+            </div>
+          )}
+          <div className="text-[11px] text-slate-500">
+            عدد الأجهزة: {linkedData?.self.devices.length ?? 0} • عدد عناوين الـ IP: {linkedData?.self.ips.length ?? 0}
+          </div>
+          {linkedLoading ? (
+            <div className="text-xs text-slate-500 py-3 text-center">جاري التحميل...</div>
+          ) : !linkedData || linkedData.linked.length === 0 ? (
+            <div className="text-xs text-slate-500 py-3 text-center bg-slate-800/40 rounded-lg">
+              ✅ لا توجد حسابات أخرى مرتبطة بهذا اللاعب
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب آخر يشارك نفس الجهاز أو IP</div>
+              {linkedData.linked.map((acc) => (
+                <div key={acc.user_id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2 flex items-center gap-2">
+                  {acc.avatar_url ? (
+                    <img src={acc.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-600 shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-sm shrink-0">👤</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-slate-100 truncate">
+                      {acc.display_name || "بدون اسم"}
+                      {acc.username && <span className="text-slate-400 font-normal"> · @{acc.username}</span>}
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate" dir="ltr">
+                      {acc.email ?? "—"} · L{acc.level ?? 0} · 🪙{(acc.coins ?? 0).toLocaleString()}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {acc.shared_devices.length > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-rose-600/30 text-rose-200 text-[10px]">
+                          📱 نفس الجهاز ({acc.shared_devices.length})
+                        </span>
+                      )}
+                      {acc.shared_ips.length > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-600/30 text-amber-200 text-[10px]">
+                          🌐 نفس IP ({acc.shared_ips.length})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href={`/p/${acc.user_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2 py-1 rounded bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-100 text-[11px] font-bold shrink-0"
+                  >
+                    فتح
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Profile (username + bio + media ban + wipe) */}
         <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
           <div className="text-sm font-semibold text-slate-300">🪪 الملف الشخصي</div>
