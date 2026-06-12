@@ -783,8 +783,10 @@ function Index() {
     const wallElapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
     let bonusElapsed = 0;
     let activeMult = 1;
+    let sawSailorRow = false;
     for (const row of crewRowsRef.current) {
       if (row.item_id !== "sailor" || !isCrewAssignedToShip(row.meta, ship)) continue;
+      sawSailorRow = true;
       const assignedAt = row.meta?.assigned_at ? new Date(row.meta.assigned_at).getTime() : ship.startedAt;
       const expiresAt = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
       if (expiresAt <= ship.startedAt || assignedAt > nowMs) continue;
@@ -792,6 +794,14 @@ function Index() {
       const boostEnd = Math.min(nowMs, expiresAt);
       if (boostEnd > boostStart) bonusElapsed += (boostEnd - boostStart) / 1000;
       if (expiresAt > nowMs) activeMult = 2;
+    }
+    // Fallback: crew inventory hasn't loaded from the server yet (right after
+    // refresh). If this trip was started with a sailor assigned, optimistically
+    // apply the 2x boost so the timer doesn't visually jump from 10m → 20m
+    // and then back to 10m once crew rows arrive.
+    if (!sawSailorRow && !crewLoadedRef.current && ship.sailorAtStart) {
+      bonusElapsed = wallElapsed;
+      activeMult = 2;
     }
     return { elapsed: wallElapsed + bonusElapsed, activeMult };
   };
