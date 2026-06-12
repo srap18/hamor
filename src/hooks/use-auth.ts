@@ -37,12 +37,15 @@ function ensureSessionBootstrap() {
     notifySession();
   }, 4000);
   supabase.auth.onAuthStateChange((_e, s) => {
+    const prevUserId = sessionCache?.user?.id ?? null;
+    const nextUserId = s?.user?.id ?? null;
     sessionCache = s;
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
     notifySession();
-    // When the user changes, drop the cached profile so we refetch
-    if (s?.user?.id !== profileCache?.id) {
+    // Only drop profile when the signed-in account actually changes.
+    // Token refresh / INITIAL_SESSION must not wipe the current profile.
+    if (prevUserId !== nextUserId) {
       profileCache = null;
       if (!s?.user) persistProfile(null);
       notifyProfile();
@@ -108,17 +111,26 @@ async function fetchProfileNow(userId: string) {
     .select("*")
     .eq("id", userId)
     .maybeSingle();
+  profileLoadingFlag = false;
   if (data) {
     profileCache = data as Profile;
-    profileLoadingFlag = false;
     persistProfile(profileCache);
-    notifyProfile();
   }
+  notifyProfile();
 }
 
 
 function ensureProfileBootstrap(userId: string) {
-  if (profileChannelUserId === userId) return;
+  if (profileChannelUserId === userId) {
+    if (!profileCache || profileCache.id !== userId) {
+      const persisted = loadPersistedProfile(userId);
+      if (persisted) profileCache = persisted;
+      else profileLoadingFlag = true;
+      notifyProfile();
+      fetchProfileNow(userId);
+    }
+    return;
+  }
   // Tear down old channel/ping for previous user
   if (profileChannelUserId) {
     if (profilePingTimer) { clearInterval(profilePingTimer); profilePingTimer = null; }
