@@ -738,6 +738,7 @@ function Index() {
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const buyingCrewRef = useRef<string | null>(null);
   const crewRowsRef = useRef<CrewRow[]>([]);
+  const crewLoadedRef = useRef(false);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
   // Track golden_fisher_until from profile so the per-frame ship loop can detect
   // GF activation even when no inventory crew row exists (activate consumes it).
