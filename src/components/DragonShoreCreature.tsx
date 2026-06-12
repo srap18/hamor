@@ -117,6 +117,7 @@ const HATCH_KEY = (uid: string) => `dragon-hatched-v1:${uid}`;
 
 export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
   const [stage, setStage] = useState<number>(1);
+  const [dp, setDp] = useState<number>(0);
   const [uid, setUid] = useState<string | null>(null);
   const [hatched, setHatched] = useState<boolean>(false);
   const [playingHatch, setPlayingHatch] = useState(false);
@@ -136,8 +137,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           setHatched(localStorage.getItem(HATCH_KEY(u)) === "1");
         } catch {}
       }
-      const { data } = await supabase.from("dragons").select("stage").eq("user_id", u).maybeSingle();
-      if (alive && data?.stage) setStage(data.stage);
+      const { data } = await supabase.from("dragons").select("stage, dp").eq("user_id", u).maybeSingle();
+      if (alive && data) {
+        if (data.stage) setStage(data.stage);
+        if (typeof data.dp === "number") setDp(data.dp);
+      }
     };
     load();
     const onVis = () => { if (document.visibilityState === "visible") load(); };
@@ -154,7 +158,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const canHatch = stage >= 3 && !hatched;
   const showEgg = stage < 3 || !hatched;
 
-  const creatureImg = getStage(showEgg ? 1 : stage).image;
+  // Real overall level 1..150 for the evolution video. While the egg hasn't
+  // hatched yet we clamp to 1-2 so the egg clips play regardless of DP.
+  const realLevel = Math.max(1, overallLevel({ stage, dp } as Dragon));
+  const displayLevel = showEgg ? Math.min(2, realLevel) : realLevel;
   const stageMode = showEgg ? "egg" : "adult";
 
   const navigate = useNavigate();
