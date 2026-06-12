@@ -2247,6 +2247,7 @@ export type Database = {
           repair_ends_at: string | null
           stars: number
           stealing_ends_at: string | null
+          stealing_started_at: string | null
           stealing_target_ship_id: string | null
           stealing_target_user_id: string | null
           template_id: number
@@ -2268,6 +2269,7 @@ export type Database = {
           repair_ends_at?: string | null
           stars?: number
           stealing_ends_at?: string | null
+          stealing_started_at?: string | null
           stealing_target_ship_id?: string | null
           stealing_target_user_id?: string | null
           template_id: number
@@ -2289,6 +2291,7 @@ export type Database = {
           repair_ends_at?: string | null
           stars?: number
           stealing_ends_at?: string | null
+          stealing_started_at?: string | null
           stealing_target_ship_id?: string | null
           stealing_target_user_id?: string | null
           template_id?: number
@@ -3965,6 +3968,7 @@ export type Database = {
           repair_ends_at: string | null
           stars: number
           stealing_ends_at: string | null
+          stealing_started_at: string | null
           stealing_target_ship_id: string | null
           stealing_target_user_id: string | null
           template_id: number
