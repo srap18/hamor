@@ -164,6 +164,7 @@ function ensureProfileBootstrap(userId: string) {
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
         profileCache = payload.new as Profile;
+        persistProfile(profileCache);
         notifyProfile();
       },
     )
