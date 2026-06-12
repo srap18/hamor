@@ -261,8 +261,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           dir="rtl"
           style={{ pointerEvents: "auto" }}
         >
-          {/* Dim the harbor so the keyed-out dragon reads clearly */}
-          <div className="absolute inset-0 bg-black/70" />
+          {/* White backdrop so multiply blend keys out the video's white bg */}
+          <div className="absolute inset-0 bg-white" />
           <video
             ref={videoRef}
             src={hatchVideo.url}
@@ -271,7 +271,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             muted
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ filter: "url(#dsc-key-white)" }}
+            style={{ mixBlendMode: "multiply" }}
           />
           <button
             type="button"
