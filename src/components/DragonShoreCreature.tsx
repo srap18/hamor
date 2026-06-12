@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
 
@@ -57,14 +59,20 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const creatureImg = getStage(showEgg ? 1 : stage).image;
   const stageMode = showEgg ? "egg" : "adult";
 
+  const navigate = useNavigate();
+  const unlocked = useDragonUnlocked();
+
   const handleTap = () => {
     if (!interactive) return;
     if (canHatch) {
       setPlayingHatch(true);
-      // Start playback once mounted
       requestAnimationFrame(() => {
         videoRef.current?.play().catch(() => {});
       });
+      return;
+    }
+    if (unlocked) {
+      navigate({ to: "/dragon" });
     }
   };
 

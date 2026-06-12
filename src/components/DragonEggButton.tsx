@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import dragonEggImg from "@/assets/dragon-egg.png";
 import { getStage } from "@/lib/dragon";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 
 type Props = {
   /** Position style — defaults to top-right corner */
@@ -18,6 +20,8 @@ type Props = {
  */
 export function DragonEggButton({ className, interactive = true, stage }: Props) {
   const [showSoon, setShowSoon] = useState(false);
+  const navigate = useNavigate();
+  const unlocked = useDragonUnlocked();
   const img = stage && stage >= 1 ? getStage(stage).image : dragonEggImg;
   if (!interactive) {
     return (
@@ -46,7 +50,10 @@ export function DragonEggButton({ className, interactive = true, stage }: Props)
     <>
     <button
       type="button"
-      onClick={() => { setShowSoon(true); setTimeout(() => setShowSoon(false), 2200); }}
+      onClick={() => {
+        if (unlocked) { navigate({ to: "/dragon" }); return; }
+        setShowSoon(true); setTimeout(() => setShowSoon(false), 2200);
+      }}
       className={
         className ??
         "fixed top-20 right-3 z-40 w-16 h-16 rounded-full flex items-center justify-center active:scale-90 transition-transform"

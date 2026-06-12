@@ -2,12 +2,19 @@ import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, dragonBonusForLevel, dragonTierTable, applyDragonAttack, applyDragonDefense } from "@/lib/dragon";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 
 export const Route = createFileRoute("/dragon")({
   ssr: false,
   head: () => ({ meta: [{ title: "🐉 تنيني — Ocean Catch" }] }),
-  component: DragonLocked,
+  component: DragonGate,
 });
+
+function DragonGate() {
+  const unlocked = useDragonUnlocked();
+  if (unlocked) return <DragonPage />;
+  return <DragonLocked />;
+}
 
 function DragonLocked() {
   const location = useLocation();
@@ -24,7 +31,8 @@ function DragonLocked() {
   );
 }
 
-function _DragonPageDisabled() {
+function DragonPage() {
+
   const location = useLocation();
   const [d, setD] = useState<Dragon | null>(null);
   const [loading, setLoading] = useState(true);
