@@ -181,20 +181,28 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             }}
           >
             {stageMode === "adult" ? (
-              <video
-                src={hatchVideo.url}
-                autoPlay
-                loop
-                muted
-                playsInline
+              <div
                 className="absolute inset-0 h-full w-full"
                 style={{
-                  objectFit: "contain",
-                  objectPosition: "bottom center",
+                  mixBlendMode: "multiply",
                   filter:
-                    "url(#dsc-key-white) drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05)",
+                    "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
                 }}
-              />
+              >
+                <video
+                  src={hatchVideo.url}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 h-full w-full"
+                  style={{
+                    objectFit: "contain",
+                    objectPosition: "bottom center",
+                    mixBlendMode: "multiply",
+                  }}
+                />
+              </div>
             ) : (
               <img
                 src={creatureImg}
@@ -253,8 +261,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           dir="rtl"
           style={{ pointerEvents: "auto" }}
         >
-          {/* Dim the harbor so the keyed-out dragon reads clearly */}
-          <div className="absolute inset-0 bg-black/70" />
+          {/* White backdrop so multiply blend keys out the video's white bg */}
+          <div className="absolute inset-0 bg-white" />
           <video
             ref={videoRef}
             src={hatchVideo.url}
@@ -263,7 +271,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             muted
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ filter: "url(#dsc-key-white)" }}
+            style={{ mixBlendMode: "multiply" }}
           />
           <button
             type="button"
