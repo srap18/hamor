@@ -124,11 +124,20 @@ function ensureProfileBootstrap(userId: string) {
     // realtime channels are auto-cleaned when we swap; not strictly removing
   }
   profileChannelUserId = userId;
+  // Rehydrate from localStorage instantly so name/avatar appear without a network round-trip.
   if (!profileCache || profileCache.id !== userId) {
-    profileLoadingFlag = true;
-    notifyProfile();
+    const persisted = loadPersistedProfile(userId);
+    if (persisted) {
+      profileCache = persisted;
+      profileLoadingFlag = false;
+      notifyProfile();
+    } else {
+      profileLoadingFlag = true;
+      notifyProfile();
+    }
   }
   fetchProfileNow(userId);
+
 
   // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus.
   // Do NOT mark offline on visibilitychange — mobile backgrounds the tab on every
