@@ -261,8 +261,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           dir="rtl"
           style={{ pointerEvents: "auto" }}
         >
-          {/* White backdrop so multiply blend keys out the video's white bg */}
-          <div className="absolute inset-0 bg-white" />
+          <div className="absolute inset-0 bg-black/70" />
           <video
             ref={videoRef}
             src={hatchVideo.url}
@@ -271,7 +270,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             muted
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ mixBlendMode: "multiply" }}
+            style={{ mixBlendMode: "multiply", filter: "contrast(1.08) saturate(1.08)" }}
           />
           <button
             type="button"
