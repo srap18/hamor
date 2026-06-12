@@ -44,6 +44,7 @@ function ensureSessionBootstrap() {
     // When the user changes, drop the cached profile so we refetch
     if (s?.user?.id !== profileCache?.id) {
       profileCache = null;
+      if (!s?.user) persistProfile(null);
       notifyProfile();
     }
   });
