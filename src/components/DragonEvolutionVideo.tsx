@@ -49,11 +49,17 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
       // Average a small patch in each corner, then average those four.
       const patch = 6;
       const sampleAt = (sx: number, sy: number) => {
-        let r = 0, g = 0, b = 0, n = 0;
+        let r = 0,
+          g = 0,
+          b = 0,
+          n = 0;
         for (let y = sy; y < sy + patch; y++) {
           for (let x = sx; x < sx + patch; x++) {
             const i = (y * w + x) * 4;
-            r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            n++;
           }
         }
         return { r: r / n, g: g / n, b: b / n };
@@ -66,7 +72,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
       ];
       // Use the median-ish: average of the two closest corners to reject any
       // corner that happens to contain part of the dragon.
-      const dist = (a: typeof corners[0], b: typeof corners[0]) =>
+      const dist = (a: (typeof corners)[0], b: (typeof corners)[0]) =>
         Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b);
       let best = { i: 0, j: 1, d: Infinity };
       for (let i = 0; i < 4; i++) {
@@ -101,8 +107,8 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
 
           // Tolerance: tight enough to keep dragon edges, loose enough to wipe
           // gradient backgrounds. Soft edge over a small range.
-          const HARD = 70;   // distance <= HARD → fully transparent
-          const SOFT = 130;  // distance >= SOFT → fully opaque
+          const HARD = 70; // distance <= HARD → fully transparent
+          const SOFT = 130; // distance >= SOFT → fully opaque
           for (let i = 0; i < px.length; i += 4) {
             const dr = px[i] - key.r;
             const dg = px[i + 1] - key.g;
