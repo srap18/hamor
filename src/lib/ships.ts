@@ -298,7 +298,7 @@ export function fishMarketCapacity(level: number): number {
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
   const landmarks: Record<number, number> = {
-    26: 1000000, 27: 2500000, 28: 4500000, 29: 7000000, 30: 10000000,
+    26: 6000000, 27: 11000000, 28: 17000000, 29: 23000000, 30: 30000000,
   };
   if (landmarks[lvl] != null) return landmarks[lvl];
   let cap = 10000;
