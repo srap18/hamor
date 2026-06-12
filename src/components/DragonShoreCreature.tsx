@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { getStage } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
+import shoreDragonVideo from "@/assets/shore-dragon.mp4.asset.json";
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
@@ -14,6 +16,85 @@ type Props = {
   interactive?: boolean;
 };
 
+function KeyedWhiteVideo({
+  src,
+  className,
+  style,
+  loop = true,
+  onEnded,
+}: {
+  src: string;
+  className?: string;
+  style?: CSSProperties;
+  loop?: boolean;
+  onEnded?: () => void;
+}) {
+  const sourceRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const video = sourceRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d", { willReadFrequently: true });
+    if (!video || !canvas || !ctx) return;
+
+    let raf = 0;
+    let cancelled = false;
+
+    const draw = () => {
+      if (cancelled) return;
+      if (video.readyState >= 2) {
+        const width = video.videoWidth || 512;
+        const height = video.videoHeight || 512;
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+
+        ctx.drawImage(video, 0, 0, width, height);
+        const frame = ctx.getImageData(0, 0, width, height);
+        const pixels = frame.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+          const r = pixels[i];
+          const g = pixels[i + 1];
+          const b = pixels[i + 2];
+          const whiteness = Math.min(r, g, b);
+          const spread = Math.max(r, g, b) - whiteness;
+          if (whiteness > 218 && spread < 34) {
+            pixels[i + 3] = Math.max(0, 255 - (whiteness - 218) * 7);
+          }
+        }
+        ctx.putImageData(frame, 0, 0);
+      }
+      raf = requestAnimationFrame(draw);
+    };
+
+    video.play().catch(() => {});
+    raf = requestAnimationFrame(draw);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [src]);
+
+  return (
+    <>
+      <video
+        ref={sourceRef}
+        src={src}
+        autoPlay
+        loop={loop}
+        muted
+        playsInline
+        crossOrigin="anonymous"
+        onEnded={onEnded}
+        className="pointer-events-none absolute h-px w-px opacity-0"
+      />
+      <canvas ref={canvasRef} className={className} style={style} aria-hidden />
+    </>
+  );
+}
+
 const HATCH_KEY = (uid: string) => `dragon-hatched-v1:${uid}`;
 
 export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
@@ -21,7 +102,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const [uid, setUid] = useState<string | null>(null);
   const [hatched, setHatched] = useState<boolean>(false);
   const [playingHatch, setPlayingHatch] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -66,9 +146,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
     if (!interactive) return;
     if (canHatch) {
       setPlayingHatch(true);
-      requestAnimationFrame(() => {
-        videoRef.current?.play().catch(() => {});
-      });
       return;
     }
     if (unlocked) {
@@ -189,17 +266,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                     "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
                 }}
               >
-                <video
-                  src={hatchVideo.url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+                <KeyedWhiteVideo
+                  src={shoreDragonVideo.url}
                   className="absolute inset-0 h-full w-full"
                   style={{
                     objectFit: "contain",
                     objectPosition: "bottom center",
-                    mixBlendMode: "multiply",
                   }}
                 />
               </div>
@@ -262,15 +334,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{ pointerEvents: "auto" }}
         >
           <div className="absolute inset-0 bg-black/70" />
-          <video
-            ref={videoRef}
+          <KeyedWhiteVideo
             src={hatchVideo.url}
-            autoPlay
-            playsInline
-            muted
+            loop={false}
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ mixBlendMode: "multiply", filter: "contrast(1.08) saturate(1.08)" }}
+            style={{ objectFit: "contain" }}
           />
           <button
             type="button"
