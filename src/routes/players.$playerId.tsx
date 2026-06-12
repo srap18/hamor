@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
