@@ -1203,7 +1203,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                   <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
                   <div className="flex-1 text-sm">
                     <div className="font-bold">{m.display_name} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}</div>
-                    <div className="text-[10px] text-amber-300/70">المستوى {m.level} • {m.role === "owner" ? "المالك" : m.role === "moderator" ? "مشرف" : "عضو"}</div>
+                    <div className="text-[10px] text-amber-300/70">المستوى {m.level} • {m.role === "owner" ? "المالك" : m.role === "moderator" ? "مشرف" : "عضو"} • 🤝 تبرّع: {m.donation_coins.toLocaleString()} 🪙</div>
                   </div>
                   {isOwner && m.user_id !== userId && m.role !== "owner" && (
                     <>
