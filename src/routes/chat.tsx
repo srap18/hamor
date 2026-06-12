@@ -928,7 +928,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
       setDesc(ti.description || "");
       setBanner(ti.banner || "🏴‍☠️");
     }
-    const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
+    const { data: ms } = await supabase.from("tribe_members").select("user_id,role,donation_coins").eq("tribe_id", tribeId);
     const mIds = (ms || []).map((m: any) => m.user_id);
     const { data: ps } = mIds.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level").in("id", mIds) : { data: [] };
     const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
@@ -937,7 +937,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
       display_name: (pmap.get(m.user_id) as any)?.display_name || "...",
       avatar_emoji: (pmap.get(m.user_id) as any)?.avatar_emoji || "👤",
       level: (pmap.get(m.user_id) as any)?.level || 1,
-    }));
+      donation_coins: Number(m.donation_coins || 0),
+    })).sort((a, b) => b.donation_coins - a.donation_coins);
     setMembers(merged);
     const me = merged.find(x => x.user_id === userId);
     setMyRole(me?.role || "member");
