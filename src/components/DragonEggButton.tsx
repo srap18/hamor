@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import dragonEggImg from "@/assets/dragon-egg.png";
 import { getStage } from "@/lib/dragon";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 
 type Props = {
   /** Position style — defaults to top-right corner */
