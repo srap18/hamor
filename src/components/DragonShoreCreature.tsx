@@ -29,13 +29,14 @@ function KeyedWhiteVideo({
   loop?: boolean;
   onEnded?: () => void;
 }) {
-  const sourceRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [fallback, setFallback] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [canvasDisabled, setCanvasDisabled] = useState(false);
 
   useEffect(() => {
-    if (fallback) return;
-    const video = sourceRef.current;
+    if (canvasDisabled) return;
+    const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d", { willReadFrequently: true });
     if (!video || !canvas || !ctx) return;
@@ -68,9 +69,10 @@ function KeyedWhiteVideo({
             }
           }
           ctx.putImageData(frame, 0, 0);
+          setCanvasReady(true);
         } catch {
           cancelled = true;
-          setFallback(true);
+          setCanvasDisabled(true);
           return;
         }
       }
@@ -83,38 +85,31 @@ function KeyedWhiteVideo({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [src, fallback]);
-
-  if (fallback) {
-    return (
-      <video
-        src={src}
-        autoPlay
-        loop={loop}
-        muted
-        playsInline
-        onEnded={onEnded}
-        className={className}
-        style={{ ...style, mixBlendMode: "multiply" }}
-      />
-    );
-  }
+  }, [src, canvasDisabled]);
 
   return (
-    <>
+    <span className={className} style={{ ...style, display: "block", position: "relative" }}>
       <video
-        ref={sourceRef}
+        ref={videoRef}
         src={src}
         autoPlay
         loop={loop}
         muted
         playsInline
         onEnded={onEnded}
-        onError={() => setFallback(true)}
-        className="pointer-events-none absolute h-px w-px opacity-0"
+        onError={() => setCanvasDisabled(true)}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        style={{ objectFit: "contain", objectPosition: "bottom center", mixBlendMode: "multiply" }}
       />
-      <canvas ref={canvasRef} className={className} style={style} aria-hidden />
-    </>
+      {!canvasDisabled && (
+        <canvas
+          ref={canvasRef}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{ objectFit: "contain", objectPosition: "bottom center", opacity: canvasReady ? 1 : 0 }}
+          aria-hidden
+        />
+      )}
+    </span>
   );
 }
 
@@ -357,12 +352,14 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{ pointerEvents: "auto" }}
         >
           <div className="absolute inset-0 bg-black/70" />
-          <KeyedWhiteVideo
+          <video
             src={hatchVideo.url}
-            loop={false}
+            autoPlay
+            muted
+            playsInline
             onEnded={finishHatch}
-            className="relative max-h-full max-w-full"
-            style={{ objectFit: "contain" }}
+            className="relative h-screen w-screen"
+            style={{ objectFit: "contain", mixBlendMode: "multiply" }}
           />
           <button
             type="button"
