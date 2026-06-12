@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthGuard } from "@/components/AuthGuard";
 import { useAuth } from "@/hooks/use-auth";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 
 export const Route = createFileRoute("/friends")({
   head: () => ({ meta: [{ title: "الأصدقاء — Ocean Catch" }] }),
