@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
 import { FISH_LIST } from "@/lib/fish";
