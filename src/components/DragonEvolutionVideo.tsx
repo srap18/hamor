@@ -139,7 +139,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
     <span
       className={className}
       style={{ ...style, display: "block", position: "relative" }}
-      data-dragon-stage={stage}
+      data-dragon-stage={stageKind}
     >
       <video
         ref={videoRef}
