@@ -778,17 +778,20 @@ function Index() {
 
   const getEffectiveFishingElapsed = (ship: Ship, nowMs: number) => {
     if (!ship.startedAt) return { elapsed: 0, activeMult: 1 };
-    const elapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
-    const sailor = crewRowsRef.current.find((r) => {
-      if (r.item_id !== "sailor" || !isCrewAssignedToShip(r.meta, ship)) return false;
-      const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : Infinity;
-      return exp > nowMs;
-    });
-    if (!sailor) return { elapsed, activeMult: 1 };
-    const assignedAt = sailor.meta?.assigned_at ? new Date(sailor.meta.assigned_at).getTime() : undefined;
-    if (!assignedAt || assignedAt <= ship.startedAt) return { elapsed: elapsed * 2, activeMult: 2 };
-    const boostedElapsed = Math.max(0, (nowMs - Math.max(assignedAt, ship.startedAt)) / 1000);
-    return { elapsed: elapsed + boostedElapsed, activeMult: 2 };
+    const wallElapsed = Math.max(0, (nowMs - ship.startedAt) / 1000);
+    let bonusElapsed = 0;
+    let activeMult = 1;
+    for (const row of crewRowsRef.current) {
+      if (row.item_id !== "sailor" || !isCrewAssignedToShip(row.meta, ship)) continue;
+      const assignedAt = row.meta?.assigned_at ? new Date(row.meta.assigned_at).getTime() : ship.startedAt;
+      const expiresAt = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
+      if (expiresAt <= ship.startedAt || assignedAt > nowMs) continue;
+      const boostStart = Math.max(ship.startedAt, assignedAt || ship.startedAt);
+      const boostEnd = Math.min(nowMs, expiresAt);
+      if (boostEnd > boostStart) bonusElapsed += (boostEnd - boostStart) / 1000;
+      if (expiresAt > nowMs) activeMult = 2;
+    }
+    return { elapsed: wallElapsed + bonusElapsed, activeMult };
   };
 
   // Deterministic per-trip fish pick so the Guide crew's preview matches the actual catch.
@@ -817,13 +820,17 @@ function Index() {
       .eq("user_id", uid)
       .eq("item_type", "crew");
     const rows = (data ?? []) as CrewRow[];
-    // purge expired
+    // Keep expired assigned crew rows as trip history until the ship is collected.
+    // Deleting them on reload made completed 13,000 trips display/collect as ~6,000
+    // because the sailor speed interval was lost after reopening the game.
     const nowMs = serverNowMs();
     const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
-    if (expired.length) {
-      await deleteInventoryRows(expired.map((r) => r.id));
-    }
-    setCrewRows(rows.filter((r) => !expired.includes(r)));
+    const activeShipIds = new Set(shipsRef.current.filter((s) => s.fishing && s.dbId).map((s) => s.dbId!));
+    setCrewRows(rows.filter((r) => {
+      if (!expired.includes(r)) return true;
+      const assignedShipId = r.meta?.assigned_ship_id;
+      return typeof assignedShipId === "string" && activeShipIds.has(assignedShipId);
+    }));
   };
   useEffect(() => {
     reloadCrews();
