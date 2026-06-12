@@ -102,7 +102,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const [uid, setUid] = useState<string | null>(null);
   const [hatched, setHatched] = useState<boolean>(false);
   const [playingHatch, setPlayingHatch] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -147,9 +146,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
     if (!interactive) return;
     if (canHatch) {
       setPlayingHatch(true);
-      requestAnimationFrame(() => {
-        videoRef.current?.play().catch(() => {});
-      });
       return;
     }
     if (unlocked) {
@@ -338,15 +334,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{ pointerEvents: "auto" }}
         >
           <div className="absolute inset-0 bg-black/70" />
-          <video
-            ref={videoRef}
+          <KeyedWhiteVideo
             src={hatchVideo.url}
-            autoPlay
-            playsInline
-            muted
+            loop={false}
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ mixBlendMode: "multiply", filter: "contrast(1.08) saturate(1.08)" }}
+            style={{ objectFit: "contain" }}
           />
           <button
             type="button"
