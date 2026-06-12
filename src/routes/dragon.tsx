@@ -141,7 +141,7 @@ function DragonPage() {
         {/* Dragon/Egg display — driven by the level-based evolution video */}
         <div className="relative my-6 flex items-center justify-center" style={{ minHeight: "320px" }}>
           <DragonEvolutionVideo
-            level={overallLevel(d) || 1}
+            stage={d.stage}
             className="w-full max-w-[320px]"
             style={{
               aspectRatio: "1 / 1",
