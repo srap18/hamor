@@ -118,12 +118,18 @@ function primeProfileForUser(userId: string) {
   fetchProfileNow(userId);
 }
 
-async function fetchProfileNow(userId: string) {
-  const { data } = await supabase
+async function fetchProfileNow(userId: string, attempt = 0) {
+  const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .maybeSingle();
+  if ((error || !data) && attempt < 2) {
+    profileLoadingFlag = true;
+    notifyProfile();
+    globalThis.setTimeout(() => fetchProfileNow(userId, attempt + 1), 700 * (attempt + 1));
+    return;
+  }
   profileLoadingFlag = false;
   if (data) {
     profileCache = data as Profile;
