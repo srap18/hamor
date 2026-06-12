@@ -833,6 +833,7 @@ function Index() {
       const assignedShipId = r.meta?.assigned_ship_id;
       return typeof assignedShipId === "string" && activeShipIds.has(assignedShipId);
     }));
+    crewLoadedRef.current = true;
   };
   useEffect(() => {
     reloadCrews();
