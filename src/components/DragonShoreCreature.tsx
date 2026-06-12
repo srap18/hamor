@@ -86,6 +86,21 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
 
   return (
     <>
+      {/* SVG filter — turns near-white pixels in the video into transparent alpha
+          while keeping the dragon's colors fully opaque. */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+        <defs>
+          <filter id="dsc-key-white" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      -1.6 -1.6 -1.6 0 3.7"
+            />
+          </filter>
+        </defs>
+      </svg>
       <style>{`
         @keyframes dsc-rock { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
@@ -176,9 +191,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                 style={{
                   objectFit: "contain",
                   objectPosition: "bottom center",
-                  mixBlendMode: "multiply",
                   filter:
-                    "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05)",
+                    "url(#dsc-key-white) drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05)",
                 }}
               />
             ) : (
@@ -239,21 +253,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           dir="rtl"
           style={{ pointerEvents: "auto" }}
         >
-          {/* Subtle dim of the harbor behind */}
-          <div className="absolute inset-0 bg-black/55" />
-          {/* The video is rendered with mix-blend-mode: screen over a deep-dark layer:
-              white BG of the video → white added to dark = white wash → but we want it gone.
-              Better: render the video with mix-blend-mode: multiply on a near-white plate
-              so the dragon stays visible while the white BG blends into the plate. We then
-              tint the plate to match the harbor mood (warm dusk). */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, #fde8c8 0%, #f6c98a 55%, #b97a3a 100%)",
-              opacity: 0.92,
-            }}
-          />
+          {/* Dim the harbor so the keyed-out dragon reads clearly */}
+          <div className="absolute inset-0 bg-black/70" />
           <video
             ref={videoRef}
             src={hatchVideo.url}
@@ -262,7 +263,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
             muted
             onEnded={finishHatch}
             className="relative max-h-full max-w-full"
-            style={{ mixBlendMode: "multiply" }}
+            style={{ filter: "url(#dsc-key-white)" }}
           />
           <button
             type="button"
