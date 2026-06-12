@@ -3,11 +3,11 @@ import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
-import { getStage } from "@/lib/dragon";
+import { overallLevel, type Dragon } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
+import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
-import shoreDragonVideo from "@/assets/shore-dragon.mp4.asset.json";
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
@@ -117,6 +117,7 @@ const HATCH_KEY = (uid: string) => `dragon-hatched-v1:${uid}`;
 
 export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
   const [stage, setStage] = useState<number>(1);
+  const [dp, setDp] = useState<number>(0);
   const [uid, setUid] = useState<string | null>(null);
   const [hatched, setHatched] = useState<boolean>(false);
   const [playingHatch, setPlayingHatch] = useState(false);
@@ -136,8 +137,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           setHatched(localStorage.getItem(HATCH_KEY(u)) === "1");
         } catch {}
       }
-      const { data } = await supabase.from("dragons").select("stage").eq("user_id", u).maybeSingle();
-      if (alive && data?.stage) setStage(data.stage);
+      const { data } = await supabase.from("dragons").select("stage, dp").eq("user_id", u).maybeSingle();
+      if (alive && data) {
+        if (data.stage) setStage(data.stage);
+        if (typeof data.dp === "number") setDp(data.dp);
+      }
     };
     load();
     const onVis = () => { if (document.visibilityState === "visible") load(); };
@@ -154,7 +158,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const canHatch = stage >= 3 && !hatched;
   const showEgg = stage < 3 || !hatched;
 
-  const creatureImg = getStage(showEgg ? 1 : stage).image;
+  // Real overall level 1..150 for the evolution video. While the egg hasn't
+  // hatched yet we clamp to 1-2 so the egg clips play regardless of DP.
+  const realLevel = Math.max(1, overallLevel({ stage, dp } as Dragon));
+  const displayLevel = showEgg ? Math.min(2, realLevel) : realLevel;
   const stageMode = showEgg ? "egg" : "adult";
 
   const navigate = useNavigate();
@@ -275,35 +282,19 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               transformOrigin: "50% 95%",
             }}
           >
-            {stageMode === "adult" ? (
-              <div
+            <div
+              className="absolute inset-0 h-full w-full"
+              style={{
+                filter:
+                  "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
+              }}
+            >
+              <DragonEvolutionVideo
+                level={displayLevel}
                 className="absolute inset-0 h-full w-full"
-                style={{
-                  mixBlendMode: "multiply",
-                  filter:
-                    "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
-                }}
-              >
-                <KeyedWhiteVideo
-                  src={shoreDragonVideo.url}
-                  className="absolute inset-0 h-full w-full"
-                  style={{
-                    objectFit: "contain",
-                    objectPosition: "bottom center",
-                  }}
-                />
-              </div>
-            ) : (
-              <img
-                src={creatureImg}
-                alt=""
-                draggable={false}
-                className="absolute inset-0 h-full w-full object-contain object-bottom"
-                style={{
-                  filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
-                }}
+                style={{ objectFit: "contain", objectPosition: "bottom center" }}
               />
-            )}
+            </div>
 
             {canHatch && (
               <span
