@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, dragonBonusForLevel, dragonTierTable, applyDragonAttack, applyDragonDefense } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
+import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 
 export const Route = createFileRoute("/dragon")({
   ssr: false,
@@ -137,13 +138,13 @@ function DragonPage() {
           </div>
         </div>
 
-        {/* Dragon/Egg display */}
+        {/* Dragon/Egg display — driven by the level-based evolution video */}
         <div className="relative my-6 flex items-center justify-center" style={{ minHeight: "320px" }}>
-          <img
-            src={stage.image}
-            alt={stage.name}
-            className="w-full max-w-[320px] h-auto object-contain"
+          <DragonEvolutionVideo
+            level={overallLevel(d) || 1}
+            className="w-full max-w-[320px]"
             style={{
+              aspectRatio: "1 / 1",
               animation: "dragon-glow 3s ease-in-out infinite, egg-float 5s ease-in-out infinite",
             }}
           />
