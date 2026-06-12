@@ -86,6 +86,21 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
 
   return (
     <>
+      {/* SVG filter — turns near-white pixels in the video into transparent alpha
+          while keeping the dragon's colors fully opaque. */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+        <defs>
+          <filter id="dsc-key-white" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      -1.6 -1.6 -1.6 0 3.7"
+            />
+          </filter>
+        </defs>
+      </svg>
       <style>{`
         @keyframes dsc-rock { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
