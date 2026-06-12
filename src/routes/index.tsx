@@ -383,7 +383,8 @@ function Index() {
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
             : s.img;
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: s.fishing ? Math.min(s.timeLeft, duration) : duration, progress: Math.min(s.progress, max), hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
+          const sameTrip = !!s.fishing && !!fishing && s.startedAt === startedAt;
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -1129,7 +1130,10 @@ function Index() {
               }
             }
           }
-          const progress = Math.round(s.max * ratio);
+          // Same fishing trip should never visually go backwards. On reopen the
+          // fleet snapshot may show 13,000 before crew history finishes loading;
+          // keep that full value instead of dropping to the unboosted ~6,000.
+          const progress = Math.max(s.progress, Math.round(s.max * ratio));
           const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
