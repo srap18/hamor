@@ -286,6 +286,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [invRows, setInvRows] = useState<InvRow[]>([]);
   const [invFilter, setInvFilter] = useState<string>("all");
   const [invQtyEdits, setInvQtyEdits] = useState<Record<string, string>>({});
+  const [linkedLoading, setLinkedLoading] = useState(false);
+  const [linkedData, setLinkedData] = useState<{
+    self: { user_id: string; email: string | null; devices: { device_id: string; created_at: string; updated_at: string }[]; ips: { ip: string; first_seen: string; last_seen: string; hits: number }[] };
+    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[] }>;
+  } | null>(null);
+
+  const loadLinked = useCallback(async () => {
+    setLinkedLoading(true);
+    try {
+      const { adminGetLinkedAccounts } = await import("@/lib/admin-linked-accounts.functions");
+      const res = await adminGetLinkedAccounts({ data: { userId: player.id } });
+      setLinkedData(res as never);
+    } catch (e: any) {
+      toast.error("فشل تحميل الحسابات المرتبطة: " + (e?.message ?? ""));
+    }
+    setLinkedLoading(false);
+  }, [player.id]);
+
+  useEffect(() => { loadLinked(); }, [loadLinked]);
 
   const reloadInventory = useCallback(async () => {
     const { data, error } = await (supabase as any).rpc("admin_get_player_inventory", { _player: player.id });
@@ -655,6 +674,71 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           <button onClick={saveProfile} disabled={savingProfile} className="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-semibold">
             {savingProfile ? "جاري الحفظ..." : "💾 حفظ بيانات الحساب"}
           </button>
+        </div>
+
+        {/* Linked accounts (same device / same IP) */}
+        <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-sm font-semibold text-slate-300">🔗 الحسابات المرتبطة (نفس الجهاز / IP)</div>
+            <button onClick={loadLinked} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs">🔄 تحديث</button>
+          </div>
+          {linkedData?.self?.email && (
+            <div className="text-[11px] text-slate-400 font-mono break-all" dir="ltr">
+              📧 {linkedData.self.email}
+            </div>
+          )}
+          <div className="text-[11px] text-slate-500">
+            عدد الأجهزة: {linkedData?.self.devices.length ?? 0} • عدد عناوين الـ IP: {linkedData?.self.ips.length ?? 0}
+          </div>
+          {linkedLoading ? (
+            <div className="text-xs text-slate-500 py-3 text-center">جاري التحميل...</div>
+          ) : !linkedData || linkedData.linked.length === 0 ? (
+            <div className="text-xs text-slate-500 py-3 text-center bg-slate-800/40 rounded-lg">
+              ✅ لا توجد حسابات أخرى مرتبطة بهذا اللاعب
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب آخر يشارك نفس الجهاز أو IP</div>
+              {linkedData.linked.map((acc) => (
+                <div key={acc.user_id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2 flex items-center gap-2">
+                  {acc.avatar_url ? (
+                    <img src={acc.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-600 shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-sm shrink-0">👤</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-slate-100 truncate">
+                      {acc.display_name || "بدون اسم"}
+                      {acc.username && <span className="text-slate-400 font-normal"> · @{acc.username}</span>}
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate" dir="ltr">
+                      {acc.email ?? "—"} · L{acc.level ?? 0} · 🪙{(acc.coins ?? 0).toLocaleString()}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {acc.shared_devices.length > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-rose-600/30 text-rose-200 text-[10px]">
+                          📱 نفس الجهاز ({acc.shared_devices.length})
+                        </span>
+                      )}
+                      {acc.shared_ips.length > 0 && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-600/30 text-amber-200 text-[10px]">
+                          🌐 نفس IP ({acc.shared_ips.length})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href={`/p/${acc.user_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2 py-1 rounded bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-100 text-[11px] font-bold shrink-0"
+                  >
+                    فتح
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Profile (username + bio + media ban + wipe) */}
