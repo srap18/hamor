@@ -66,23 +66,25 @@ export function useSecurityEnforcement(): SecurityBlock | null {
         return;
       }
 
-      // 3) Subscribe to profile changes — if active_session_id changes, we got kicked
+      // 3) Subscribe to profile changes — when our row updates we re-verify
+      //    session integrity via SECURITY DEFINER RPC (active_session_id is no
+      //    longer readable directly to prevent cross-user session fingerprinting).
+      const recheck = async () => {
+        if (cancelled) return;
+        try {
+          const { data } = await (supabase as any).rpc("verify_session_integrity", { _token: localToken });
+          if (data === false && !cancelled) {
+            setBlock({ kind: "kicked", message: "تم تسجيل الدخول من جهاز/متصفح آخر — انتهت هذه الجلسة" });
+            await supabase.auth.signOut();
+          }
+        } catch {}
+      };
       channel = supabase
         .channel(`security:${user.id}`)
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-          (payload) => {
-            const remote = (payload.new as { active_session_id?: string | null }).active_session_id;
-            if (!remote) {
-              // Server cleared it (hijack detected or admin action)
-              setBlock({ kind: "kicked", message: "تم إنهاء الجلسة لأسباب أمنية — أعد تسجيل الدخول" });
-              supabase.auth.signOut();
-            } else if (remote !== localToken) {
-              setBlock({ kind: "kicked", message: "تم تسجيل الدخول من جهاز/متصفح آخر — انتهت هذه الجلسة" });
-              supabase.auth.signOut();
-            }
-          },
+          () => { void recheck(); },
         )
         .subscribe();
 
