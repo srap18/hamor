@@ -891,7 +891,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 }
 
 // ===================== Tribe Management Modal =====================
-type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number };
+type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; donation_coins: number };
 type JoinReq = { id: string; user_id: string; display_name: string; avatar_emoji: string; level: number };
 type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string };
 
@@ -928,7 +928,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
       setDesc(ti.description || "");
       setBanner(ti.banner || "🏴‍☠️");
     }
-    const { data: ms } = await supabase.from("tribe_members").select("user_id,role").eq("tribe_id", tribeId);
+    const { data: ms } = await supabase.from("tribe_members").select("user_id,role,donation_coins").eq("tribe_id", tribeId);
     const mIds = (ms || []).map((m: any) => m.user_id);
     const { data: ps } = mIds.length ? await supabase.from("profiles").select("id,display_name,avatar_emoji,level").in("id", mIds) : { data: [] };
     const pmap = new Map((ps || []).map((p: any) => [p.id, p]));
@@ -937,7 +937,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
       display_name: (pmap.get(m.user_id) as any)?.display_name || "...",
       avatar_emoji: (pmap.get(m.user_id) as any)?.avatar_emoji || "👤",
       level: (pmap.get(m.user_id) as any)?.level || 1,
-    }));
+      donation_coins: Number(m.donation_coins || 0),
+    })).sort((a, b) => b.donation_coins - a.donation_coins);
     setMembers(merged);
     const me = merged.find(x => x.user_id === userId);
     setMyRole(me?.role || "member");
@@ -1202,7 +1203,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                   <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
                   <div className="flex-1 text-sm">
                     <div className="font-bold">{m.display_name} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}</div>
-                    <div className="text-[10px] text-amber-300/70">المستوى {m.level} • {m.role === "owner" ? "المالك" : m.role === "moderator" ? "مشرف" : "عضو"}</div>
+                    <div className="text-[10px] text-amber-300/70">المستوى {m.level} • {m.role === "owner" ? "المالك" : m.role === "moderator" ? "مشرف" : "عضو"} • 🤝 تبرّع: {m.donation_coins.toLocaleString()} 🪙</div>
                   </div>
                   {isOwner && m.user_id !== userId && m.role !== "owner" && (
                     <>
