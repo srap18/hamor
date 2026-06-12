@@ -11,6 +11,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
+import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
 import { GiftPopup } from "@/components/GiftPopup";
 import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
 import { useEffect, useState } from "react";
@@ -371,6 +372,7 @@ function RootComponent() {
           <SoftProtection />
 
           <LastAttackTicker />
+          <GlobalNotificationListener />
           <EliteVipLoginOverlay />
 
           <Outlet />
