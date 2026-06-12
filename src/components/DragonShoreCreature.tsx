@@ -6,6 +6,7 @@ import { getStage } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
+import shoreDragonVideo from "@/assets/shore-dragon.mp4.asset.json";
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
@@ -190,7 +191,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                 }}
               >
                 <video
-                  src={hatchVideo.url}
+                  src={shoreDragonVideo.url}
                   autoPlay
                   loop
                   muted
