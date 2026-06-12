@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getStage } from "@/lib/dragon";
 import nestImg from "@/assets/dragon-nest-only.png";
+import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
@@ -11,20 +12,31 @@ type Props = {
   interactive?: boolean;
 };
 
+const HATCH_KEY = (uid: string) => `dragon-hatched-v1:${uid}`;
+
 export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
   const [stage, setStage] = useState<number>(1);
-  const [showSoon, setShowSoon] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
+  const [hatched, setHatched] = useState<boolean>(false);
+  const [playingHatch, setPlayingHatch] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      let uid = userId;
-      if (!uid) {
-        const { data: u } = await supabase.auth.getUser();
-        uid = u.user?.id;
+      let u = userId;
+      if (!u) {
+        const { data: au } = await supabase.auth.getUser();
+        u = au.user?.id;
       }
-      if (!uid) return;
-      const { data } = await supabase.from("dragons").select("stage").eq("user_id", uid).maybeSingle();
+      if (!u) return;
+      if (alive) setUid(u);
+      if (alive) {
+        try {
+          setHatched(localStorage.getItem(HATCH_KEY(u)) === "1");
+        } catch {}
+      }
+      const { data } = await supabase.from("dragons").select("stage").eq("user_id", u).maybeSingle();
       if (alive && data?.stage) setStage(data.stage);
     };
     load();
@@ -38,10 +50,31 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
     };
   }, [userId]);
 
+  // Hatch readiness: stage >= 3 means the dragon has earned enough DP to break the shell.
+  const canHatch = stage >= 3 && !hatched;
+  const showEgg = stage < 3 || !hatched;
 
-  const stageMode = stage <= 1 ? "egg" : stage <= 2 ? "hatching" : "adult";
-  const creatureImg = getStage(stage).image;
+  const creatureImg = getStage(showEgg ? 1 : stage).image;
+  const stageMode = showEgg ? "egg" : "adult";
 
+  const handleTap = () => {
+    if (!interactive) return;
+    if (canHatch) {
+      setPlayingHatch(true);
+      // Start playback once mounted
+      requestAnimationFrame(() => {
+        videoRef.current?.play().catch(() => {});
+      });
+    }
+  };
+
+  const finishHatch = () => {
+    setPlayingHatch(false);
+    if (uid) {
+      try { localStorage.setItem(HATCH_KEY(uid), "1"); } catch {}
+      setHatched(true);
+    }
+  };
 
   return (
     <>
@@ -49,6 +82,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         @keyframes dsc-rock { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
         @keyframes dsc-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-1.6%) scale(1.018)} }
         @keyframes dsc-shadow { 0%,100%{transform:scaleX(1);opacity:.76} 50%{transform:scaleX(.94);opacity:.6} }
+        @keyframes dsc-hatch-pulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(251,191,36,0.7), 0 0 24px rgba(251,146,60,0.6); }
+          50%      { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 0 0 14px rgba(251,191,36,0), 0 0 36px rgba(251,146,60,0.9); }
+        }
       `}</style>
       <div
         className="absolute z-20"
@@ -75,7 +112,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
-        {/* Static nest sitting on the shore (larger, full width) */}
         <img
           src={nestImg}
           alt=""
@@ -94,15 +130,10 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
-        {/* Dragon / egg sits inside the nest opening — only this is tappable. */}
         <button
           type="button"
-          onClick={() => {
-            if (!interactive) return;
-            setShowSoon(true);
-            setTimeout(() => setShowSoon(false), 2200);
-          }}
-          aria-label={stageMode === "egg" ? "بيضة التنين" : "تنيني"}
+          onClick={handleTap}
+          aria-label={canHatch ? "اضغط لفقس التنين" : stageMode === "egg" ? "بيضة التنين" : "تنيني"}
           className="absolute bg-transparent border-0 p-0 active:scale-95 transition-transform"
           style={{
             left: "50%",
@@ -117,7 +148,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           <div
             className="relative h-full w-full"
             style={{
-              animation: stageMode === "egg" ? "dsc-rock 2.8s ease-in-out infinite" : stageMode === "adult" ? "dsc-breathe 4s ease-in-out infinite" : undefined,
+              animation:
+                stageMode === "egg"
+                  ? "dsc-rock 2.8s ease-in-out infinite"
+                  : stageMode === "adult"
+                    ? "dsc-breathe 4s ease-in-out infinite"
+                    : undefined,
               transformOrigin: "50% 95%",
             }}
           >
@@ -133,31 +169,73 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                     : "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
               }}
             />
+
+            {canHatch && (
+              <span
+                aria-hidden
+                className="absolute pointer-events-none"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  width: "56%",
+                  height: "56%",
+                  borderRadius: "9999px",
+                  background:
+                    "radial-gradient(circle, rgba(251,191,36,0.55) 0%, rgba(251,146,60,0.25) 55%, rgba(251,146,60,0) 75%)",
+                  animation: "dsc-hatch-pulse 1.6s ease-in-out infinite",
+                }}
+              />
+            )}
           </div>
         </button>
-      </div>
 
-
-
-
-
-      {showSoon && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm"
-          onClick={() => setShowSoon(false)}
-          dir="rtl"
-        >
-          <div className="rounded-3xl border-4 border-amber-400/80 bg-gradient-to-br from-amber-900/95 to-rose-950/95 px-10 py-8 text-center shadow-2xl">
+        {canHatch && (
+          <div
+            className="absolute pointer-events-none text-center"
+            style={{
+              left: "50%",
+              bottom: "60%",
+              transform: "translateX(-50%)",
+              zIndex: 3,
+            }}
+          >
             <div
-              className="bg-gradient-to-b from-amber-200 via-amber-400 to-orange-600 bg-clip-text text-6xl font-black text-transparent"
-              style={{ textShadow: "0 0 30px rgba(251,146,60,0.8)" }}
+              className="rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1 text-xs font-black text-white shadow-lg"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
-              قريبًا!!
+              اضغط للفقس!
             </div>
           </div>
+        )}
+      </div>
+
+      {playingHatch && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
+          onClick={finishHatch}
+          dir="rtl"
+        >
+          {/* White flat backdrop so the multiply-blended video drops its white BG cleanly */}
+          <div className="absolute inset-0 bg-white" />
+          <video
+            ref={videoRef}
+            src={hatchVideo.url}
+            autoPlay
+            playsInline
+            muted
+            onEnded={finishHatch}
+            className="relative max-h-full max-w-full"
+            style={{ mixBlendMode: "multiply" }}
+          />
+          <button
+            type="button"
+            onClick={finishHatch}
+            className="absolute top-4 right-4 rounded-full bg-black/60 px-4 py-2 text-sm font-bold text-white"
+          >
+            تخطي
+          </button>
         </div>
       )}
     </>
   );
 }
-
