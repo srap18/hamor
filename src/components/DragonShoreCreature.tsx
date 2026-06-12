@@ -269,17 +269,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                     "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
                 }}
               >
-                <video
+                <KeyedWhiteVideo
                   src={shoreDragonVideo.url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
                   className="absolute inset-0 h-full w-full"
                   style={{
                     objectFit: "contain",
                     objectPosition: "bottom center",
-                    mixBlendMode: "multiply",
                   }}
                 />
               </div>
