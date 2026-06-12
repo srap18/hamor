@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ function KeyedWhiteVideo({
 }: {
   src: string;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   loop?: boolean;
   onEnded?: () => void;
 }) {
@@ -87,7 +88,7 @@ function KeyedWhiteVideo({
         playsInline
         crossOrigin="anonymous"
         onEnded={onEnded}
-        className="hidden"
+        className="pointer-events-none absolute h-px w-px opacity-0"
       />
       <canvas ref={canvasRef} className={className} style={style} aria-hidden />
     </>
