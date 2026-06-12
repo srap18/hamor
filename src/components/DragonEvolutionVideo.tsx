@@ -8,32 +8,27 @@ type Props = {
   className?: string;
   style?: CSSProperties;
   loop?: boolean;
-  /** Optional override for the green key threshold (0..1). Higher = more aggressive. */
-  chromaStrength?: number;
 };
 
 /**
  * Plays the correct dragon evolution clip for the given level and removes the
- * solid green-screen background pixel-by-pixel via a canvas chroma key. Falls
- * back to a `mix-blend-mode: multiply` rendering when canvas access is blocked
- * (e.g. cross-origin without CORS), so the dragon still appears reasonably
- * keyed.
+ * solid background (green / black / white — whatever the clip uses) via an
+ * adaptive canvas chroma key: the background color is auto-detected from the
+ * four corner pixels of the first frame, then every pixel close enough to that
+ * color is made transparent. Falls back to multiply blending only if canvas
+ * access is denied (cross-origin taint).
  */
-export function DragonEvolutionVideo({
-  level,
-  className,
-  style,
-  loop = true,
-  chromaStrength = 1,
-}: Props) {
+export function DragonEvolutionVideo({ level, className, style, loop = true }: Props) {
   const { url, stage } = useMemo(() => getDragonVideoForLevel(level), [level]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const keyColorRef = useRef<{ r: number; g: number; b: number } | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const [canvasDisabled, setCanvasDisabled] = useState(false);
 
   useEffect(() => {
-    // Re-attempt canvas keying whenever the clip changes.
+    // Reset on clip change so the new background is re-detected.
+    keyColorRef.current = null;
     setCanvasReady(false);
     setCanvasDisabled(false);
   }, [url]);
@@ -48,6 +43,41 @@ export function DragonEvolutionVideo({
     let raf = 0;
     let cancelled = false;
 
+    const sampleBgFromCorners = (data: Uint8ClampedArray, w: number, h: number) => {
+      // Average a small patch in each corner, then average those four.
+      const patch = 6;
+      const sampleAt = (sx: number, sy: number) => {
+        let r = 0, g = 0, b = 0, n = 0;
+        for (let y = sy; y < sy + patch; y++) {
+          for (let x = sx; x < sx + patch; x++) {
+            const i = (y * w + x) * 4;
+            r += data[i]; g += data[i + 1]; b += data[i + 2]; n++;
+          }
+        }
+        return { r: r / n, g: g / n, b: b / n };
+      };
+      const corners = [
+        sampleAt(0, 0),
+        sampleAt(w - patch, 0),
+        sampleAt(0, h - patch),
+        sampleAt(w - patch, h - patch),
+      ];
+      // Use the median-ish: average of the two closest corners to reject any
+      // corner that happens to contain part of the dragon.
+      const dist = (a: typeof corners[0], b: typeof corners[0]) =>
+        Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b);
+      let best = { i: 0, j: 1, d: Infinity };
+      for (let i = 0; i < 4; i++) {
+        for (let j = i + 1; j < 4; j++) {
+          const d = dist(corners[i], corners[j]);
+          if (d < best.d) best = { i, j, d };
+        }
+      }
+      const a = corners[best.i];
+      const b = corners[best.j];
+      return { r: (a.r + b.r) / 2, g: (a.g + b.g) / 2, b: (a.b + b.b) / 2 };
+    };
+
     const draw = () => {
       if (cancelled) return;
       if (video.readyState >= 2) {
@@ -61,23 +91,31 @@ export function DragonEvolutionVideo({
           ctx.drawImage(video, 0, 0, width, height);
           const frame = ctx.getImageData(0, 0, width, height);
           const px = frame.data;
-          // Green chroma key: a pixel is "green screen" when green strongly
-          // dominates red and blue. Soft edge based on how dominant it is.
-          const gMin = 70;                       // ignore very dark greens
-          const dom = 30 * (1 / chromaStrength); // green must exceed red/blue by this
+
+          if (!keyColorRef.current) {
+            keyColorRef.current = sampleBgFromCorners(px, width, height);
+          }
+          const key = keyColorRef.current;
+
+          // Tolerance: tight enough to keep dragon edges, loose enough to wipe
+          // gradient backgrounds. Soft edge over a small range.
+          const HARD = 70;   // distance <= HARD → fully transparent
+          const SOFT = 130;  // distance >= SOFT → fully opaque
           for (let i = 0; i < px.length; i += 4) {
-            const r = px[i];
-            const g = px[i + 1];
-            const b = px[i + 2];
-            if (g > gMin && g - r > dom && g - b > dom) {
-              // Full transparency for very green pixels, soft edge otherwise.
-              const overshoot = Math.min(g - r, g - b) - dom;
-              const alpha = Math.max(0, 255 - overshoot * 8);
-              px[i + 3] = alpha;
-              // De-spill: pull green down towards the max of r/b so edges
-              // don't look neon-green.
-              const cap = Math.max(r, b);
-              if (g > cap) px[i + 1] = cap;
+            const dr = px[i] - key.r;
+            const dg = px[i + 1] - key.g;
+            const db = px[i + 2] - key.b;
+            const d = Math.sqrt(dr * dr + dg * dg + db * db);
+            if (d <= HARD) {
+              px[i + 3] = 0;
+            } else if (d < SOFT) {
+              const t = (d - HARD) / (SOFT - HARD);
+              px[i + 3] = Math.round(px[i + 3] * t);
+            }
+            // De-spill green when the background is green-dominant.
+            if (key.g > key.r + 20 && key.g > key.b + 20) {
+              const cap = Math.max(px[i], px[i + 2]);
+              if (px[i + 1] > cap) px[i + 1] = cap;
             }
           }
           ctx.putImageData(frame, 0, 0);
@@ -97,7 +135,7 @@ export function DragonEvolutionVideo({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [url, canvasDisabled, chromaStrength]);
+  }, [url, canvasDisabled]);
 
   return (
     <span
@@ -118,9 +156,9 @@ export function DragonEvolutionVideo({
         style={{
           objectFit: "contain",
           objectPosition: "bottom center",
-          // Fallback when canvas keying is unavailable.
           mixBlendMode: canvasDisabled ? "multiply" : undefined,
-          opacity: canvasDisabled ? 1 : canvasReady ? 0 : 1,
+          // Hide the raw video as soon as the keyed canvas has its first frame.
+          opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0,
         }}
       />
       {!canvasDisabled && (
@@ -128,8 +166,6 @@ export function DragonEvolutionVideo({
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 h-full w-full"
           style={{
-            // Canvas is the keyed output; show it as soon as the first frame
-            // is processed.
             objectFit: "contain",
             objectPosition: "bottom center",
             opacity: canvasReady ? 1 : 0,
