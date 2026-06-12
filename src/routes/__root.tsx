@@ -372,6 +372,7 @@ function RootComponent() {
           <SoftProtection />
 
           <LastAttackTicker />
+          <GlobalNotificationListener />
           <EliteVipLoginOverlay />
 
           <Outlet />
