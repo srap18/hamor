@@ -165,7 +165,7 @@ const FLEET_KEY = "harbor_fleet_v2";
 const MAX_FLEET = 3;
 const MIN_FLEET = 1;
 
-type FleetSlot = { id: number; dbId?: string; catalogCode?: string | null; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number; maxHp?: number; stars?: number; maxStars?: number };
+type FleetSlot = { id: number; dbId?: string; catalogCode?: string | null; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number; maxHp?: number; stars?: number; maxStars?: number; sailorAtStart?: boolean };
 
 function loadFleet(): Ship[] {
   if (typeof window === "undefined") return INITIAL_SHIPS;
@@ -195,6 +195,7 @@ function loadFleet(): Ship[] {
         maxHp: s.maxHp,
         stars: s.stars,
         maxStars: s.maxStars,
+        sailorAtStart: s.sailorAtStart,
       };
     });
   } catch {
@@ -207,7 +208,7 @@ function saveFleet(ships: Ship[]) {
   const slots: FleetSlot[] = ships.map((s) => ({
     id: s.id, dbId: s.dbId, catalogCode: s.catalogCode, level: s.level, max: s.max, timeLeft: s.timeLeft,
     duration: s.duration, progress: s.progress, fishing: s.fishing, sail: s.sail,
-    startedAt: s.startedAt, maxHp: s.maxHp, stars: s.stars, maxStars: s.maxStars,
+    startedAt: s.startedAt, maxHp: s.maxHp, stars: s.stars, maxStars: s.maxStars, sailorAtStart: s.sailorAtStart,
   }));
   window.localStorage.setItem(FLEET_KEY, JSON.stringify(slots));
 }
