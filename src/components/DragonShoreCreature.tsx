@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
-import { getStage, overallLevel, type Dragon } from "@/lib/dragon";
+import { overallLevel, type Dragon } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 import nestImg from "@/assets/dragon-nest-only.png";
