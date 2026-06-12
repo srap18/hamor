@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
+import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 
 export type Profile = {
   id: string;
@@ -37,22 +38,28 @@ function ensureSessionBootstrap() {
     notifySession();
   }, 4000);
   supabase.auth.onAuthStateChange((_e, s) => {
+    const prevUserId = sessionCache?.user?.id ?? null;
+    const nextUserId = s?.user?.id ?? null;
     sessionCache = s;
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
     notifySession();
-    // When the user changes, drop the cached profile so we refetch
-    if (s?.user?.id !== profileCache?.id) {
+    // Only drop profile when the signed-in account actually changes.
+    // Token refresh / INITIAL_SESSION must not wipe the current profile.
+    if (prevUserId !== nextUserId) {
       profileCache = null;
       if (!s?.user) persistProfile(null);
       notifyProfile();
     }
+    if (nextUserId) primeProfileForUser(nextUserId);
   });
   supabase.auth.getSession().then(({ data }) => {
     sessionCache = data.session;
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
     notifySession();
+    const userId = data.session?.user?.id;
+    if (userId) primeProfileForUser(userId);
   }).catch(() => {
     sessionLoadingFlag = false;
     globalThis.clearTimeout(loadingTimeout);
@@ -102,23 +109,48 @@ function loadPersistedProfile(userId: string): Profile | null {
   } catch { return null; }
 }
 
-async function fetchProfileNow(userId: string) {
-  const { data } = await supabase
+function primeProfileForUser(userId: string) {
+  if (!profileCache || profileCache.id !== userId) {
+    const persisted = loadPersistedProfile(userId);
+    if (persisted) profileCache = persisted;
+  }
+  profileLoadingFlag = !profileCache || profileCache.id !== userId;
+  notifyProfile();
+  fetchProfileNow(userId);
+}
+
+async function fetchProfileNow(userId: string, attempt = 0) {
+  const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_PUBLIC_COLUMNS)
     .eq("id", userId)
     .maybeSingle();
+  if ((error || !data) && attempt < 2) {
+    profileLoadingFlag = true;
+    notifyProfile();
+    globalThis.setTimeout(() => fetchProfileNow(userId, attempt + 1), 700 * (attempt + 1));
+    return;
+  }
+  profileLoadingFlag = false;
   if (data) {
     profileCache = data as Profile;
-    profileLoadingFlag = false;
     persistProfile(profileCache);
-    notifyProfile();
   }
+  notifyProfile();
 }
 
 
 function ensureProfileBootstrap(userId: string) {
-  if (profileChannelUserId === userId) return;
+  if (profileChannelUserId === userId) {
+    if (!profileCache || profileCache.id !== userId) {
+      const persisted = loadPersistedProfile(userId);
+      if (persisted) profileCache = persisted;
+      else profileLoadingFlag = true;
+      notifyProfile();
+      fetchProfileNow(userId);
+    }
+    return;
+  }
   // Tear down old channel/ping for previous user
   if (profileChannelUserId) {
     if (profilePingTimer) { clearInterval(profilePingTimer); profilePingTimer = null; }
