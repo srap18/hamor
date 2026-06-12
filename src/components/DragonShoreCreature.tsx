@@ -282,35 +282,19 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               transformOrigin: "50% 95%",
             }}
           >
-            {stageMode === "adult" ? (
-              <div
+            <div
+              className="absolute inset-0 h-full w-full"
+              style={{
+                filter:
+                  "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
+              }}
+            >
+              <DragonEvolutionVideo
+                level={displayLevel}
                 className="absolute inset-0 h-full w-full"
-                style={{
-                  mixBlendMode: "multiply",
-                  filter:
-                    "drop-shadow(0 6px 10px rgba(0,0,0,0.58)) drop-shadow(0 18px 28px rgba(0,0,0,0.36)) saturate(1.05) contrast(1.05)",
-                }}
-              >
-                <KeyedWhiteVideo
-                  src={shoreDragonVideo.url}
-                  className="absolute inset-0 h-full w-full"
-                  style={{
-                    objectFit: "contain",
-                    objectPosition: "bottom center",
-                  }}
-                />
-              </div>
-            ) : (
-              <img
-                src={creatureImg}
-                alt=""
-                draggable={false}
-                className="absolute inset-0 h-full w-full object-contain object-bottom"
-                style={{
-                  filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.58))",
-                }}
+                style={{ objectFit: "contain", objectPosition: "bottom center" }}
               />
-            )}
+            </div>
 
             {canHatch && (
               <span
