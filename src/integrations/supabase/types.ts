@@ -3273,6 +3273,15 @@ export type Database = {
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
+      _effective_fishing_elapsed: {
+        Args: {
+          _as_of?: string
+          _ship_id: string
+          _started_at: string
+          _user: string
+        }
+        Returns: number
+      }
       _enforce_rate_limit: {
         Args: { _action: string; _min_ms: number }
         Returns: undefined
