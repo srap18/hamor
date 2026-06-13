@@ -262,9 +262,9 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           className="absolute bg-transparent border-0 p-0 active:scale-95 transition-transform"
           style={{
             left: "50%",
-            bottom: "18%",
-            width: "38%",
-            height: "38%",
+            bottom: "21%",
+            width: "43%",
+            height: "43%",
             transform: "translateX(-50%)",
             zIndex: 2,
             pointerEvents: "auto",
