@@ -143,6 +143,10 @@ function BossPage() {
 
   const fire = useCallback(async (weaponId: string) => {
     if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    if (attacksLeft <= 0) {
+      alert("⛔ انتهت هجماتك اليومية على الوحش (٥/يوم). جددها بـ ١٠٠٠ جوهرة أو انتظر التجديد.");
+      return;
+    }
     const ammo = rockets.find((r) => r.item_id === weaponId);
     if (!ammo || ammo.quantity < 1) return;
     setBusy(true);
@@ -154,12 +158,17 @@ function BossPage() {
     if (error || (data && data.ok === false)) {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setBusy(false);
+      if (data?.quota_exceeded) {
+        setAttacksLeft(0);
+        if (data.reset_at) setAttackResetAt(new Date(data.reset_at).getTime());
+      }
       if (error) return alert(error.message);
       if (data?.error) return alert(data.error);
       return;
     }
     // optimistic local rocket count -1
     setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    if (typeof data?.attacks_remaining === "number") setAttacksLeft(data.attacks_remaining);
     setTimeout(() => {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setSplashes((s) => [...s, { id: nextId(), side: "boss", crit: data.crit, dmg: data.damage }]);
@@ -174,7 +183,20 @@ function BossPage() {
       }
     }, 850);
 
-  }, [busy, boss, shipHp, rockets]);
+  }, [busy, boss, shipHp, rockets, attacksLeft]);
+
+  const refreshAttacks = useCallback(async () => {
+    if (refreshingAttacks) return;
+    if (!confirm("استخدام ١٠٠٠ جوهرة لتجديد ٥ هجمات على الوحش؟")) return;
+    setRefreshingAttacks(true);
+    const { data, error } = await rpc("refresh_boss_attacks");
+    setRefreshingAttacks(false);
+    if (error) return alert(error.message);
+    if (data?.ok === false) return alert(data.error || "فشل التجديد");
+    setAttacksLeft(5);
+    setAttackResetAt(Date.now() + 24 * 3600 * 1000);
+    alert("✅ تم تجديد الهجمات!");
+  }, [refreshingAttacks]);
 
   if (loadingBoss) {
     return (
