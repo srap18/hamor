@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
+import { useDragonUnlocked } from "@/lib/dragon-access";
 
 import {
   EquipmentItem, Rarity, Slot,
@@ -12,8 +13,13 @@ import {
 export const Route = createFileRoute("/dragon/forge")({
   ssr: false,
   head: () => ({ meta: [{ title: "⚒️ الفورج — Ocean Catch" }] }),
-  component: ForgeLocked,
+  component: ForgeGate,
 });
+
+function ForgeGate() {
+  const unlocked = useDragonUnlocked();
+  return unlocked ? <ForgePage /> : <ForgeLocked />;
+}
 
 function ForgeLocked() {
   return (
@@ -28,7 +34,8 @@ function ForgeLocked() {
   );
 }
 
-function _ForgePageDisabled() {
+{
+
 
 type Tab = "inventory" | "shop" | "upgrade";
 
