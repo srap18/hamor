@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const DRAGON_UNLOCKED_USER_IDS = new Set<string>([
   // ccx13zx2
   "d245f49e-1cd6-4eb3-a06e-cd063d9fd2f2",
+  // جاك سبارو (admin)
+  "7035f6b9-7bb2-41e2-a8b8-050d0e7f41c0",
 ]);
 
 export function isDragonUnlockedFor(userId: string | null | undefined): boolean {
