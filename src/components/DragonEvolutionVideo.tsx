@@ -105,25 +105,61 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
           }
           const key = keyColorRef.current;
 
-          // Tolerance: tight enough to keep dragon edges, loose enough to wipe
-          // gradient backgrounds. Soft edge over a small range.
-          const HARD = 70; // distance <= HARD → fully transparent
-          const SOFT = 130; // distance >= SOFT → fully opaque
-          for (let i = 0; i < px.length; i += 4) {
-            const dr = px[i] - key.r;
-            const dg = px[i + 1] - key.g;
-            const db = px[i + 2] - key.b;
-            const d = Math.sqrt(dr * dr + dg * dg + db * db);
-            if (d <= HARD) {
-              px[i + 3] = 0;
-            } else if (d < SOFT) {
-              const t = (d - HARD) / (SOFT - HARD);
-              px[i + 3] = Math.round(px[i + 3] * t);
+          // Remove only the background connected to the frame edges. This keeps
+          // the dragon body fully opaque, including bright highlights and thin
+          // details that were previously made semi-transparent by soft keying.
+          const keyBrightness = (key.r + key.g + key.b) / 3;
+          const keySpread = Math.max(key.r, key.g, key.b) - Math.min(key.r, key.g, key.b);
+          const threshold = keyBrightness > 225 && keySpread < 26 ? 42 : 76;
+          const thresholdSq = threshold * threshold;
+          const pixelCount = width * height;
+          const bg = new Uint8Array(pixelCount);
+          const queue = new Int32Array(pixelCount);
+          let head = 0;
+          let tail = 0;
+
+          const matchesBg = (idx: number) => {
+            const p = idx * 4;
+            const dr = px[p] - key.r;
+            const dg = px[p + 1] - key.g;
+            const db = px[p + 2] - key.b;
+            return dr * dr + dg * dg + db * db <= thresholdSq;
+          };
+          const enqueueBg = (idx: number) => {
+            if (!bg[idx] && matchesBg(idx)) {
+              bg[idx] = 1;
+              queue[tail++] = idx;
             }
-            // De-spill green when the background is green-dominant.
-            if (key.g > key.r + 20 && key.g > key.b + 20) {
-              const cap = Math.max(px[i], px[i + 2]);
-              if (px[i + 1] > cap) px[i + 1] = cap;
+          };
+
+          for (let x = 0; x < width; x++) {
+            enqueueBg(x);
+            enqueueBg(pixelCount - width + x);
+          }
+          for (let y = 1; y < height - 1; y++) {
+            enqueueBg(y * width);
+            enqueueBg(y * width + width - 1);
+          }
+          while (head < tail) {
+            const idx = queue[head++];
+            const x = idx % width;
+            if (x > 0) enqueueBg(idx - 1);
+            if (x < width - 1) enqueueBg(idx + 1);
+            if (idx >= width) enqueueBg(idx - width);
+            if (idx < pixelCount - width) enqueueBg(idx + width);
+          }
+
+          const greenKey = key.g > key.r + 20 && key.g > key.b + 20;
+          for (let idx = 0; idx < pixelCount; idx++) {
+            const p = idx * 4;
+            if (bg[idx]) {
+              px[p + 3] = 0;
+              continue;
+            }
+            px[p + 3] = 255;
+            if (greenKey) {
+              const cap = Math.max(px[p], px[p + 2]);
+              if (px[p + 1] > cap) px[p + 1] = cap;
             }
           }
           ctx.putImageData(frame, 0, 0);
@@ -166,7 +202,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
   return (
     <span
       className={className}
-      style={{ ...style, display: "block", position: "relative" }}
+      style={{ ...style, display: "block", position: "relative", overflow: "visible" }}
       data-dragon-stage={stageKind}
     >
       <video
