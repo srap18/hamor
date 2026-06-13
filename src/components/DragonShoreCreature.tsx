@@ -281,7 +281,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           aria-label={canHatch ? "اضغط لفقس التنين" : stageMode === "egg" ? "بيضة التنين" : "تنيني"}
           className="absolute bg-transparent border-0 p-0 active:scale-95 transition-transform"
           style={{
-            left: "50%",
+            left: "30%",
             bottom: "21%",
             width: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
             height: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
