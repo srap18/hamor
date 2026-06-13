@@ -263,8 +263,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{
             left: "50%",
             bottom: "21%",
-            width: showEgg ? "48%" : "55%",
-            height: showEgg ? "48%" : "55%",
+            width: showEgg ? "48%" : "66%",
+            height: showEgg ? "48%" : "66%",
             transform: "translateX(-50%)",
             zIndex: 2,
             pointerEvents: "auto",
