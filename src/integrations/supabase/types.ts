@@ -4083,6 +4083,7 @@ export type Database = {
           ship_id: string
         }[]
       }
+      get_player_dragon_public_info: { Args: { _uid: string }; Returns: Json }
       get_profile_by_username: {
         Args: { _username: string }
         Returns: {

@@ -3,11 +3,19 @@ import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
-import { overallLevel, type Dragon } from "@/lib/dragon";
+import { overallLevel, getStage, type Dragon } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
+import { RARITY_COLOR, RARITY_LABEL, SLOT_IMG, SLOT_LABEL, type Rarity, type Slot } from "@/lib/dragon-equipment";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
+
+type InspectInfo = {
+  dragon: { stage: number; dp: number; total_boss_damage: number; pvp_wins: number; pvp_losses: number; name: string } | null;
+  equipment: { slot: Slot; rarity: Rarity; name: string; stats: Record<string, number | boolean> }[];
+  achievements_unlocked: number;
+  achievements_total: number;
+};
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
@@ -196,8 +204,32 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const navigate = useNavigate();
   const unlocked = useDragonUnlocked();
 
+  // Inspect modal for visitors (non-interactive mode on someone else's profile)
+  const [inspectOpen, setInspectOpen] = useState(false);
+  const [inspectInfo, setInspectInfo] = useState<InspectInfo | null>(null);
+  const [inspectLoading, setInspectLoading] = useState(false);
+
+  const openInspect = async () => {
+    if (!userId) return;
+    setInspectOpen(true);
+    if (inspectInfo) return;
+    setInspectLoading(true);
+    try {
+      const { data } = await (supabase as never as {
+        rpc: (n: string, p: Record<string, string>) => Promise<{ data: InspectInfo | null }>;
+      }).rpc("get_player_dragon_public_info", { _uid: userId });
+      if (data) setInspectInfo(data);
+    } finally {
+      setInspectLoading(false);
+    }
+  };
+
   const handleTap = () => {
-    if (!interactive) return;
+    if (!interactive) {
+      // Visitor mode: show inspection popup (weapons + level + achievements).
+      if (userId) openInspect();
+      return;
+    }
     if (canHatch) {
       setPlayingHatch(true);
       return;
@@ -405,6 +437,104 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           </button>
         </div>
       )}
+
+      {inspectOpen && (
+        <div
+          className="fixed inset-0 z-[2147483600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          dir="rtl"
+          onClick={() => setInspectOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border-2 border-amber-400/70 bg-gradient-to-b from-stone-900 to-stone-950 p-4 shadow-[0_0_60px_rgba(251,191,36,0.5)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-extrabold text-amber-200">🐉 معلومات التنين</h2>
+              <button
+                onClick={() => setInspectOpen(false)}
+                className="rounded-full bg-stone-800 px-2 py-0.5 text-xs text-stone-300"
+              >
+                ✕
+              </button>
+            </div>
+
+            {inspectLoading && !inspectInfo && (
+              <div className="text-center text-stone-400 text-sm py-6">جاري التحميل…</div>
+            )}
+
+            {inspectInfo && (() => {
+              const d = inspectInfo.dragon;
+              const lvl = d ? overallLevel(d as Dragon) : 0;
+              const stageName = d ? getStage(d.stage).name : "—";
+              return (
+                <div className="space-y-3">
+                  <div className="rounded-xl bg-stone-800/70 border border-stone-700 px-3 py-2 flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] text-stone-400">الطور</div>
+                      <div className="text-sm font-extrabold text-amber-200">{stageName}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[11px] text-stone-400">المستوى</div>
+                      <div className="text-lg font-extrabold text-amber-300">{lvl}/150</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-[12px] font-bold text-stone-300 mb-1.5">🗡️ العدّة الملبوسة</div>
+                    {inspectInfo.equipment.length === 0 ? (
+                      <div className="rounded-xl bg-stone-800/40 border border-dashed border-stone-700 px-3 py-3 text-center text-[12px] text-stone-500">
+                        لا يلبس أي عدّة
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {(["weapon","armor","talisman"] as Slot[]).map((slot) => {
+                          const it = inspectInfo.equipment.find((e) => e.slot === slot);
+                          if (!it) {
+                            return (
+                              <div key={slot} className="rounded-xl border border-dashed border-stone-700 bg-stone-900/40 px-2 py-2 text-center">
+                                <div className="text-2xl opacity-30">∅</div>
+                                <div className="text-[10px] text-stone-500 mt-1">{SLOT_LABEL[slot]}</div>
+                              </div>
+                            );
+                          }
+                          const c = RARITY_COLOR[it.rarity];
+                          return (
+                            <div
+                              key={slot}
+                              className={`rounded-xl border-2 ${c.ring} bg-gradient-to-b ${c.bg} px-2 py-2 text-center`}
+                              style={{ boxShadow: `0 0 14px ${c.glow}` }}
+                            >
+                              <img src={SLOT_IMG[slot]} alt="" className="w-9 h-9 mx-auto object-contain" />
+                              <div className={`text-[10px] font-bold mt-1 ${c.text}`}>{RARITY_LABEL[it.rarity]}</div>
+                              <div className="text-[10px] text-stone-300 truncate">{SLOT_LABEL[slot]}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-xl bg-stone-800/70 border border-stone-700 px-3 py-2">
+                      <div className="text-[11px] text-stone-400">🏆 الإنجازات</div>
+                      <div className="text-sm font-extrabold text-emerald-300">
+                        {inspectInfo.achievements_unlocked} / {inspectInfo.achievements_total}
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-stone-800/70 border border-stone-700 px-3 py-2">
+                      <div className="text-[11px] text-stone-400">⚔️ ضرر البوس</div>
+                      <div className="text-sm font-extrabold text-rose-300">
+                        {(d?.total_boss_damage ?? 0).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </>
+
   );
 }
