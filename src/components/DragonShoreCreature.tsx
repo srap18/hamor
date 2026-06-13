@@ -198,7 +198,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               values="1 0 0 0 0
                       0 1 0 0 0
                       0 0 1 0 0
-                      -1.6 -1.6 -1.6 0 3.7"
+                      -8 -8 -8 0 22.5"
             />
           </filter>
         </defs>
