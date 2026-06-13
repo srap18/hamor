@@ -62,10 +62,12 @@ function KeyedWhiteVideo({
             const r = pixels[i];
             const g = pixels[i + 1];
             const b = pixels[i + 2];
-            const whiteness = Math.min(r, g, b);
-            const spread = Math.max(r, g, b) - whiteness;
-            if (whiteness > 218 && spread < 34) {
-              pixels[i + 3] = Math.max(0, 255 - (whiteness - 218) * 7);
+            // Remove green-screen background (dominant green pixels).
+            if (g > 70 && g > r * 1.2 && g > b * 1.2) {
+              pixels[i + 3] = 0;
+            } else if (g > r && g > b) {
+              // De-spill: dampen green tint on the subject's edges.
+              pixels[i + 1] = Math.min(g, Math.round((r + b) / 2) + 12);
             }
           }
           ctx.putImageData(frame, 0, 0);
@@ -99,13 +101,13 @@ function KeyedWhiteVideo({
         onEnded={onEnded}
         onError={() => setCanvasDisabled(true)}
         className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ objectFit: "contain", objectPosition: "bottom center", mixBlendMode: "multiply" }}
+        style={{ objectFit: "contain", objectPosition: "center", opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0 }}
       />
       {!canvasDisabled && (
         <canvas
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 h-full w-full"
-          style={{ objectFit: "contain", objectPosition: "bottom center", opacity: canvasReady ? 1 : 0 }}
+          style={{ objectFit: "contain", objectPosition: "center", opacity: canvasReady ? 1 : 0 }}
           aria-hidden
         />
       )}
@@ -361,14 +363,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{ pointerEvents: "auto" }}
         >
           <div className="absolute inset-0 bg-black/70" />
-          <video
+          <KeyedWhiteVideo
             src={hatchVideo.url}
-            autoPlay
-            muted
-            playsInline
+            loop={false}
             onEnded={finishHatch}
             className="relative h-screen w-screen"
-            style={{ objectFit: "contain", mixBlendMode: "multiply" }}
           />
           <button
             type="button"
