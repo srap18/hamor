@@ -257,7 +257,25 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
 
         <button
           type="button"
-          onClick={handleTap}
+          onClick={(e) => {
+            // Only treat as a tap if the click actually landed on a non-transparent
+            // pixel of the dragon canvas (avoids triggering from empty area around it).
+            const btn = e.currentTarget as HTMLElement;
+            const canvas = btn.querySelector("canvas") as HTMLCanvasElement | null;
+            if (canvas && canvas.width > 0 && canvas.height > 0) {
+              const rect = canvas.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
+              const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+              if (x >= 0 && y >= 0 && x < canvas.width && y < canvas.height) {
+                try {
+                  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                  const alpha = ctx?.getImageData(Math.floor(x), Math.floor(y), 1, 1).data[3] ?? 255;
+                  if (alpha < 32) return;
+                } catch {}
+              }
+            }
+            handleTap();
+          }}
           aria-label={canHatch ? "اضغط لفقس التنين" : stageMode === "egg" ? "بيضة التنين" : "تنيني"}
           className="absolute bg-transparent border-0 p-0 active:scale-95 transition-transform"
           style={{
