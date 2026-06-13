@@ -107,7 +107,7 @@ function KeyedWhiteVideo({
         <canvas
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 h-full w-full"
-          style={{ objectFit: "contain", objectPosition: "bottom center", opacity: canvasReady ? 1 : 0 }}
+          style={{ objectFit: "contain", objectPosition: "center", opacity: canvasReady ? 1 : 0 }}
           aria-hidden
         />
       )}
