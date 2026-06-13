@@ -284,6 +284,27 @@ export type Database = {
         }
         Relationships: []
       }
+      boss_attack_quota: {
+        Row: {
+          hits_used: number
+          reset_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          hits_used?: number
+          reset_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          hits_used?: number
+          reset_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       boss_hits: {
         Row: {
           boss_id: string
@@ -3273,6 +3294,7 @@ export type Database = {
     Functions: {
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
+      _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
@@ -3564,6 +3586,7 @@ export type Database = {
         Returns: undefined
       }
       award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
+      boss_attack_status: { Args: never; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
         Returns: undefined
@@ -4327,6 +4350,7 @@ export type Database = {
             Returns: string
           }
       redeem_code: { Args: { p_code: string }; Returns: Json }
+      refresh_boss_attacks: { Args: never; Returns: Json }
       register_device: { Args: { _device_id: string }; Returns: Json }
       remove_ad_bombs: { Args: never; Returns: number }
       remove_golden_fisher: { Args: never; Returns: Json }

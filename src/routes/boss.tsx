@@ -52,6 +52,9 @@ function BossPage() {
   const [now, setNow] = useState(Date.now());
   const [dragonStage, setDragonStage] = useState(1);
   const [bossDefeats, setBossDefeats] = useState(0);
+  const [attacksLeft, setAttacksLeft] = useState<number>(5);
+  const [attackResetAt, setAttackResetAt] = useState<number>(0);
+  const [refreshingAttacks, setRefreshingAttacks] = useState(false);
   const myIdRef = useRef<string | null>(null);
   const idRef = useRef(0);
   const nextId = () => ++idRef.current;
@@ -88,6 +91,11 @@ function BossPage() {
       setRockets((inv ?? []) as RocketRow[]);
       if (drg?.stage) setDragonStage(drg.stage);
       if (typeof defeats === "number") setBossDefeats(defeats);
+      const { data: q } = await rpc("boss_attack_status");
+      if (q) {
+        setAttacksLeft(Number(q.remaining ?? 5));
+        setAttackResetAt(new Date(q.reset_at ?? Date.now()).getTime());
+      }
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
@@ -135,6 +143,10 @@ function BossPage() {
 
   const fire = useCallback(async (weaponId: string) => {
     if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    if (attacksLeft <= 0) {
+      alert("⛔ انتهت هجماتك اليومية على الوحش (٥/يوم). جددها بـ ١٠٠٠ جوهرة أو انتظر التجديد.");
+      return;
+    }
     const ammo = rockets.find((r) => r.item_id === weaponId);
     if (!ammo || ammo.quantity < 1) return;
     setBusy(true);
@@ -146,12 +158,17 @@ function BossPage() {
     if (error || (data && data.ok === false)) {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setBusy(false);
+      if (data?.quota_exceeded) {
+        setAttacksLeft(0);
+        if (data.reset_at) setAttackResetAt(new Date(data.reset_at).getTime());
+      }
       if (error) return alert(error.message);
       if (data?.error) return alert(data.error);
       return;
     }
     // optimistic local rocket count -1
     setRockets((rs) => rs.map((r) => r.item_id === weaponId ? { ...r, quantity: r.quantity - 1 } : r).filter((r) => r.quantity > 0));
+    if (typeof data?.attacks_remaining === "number") setAttacksLeft(data.attacks_remaining);
     setTimeout(() => {
       setProjectiles((p) => p.filter((x) => x.id !== pid));
       setSplashes((s) => [...s, { id: nextId(), side: "boss", crit: data.crit, dmg: data.damage }]);
@@ -166,7 +183,20 @@ function BossPage() {
       }
     }, 850);
 
-  }, [busy, boss, shipHp, rockets]);
+  }, [busy, boss, shipHp, rockets, attacksLeft]);
+
+  const refreshAttacks = useCallback(async () => {
+    if (refreshingAttacks) return;
+    if (!confirm("استخدام ١٠٠٠ جوهرة لتجديد ٥ هجمات على الوحش؟")) return;
+    setRefreshingAttacks(true);
+    const { data, error } = await rpc("refresh_boss_attacks");
+    setRefreshingAttacks(false);
+    if (error) return alert(error.message);
+    if (data?.ok === false) return alert(data.error || "فشل التجديد");
+    setAttacksLeft(5);
+    setAttackResetAt(Date.now() + 24 * 3600 * 1000);
+    alert("✅ تم تجديد الهجمات!");
+  }, [refreshingAttacks]);
 
   if (loadingBoss) {
     return (
@@ -277,6 +307,34 @@ function BossPage() {
               style={{ width: `${hpPct}%`, boxShadow: "0 0 12px rgba(244,63,94,0.9)" }} />
           </div>
         </div>
+
+        {/* Daily attack quota */}
+        <div className="bg-stone-900/80 border border-amber-600/50 rounded-xl px-3 py-2 mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold">
+            <span className="text-amber-200">🎯 الهجمات:</span>
+            <span className="text-amber-100 tabular-nums">{attacksLeft}/5</span>
+            {attacksLeft < 5 && attackResetAt > now && (
+              <span className="text-amber-300/70 text-[10px]">
+                · تجديد {Math.max(0, Math.floor((attackResetAt - now) / 3600000))}س {Math.max(0, Math.floor(((attackResetAt - now) % 3600000) / 60000))}د
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={refreshingAttacks || attacksLeft >= 5}
+            onClick={refreshAttacks}
+            className="px-3 py-1 rounded-lg text-[11px] font-extrabold bg-gradient-to-b from-purple-500 to-purple-700 text-white shadow-md disabled:opacity-40 active:scale-95"
+          >
+            💎 1000 تجديد
+          </button>
+        </div>
+
+        {/* DP per hit info */}
+        <div className="text-center text-[10px] text-emerald-300/70 mb-2">
+          🐉 كل هجمة تعطي تنينك +٥,٠٠٠ نقطة تطوّر
+        </div>
+
+
 
         {/* BATTLE ARENA */}
         <div className="relative flex-1 min-h-[300px] rounded-2xl overflow-hidden border-2 border-rose-900/50 mb-2"
