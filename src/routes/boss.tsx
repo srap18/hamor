@@ -308,6 +308,34 @@ function BossPage() {
           </div>
         </div>
 
+        {/* Daily attack quota */}
+        <div className="bg-stone-900/80 border border-amber-600/50 rounded-xl px-3 py-2 mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold">
+            <span className="text-amber-200">🎯 الهجمات:</span>
+            <span className="text-amber-100 tabular-nums">{attacksLeft}/5</span>
+            {attacksLeft < 5 && attackResetAt > now && (
+              <span className="text-amber-300/70 text-[10px]">
+                · تجديد {Math.max(0, Math.floor((attackResetAt - now) / 3600000))}س {Math.max(0, Math.floor(((attackResetAt - now) % 3600000) / 60000))}د
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={refreshingAttacks || attacksLeft >= 5}
+            onClick={refreshAttacks}
+            className="px-3 py-1 rounded-lg text-[11px] font-extrabold bg-gradient-to-b from-purple-500 to-purple-700 text-white shadow-md disabled:opacity-40 active:scale-95"
+          >
+            💎 1000 تجديد
+          </button>
+        </div>
+
+        {/* DP per hit info */}
+        <div className="text-center text-[10px] text-emerald-300/70 mb-2">
+          🐉 كل هجمة تعطي تنينك +٥,٠٠٠ نقطة تطوّر
+        </div>
+
+
+
         {/* BATTLE ARENA */}
         <div className="relative flex-1 min-h-[300px] rounded-2xl overflow-hidden border-2 border-rose-900/50 mb-2"
              style={{ background:
