@@ -343,4 +343,3 @@ function UpgradeTab({ items, onUpgrade, gems }: { items: EquipmentItem[]; onUpgr
     </div>
   );
 }
-}
