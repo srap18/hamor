@@ -3,11 +3,19 @@ import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
-import { overallLevel, type Dragon } from "@/lib/dragon";
+import { overallLevel, getStage, type Dragon } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
+import { RARITY_COLOR, RARITY_LABEL, SLOT_IMG, SLOT_LABEL, type Rarity, type Slot } from "@/lib/dragon-equipment";
 import nestImg from "@/assets/dragon-nest-only.png";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
+
+type InspectInfo = {
+  dragon: { stage: number; dp: number; total_boss_damage: number; pvp_wins: number; pvp_losses: number; name: string } | null;
+  equipment: { slot: Slot; rarity: Rarity; name: string; stats: Record<string, number | boolean> }[];
+  achievements_unlocked: number;
+  achievements_total: number;
+};
 
 type Props = {
   /** If provided, show this user's dragon (read-only). Otherwise shows the current user's. */
