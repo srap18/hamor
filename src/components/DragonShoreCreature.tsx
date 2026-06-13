@@ -245,8 +245,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           draggable={false}
           className="absolute pointer-events-none"
           style={{
-            left: "0%",
-            right: "0%",
+            left: "-20%",
+            right: "20%",
             bottom: "0%",
             width: "100%",
             height: "78%",
