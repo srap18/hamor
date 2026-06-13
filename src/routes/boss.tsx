@@ -91,6 +91,11 @@ function BossPage() {
       setRockets((inv ?? []) as RocketRow[]);
       if (drg?.stage) setDragonStage(drg.stage);
       if (typeof defeats === "number") setBossDefeats(defeats);
+      const { data: q } = await rpc("boss_attack_status");
+      if (q) {
+        setAttacksLeft(Number(q.remaining ?? 5));
+        setAttackResetAt(new Date(q.reset_at ?? Date.now()).getTime());
+      }
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
