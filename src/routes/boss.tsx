@@ -52,6 +52,9 @@ function BossPage() {
   const [now, setNow] = useState(Date.now());
   const [dragonStage, setDragonStage] = useState(1);
   const [bossDefeats, setBossDefeats] = useState(0);
+  const [attacksLeft, setAttacksLeft] = useState<number>(5);
+  const [attackResetAt, setAttackResetAt] = useState<number>(0);
+  const [refreshingAttacks, setRefreshingAttacks] = useState(false);
   const myIdRef = useRef<string | null>(null);
   const idRef = useRef(0);
   const nextId = () => ++idRef.current;
