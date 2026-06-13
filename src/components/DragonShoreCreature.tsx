@@ -116,12 +116,30 @@ function KeyedWhiteVideo({
 }
 
 const HATCH_KEY = (uid: string) => `dragon-hatched-v1:${uid}`;
+const CACHE_KEY = (uid: string) => `dragon-cache-v1:${uid}`;
+
+function readCachedDragon(uid: string | undefined): { stage: number; dp: number } | null {
+  if (!uid) return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY(uid));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.stage === "number" && typeof parsed?.dp === "number") return parsed;
+  } catch {}
+  return null;
+}
 
 export function DragonShoreCreature({ userId, interactive = true }: Props = {}) {
-  const [stage, setStage] = useState<number>(1);
-  const [dp, setDp] = useState<number>(0);
-  const [uid, setUid] = useState<string | null>(null);
-  const [hatched, setHatched] = useState<boolean>(false);
+  // Hydrate instantly from cached dragon data so refreshes don't flicker
+  // back to "egg" before the DB query resolves.
+  const initialCache = typeof window !== "undefined" ? readCachedDragon(userId) : null;
+  const [stage, setStage] = useState<number>(initialCache?.stage ?? 1);
+  const [dp, setDp] = useState<number>(initialCache?.dp ?? 0);
+  const [uid, setUid] = useState<string | null>(userId ?? null);
+  const [hatched, setHatched] = useState<boolean>(() => {
+    if (typeof window === "undefined" || !userId) return false;
+    try { return localStorage.getItem(HATCH_KEY(userId)) === "1"; } catch { return false; }
+  });
   const [playingHatch, setPlayingHatch] = useState(false);
 
   useEffect(() => {
@@ -134,6 +152,12 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
       }
       if (!u) return;
       if (alive) setUid(u);
+      // Hydrate from cache first (covers the case where userId was unknown at mount).
+      const cached = readCachedDragon(u);
+      if (alive && cached) {
+        setStage(cached.stage);
+        setDp(cached.dp);
+      }
       if (alive) {
         try {
           setHatched(localStorage.getItem(HATCH_KEY(u)) === "1");
@@ -141,8 +165,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
       }
       const { data } = await supabase.from("dragons").select("stage, dp").eq("user_id", u).maybeSingle();
       if (alive && data) {
-        if (data.stage) setStage(data.stage);
-        if (typeof data.dp === "number") setDp(data.dp);
+        const nextStage = data.stage ?? 1;
+        const nextDp = typeof data.dp === "number" ? data.dp : 0;
+        setStage(nextStage);
+        setDp(nextDp);
+        try { localStorage.setItem(CACHE_KEY(u), JSON.stringify({ stage: nextStage, dp: nextDp })); } catch {}
       }
     };
     load();
