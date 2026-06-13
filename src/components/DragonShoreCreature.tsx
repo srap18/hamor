@@ -204,8 +204,32 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
   const navigate = useNavigate();
   const unlocked = useDragonUnlocked();
 
+  // Inspect modal for visitors (non-interactive mode on someone else's profile)
+  const [inspectOpen, setInspectOpen] = useState(false);
+  const [inspectInfo, setInspectInfo] = useState<InspectInfo | null>(null);
+  const [inspectLoading, setInspectLoading] = useState(false);
+
+  const openInspect = async () => {
+    if (!userId) return;
+    setInspectOpen(true);
+    if (inspectInfo) return;
+    setInspectLoading(true);
+    try {
+      const { data } = await (supabase as never as {
+        rpc: (n: string, p: Record<string, string>) => Promise<{ data: InspectInfo | null }>;
+      }).rpc("get_player_dragon_public_info", { _uid: userId });
+      if (data) setInspectInfo(data);
+    } finally {
+      setInspectLoading(false);
+    }
+  };
+
   const handleTap = () => {
-    if (!interactive) return;
+    if (!interactive) {
+      // Visitor mode: show inspection popup (weapons + level + achievements).
+      if (userId) openInspect();
+      return;
+    }
     if (canHatch) {
       setPlayingHatch(true);
       return;
