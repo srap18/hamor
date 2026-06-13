@@ -34,7 +34,8 @@ function ForgeLocked() {
   );
 }
 
-{
+
+
 
 
 type Tab = "inventory" | "shop" | "upgrade";
