@@ -101,7 +101,7 @@ function KeyedWhiteVideo({
         onEnded={onEnded}
         onError={() => setCanvasDisabled(true)}
         className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ objectFit: "contain", objectPosition: "bottom center", mixBlendMode: "multiply" }}
+        style={{ objectFit: "contain", objectPosition: "center", opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0 }}
       />
       {!canvasDisabled && (
         <canvas
