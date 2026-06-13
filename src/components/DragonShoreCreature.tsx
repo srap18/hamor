@@ -363,14 +363,11 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{ pointerEvents: "auto" }}
         >
           <div className="absolute inset-0 bg-black/70" />
-          <video
+          <KeyedWhiteVideo
             src={hatchVideo.url}
-            autoPlay
-            muted
-            playsInline
+            loop={false}
             onEnded={finishHatch}
             className="relative h-screen w-screen"
-            style={{ objectFit: "contain", mixBlendMode: "multiply" }}
           />
           <button
             type="button"
