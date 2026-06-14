@@ -1348,9 +1348,16 @@ function Index() {
 
 
     // Show the result as soon as the server responds — no artificial delay.
+    // Cap server reward by what the player actually saw on the progress bar
+    // at the moment of tap (the optimistic dock above zero'd `progress`, so
+    // use the snapshot captured before the reset). Server still applies its
+    // own cap; this only ever LOWERS the value — never raises it — so the
+    // player can never receive more fish than the bar displayed.
+    const _clientProgress = Math.max(0, Math.min(s.max, Math.round(s.progress)));
     const { data, error } = await (supabase as any).rpc("collect_fishing_reward", {
       _ship_id: s.dbId,
       _requested_fish_id: requestedFishId,
+      _client_progress: _clientProgress,
     });
     if (error) {
       delete collectingRef.current[s.dbId];
