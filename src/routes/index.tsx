@@ -389,7 +389,7 @@ function Index() {
           const catalogCode = row.catalog_code ?? s.catalogCode ?? null;
           const shipDef = catalogCode ? getShipByCode(catalogCode) : getShipByMarketLevel(row.template_id ?? s.level);
           const resolvedLevel = shipDef.marketLevel;
-          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp });
+          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp, hp: row.hp ?? s.hp });
           const duration = shipDef.fishingSeconds;
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
