@@ -2443,7 +2443,7 @@ function Index() {
                 try {
                   const result = await repairOnServer(s, itemId);
                   const count = Number(result?.repaired_count ?? needRepair.length);
-                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل + حصانة 60 ثانية`);
+                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل`);
                   sound.play("success");
                 } catch (e: any) {
                   setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
