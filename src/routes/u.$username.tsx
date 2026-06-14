@@ -169,7 +169,7 @@ function UserProfilePage() {
               <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                    <img src={profile.avatar_url} alt={`Player avatar — ${profile.display_name ?? profile.username}`} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-secondary text-4xl">{profile.avatar_emoji ?? "🧙"}</div>
                   )}
