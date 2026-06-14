@@ -410,7 +410,7 @@ function ShipyardPage() {
 
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-black">
-                      <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                      <img src={iconCoins} alt="أيقونة الذهب" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
