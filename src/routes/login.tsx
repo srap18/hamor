@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { LegalFooter } from "@/components/LegalFooter";
 import { MfaChallenge, mfaStepUpRequired } from "@/components/MfaChallenge";
-import { isIosApp } from "@/lib/platform";
+
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -84,17 +84,8 @@ function LoginPage() {
     }
   };
 
-  // Apple Sign-In — required by App Store policy whenever third-party social
-  // login is offered on iOS. Only rendered on the iOS Capacitor build.
-  const apple = async () => {
-    setErr(null);
-    const result = await lovable.auth.signInWithOAuth("apple", { redirect_uri: window.location.origin });
-    if (result.error) setErr(result.error.message ?? "فشل تسجيل الدخول عبر Apple");
-    if (!result.redirected && !result.error) {
-      if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-      nav({ to: "/" });
-    }
-  };
+
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 text-white" dir="rtl" style={{
@@ -131,11 +122,6 @@ function LoginPage() {
         <button onClick={google} className="w-full py-2 rounded-lg bg-white text-stone-900 font-bold flex items-center justify-center gap-2 active:scale-95">
           <span>G</span> الدخول بـ Google
         </button>
-        {isIosApp() && (
-          <button onClick={apple} className="mt-2 w-full py-2 rounded-lg bg-black text-white font-bold flex items-center justify-center gap-2 active:scale-95 border border-white/20">
-            <span></span> الدخول بـ Apple
-          </button>
-        )}
         <div className="mt-4 text-center text-xs text-amber-100/70">
           ما عندك حساب؟ <Link to="/signup" className="text-amber-300 font-bold">سجّل الآن</Link>
         </div>
