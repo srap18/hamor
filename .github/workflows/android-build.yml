@@ -30,9 +30,10 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Initialize and Sync Android Platform
+      - name: Clean and Force Recreate Android Platform
         run: |
-          [ -d "android" ] || npx cap add android
+          rm -rf android # 👈 السطر السحري: مسح المجلد القديم المخرب نهائياً
+          npx cap add android # إعادة بناء المجلد من الصفر بالاسم الجديد السليم
           npx cap sync android
           chmod +x android/gradlew
 
