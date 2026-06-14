@@ -139,8 +139,8 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
         email: selfEmail,
         devices: (myDevices ?? []).map((d) => ({
           device_id: d.device_id,
-          created_at: d.created_at,
-          updated_at: d.updated_at,
+          created_at: d.first_seen,
+          updated_at: d.last_seen,
         })),
         ips: (myIps ?? []).map((r) => ({
           ip: r.ip,
