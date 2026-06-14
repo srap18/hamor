@@ -25,9 +25,35 @@ export const Route = createFileRoute("/shop")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/shop" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/shop" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "متجر ملوك القراصنة",
+          url: "https://www.molok-alqarasna.com/shop",
+          inLanguage: "ar",
+          description: "تشكيلة العناصر القابلة للشراء داخل لعبة ملوك القراصنة: أسلحة، طواقم، دروع، جواهر، خلفيات، باقات الشحن، واشتراكات VIP.",
+          isPartOf: { "@type": "WebSite", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+          mainEntity: {
+            "@type": "ItemList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "أسلحة" },
+              { "@type": "ListItem", position: 2, name: "طواقم" },
+              { "@type": "ListItem", position: 3, name: "حماية ودروع" },
+              { "@type": "ListItem", position: 4, name: "خلفيات" },
+              { "@type": "ListItem", position: 5, name: "شحن جواهر وذهب" },
+              { "@type": "ListItem", position: 6, name: "اشتراك VIP" },
+            ],
+          },
+        }),
+      },
+    ],
   }),
   component: Shop,
 });
+
 
 type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
 
