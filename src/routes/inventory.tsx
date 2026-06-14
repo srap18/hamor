@@ -30,6 +30,7 @@ function InventoryPage() {
   const [inv, setInv] = useState<InvRow[]>([]);
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
   const [ships, setShips] = useState<OwnedShip[]>([]);
+  const [goldenFisherUntil, setGoldenFisherUntil] = useState<string | null>(null);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
   const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const usingCrewRef = useRef(false);
@@ -40,11 +41,13 @@ function InventoryPage() {
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
-      const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
+      const [{ data: i }, { data: f }, { data: s }, { data: p }] = await Promise.all([
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
+        supabase.from("profiles").select("golden_fisher_until").eq("id", u.user.id).maybeSingle(),
       ]);
+      setGoldenFisherUntil(((p as any)?.golden_fisher_until as string | null) ?? null);
       let stockQty: Record<string, number> = {};
       try {
         const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
@@ -175,6 +178,8 @@ function InventoryPage() {
           <div className="grid grid-cols-2 gap-2">
             {CREWS.map(c => {
               const n = qty("crew", c.id);
+              const gfActive = !!goldenFisherUntil && new Date(goldenFisherUntil).getTime() > Date.now();
+              const isGoldenLocked = c.id === "golden_fisher" && gfActive;
               return (
                 <div key={c.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-emerald-400/60":"border-border/40 opacity-60"}`}>
                   <div className="h-16 flex items-center justify-center">
@@ -189,13 +194,19 @@ function InventoryPage() {
                   <div className="text-center mt-2 text-sm font-bold">
                     {n > 0 ? <span className="text-emerald-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>
+                  {isGoldenLocked && (
+                    <div className="text-[10px] text-amber-300 text-center mt-1">🏅 مفعّل حالياً على حسابك</div>
+                  )}
                   {n > 0 && (
                     <button
-                      onClick={() => (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id)}
-                      disabled={usingCrew === c.id}
+                      onClick={() => {
+                        if (isGoldenLocked) { toast.info("🏅 الصياد الذهبي مفعّل بالفعل على حسابك"); return; }
+                        return (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id);
+                      }}
+                      disabled={usingCrew === c.id || isGoldenLocked}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
-                      {usingCrew === c.id ? "..." : "استخدام"}
+                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : "استخدام"}
                     </button>
                   )}
                 </div>
