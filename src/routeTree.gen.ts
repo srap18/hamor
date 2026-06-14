@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VipRouteImport } from './routes/vip'
+import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -23,6 +24,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
+import { Route as NewsRouteImport } from './routes/news'
 import { Route as MyVipRouteImport } from './routes/my-vip'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InviteRouteImport } from './routes/invite'
@@ -30,6 +32,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DragonRouteImport } from './routes/dragon'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
@@ -62,6 +65,11 @@ import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api
 const VipRoute = VipRouteImport.update({
   id: '/vip',
   path: '/vip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -129,6 +137,11 @@ const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
   path: '/payment-success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyVipRoute = MyVipRouteImport.update({
   id: '/my-vip',
   path: '/my-vip',
@@ -162,6 +175,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const FishMarketRoute = FishMarketRouteImport.update({
   id: '/fish-market',
   path: '/fish-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DragonRoute = DragonRouteImport.update({
@@ -318,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -325,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/my-vip': typeof MyVipRoute
+  '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -338,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -368,6 +389,7 @@ export interface FileRoutesByTo {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -375,6 +397,7 @@ export interface FileRoutesByTo {
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/my-vip': typeof MyVipRoute
+  '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -388,6 +411,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -420,6 +444,7 @@ export interface FileRoutesById {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -427,6 +452,7 @@ export interface FileRoutesById {
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/my-vip': typeof MyVipRoute
+  '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -440,6 +466,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -473,6 +500,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -480,6 +508,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/login'
     | '/my-vip'
+    | '/news'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -493,6 +522,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
@@ -523,6 +553,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -530,6 +561,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/login'
     | '/my-vip'
+    | '/news'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -543,6 +575,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
@@ -574,6 +607,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -581,6 +615,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/login'
     | '/my-vip'
+    | '/news'
     | '/payment-success'
     | '/pricing'
     | '/privacy'
@@ -594,6 +629,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
     | '/admin/audit'
@@ -626,6 +662,7 @@ export interface RootRouteChildren {
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
   DragonRoute: typeof DragonRouteWithChildren
+  FaqRoute: typeof FaqRoute
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   FriendsRoute: typeof FriendsRoute
@@ -633,6 +670,7 @@ export interface RootRouteChildren {
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
   MyVipRoute: typeof MyVipRoute
+  NewsRoute: typeof NewsRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -646,6 +684,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
@@ -661,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/vip'
       fullPath: '/vip'
       preLoaderRoute: typeof VipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -754,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-vip': {
       id: '/my-vip'
       path: '/my-vip'
@@ -801,6 +854,13 @@ declare module '@tanstack/react-router' {
       path: '/fish-market'
       fullPath: '/fish-market'
       preLoaderRoute: typeof FishMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dragon': {
@@ -1056,6 +1116,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
   DragonRoute: DragonRouteWithChildren,
+  FaqRoute: FaqRoute,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   FriendsRoute: FriendsRoute,
@@ -1063,6 +1124,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
   MyVipRoute: MyVipRoute,
+  NewsRoute: NewsRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1076,6 +1138,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
