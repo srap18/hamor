@@ -216,15 +216,25 @@ function saveFleet(ships: Ship[]) {
 // How many fish a ship hauls per successful catch — based on its storage stat.
 // For VIP submarines (level 32) the per-instance storage equals its max_hp,
 // which the server scales by the player's VIP level at claim time.
-function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp">): number {
+// Capacity scales linearly with current HP: a ship at 50% HP carries 50% of its
+// max capacity (server enforces the same — see collect_fishing_reward).
+function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp"> & { hp?: number | null }): number {
+  let base: number;
   if ((ship.catalogCode === "submarine" || ship.catalogCode === "upgrade-sub" || ship.level === 32 || ship.level === 33) && ship.maxHp && ship.maxHp > 0) {
-    return ship.maxHp;
+    base = ship.maxHp;
+  } else {
+    base = catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
   }
-  return catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
+  // HP-based scaling for partially damaged ships.
+  if (ship.maxHp && ship.maxHp > 0 && ship.hp != null && ship.hp < ship.maxHp) {
+    const ratio = Math.max(0.05, Math.min(1, ship.hp / ship.maxHp));
+    base = Math.max(1, Math.floor(base * ratio));
+  }
+  return base;
 }
 
-function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?: string | null): number {
-  return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode });
+function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?: string | null, hp?: number | null): number {
+  return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode, hp });
 }
 
 // Optional fishing guide: when set, ship targets that specific fish id
