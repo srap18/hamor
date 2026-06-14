@@ -4304,6 +4304,7 @@ export type Database = {
         Args: { _target_id: string; _video_key: string }
         Returns: string
       }
+      launch_nuke: { Args: { _target_id: string }; Returns: string }
       mark_me_offline: { Args: never; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {
