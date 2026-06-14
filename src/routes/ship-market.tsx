@@ -467,7 +467,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span className="font-black">{preview ? formatDuration(preview.seconds) : "..."}</span>
       </div>
       <button onClick={onStart} disabled={busy || level >= 31} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
-        <img src={iconTimer} alt="Timer" className="h-5 w-5" width={512} height={512} loading="lazy" />
+        <img src={iconTimer} alt="أيقونة المؤقت" className="h-5 w-5" width={512} height={512} loading="lazy" />
         {level >= 31 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
       </button>
     </div>
