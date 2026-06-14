@@ -11,9 +11,25 @@ export const Route = createFileRoute("/refund")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/refund" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/refund" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "سياسة الاسترداد — ملوك القراصنة",
+          headline: "سياسة الاسترداد",
+          url: "https://www.molok-alqarasna.com/refund",
+          inLanguage: "ar",
+          description: "ضمان استرداد كامل خلال 14 يوماً لمشتريات لعبة ملوك القراصنة (هامور شابك)، يُعالَج عبر Paddle.",
+          publisher: { "@type": "Organization", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+        }),
+      },
+    ],
   }),
   component: RefundPage,
 });
+
 
 function RefundPage() {
   return (
