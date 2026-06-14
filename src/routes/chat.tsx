@@ -1612,24 +1612,32 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
   const startX = useRef(0);
   const startY = useRef(0);
   const active = useRef(false);
+  const locked = useRef<null | "h" | "v">(null);
   const triggered = useRef(false);
   const THRESHOLD = 60;
   const MAX = 90;
+  const SLOP = 12; // px before deciding direction
 
   const onStart = (x: number, y: number) => {
     startX.current = x;
     startY.current = y;
     active.current = true;
+    locked.current = null;
     triggered.current = false;
   };
-  const onMove = (x: number, y: number, e?: TouchEvent | React.TouchEvent) => {
+  const onMove = (x: number, y: number) => {
     if (!active.current) return;
     const deltaX = x - startX.current;
     const deltaY = y - startY.current;
-    if (Math.abs(deltaY) > Math.abs(deltaX) + 8) { active.current = false; setDx(0); return; }
-    // Right-only swipe (positive deltaX). Ignore left drags so the page never shifts.
-    if (deltaX < 0) { setDx(0); return; }
-    const clamped = Math.min(MAX, deltaX);
+    if (locked.current === null) {
+      if (Math.abs(deltaX) < SLOP && Math.abs(deltaY) < SLOP) return;
+      // Vertical wins ties so vertical scrolling stays smooth
+      locked.current = deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4 ? "h" : "v";
+      if (locked.current === "v") { active.current = false; setDx(0); return; }
+    }
+    if (locked.current !== "h") return;
+    if (deltaX <= 0) { setDx(0); return; }
+    const clamped = Math.min(MAX, Math.max(0, deltaX - SLOP));
     setDx(clamped);
     if (!triggered.current && clamped >= THRESHOLD) {
       triggered.current = true;
@@ -1639,6 +1647,7 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
   };
   const onEnd = () => {
     active.current = false;
+    locked.current = null;
     setDx(0);
   };
 
@@ -1647,7 +1656,7 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
     <div
       className="relative touch-pan-y select-none overflow-x-hidden"
       onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
-      onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e)}
+      onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY)}
       onTouchEnd={onEnd}
       onTouchCancel={onEnd}
     >
@@ -1659,7 +1668,7 @@ function SwipeableRow({ children, onReply }: { children: React.ReactNode; onRepl
           ↩︎
         </div>
       )}
-      <div style={{ transform: `translateX(${dx}px)`, transition: active.current ? "none" : "transform 180ms ease" }}>
+      <div style={{ transform: `translateX(${dx}px)`, transition: dx === 0 ? "transform 180ms ease" : "none" }}>
         {children}
       </div>
     </div>
