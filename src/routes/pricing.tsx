@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
 import { STORE_PACKS, type PackCategory } from "@/lib/store-catalog";
 import { formatSarFromUsd } from "@/lib/currency";
+import { isAndroidApp } from "@/lib/platform";
+import { AndroidPaymentBlock } from "@/components/AndroidPaymentBlock";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -31,6 +33,22 @@ const CATEGORY_LABEL: Record<PackCategory, string> = {
 const CATEGORIES: PackCategory[] = ["offers", "bundle", "gems", "coins", "crew", "weapon", "shield"];
 
 function PricingPage() {
+  if (isAndroidApp()) {
+    return (
+      <div dir="rtl" className="min-h-screen text-amber-50 flex flex-col items-center justify-center px-4" style={{
+        background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)",
+      }}>
+        <div className="mb-6">
+          <BackButton className="text-amber-300 text-sm">← الرئيسية</BackButton>
+        </div>
+        <AndroidPaymentBlock
+          title="الأسعار والشراء قريباً عبر Google Play"
+          description="نعمل حالياً على ربط الدفع عبر Google Play داخل تطبيق أندرويد. مؤقتاً تقدر تشتري من متصفح الجوال على نفس حسابك."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen text-amber-50" dir="rtl" style={{
       background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)",
