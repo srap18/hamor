@@ -8,7 +8,7 @@ import {
 import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { initializePaddle, getPaddlePriceId, onPaddleEvent, getPaddleEnvironment } from "@/lib/paddle";
+import { initializePaddle, getPaddlePriceId, onPaddleEvent, getPaddleEnvironment, ensurePaymentHost } from "@/lib/paddle";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
@@ -127,6 +127,7 @@ export function RechargePanel() {
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
+    if (!ensurePaymentHost()) return; // يحوّل تلقائياً للدومين المعتمد لدى Paddle
     setBusy(pack.id);
     try {
       await eligibility({ data: { packId: pack.id } });

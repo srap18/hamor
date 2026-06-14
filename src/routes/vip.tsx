@@ -214,7 +214,8 @@ function usePaddleCheckoutSafe() {
     customData?: Record<string, string>;
     successUrl?: string;
   }) => {
-    const { initializePaddle, getPaddlePriceId, getPaddleEnvironment } = await import("@/lib/paddle");
+    const { initializePaddle, getPaddlePriceId, getPaddleEnvironment, ensurePaymentHost } = await import("@/lib/paddle");
+    if (!ensurePaymentHost()) return; // تحويل تلقائي للدومين المعتمد
     await initializePaddle();
     const paddlePriceId = await getPaddlePriceId(opts.priceId);
     const win = window as unknown as { Paddle: { Checkout: { open: (args: unknown) => void } } };

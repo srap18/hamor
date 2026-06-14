@@ -12,6 +12,23 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
   return clientToken?.startsWith("test_") ? "sandbox" : "live";
 }
 
+/**
+ * Paddle لم يعتمد الدومين الجديد (molok-alqarasna.com) بعد.
+ * نحوّل المستخدم تلقائياً لدومين Lovable المعتمد قبل فتح صفحة الدفع
+ * حتى يقبل Paddle الدومين الجديد رسمياً.
+ */
+const PAYMENT_APPROVED_HOST = "hamor.lovable.app";
+const PAYMENT_BLOCKED_HOSTS = ["molok-alqarasna.com", "www.molok-alqarasna.com"];
+
+export function ensurePaymentHost(): boolean {
+  if (typeof window === "undefined") return true;
+  const host = window.location.hostname;
+  if (!PAYMENT_BLOCKED_HOSTS.includes(host)) return true;
+  const url = `https://${PAYMENT_APPROVED_HOST}${window.location.pathname}${window.location.search}${window.location.hash}`;
+  window.location.replace(url);
+  return false;
+}
+
 let paddleInitialized = false;
 
 type CheckoutListener = (event: { name: string; data?: any }) => void;
