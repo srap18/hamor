@@ -24,7 +24,7 @@ export const recordSession = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     let ip: string | null = null;
     try {
-      const req = getWebRequest();
+      const req = getRequest();
       if (req) ip = pickIp(req);
     } catch {}
 
@@ -36,8 +36,8 @@ export const recordSession = createServerFn({ method: "POST" })
     if (!ip && !deviceId) return { ok: false, ip: null };
 
     const { error } = await context.supabase.rpc("touch_session", {
-      _device_id: deviceId,
-      _ip: ip,
+      _device_id: (deviceId ?? "") as string,
+      _ip: (ip ?? "") as string,
     });
     if (error) {
       // Soft failure — do not break the app
