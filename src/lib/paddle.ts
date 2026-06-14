@@ -13,21 +13,16 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 }
 
 /**
- * Paddle لم يعتمد الدومين الجديد (molok-alqarasna.com) بعد.
- * نحوّل المستخدم تلقائياً لدومين Lovable المعتمد قبل فتح صفحة الدفع
- * حتى يقبل Paddle الدومين الجديد رسمياً.
+ * No-op: we used to redirect to an approved Lovable host before opening
+ * Paddle checkout, but that broke the user session and caused the page to
+ * "refresh without opening payment". Paddle's domain approval is about
+ * merchant verification, not a runtime block on the checkout overlay, so
+ * we just open the checkout on the current host.
  */
-const PAYMENT_APPROVED_HOST = "hamor.lovable.app";
-const PAYMENT_BLOCKED_HOSTS = ["molok-alqarasna.com", "www.molok-alqarasna.com"];
-
 export function ensurePaymentHost(): boolean {
-  if (typeof window === "undefined") return true;
-  const host = window.location.hostname;
-  if (!PAYMENT_BLOCKED_HOSTS.includes(host)) return true;
-  const url = `https://${PAYMENT_APPROVED_HOST}${window.location.pathname}${window.location.search}${window.location.hash}`;
-  window.location.replace(url);
-  return false;
+  return true;
 }
+
 
 let paddleInitialized = false;
 
