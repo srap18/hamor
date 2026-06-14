@@ -494,6 +494,7 @@ function PlayerPage() {
       if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); setBusy(false); return; }
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
       if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
+      if (m.includes("ship_is_fishing")) { sound.play("error"); flash("🎣 السفينة في عرض البحر للصيد — لا يمكن مهاجمتها"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
     // Validation passed — now consume the weapon and run FX/damage for all targets.
