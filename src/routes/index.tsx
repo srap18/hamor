@@ -2681,13 +2681,10 @@ function Index() {
                         </div>
                         <div className="text-[10px] text-emerald-300 truncate">{c.bonus}</div>
                         {isGlobalCrew && globallyActive && !alreadyOnShip && (
-                          <div className="text-[9px] text-amber-300/80">🔒 مفعّل على سفينة أخرى</div>
+                          <div className="text-[9px] text-amber-300/80">🔒 {cid === "golden_fisher" ? "مفعّل بالفعل على حسابك" : "مفعّل على سفينة أخرى"}</div>
                         )}
                       </div>
                       {owned ? (
-                        {isGlobalCrew && globallyActive && !alreadyOnShip && (
-                          <div className="text-[9px] text-amber-300/80">🔒 {cid === "golden_fisher" ? "مفعّل بالفعل على حسابك" : "مفعّل على سفينة أخرى"}</div>
-                        )}
                         <button
                           disabled={crewBusy || alreadyOnShip || (isGlobalCrew && globallyActive)}
                           onClick={() => {
