@@ -244,7 +244,7 @@ function ShipyardPage() {
       <div className="relative mx-auto flex min-h-full w-full max-w-7xl flex-col gap-4 px-3 pb-28 pt-3 md:px-5">
         <header className="glass-hud rounded-2xl px-4 py-4">
           <div className="flex items-start gap-3">
-            <BackButton className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-lg">←</BackButton>
+            <BackButton aria-label="العودة إلى الصفحة السابقة" className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-lg">←</BackButton>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black">Shipyard</h1>
@@ -310,7 +310,7 @@ function ShipyardPage() {
           <div className="flex flex-col gap-4">
             <div className="glass-hud rounded-2xl p-4">
               <div className="flex items-center gap-2">
-                <img src={iconUpgrade} alt="Upgrade" className="h-9 w-9" width={512} height={512} loading="lazy" />
+                <img src={iconUpgrade} alt="أيقونة الترقية" className="h-9 w-9" width={512} height={512} loading="lazy" />
                 <div>
                   <h2 className="text-lg font-black">ترقية السوق</h2>
                   <p className="text-xs text-muted-foreground">تفتح سفنًا أعلى وتزيد قيمة الأسطول مع مرور الوقت.</p>
@@ -332,7 +332,7 @@ function ShipyardPage() {
                     <span className="font-black">{acceleratingCost} Gems</span>
                   </div>
                   <button onClick={finishWithGems} disabled={busy === "boost"} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-accent-foreground disabled:opacity-50">
-                    <img src={iconGems} alt="Gems" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                    <img src={iconGems} alt="أيقونة الجواهر" className="h-5 w-5" width={512} height={512} loading="lazy" />
                     {busy === "boost" ? "جارٍ التسريع..." : `إنهاء الآن (${acceleratingCost})`}
                   </button>
                   <div className="text-[11px] text-muted-foreground">المعادلة المستخدمة: ceil(seconds_remaining / 60)</div>
@@ -410,7 +410,7 @@ function ShipyardPage() {
 
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-black">
-                      <img src={iconCoins} alt="Coins" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                      <img src={iconCoins} alt="أيقونة الذهب" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
@@ -467,7 +467,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span className="font-black">{preview ? formatDuration(preview.seconds) : "..."}</span>
       </div>
       <button onClick={onStart} disabled={busy || level >= 31} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
-        <img src={iconTimer} alt="Timer" className="h-5 w-5" width={512} height={512} loading="lazy" />
+        <img src={iconTimer} alt="أيقونة المؤقت" className="h-5 w-5" width={512} height={512} loading="lazy" />
         {level >= 31 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
       </button>
     </div>

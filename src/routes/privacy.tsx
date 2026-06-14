@@ -11,9 +11,25 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/privacy" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/privacy" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "سياسة الخصوصية — ملوك القراصنة",
+          headline: "سياسة الخصوصية",
+          url: "https://www.molok-alqarasna.com/privacy",
+          inLanguage: "ar",
+          description: "كيف نجمع ونستخدم ونحمي بياناتك الشخصية في لعبة ملوك القراصنة (هامور شابك).",
+          publisher: { "@type": "Organization", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+        }),
+      },
+    ],
   }),
   component: PrivacyPage,
 });
+
 
 function PrivacyPage() {
   return (

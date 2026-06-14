@@ -25,9 +25,35 @@ export const Route = createFileRoute("/shop")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/shop" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/shop" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "متجر ملوك القراصنة",
+          url: "https://www.molok-alqarasna.com/shop",
+          inLanguage: "ar",
+          description: "تشكيلة العناصر القابلة للشراء داخل لعبة ملوك القراصنة: أسلحة، طواقم، دروع، جواهر، خلفيات، باقات الشحن، واشتراكات VIP.",
+          isPartOf: { "@type": "WebSite", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+          mainEntity: {
+            "@type": "ItemList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "أسلحة" },
+              { "@type": "ListItem", position: 2, name: "طواقم" },
+              { "@type": "ListItem", position: 3, name: "حماية ودروع" },
+              { "@type": "ListItem", position: 4, name: "خلفيات" },
+              { "@type": "ListItem", position: 5, name: "شحن جواهر وذهب" },
+              { "@type": "ListItem", position: 6, name: "اشتراك VIP" },
+            ],
+          },
+        }),
+      },
+    ],
   }),
   component: Shop,
 });
+
 
 type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
 
@@ -256,25 +282,26 @@ function Shop() {
 
       {/* TOP HUD */}
       <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
-        <Link to="/" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
+        <Link to="/" aria-label="العودة إلى الرئيسية" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
           ↩
         </Link>
         <div className="flex-1 flex items-center justify-around gap-1">
           <ResChip icon={gemIcon} v={gems} color="text-cyan-200" />
           <ResChip icon={coinIcon} v={coins} color="text-amber-300" />
         </div>
-        <button onClick={() => setRedeemOpen(true)} className="w-10 h-10 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="استبدال كود">🎟️</button>
+        <button onClick={() => setRedeemOpen(true)} aria-label="استبدال كود" className="w-10 h-10 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="استبدال كود">🎟️</button>
         
-        <Link to="/ships-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
+        <Link to="/ships-shop" aria-label="سوق السفن" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
 
       </div>
 
       {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
-      <div className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 3.75rem)" }}>
-        المتجر
-      </div>
+      <h1 className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow m-0" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 3.75rem)" }}>
+        المتجر — ملوك القراصنة (هامور شابك)
+      </h1>
+
 
       {/* Tabs */}
       <div className="absolute left-0 right-0 z-20 px-2 flex gap-1" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 5.25rem)" }}>
@@ -367,7 +394,7 @@ function Shop() {
 
           <div className="mt-2 flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 px-3 py-1.5 flex items-center gap-1">
-              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-5 h-5 object-contain" />}</span>
+              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="أيقونة الذهب" className="w-5 h-5 object-contain" />}</span>
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
@@ -375,13 +402,16 @@ function Shop() {
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label="إنقاص الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >−</button>
                 <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
                 <button
                   onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  aria-label="زيادة الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >+</button>
+
               </div>
             ) : (
               <div className="flex-1" />
@@ -468,7 +498,7 @@ function ShopCard({
       </div>
       <div className="mt-1 px-3 py-1 rounded bg-gradient-to-b from-amber-300 to-amber-500 border border-amber-200 flex items-center gap-1 shadow text-amber-950 text-[11px] font-extrabold">
         {item.price.toLocaleString()}
-        <span className="inline-flex items-center">{item.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-4 h-4 object-contain" />}</span>
+        <span className="inline-flex items-center">{item.currency === "gem" ? "💎" : <img src={coinIcon} alt="أيقونة الذهب" className="w-4 h-4 object-contain" />}</span>
       </div>
     </button>
   );

@@ -9,10 +9,12 @@ export function BackButton({
   className,
   children,
   fallback = "/",
+  "aria-label": ariaLabel = "العودة",
 }: {
   className?: string;
   children: ReactNode;
   fallback?: string;
+  "aria-label"?: string;
 }) {
   const router = useRouter();
   const onClick = () => {
@@ -23,8 +25,9 @@ export function BackButton({
     }
   };
   return (
-    <button type="button" onClick={onClick} className={className}>
+    <button type="button" onClick={onClick} aria-label={ariaLabel} className={className}>
       {children}
     </button>
   );
 }
+
