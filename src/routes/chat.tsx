@@ -560,7 +560,11 @@ function ChatPage() {
                             ) : (
                               <div className="text-sm break-words">{m.body}</div>
                             )}
+                            <div className={`text-[10px] mt-0.5 opacity-70 ${mine ? "text-amber-100 text-left" : "text-stone-300 text-right"}`}>
+                              {new Date(m.created_at).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                            </div>
                           </div>
+
                         );
                       })()}
                       <button
