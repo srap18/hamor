@@ -469,8 +469,10 @@ function PlayerPage() {
     // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
     setSelectedShip(null);
-    const aliveShips = ships.filter((s) => !s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs()));
-    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
+    // Fishing ships (at_sea) are immune — exclude them from targets.
+    const aliveShips = ships.filter((s) => !s.at_sea && (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
+    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships.filter((s) => !s.at_sea)) : [selectedShip];
+    if (selectedShip && !w.aoe && selectedShip.at_sea) { setBusy(false); sound.play("error"); flash("🎣 السفينة في عرض البحر للصيد — لا يمكن مهاجمتها"); return; }
     if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
 
     // Dragon attack bonus — boost weapon damage based on dragon overall level.
