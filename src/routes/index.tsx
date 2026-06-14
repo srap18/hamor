@@ -841,17 +841,26 @@ function Index() {
       .eq("user_id", uid)
       .eq("item_type", "crew");
     const rows = (data ?? []) as CrewRow[];
-    // Keep expired assigned crew rows as trip history until the ship is collected.
-    // Deleting them on reload made completed 13,000 trips display/collect as ~6,000
-    // because the sailor speed interval was lost after reopening the game.
+    // Auto-purge expired crew rows so they free up the ship's slot.
+    // EXCEPTION: keep expired *sailor* rows still attached to a ship currently
+    // at sea — the sailor's -50% time bonus is baked into the trip duration
+    // and removing it mid-trip would corrupt the catch math (completed 13k
+    // trips would collect as ~6k). Other expired crews (luck/guide/police/
+    // thief/trader/fixer) are safe to delete the moment they expire.
     const nowMs = serverNowMs();
-    const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
     const activeShipIds = new Set(shipsRef.current.filter((s) => s.fishing && s.dbId).map((s) => s.dbId!));
-    setCrewRows(rows.filter((r) => {
-      if (!expired.includes(r)) return true;
-      const assignedShipId = r.meta?.assigned_ship_id;
-      return typeof assignedShipId === "string" && activeShipIds.has(assignedShipId);
-    }));
+    const expired = rows.filter((r) => r.meta?.expires_at && new Date(r.meta.expires_at).getTime() <= nowMs);
+    const keepForTrip = (r: CrewRow) => {
+      if (r.item_id !== "sailor") return false;
+      const sid = r.meta?.assigned_ship_id;
+      return typeof sid === "string" && activeShipIds.has(sid);
+    };
+    const toDelete = expired.filter((r) => !keepForTrip(r));
+    if (toDelete.length) {
+      // Fire-and-forget; realtime subscription will refresh us after delete.
+      deleteInventoryRows(toDelete.map((r) => r.id)).catch(() => {});
+    }
+    setCrewRows(rows.filter((r) => !expired.includes(r) || keepForTrip(r)));
     crewLoadedRef.current = true;
   };
   useEffect(() => {
