@@ -256,25 +256,26 @@ function Shop() {
 
       {/* TOP HUD */}
       <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
-        <Link to="/" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
+        <Link to="/" aria-label="العودة إلى الرئيسية" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
           ↩
         </Link>
         <div className="flex-1 flex items-center justify-around gap-1">
           <ResChip icon={gemIcon} v={gems} color="text-cyan-200" />
           <ResChip icon={coinIcon} v={coins} color="text-amber-300" />
         </div>
-        <button onClick={() => setRedeemOpen(true)} className="w-10 h-10 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="استبدال كود">🎟️</button>
+        <button onClick={() => setRedeemOpen(true)} aria-label="استبدال كود" className="w-10 h-10 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="استبدال كود">🎟️</button>
         
-        <Link to="/ships-shop" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
+        <Link to="/ships-shop" aria-label="سوق السفن" className="w-10 h-10 rounded-xl bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 flex items-center justify-center text-lg active:scale-95 shadow-lg" title="سوق السفن">⛵</Link>
 
       </div>
 
       {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
-      <div className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 3.75rem)" }}>
-        المتجر
-      </div>
+      <h1 className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow m-0" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 3.75rem)" }}>
+        المتجر — ملوك القراصنة (هامور شابك)
+      </h1>
+
 
       {/* Tabs */}
       <div className="absolute left-0 right-0 z-20 px-2 flex gap-1" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 5.25rem)" }}>
