@@ -26,10 +26,10 @@ export const Route = createFileRoute("/pricing")({
           inLanguage: "ar",
           itemListElement: STORE_PACKS.map((p) => ({
             "@type": "Offer",
-            name: p.title,
+            name: p.label,
             category: p.category,
-            price: typeof (p as any).priceUsd === "number" ? (p as any).priceUsd : undefined,
-            priceCurrency: typeof (p as any).priceUsd === "number" ? "USD" : undefined,
+            price: p.priceUSD,
+            priceCurrency: "USD",
             availability: "https://schema.org/InStock",
           })),
         }),
