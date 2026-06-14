@@ -682,6 +682,30 @@ export type Database = {
         }
         Relationships: []
       }
+      device_history: {
+        Row: {
+          device_id: string
+          first_seen: string
+          hits: number
+          last_seen: string
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          first_seen?: string
+          hits?: number
+          last_seen?: string
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          first_seen?: string
+          hits?: number
+          last_seen?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dragon_claims: {
         Row: {
           last_daily_rockets: string | null
@@ -4534,6 +4558,10 @@ export type Database = {
       sweep_expired_elite_vip: { Args: never; Returns: number }
       test_steal_cancel_moves_one_fish: { Args: never; Returns: boolean }
       test_steal_claim_moves_one_fish: { Args: never; Returns: boolean }
+      touch_session: {
+        Args: { _device_id: string; _ip: string }
+        Returns: undefined
+      }
       trader_snapshot_anchor: { Args: never; Returns: string }
       tribe_level_from_donations: { Args: { _d: number }; Returns: number }
       update_inventory_meta: {
