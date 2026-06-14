@@ -13,32 +13,15 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 }
 
 /**
- * Paddle only approved checkout on `hamor.lovable.app`. If the user is on
- * the new custom domain (e.g. molok-alqarasna.com) and tries to pay, we
- * redirect them to the approved host so the Paddle overlay loads correctly.
+ * كل الدومينات الرسمية للعبة (hamor.lovable.app و molok-alqarasna.com)
+ * مسموح فيها الدفع. لا نحوّل المستخدم بين الدومينات لأن الجلسة لا تنتقل
+ * تلقائياً ولأن الدومين الأساسي في Lovable يعيد التحويل ويحدث Loop.
  *
- * Returns `true` when checkout may proceed on the current host, `false` when
- * a redirect has been triggered and the caller should abort.
+ * مهم: أضف الدومين `molok-alqarasna.com` في Paddle Dashboard →
+ * Checkout Settings → Approved Domains حتى يفتح overlay الدفع.
  */
-const APPROVED_PAYMENT_HOST = "hamor.lovable.app";
-
-function isHostApprovedForPayment(host: string): boolean {
-  if (!host) return true;
-  if (host === APPROVED_PAYMENT_HOST) return true;
-  // Allow local dev and Lovable preview/sandbox hosts (test mode).
-  if (host === "localhost" || host.startsWith("127.0.0.1")) return true;
-  if (host.endsWith(".lovable.app") || host.endsWith(".lovable.dev")) return true;
-  if (host.endsWith(".lovableproject.com")) return true;
-  return false;
-}
-
 export function ensurePaymentHost(): boolean {
-  if (typeof window === "undefined") return true;
-  const { hostname, pathname, search, hash } = window.location;
-  if (isHostApprovedForPayment(hostname)) return true;
-  const target = `https://${APPROVED_PAYMENT_HOST}${pathname}${search}${hash}`;
-  window.location.replace(target);
-  return false;
+  return true;
 }
 
 
