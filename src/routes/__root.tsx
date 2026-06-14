@@ -329,8 +329,45 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        {/*
+          Server-rendered legal footer. Always present in the initial HTML
+          so external reviewers (e.g. Paddle's domain-review crawler) see
+          the policy links, the Merchant-of-Record disclosure and the
+          seller's legal name without needing to execute JavaScript.
+        */}
+        <footer
+          id="legal-footer"
+          style={{
+            position: "relative",
+            zIndex: 1,
+            padding: "16px 12px",
+            background: "#0a1929",
+            color: "#cbd5e1",
+            fontSize: "12px",
+            lineHeight: 1.6,
+            textAlign: "center",
+            fontFamily: "Cairo, Tajawal, system-ui, sans-serif",
+          }}
+        >
+          <nav aria-label="Legal" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px", marginBottom: "8px" }}>
+            <a href="/" style={{ color: "#fcd34d", textDecoration: "underline" }}>الرئيسية</a>
+            <a href="/pricing" style={{ color: "#fcd34d", textDecoration: "underline" }}>الأسعار</a>
+            <a href="/terms" style={{ color: "#fcd34d", textDecoration: "underline" }}>الشروط والأحكام</a>
+            <a href="/privacy" style={{ color: "#fcd34d", textDecoration: "underline" }}>سياسة الخصوصية</a>
+            <a href="/refund" style={{ color: "#fcd34d", textDecoration: "underline" }}>سياسة الاسترداد</a>
+          </nav>
+          <p style={{ margin: "4px 0" }}>
+            عمليات الشراء داخل اللعبة تتم بأمان عبر مزوّد الدفع Paddle بصفته بائع التسجيل
+            (Merchant of Record). Paddle.com is the Merchant of Record for all orders and
+            handles billing, refunds and customer service inquiries.
+          </p>
+          <p style={{ margin: "4px 0" }}>
+            © {new Date().getFullYear()} ملوك القراصنة (هامور شابك) — Amira Qailan Dakhil Allah Alsharari
+          </p>
+        </footer>
         <Scripts />
       </body>
+
     </html>
   );
 }
