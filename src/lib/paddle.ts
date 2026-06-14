@@ -13,15 +13,34 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 }
 
 /**
- * No-op: we used to redirect to an approved Lovable host before opening
- * Paddle checkout, but that broke the user session and caused the page to
- * "refresh without opening payment". Paddle's domain approval is about
- * merchant verification, not a runtime block on the checkout overlay, so
- * we just open the checkout on the current host.
+ * Paddle only approved checkout on `hamor.lovable.app`. If the user is on
+ * the new custom domain (e.g. molok-alqarasna.com) and tries to pay, we
+ * redirect them to the approved host so the Paddle overlay loads correctly.
+ *
+ * Returns `true` when checkout may proceed on the current host, `false` when
+ * a redirect has been triggered and the caller should abort.
  */
-export function ensurePaymentHost(): boolean {
-  return true;
+const APPROVED_PAYMENT_HOST = "hamor.lovable.app";
+
+function isHostApprovedForPayment(host: string): boolean {
+  if (!host) return true;
+  if (host === APPROVED_PAYMENT_HOST) return true;
+  // Allow local dev and Lovable preview/sandbox hosts (test mode).
+  if (host === "localhost" || host.startsWith("127.0.0.1")) return true;
+  if (host.endsWith(".lovable.app") || host.endsWith(".lovable.dev")) return true;
+  if (host.endsWith(".lovableproject.com")) return true;
+  return false;
 }
+
+export function ensurePaymentHost(): boolean {
+  if (typeof window === "undefined") return true;
+  const { hostname, pathname, search, hash } = window.location;
+  if (isHostApprovedForPayment(hostname)) return true;
+  const target = `https://${APPROVED_PAYMENT_HOST}${pathname}${search}${hash}`;
+  window.location.replace(target);
+  return false;
+}
+
 
 
 let paddleInitialized = false;
