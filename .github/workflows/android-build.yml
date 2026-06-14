@@ -30,11 +30,13 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Sync Android Platform (Preserving Existing Icons)
+      - name: Generate App Icons and Sync Platform
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
+          # أمر سحري لتوليد وتوزيع الأيقونات الاحترافية للأندرويد تلقائياً
+          bunx @capacitor/assets generate --android || true
           npx cap sync android
           chmod +x android/gradlew
 
