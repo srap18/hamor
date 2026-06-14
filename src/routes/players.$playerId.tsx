@@ -187,15 +187,17 @@ function PlayerPage() {
         setMyName((myProf as any)?.display_name ?? "");
         setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
-      const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }] = await Promise.all([
+      const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }, { data: marketUnlocked }] = await Promise.all([
         supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
         supabase.from("dragons").select("stage").eq("user_id", playerId).maybeSingle(),
+        (supabase as any).rpc("is_market_pvp_unlocked", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
+      setTargetMarketUnlocked(marketUnlocked !== false);
       setTheirDragonStage(((dragonRow as any)?.stage as number) ?? 1);
 
       const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
