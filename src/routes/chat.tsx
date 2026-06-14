@@ -19,7 +19,7 @@ import { getTribeBanner } from "@/lib/tribe-banners";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 
 export const Route = createFileRoute("/chat")({
-  head: () => ({ meta: [{ title: "الشات — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "الشات — ملوك القراصنة" }] }),
   component: () => <AuthGuard><ChatPage /></AuthGuard>,
 });
 

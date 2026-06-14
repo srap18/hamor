@@ -12,7 +12,7 @@ export const Route = createFileRoute("/cosmetics")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "متجر الإطارات — Ocean Catch" },
+      { title: "متجر الإطارات — ملوك القراصنة" },
       { name: "description", content: "إطارات صورة، اسم، بطاقة بروفايل، وفقاعات شات" },
     ],
   }),

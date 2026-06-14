@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/forgot-password")({
   ssr: false,
-  head: () => ({ meta: [{ title: "استعادة كلمة المرور — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "استعادة كلمة المرور — ملوك القراصنة" }] }),
   component: ForgotPasswordPage,
 });
 

@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 
 export const Route = createFileRoute("/friends")({
-  head: () => ({ meta: [{ title: "الأصدقاء — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "الأصدقاء — ملوك القراصنة" }] }),
   component: () => <AuthGuard><FriendsPage /></AuthGuard>,
 });
 

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/inventory")({
   head: () => ({
     meta: [
-      { title: "المخزن — Ocean Catch" },
+      { title: "المخزن — ملوك القراصنة" },
       { name: "description", content: "إدارة الطواقم والأسلحة والأسماك" },
     ],
   }),

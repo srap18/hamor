@@ -12,7 +12,7 @@ export const Route = createFileRoute("/profile")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "ملفي الشخصي — Ocean Catch" },
+      { title: "ملفي الشخصي — ملوك القراصنة" },
       { name: "description", content: "غيّر اسمك وصورتك وإطاراتك" },
     ],
   }),

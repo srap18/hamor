@@ -43,7 +43,7 @@ const daysBetween = (a: string, b: string) =>
 
 function RewardIcon({ r, size }: { r: Reward; size: number }) {
   if (r.item_type === "coins") {
-    return <img src={iconCoins} alt="ذهب" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+    return <img src={iconCoins} alt="مكافأة الذهب اليومية" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
   if (r.item_type === "gems") {
     return <img src={iconGems} alt="جواهر" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;

@@ -12,7 +12,7 @@ import { RewardPopup } from "@/components/RewardPopup";
 
 export const Route = createFileRoute("/payment-success")({
   ssr: false,
-  head: () => ({ meta: [{ title: "تم الدفع — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "تم الدفع — ملوك القراصنة" }] }),
   component: PaymentSuccess,
 });
 

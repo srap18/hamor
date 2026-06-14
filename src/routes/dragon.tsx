@@ -7,7 +7,7 @@ import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 
 export const Route = createFileRoute("/dragon")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🐉 تنيني — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "🐉 تنيني — ملوك القراصنة" }] }),
   component: DragonGate,
 });
 
