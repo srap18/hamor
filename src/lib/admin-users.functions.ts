@@ -33,11 +33,22 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
 
     if (input_hasField(data, "email") && data.email) {
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
-        email: data.email,
-        email_confirm: true,
-      });
-      if (error) throw new Error(error.message);
+      // Skip if email matches the current one (avoids "Error updating user")
+      const { data: existing } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+      const currentEmail = existing?.user?.email?.toLowerCase() ?? null;
+      const newEmail = data.email.trim().toLowerCase();
+      if (currentEmail !== newEmail) {
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+          email: newEmail,
+          email_confirm: true,
+        });
+        if (error) {
+          const msg = /already|exists|registered|duplicate/i.test(error.message)
+            ? "هذا الإيميل مستخدم في حساب آخر"
+            : `فشل تحديث الإيميل: ${error.message}`;
+          throw new Error(msg);
+        }
+      }
     }
 
     const profileUpdate: { display_name?: string; avatar_url?: string | null } = {};
@@ -45,7 +56,7 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     if (data.avatar_url !== undefined) profileUpdate.avatar_url = data.avatar_url;
     if (Object.keys(profileUpdate).length > 0) {
       const { error } = await supabaseAdmin.from("profiles").update(profileUpdate).eq("id", data.userId);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(`فشل تحديث الملف: ${error.message}`);
     }
 
     await supabaseAdmin.from("admin_audit").insert({
