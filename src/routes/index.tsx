@@ -880,9 +880,28 @@ function Index() {
       if (cancelled) { supabase.removeChannel(created); return; }
       ch = created;
     })();
+    // Periodic sweep so expired crews free up their slot without waiting for
+    // a focus event or another inventory change (covers the case where a user
+    // sits on the harbor screen and a crew's timer ticks to 0).
+    const sweep = window.setInterval(() => {
+      const nowMs2 = serverNowMs();
+      const hasPurgeable = crewRowsRef.current.some((r) => {
+        if (!r.meta?.expires_at) return false;
+        if (new Date(r.meta.expires_at).getTime() > nowMs2) return false;
+        // Skip sailor still tied to an at-sea ship (preserved for trip math).
+        if (r.item_id === "sailor") {
+          const sid = r.meta?.assigned_ship_id;
+          const stillAtSea = shipsRef.current.some((s) => s.fishing && s.dbId === sid);
+          if (stillAtSea) return false;
+        }
+        return true;
+      });
+      if (hasPurgeable) reloadCrews();
+    }, 15000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
+      window.clearInterval(sweep);
       if (ch) supabase.removeChannel(ch);
     };
   }, [modal, crewTick]);
