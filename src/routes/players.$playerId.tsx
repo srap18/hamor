@@ -1339,14 +1339,10 @@ function PlayerPage() {
                     return (
                       <div key={w.id} className="flex items-stretch gap-2">
                         <button disabled={busy || !canFire} onClick={() => {
-                          // Pre-checks (mirror server validation)
-                          const hasDestroyed = myShips.some((s) => !!s.destroyed_at);
-                          const allFishing = myShips.length > 0 && myShips.every((s) => s.at_sea && !s.destroyed_at && !s.stealing_target_user_id);
-                          if (hasDestroyed) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
-                          if (!allFishing) { sound.play("error"); flash("🎣 لازم كل سفنك في وضع الصيد قبل الهجوم"); return; }
-                          // Open the ad video picker
+                          // Open the ad video picker (server enforces all rules)
                           setMode("ad_bomb");
                         }}
+
                           className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-fuchsia-900/80 to-purple-900/80 border border-fuchsia-500/40 active:scale-95 disabled:opacity-40 text-right">
                           <span className="text-3xl">{w.emoji}</span>
                           <div className="flex-1 min-w-0">
