@@ -320,6 +320,34 @@ function RootComponent() {
   useEffect(() => {
     loadEconomyOverrides();
     installNativeShell();
+    // Track player session (IP + device) for admin "linked accounts" detection.
+    (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { recordSession } = await import("@/lib/session-track.functions");
+        const ensureDeviceId = (): string => {
+          try {
+            const k = "hamor_device_id";
+            let v = localStorage.getItem(k);
+            if (!v) {
+              v = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/-/g, "");
+              localStorage.setItem(k, v);
+            }
+            return v;
+          } catch { return ""; }
+        };
+        const fire = async () => {
+          const { data } = await supabase.auth.getSession();
+          if (!data.session?.user) return;
+          try { await recordSession({ data: { deviceId: ensureDeviceId() } }); } catch {}
+        };
+        // initial + on sign-in
+        fire();
+        supabase.auth.onAuthStateChange((e) => {
+          if (e === "SIGNED_IN" || e === "TOKEN_REFRESHED") fire();
+        });
+      } catch {}
+    })();
   }, []);
 
   // Hide splash after the first paint (two rAFs ensures the app has rendered).

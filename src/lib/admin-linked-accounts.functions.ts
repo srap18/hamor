@@ -32,10 +32,10 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       .in("role", ["admin", "moderator"]);
     if (!roles || roles.length === 0) throw new Error("forbidden");
 
-    // 1) Devices this user used
+    // 1) Devices this user used (many-to-many history)
     const { data: myDevices } = await supabaseAdmin
-      .from("device_accounts")
-      .select("device_id, created_at, updated_at")
+      .from("device_history")
+      .select("device_id, first_seen, last_seen, hits")
       .eq("user_id", data.userId);
     const myDeviceIds = (myDevices ?? []).map((d) => d.device_id);
 
@@ -47,10 +47,10 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
     const myIpList = (myIps ?? []).map((r) => r.ip);
 
     // 3) Other users on the same devices
-    const deviceMap = new Map<string, Set<string>>(); // user_id -> shared device ids
+    const deviceMap = new Map<string, Set<string>>();
     if (myDeviceIds.length > 0) {
       const { data: others } = await supabaseAdmin
-        .from("device_accounts")
+        .from("device_history")
         .select("device_id, user_id")
         .in("device_id", myDeviceIds);
       for (const r of others ?? []) {
@@ -139,8 +139,8 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
         email: selfEmail,
         devices: (myDevices ?? []).map((d) => ({
           device_id: d.device_id,
-          created_at: d.created_at,
-          updated_at: d.updated_at,
+          created_at: d.first_seen,
+          updated_at: d.last_seen,
         })),
         ips: (myIps ?? []).map((r) => ({
           ip: r.ip,
