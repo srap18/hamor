@@ -3464,6 +3464,14 @@ export type Database = {
         Args: { _reason?: string; _uid: string }
         Returns: number
       }
+      admin_profile_totals: {
+        Args: never
+        Returns: {
+          total_coins: number
+          total_gems: number
+          total_xp: number
+        }[]
+      }
       admin_recent_chat_senders:
         | {
             Args: { _limit?: number }

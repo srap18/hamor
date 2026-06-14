@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
+import { getAdminOverviewStats } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
@@ -44,50 +45,32 @@ function AdminDashboard() {
 
   const loadStats = useCallback(async () => {
     setRefreshing(true);
-    const tenMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const nowIso = new Date().toISOString();
-    const [
-      { count: players },
-      { count: online },
-      { count: banned },
-      { count: muted },
-      { count: ships },
-      { data: agg },
-      { count: txCount },
-      { data: recentProfiles },
-    ] = await Promise.all([
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("*", { count: "exact", head: true }).gte("online_at", tenMinAgo),
-      supabase.from("bans").select("*", { count: "exact", head: true }).eq("active", true),
-      supabase.from("chat_mutes").select("*", { count: "exact", head: true }).eq("active", true).or(`expires_at.is.null,expires_at.gt.${nowIso}`),
-      supabase.from("ships_owned").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("coins, gems, xp"),
-      supabase.from("transactions").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("id, display_name, created_at, level").order("created_at", { ascending: false }).limit(8),
-    ]);
-
-    const totals = (agg ?? []).reduce(
-      (acc, p) => ({
-        coins: acc.coins + Number(p.coins || 0),
-        gems: acc.gems + Number(p.gems || 0),
-        xp: acc.xp + Number(p.xp || 0),
-      }),
-      { coins: 0, gems: 0, xp: 0 }
-    );
-
-    setStats({
-      players: players ?? 0,
-      online: online ?? 0,
-      banned: banned ?? 0,
-      muted: muted ?? 0,
-      ships: ships ?? 0,
-      totalCoins: totals.coins,
-      totalGems: totals.gems,
-      totalXp: totals.xp,
-      txCount: txCount ?? 0,
-    });
-    setRecent((recentProfiles ?? []) as typeof recent);
-    setRefreshing(false);
+    try {
+      const [s, { data: recentProfiles }] = await Promise.all([
+        getAdminOverviewStats(),
+        supabase
+          .from("profiles_public")
+          .select("id, display_name, created_at, level")
+          .order("created_at", { ascending: false })
+          .limit(8),
+      ]);
+      setStats({
+        players: s.players,
+        online: s.online,
+        banned: s.banned,
+        muted: s.muted,
+        ships: s.ships,
+        totalCoins: s.totalCoins,
+        totalGems: s.totalGems,
+        totalXp: s.totalXp,
+        txCount: s.txCount,
+      });
+      setRecent(((recentProfiles ?? []) as unknown) as typeof recent);
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر تحميل الإحصائيات");
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   useEffect(() => {
