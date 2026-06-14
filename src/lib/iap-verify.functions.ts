@@ -1,20 +1,23 @@
 /**
  * Server-side receipt verification for native in-app purchases.
  *
- * Today this records the receipt and grants the benefit optimistically; the
- * dedicated webhook handlers (Google RTDN / Apple App Store Server
- * Notifications) remain the source of truth and reconcile the grant if the
- * receipt is later refunded or invalid.
- *
- * The grant uses the same `paddle_purchases` table the web flow writes to,
+ * Resolves the product identifier against the real game catalog
+ * (`STORE_PACKS` + `ELITE_VIP_TIERS`) and grants the corresponding reward
+ * through the same `grant_paddle_purchase` RPC the Paddle web flow uses,
  * so the rest of the app does not need to special-case the source.
+ *
+ * The dedicated webhook handlers (Google RTDN / Apple App Store Server
+ * Notifications) remain the source of truth and will reconcile / revoke
+ * if the receipt is later refunded or invalid.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { STORE_PACKS } from "@/lib/store-catalog";
+import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 
 const InputSchema = z.object({
-  productId: z.enum(["gems_small", "gems_medium", "gems_large", "vip_monthly"]),
+  productId: z.string().min(1).max(100),
   transactionId: z.string().min(1).max(200),
   receipt: z.string().min(1).max(20_000),
   platform: z.enum(["android", "ios"]),
@@ -27,39 +30,87 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // 1) Idempotency: if we already recorded this transaction, return OK.
+    // Resolve product to either a store pack or an Elite VIP tier.
+    const pack = STORE_PACKS.find((p) => p.id === data.productId);
+    const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === data.productId);
+    if (!pack && !eliteTier) {
+      throw new Error(`unknown product: ${data.productId}`);
+    }
+
+    // 1) Idempotency — bail if this receipt was already processed.
     const { data: existing } = await supabaseAdmin
       .from("paddle_purchases")
       .select("id")
       .eq("paddle_transaction_id", data.transactionId)
       .maybeSingle();
-    if (existing) return { ok: true, alreadyGranted: true };
+    if (existing) return { ok: true, alreadyGranted: true, productId: data.productId };
 
-    // 2) Record the purchase (audit trail + idempotency key).
-    await supabaseAdmin.from("paddle_purchases").insert({
-      user_id: userId,
-      paddle_transaction_id: data.transactionId,
-      pack_id: data.productId,
-      status: "completed",
-      environment: data.platform === "ios" ? "apple_iap" : "google_play",
-      granted: true,
-      granted_at: new Date().toISOString(),
-    } as never);
+    const env = data.platform === "ios" ? "apple_iap" : "google_play";
 
-    // 3) Grant the benefit (mirrors the Paddle webhook logic).
-    if (data.productId === "vip_monthly") {
-      const expires = new Date();
-      expires.setMonth(expires.getMonth() + 1);
+    // 2) Elite VIP subscription path.
+    if (eliteTier) {
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await supabaseAdmin
         .from("profiles")
-        .update({ vip_expires_at: expires.toISOString() } as never)
+        .update({
+          elite_vip_level: eliteTier.level,
+          elite_vip_expires_at: expiresAt,
+        } as never)
         .eq("id", userId);
-    } else {
-      const gems = ({ gems_small: 100, gems_medium: 550, gems_large: 1200 } as const)[
-        data.productId
-      ];
-      await supabaseAdmin.rpc("add_gems" as never, { _user_id: userId, _amount: gems } as never);
+      await supabaseAdmin.from("paddle_purchases").insert({
+        user_id: userId,
+        paddle_transaction_id: data.transactionId,
+        pack_id: data.productId,
+        status: "completed",
+        environment: env,
+        granted: true,
+        granted_at: new Date().toISOString(),
+      } as never);
+      return { ok: true, alreadyGranted: false, productId: data.productId };
     }
 
-    return { ok: true, alreadyGranted: false };
+    // 3) Regular store pack — reuse the canonical grant RPC.
+    const reward = pack!.reward;
+    const amountCents = Math.round(pack!.priceUSD * 100);
+
+    const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase" as never, {
+      _txn_id: data.transactionId,
+      _user: userId,
+      _pack_id: pack!.id,
+      _amount_cents: amountCents,
+      _gems: reward.gems ?? 0,
+      _coins: reward.coins ?? 0,
+      _rubies: reward.rubies ?? 0,
+      _shield_days: reward.shieldDays ?? 0,
+      _vip_days: reward.vipDays ?? 0,
+      _env: env,
+    } as never);
+    if (error) throw new Error(error.message);
+
+    const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
+
+    if (!alreadyGranted && reward.items?.length) {
+      for (const it of reward.items) {
+        await supabaseAdmin.rpc("grant_inventory_item" as never, {
+          _user: userId,
+          _item_type: it.itemType,
+          _item_id: it.itemId,
+          _qty: it.qty,
+        } as never);
+      }
+    }
+
+    if (!alreadyGranted && reward.phoenixShips && reward.phoenixShips > 0) {
+      const rows = Array.from({ length: reward.phoenixShips }, () => ({
+        user_id: userId,
+        template_id: 31,
+        hp: 13000,
+        max_hp: 13000,
+        at_sea: false,
+        catalog_code: "ship-lvl-31",
+      }));
+      await supabaseAdmin.from("ships_owned").insert(rows as never);
+    }
+
+    return { ok: true, alreadyGranted, productId: data.productId };
   });

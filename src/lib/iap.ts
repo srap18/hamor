@@ -1,46 +1,90 @@
 /**
  * In-App Purchases bridge for the native (Capacitor) builds.
  *
- * On native (Android/iOS) the store catalog is provided by Google Play
- * Billing / Apple StoreKit. We access the
- * `@capacitor-community/in-app-purchases` plugin at runtime through
- * `window.Capacitor.Plugins.InAppPurchases` so the web build never has to
- * bundle the plugin.
+ * The full list of purchasable products is derived **dynamically** from the
+ * real game catalog (`STORE_PACKS` + `ELITE_VIP_TIERS`), so every gem pack,
+ * gold pack, bundle, weapon pack, crew pack, VIP subscription and Elite VIP
+ * tier in the web store is automatically also available natively — there is
+ * no separate hand-maintained list.
  *
- * The plugin must be installed in the native projects:
+ * The product identifier used by Google Play Console / App Store Connect is
+ * the pack's `id` (e.g. `gp_100`, `vip_monthly`, `elite_vip_3_monthly`),
+ * which is also the Paddle `external_id` — keeping one ID per item across
+ * every store/platform.
+ *
+ * The native plugin is loaded at runtime via
+ * `window.Capacitor.Plugins.InAppPurchases` so the web bundle never ships
+ * it. On native builds you must install:
  *   bun add @capacitor-community/in-app-purchases
  *   npx cap sync
- *
- * Web builds never call any of these functions — `isNativeApp()` guards the
- * UI components first.
  */
 import { isAndroidApp, isIosApp, isNativeApp } from "@/lib/platform";
+import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
+import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 
-/** Product IDs configured in Play Console / App Store Connect. */
-export const IAP_PRODUCT_IDS = [
-  "gems_small",
-  "gems_medium",
-  "gems_large",
-  "vip_monthly",
-] as const;
-
-export type IapProductId = (typeof IAP_PRODUCT_IDS)[number];
-
-/** Subscriptions vs consumables — the plugin needs the distinction. */
-export const IAP_SUBSCRIPTIONS: IapProductId[] = ["vip_monthly"];
-
-export type IapProduct = {
-  productId: IapProductId;
+/** A single purchasable item on the stores. */
+export type IapCatalogItem = {
+  productId: string;
   title: string;
   description: string;
-  price: string; // localized price string, e.g. "29.00 SAR"
+  priceUSD: number;
+  category: PackCategory;
+  subscription: boolean;
+  emoji?: string;
+  tag?: string;
+  popular?: boolean;
+};
+
+/** Full native catalog — generated once from the canonical game data. */
+export const IAP_CATALOG: IapCatalogItem[] = [
+  ...STORE_PACKS.map<IapCatalogItem>((p: StorePack) => ({
+    productId: p.id,
+    title: p.label,
+    description: p.description ?? "",
+    priceUSD: p.priceUSD,
+    category: p.category,
+    subscription: !!p.subscription,
+    emoji: p.emoji,
+    tag: p.tag,
+    popular: p.popular,
+  })),
+  ...ELITE_VIP_TIERS.map<IapCatalogItem>((t) => ({
+    productId: t.paddlePriceId, // elite_vip_{1..5}_monthly
+    title: `Elite VIP ${t.level} — ${t.nameAr}`,
+    description: t.perks.join(" • "),
+    priceUSD: t.monthlyPriceUsd,
+    category: "vip",
+    subscription: true,
+    emoji: t.emoji,
+    tag: t.level === 5 ? "أعلى مستوى" : undefined,
+    popular: t.level === 3,
+  })),
+];
+
+/** All product IDs registered on the stores. */
+export const IAP_PRODUCT_IDS: readonly string[] = IAP_CATALOG.map((i) => i.productId);
+
+/** Subscription IDs — needed by Play Billing / StoreKit for the right flow. */
+export const IAP_SUBSCRIPTIONS: readonly string[] = IAP_CATALOG
+  .filter((i) => i.subscription)
+  .map((i) => i.productId);
+
+export function getIapItem(productId: string): IapCatalogItem | undefined {
+  return IAP_CATALOG.find((i) => i.productId === productId);
+}
+
+export type IapProduct = {
+  productId: string;
+  title: string;
+  description: string;
+  price: string; // localized store price string, e.g. "29.00 SAR"
   currency?: string;
 };
 
 export type IapPurchase = {
-  productId: IapProductId;
+  productId: string;
   transactionId: string;
-  receipt: string; // platform-specific receipt to verify server-side
+  receipt: string;
   platform: "android" | "ios";
 };
 
@@ -53,7 +97,7 @@ type IapPlugin = {
 function getPlugin(): IapPlugin | null {
   if (!isNativeApp()) return null;
   try {
-    const plugins = window.Capacitor?.Plugins as Record<string, unknown> | undefined;
+    const plugins = (window as any).Capacitor?.Plugins as Record<string, unknown> | undefined;
     const p = plugins?.InAppPurchases as IapPlugin | undefined;
     return p ?? null;
   } catch {
@@ -61,14 +105,13 @@ function getPlugin(): IapPlugin | null {
   }
 }
 
-/** True only when the native IAP plugin is wired in the running app. */
 export function isIapAvailable(): boolean {
   return getPlugin() !== null;
 }
 
-/** Fetch product metadata from the store. Returns [] on web or if plugin missing. */
+/** Fetch localized product metadata from the store. */
 export async function fetchIapProducts(
-  ids: readonly IapProductId[] = IAP_PRODUCT_IDS,
+  ids: readonly string[] = IAP_PRODUCT_IDS,
 ): Promise<IapProduct[]> {
   const plugin = getPlugin();
   if (!plugin) return [];
@@ -91,10 +134,10 @@ export async function fetchIapProducts(
  * Launches the native purchase flow. Returns the receipt for server-side
  * verification, or null if cancelled / unavailable.
  *
- * IMPORTANT: the receipt MUST be verified server-side before granting the
- * benefit (gems / VIP). See `src/lib/iap-verify.functions.ts`.
+ * IMPORTANT: receipts MUST be verified server-side before granting any
+ * benefit — see `src/lib/iap-verify.functions.ts`.
  */
-export async function purchaseIap(productId: IapProductId): Promise<IapPurchase | null> {
+export async function purchaseIap(productId: string): Promise<IapPurchase | null> {
   const plugin = getPlugin();
   if (!plugin) return null;
   try {
@@ -116,7 +159,7 @@ export async function purchaseIap(productId: IapProductId): Promise<IapPurchase 
   }
 }
 
-/** Restore previous non-consumable purchases (mainly iOS requirement). */
+/** Restore previous non-consumable / subscription purchases (iOS requirement). */
 export async function restoreIapPurchases(): Promise<IapPurchase[]> {
   const plugin = getPlugin();
   if (!plugin?.restorePurchases) return [];
@@ -124,7 +167,7 @@ export async function restoreIapPurchases(): Promise<IapPurchase[]> {
     const res = await plugin.restorePurchases();
     const platform: "android" | "ios" = isIosApp() ? "ios" : "android";
     return (res.transactions || []).map((tx: any) => ({
-      productId: (tx.productIdentifier ?? tx.productId) as IapProductId,
+      productId: tx.productIdentifier ?? tx.productId ?? "",
       transactionId: tx.transactionId ?? tx.orderId ?? "",
       receipt: tx.receipt ?? tx.purchaseToken ?? tx.transactionReceipt ?? JSON.stringify(tx),
       platform,
@@ -135,7 +178,6 @@ export async function restoreIapPurchases(): Promise<IapPurchase[]> {
   }
 }
 
-/** Convenience: which store provides this purchase. */
 export function currentStoreLabel(): "Google Play" | "App Store" | "Web" {
   if (isAndroidApp()) return "Google Play";
   if (isIosApp()) return "App Store";

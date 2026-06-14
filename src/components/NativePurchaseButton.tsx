@@ -1,43 +1,70 @@
 /**
- * Native in-app purchase block — replaces the Paddle UI inside the Capacitor
- * builds. Lists the configured products from Google Play / App Store and
- * launches the native purchase sheet on tap.
+ * Native in-app purchase block — replaces the Paddle UI inside the
+ * Capacitor (Android / iOS) builds. Pulls the catalog dynamically from
+ * `IAP_CATALOG` (which mirrors STORE_PACKS + ELITE_VIP_TIERS), shows
+ * category tabs, and launches the native purchase sheet on tap.
  *
  * The web build never renders this — callers gate with `isNativeApp()`.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  IAP_PRODUCT_IDS,
+  IAP_CATALOG,
+  type IapCatalogItem,
   type IapProduct,
-  type IapProductId,
   currentStoreLabel,
   fetchIapProducts,
+  getIapItem,
   isIapAvailable,
   purchaseIap,
   restoreIapPurchases,
 } from "@/lib/iap";
 import { verifyIapPurchase } from "@/lib/iap-verify.functions";
+import { formatSarFromUsd } from "@/lib/currency";
+import type { PackCategory } from "@/lib/store-catalog";
 
-const FALLBACK_LABELS: Record<IapProductId, { title: string; desc: string }> = {
-  gems_small: { title: "حزمة جواهر صغيرة", desc: "100 جوهرة" },
-  gems_medium: { title: "حزمة جواهر متوسطة", desc: "550 جوهرة" },
-  gems_large: { title: "حزمة جواهر كبيرة", desc: "1200 جوهرة" },
-  vip_monthly: { title: "اشتراك VIP شهري", desc: "تجديد تلقائي شهرياً" },
-};
+const CATEGORY_TABS: { id: PackCategory; label: string; emoji: string }[] = [
+  { id: "offers", label: "عروض", emoji: "🔥" },
+  { id: "bundle", label: "باقات", emoji: "🎁" },
+  { id: "gems", label: "جواهر", emoji: "💎" },
+  { id: "coins", label: "ذهب", emoji: "🪙" },
+  { id: "vip", label: "VIP", emoji: "👑" },
+  { id: "crew", label: "طواقم", emoji: "⚓" },
+  { id: "weapon", label: "أسلحة", emoji: "💣" },
+  { id: "shield", label: "دروع", emoji: "🛡️" },
+];
 
 export function NativePurchaseBlock({
-  productIds = [...IAP_PRODUCT_IDS],
+  productIds,
 }: {
-  productIds?: IapProductId[];
+  /** Optional whitelist. When omitted, the full catalog is shown. */
+  productIds?: string[];
 }) {
   const verify = useServerFn(verifyIapPurchase);
-  const [products, setProducts] = useState<IapProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<IapProductId | null>(null);
   const available = isIapAvailable();
   const store = currentStoreLabel();
+
+  // Catalog the page is allowed to show.
+  const allowed = useMemo<IapCatalogItem[]>(() => {
+    if (!productIds || productIds.length === 0) return IAP_CATALOG;
+    return productIds.map(getIapItem).filter((x): x is IapCatalogItem => !!x);
+  }, [productIds]);
+
+  // Default tab = first category that has any item.
+  const tabsWithItems = useMemo(
+    () => CATEGORY_TABS.filter((t) => allowed.some((i) => i.category === t.id)),
+    [allowed],
+  );
+  const [tab, setTab] = useState<PackCategory>(() => tabsWithItems[0]?.id ?? "offers");
+  useEffect(() => {
+    if (!tabsWithItems.some((t) => t.id === tab) && tabsWithItems[0]) setTab(tabsWithItems[0].id);
+  }, [tabsWithItems, tab]);
+
+  // Localized prices from the store, keyed by productId.
+  const [storePrices, setStorePrices] = useState<Record<string, IapProduct>>({});
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -45,22 +72,24 @@ export function NativePurchaseBlock({
       setLoading(false);
       return;
     }
-    fetchIapProducts(productIds).then((p) => {
+    fetchIapProducts(allowed.map((i) => i.productId)).then((list) => {
       if (!alive) return;
-      setProducts(p);
+      const map: Record<string, IapProduct> = {};
+      for (const p of list) map[p.productId] = p;
+      setStorePrices(map);
       setLoading(false);
     });
     return () => {
       alive = false;
     };
-  }, [available, productIds]);
+  }, [available, allowed]);
 
-  const buy = async (id: IapProductId) => {
+  const buy = async (item: IapCatalogItem) => {
     if (busy) return;
-    setBusy(id);
+    setBusy(item.productId);
     try {
-      const purchase = await purchaseIap(id);
-      if (!purchase) return; // cancelled
+      const purchase = await purchaseIap(item.productId);
+      if (!purchase) return; // user cancelled
       const res = await verify({ data: purchase });
       if (res.ok) {
         toast.success(res.alreadyGranted ? "تم تأكيد الشراء مسبقاً" : "تم الشراء بنجاح ✓");
@@ -73,7 +102,7 @@ export function NativePurchaseBlock({
   };
 
   const restore = async () => {
-    setBusy("gems_small");
+    setBusy("__restore__");
     try {
       const prev = await restoreIapPurchases();
       for (const p of prev) {
@@ -101,43 +130,83 @@ export function NativePurchaseBlock({
     );
   }
 
+  const visible = allowed.filter((i) => i.category === tab);
+
   return (
-    <div dir="rtl" className="mx-auto max-w-md p-4 space-y-3">
+    <div dir="rtl" className="mx-auto max-w-md p-3 space-y-3">
       <div className="text-center text-amber-200 text-xs">
         الدفع عبر {store} — آمن وسريع
       </div>
+
+      {tabsWithItems.length > 1 && (
+        <div className="grid grid-cols-4 gap-1">
+          {tabsWithItems.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`py-1.5 rounded-lg text-[11px] font-bold border-2 transition-all flex items-center justify-center gap-1 ${
+                tab === t.id
+                  ? "bg-gradient-to-b from-amber-400 to-amber-700 border-amber-200 text-amber-950"
+                  : "bg-stone-900/60 border-stone-700 text-stone-300"
+              }`}
+            >
+              <span>{t.emoji}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading && (
         <div className="text-center text-amber-100/70 text-sm py-6">جاري تحميل الأسعار…</div>
       )}
-      {!loading && products.length === 0 && (
+      {!loading && visible.length === 0 && (
         <div className="text-center text-amber-300 text-sm py-6">
-          لم يتم العثور على منتجات. أعد المحاولة لاحقاً.
+          لا توجد منتجات في هذه الفئة.
         </div>
       )}
-      {products.map((p) => {
-        const fallback = FALLBACK_LABELS[p.productId];
-        const isBusy = busy === p.productId;
+
+      {visible.map((item) => {
+        const live = storePrices[item.productId];
+        const isBusy = busy === item.productId;
+        const priceLabel = live?.price || formatSarFromUsd(item.priceUSD);
         return (
           <button
-            key={p.productId}
-            onClick={() => buy(p.productId)}
+            key={item.productId}
+            onClick={() => buy(item)}
             disabled={!!busy}
-            className="w-full p-4 rounded-2xl border-2 border-amber-600/50 bg-gradient-to-b from-stone-900 to-stone-950 text-right active:scale-[0.98] disabled:opacity-60 flex items-center justify-between gap-3"
+            className={`relative w-full p-3 rounded-2xl border-2 text-right active:scale-[0.98] disabled:opacity-60 flex items-center justify-between gap-3 ${
+              item.popular
+                ? "border-amber-300 bg-gradient-to-br from-amber-950/60 via-stone-900/90 to-stone-950 shadow-[0_0_18px_rgba(251,191,36,0.35)]"
+                : "border-amber-600/40 bg-gradient-to-b from-stone-900 to-stone-950"
+            }`}
           >
-            <div className="min-w-0">
-              <div className="font-extrabold text-amber-200 truncate">
-                {p.title || fallback?.title}
-              </div>
-              <div className="text-xs text-amber-100/70 truncate">
-                {p.description || fallback?.desc}
+            {item.tag && (
+              <span className="absolute top-1 left-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-rose-500 text-white">
+                {item.tag}
+              </span>
+            )}
+            <div className="min-w-0 flex items-center gap-2">
+              <span className="text-2xl shrink-0">{item.emoji ?? "🛒"}</span>
+              <div className="min-w-0 text-right">
+                <div className="font-extrabold text-amber-200 truncate">
+                  {live?.title || item.title}
+                </div>
+                <div className="text-[11px] text-amber-100/70 line-clamp-2 leading-snug">
+                  {live?.description || item.description}
+                </div>
+                {item.subscription && (
+                  <div className="text-[10px] text-violet-300 mt-0.5">↻ تجديد تلقائي شهري</div>
+                )}
               </div>
             </div>
-            <div className="shrink-0 px-3 py-2 rounded-lg bg-amber-500 text-amber-950 font-extrabold text-sm">
-              {isBusy ? "..." : p.price || "شراء"}
+            <div className="shrink-0 px-3 py-2 rounded-lg bg-amber-500 text-amber-950 font-extrabold text-sm whitespace-nowrap">
+              {isBusy ? "..." : priceLabel}
             </div>
           </button>
         );
       })}
+
       <button
         onClick={restore}
         disabled={!!busy}
