@@ -45,6 +45,20 @@ type Profile = {
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
+// A ship is "still destroyed" (uncombat-able) only while repair progress < 30%.
+// Past 30% it sails and fishes again on the owner's side, so it must also be attackable/stealable.
+const FISH_REPAIR_MIN = 0.30;
+function isShipStillDown(destroyedAt?: string | null, repairEndsAt?: string | null): boolean {
+  if (!destroyedAt) return false;
+  if (!repairEndsAt) return true;
+  const start = new Date(destroyedAt).getTime();
+  const end = new Date(repairEndsAt).getTime();
+  const now = serverNowMs();
+  if (now >= end) return false;
+  const total = Math.max(1, end - start);
+  return (now - start) / total < FISH_REPAIR_MIN;
+}
+
 
 function PlayerPage() {
   const { playerId } = useParams({ from: "/players/$playerId" });
