@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-const URL_PATH = "/guide/legacy-players";
-const CANONICAL = `https://www.molok-alqarasna.com${URL_PATH}`;
+const CANONICAL = "https://www.molok-alqarasna.com/guide/legacy-players";
 const TITLE = "دليل لاعبي هامور شابك و شابك 360 | ملوك القراصنة";
 const DESCRIPTION =
   "دليل اللاعبين القدامى للانتقال من هامور شابك و شابك 360 إلى ملوك القراصنة — نفس روح اللعبة الكلاسيكية مع تطويرات حديثة، معارك بحرية، تحالفات، ومتجر سفن.";
@@ -64,9 +63,7 @@ function LegacyPlayersGuide() {
         <h1 className="text-3xl font-black mt-4 mb-2 text-amber-300">
           دليل لاعبي هامور شابك و شابك 360 في ملوك القراصنة
         </h1>
-        <p className="text-amber-100/80 mb-8">
-          {DESCRIPTION}
-        </p>
+        <p className="text-amber-100/80 mb-8">{DESCRIPTION}</p>
 
         {sections.map((s) => (
           <section key={s.h} className="mb-6">

@@ -1515,10 +1515,6 @@ function Index() {
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
-            width={1920}
-            height={1080}
-            fetchPriority="high"
-            decoding="async"
             className={`absolute inset-0 h-full w-full object-cover select-none ${isHeavyFxDisabled ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
             style={{
               objectPosition: scene.objectPosition ?? "center center",
