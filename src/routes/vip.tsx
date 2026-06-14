@@ -9,6 +9,8 @@ import { BackButton } from "@/components/BackButton";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { formatSarFromUsd } from "@/lib/currency";
 import { toast } from "sonner";
+import { isAndroidApp } from "@/lib/platform";
+import { AndroidPaymentBlock } from "@/components/AndroidPaymentBlock";
 
 export const Route = createFileRoute("/vip")({
   ssr: false,
