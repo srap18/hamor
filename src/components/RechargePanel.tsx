@@ -14,8 +14,8 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
 import { RewardPopup } from "@/components/RewardPopup";
 import { formatSarFromUsd } from "@/lib/currency";
-import { isAndroidApp } from "@/lib/platform";
-import { AndroidPaymentBlock } from "@/components/AndroidPaymentBlock";
+import { isNativeApp } from "@/lib/platform";
+import { NativePurchaseBlock } from "@/components/NativePurchaseButton";
 
 const SUB_TABS: { id: PackCategory; label: string; emoji: string }[] = [
   { id: "offers", label: "عروض", emoji: "🔥" },
@@ -157,8 +157,8 @@ export function RechargePanel() {
     [sub],
   );
 
-  if (isAndroidApp()) {
-    return <AndroidPaymentBlock />;
+  if (isNativeApp()) {
+    return <NativePurchaseBlock />;
   }
 
   return (
