@@ -11,9 +11,25 @@ export const Route = createFileRoute("/terms")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/terms" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/terms" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "الشروط والأحكام — ملوك القراصنة",
+          headline: "الشروط والأحكام",
+          url: "https://www.molok-alqarasna.com/terms",
+          inLanguage: "ar",
+          description: "الشروط والأحكام التي تحكم استخدام لعبة ملوك القراصنة (هامور شابك).",
+          publisher: { "@type": "Organization", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+        }),
+      },
+    ],
   }),
   component: TermsPage,
 });
+
 
 function TermsPage() {
   return (
