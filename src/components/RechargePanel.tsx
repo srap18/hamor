@@ -127,6 +127,7 @@ export function RechargePanel() {
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
+    if (!ensurePaymentHost()) return; // يحوّل تلقائياً للدومين المعتمد لدى Paddle
     setBusy(pack.id);
     try {
       await eligibility({ data: { packId: pack.id } });
