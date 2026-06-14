@@ -1,7 +1,7 @@
-name: Build Android App
+name: Build and Sign Android App
 on:
   push:
-    branches: [ main, "رئيسي" ] # يشتغل تلقائياً عند دفع أي كود جديد
+    branches: [ main, "رئيسي" ]
 
 jobs:
   build:
@@ -31,17 +31,29 @@ jobs:
         run: |
           npx cap add android || true
           npx cap sync android
+          chmod +x android/gradlew
 
-      - name: Build APK and AAB with Gradle
+      - name: Create Production Keystore (Auto-Generate)
+        run: |
+          keytool -genkeypair -v -keystore hamor-upload-key.keystore -alias hamor-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "HamorPass2026" -keypass "HamorPass2026" -dname "CN=Hamor, O=CodeArabi, C=EG"
+
+      - name: Build Android Artifacts (APK & AAB)
         run: |
           cd android
-          ./gradlew assembleDebug # يصنع ملف الـ APK للتجربة
-          ./gradlew bundleRelease # يصنع ملف الـ AAB للمتجر
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease
 
-      - name: Upload APK & AAB Artifacts
+      - name: Sign AAB for Google Play Console
+        run: |
+          AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore hamor-upload-key.keystore -storepass "HamorPass2026" -keypass "HamorPass2026" $AAB_FILE hamor-key-alias
+          mv $AAB_FILE ./hamor-play-store.aab
+
+      - name: Upload Final Signed Files to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: Game-Android-Builds
+          name: Google-Play-Ready-Builds
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/bundle/release/app-release.aab
+            ./hamor-play-store.aab
+            ./hamor-upload-key.keystore
