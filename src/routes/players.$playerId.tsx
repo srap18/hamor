@@ -73,6 +73,7 @@ function PlayerPage() {
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
@@ -186,15 +187,17 @@ function PlayerPage() {
         setMyName((myProf as any)?.display_name ?? "");
         setMyProtectionUntil((myProf as any)?.protection_until ?? null);
       }
-      const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }] = await Promise.all([
+      const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }, { data: marketUnlocked }] = await Promise.all([
         supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
         (supabase as any).rpc("is_staff", { _user_id: playerId }),
         supabase.from("dragons").select("stage").eq("user_id", playerId).maybeSingle(),
+        (supabase as any).rpc("is_market_pvp_unlocked", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
+      setTargetMarketUnlocked(marketUnlocked !== false);
       setTheirDragonStage(((dragonRow as any)?.stage as number) ?? 1);
 
       const destId = (prof as any)?.last_destroyer_id as string | null | undefined;
@@ -1248,8 +1251,7 @@ function PlayerPage() {
               const targetFishing = selectedShip.at_sea && !targetDead;
               const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
               const myPvpReady = myPvpCount >= 3;
-              const targetPvpCount = ships.filter((s) => (s.template_id ?? 0) >= 6).length;
-              const targetProtected = targetPvpCount < 3;
+              const targetProtected = !targetMarketUnlocked;
               const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
               const targetShielded = targetShieldedUntil > serverNowMs();
               const blockReason = targetShielded
@@ -1257,7 +1259,7 @@ function PlayerPage() {
                 : !myPvpReady
                   ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
                   : targetProtected
-                    ? "🛡️ الخصم محمي — أقل من 3 سفن مستوى 6+"
+                    ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                     : null;
               const attackDisabled = busy || targetDead || !!blockReason;
               const stealDisabled = busy || !targetFishing || !!blockReason;
