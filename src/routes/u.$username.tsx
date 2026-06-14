@@ -130,7 +130,7 @@ function UserProfilePage() {
     <div className="min-h-screen w-full text-foreground" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, oklch(0.30 0.12 260) 0%, oklch(0.10 0.06 250) 100%)", WebkitOverflowScrolling: "touch" }}>
       <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 pb-3 flex items-center gap-3" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
-        <BackButton className="w-10 h-10 rounded-xl glass-hud flex items-center justify-center text-lg active:scale-95">←</BackButton>
+        <BackButton aria-label="العودة للصفحة السابقة" className="w-10 h-10 rounded-xl glass-hud flex items-center justify-center text-lg active:scale-95">←</BackButton>
         <div className="flex-1">
           <h1 className="text-lg font-bold text-glow">ملف اللاعب</h1>
           <p className="text-[10px] text-muted-foreground">@{profile.username}</p>
@@ -169,7 +169,7 @@ function UserProfilePage() {
               <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                    <img src={profile.avatar_url} alt={`Player avatar — ${profile.display_name ?? profile.username}`} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-secondary text-4xl">{profile.avatar_emoji ?? "🧙"}</div>
                   )}
