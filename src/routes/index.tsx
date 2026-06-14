@@ -2443,7 +2443,7 @@ function Index() {
                 try {
                   const result = await repairOnServer(s, itemId);
                   const count = Number(result?.repaired_count ?? needRepair.length);
-                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل + حصانة 60 ثانية`);
+                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل`);
                   sound.play("success");
                 } catch (e: any) {
                   setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
@@ -2485,7 +2485,7 @@ function Index() {
                         ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
                         : { ...x, hp: newHp, repairEndsAt: result?.repair_ends_at ?? null })
                     : x));
-                  setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم + حصانة 60 ثانية`);
+                  setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم`);
                   sound.play("success");
                 } catch (e: any) {
                   // Rollback optimistic
