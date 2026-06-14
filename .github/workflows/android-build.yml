@@ -18,22 +18,23 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Build Web Project and Create Dummy Index
+      - name: Prepare Clean Dummy Web Directory for Ultra-Light Size
         run: |
-          bun run build || true
+          rm -rf dist
           mkdir -p dist
-          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title></head><body></body></html>' > dist/index.html
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title><script>window.location.href="https://www.molok-alqarasna.com";</script></head><body></body></html>' > dist/index.html
 
       - name: Set up JDK 21 (Required for modern Android/Gradle)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21' # 👈 التعديل السحري هنا: رفعنا الجافا للإصدار المطلوب 21
+          java-version: '21'
 
-      - name: Clean and Force Recreate Android Platform
+      - name: Sync Android Platform (Preserving Existing Icons)
         run: |
-          rm -rf android
-          npx cap add android
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
           chmod +x android/gradlew
 
