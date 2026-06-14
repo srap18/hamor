@@ -478,23 +478,49 @@ function PlayerPage() {
     // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
     setSelectedShip(null);
-    // Fishing ships (at_sea) ARE attackable now — only exclude destroyed-and-still-repairing.
+
+    // ─── NUKE: use server RPC that destroys all target ships in one shot ───
+    if (weaponId === "nuke") {
+      const { error: nukeErr } = await (supabase as any).rpc("launch_nuke", { _target_id: playerId });
+      if (nukeErr) {
+        const m = String(nukeErr.message || "");
+        setBusy(false);
+        if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
+        if (m.includes("attacker has destroyed ship")) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+        if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
+        if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
+        if (m.includes("no nuke")) { sound.play("error"); flash("☢️ ما عندك قنبلة نووية"); return; }
+        if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوقه أقل من المستوى 6"); return; }
+        if (m.includes("protected") || m.includes("staff account")) { sound.play("error"); flash("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
+      }
+      // Success: consume locally, play FX, mark all ships destroyed, burn bg
+      await consumeItem("nuke", "weapon");
+      sound.play("nuke");
+      burnTargetBg(playerId).catch(() => {});
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+      const nowIso = serverNow().toISOString();
+      setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? nowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false })));
+      setShake("shake-lg");
+      setTimeout(() => sound.play("explosion"), 600);
+      setTimeout(() => sound.play("explosion"), 1200);
+      setTimeout(() => setShake(""), 1800);
+      sound.play("success");
+      flash(`☢️ تم تدمير كل سفن ${p?.display_name || "اللاعب"}!`);
+      setBusy(false);
+      setTimeout(() => { setNukeMsg(""); setNukeMsgOpen(true); }, 2000);
+      return;
+    }
+
+    // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
     const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
-    if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
 
-    // Dragon attack bonus — boost weapon damage based on dragon overall level.
-    // Nuke ignores the bonus (already one-shots anything).
-    const boostedDamage = w.aoe && w.id === "nuke" ? w.damage : applyDragonAttack(w.damage, myDragonLvl);
+    // Dragon attack bonus
+    const boostedDamage = applyDragonAttack(w.damage, myDragonLvl);
 
-    // ─── Pre-validate on the first target BEFORE consuming the weapon ───
-    // Server-side rules (3 fishing ships, market level, protection, etc.) are
-    // enforced inside apply_ship_damage; we hit it once first so a failed
-    // precondition does NOT cost the player their weapon or trigger FX.
     const firstTarget = targets[0];
-    const skipFishing = false; // كل الأسلحة، بما فيها النووية، لازم تلتزم بشروط جاهزية السفن
-    // SECURE: server computes damage from weapon catalog + VIP multiplier.
-    // Client only sends the weapon id; any local "damage" value is ignored by the server.
+    const skipFishing = false;
     const { data: firstRes, error: firstErr } = await (supabase as any).rpc("apply_ship_damage_v2", { _ship_id: firstTarget.id, _weapon_id: w.id, _skip_fishing_check: skipFishing });
     if (firstErr) {
       const m = String(firstErr.message || "");
@@ -504,9 +530,9 @@ function PlayerPage() {
       if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); setBusy(false); return; }
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
       if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
-      if (m.includes("ship_is_fishing")) { sound.play("error"); flash("🎣 السفينة في عرض البحر للصيد — لا يمكن مهاجمتها"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
+
     // Validation passed — now consume the weapon and run FX/damage for all targets.
     await consumeItem(weaponId, "weapon");
 
