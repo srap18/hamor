@@ -73,6 +73,7 @@ function PlayerPage() {
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
