@@ -30,6 +30,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DragonRouteImport } from './routes/dragon'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
@@ -162,6 +163,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const FishMarketRoute = FishMarketRouteImport.update({
   id: '/fish-market',
   path: '/fish-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DragonRoute = DragonRouteImport.update({
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
   '/dragon': typeof DragonRouteWithChildren
+  '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/friends': typeof FriendsRoute
@@ -473,6 +482,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -574,6 +585,7 @@ export interface FileRouteTypes {
     | '/competitions'
     | '/cosmetics'
     | '/dragon'
+    | '/faq'
     | '/fish-market'
     | '/forgot-password'
     | '/friends'
@@ -626,6 +638,7 @@ export interface RootRouteChildren {
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
   DragonRoute: typeof DragonRouteWithChildren
+  FaqRoute: typeof FaqRoute
   FishMarketRoute: typeof FishMarketRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   FriendsRoute: typeof FriendsRoute
@@ -801,6 +814,13 @@ declare module '@tanstack/react-router' {
       path: '/fish-market'
       fullPath: '/fish-market'
       preLoaderRoute: typeof FishMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dragon': {
@@ -1056,6 +1076,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
   DragonRoute: DragonRouteWithChildren,
+  FaqRoute: FaqRoute,
   FishMarketRoute: FishMarketRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   FriendsRoute: FriendsRoute,
