@@ -1,10 +1,11 @@
 /**
  * Platform detection helpers.
  *
- * Used to disable in-app payments inside the Android Capacitor build
- * (Google Play forbids third-party payment SDKs for digital goods).
- * The web browser and the iOS build keep working with the existing
- * payment provider — only Android is gated.
+ * Used to:
+ *  - Hide third-party payment SDKs (Paddle/Stripe) inside the native app
+ *    builds, since Google Play and the App Store forbid them for digital
+ *    goods. Native builds use in-app purchases instead (see `src/lib/iap.ts`).
+ *  - Toggle native-only UX (status bar, back button, safe areas).
  */
 
 declare global {
@@ -12,40 +13,51 @@ declare global {
     Capacitor?: {
       getPlatform?: () => string;
       isNativePlatform?: () => boolean;
+      Plugins?: Record<string, unknown>;
     };
+  }
+}
+
+function cap() {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.Capacitor;
+  } catch {
+    return undefined;
   }
 }
 
 /** True only when running inside the Android Capacitor app. */
 export function isAndroidApp(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const cap = window.Capacitor;
-    if (cap?.getPlatform?.() === "android") return true;
-    // Fallback: Capacitor global present + Android UA.
-    if (cap && /Android/i.test(navigator.userAgent)) return true;
-  } catch {
-    /* noop */
-  }
+  const c = cap();
+  if (!c) return false;
+  if (c.getPlatform?.() === "android") return true;
+  if (c.isNativePlatform?.() && /Android/i.test(navigator.userAgent)) return true;
   return false;
 }
 
 /** True only when running inside the iOS Capacitor app. */
 export function isIosApp(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.Capacitor?.getPlatform?.() === "ios";
-  } catch {
-    return false;
-  }
+  const c = cap();
+  if (!c) return false;
+  if (c.getPlatform?.() === "ios") return true;
+  if (c.isNativePlatform?.() && /iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+  return false;
 }
 
 /** True inside any native Capacitor build (Android or iOS). */
 export function isNativeApp(): boolean {
-  if (typeof window === "undefined") return false;
+  const c = cap();
+  if (!c) return false;
   try {
-    return !!window.Capacitor?.isNativePlatform?.();
+    if (c.isNativePlatform?.()) return true;
   } catch {
-    return false;
+    /* noop */
   }
+  return isAndroidApp() || isIosApp();
+}
+
+/** True if running on the regular web (browser / PWA on the web). */
+export function isWeb(): boolean {
+  return !isNativeApp();
 }

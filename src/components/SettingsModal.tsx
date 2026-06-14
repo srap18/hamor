@@ -3,6 +3,7 @@ import { sound } from "@/lib/sound";
 import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -242,6 +243,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             >
               {t("settings.sign_out")}
             </button>
+            <DeleteAccountSection />
           </div>
         )}
 

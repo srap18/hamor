@@ -9,8 +9,8 @@ import { BackButton } from "@/components/BackButton";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { formatSarFromUsd } from "@/lib/currency";
 import { toast } from "sonner";
-import { isAndroidApp } from "@/lib/platform";
-import { AndroidPaymentBlock } from "@/components/AndroidPaymentBlock";
+import { isNativeApp } from "@/lib/platform";
+import { NativePurchaseBlock } from "@/components/NativePurchaseButton";
 
 export const Route = createFileRoute("/vip")({
   ssr: false,
@@ -56,7 +56,7 @@ function VipPage() {
     }
   }
 
-  if (isAndroidApp()) {
+  if (isNativeApp()) {
     return (
       <div dir="rtl" className="h-full overflow-y-auto bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-slate-100 pb-20">
         <div className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur border-b border-amber-500/20 px-4 py-3 flex items-center justify-between">
@@ -64,11 +64,8 @@ function VipPage() {
           <h1 className="text-lg font-extrabold text-amber-300">🏆 Elite VIP</h1>
           <div className="w-8" />
         </div>
-        <div className="pt-8">
-          <AndroidPaymentBlock
-            title="اشتراك VIP قريباً عبر Google Play"
-            description="نعمل على ربط الاشتراك عبر Google Play داخل تطبيق أندرويد. مؤقتاً تقدر تشترك من متصفح الجوال على نفس حسابك وراح يفعّل تلقائياً."
-          />
+        <div className="pt-6">
+          <NativePurchaseBlock productIds={["vip_monthly"]} />
         </div>
       </div>
     );
