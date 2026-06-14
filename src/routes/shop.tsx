@@ -368,7 +368,7 @@ function Shop() {
 
           <div className="mt-2 flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 px-3 py-1.5 flex items-center gap-1">
-              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="gold" className="w-5 h-5 object-contain" />}</span>
+              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="أيقونة الذهب" className="w-5 h-5 object-contain" />}</span>
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
@@ -376,13 +376,16 @@ function Shop() {
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label="إنقاص الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >−</button>
                 <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
                 <button
                   onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  aria-label="زيادة الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >+</button>
+
               </div>
             ) : (
               <div className="flex-1" />
