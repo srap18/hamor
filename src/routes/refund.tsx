@@ -8,9 +8,9 @@ export const Route = createFileRoute("/refund")({
       { name: "description", content: "ضمان استرداد المال خلال 14 يوماً لمشتريات لعبة ملوك القراصنة (هامور شابك) — بدون شروط." },
       { property: "og:title", content: "سياسة الاسترداد — ملوك القراصنة" },
       { property: "og:description", content: "استرداد خلال 14 يوماً في ملوك القراصنة (هامور شابك)." },
-      { property: "og:url", content: "https://hamor.lovable.app/refund" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/refund" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/refund" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/refund" }],
   }),
   component: RefundPage,
 });

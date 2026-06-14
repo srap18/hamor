@@ -12,9 +12,9 @@ export const Route = createFileRoute("/signup")({
       { name: "keywords", content: "تسجيل ملوك القراصنة, حساب جديد هامور شابك, العب قراصنة مجاناً" },
       { property: "og:title", content: "سجّل مجاناً — ملوك القراصنة (هامور شابك)" },
       { property: "og:description", content: "انضم لآلاف اللاعبين في ملوك القراصنة — لعبة قراصنة عربية مجانية." },
-      { property: "og:url", content: "https://hamor.lovable.app/signup" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/signup" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/signup" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/signup" }],
   }),
   component: SignupPage,
 });

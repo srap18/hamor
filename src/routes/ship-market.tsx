@@ -32,9 +32,9 @@ export const Route = createFileRoute("/ship-market")({
       { name: "description", content: "اشترِ سفن قراصنة وطوّر سوقك في لعبة ملوك القراصنة (هامور شابك). أسطول كامل بانتظارك." },
       { property: "og:title", content: "سوق السفن — ملوك القراصنة" },
       { property: "og:description", content: "أسطول سفن قراصنة كامل في لعبة ملوك القراصنة (هامور شابك)." },
-      { property: "og:url", content: "https://hamor.lovable.app/ship-market" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/ship-market" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/ship-market" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/ship-market" }],
   }),
   component: ShipyardPage,
 });

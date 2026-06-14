@@ -8,9 +8,9 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "كيف نجمع ونحمي بياناتك الشخصية في لعبة ملوك القراصنة (هامور شابك)." },
       { property: "og:title", content: "سياسة الخصوصية — ملوك القراصنة" },
       { property: "og:description", content: "حماية بيانات اللاعبين في ملوك القراصنة (هامور شابك)." },
-      { property: "og:url", content: "https://hamor.lovable.app/privacy" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/privacy" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/privacy" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/privacy" }],
   }),
   component: PrivacyPage,
 });

@@ -8,9 +8,9 @@ export const Route = createFileRoute("/terms")({
       { name: "description", content: "الشروط والأحكام لاستخدام لعبة ملوك القراصنة (هامور شابك) — حقوق وواجبات اللاعبين." },
       { property: "og:title", content: "الشروط والأحكام — ملوك القراصنة" },
       { property: "og:description", content: "شروط استخدام لعبة ملوك القراصنة (هامور شابك)." },
-      { property: "og:url", content: "https://hamor.lovable.app/terms" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/terms" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/terms" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/terms" }],
   }),
   component: TermsPage,
 });

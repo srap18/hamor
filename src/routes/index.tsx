@@ -71,10 +71,10 @@ export const Route = createFileRoute("/")({
       { name: "keywords", content: "ملوك القراصنة, لعبة ملوك القراصنة, ملوك القراصنه, هامور شابك, هامور 360, شابك 360, لعبة قراصنة, لعبة قراصنة عربية, لعبة صيد سمك, العب قراصنة, pirate kings, mulook al qarasna" },
       { property: "og:title", content: "ملوك القراصنة — هامور شابك | لعبة القراصنة العربية" },
       { property: "og:description", content: "العب ملوك القراصنة (هامور شابك) مجاناً — لعبة قراصنة وصيد سمك عربية متعددة اللاعبين." },
-      { property: "og:url", content: "https://hamor.lovable.app/" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/" },
     ],
     links: [
-      { rel: "canonical", href: "https://hamor.lovable.app/" },
+      { rel: "canonical", href: "https://www.molok-alqarasna.com/" },
     ],
   }),
 });
