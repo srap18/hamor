@@ -310,7 +310,7 @@ function ShipyardPage() {
           <div className="flex flex-col gap-4">
             <div className="glass-hud rounded-2xl p-4">
               <div className="flex items-center gap-2">
-                <img src={iconUpgrade} alt="Upgrade" className="h-9 w-9" width={512} height={512} loading="lazy" />
+                <img src={iconUpgrade} alt="أيقونة الترقية" className="h-9 w-9" width={512} height={512} loading="lazy" />
                 <div>
                   <h2 className="text-lg font-black">ترقية السوق</h2>
                   <p className="text-xs text-muted-foreground">تفتح سفنًا أعلى وتزيد قيمة الأسطول مع مرور الوقت.</p>
