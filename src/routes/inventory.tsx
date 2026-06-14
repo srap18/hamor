@@ -178,6 +178,8 @@ function InventoryPage() {
           <div className="grid grid-cols-2 gap-2">
             {CREWS.map(c => {
               const n = qty("crew", c.id);
+              const gfActive = !!goldenFisherUntil && new Date(goldenFisherUntil).getTime() > Date.now();
+              const isGoldenLocked = c.id === "golden_fisher" && gfActive;
               return (
                 <div key={c.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-emerald-400/60":"border-border/40 opacity-60"}`}>
                   <div className="h-16 flex items-center justify-center">
@@ -192,13 +194,19 @@ function InventoryPage() {
                   <div className="text-center mt-2 text-sm font-bold">
                     {n > 0 ? <span className="text-emerald-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>
+                  {isGoldenLocked && (
+                    <div className="text-[10px] text-amber-300 text-center mt-1">🏅 مفعّل حالياً على حسابك</div>
+                  )}
                   {n > 0 && (
                     <button
-                      onClick={() => (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id)}
-                      disabled={usingCrew === c.id}
+                      onClick={() => {
+                        if (isGoldenLocked) { toast.info("🏅 الصياد الذهبي مفعّل بالفعل على حسابك"); return; }
+                        return (c.id === "trader" || c.id === "golden_fisher") ? useCrew(c.id, null) : setCrewToUse(c.id);
+                      }}
+                      disabled={usingCrew === c.id || isGoldenLocked}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
-                      {usingCrew === c.id ? "..." : "استخدام"}
+                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : "استخدام"}
                     </button>
                   )}
                 </div>
