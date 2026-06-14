@@ -843,6 +843,7 @@ function PlayerPage() {
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
+      <h1 className="sr-only">زيارة ميناء اللاعب {p?.display_name ?? ""} — Visit Player Harbor</h1>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {scene.displayVideo ? (
           <SeamlessVideo
