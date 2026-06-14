@@ -362,7 +362,7 @@ function Index() {
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
-          const destroyed = isShipBlocked(row.destroyed_at, row.repair_ends_at);
+          const destroyed = isShipBlocked(row.destroyed_at, row.repair_ends_at, row.hp, row.max_hp);
           if (destroyed) {
             // Destroyed ships can't fish. Force them home and clear at_sea in DB.
             fishing = false;
