@@ -2599,14 +2599,20 @@ function Index() {
                   const qty = availMap.get(cid) ?? 0;
                   const owned = qty > 0;
                   const isFixer = cid.startsWith("fixer_");
-                  const isGlobalCrew = cid === "trader"; // only the trader is fleet-exclusive
+                  const isGlobalCrew = cid === "trader" || cid === "golden_fisher"; // single-active across the whole fleet
                   const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                  // Global crews (trader): only one active across the whole fleet.
+                  // Global crews (trader / golden fisher): only one active across the whole fleet.
                   const nowMs = serverNowMs();
-                  const globallyActive = isGlobalCrew && crewRows.some(
-                    (r) => r.item_id === cid
-                      && r.meta?.assigned_ship_id != null
-                      && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
+                  const goldenFisherActive =
+                    !!(profile as any)?.golden_fisher_until &&
+                    new Date((profile as any).golden_fisher_until).getTime() > nowMs;
+                  const globallyActive = isGlobalCrew && (
+                    (cid === "golden_fisher" && goldenFisherActive) ||
+                    crewRows.some(
+                      (r) => r.item_id === cid
+                        && r.meta?.assigned_ship_id != null
+                        && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
+                    )
                   );
                   // Fixer needs check: lock when ship(s) at 100% HP
                   const fixerCanRepair = isFixer && (
