@@ -421,7 +421,7 @@ function Index() {
         const slot = SLOTS[slotIdx];
         const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
         const resolvedLevel = shipDef.marketLevel;
-        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined });
+        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined, hp: dbShip.hp ?? undefined });
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
