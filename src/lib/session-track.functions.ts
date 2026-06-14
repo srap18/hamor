@@ -33,8 +33,6 @@ export const recordSession = createServerFn({ method: "POST" })
         ? data.deviceId
         : null;
 
-    if (!ip && !deviceId) return { ok: false, ip: null };
-
     const { error } = await context.supabase.rpc("touch_session", {
       _device_id: (deviceId ?? "") as string,
       _ip: (ip ?? "") as string,

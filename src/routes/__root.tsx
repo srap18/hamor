@@ -320,11 +320,14 @@ function RootComponent() {
   useEffect(() => {
     loadEconomyOverrides();
     installNativeShell();
-    // Track player session (IP + device) for admin "linked accounts" detection.
+    // Track player session + online heartbeat for accurate admin online count.
+    let disposed = false;
+    let cleanupSessionTracking: (() => void) | undefined;
     (async () => {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
         const { recordSession } = await import("@/lib/session-track.functions");
+        if (disposed) return;
         const ensureDeviceId = (): string => {
           try {
             const k = "hamor_device_id";
@@ -336,18 +339,33 @@ function RootComponent() {
             return v;
           } catch { return ""; }
         };
+        let inFlight = false;
         const fire = async () => {
+          if (inFlight || document.visibilityState === "hidden") return;
+          inFlight = true;
           const { data } = await supabase.auth.getSession();
-          if (!data.session?.user) return;
+          if (!data.session?.user) { inFlight = false; return; }
           try { await recordSession({ data: { deviceId: ensureDeviceId() } }); } catch {}
+          finally { inFlight = false; }
         };
-        // initial + on sign-in
         fire();
-        supabase.auth.onAuthStateChange((e) => {
+        const heartbeat = window.setInterval(fire, 60_000);
+        const onVisible = () => { if (document.visibilityState === "visible") fire(); };
+        const onFocus = () => fire();
+        document.addEventListener("visibilitychange", onVisible);
+        window.addEventListener("focus", onFocus);
+        const { data: authSub } = supabase.auth.onAuthStateChange((e) => {
           if (e === "SIGNED_IN" || e === "TOKEN_REFRESHED") fire();
         });
+        cleanupSessionTracking = () => {
+          window.clearInterval(heartbeat);
+          document.removeEventListener("visibilitychange", onVisible);
+          window.removeEventListener("focus", onFocus);
+          authSub.subscription.unsubscribe();
+        };
       } catch {}
     })();
+    return () => { disposed = true; cleanupSessionTracking?.(); };
   }, []);
 
   // Hide splash after the first paint (two rAFs ensures the app has rendered).
