@@ -216,15 +216,25 @@ function saveFleet(ships: Ship[]) {
 // How many fish a ship hauls per successful catch — based on its storage stat.
 // For VIP submarines (level 32) the per-instance storage equals its max_hp,
 // which the server scales by the player's VIP level at claim time.
-function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp">): number {
+// Capacity scales linearly with current HP: a ship at 50% HP carries 50% of its
+// max capacity (server enforces the same — see collect_fishing_reward).
+function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp"> & { hp?: number | null }): number {
+  let base: number;
   if ((ship.catalogCode === "submarine" || ship.catalogCode === "upgrade-sub" || ship.level === 32 || ship.level === 33) && ship.maxHp && ship.maxHp > 0) {
-    return ship.maxHp;
+    base = ship.maxHp;
+  } else {
+    base = catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
   }
-  return catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
+  // HP-based scaling for partially damaged ships.
+  if (ship.maxHp && ship.maxHp > 0 && ship.hp != null && ship.hp < ship.maxHp) {
+    const ratio = Math.max(0.05, Math.min(1, ship.hp / ship.maxHp));
+    base = Math.max(1, Math.floor(base * ratio));
+  }
+  return base;
 }
 
-function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?: string | null): number {
-  return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode });
+function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?: string | null, hp?: number | null): number {
+  return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode, hp });
 }
 
 // Optional fishing guide: when set, ship targets that specific fish id
@@ -379,7 +389,7 @@ function Index() {
           const catalogCode = row.catalog_code ?? s.catalogCode ?? null;
           const shipDef = catalogCode ? getShipByCode(catalogCode) : getShipByMarketLevel(row.template_id ?? s.level);
           const resolvedLevel = shipDef.marketLevel;
-          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp });
+          const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp, hp: row.hp ?? s.hp });
           const duration = shipDef.fishingSeconds;
           const imgFromCode = row.catalog_code
             ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
@@ -411,7 +421,7 @@ function Index() {
         const slot = SLOTS[slotIdx];
         const shipDef = dbShip.catalog_code ? getShipByCode(dbShip.catalog_code) : getShipByMarketLevel(lvl);
         const resolvedLevel = shipDef.marketLevel;
-        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined });
+        const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined, hp: dbShip.hp ?? undefined });
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
         const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
@@ -3865,7 +3875,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const pct = (ship.progress / ship.max) * 100;
   // Note: لا نضاعف السعة في الشريط حتى لا يبدو وقت الصيد كأنه يزيد مع طاقم الحظ.
   // مضاعفة السمك تطبَّق من السيرفر عند الجمع وتظهر كـ "luckBonus" في النافذة.
-  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode);
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode, ship.hp);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;

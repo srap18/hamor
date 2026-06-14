@@ -469,8 +469,10 @@ function PlayerPage() {
     // Close the entire ship menu so player sees the ships + projectile + impact.
     setMode(null);
     setSelectedShip(null);
-    const aliveShips = ships.filter((s) => !s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs()));
-    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
+    // Fishing ships (at_sea) are immune — exclude them from targets.
+    const aliveShips = ships.filter((s) => !s.at_sea && (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
+    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships.filter((s) => !s.at_sea)) : [selectedShip];
+    if (selectedShip && !w.aoe && selectedShip.at_sea) { setBusy(false); sound.play("error"); flash("🎣 السفينة في عرض البحر للصيد — لا يمكن مهاجمتها"); return; }
     if (w.aoe && targets.length === 0) { setBusy(false); flash("لا توجد سفن قابلة للتفجير"); return; }
 
     // Dragon attack bonus — boost weapon damage based on dragon overall level.
@@ -494,6 +496,7 @@ function PlayerPage() {
       if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); setBusy(false); return; }
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
       if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
+      if (m.includes("ship_is_fishing")) { sound.play("error"); flash("🎣 السفينة في عرض البحر للصيد — لا يمكن مهاجمتها"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
     // Validation passed — now consume the weapon and run FX/damage for all targets.

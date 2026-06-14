@@ -25,6 +25,7 @@ const PERMANENT_ERROR_PATTERNS = [
   "defender market level",
   "attacker needs pvp fleet",
   "bad damage",
+  "ship_is_fishing",
 ];
 
 function isPermanent(err: unknown): boolean {
