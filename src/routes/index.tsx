@@ -2485,7 +2485,7 @@ function Index() {
                         ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
                         : { ...x, hp: newHp, repairEndsAt: result?.repair_ends_at ?? null })
                     : x));
-                  setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم + حصانة 60 ثانية`);
+                  setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم`);
                   sound.play("success");
                 } catch (e: any) {
                   // Rollback optimistic
