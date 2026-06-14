@@ -3111,10 +3111,17 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     let debounce: number | null = null;
     const refreshNow = () => {
       if (debounce) window.clearTimeout(debounce);
-      debounce = window.setTimeout(() => setRefreshSeq((n) => n + 1), 150);
+      debounce = window.setTimeout(() => {
+        // Force a fresh fetch even if a previous one is stuck pending
+        // (e.g. the user lost connection mid-request).
+        setLoading(false);
+        setRefreshSeq((n) => n + 1);
+      }, 150);
     };
     const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
+    const onOnline = () => refreshNow();
     window.addEventListener("focus", refreshNow);
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
       tab === "comp" ? ["competitions", "competition_catches"] :
@@ -3130,11 +3137,24 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
       : null;
     return () => {
       window.removeEventListener("focus", refreshNow);
+      window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisible);
       if (debounce) window.clearTimeout(debounce);
       if (ch) supabase.removeChannel(ch);
     };
   }, [tab]);
+
+  // Safety net: if a fetch stalls (e.g. network dropped mid-request and the
+  // promise never resolves), give up after 8s, reset the spinner, and retry.
+  useEffect(() => {
+    if (!loading) return;
+    const t = window.setTimeout(() => {
+      setLoading(false);
+      setRefreshSeq((n) => n + 1);
+    }, 8000);
+    return () => window.clearTimeout(t);
+  }, [loading, refreshSeq]);
+
 
   const runSearch = async () => {
     if (!q.trim()) return;
