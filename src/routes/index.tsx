@@ -137,11 +137,21 @@ function repairProgress(destroyedAt?: string | null, repairEndsAt?: string | nul
   if (total <= 0) return 1;
   return Math.max(0, Math.min(1, (now - start) / total));
 }
-// A ship is "blocked from fishing" only while repair progress is below 30%.
-// Past that point it can sail and fish (with capacity scaled by progress server-side),
-// while continuing to repair in the background.
+// A ship is "blocked from fishing" only while current HP is below 30% of max.
+// Past that point it can sail and fish (capacity scales with HP on the server),
+// even if a repair timer is still ticking in the background.
 const FISH_REPAIR_MIN = 0.30;
-function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null): boolean {
+function isShipBlocked(
+  destroyedAt?: string | null,
+  repairEndsAt?: string | null,
+  hp?: number | null,
+  maxHp?: number | null,
+): boolean {
+  // HP-based rule (preferred): if HP is known, that decides everything.
+  if (hp != null && maxHp != null && maxHp > 0) {
+    return (hp / maxHp) < FISH_REPAIR_MIN;
+  }
+  // Fallback: time-based rule when HP isn't known.
   if (!destroyedAt || !repairEndsAt) return false;
   if (new Date(repairEndsAt).getTime() <= serverNowMs()) return false;
   return repairProgress(destroyedAt, repairEndsAt) < FISH_REPAIR_MIN;
@@ -352,7 +362,7 @@ function Index() {
           let fishing = s.fishing;
           let startedAt = s.startedAt;
           const onSteal = !!row.stealing_target_user_id;
-          const destroyed = isShipBlocked(row.destroyed_at, row.repair_ends_at);
+          const destroyed = isShipBlocked(row.destroyed_at, row.repair_ends_at, row.hp, row.max_hp);
           if (destroyed) {
             // Destroyed ships can't fish. Force them home and clear at_sea in DB.
             fishing = false;
@@ -1216,7 +1226,7 @@ function Index() {
   }, []);
 
 
-  const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt);
+  const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt, x.hp, x.maxHp);
 
   const toggleFishing = (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
@@ -2048,7 +2058,7 @@ function Index() {
                 </div>
               )}
               {!onSteal && (() => {
-                const dead = isShipBlocked(s.destroyedAt, s.repairEndsAt);
+                const dead = isShipBlocked(s.destroyedAt, s.repairEndsAt, s.hp, s.maxHp);
                 const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - serverNowMs()) / 1000)) : 0;
                 const h = Math.floor(remSec / 3600);
                 const m = Math.floor((remSec % 3600) / 60);
@@ -3910,7 +3920,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turning = now < turnEndRef.current;
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
-  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt);
+  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt, ship.hp, ship.maxHp);
   const atSea = ship.sail > 0.85 && !destroyed;
   const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
   // Ship art is drawn facing LEFT natively (with per-level overrides for art

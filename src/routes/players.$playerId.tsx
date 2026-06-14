@@ -45,10 +45,19 @@ type Profile = {
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
-// A ship is "still destroyed" (uncombat-able) only while repair progress < 30%.
-// Past 30% it sails and fishes again on the owner's side, so it must also be attackable/stealable.
+// A ship is "still destroyed" (uncombat-able) only while current HP is below 30% of max.
+// Past 30% HP it sails and fishes again on the owner's side, so it must also be attackable/stealable.
 const FISH_REPAIR_MIN = 0.30;
-function isShipStillDown(destroyedAt?: string | null, repairEndsAt?: string | null): boolean {
+function isShipStillDown(
+  destroyedAt?: string | null,
+  repairEndsAt?: string | null,
+  hp?: number | null,
+  maxHp?: number | null,
+): boolean {
+  // HP-based rule when available.
+  if (hp != null && maxHp != null && maxHp > 0) {
+    return (hp / maxHp) < FISH_REPAIR_MIN;
+  }
   if (!destroyedAt) return false;
   if (!repairEndsAt) return true;
   const start = new Date(destroyedAt).getTime();
@@ -1266,7 +1275,7 @@ function PlayerPage() {
 
             {mode === "menu" && (() => {
               // "dead" = ship still in early repair (<30%) — past 30% it's fishing and attackable
-              const targetDead = isShipStillDown(selectedShip.destroyed_at, selectedShip.repair_ends_at);
+              const targetDead = isShipStillDown(selectedShip.destroyed_at, selectedShip.repair_ends_at, (selectedShip as any).hp, (selectedShip as any).max_hp);
               const targetFishing = selectedShip.at_sea && !targetDead;
               const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
               const myPvpReady = myPvpCount >= 3;
