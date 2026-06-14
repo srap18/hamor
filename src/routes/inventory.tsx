@@ -41,11 +41,13 @@ function InventoryPage() {
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
-      const [{ data: i }, { data: f }, { data: s }] = await Promise.all([
+      const [{ data: i }, { data: f }, { data: s }, { data: p }] = await Promise.all([
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
+        supabase.from("profiles").select("golden_fisher_until").eq("id", u.user.id).maybeSingle(),
       ]);
+      setGoldenFisherUntil(((p as any)?.golden_fisher_until as string | null) ?? null);
       let stockQty: Record<string, number> = {};
       try {
         const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
