@@ -1226,7 +1226,7 @@ function Index() {
   }, []);
 
 
-  const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt);
+  const isDestroyed = (x: Ship) => isShipBlocked(x.destroyedAt, x.repairEndsAt, x.hp, x.maxHp);
 
   const toggleFishing = (shipId: number) => {
     const target = ships.find((x) => x.id === shipId);
