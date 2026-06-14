@@ -343,9 +343,11 @@ function RootComponent() {
         const fire = async () => {
           if (inFlight || document.visibilityState === "hidden") return;
           inFlight = true;
-          const { data } = await supabase.auth.getSession();
-          if (!data.session?.user) { inFlight = false; return; }
-          try { await recordSession({ data: { deviceId: ensureDeviceId() } }); } catch {}
+          try {
+            const { data } = await supabase.auth.getSession();
+            if (!data.session?.user) return;
+            await recordSession({ data: { deviceId: ensureDeviceId() } });
+          } catch {}
           finally { inFlight = false; }
         };
         fire();
