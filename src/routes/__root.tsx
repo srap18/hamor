@@ -22,6 +22,7 @@ import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
 import { SoftProtection } from "@/components/SoftProtection";
 import { I18nProvider } from "@/lib/i18n";
+import { NetworkRecovery } from "@/components/NetworkRecovery";
 
 
 // Install the server-time clock as early as possible on the client so every
@@ -373,6 +374,7 @@ function RootComponent() {
 
           <LastAttackTicker />
           <GlobalNotificationListener />
+          <NetworkRecovery />
           <EliteVipLoginOverlay />
 
           <Outlet />
