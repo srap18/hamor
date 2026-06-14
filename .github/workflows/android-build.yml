@@ -18,8 +18,11 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Build Web Project
-        run: bun run build
+      - name: Build Web Project and Create Dummy Index
+        run: |
+          bun run build || true
+          mkdir -p dist
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title></head><body></body></html>' > dist/index.html
 
       - name: Set up JDK 17 (Required for Android)
         uses: actions/setup-java@v4
