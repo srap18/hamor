@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { toast } from "sonner";
+import { getAdminOverviewStats } from "@/lib/admin-stats.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
