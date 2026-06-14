@@ -332,7 +332,7 @@ function ShipyardPage() {
                     <span className="font-black">{acceleratingCost} Gems</span>
                   </div>
                   <button onClick={finishWithGems} disabled={busy === "boost"} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-accent-foreground disabled:opacity-50">
-                    <img src={iconGems} alt="Gems" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                    <img src={iconGems} alt="أيقونة الجواهر" className="h-5 w-5" width={512} height={512} loading="lazy" />
                     {busy === "boost" ? "جارٍ التسريع..." : `إنهاء الآن (${acceleratingCost})`}
                   </button>
                   <div className="text-[11px] text-muted-foreground">المعادلة المستخدمة: ceil(seconds_remaining / 60)</div>
