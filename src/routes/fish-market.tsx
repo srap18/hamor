@@ -18,9 +18,9 @@ export const Route = createFileRoute("/fish-market")({
       { name: "description", content: "بِع صيدك في سوق السمك الحي بأسعار متغيرة كل ساعة — لعبة ملوك القراصنة (هامور شابك)." },
       { property: "og:title", content: "سوق السمك — ملوك القراصنة" },
       { property: "og:description", content: "أسعار سمك متغيرة كل ساعة في لعبة ملوك القراصنة (هامور شابك)." },
-      { property: "og:url", content: "https://hamor.lovable.app/fish-market" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/fish-market" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/fish-market" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/fish-market" }],
   }),
   component: FishMarket,
 });

@@ -12,9 +12,9 @@ export const Route = createFileRoute("/pricing")({
       { name: "description", content: "باقات الجواهر، اشتراك VIP، الدروع، وعروض ملوك القراصنة (هامور شابك). دفع آمن عبر Paddle." },
       { property: "og:title", content: "الأسعار — ملوك القراصنة (هامور شابك)" },
       { property: "og:description", content: "جميع باقات الجواهر و VIP والدروع في ملوك القراصنة." },
-      { property: "og:url", content: "https://hamor.lovable.app/pricing" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/pricing" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/pricing" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/pricing" }],
   }),
   component: PricingPage,
 });

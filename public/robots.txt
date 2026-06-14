@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hamor.lovable.app/sitemap.xml
+Sitemap: https://www.molok-alqarasna.com/sitemap.xml

@@ -22,9 +22,9 @@ export const Route = createFileRoute("/shop")({
       { name: "description", content: "متجر ملوك القراصنة (هامور شابك): اشترِ الأسلحة، الطواقم، الحماية، الجواهر، وترقيات السفن للعبة القراصنة العربية." },
       { property: "og:title", content: "متجر ملوك القراصنة (هامور شابك)" },
       { property: "og:description", content: "أسلحة، طواقم، حماية، وجواهر في متجر لعبة ملوك القراصنة." },
-      { property: "og:url", content: "https://hamor.lovable.app/shop" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/shop" },
     ],
-    links: [{ rel: "canonical", href: "https://hamor.lovable.app/shop" }],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/shop" }],
   }),
   component: Shop,
 });
