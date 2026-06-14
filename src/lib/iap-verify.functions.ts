@@ -31,18 +31,19 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
     const { data: existing } = await supabaseAdmin
       .from("paddle_purchases")
       .select("id")
-      .eq("transaction_id", data.transactionId)
+      .eq("paddle_transaction_id", data.transactionId)
       .maybeSingle();
     if (existing) return { ok: true, alreadyGranted: true };
 
     // 2) Record the purchase (audit trail + idempotency key).
     await supabaseAdmin.from("paddle_purchases").insert({
       user_id: userId,
-      transaction_id: data.transactionId,
-      product_id: data.productId,
+      paddle_transaction_id: data.transactionId,
+      pack_id: data.productId,
       status: "completed",
-      source: data.platform === "ios" ? "apple_iap" : "google_play",
-      raw_payload: { receipt: data.receipt, platform: data.platform } as never,
+      environment: data.platform === "ios" ? "apple_iap" : "google_play",
+      granted: true,
+      granted_at: new Date().toISOString(),
     } as never);
 
     // 3) Grant the benefit (mirrors the Paddle webhook logic).
