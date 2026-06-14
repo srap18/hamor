@@ -2685,6 +2685,9 @@ function Index() {
                         )}
                       </div>
                       {owned ? (
+                        {isGlobalCrew && globallyActive && !alreadyOnShip && (
+                          <div className="text-[9px] text-amber-300/80">🔒 {cid === "golden_fisher" ? "مفعّل بالفعل على حسابك" : "مفعّل على سفينة أخرى"}</div>
+                        )}
                         <button
                           disabled={crewBusy || alreadyOnShip || (isGlobalCrew && globallyActive)}
                           onClick={() => {
