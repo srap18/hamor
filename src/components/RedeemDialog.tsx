@@ -37,6 +37,9 @@ const ERR_MSG: Record<string, string> = {
   code_expired: "انتهت صلاحية الكود",
   code_exhausted: "تم استخدام الكود كاملاً",
   already_redeemed: "لقد استخدمت هذا الكود من قبل",
+  "fleet and storage full": "الأسطول والمخزن ممتلئان",
+  "storage full": "المخزن ممتلئ",
+  "fleet full": "الأسطول ممتلئ",
 };
 
 // Arabic name + image lookup for item codes
