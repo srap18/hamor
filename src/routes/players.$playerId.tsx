@@ -1262,7 +1262,8 @@ function PlayerPage() {
             </div>
 
             {mode === "menu" && (() => {
-              const targetDead = !!selectedShip.destroyed_at || (selectedShip.hp ?? 1) <= 0;
+              // "dead" = ship still in early repair (<30%) — past 30% it's fishing and attackable
+              const targetDead = isShipStillDown(selectedShip.destroyed_at, selectedShip.repair_ends_at);
               const targetFishing = selectedShip.at_sea && !targetDead;
               const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
               const myPvpReady = myPvpCount >= 3;
