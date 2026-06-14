@@ -15,6 +15,26 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:url", content: "https://www.molok-alqarasna.com/pricing" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/pricing" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "OfferCatalog",
+          name: "باقات ملوك القراصنة",
+          url: "https://www.molok-alqarasna.com/pricing",
+          inLanguage: "ar",
+          itemListElement: STORE_PACKS.map((p) => ({
+            "@type": "Offer",
+            name: p.title,
+            category: p.category,
+            price: typeof (p as any).priceUsd === "number" ? (p as any).priceUsd : undefined,
+            priceCurrency: typeof (p as any).priceUsd === "number" ? "USD" : undefined,
+            availability: "https://schema.org/InStock",
+          })),
+        }),
+      },
+    ],
   }),
   component: PricingPage,
 });

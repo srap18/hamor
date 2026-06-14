@@ -13,8 +13,28 @@ export const Route = createFileRoute("/news")({
       { name: "description", content: "آخر أخبار وتحديثات لعبة ملوك القراصنة: ميزات جديدة، مسابقات، وعروض حصرية." },
       { property: "og:title", content: "أخبار ملوك القراصنة" },
       { property: "og:url", content: "https://www.molok-alqarasna.com/news" },
+      { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/news" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          name: "أخبار ملوك القراصنة",
+          url: "https://www.molok-alqarasna.com/news",
+          inLanguage: "ar",
+          publisher: { "@type": "Organization", name: "ملوك القراصنة", url: "https://www.molok-alqarasna.com/" },
+          blogPost: news.map((n) => ({
+            "@type": "BlogPosting",
+            headline: n.title,
+            datePublished: n.date,
+            articleBody: n.body,
+          })),
+        }),
+      },
+    ],
   }),
   component: NewsPage,
 });
