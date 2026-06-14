@@ -77,6 +77,7 @@ function FriendsPage() {
       already_sent: "تم إرسال الطلب مسبقاً",
       already_friends: "أنتم أصدقاء بالفعل",
       invalid_target: "طلب غير صالح",
+      blocked: "🚫 لا يمكن إرسال طلب صداقة — يوجد حظر بينكما",
     };
     if (map[code]) alert(map[code]);
     reload();
