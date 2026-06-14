@@ -24,16 +24,16 @@ jobs:
           mkdir -p dist
           echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title></head><body></body></html>' > dist/index.html
 
-      - name: Set up JDK 17 (Required for Android)
+      - name: Set up JDK 21 (Required for modern Android/Gradle)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21' # 👈 التعديل السحري هنا: رفعنا الجافا للإصدار المطلوب 21
 
       - name: Clean and Force Recreate Android Platform
         run: |
-          rm -rf android # 👈 السطر السحري: مسح المجلد القديم المخرب نهائياً
-          npx cap add android # إعادة بناء المجلد من الصفر بالاسم الجديد السليم
+          rm -rf android
+          npx cap add android
           npx cap sync android
           chmod +x android/gradlew
 
