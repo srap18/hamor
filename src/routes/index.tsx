@@ -2686,9 +2686,16 @@ function Index() {
                       </div>
                       {owned ? (
                         <button
-                          disabled={crewBusy || alreadyOnShip}
+                          disabled={crewBusy || alreadyOnShip || (isGlobalCrew && globallyActive)}
                           onClick={() => {
                             if (alreadyOnShip) return;
+                            if (isGlobalCrew && globallyActive) {
+                              sound.play("error");
+                              setToast(cid === "golden_fisher"
+                                ? "🏅 الصياد الذهبي مفعّل بالفعل على حسابك"
+                                : "⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
+                              return;
+                            }
                             if (cid === "golden_fisher") {
                               assignCrew(cid);
                               return;
@@ -2705,16 +2712,13 @@ function Index() {
                                 : "⚠️ السفينة بدمها الكامل (100%) — لا حاجة للإصلاح");
                               return;
                             }
-                            if (isGlobalCrew && globallyActive) {
-                              sound.play("error");
-                              setToast("⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
-                              return;
-                            }
                             assignCrew(cid);
                           }}
                           className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
                             cid === "golden_fisher"
-                              ? "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
+                              ? (globallyActive
+                                  ? "bg-amber-900/40 text-amber-200/70 border border-amber-700/40"
+                                  : "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200")
                               : canAssign && !crewBusy
                                 ? "bg-emerald-600/80 text-white"
                                 : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
@@ -2725,7 +2729,7 @@ function Index() {
                           {crewBusy
                             ? "..."
                             : cid === "golden_fisher"
-                              ? "🏅 تفعيل 24س"
+                              ? (globallyActive ? "مفعّل ✓" : "🏅 تفعيل 24س")
                               : alreadyOnShip
                                 ? "مفعّل ✓"
                                 : isFixer
