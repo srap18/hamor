@@ -4,7 +4,7 @@ import { getProfilePublic } from "@/lib/profiles-public";
 
 export const Route = createFileRoute("/p/$id")({
   ssr: false,
-  head: () => ({ meta: [{ title: "ملف اللاعب — Ocean Catch" }] }),
+  head: ({ params }) => ({ meta: [{ title: `لاعب #${params.id} — ملوك القراصنة` }] }),
   component: PlayerRedirect,
 });
 

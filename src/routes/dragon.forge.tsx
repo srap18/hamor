@@ -12,7 +12,7 @@ import {
 
 export const Route = createFileRoute("/dragon/forge")({
   ssr: false,
-  head: () => ({ meta: [{ title: "⚒️ الفورج — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "⚒️ الفورج — ملوك القراصنة" }] }),
   component: ForgeGate,
 });
 

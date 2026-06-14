@@ -27,7 +27,7 @@ import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
-  head: () => ({ meta: [{ title: "زيارة لاعب — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "زيارة لاعب — ملوك القراصنة" }] }),
   component: PlayerPage,
 });
 

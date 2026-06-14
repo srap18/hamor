@@ -248,7 +248,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
-      { rel: "canonical", href: "https://www.molok-alqarasna.com/" },
+      
       { rel: "preconnect", href: "https://qjwbfkpudysxqtkeouwu.supabase.co", crossOrigin: "" },
       { rel: "dns-prefetch", href: "https://qjwbfkpudysxqtkeouwu.supabase.co" },
     ],

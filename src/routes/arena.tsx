@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/arena")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🏟️ الأرينا — Ocean Catch" }] }),
+  head: () => ({ meta: [{ title: "🏟️ الأرينا — ملوك القراصنة" }] }),
   component: ArenaPage,
 });
 

@@ -11,7 +11,29 @@ type TribeInfo = { id: string; name: string; level: number; emblem: string | nul
 
 export const Route = createFileRoute("/u/$username")({
   ssr: false,
-  head: () => ({ meta: [{ title: "ملف اللاعب — Ocean Catch" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: `ملف اللاعب ${params.username} — ملوك القراصنة` },
+      { name: "description", content: `صفحة اللاعب ${params.username} في لعبة ملوك القراصنة — السفن، الإنجازات، القبيلة، والترتيب.` },
+      { property: "og:title", content: `ملف اللاعب ${params.username} — ملوك القراصنة` },
+      { property: "og:url", content: `https://www.molok-alqarasna.com/u/${params.username}` },
+      { property: "og:type", content: "profile" },
+    ],
+    links: [{ rel: "canonical", href: `https://www.molok-alqarasna.com/u/${params.username}` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          name: `ملف اللاعب ${params.username}`,
+          url: `https://www.molok-alqarasna.com/u/${params.username}`,
+          inLanguage: "ar",
+          mainEntity: { "@type": "Person", name: params.username, alternateName: params.username },
+        }),
+      },
+    ],
+  }),
   component: UserProfilePage,
 });
 
