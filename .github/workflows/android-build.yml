@@ -29,7 +29,7 @@ jobs:
 
       - name: Initialize and Sync Android Platform
         run: |
-          npx cap add android || true
+          [ -d "android" ] || npx cap add android
           npx cap sync android
           chmod +x android/gradlew
 
