@@ -47,6 +47,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
+import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
@@ -252,6 +253,11 @@ const PIdRoute = PIdRouteImport.update({
   path: '/p/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideLegacyPlayersRoute = GuideLegacyPlayersRouteImport.update({
+  id: '/guide/legacy-players',
+  path: '/guide/legacy-players',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DragonForgeRoute = DragonForgeRouteImport.update({
   id: '/forge',
   path: '/forge',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
+  '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -425,6 +432,7 @@ export interface FileRoutesByTo {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
+  '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -480,6 +488,7 @@ export interface FileRoutesById {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
+  '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -536,6 +545,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/weekly-xp'
     | '/dragon/forge'
+    | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/weekly-xp'
     | '/dragon/forge'
+    | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -643,6 +654,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/weekly-xp'
     | '/dragon/forge'
+    | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
     | '/u/$username'
@@ -686,6 +698,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
+  GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -961,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guide/legacy-players': {
+      id: '/guide/legacy-players'
+      path: '/guide/legacy-players'
+      fullPath: '/guide/legacy-players'
+      preLoaderRoute: typeof GuideLegacyPlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dragon/forge': {
       id: '/dragon/forge'
       path: '/forge'
@@ -1140,6 +1160,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
+  GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   UUsernameRoute: UUsernameRoute,
