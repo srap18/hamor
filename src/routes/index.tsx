@@ -137,11 +137,21 @@ function repairProgress(destroyedAt?: string | null, repairEndsAt?: string | nul
   if (total <= 0) return 1;
   return Math.max(0, Math.min(1, (now - start) / total));
 }
-// A ship is "blocked from fishing" only while repair progress is below 30%.
-// Past that point it can sail and fish (with capacity scaled by progress server-side),
-// while continuing to repair in the background.
+// A ship is "blocked from fishing" only while current HP is below 30% of max.
+// Past that point it can sail and fish (capacity scales with HP on the server),
+// even if a repair timer is still ticking in the background.
 const FISH_REPAIR_MIN = 0.30;
-function isShipBlocked(destroyedAt?: string | null, repairEndsAt?: string | null): boolean {
+function isShipBlocked(
+  destroyedAt?: string | null,
+  repairEndsAt?: string | null,
+  hp?: number | null,
+  maxHp?: number | null,
+): boolean {
+  // HP-based rule (preferred): if HP is known, that decides everything.
+  if (hp != null && maxHp != null && maxHp > 0) {
+    return (hp / maxHp) < FISH_REPAIR_MIN;
+  }
+  // Fallback: time-based rule when HP isn't known.
   if (!destroyedAt || !repairEndsAt) return false;
   if (new Date(repairEndsAt).getTime() <= serverNowMs()) return false;
   return repairProgress(destroyedAt, repairEndsAt) < FISH_REPAIR_MIN;
