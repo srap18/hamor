@@ -1185,26 +1185,25 @@ function Index() {
           }
           const { elapsed, activeMult } = getEffectiveFishingElapsed(s, now);
           let ratio = Math.min(1, elapsed / Math.max(1, s.duration));
-          const gfActive =
-            goldenFisherUntilRef.current > now ||
-            crewRowsRef.current.some(
-              (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-            );
-          if (gfActive) {
-            // With Golden Fisher active, ships auto-collect on the server.
-            // Always show them as ready so a refresh between server ticks
-            // doesn't visually drop the bucket back to half then climb again.
-            ratio = 1;
-            if (now - lastGfTickRef.current > 5000) {
-              lastGfTickRef.current = now;
-              tickGoldenFisher({ data: {} }).catch(() => {});
+          if (ratio > 0.99) {
+            const gfActive =
+              goldenFisherUntilRef.current > now ||
+              crewRowsRef.current.some(
+                (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
+              );
+            if (gfActive) {
+              ratio = 0.99;
+              if (now - lastGfTickRef.current > 5000) {
+                lastGfTickRef.current = now;
+                tickGoldenFisher({ data: {} }).catch(() => {});
+              }
             }
           }
           // Same fishing trip should never visually go backwards. On reopen the
           // fleet snapshot may show 13,000 before crew history finishes loading;
           // keep that full value instead of dropping to the unboosted ~6,000.
           const progress = Math.max(s.progress, Math.round(s.max * ratio));
-          const timeLeft = gfActive ? 0 : Math.max(0, (s.duration - elapsed) / activeMult);
+          const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
