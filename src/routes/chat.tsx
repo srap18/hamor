@@ -333,12 +333,20 @@ function ChatPage() {
       _reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
       _reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
     }).then(({ data, error }: { data: any; error: any }) => {
-      // remove optimistic — realtime will deliver the real row if accepted
-      setMsgs(s => s.filter(x => x.id !== tempId));
       if (error) {
+        // remove optimistic on failure only — keep it visible while realtime arrives
+        setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice("تعذر الإرسال: " + (error.message || ""));
         setText(t => t ? t : body);
         return;
+      }
+      // Swap the temp id with the real inserted id so the realtime INSERT dedupes
+      // instead of briefly removing the message and re-adding it (which felt like a hang).
+      const realId = data?.id as string | undefined;
+      if (realId) {
+        setMsgs(s => s.some(x => x.id === realId)
+          ? s.filter(x => x.id !== tempId)
+          : s.map(x => x.id === tempId ? { ...x, id: realId } : x));
       }
       const status = data?.status as string | undefined;
       if (status === "warned") {
