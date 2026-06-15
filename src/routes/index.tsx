@@ -1968,7 +1968,7 @@ function Index() {
             to="/p/$id"
             params={{ id: r.attacker_id }}
             className="absolute z-10 active:scale-95"
-            style={{ left, top, width: "18%" }}
+            style={{ left, top, width: "min(18%, 115px)" }}
           >
             <div
               className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-rose-900/90 border border-rose-400/70 text-rose-100 text-[10px] font-extrabold whitespace-nowrap shadow-lg animate-pulse"
