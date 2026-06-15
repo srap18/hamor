@@ -113,12 +113,100 @@ function TermsPage() {
         تخضع هذه الشروط لقوانين المملكة العربية السعودية، وأي نزاع يُحال إلى المحاكم المختصة فيها.
       </p>
 
-      <h2>12. تواصل معنا</h2>
+      <h2>12. سياسة الاستخدام المقبول (Acceptable Use)</h2>
       <p>
-        لأي استفسار بخصوص هذه الشروط، تواصل معنا عبر دعم اللعبة داخل التطبيق، أو من خلال{" "}
-        <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> للاستفسارات
-        المتعلقة بالفواتير والاسترداد.
+        التزاماً بسياسات شريكنا للدفع <strong>Paddle</strong>
+        (<a href="https://www.paddle.com/legal/terms" target="_blank" rel="noopener noreferrer">شروط Paddle</a>{" "}
+        و<a href="https://www.paddle.com/help/start/intro-to-paddle/what-am-i-not-allowed-to-sell-on-paddle" target="_blank" rel="noopener noreferrer">قائمة المنتجات الممنوعة</a>)،
+        فإننا لا نبيع ولا نسمح باستخدام الخدمة في أيٍّ مما يلي:
       </p>
+      <ul>
+        <li>القمار، الرهانات، اليانصيب، أو أي ألعاب ذات جوائز نقدية حقيقية.</li>
+        <li>تداول العملات الرقمية، NFTs، أو أي أصول مالية أو استثمارية.</li>
+        <li>بيع أو تحويل العناصر داخل اللعبة أو الحسابات مقابل نقد حقيقي خارج المنصة (RMT).</li>
+        <li>المحتوى الإباحي أو الموجّه للبالغين، التبغ، الكحول، الأسلحة، أو المواد الخاضعة للرقابة.</li>
+        <li>المحتوى الذي يحرّض على الكراهية، العنف، أو يستهدف القاصرين.</li>
+        <li>المنتجات المقلّدة، المسروقة، أو التي تنتهك حقوق الملكية الفكرية.</li>
+        <li>الخدمات المالية، الطبية، أو القانونية الخاضعة للترخيص.</li>
+        <li>أي نشاط غير قانوني في بلد البائع أو المشتري.</li>
+      </ul>
+      <p>
+        الخدمة هي <strong>لعبة ترفيهية فقط</strong>؛ جميع المشتريات عبارة عن <strong>عناصر افتراضية</strong>{" "}
+        (جواهر، عملات لعبة، دروع، اشتراك VIP) تُستخدم داخل اللعبة فقط، ولا تمثّل استثماراً ولا قيمة نقدية
+        قابلة للسحب.
+      </p>
+
+      <h2>13. تواصل معنا</h2>
+      <p>
+        البائع: <strong>Amira Qailan Dakhil Allah Alsharari</strong> — المملكة العربية السعودية.<br />
+        للاستفسارات: دعم اللعبة داخل التطبيق، أو{" "}
+        <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> للفواتير والاسترداد.
+      </p>
+
+      <hr style={{ margin: "2rem 0", opacity: 0.3 }} />
+
+      <section dir="ltr" lang="en" style={{ textAlign: "left" }}>
+        <h2>Terms &amp; Conditions (English Summary)</h2>
+        <p>
+          <strong>Molok Al-Qarasna / Hamour Shabek</strong> is an online entertainment game operated by
+          <strong> Amira Qailan Dakhil Allah Alsharari</strong> (the "Seller"). By using the Service you
+          agree to these Terms.
+        </p>
+        <h3>Product</h3>
+        <p>
+          We sell <strong>virtual in-game items only</strong> (gems, coins, shields, cosmetics, VIP
+          subscription). Items have no real-world monetary value and cannot be exchanged for cash, traded
+          for fiat, or withdrawn.
+        </p>
+        <h3>Merchant of Record</h3>
+        <p>
+          Our order process is conducted by our online reseller <strong>Paddle.com</strong>. Paddle.com is
+          the Merchant of Record for all our orders. Paddle provides all customer service inquiries and
+          handles returns. See{" "}
+          <a href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noopener noreferrer">
+            Paddle Buyer Terms
+          </a>.
+        </p>
+        <h3>Acceptable Use — What We Do NOT Sell</h3>
+        <p>
+          In compliance with{" "}
+          <a href="https://www.paddle.com/legal/terms" target="_blank" rel="noopener noreferrer">Paddle's Terms</a>{" "}
+          and{" "}
+          <a href="https://www.paddle.com/help/start/intro-to-paddle/what-am-i-not-allowed-to-sell-on-paddle" target="_blank" rel="noopener noreferrer">
+            Restricted Products list
+          </a>, we do not sell or facilitate:
+        </p>
+        <ul>
+          <li>Gambling, betting, lotteries, or real-money gaming with cash prizes.</li>
+          <li>Cryptocurrency, NFTs, tokens, securities, or investment products.</li>
+          <li>Real-money trading (RMT) of in-game items or accounts.</li>
+          <li>Adult / pornographic content, tobacco, alcohol, weapons, controlled substances.</li>
+          <li>Hate speech, violence, or content targeting minors.</li>
+          <li>Counterfeit, stolen, or IP-infringing goods.</li>
+          <li>Regulated financial, medical, or legal services.</li>
+          <li>Any activity unlawful in the seller's or buyer's jurisdiction.</li>
+        </ul>
+        <h3>Refunds</h3>
+        <p>
+          14-day money-back guarantee with no conditions. Refunds are processed by Paddle. Request via{" "}
+          <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a>.
+        </p>
+        <h3>Subscriptions</h3>
+        <p>
+          VIP subscriptions auto-renew monthly until cancelled. Cancel anytime from in-game settings or via
+          paddle.net.
+        </p>
+        <h3>Account Suspension</h3>
+        <p>
+          We may suspend accounts for: cheating/botting, fraud, chargebacks, RMT, harassment, or breach of
+          these Terms.
+        </p>
+        <h3>Contact</h3>
+        <p>
+          Seller: Amira Qailan Dakhil Allah Alsharari, Saudi Arabia. Support: in-game support, or{" "}
+          <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> for billing.
+        </p>
+      </section>
     </LegalPage>
   );
 }
