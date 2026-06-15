@@ -115,6 +115,47 @@ function PrivacyPage() {
         <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> للاستفسارات
         المتعلقة بالفواتير.
       </p>
+
+      <hr style={{ margin: "2rem 0", opacity: 0.3 }} />
+
+      <section dir="ltr" lang="en" style={{ textAlign: "left" }}>
+        <h2>Privacy Policy for Molok Al-Qarasna</h2>
+        <p><em>Last updated: June 2026</em></p>
+        <p>
+          Welcome to Molok Al-Qarasna ("we," "our," or "us"). We are committed to protecting your personal
+          privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you
+          play our game.
+        </p>
+
+        <h3>1. Information We Collect</h3>
+        <ul>
+          <li><strong>Account Information:</strong> When you create an account, we may store your username,
+            email address, and game progress data.</li>
+          <li><strong>Device Data:</strong> We may collect standard information such as your device type,
+            operating system, and unique device identifiers to optimize game performance.</li>
+        </ul>
+
+        <h3>2. How We Use Your Information</h3>
+        <p>
+          We use the collected data strictly to maintain your game account, save your in-game progress,
+          process secure payments, and provide customer support.
+        </p>
+
+        <h3>3. Third-Party Services</h3>
+        <p>
+          Our app links to secure payment providers and Google Play Services. We do not sell or share your
+          personal data with unauthorized third parties.
+        </p>
+
+        <h3>4. Contact Us</h3>
+        <p>
+          If you have any questions about this Privacy Policy, please contact us through the in-game support,
+          or visit{" "}
+          <a href="https://www.molok-alqarasna.com" target="_blank" rel="noopener noreferrer">
+            www.molok-alqarasna.com
+          </a>.
+        </p>
+      </section>
     </LegalPage>
   );
 }
