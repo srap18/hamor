@@ -3944,7 +3944,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       style={{
         left: `${leftOffset}%`,
         top: ship.top,
-        width: `${22 * ship.scale}%`,
+        width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
         perspective: "800px",
         transformStyle: "preserve-3d",
           transition: isHeavyFxDisabled ? "left 0.35s linear" : "left 0.5s ease-in-out",
