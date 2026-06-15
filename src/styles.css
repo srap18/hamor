@@ -728,30 +728,26 @@ body.paddle-checkout-open .paddle-frame {
 
 @media (min-width: 769px) {
   .mobile-frame-root {
-    background: #000;
+    background: #050b10;
     padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
   }
   .mobile-frame-stage {
     min-height: 100vh;
     min-height: 100dvh;
     width: 100%;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
   }
   .mobile-frame-device {
-    /* Phone-shaped frame on desktop/tablet: keep aspect ratio ~9/19.5,
-       centered, height-constrained. Mobile (<769px) stays full-width. */
-    width: min(440px, calc(var(--app-height, 100dvh) * 9 / 19.5));
+    /* Fill the entire viewport on tablets and desktops — no phone frame. */
+    width: 100%;
     height: var(--app-height, 100dvh);
-    min-height: 0;
-    max-height: 100dvh;
+    min-height: 100dvh;
+    max-height: none;
     overflow: hidden;
-    transform: translateZ(0);
-    border-radius: 28px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255,255,255,0.04);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .mobile-frame-screen {
@@ -760,7 +756,7 @@ body.paddle-checkout-open .paddle-frame {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    border-radius: inherit;
+    border-radius: 0;
   }
   .mobile-frame-notch { display: none; }
 }
