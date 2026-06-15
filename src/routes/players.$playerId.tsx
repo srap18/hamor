@@ -1305,13 +1305,8 @@ function PlayerPage() {
               const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
               const myPvpReady = myPvpCount >= 3;
               const targetProtected = !targetMarketUnlocked;
-              // If the target themselves qualifies to attack (3 ships level 6+ alive
-              // and market unlocked) their shield / golden-fisher is ignored — they
-              // must be attackable. Mirrors the server rule in record_attack.
-              const targetPvpCount = ships.filter((s) => (s.template_id ?? 0) >= 6 && !s.destroyed_at && !s.in_storage).length;
-              const targetCanAttack = targetPvpCount >= 3 && !targetProtected;
               const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
-              const targetShielded = !targetCanAttack && targetShieldedUntil > serverNowMs();
+              const targetShielded = targetShieldedUntil > serverNowMs();
               const blockReason = targetShielded
                 ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
                 : !myPvpReady
