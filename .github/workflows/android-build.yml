@@ -30,12 +30,27 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Generate App Icons and Sync Platform
+      - name: Map Custom Assets and Generate Icons & Splash Screens
         run: |
+          # تهيئة مجلد الأصول الرئيسي
+          mkdir -p assets
+          
+          # 🎯 إعادة تسمية الأيقونة لتتوافق مع متطلبات الأداة الإجبارية
+          if [ -f "assets/icon-only.png" ]; then
+            cp assets/icon-only.png assets/icon.png
+          elif [ -f "icon-only.png" ]; then
+            cp icon-only.png assets/icon.png
+          fi
+
+          # التأكد من ضبط ملفات شاشات الترحيب في مكانها الصحيح لطباعتها
+          if [ -f "splash.png" ] && [ ! -f "assets/splash.png" ]; then cp splash.png assets/splash.png; fi
+          if [ -f "splash-dark.png" ] && [ ! -f "assets/splash-dark.png" ]; then cp splash-dark.png assets/splash-dark.png; fi
+
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # أمر سحري لتوليد وتوزيع الأيقونات الاحترافية للأندرويد تلقائياً
+          
+          # تشغيل أمر توليد الأيقونات وشاشات الترحيب للأندرويد بشكل كامل
           bunx @capacitor/assets generate --android || true
           npx cap sync android
           chmod +x android/gradlew
