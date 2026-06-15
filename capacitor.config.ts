@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.hamor.game',
-  appName: 'hamor',
+  appName: 'ملوك القراصنة', // تم تحديث اسم اللعبة هنا برمجياً لـ Capacitor
   webDir: 'dist',
   server: {
     // الرابط الرسمي الجديد الصحيح 
