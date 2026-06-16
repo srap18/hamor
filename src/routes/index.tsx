@@ -2126,9 +2126,12 @@ function Index() {
                           showToast("لا يمكن بيع آخر سفينة في الأسطول");
                           return;
                         }
-                        if ((s.hp ?? 0) < 100) {
-                          showToast("لا يمكن بيع السفينة وهي بدمٍ أقل من 100 — صلّحها أولاً");
-                          return;
+                        {
+                          const maxHp = s.maxHp ?? 100;
+                          if ((s.hp ?? 0) < maxHp || s.destroyedAt || s.repairEndsAt) {
+                            showToast("لا يمكن بيع السفينة قبل إصلاحها بالكامل");
+                            return;
+                          }
                         }
                         setModal({ kind: "sell", shipId: s.id });
                       }}
