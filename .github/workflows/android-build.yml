@@ -18,32 +18,21 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Prepare Clean Web Directory
-        run: |
-          if [ -d "dist" ]; then rm -rf dist; fi
-          mkdir -p dist
-          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title><script>window.location.href="https://www.molok-alqarasna.com";</script></head><body></body></html>' > dist/index.html
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      # 🛠️ رفع الإصدار لـ 3 لتجاوز قفل المتجر
-      - name: Bump Android Version Code to 3
+      # 🛠️ رفع الإصدار لـ 4 (تأكد دائماً من زيادته عند كل رفع للمتجر)
+      - name: Bump Android Version Code
         run: |
           if [ -f "android/app/build.gradle" ]; then
-            sed -i 's/versionCode [0-9]*/versionCode 3/g' android/app/build.gradle
+            sed -i 's/versionCode [0-9]*/versionCode 4/g' android/app/build.gradle
           fi
 
-      # 🎨 ربط الأيقونات والشاشات الافتتاحية
-      - name: Setup Android Assets
+      - name: Setup Android Assets & Sync
         run: |
-          mkdir -p assets
-          cp icon-only.png assets/icon.png || true
-          cp splash.png assets/splash.png || true
-          cp splash-dark.png assets/splash-dark.png || true
           if [ ! -d "android" ]; then npx cap add android; fi
           bunx @capacitor/assets generate --android || true
           npx cap sync android
@@ -55,35 +44,27 @@ jobs:
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
 
+      # 🚀 البناء القوي مع تنظيف شامل
       - name: Build Android Artifacts
         env:
           SIGNING_STORE_PASSWORD: "HamorGame2026"
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew clean
           ./gradlew bundleRelease
 
-      # ✍️ توقيع الـ AAB (لضمان القبول في المتجر)
+      # ✍️ التوقيع الاحترافي
       - name: Sign AAB
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🔐 إنشاء شهادة التوثيق (PEM)
-      - name: Generate Signing Certificate
-        run: |
-          keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
-          zip -j output.zip ./upload_certificate.pem
-
-      # 📦 رفع جميع المخرجات (APK للموبايل + AAB للمتجر + الشهادات)
+      # 📦 رفع المخرجات
       - name: Upload Final Signed Files
         uses: actions/upload-artifact@v4
         with:
           name: Google-Play-Ready-Builds
           path: |
             ./hamor-play-store.aab
-            ./output.zip
-            ./upload_certificate.pem
-            android/app/build/outputs/apk/debug/app-debug.apk
