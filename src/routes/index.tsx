@@ -2108,7 +2108,7 @@ function Index() {
                     <ActionBtn
                       emoji="👥"
                       label="طاقم"
-                      onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                      onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
                     />
                     {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
                       <ActionBtn
