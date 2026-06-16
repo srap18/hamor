@@ -168,14 +168,17 @@ function AdminTicketsPage() {
           {filtered.map((t) => {
             const cat = CATEGORIES[t.category] ?? CATEGORIES.other;
             const st = STATUSES.find((s) => s.value === t.status) ?? STATUSES[0];
-            const uname = profiles[t.user_id]?.display_name || profiles[t.user_id]?.username || t.user_id.slice(0, 8);
+            const prof = profiles[t.user_id];
+            const dn = prof?.display_name?.trim();
+            const un = prof?.username?.trim();
+            const nameLabel = dn && un ? `${dn} (@${un})` : dn || (un ? `@${un}` : t.user_id.slice(0, 8));
             return (
               <div key={t.id} className="rounded-xl bg-slate-900/70 border border-slate-800 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                   <div>
                     <div className="text-sm font-bold">{cat.icon} {t.subject}</div>
                     <div className="text-[11px] text-slate-400 mt-0.5">
-                      {cat.label} · 👤 {uname} · {new Date(t.created_at).toLocaleString("ar")}
+                      {cat.label} · 👤 {nameLabel} · {new Date(t.created_at).toLocaleString("ar")}
                     </div>
                   </div>
                   <span className={`text-[10px] px-2 py-1 rounded-full border ${st.color}`}>{st.label}</span>
