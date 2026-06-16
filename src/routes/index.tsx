@@ -2606,13 +2606,12 @@ function Index() {
               >✕</button>
               <div className="text-accent font-bold text-base mb-1 text-center">تخصيص طاقم السفينة</div>
               <div className="text-[10px] text-accent/60 text-center mb-3">
-                المستوى {s.level} — {assignedRows.length}/{slots} طاقم مفعّل · مدة التفعيل 24 ساعة
+                المستوى {s.level} — {assignedRows.length} طاقم مفعّل · مدة التفعيل 24 ساعة
               </div>
 
               <div className="text-[11px] text-accent/80 font-bold mb-1">الطواقم المفعّلة</div>
               <div className="space-y-1.5 mb-3">
-                {Array.from({ length: slots }).map((_, i) => {
-                  const r = assignedRows[i];
+                {(assignedRows.length === 0 ? [null] : assignedRows).map((r, i) => {
                   if (!r) {
                     return (
                       <div key={`empty-${i}`} className="rounded-lg border border-dashed border-accent/30 bg-black/20 p-2 text-center text-[11px] text-accent/40">
