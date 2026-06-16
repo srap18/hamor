@@ -74,6 +74,14 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
+      # 🔍 خطوة فحص البصمة الرقمية للتوقيع (للتأكد والاطمئنان العملي)
+      - name: Verify and Print Signature Fingerprint
+        run: |
+          echo "=========================================================="
+          echo "🎯 البصمة الرقمية لملف اللعبة الحالي هي:"
+          keytool -printcert -jarfile ./hamor-play-store.aab | grep SHA256
+          echo "=========================================================="
+
       - name: Upload Final Signed Files to GitHub
         uses: actions/upload-artifact@v4
         with:
