@@ -32,17 +32,13 @@ jobs:
 
       - name: Map Custom Assets and Generate Icons & Splash Screens
         run: |
-          # تهيئة مجلد الأصول الرئيسي
           mkdir -p assets
-          
-          # 🎯 إعادة تسمية الأيقونة لتتوافق مع متطلبات الأداة الإجبارية
           if [ -f "assets/icon-only.png" ]; then
             cp assets/icon-only.png assets/icon.png
           elif [ -f "icon-only.png" ]; then
             cp icon-only.png assets/icon.png
           fi
 
-          # التأكد من ضبط ملفات شاشات الترحيب في مكانها الصحيح لطباعتها
           if [ -f "splash.png" ] && [ ! -f "assets/splash.png" ]; then cp splash.png assets/splash.png; fi
           if [ -f "splash-dark.png" ] && [ ! -f "assets/splash-dark.png" ]; then cp splash-dark.png assets/splash-dark.png; fi
 
@@ -50,17 +46,18 @@ jobs:
             npx cap add android
           fi
           
-          # تشغيل أمر توليد الأيقونات وشاشات الترحيب للأندرويد بشكل كامل
           bunx @capacitor/assets generate --android || true
           npx cap sync android
           chmod +x android/gradlew
 
-      # 🔐 صناعة ملف توقيع جديد وقوي وثابت فوراً بكلمة المرور المحددة
-      - name: Generate Fresh Production Keystore
+      # 🔐 فك تشفير الملف الثابت والموحد الذي حفظناه في الأسرار (التوقيع الجديد والدائم)
+      - name: Decode Production Keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          keytool -genkeypair -v -keystore android/app/hamor-upload-key.keystore -alias hamor-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "HamorGame2026" -keypass "HamorGame2026" -dname "CN=Hamor, O=CodeArabi, C=EG"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
 
-      # 🏗️ بناء ملفات الأندرويد وتمرير المتغيرات بأمان
+      # 🏗️ بناء ملفات الأندرويد بالاعتماد على كلمة السر الثابتة
       - name: Build Android Artifacts (APK & AAB)
         env:
           SIGNING_STORE_PASSWORD: "HamorGame2026"
@@ -70,7 +67,7 @@ jobs:
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
-      # ✍️ توقيع ملف الـ AAB بالشهادة الجديدة التي تم توليدها تلقائياً
+      # ✍️ توقيع التطبيق بالتوقيع الثابت الموحد لضمان قبوله دائماً
       - name: Sign AAB for Google Play Console
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
