@@ -2074,7 +2074,7 @@ function Index() {
                         <ActionBtn
                           emoji="👥"
                           label="طاقم/إصلاح"
-                          onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                          onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
                         />
                       </div>
                     </div>
@@ -2108,7 +2108,7 @@ function Index() {
                     <ActionBtn
                       emoji="👥"
                       label="طاقم"
-                      onClick={() => { setMenuShipId(null); setModal({ kind: "crew", shipId: s.id }); }}
+                      onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
                     />
                     {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
                       <ActionBtn
@@ -2537,19 +2537,33 @@ function Index() {
           const row = availableRows.find((r) => r.item_id === itemId);
           if (!row) { setToast("لم يعد متاحًا — حدّث الصفحة"); return; }
           if (!s.dbId) { setToast("حدّث الأسطول أولاً"); return; }
-          const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
-            _ship_id: s.dbId,
-            _crew_id: itemId,
-          });
-          if (error) {
-            sound.play("error");
-            setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
-            await reloadCrews();
-            return;
-          }
+          // Optimistic: assign instantly in local state so the UI feels snappy.
+          const optimisticExpiresAt = new Date(serverNowMs() + 24 * 3600 * 1000).toISOString();
+          const prevRows = crewRowsRef.current;
+          setCrewRows((rs) => rs.map((r) => r.id === row.id
+            ? { ...r, meta: { ...(r.meta ?? {}), assigned_ship_id: s.dbId, expires_at: optimisticExpiresAt } }
+            : r));
           sound.play("success");
-          await reloadCrews();
-          setCrewTick((t) => t + 1);
+          // Free the UI lock immediately — server call continues in background.
+          crewBusyRef.current = false;
+          setCrewBusy(false);
+          (async () => {
+            const { error } = await (supabase as any).rpc("assign_crew_to_ship", {
+              _ship_id: s.dbId,
+              _crew_id: itemId,
+            });
+            if (error) {
+              // Rollback on failure
+              setCrewRows(prevRows);
+              sound.play("error");
+              setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
+              await reloadCrews();
+              return;
+            }
+            await reloadCrews();
+            setCrewTick((t) => t + 1);
+          })();
+          return;
           } finally {
             crewBusyRef.current = false;
             setCrewBusy(false);
