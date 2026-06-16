@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { BackButton } from "@/components/BackButton";
+import { SupportTicketChat } from "@/components/SupportTicketChat";
+
 
 export const Route = createFileRoute("/support")({
   component: SupportPage,
