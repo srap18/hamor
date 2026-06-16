@@ -30,11 +30,11 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      # 🛠️ تحديث الإصدار التلقائي
-      - name: Bump Android Version Code to 2
+      # 🛠️ زيادة الإصدار إلى 3 لتجاوز خطأ التكرار
+      - name: Bump Android Version Code to 3
         run: |
           if [ -f "android/app/build.gradle" ]; then
-            sed -i 's/versionCode 1/versionCode 2/g' android/app/build.gradle
+            sed -i 's/versionCode [0-9]*/versionCode 3/g' android/app/build.gradle
           fi
 
       - name: Setup Android Assets
@@ -57,23 +57,24 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
+          # بناء نسخة الـ Debug (للاختبار) و الـ Release (للمتجر)
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
-      # ✍️ توقيع التطبيق بقوة (Sign)
+      # ✍️ توقيع الـ AAB بقوة
       - name: Sign AAB
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🔐 توليد الشهادة المطلوبة (PEM) وضغطها في ملف (Zip) ليرضى المتجر
-      - name: Finalize Signing Certificates
+      # 🔐 توليد شهادة PEM ليرتاح المتجر (بدون ملفات مشبوهة)
+      - name: Generate Signing Certificate
         run: |
           keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
           zip -j output.zip ./upload_certificate.pem
-          echo "تم توليد الشهادات بنجاح."
 
+      # 📦 رفع النتائج النهائية
       - name: Upload Final Signed Files
         uses: actions/upload-artifact@v4
         with:
@@ -82,3 +83,4 @@ jobs:
             ./hamor-play-store.aab
             ./output.zip
             ./upload_certificate.pem
+            android/app/build/outputs/apk/debug/app-debug.apk
