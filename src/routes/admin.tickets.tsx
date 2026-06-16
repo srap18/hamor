@@ -43,7 +43,7 @@ type Ticket = {
 function AdminTicketsPage() {
   const { session } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, { username: string | null }>>({});
+  const [profiles, setProfiles] = useState<Record<string, { username: string | null; display_name: string | null }>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -68,10 +68,10 @@ function AdminTicketsPage() {
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
-        .select("user_id, username")
-        .in("user_id", userIds);
-      const map: Record<string, { username: string | null }> = {};
-      profs?.forEach((p: any) => { map[p.user_id] = { username: p.username }; });
+        .select("id, username, display_name")
+        .in("id", userIds);
+      const map: Record<string, { username: string | null; display_name: string | null }> = {};
+      profs?.forEach((p: any) => { map[p.id] = { username: p.username, display_name: p.display_name }; });
       setProfiles(map);
     }
 
@@ -168,7 +168,7 @@ function AdminTicketsPage() {
           {filtered.map((t) => {
             const cat = CATEGORIES[t.category] ?? CATEGORIES.other;
             const st = STATUSES.find((s) => s.value === t.status) ?? STATUSES[0];
-            const uname = profiles[t.user_id]?.username ?? t.user_id.slice(0, 8);
+            const uname = profiles[t.user_id]?.display_name || profiles[t.user_id]?.username || t.user_id.slice(0, 8);
             return (
               <div key={t.id} className="rounded-xl bg-slate-900/70 border border-slate-800 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
