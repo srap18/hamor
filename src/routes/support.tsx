@@ -98,6 +98,16 @@ function SupportPage() {
     const msg = message.trim();
     if (sub.length < 3) { toast.error("الرجاء كتابة عنوان واضح"); return; }
     if (msg.length < 10) { toast.error("الرجاء كتابة وصف لا يقل عن 10 أحرف"); return; }
+    // Block more than one open ticket per user
+    const { count: openCount } = await supabase
+      .from("support_tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", session.user.id)
+      .in("status", ["open", "in_progress"]);
+    if ((openCount ?? 0) > 0) {
+      toast.error("لديك تذكرة مفتوحة بالفعل — انتظر إغلاقها قبل فتح تذكرة جديدة");
+      return;
+    }
     setSubmitting(true);
     try {
       let imagePath: string | null = null;
