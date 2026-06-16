@@ -18,7 +18,7 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Prepare Clean Dummy Web Directory
+      - name: Prepare Clean Web Directory
         run: |
           if [ -d "dist" ]; then rm -rf dist; fi
           mkdir -p dist
@@ -30,16 +30,20 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      # 🛠️ زيادة الإصدار إلى 3 لتجاوز خطأ التكرار
+      # 🛠️ رفع الإصدار لـ 3 لتجاوز قفل المتجر
       - name: Bump Android Version Code to 3
         run: |
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/versionCode [0-9]*/versionCode 3/g' android/app/build.gradle
           fi
 
+      # 🎨 ربط الأيقونات والشاشات الافتتاحية
       - name: Setup Android Assets
         run: |
           mkdir -p assets
+          cp icon-only.png assets/icon.png || true
+          cp splash.png assets/splash.png || true
+          cp splash-dark.png assets/splash-dark.png || true
           if [ ! -d "android" ]; then npx cap add android; fi
           bunx @capacitor/assets generate --android || true
           npx cap sync android
@@ -57,24 +61,23 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # بناء نسخة الـ Debug (للاختبار) و الـ Release (للمتجر)
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
-      # ✍️ توقيع الـ AAB بقوة
+      # ✍️ توقيع الـ AAB (لضمان القبول في المتجر)
       - name: Sign AAB
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🔐 توليد شهادة PEM ليرتاح المتجر (بدون ملفات مشبوهة)
+      # 🔐 إنشاء شهادة التوثيق (PEM)
       - name: Generate Signing Certificate
         run: |
           keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
           zip -j output.zip ./upload_certificate.pem
 
-      # 📦 رفع النتائج النهائية
+      # 📦 رفع جميع المخرجات (APK للموبايل + AAB للمتجر + الشهادات)
       - name: Upload Final Signed Files
         uses: actions/upload-artifact@v4
         with:
