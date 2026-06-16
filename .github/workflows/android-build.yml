@@ -55,30 +55,26 @@ jobs:
           npx cap sync android
           chmod +x android/gradlew
 
-      # 🔐 خطوة فك تشفير مستند الـ Keystore الأصلي والثابت داخل مجلد android/app مباشرة
-      - name: Decode Production Keystore
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      # 🔐 صناعة ملف توقيع جديد وقوي وثابت فوراً بكلمة المرور المحددة
+      - name: Generate Fresh Production Keystore
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
+          keytool -genkeypair -v -keystore android/app/hamor-upload-key.keystore -alias hamor-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "HamorGame2026" -keypass "HamorGame2026" -dname "CN=Hamor, O=CodeArabi, C=EG"
 
-      # 🏗️ بناء الملفات مع تمرير متغيرات كلمة المرور بأمان أثناء البناء
+      # 🏗️ بناء ملفات الأندرويد وتمرير المتغيرات بأمان
       - name: Build Android Artifacts (APK & AAB)
         env:
-          SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
+          SIGNING_STORE_PASSWORD: "HamorGame2026"
+          SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
-      # ✍️ توقيع ملف الـ AAB باستخدام الشهادة من مسارها الصحيح داخل المجلد لقراءتها بنجاح
+      # ✍️ توقيع ملف الـ AAB بالشهادة الجديدة التي تم توليدها تلقائياً
       - name: Sign AAB for Google Play Console
-        env:
-          RELEASE_PASSWORD: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "$RELEASE_PASSWORD" -keypass "$RELEASE_PASSWORD" $AAB_FILE hamor-key-alias
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
       - name: Upload Final Signed Files to GitHub
@@ -88,7 +84,4 @@ jobs:
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             ./hamor-play-store.aab
-            android/app/hamor-upload-key.keystore          path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            ./hamor-play-store.aab
-            ./hamor-upload-key.keystore
+            android/app/hamor-upload-key.keystore
