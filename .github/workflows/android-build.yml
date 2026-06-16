@@ -20,7 +20,7 @@ jobs:
 
       - name: Prepare Clean Dummy Web Directory for Ultra-Light Size
         run: |
-          rm -rf dist
+          if [ -d "dist" ]; then rm -rf dist; fi
           mkdir -p dist
           echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title><script>window.location.href="https://www.molok-alqarasna.com";</script></head><body></body></html>' > dist/index.html
 
@@ -81,11 +81,24 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🤐 خطوة التشفير التلقائي وإنتاج ملف الـ Zip وأيضاً الـ PEM المطلوبين
+      # 🤐 خطوة التشفير التلقائي وإنتاج ملف الـ Zip وأيضاً الـ PEM المطلوبين (تم إصلاح الخطأ هنا)
       - name: Download PEPK and Generate Encryption Zip and PEM
         run: |
-          # 1. تحميل أداة التشفير الرسمية من جوجل بلاي
           curl -L -o pepk.jar https://storage.googleapis.com/android-developers/tools/play-encrypt-private-key/pepk.jar
+          curl -L -o encryption_public_key.pem https://storage.googleapis.com/android-developers/keys/play_public_key.pem
+          java -jar pepk.jar --keystore=android/app/hamor-upload-key.keystore --alias=hamor-key-alias --output=output.zip --include-cert --rsa-aes-encryption --encryption-key-path=encryption_public_key.pem --storepass="HamorGame2026" --keypass="HamorGame2026"
+          keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
+
+      - name: Upload Final Signed Files to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: Google-Play-Ready-Builds
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            ./hamor-play-store.aab
+            android/app/hamor-upload-key.keystore
+            ./output.zip
+            ./upload_certificate.pem          curl -L -o pepk.jar https://storage.googleapis.com/android-developers/tools/play-encrypt-private-key/pepk.jar
           
           # 2. تحميل المفتاح العام للتشفير الافتراضي الخاص بجوجل
           curl -L -o encryption_public_key.pem https://storage.googleapis.com/android-developers/keys/play_public_key.pem
