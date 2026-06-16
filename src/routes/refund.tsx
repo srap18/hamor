@@ -48,15 +48,24 @@ function RefundPage() {
 
       <h2>2. كيفية طلب الاسترداد</h2>
       <p>
-        تتم معالجة المدفوعات والاستردادات عبر شريكنا <strong>Paddle</strong> (تاجر التسجيل / Merchant of Record). لطلب الاسترداد:
+        تختلف طريقة طلب الاسترداد بحسب المنصّة التي اشتريت منها:
       </p>
       <ul>
         <li>
-          ادخل إلى{" "}
+          <strong>الشراء عبر الويب (Paddle)</strong>: ادخل إلى{" "}
           <a href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> وأدخل بريدك
-          الإلكتروني المستخدم في الشراء.
+          الإلكتروني المستخدم في الشراء، أو تواصل مع دعم اللعبة وسنحوّل طلبك إلى Paddle (تاجر التسجيل / Merchant of Record).
         </li>
-        <li>أو تواصل مع دعم اللعبة من داخل التطبيق وسنحوّل طلبك إلى Paddle.</li>
+        <li>
+          <strong>الشراء داخل تطبيق Android (Google Play)</strong>: تتم الاستردادات عبر متجر Google Play من
+          خلال <a href="https://play.google.com/store/account/orderhistory" target="_blank" rel="noopener noreferrer">سجل
+          الطلبات</a>، أو تواصل مع دعم Google Play. تخضع المشتريات لسياسة استرداد Google Play.
+        </li>
+        <li>
+          <strong>الشراء داخل تطبيق iPhone / iPad (Apple)</strong>: تتم الاستردادات عبر Apple من{" "}
+          <a href="https://reportaproblem.apple.com" target="_blank" rel="noopener noreferrer">reportaproblem.apple.com</a>.
+          تخضع المشتريات لسياسة استرداد Apple.
+        </li>
       </ul>
       <p>
         تتم معالجة الاسترداد عادة خلال 5 إلى 10 أيام عمل وتُعاد المبالغ إلى وسيلة الدفع الأصلية.
