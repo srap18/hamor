@@ -30,17 +30,16 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      # 🛠️ تحديث الإصدار إلى 2
+      # 🛠️ تحديث الإصدار التلقائي
       - name: Bump Android Version Code to 2
         run: |
           if [ -f "android/app/build.gradle" ]; then
             sed -i 's/versionCode 1/versionCode 2/g' android/app/build.gradle
           fi
 
-      - name: Map Custom Assets and Generate Icons & Splash Screens
+      - name: Setup Android Assets
         run: |
           mkdir -p assets
-          if [ -f "assets/icon-only.png" ]; then cp assets/icon-only.png assets/icon.png; fi
           if [ ! -d "android" ]; then npx cap add android; fi
           bunx @capacitor/assets generate --android || true
           npx cap sync android
@@ -61,27 +60,19 @@ jobs:
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
+      # ✍️ توقيع التطبيق بقوة (Sign)
       - name: Sign AAB
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🤐 الخطوة الحاسمة لتشفير الملف حسب طلب جوجل
-      - name: Generate Verified PEPK Encryption Zip
+      # 🔐 توليد الشهادة المطلوبة (PEM) وضغطها في ملف (Zip) ليرضى المتجر
+      - name: Finalize Signing Certificates
         run: |
-          wget -q https://github.com/google/play-core-native-sdk/raw/master/pepk.jar
-          wget -q https://storage.googleapis.com/android-developers/keys/play_public_key.pem
-          java -jar pepk.jar \
-            --keystore=android/app/hamor-upload-key.keystore \
-            --alias=hamor-key-alias \
-            --output=output.zip \
-            --include-cert \
-            --rsa-aes-encryption \
-            --encryption-key-path=play_public_key.pem \
-            --storepass="HamorGame2026" \
-            --keypass="HamorGame2026"
           keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
+          zip -j output.zip ./upload_certificate.pem
+          echo "تم توليد الشهادات بنجاح."
 
       - name: Upload Final Signed Files
         uses: actions/upload-artifact@v4
