@@ -68,10 +68,10 @@ function AdminTicketsPage() {
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
-        .select("user_id, username")
-        .in("user_id", userIds);
-      const map: Record<string, { username: string | null }> = {};
-      profs?.forEach((p: any) => { map[p.user_id] = { username: p.username }; });
+        .select("id, username, display_name")
+        .in("id", userIds);
+      const map: Record<string, { username: string | null; display_name: string | null }> = {};
+      profs?.forEach((p: any) => { map[p.id] = { username: p.username, display_name: p.display_name }; });
       setProfiles(map);
     }
 
