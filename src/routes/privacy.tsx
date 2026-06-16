@@ -46,7 +46,15 @@ function PrivacyPage() {
         <li><strong>بيانات اللعب</strong>: الإحصائيات، التقدّم، السفن، الجواهر، سجل المعارك والمحادثات.</li>
         <li><strong>بيانات تقنية</strong>: عنوان IP، نوع الجهاز والمتصفح، معرّفات الجلسة، بيانات الاستخدام.</li>
         <li><strong>بيانات الدعم</strong>: الرسائل التي ترسلها لنا عبر الدعم.</li>
-        <li><strong>بيانات الدفع</strong>: تُعالَج مباشرة لدى مزوّد الدفع ولا نخزّن بيانات بطاقتك لدينا.</li>
+        <li>
+          <strong>بيانات الدفع</strong>: لا نخزّن بيانات بطاقتك لدينا. تُعالَج مباشرة لدى مزوّد الدفع بحسب
+          المنصّة:
+          <ul>
+            <li>على الويب: عبر <strong>Paddle</strong> (تاجر التسجيل / Merchant of Record).</li>
+            <li>على تطبيق <strong>Android</strong>: عبر <strong>Google Play Billing</strong> (متجر Google Play).</li>
+            <li>على تطبيق <strong>iPhone / iPad</strong>: عبر <strong>Apple In-App Purchase</strong> (نظام شراء Apple).</li>
+          </ul>
+        </li>
       </ul>
 
       <h2>2. أغراض الاستخدام والأساس القانوني</h2>
@@ -62,6 +70,15 @@ function PrivacyPage() {
       <ul>
         <li><strong>مزوّدو الخدمة (Subprocessors)</strong>: استضافة سحابية، قواعد بيانات، تحليلات، وأدوات
           دعم العملاء — جميعهم ملتزمون بالسرية وحماية البيانات.
+        </li>
+        <li>
+          <strong>مزوّدو الدفع (تاجر التسجيل / Merchant of Record)</strong>: لمعالجة عمليات البيع، إدارة
+          الاشتراكات، الفوترة، الامتثال الضريبي، وإصدار الفواتير — بحسب المنصّة:
+          <ul>
+            <li>على الويب: <strong>Paddle</strong>.</li>
+            <li>على تطبيق <strong>Android</strong>: <strong>Google Play Billing</strong>.</li>
+            <li>على تطبيق <strong>iPhone / iPad</strong>: <strong>Apple In-App Purchase</strong>.</li>
+          </ul>
         </li>
         <li><strong>المستشارون المهنيون</strong>: محامون ومحاسبون عند الضرورة.</li>
         <li><strong>السلطات المختصّة</strong>: عند طلب قانوني صريح.</li>
