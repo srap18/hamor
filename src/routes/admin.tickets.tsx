@@ -41,6 +41,7 @@ type Ticket = {
 };
 
 function AdminTicketsPage() {
+  const { session } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { username: string | null }>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
@@ -48,9 +49,10 @@ function AdminTicketsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
+  const [openChat, setOpenChat] = useState<Record<string, boolean>>({});
 
   const load = async () => {
+
     setLoading(true);
     const { data, error } = await supabase
       .from("support_tickets")
