@@ -190,19 +190,30 @@ function AdminTicketsPage() {
                 )}
 
                 <div className="space-y-2 mb-3">
-                  <label className="text-[11px] text-slate-400">رد الإدارة (يظهر للاعب):</label>
-                  <textarea
-                    defaultValue={t.admin_note ?? ""}
-                    onChange={(e) => setNoteDraft((p) => ({ ...p, [t.id]: e.target.value }))}
-                    rows={2}
-                    className="w-full px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs"
-                    placeholder="اكتب رداً اختيارياً..."
-                  />
-                  <button
-                    onClick={() => saveNote(t.id)}
-                    className="text-xs px-3 py-1 rounded bg-emerald-700 hover:bg-emerald-600"
-                  >حفظ الرد</button>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] text-slate-400">💬 محادثة مع اللاعب:</label>
+                    <button
+                      onClick={() => setOpenChat((p) => ({ ...p, [t.id]: !p[t.id] }))}
+                      className="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                    >
+                      {openChat[t.id] ? "إخفاء" : "فتح المحادثة"}
+                    </button>
+                  </div>
+                  {openChat[t.id] && session?.user.id && (
+                    <SupportTicketChat
+                      ticketId={t.id}
+                      currentUserId={session.user.id}
+                      asAdmin={true}
+                      ticketOwnerId={t.user_id}
+                    />
+                  )}
+                  {t.admin_note && (
+                    <div className="p-2 rounded bg-emerald-900/30 border border-emerald-700/50 text-[11px] text-emerald-200">
+                      <span className="font-bold">ملاحظة قديمة: </span>{t.admin_note}
+                    </div>
+                  )}
                 </div>
+
 
                 <div className="flex flex-wrap gap-2">
                   {STATUSES.filter((s) => s.value !== t.status).map((s) => (
