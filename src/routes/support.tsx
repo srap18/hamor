@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { BackButton } from "@/components/BackButton";
+import { SupportTicketChat } from "@/components/SupportTicketChat";
+
 
 export const Route = createFileRoute("/support")({
   component: SupportPage,
@@ -252,7 +254,18 @@ function SupportPage() {
                         <span className="font-bold">📩 رد الإدارة: </span>{t.admin_note}
                       </div>
                     )}
+                    {session?.user.id && (
+                      <div className="mt-3">
+                        <SupportTicketChat
+                          ticketId={t.id}
+                          currentUserId={session.user.id}
+                          asAdmin={false}
+                          ticketOwnerId={session.user.id}
+                        />
+                      </div>
+                    )}
                   </div>
+
                 );
               })}
             </div>

@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { SupportTicketChat } from "@/components/SupportTicketChat";
+import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/admin/tickets")({
   component: AdminTicketsPage,
@@ -38,6 +41,7 @@ type Ticket = {
 };
 
 function AdminTicketsPage() {
+  const { session } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [profiles, setProfiles] = useState<Record<string, { username: string | null }>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
@@ -45,9 +49,10 @@ function AdminTicketsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
+  const [openChat, setOpenChat] = useState<Record<string, boolean>>({});
 
   const load = async () => {
+
     setLoading(true);
     const { data, error } = await supabase
       .from("support_tickets")
@@ -101,15 +106,8 @@ function AdminTicketsPage() {
     toast.success("تم تحديث الحالة");
   };
 
-  const saveNote = async (id: string) => {
-    const note = noteDraft[id]?.trim() ?? "";
-    const { error } = await supabase.from("support_tickets").update({ admin_note: note || null }).eq("id", id);
-    if (error) { toast.error("فشل الحفظ"); return; }
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, admin_note: note || null } : t)));
-    toast.success("تم حفظ الرد");
-  };
-
   const remove = async (t: Ticket) => {
+
     const ok = await confirmDialog({
       title: "حذف التذكرة",
       message: "سيتم حذف التذكرة والصورة المرفقة نهائياً.",
@@ -192,19 +190,30 @@ function AdminTicketsPage() {
                 )}
 
                 <div className="space-y-2 mb-3">
-                  <label className="text-[11px] text-slate-400">رد الإدارة (يظهر للاعب):</label>
-                  <textarea
-                    defaultValue={t.admin_note ?? ""}
-                    onChange={(e) => setNoteDraft((p) => ({ ...p, [t.id]: e.target.value }))}
-                    rows={2}
-                    className="w-full px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs"
-                    placeholder="اكتب رداً اختيارياً..."
-                  />
-                  <button
-                    onClick={() => saveNote(t.id)}
-                    className="text-xs px-3 py-1 rounded bg-emerald-700 hover:bg-emerald-600"
-                  >حفظ الرد</button>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] text-slate-400">💬 محادثة مع اللاعب:</label>
+                    <button
+                      onClick={() => setOpenChat((p) => ({ ...p, [t.id]: !p[t.id] }))}
+                      className="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                    >
+                      {openChat[t.id] ? "إخفاء" : "فتح المحادثة"}
+                    </button>
+                  </div>
+                  {openChat[t.id] && session?.user.id && (
+                    <SupportTicketChat
+                      ticketId={t.id}
+                      currentUserId={session.user.id}
+                      asAdmin={true}
+                      ticketOwnerId={t.user_id}
+                    />
+                  )}
+                  {t.admin_note && (
+                    <div className="p-2 rounded bg-emerald-900/30 border border-emerald-700/50 text-[11px] text-emerald-200">
+                      <span className="font-bold">ملاحظة قديمة: </span>{t.admin_note}
+                    </div>
+                  )}
                 </div>
+
 
                 <div className="flex flex-wrap gap-2">
                   {STATUSES.filter((s) => s.value !== t.status).map((s) => (
