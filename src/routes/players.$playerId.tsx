@@ -1421,6 +1421,7 @@ function PlayerPage() {
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
                       // ─── Success: now play FX + apply local view ───
+                      try { window.dispatchEvent(new CustomEvent("ad-bomb:created")); } catch { /* noop */ }
                       sound.play("nuke");
                       const cx = window.innerWidth / 2;
                       const cy = window.innerHeight / 2;
