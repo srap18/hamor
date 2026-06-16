@@ -1193,11 +1193,18 @@ function Index() {
               );
             if (gfActive) {
               ratio = 0.99;
-              if (now - lastGfTickRef.current > 5000) {
+              if (now - lastGfTickRef.current > 800) {
                 lastGfTickRef.current = now;
-                tickGoldenFisher({ data: {} }).catch(() => {});
+                tickGoldenFisher({ data: {} })
+                  .then((res: any) => {
+                    if (res && (res.cycles > 0 || res.ships > 0)) {
+                      syncFleetFromDb();
+                    }
+                  })
+                  .catch(() => {});
               }
             }
+
           }
           // Same fishing trip should never visually go backwards. On reopen the
           // fleet snapshot may show 13,000 before crew history finishes loading;
