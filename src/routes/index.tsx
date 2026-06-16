@@ -2376,7 +2376,7 @@ function Index() {
       {modal?.kind === "crew" && (() => {
         const s = ships.find((x) => x.id === modal.shipId);
         if (!s) return null;
-        const slots = Math.min(3, Math.floor(s.level / 5) + 1); // lvl1-4:1, 5-9:2, 10+:3
+        const slots = 999; // unlimited crew slots — dedup enforced separately
         const assignedRows = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
         // available = rows not assigned to any ship (or assigned-but-expired already purged)
         const availableRows = crewRows.filter((r) => r.meta?.assigned_ship_id == null);
