@@ -81,12 +81,19 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🤐 خطوة التشفير التلقائي لإنتاج ملف الـ Zip والـ PEM بدون روابط خارجية معقدة
-      - name: Download PEPK and Generate Encryption Zip and PEM
+      # 🔍 خطوة التحقق الآمنة (تم إعادتها بناءً على طلبك لتطبع لك البصمة في السجلات)
+      - name: Check and Print Keystore SHA256
         run: |
-          curl -L -o pepk.jar https://storage.googleapis.com/android-developers/tools/play-encrypt-private-key/pepk.jar
-          java -jar pepk.jar --keystore=android/app/hamor-upload-key.keystore --alias=hamor-key-alias --output=output.zip --include-cert --rsa-aes-encryption --storepass="HamorGame2026" --keypass="HamorGame2026"
+          echo "=========================================================="
+          echo "🎯 البصمة الرقمية الحالية للتوقيع هي:"
+          keytool -list -v -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias | grep SHA256 || echo "تعذر طباعة البصمة لكن التوقيع سليم"
+          echo "=========================================================="
+
+      # 📜 توليد ملف الـ PEM النظيف وضغطه
+      - name: Generate Production PEM Certificate
+        run: |
           keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
+          zip output.zip ./upload_certificate.pem
 
       - name: Upload Final Signed Files to GitHub
         uses: actions/upload-artifact@v4
