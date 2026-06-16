@@ -254,7 +254,18 @@ function SupportPage() {
                         <span className="font-bold">📩 رد الإدارة: </span>{t.admin_note}
                       </div>
                     )}
+                    {session?.user.id && (
+                      <div className="mt-3">
+                        <SupportTicketChat
+                          ticketId={t.id}
+                          currentUserId={session.user.id}
+                          asAdmin={false}
+                          ticketOwnerId={session.user.id}
+                        />
+                      </div>
+                    )}
                   </div>
+
                 );
               })}
             </div>
