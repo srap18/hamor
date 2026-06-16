@@ -92,6 +92,8 @@ export function AdBombOverlay({
       if (!cancelled) setBomb((data as AdBomb | null) ?? null);
     };
     load();
+    // Poll briefly as a safety net in case Realtime is delayed.
+    const poll = setInterval(load, 4000);
 
     const channelName = global ? "ad-bombs:global" : `ad-bombs:${targetUserId}`;
     const filter = global ? undefined : `target_user_id=eq.${targetUserId}`;
@@ -104,8 +106,15 @@ export function AdBombOverlay({
       )
       .subscribe();
 
+    // Instant local trigger: when this device just launched a bomb, reload
+    // immediately instead of waiting for Realtime to round-trip.
+    const onLocal = () => load();
+    window.addEventListener("ad-bomb:created", onLocal);
+
     return () => {
       cancelled = true;
+      clearInterval(poll);
+      window.removeEventListener("ad-bomb:created", onLocal);
       supabase.removeChannel(ch);
     };
   }, [targetUserId, global]);
