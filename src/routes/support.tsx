@@ -66,6 +66,7 @@ function SupportPage() {
     const { data, error } = await supabase
       .from("support_tickets")
       .select("id, category, subject, message, image_path, status, admin_note, created_at")
+      .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });
     setLoading(false);
     if (error) { toast.error("تعذر تحميل التذاكر"); return; }
