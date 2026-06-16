@@ -67,7 +67,7 @@ jobs:
           ./gradlew assembleDebug
           ./gradlew bundleRelease
 
-      # ✍️ توقيع التطبيق بالتوقيع الثابت الموحد لضمان قبوله دائماً
+      # ✍️توقيع التطبيق بالتوقيع الثابت الموحد لضمان قبوله دائماً
       - name: Sign AAB for Google Play Console
         run: |
           AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
