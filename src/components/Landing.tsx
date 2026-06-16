@@ -67,13 +67,6 @@ export function Landing() {
           ))}
         </section>
 
-        <section className="rounded-xl border border-amber-400/20 bg-stone-900/60 p-6 text-right">
-          <h2 className="text-xl font-bold text-amber-300 mb-2">عمليات الدفع</h2>
-          <p className="text-sm text-amber-100/80 leading-relaxed">
-            عمليات الشراء داخل اللعبة تتم بأمان عبر مزوّد الدفع Paddle بصفته بائع التسجيل
-            (Merchant of Record). جميع المعاملات مشفرة عبر HTTPS.
-          </p>
-        </section>
       </main>
 
       <footer className="border-t border-amber-400/10 py-6 mt-10">

@@ -34,6 +34,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FishMarketRouteImport } from './routes/fish-market'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DragonRouteImport } from './routes/dragon'
+import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -186,6 +187,11 @@ const FaqRoute = FaqRouteImport.update({
 const DragonRoute = DragonRouteImport.update({
   id: '/dragon',
   path: '/dragon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeleteAccountRoute = DeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CosmeticsRoute = CosmeticsRouteImport.update({
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dragon': typeof DragonRouteWithChildren
   '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dragon': typeof DragonRouteWithChildren
   '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
@@ -451,6 +459,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/competitions': typeof CompetitionsRoute
   '/cosmetics': typeof CosmeticsRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/dragon': typeof DragonRouteWithChildren
   '/faq': typeof FaqRoute
   '/fish-market': typeof FishMarketRoute
@@ -508,6 +517,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/delete-account'
     | '/dragon'
     | '/faq'
     | '/fish-market'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/delete-account'
     | '/dragon'
     | '/faq'
     | '/fish-market'
@@ -617,6 +628,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/competitions'
     | '/cosmetics'
+    | '/delete-account'
     | '/dragon'
     | '/faq'
     | '/fish-market'
@@ -673,6 +685,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   CompetitionsRoute: typeof CompetitionsRoute
   CosmeticsRoute: typeof CosmeticsRoute
+  DeleteAccountRoute: typeof DeleteAccountRoute
   DragonRoute: typeof DragonRouteWithChildren
   FaqRoute: typeof FaqRoute
   FishMarketRoute: typeof FishMarketRoute
@@ -881,6 +894,13 @@ declare module '@tanstack/react-router' {
       path: '/dragon'
       fullPath: '/dragon'
       preLoaderRoute: typeof DragonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delete-account': {
+      id: '/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof DeleteAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cosmetics': {
@@ -1135,6 +1155,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   CompetitionsRoute: CompetitionsRoute,
   CosmeticsRoute: CosmeticsRoute,
+  DeleteAccountRoute: DeleteAccountRoute,
   DragonRoute: DragonRouteWithChildren,
   FaqRoute: FaqRoute,
   FishMarketRoute: FishMarketRoute,
