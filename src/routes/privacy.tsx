@@ -60,10 +60,6 @@ function PrivacyPage() {
 
       <h2>3. مشاركة البيانات</h2>
       <ul>
-        <li><strong>Paddle</strong> — تاجر التسجيل (Merchant of Record): لمعالجة المدفوعات، الفواتير، الضرائب،
-          الاشتراكات، وطلبات الاسترداد. اطّلع على{" "}
-          <a href="https://www.paddle.com/legal/privacy" target="_blank" rel="noopener noreferrer">سياسة خصوصية Paddle</a>.
-        </li>
         <li><strong>مزوّدو الخدمة (Subprocessors)</strong>: استضافة سحابية، قواعد بيانات، تحليلات، وأدوات
           دعم العملاء — جميعهم ملتزمون بالسرية وحماية البيانات.
         </li>
