@@ -204,6 +204,15 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         )}
 
         {email && (
+          <button
+            onClick={() => { sound.play("click"); onClose(); nav({ to: "/support" }); }}
+            className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-xs font-bold active:scale-95"
+          >
+            🛟 الدعم الفني — إنشاء تذكرة
+          </button>
+        )}
+
+        {email && (
           <div className="mt-3 space-y-2">
             <button
               onClick={() => setShowEmailForm((v) => !v)}

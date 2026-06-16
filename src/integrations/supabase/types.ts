@@ -2500,6 +2500,45 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          admin_note: string | null
+          category: string
+          created_at: string
+          id: string
+          image_path: string | null
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transaction_logs: {
         Row: {
           balance_after: number

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VipRouteImport } from './routes/vip'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -51,6 +52,7 @@ import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
+import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
@@ -77,6 +79,11 @@ const UpdatesRoute = UpdatesRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -274,6 +281,11 @@ const AdminWeeklyXpRoute = AdminWeeklyXpRouteImport.update({
   path: '/weekly-xp',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTicketsRoute = AdminTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSanctionsRoute = AdminSanctionsRouteImport.update({
   id: '/sanctions',
   path: '/sanctions',
@@ -370,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
@@ -383,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -425,6 +439,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
@@ -438,6 +453,7 @@ export interface FileRoutesByTo {
   '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -482,6 +498,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
@@ -495,6 +512,7 @@ export interface FileRoutesById {
   '/admin/fish': typeof AdminFishRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -540,6 +558,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/signup'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/updates'
     | '/vip'
@@ -553,6 +572,7 @@ export interface FileRouteTypes {
     | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/admin/tickets'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -595,6 +615,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/signup'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/updates'
     | '/vip'
@@ -608,6 +629,7 @@ export interface FileRouteTypes {
     | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/admin/tickets'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -651,6 +673,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/signup'
     | '/sitemap.xml'
+    | '/support'
     | '/terms'
     | '/updates'
     | '/vip'
@@ -664,6 +687,7 @@ export interface FileRouteTypes {
     | '/admin/fish'
     | '/admin/players'
     | '/admin/sanctions'
+    | '/admin/tickets'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -708,6 +732,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
@@ -740,6 +765,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1015,6 +1047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWeeklyXpRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tickets': {
+      id: '/admin/tickets'
+      path: '/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AdminTicketsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sanctions': {
       id: '/admin/sanctions'
       path: '/sanctions'
@@ -1113,6 +1152,7 @@ interface AdminRouteChildren {
   AdminFishRoute: typeof AdminFishRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
+  AdminTicketsRoute: typeof AdminTicketsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1128,6 +1168,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFishRoute: AdminFishRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
+  AdminTicketsRoute: AdminTicketsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -1178,6 +1219,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
