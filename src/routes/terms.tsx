@@ -73,20 +73,43 @@ function TermsPage() {
 
       <h2>6. الدفع والاشتراكات</h2>
       <p>
-        تتم معالجة جميع عمليات الدفع عبر شريكنا <strong>Paddle</strong>. للاطلاع على شروط الدفع وضريبة القيمة
-        المضافة والفوترة، يُرجى مراجعة{" "}
-        <a href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noopener noreferrer">
-          شروط Paddle للمشتري
-        </a>
-        . تجدّد اشتراكات VIP تلقائيًا شهريًا حتى يتم إلغاؤها. عند إلغاء اشتراك VIP يتم إيقاف مزاياه فورًا
-        (الجواهر الممنوحة مع الاشتراك تبقى للاعب).
+        تختلف بوابة الدفع بحسب المنصّة التي تستخدم فيها الخدمة:
+      </p>
+      <ul>
+        <li>
+          <strong>على الويب</strong>: تتم معالجة جميع عمليات الدفع عبر شريكنا <strong>Paddle</strong>. للاطلاع على
+          شروط الدفع وضريبة القيمة المضافة والفوترة، يُرجى مراجعة{" "}
+          <a href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noopener noreferrer">
+            شروط Paddle للمشتري
+          </a>.
+        </li>
+        <li>
+          <strong>على تطبيق Android</strong>: تتم جميع المشتريات داخل التطبيق عبر <strong>Google Play Billing</strong>
+          (متجر Google Play)، وتخضع لـ
+          <a href="https://play.google.com/intl/ar/about/play-terms/" target="_blank" rel="noopener noreferrer"> شروط
+          استخدام Google Play</a>.
+        </li>
+        <li>
+          <strong>على تطبيق iPhone / iPad</strong>: تتم جميع المشتريات داخل التطبيق عبر نظام{" "}
+          <strong>Apple In-App Purchase</strong>، وتخضع لـ
+          <a href="https://www.apple.com/legal/internet-services/itunes/" target="_blank" rel="noopener noreferrer">
+            {" "}شروط Apple Media Services
+          </a>.
+        </li>
+      </ul>
+      <p>
+        تجدّد اشتراكات VIP تلقائيًا شهريًا حتى يتم إلغاؤها. عند إلغاء اشتراك VIP يتم إيقاف مزاياه فورًا
+        (الجواهر الممنوحة مع الاشتراك تبقى للاعب). إلغاء الاشتراكات المشتراة من متجر Google Play أو Apple يتم
+        من إعدادات الاشتراكات في حساب المتجر نفسه.
       </p>
 
       <h2>7. تاجر التسجيل (Merchant of Record)</h2>
       <p>
-        تتم عملية الشراء عبر بائعنا الإلكتروني <strong>Paddle.com</strong>. <strong>Paddle.com</strong> هو
-        تاجر التسجيل (Merchant of Record) لجميع الطلبات، ويقدّم خدمة العملاء فيما يخص الفواتير، ويتولّى
-        طلبات الاسترداد.
+        بالنسبة للمشتريات عبر الويب، تتم عملية الشراء عبر بائعنا الإلكتروني <strong>Paddle.com</strong>.
+        <strong> Paddle.com</strong> هو تاجر التسجيل (Merchant of Record) لتلك الطلبات، ويقدّم خدمة العملاء فيما
+        يخص الفواتير، ويتولّى طلبات الاسترداد. أمّا المشتريات داخل تطبيقات Android فتاجر التسجيل لها هو{" "}
+        <strong>Google LLC</strong> عبر Google Play، وللمشتريات داخل تطبيقات iPhone / iPad فتاجر التسجيل هو{" "}
+        <strong>Apple Inc.</strong> عبر App Store.
       </p>
 
       <h2>8. تعليق الحساب أو إنهاؤه</h2>
