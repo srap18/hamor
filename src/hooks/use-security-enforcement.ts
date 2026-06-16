@@ -33,7 +33,8 @@ function getOrCreateSessionToken(): string {
 
 export type SecurityBlock =
   | { kind: "device_taken"; message: string }
-  | { kind: "kicked"; message: string };
+  | { kind: "kicked"; message: string }
+  | { kind: "duplicate_tab"; message: string };
 
 /**
  * Enforces:
