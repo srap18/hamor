@@ -8,23 +8,22 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         
-        // 1️⃣ تم تحديث رقم الإصدار هنا ليتعرف عليه جوجل كونسول كتحديث جديد
-        versionCode 2
+        // تم التحديث إلى الإصدار 4 ليكون إصداراً جديداً للمتجر
+        versionCode 4
         versionName "2.0.0"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+              ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
 
-    // 2️⃣ تم إضافة إعدادات التوقيع الثابتة لقراءة المفتاح من الـ GitHub Actions بأمان
     signingConfigs {
         release {
             storeFile file("hamor-upload-key.keystore")
-            storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: "android"
+            storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: "HamorGame2026"
             keyAlias "hamor-key-alias"
-            keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: "android"
+            keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: "HamorGame2026"
         }
     }
 
@@ -33,7 +32,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             
-            // 3️⃣ إجبار الأندرويد على استخدام التوقيع الثابت للعبة هامور لمنع توليد أي شهادة عشوائية مجدداً
             signingConfig signingConfigs.release
         }
     }
@@ -47,6 +45,10 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+    // الإضافة المطلوبة لتجاوز خطأ الـ Billing Library
+    implementation 'com.android.billingclient:billing:6.1.0'
+    
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
