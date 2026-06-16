@@ -106,15 +106,8 @@ function AdminTicketsPage() {
     toast.success("تم تحديث الحالة");
   };
 
-  const saveNote = async (id: string) => {
-    const note = noteDraft[id]?.trim() ?? "";
-    const { error } = await supabase.from("support_tickets").update({ admin_note: note || null }).eq("id", id);
-    if (error) { toast.error("فشل الحفظ"); return; }
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, admin_note: note || null } : t)));
-    toast.success("تم حفظ الرد");
-  };
-
   const remove = async (t: Ticket) => {
+
     const ok = await confirmDialog({
       title: "حذف التذكرة",
       message: "سيتم حذف التذكرة والصورة المرفقة نهائياً.",
