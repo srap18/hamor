@@ -43,7 +43,7 @@ type Ticket = {
 function AdminTicketsPage() {
   const { session } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, { username: string | null }>>({});
+  const [profiles, setProfiles] = useState<Record<string, { username: string | null; display_name: string | null }>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
