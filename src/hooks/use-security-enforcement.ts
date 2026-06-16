@@ -150,6 +150,8 @@ export function useSecurityEnforcement(): SecurityBlock | null {
 
     return () => {
       cancelled = true;
+      if (tabHeartbeat) { try { clearInterval(tabHeartbeat); } catch {} }
+      if (tabChannel) { try { tabChannel.close(); } catch {} }
       if (channel) {
         try { (channel as any).__cleanup?.(); } catch {}
         supabase.removeChannel(channel);
