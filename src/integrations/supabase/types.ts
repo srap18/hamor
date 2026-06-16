@@ -335,6 +335,27 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_action_log: {
+        Row: {
+          action: string
+          at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          at?: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          at?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_mutes: {
         Row: {
           active: boolean
@@ -3395,6 +3416,10 @@ export type Database = {
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
+      _detect_bot_and_ban: {
+        Args: { _action: string; _uid: string }
+        Returns: undefined
+      }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
       _effective_fishing_elapsed: {
         Args: {
