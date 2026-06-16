@@ -168,7 +168,7 @@ function AdminTicketsPage() {
           {filtered.map((t) => {
             const cat = CATEGORIES[t.category] ?? CATEGORIES.other;
             const st = STATUSES.find((s) => s.value === t.status) ?? STATUSES[0];
-            const uname = profiles[t.user_id]?.username ?? t.user_id.slice(0, 8);
+            const uname = profiles[t.user_id]?.display_name || profiles[t.user_id]?.username || t.user_id.slice(0, 8);
             return (
               <div key={t.id} className="rounded-xl bg-slate-900/70 border border-slate-800 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
