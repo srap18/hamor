@@ -81,12 +81,11 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
           mv $AAB_FILE ./hamor-play-store.aab
 
-      # 🤐 خطوة التشفير التلقائي وإنتاج ملف الـ Zip وأيضاً الـ PEM المطلوبين (تم إصلاح الخطأ هنا)
+      # 🤐 خطوة التشفير التلقائي لإنتاج ملف الـ Zip والـ PEM بدون روابط خارجية معقدة
       - name: Download PEPK and Generate Encryption Zip and PEM
         run: |
           curl -L -o pepk.jar https://storage.googleapis.com/android-developers/tools/play-encrypt-private-key/pepk.jar
-          curl -L -o encryption_public_key.pem https://storage.googleapis.com/android-developers/keys/play_public_key.pem
-          java -jar pepk.jar --keystore=android/app/hamor-upload-key.keystore --alias=hamor-key-alias --output=output.zip --include-cert --rsa-aes-encryption --encryption-key-path=encryption_public_key.pem --storepass="HamorGame2026" --keypass="HamorGame2026"
+          java -jar pepk.jar --keystore=android/app/hamor-upload-key.keystore --alias=hamor-key-alias --output=output.zip --include-cert --rsa-aes-encryption --storepass="HamorGame2026" --keypass="HamorGame2026"
           keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
 
       - name: Upload Final Signed Files to GitHub
@@ -98,37 +97,4 @@ jobs:
             ./hamor-play-store.aab
             android/app/hamor-upload-key.keystore
             ./output.zip
-            ./upload_certificate.pem          curl -L -o pepk.jar https://storage.googleapis.com/android-developers/tools/play-encrypt-private-key/pepk.jar
-          
-          # 2. تحميل المفتاح العام للتشفير الافتراضي الخاص بجوجل
-          curl -L -o encryption_public_key.pem https://storage.googleapis.com/android-developers/keys/play_public_key.pem
-          
-          # 3. تشغيل أداة التشفير لتوليد ملف output.zip تماماً كما يطلب المتجر
-          java -jar pepk.jar --keystore=android/app/hamor-upload-key.keystore --alias=hamor-key-alias --output=output.zip --include-cert --rsa-aes-encryption --encryption-key-path=encryption_public_key.pem --storepass="HamorGame2026" --keypass="HamorGame2026"
-          
-          # 4. استخراج ملف الـ PEM الاحتياطي أيضاً ليكون معك
-          keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
-
-      - name: Upload Final Signed Files to GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: Google-Play-Ready-Builds
-          path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            ./hamor-play-store.aab
-            android/app/hamor-upload-key.keystore
-            ./output.zip
-            ./upload_certificate.pem          echo "🎯 البصمة الرقمية لملف اللعبة الحالي هي:"
-          keytool -printcert -jarfile ./hamor-play-store.aab | grep SHA256
-          echo "=========================================================="
-          keytool -export -rfc -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -alias hamor-key-alias -file ./upload_certificate.pem
-
-      - name: Upload Final Signed Files to GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: Google-Play-Ready-Builds
-          path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            ./hamor-play-store.aab
-            android/app/hamor-upload-key.keystore
             ./upload_certificate.pem
