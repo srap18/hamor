@@ -136,7 +136,7 @@ function SupportPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-950 text-slate-100 pb-24">
+    <div dir="rtl" className="min-h-screen bg-slate-950 text-slate-100 pb-[200px]">
       <header className="sticky top-0 z-20 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center gap-3">
         <BackButton className="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700">← رجوع</BackButton>
         <h1 className="text-lg font-bold">🛟 الدعم الفني</h1>
