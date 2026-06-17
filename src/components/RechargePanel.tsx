@@ -316,7 +316,7 @@ export function RechargePanel() {
       </div>
 
       {pop && (
-        <div className="fixed left-1/2 top-20 -translate-x-1/2 z-[60] text-sm font-bold text-amber-200 bg-stone-900/95 px-4 py-2 rounded-xl border border-amber-400/50 max-w-[90%] text-center">
+        <div className="fixed left-1/2 bottom-24 -translate-x-1/2 z-[60] text-sm font-bold text-amber-200 bg-stone-900/95 px-4 py-2 rounded-xl border border-amber-400/50 max-w-[90%] text-center shadow-2xl">
           {pop}
         </div>
       )}
