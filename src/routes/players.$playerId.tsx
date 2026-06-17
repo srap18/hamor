@@ -863,7 +863,7 @@ function PlayerPage() {
         <div className="p-3 flex gap-2 border-t border-amber-400/30 bg-stone-900/70">
           {friendStatus === "accepted" ? (
             <>
-              <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+              <a href={`/chat?dm=${p?.id ?? ""}`} onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</a>
               <button className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">✓ صديق</button>
             </>
           ) : friendStatus === "pending" ? (
@@ -871,7 +871,7 @@ function PlayerPage() {
           ) : (
             <>
               <button onClick={addFriend} className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">+ إضافة صديق</button>
-              <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+              <a href={`/chat?dm=${p?.id ?? ""}`} onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</a>
             </>
           )}
         </div>
@@ -1265,7 +1265,7 @@ function PlayerPage() {
           <Link to="/profile" className="flex-1 py-3 rounded-xl bg-amber-600 text-amber-950 text-center font-bold active:scale-95">⚙️ هذا أنت — حرّر الملف</Link>
         ) : friendStatus === "accepted" ? (
           <>
-            <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+            <a href={`/chat?dm=${p?.id ?? ""}`} onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</a>
             <button className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">✓ صديق</button>
           </>
         ) : friendStatus === "pending" ? (
@@ -1273,7 +1273,7 @@ function PlayerPage() {
         ) : (
           <>
             <button onClick={addFriend} className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold active:scale-95">+ إضافة صديق</button>
-            <Link to="/chat" onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</Link>
+            <a href={`/chat?dm=${p?.id ?? ""}`} onClick={() => sound.play("click")} className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-center font-bold active:scale-95">💬 مراسلة</a>
           </>
         )}
       </div>
