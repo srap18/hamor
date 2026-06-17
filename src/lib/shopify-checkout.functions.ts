@@ -67,16 +67,12 @@ export const resolveShopifyPackForCheckout = createServerFn({ method: "POST" })
     }
 
     // Buyer email (optional, pre-fills Shopify checkout)
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("id", userId)
-      .maybeSingle();
+    const email = (context.claims as { email?: string } | undefined)?.email;
 
     return {
       variantGid: mapping.variant_gid,
       userId,
       packId: pack.id,
-      email: (profile?.email as string | undefined) ?? undefined,
+      email,
     };
   });
