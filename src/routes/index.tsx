@@ -1796,36 +1796,59 @@ function Index() {
           <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
             {/* Fish discovery + Golden Fisher active indicator */}
             <div className="flex items-center gap-1.5">
-              {(((profile as any)?.golden_fisher_until && new Date((profile as any).golden_fisher_until).getTime() > now) ||
-                crewRows.some(
+              {(() => {
+                const gfUntilProf = (profile as any)?.golden_fisher_until ? new Date((profile as any).golden_fisher_until).getTime() : 0;
+                const gfUntilCrew = crewRows.find(
                   (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
-                )) && (
-                <button
-                  type="button"
-                  title="🏅 الصياد الذهبي مفعّل — اضغط للإزالة"
-                  aria-label="إزالة الصياد الذهبي"
-                  onClick={async () => {
-                    if (!window.confirm("هل تريد إزالة الصياد الذهبي؟ سيتم إيقافه فوراً.")) return;
-                    try {
-                      await removeGoldenFisher({ data: {} });
-                      setToast("🗑️ تم إزالة الصياد الذهبي");
-                      await refreshProfile?.();
-                    } catch {
-                      setToast("تعذر إزالة الصياد الذهبي");
-                    }
-                  }}
-                  className="relative w-7 h-7 rounded-full flex items-center justify-center text-base shrink-0 active:scale-95"
-                  style={{
-                    background: "radial-gradient(circle at 35% 25%, #fff4c2 0%, #f1be52 45%, #8a5a14 100%)",
-                    border: "2px solid #ffe6a1",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 12px rgba(241,190,82,0.75), 0 2px 4px rgba(0,0,0,0.5)",
-                    animation: "treasury-shimmer 3s linear infinite",
-                  }}
-                >
-                  <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>🏅</span>
-                </button>
-
-              )}
+                )?.meta?.expires_at;
+                const gfUntilCrewMs = gfUntilCrew ? new Date(gfUntilCrew).getTime() : 0;
+                const gfUntilMs = Math.max(gfUntilProf, gfUntilCrewMs);
+                if (gfUntilMs <= now) return null;
+                const remain = Math.max(0, gfUntilMs - now);
+                const h = Math.floor(remain / 3600000);
+                const m = Math.floor((remain % 3600000) / 60000);
+                const s = Math.floor((remain % 60000) / 1000);
+                const timeText = h > 0
+                  ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+                  : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+                return (
+                  <div
+                    className="relative rounded-full ps-2 pe-1 py-0.5 inline-flex items-center gap-1 shrink-0"
+                    title="🏅 الصياد الذهبي مفعّل على محيطك"
+                    style={{
+                      background: "linear-gradient(180deg, #fff4c2 0%, #f1be52 55%, #8a5a14 100%)",
+                      border: "2px solid #ffe6a1",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 12px rgba(241,190,82,0.75), 0 2px 4px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    <span className="text-sm leading-none" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>🎣</span>
+                    <span className="text-[11px] font-black tabular-nums leading-none" style={{ color: "#3a1f0a", textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>
+                      {timeText}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="إزالة الصياد الذهبي"
+                      title="إزالة الصياد الذهبي"
+                      onClick={async () => {
+                        if (!window.confirm("هل تريد إزالة الصياد الذهبي؟ سيتم إيقافه فوراً.")) return;
+                        try {
+                          await removeGoldenFisher({ data: {} });
+                          setToast("🗑️ تم إزالة الصياد الذهبي");
+                          await refreshProfile?.();
+                        } catch {
+                          setToast("تعذر إزالة الصياد الذهبي");
+                        }
+                      }}
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black leading-none active:scale-90"
+                      style={{
+                        background: "#3a1f0a",
+                        color: "#ffe6a1",
+                        border: "1px solid #ffe6a1",
+                      }}
+                    >×</button>
+                  </div>
+                );
+              })()}
               <Link
                 to="/inventory"
                 className="relative rounded-full px-3 py-1 inline-flex items-center gap-1.5 active:scale-95 overflow-hidden"
