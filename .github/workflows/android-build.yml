@@ -24,45 +24,50 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      # نضمن وجود المجلدات ونقل الأصول (Icons/Splash) من مسارها الحقيقي
-      - name: Copy Assets and Prepare Android
+      # 📁 تهيئة المجلدات والأصول (الأيقونات والسبلاش)
+      - name: Setup Android Assets & Sync
         run: |
+          # إنشاء المجلدات الضرورية
           mkdir -p assets
-          # التأكد من وجود ملفات الأيقونات والسبلاش في مجلد assets
+          mkdir -p android/app/src/main/assets
+          
+          # نسخ الأصول إن وجدت
           if [ -f "icon-only.png" ]; then cp icon-only.png assets/icon.png; fi
           if [ -f "splash.png" ]; then cp splash.png assets/splash.png; fi
           if [ -f "splash-dark.png" ]; then cp splash-dark.png assets/splash-dark.png; fi
           
-          # إنشاء مجلد الأندرويد إذا لم يكن موجوداً
+          # توليد الأيقونات والمزامنة
           if [ ! -d "android" ]; then npx cap add android; fi
-          mkdir -p android/app/src/main/assets
-          
-          # توليد الأيقونات
           bunx @capacitor/assets generate --android
-          
-          # مزامنة
           npx cap sync android
+          chmod +x android/gradlew
 
+      # 🔑 فك تشفير المفتاح
       - name: Decode Production Keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
 
-      - name: Build and Sign
-        env:
-          SIGNING_STORE_PASSWORD: "HamorGame2026"
-          SIGNING_KEY_PASSWORD: "HamorGame2026"
+      # 🚀 البناء (Build)
+      - name: Build Android Artifacts
         run: |
           cd android
           ./gradlew clean
           ./gradlew bundleRelease
-          
-          # توقيع الملف الناتج مباشرة في مسار البناء
-          AAB_FILE=$(find app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
-          mv $AAB_FILE ../hamor-play-store.aab
 
+      # ✍️ توقيع الملف (التعديل الذي يحل خطأ المسار)
+      - name: Sign AAB
+        run: |
+          AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+          -keystore android/app/hamor-upload-key.keystore \
+          -storepass "HamorGame2026" -keypass "HamorGame2026" \
+          $AAB_FILE hamor-key-alias
+          
+          mv $AAB_FILE ./hamor-play-store.aab
+
+      # 📦 رفع ملف المخرجات النهائي
       - name: Upload Final Build
         uses: actions/upload-artifact@v4
         with:
