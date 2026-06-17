@@ -45,7 +45,7 @@ export function RechargePanel() {
   const getStatus = useServerFn(getStorePurchaseStatus);
 
   const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [, setUserEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
   const [sub, setSub] = useState<PackCategory>("offers");
