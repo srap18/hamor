@@ -47,15 +47,35 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/audit", label: "سجل العمليات", icon: "📋" },
 ];
 
+// Moderators with limited admin access — only allowed these sections
+const LIMITED_MODERATORS: Record<string, string[]> = {
+  "ce5a35be-41fc-4d66-b47c-ac9ace216b8b": [
+    "/admin/tickets",
+    "/admin/codes",
+    "/admin/players",
+    "/admin/sanctions",
+  ],
+};
+
 function AdminLayout() {
   const { isAdmin, loading } = useIsAdmin();
-  const { session, loading: authLoading } = useAuth();
+  const { session, user, loading: authLoading } = useAuth();
   const nav = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const allowedPaths = user ? LIMITED_MODERATORS[user.id] : undefined;
+  const isLimited = !!allowedPaths;
+  const visibleNav = isLimited ? NAV.filter((n) => allowedPaths!.includes(n.to)) : NAV;
 
   useEffect(() => {
     if (!authLoading && !session) nav({ to: "/login" });
   }, [session, authLoading, nav]);
+
+  useEffect(() => {
+    if (!isLimited) return;
+    const ok = allowedPaths!.some((p) => pathname === p || pathname.startsWith(p + "/"));
+    if (!ok) nav({ to: allowedPaths![0] as "/admin" });
+  }, [isLimited, allowedPaths, pathname, nav]);
 
   if (loading || authLoading) {
     return (
@@ -93,7 +113,7 @@ function AdminLayout() {
           </div>
         </div>
         <nav className="flex md:flex-col gap-1 p-2 overflow-x-auto md:overflow-x-visible md:flex-1">
-          {NAV.map((item) => {
+          {visibleNav.map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             return (
               <Link
