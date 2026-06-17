@@ -26,7 +26,6 @@ export const Route = createFileRoute("/vip")({
 function VipPage() {
   const { user } = useAuth();
   const { level: currentLevel } = useEliteVipLevel();
-  const checkout = usePaddleCheckoutSafe();
   const [busy, setBusy] = useState<number | null>(null);
   const currentTier = getEliteVipTier(currentLevel);
 
@@ -41,20 +40,17 @@ function VipPage() {
     }
     setBusy(level);
     try {
-      await checkout({
-        priceId,
-        quantity: 1,
-        customerEmail: user.email ?? undefined,
-        customData: { userId: user.id },
-        successUrl: `${window.location.origin}/vip?success=1`,
-      });
+      const { buyPackWithShopify } = await import("@/lib/shopify-buy");
+      await buyPackWithShopify(priceId);
+      toast.success("تم فتح صفحة الدفع — أكمل العملية وارجع للعبة.");
     } catch (e) {
-      toast.error("تعذّر فتح الدفع. حاول مرة أخرى.");
+      toast.error(e instanceof Error ? e.message : "تعذّر فتح الدفع. حاول مرة أخرى.");
       console.error(e);
     } finally {
       setBusy(null);
     }
   }
+
 
   if (isNativeApp()) {
     return (
@@ -204,32 +200,3 @@ function VipPage() {
   );
 }
 
-// Lightweight wrapper that lazily loads the Paddle checkout SDK without
-// pulling it into the initial route bundle.
-function usePaddleCheckoutSafe() {
-  return async (opts: {
-    priceId: string;
-    quantity: number;
-    customerEmail?: string;
-    customData?: Record<string, string>;
-    successUrl?: string;
-  }) => {
-    const { initializePaddle, getPaddlePriceId, getPaddleEnvironment, ensurePaymentHost } = await import("@/lib/paddle");
-    if (!ensurePaymentHost()) return; // تحويل تلقائي للدومين المعتمد
-    await initializePaddle();
-    const paddlePriceId = await getPaddlePriceId(opts.priceId);
-    const win = window as unknown as { Paddle: { Checkout: { open: (args: unknown) => void } } };
-    win.Paddle.Checkout.open({
-      items: [{ priceId: paddlePriceId, quantity: opts.quantity }],
-      customer: opts.customerEmail ? { email: opts.customerEmail } : undefined,
-      customData: opts.customData,
-      settings: {
-        displayMode: "overlay",
-        successUrl: opts.successUrl || `${window.location.origin}/payment-success`,
-        allowLogout: false,
-        variant: "one-page",
-      },
-    });
-    void getPaddleEnvironment;
-  };
-}

@@ -5,10 +5,9 @@ import {
   checkPackEligibility,
   getStorePurchaseStatus,
 } from "@/lib/paddle-checkout.functions";
-import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { initializePaddle, getPaddlePriceId, onPaddleEvent, getPaddleEnvironment, ensurePaymentHost } from "@/lib/paddle";
+import { buyPackWithShopify } from "@/lib/shopify-buy";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
@@ -46,7 +45,7 @@ export function RechargePanel() {
   const getStatus = useServerFn(getStorePurchaseStatus);
 
   const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [, setUserEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState<string | null>(null);
   const [sub, setSub] = useState<PackCategory>("offers");
@@ -74,84 +73,41 @@ export function RechargePanel() {
       } catch {
         /* non-fatal */
       }
-      initializePaddle().catch(() => {});
     })();
   }, [getStatus]);
 
+  // Re-sync purchase status when user returns from Shopify checkout tab.
   useEffect(() => {
-    const claim = (txnId: string) => {
-      claimPaddleTransaction({
-        data: { transactionId: txnId, environment: getPaddleEnvironment() },
-      })
-        .then((r) => {
-          if (r?.granted) {
-            refreshProfile();
-            sound.play("coin");
-            const p = r.packId ? getPack(r.packId) : null;
-            if (p) setReward(p);
-            else flash("✨ تم استلام مشترياتك!");
-            getStatus({ data: {} })
-              .then((s) => {
-                setShieldsThisWeek(s.shieldsThisWeek);
-                setBoughtStarter(s.hasBoughtStarter);
-              })
-              .catch(() => {});
-          }
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || !userId) return;
+      refreshProfile();
+      getStatus({ data: {} })
+        .then((s) => {
+          setShieldsThisWeek(s.shieldsThisWeek);
+          setBoughtStarter(s.hasBoughtStarter);
         })
-        .catch((e) => {
-          console.error("[claim] failed", e);
-          // Webhook will still grant it asynchronously — don't alarm the user.
-        });
+        .catch(() => {});
     };
-
-    const off = onPaddleEvent((event) => {
-      const name = event?.name ?? "";
-      if (
-        name === "checkout.closed" ||
-        name === "checkout.completed" ||
-        name === "checkout.error" ||
-        name === "checkout.payment.failed"
-      ) {
-        setBusy(null);
-      }
-      if (name === "checkout.completed") {
-        const txnId = event?.data?.transaction_id ?? event?.data?.transactionId;
-        if (txnId) claim(String(txnId));
-      }
-      if (name === "checkout.error" || name === "checkout.payment.failed") {
-        flash("تعذر فتح صفحة الدفع. حاول مرة ثانية.");
-      }
-    });
-    return () => { off(); };
-  }, [getStatus]);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [userId, getStatus]);
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
-    if (!ensurePaymentHost()) return; // يحوّل تلقائياً للدومين المعتمد لدى Paddle
     setBusy(pack.id);
     try {
       await eligibility({ data: { packId: pack.id } });
-      await initializePaddle();
-      const paddlePriceId = await getPaddlePriceId(pack.id);
-      window.Paddle.Checkout.open({
-        items: [{ priceId: paddlePriceId, quantity: 1 }],
-        customer: userEmail ? { email: userEmail } : undefined,
-        customData: { userId, packId: pack.id },
-        settings: {
-          displayMode: "overlay",
-          successUrl: `${window.location.origin}/payment-success`,
-          allowLogout: false,
-          variant: "one-page",
-        },
-      });
-      // Safety net: if Paddle never fires an event, unstick the button.
-      setTimeout(() => setBusy((b) => (b === pack.id ? null : b)), 8000);
+      await buyPackWithShopify(pack.id);
+      flash("✨ تم فتح صفحة الدفع. أكمل الشراء ثم ارجع للعبة.");
+      sound.play("coin");
     } catch (e) {
       console.error("[purchase] failed", e);
       flash(e instanceof Error ? e.message : "خطأ غير متوقع");
+    } finally {
       setBusy(null);
     }
   };
+
 
   const list = useMemo(
     () => STORE_PACKS.filter((p) => p.category === sub),
@@ -355,7 +311,7 @@ export function RechargePanel() {
         })}
 
         <p className="text-center text-[10px] text-stone-400 pt-2 leading-relaxed px-4">
-          🔒 الدفع آمن عبر Paddle. ستُحوّل لصفحة الدفع ثم تعود للعبة تلقائياً.
+          🔒 الدفع آمن عبر Shopify. ستُفتح صفحة الدفع في نافذة جديدة وتُضاف المشتريات تلقائياً بعد إتمام الطلب.
         </p>
       </div>
 
