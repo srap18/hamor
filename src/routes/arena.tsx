@@ -20,21 +20,13 @@ function weekStart() {
   return d;
 }
 
+const ARENA_ALLOWED_USERS = new Set<string>([
+  "7035f6b9-7bb2-41e2-a8b8-050d0e7f41c0", // جاك سبارو (تجربة)
+]);
+
 function ArenaPage() {
-  return (
-    <div className="fixed inset-0 overflow-y-auto flex items-center justify-center" dir="rtl"
-      style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
-      <div className="absolute top-4 right-3">
-        <BackButton className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</BackButton>
-      </div>
-      <div className="max-w-sm mx-auto px-6 text-center">
-        <div className="text-7xl mb-4">🔒</div>
-        <div className="text-2xl font-black text-amber-200 mb-2">الأرينا مقفلة مؤقتاً</div>
-        <div className="text-cyan-300/70 text-sm">سنفتحها قريباً بتحديث جديد. ترقّبوا!</div>
-      </div>
-    </div>
-  );
-  // eslint-disable-next-line no-unreachable
+  const [authChecked, setAuthChecked] = useState(false);
+  const [allowed, setAllowed] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [names, setNames] = useState<Record<string, { display_name: string; avatar_emoji: string }>>({});
   const [myId, setMyId] = useState<string | null>(null);
@@ -43,8 +35,14 @@ function ArenaPage() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setMyId(user?.id ?? null);
+      const uid = user?.id ?? null;
+      setMyId(uid);
+      const ok = !!uid && ARENA_ALLOWED_USERS.has(uid);
+      setAllowed(ok);
+      setAuthChecked(true);
+      if (!ok) return;
       const ws = weekStart().toISOString().slice(0, 10);
+
       const { data: r } = await supabase.from("arena_scores")
         .select("user_id,score,wins").eq("week_start", ws)
         .order("score", { ascending: false }).limit(50);
@@ -76,6 +74,22 @@ function ArenaPage() {
     { rank: "🥉 #4-10", text: "قطعة نادرة مضمونة + 20,000 🪙" },
     { rank: "#11-25",   text: "قطعة عادية + 5,000 🪙" },
   ];
+
+  if (authChecked && !allowed) {
+    return (
+      <div className="fixed inset-0 overflow-y-auto flex items-center justify-center" dir="rtl"
+        style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
+        <div className="absolute top-4 right-3">
+          <BackButton className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</BackButton>
+        </div>
+        <div className="max-w-sm mx-auto px-6 text-center">
+          <div className="text-7xl mb-4">🔒</div>
+          <div className="text-2xl font-black text-amber-200 mb-2">الأرينا مقفلة مؤقتاً</div>
+          <div className="text-cyan-300/70 text-sm">سنفتحها قريباً بتحديث جديد. ترقّبوا!</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 overflow-y-auto" dir="rtl"
