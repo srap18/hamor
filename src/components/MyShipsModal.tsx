@@ -128,6 +128,25 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     setBusyId(null);
   };
 
+  const sellStored = async (ship: ShipRow) => {
+    const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
+    const refund = Math.floor((def.price ?? 0) / 2);
+    const ok = window.confirm(`بيع ${def.title}؟\nسترجع لك ${refund.toLocaleString()} ذهب.`);
+    if (!ok) return;
+    setBusyId(ship.id);
+    sound.play("click");
+    const { error } = await sellShip(ship.id, refund);
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      const friendly = Object.entries(ERR_MAP).find(([k]) => m.includes(k))?.[1];
+      showNotice(friendly || error.message || "تعذر بيع السفينة");
+    } else {
+      showNotice(`💰 تم البيع — +${refund.toLocaleString()} ذهب`);
+      await reload();
+    }
+    setBusyId(null);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div
