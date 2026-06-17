@@ -1,5 +1,6 @@
 import { resolveShopifyPackForCheckout } from "./shopify-checkout.functions";
 import { createCheckoutForVariant } from "./shopify-storefront";
+import { isNativeApp } from "./platform";
 
 /**
  * Initiate a Shopify checkout for a given pack id.
@@ -8,7 +9,8 @@ import { createCheckoutForVariant } from "./shopify-storefront";
  * 2. Client calls the Storefront API to create a cart with
  *    `user_id`/`pack_id` attributes (the webhook reads these to credit
  *    the right account).
- * 3. Open the checkout URL in a new tab.
+ * 3. Open the checkout URL — system browser on native (iOS/Android via
+ *    @capacitor/browser in-app browser), new tab on the web.
  */
 export async function buyPackWithShopify(packId: string): Promise<void> {
   const resolved = await resolveShopifyPackForCheckout({
@@ -29,5 +31,19 @@ export async function buyPackWithShopify(packId: string): Promise<void> {
     throw new Error("تعذر إنشاء صفحة الدفع. حاول مرة ثانية.");
   }
 
-  window.open(checkout.checkoutUrl, "_blank");
+  await openCheckoutUrl(checkout.checkoutUrl);
 }
+
+async function openCheckoutUrl(url: string): Promise<void> {
+  if (isNativeApp()) {
+    try {
+      const { Browser } = await import("@capacitor/browser");
+      await Browser.open({ url, presentationStyle: "fullscreen" });
+      return;
+    } catch (e) {
+      console.warn("[shopify] Capacitor Browser failed, falling back", e);
+    }
+  }
+  window.open(url, "_blank");
+}
+
