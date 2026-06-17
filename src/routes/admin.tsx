@@ -146,8 +146,17 @@ function AdminLayout() {
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto min-w-0 pb-24 md:pb-6">
-        <Outlet />
+        {isLimited && !allowedPaths!.some((p) => pathname === p || pathname.startsWith(p + "/")) ? (
+          <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-300 gap-3 p-6">
+            <div className="text-5xl">🔒</div>
+            <div className="text-lg font-bold">لا تملك صلاحية لهذه الصفحة</div>
+            <p className="text-sm text-slate-400">صلاحياتك تقتصر على: اللاعبون، العقوبات، تذاكر الدعم، أكواد الاستعمال.</p>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
+
     </div>
   );
 }
