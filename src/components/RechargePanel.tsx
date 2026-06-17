@@ -311,7 +311,7 @@ export function RechargePanel() {
         })}
 
         <p className="text-center text-[10px] text-stone-400 pt-2 leading-relaxed px-4">
-          🔒 الدفع آمن عبر Paddle. ستُحوّل لصفحة الدفع ثم تعود للعبة تلقائياً.
+          🔒 الدفع آمن عبر Shopify. ستُفتح صفحة الدفع في نافذة جديدة وتُضاف المشتريات تلقائياً بعد إتمام الطلب.
         </p>
       </div>
 
