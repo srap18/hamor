@@ -109,12 +109,19 @@ function ChatPage() {
   }, []);
 
   // Deep-link: ?tab=tribe or ?manage=1 auto-opens the tribe tab / management modal
+  // ?dm=<peerId> auto-opens the private DM with that peer
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const wantTab = params.get("tab");
     const wantManage = params.get("manage") === "1";
-    if (wantTab === "tribe" || wantManage) setTab("tribe");
+    const wantDm = params.get("dm");
+    if (wantDm) {
+      setTab("dm");
+      setDmWith(wantDm);
+    } else if (wantTab === "tribe" || wantManage) {
+      setTab("tribe");
+    }
     if (wantManage && profile?.tribe_id) setShowManage(true);
   }, [profile?.tribe_id]);
 

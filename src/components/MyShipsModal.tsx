@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage } from "@/lib/ships";
 import { sound } from "@/lib/sound";
+import { sellShip } from "@/lib/economy";
 
 interface ShipRow {
   id: string;
@@ -127,6 +128,25 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     setBusyId(null);
   };
 
+  const sellStored = async (ship: ShipRow) => {
+    const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
+    const refund = Math.floor((def.price ?? 0) / 2);
+    const ok = window.confirm(`بيع ${def.title}؟\nسترجع لك ${refund.toLocaleString()} ذهب.`);
+    if (!ok) return;
+    setBusyId(ship.id);
+    sound.play("click");
+    const { error } = await sellShip(ship.id, refund);
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      const friendly = Object.entries(ERR_MAP).find(([k]) => m.includes(k))?.[1];
+      showNotice(friendly || error.message || "تعذر بيع السفينة");
+    } else {
+      showNotice(`💰 تم البيع — +${refund.toLocaleString()} ذهب`);
+      await reload();
+    }
+    setBusyId(null);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
       <div
@@ -210,30 +230,40 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
                       idx={idx + 1}
                       dim
                       primaryAction={
-                        canActivate ? (
+                        <div className="flex flex-wrap gap-1 justify-end">
+                          {canActivate ? (
+                            <button
+                              disabled={busyId === ship.id}
+                              onClick={() => activate(ship.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-50"
+                            >
+                              ⚓ تفعيل
+                            </button>
+                          ) : isPicking ? (
+                            <button
+                              onClick={() => setPickSwap(null)}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-700 border border-rose-300 text-white text-[11px] font-black active:scale-95"
+                            >
+                              إلغاء
+                            </button>
+                          ) : (
+                            <button
+                              disabled={busyId === ship.id}
+                              onClick={() => { setPickSwap(ship.id); showNotice("اختر سفينة من الأسطول لتبديلها"); }}
+                              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-sky-400 to-sky-700 border border-sky-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-50"
+                            >
+                              🔄 تبديل
+                            </button>
+                          )}
                           <button
-                            disabled={busyId === ship.id}
-                            onClick={() => activate(ship.id)}
-                            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-50"
+                            disabled={busyId === ship.id || isPicking}
+                            onClick={() => sellStored(ship)}
+                            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border border-amber-200 text-amber-950 text-[11px] font-black active:scale-95 disabled:opacity-50"
+                            title="بيع السفينة مقابل نصف سعرها"
                           >
-                            ⚓ تفعيل
+                            💰 بيع
                           </button>
-                        ) : isPicking ? (
-                          <button
-                            onClick={() => setPickSwap(null)}
-                            className="px-2.5 py-1.5 rounded-lg bg-rose-700 border border-rose-300 text-white text-[11px] font-black active:scale-95"
-                          >
-                            إلغاء
-                          </button>
-                        ) : (
-                          <button
-                            disabled={busyId === ship.id}
-                            onClick={() => { setPickSwap(ship.id); showNotice("اختر سفينة من الأسطول لتبديلها"); }}
-                            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-sky-400 to-sky-700 border border-sky-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-50"
-                          >
-                            🔄 تبديل
-                          </button>
-                        )
+                        </div>
                       }
                     />
                   );
