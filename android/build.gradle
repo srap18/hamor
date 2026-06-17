@@ -1,29 +1,35 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
-        classpath 'com.google.gms:google-services:4.4.4'
+        // تحديث إصدار الـ Gradle plugin ليتوافق مع الإصدارات الحديثة
+        classpath 'com.android.tools.build:gradle:8.4.0'
+        
+        // تأكد من إصدار Google Services
+        classpath 'com.google.gms:google-services:4.4.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
+// تحميل المتغيرات الخارجية
 apply from: "variables.gradle"
 
 allprojects {
     repositories {
         google()
         mavenCentral()
+        // أضف هذه المكتبة إذا كنت تستخدم أي إضافات من Maven
+        maven { url 'https://jitpack.io' }
     }
 }
 
 task clean(type: Delete) {
-    delete rootProject.buildDir
+    // تصحيح مسار الـ buildDir ليتوافق مع الإصدارات الحديثة من Gradle
+    delete rootProject.layout.buildDirectory.get().asFile
 }
