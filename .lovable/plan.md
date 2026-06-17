@@ -1,74 +1,66 @@
-## الهدف
+# خطة ربط Shopify بكل عروض اللعبة
 
-إضافة نظام اشتراك في مسابقات الصيد مع حماية المشترك من الهجوم، وإصلاح خلل توزيع جوائز المسابقات (السبب الجذري معروف الآن).
+## المرحلة 1: التحضير (قراءة وتجهيز)
+1. جلب `SHOPIFY_STORE_PERMANENT_DOMAIN` و `SHOPIFY_STOREFRONT_TOKEN` وحفظهم في `.env` كـ `VITE_*`.
+2. قراءة كامل `src/lib/store-catalog.ts` (666 سطر) لاستخراج كل العروض مع `id`, `label`, `priceUSD`, `reward`.
 
----
+## المرحلة 2: إنشاء المنتجات في Shopify
+3. لكل `StorePack` في الكاتالوج: إنشاء منتج في Shopify عبر `shopify--create_product` مع:
+   - `title` = label
+   - `body` = description
+   - `tags` = `pack:{id}` (للربط مع الكاتالوج لاحقاً)
+   - `variants[0]`:
+     - `price` = priceUSD
+     - `sku` = pack.id ← مفتاح الربط مع الجواهر/السفن
+     - `requires_shipping: false`
+     - `inventory_management: null` (digital)
+     - `inventory_policy: continue`
+4. حفظ `productId` و `variantId` (GID) في جدول جديد `shopify_products` يربط `pack_id ↔ shopify_variant_id`.
 
-## السبب الجذري لعدم توزيع جوائز المسابقة السابقة
+## المرحلة 3: قاعدة البيانات
+5. Migration: إنشاء `shopify_products` (pack_id, variant_id_gid, product_id) + GRANTs + RLS.
+6. Migration: إنشاء `shopify_orders` (order_id, user_id, pack_id, status, processed_at) لمنع مضاعفة الإكرام.
 
-الدالة `finalize_due_competitions` موجودة وصحيحة، لكن **لا أحد يستدعيها** — لا من كود التطبيق ولا من cron. لذلك المسابقات تنتهي ويبقى `prizes_distributed_at = NULL` للأبد.
+## المرحلة 4: كود الواجهة (Frontend)
+7. إنشاء `src/lib/shopify-storefront.ts` — مساعد GraphQL للـ Storefront API.
+8. إنشاء `src/lib/shopify-checkout.ts`:
+   - دالة `buyPack(packId)`:
+     - يجلب `variant_id_gid` من السوبر-بيس
+     - ينشئ Cart عبر `cartCreate` مع:
+       - line item (variantId, quantity:1)
+       - `attributes: [{key:"user_id", value: auth.uid}, {key:"pack_id", value: packId}]`
+       - `buyerIdentity.email` من البروفايل
+     - يفتح `checkoutUrl` (مع `?channel=online_store`) في تبويب جديد
+9. استبدال كل أزرار `paddleCheckout(...)` في:
+   - `RechargePanel.tsx`
+   - `ships-shop.tsx`
+   - `vip.tsx` / `my-vip.tsx`
+   - `cosmetics.tsx`, `backgrounds-shop.tsx`
+   - أي مكان يستدعي `paddleCheckout`/`paddle-checkout.functions`
+   بـ `buyPack(packId)`.
 
-**الإصلاح**:
-1. تسجيل cron job داخل قاعدة البيانات يستدعي `finalize_due_competitions()` كل 5 دقائق.
-2. توزيع يدوي فوري للمسابقة السابقة `eb1d7b95...` (سيتم تنفيذه عبر RPC `finalize_competition`).
+## المرحلة 5: Webhook لإكرام الجواهر
+10. إنشاء `src/routes/api/public/webhooks/shopify/order-paid.ts`:
+    - يتحقق من HMAC signature (`X-Shopify-Hmac-Sha256`)
+    - يقرأ الطلب → يستخرج `user_id` و `pack_id` من `note_attributes`
+    - يتحقق من `shopify_orders` (idempotency)
+    - يطبّق reward (gems/coins/vipDays/items/phoenixShips) عبر `supabaseAdmin` ونفس منطق `paddle-claim`
+    - يحفظ سجل الطلب
+11. تسجيل webhook في Shopify admin (يدوي عند المستخدم) لـ URL: `https://hamor.lovable.app/api/public/webhooks/shopify/order-paid` event `orders/paid`.
+12. حفظ `SHOPIFY_WEBHOOK_SECRET` كـ secret.
 
----
+## المرحلة 6: تنظيف Paddle
+13. حذف ملفات Paddle: `paddle.ts`, `paddle.server.ts`, `paddle-checkout.functions.ts`, `paddle-claim.functions.ts`, `paddle-reconcile.functions.ts`.
+14. حذف جدول `paddle_purchases` (اختياري) أو إبقاؤه للأرشيف.
+15. إزالة `PaymentTestModeBanner`, `AndroidPaymentBlock` إن لزم.
 
-## ميزة الاشتراك في فعالية الصيد
-
-### 1. قاعدة البيانات
-- جدول جديد `competition_participants(competition_id, user_id, joined_at)`
-- عمود جديد `competitions.requires_join boolean default false` — عشان المسابقات القديمة تبقى مفتوحة للجميع، والجديدة (مسابقات الصيد بالاشتراك) تتطلب اشتراك.
-- RPC `join_competition(_competition_id)` — يضيف المستخدم فوراً، يرفض إذا انتهت أو كان مشترك مسبقاً.
-- دالة `is_in_active_fishing_event(_user_id) returns boolean` — تتحقق إن المستخدم مشترك حالياً في مسابقة `fish_*` فعّالة لم تنتهي.
-- تعديل `log_competition_catch` بحيث يحتسب السمكة للمشتركين فقط (إذا `requires_join=true`).
-- تعديل `get_competition_leaderboard` ليُرجع `is_joined` و `participants_count`.
-
-### 2. الحماية من الهجوم
-- تعديل دالة `record_attack` لرفض الهجوم في حالتين:
-  - المهاجم مشترك في فعالية صيد نشطة → خطأ: "أنت مشترك في فعالية الصيد ولا تستطيع الهجوم"
-  - المدافع مشترك → خطأ: "هذا اللاعب محمي (مشترك في فعالية صيد)"
-- يشمل: هجمات اللاعبين فقط. صيد البوس والأرينا تبقى متاحة (السؤال الثاني لم يجب عليه — افتراضي معقول).
-
-### 3. الواجهة
-
-**صفحة المسابقات `/competitions`** (الموجودة):
-- لكل مسابقة `requires_join`: زر **"اشترك الآن"** بارز فوق لوحة الترتيب.
-- بعد الاشتراك: شارة "✓ أنت مشترك" + عداد المشتركين.
-- بانر تحذير "🛡️ محمي من الهجوم — مشارك في فعالية الصيد".
-
-**في الصفحة الرئيسية وزر الهجوم**:
-- إذا اللاعب مشترك: زر الهجوم على اللاعبين يظهر مقفل برسالة "أنت في فعالية صيد".
-- إذا الهدف مشترك: نفس الرسالة قبل إرسال الـ RPC (مع ظهور أيقونة 🛡️ على بطاقته في الترتيب).
-
-**صفحة الأدمن `/admin/competitions`**:
-- إضافة checkbox **"مسابقة بالاشتراك (حماية من الهجوم)"** عند الإنشاء.
-- زر **"توزيع الجوائز الآن"** يدوي لأي مسابقة (موجود جزئياً — نتأكد منه).
-
-### 4. علامة بجنب اسم اللاعب في الشات
-- إضافة 🎣 بجنب اسم المشترك في الشات (مماثل لشارة VIP الموجودة).
-
----
-
-## الإجابة الثالثة الافتراضية
-- **لا يمكن إلغاء الاشتراك** بعد التسجيل (يلتزم لنهاية المسابقة). السبب: منع استغلال الحماية من الهجوم ثم الانسحاب.
-
----
-
-## ملفات ستتعدل/تُنشأ
-
-تقني (يمكن تجاهله):
-```
-supabase/migrations/<new>.sql     ← الجدول + RPCs + cron + إصلاح record_attack + توزيع المسابقة السابقة
-src/routes/competitions.tsx       ← زر اشتراك + بانر حماية + عداد مشتركين
-src/routes/admin.competitions.tsx ← خيار requires_join + توزيع يدوي
-src/routes/index.tsx              ← قفل زر الهجوم عند الاشتراك
-src/lib/record-attack.ts          ← عرض رسائل الخطأ الجديدة
-src/routes/chat.tsx               ← شارة 🎣 بجنب اسم المشترك
-src/hooks/use-fishing-event.ts    ← هوك يعرف هل المستخدم مشترك حالياً
-```
+## المرحلة 7: التحقق
+16. تجربة شراء جوهرة من البريفيو → نسوي طلب من خلال checkout → نتأكد الجواهر تنزل.
 
 ---
 
-أكد عشان أبدأ التنفيذ، وقلي:
-- هل ينطبق المنع على هجمات الأرينا أيضاً، أو هجمات اللاعبين فقط؟
+## ⚠️ تنبيهات
+- **العميل يخرج من اللعبة** لتبويب checkout خارجي وقد يستغرق 10–30 ثانية يرجع.
+- **Shopify يطلب بيانات فوترة** (إيميل + اسم + عنوان) حتى للرقمي.
+- **عدد المنتجات في الكاتالوج كبير جداً** (50+ منتج) — إنشاؤها كلها قد يستغرق وقتاً ورسائل تأكيد متعددة.
+- مدة التنفيذ المتوقعة: عدة جولات شات.

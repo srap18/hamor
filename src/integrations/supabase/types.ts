@@ -2380,6 +2380,84 @@ export type Database = {
           },
         ]
       }
+      shopify_orders: {
+        Row: {
+          amount_usd: number | null
+          created_at: string
+          error: string | null
+          id: string
+          pack_id: string | null
+          processed_at: string | null
+          raw_payload: Json | null
+          shopify_order_id: number
+          shopify_order_name: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_usd?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          pack_id?: string | null
+          processed_at?: string | null
+          raw_payload?: Json | null
+          shopify_order_id: number
+          shopify_order_name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_usd?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          pack_id?: string | null
+          processed_at?: string | null
+          raw_payload?: Json | null
+          shopify_order_id?: number
+          shopify_order_name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shopify_products: {
+        Row: {
+          created_at: string
+          id: string
+          pack_id: string
+          price_usd: number
+          shopify_product_id: number
+          shopify_variant_id: number
+          updated_at: string
+          variant_gid: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pack_id: string
+          price_usd: number
+          shopify_product_id: number
+          shopify_variant_id: number
+          updated_at?: string
+          variant_gid: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pack_id?: string
+          price_usd?: number
+          shopify_product_id?: number
+          shopify_variant_id?: number
+          updated_at?: string
+          variant_gid?: string
+        }
+        Relationships: []
+      }
       site_layout: {
         Row: {
           key: string
