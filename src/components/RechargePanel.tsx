@@ -114,9 +114,11 @@ export function RechargePanel() {
     [sub],
   );
 
-  if (isNativeApp()) {
-    return <NativePurchaseBlock />;
-  }
+  // On native apps we still show the Shopify storefront — checkout opens
+  // in the in-app browser via @capacitor/browser.
+  void isNativeApp;
+  void NativePurchaseBlock;
+
 
   return (
     <div className="text-white" dir="rtl">

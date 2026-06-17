@@ -52,20 +52,11 @@ function VipPage() {
   }
 
 
-  if (isNativeApp()) {
-    return (
-      <div dir="rtl" className="h-full overflow-y-auto bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-slate-100 pb-20">
-        <div className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur border-b border-amber-500/20 px-4 py-3 flex items-center justify-between">
-          <BackButton>رجوع</BackButton>
-          <h1 className="text-lg font-extrabold text-amber-300">🏆 Elite VIP</h1>
-          <div className="w-8" />
-        </div>
-        <div className="pt-6">
-          <NativePurchaseBlock productIds={["vip_monthly"]} />
-        </div>
-      </div>
-    );
-  }
+  // Native apps reuse the same Shopify checkout — opens in the in-app
+  // browser via @capacitor/browser.
+  void isNativeApp;
+  void NativePurchaseBlock;
+
 
   return (
     <div dir="rtl" className="h-full overflow-y-auto overflow-x-hidden bg-gradient-to-b from-slate-950 via-indigo-950 to-slate-950 text-slate-100 pb-20" style={{ WebkitOverflowScrolling: "touch" }}>
