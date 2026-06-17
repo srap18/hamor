@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage } from "@/lib/ships";
 import { sound } from "@/lib/sound";
+import { sellShip } from "@/lib/economy";
 
 interface ShipRow {
   id: string;
