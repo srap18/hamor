@@ -40,8 +40,8 @@ function VipPage() {
     }
     setBusy(level);
     try {
-      const { buyPackWithShopify } = await import("@/lib/shopify-buy");
-      await buyPackWithShopify(priceId);
+      const { buyPackWithPayPal } = await import("@/lib/paypal-buy");
+      await buyPackWithPayPal(priceId);
       toast.success("تم فتح صفحة الدفع — أكمل العملية وارجع للعبة.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذّر فتح الدفع. حاول مرة أخرى.");
