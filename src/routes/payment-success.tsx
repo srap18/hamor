@@ -6,6 +6,7 @@ import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
 import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
+import { capturePayPalOrder } from "@/lib/paypal-checkout.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { getPack, type StorePack } from "@/lib/store-catalog";
 import { RewardPopup } from "@/components/RewardPopup";
@@ -22,6 +23,7 @@ function PaymentSuccess() {
   const nav = useNavigate();
   const claimTxn = useServerFn(claimPaddleTransaction);
   const reconcile = useServerFn(reconcileMyPaddlePurchases);
+  const capturePayPal = useServerFn(capturePayPalOrder);
   const [status, setStatus] = useState<"waiting" | "done">("waiting");
   const [reward, setReward] = useState<StorePack | null>(null);
   const [recovering, setRecovering] = useState(false);
@@ -54,6 +56,25 @@ function PaymentSuccess() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       const params = new URLSearchParams(window.location.search);
+
+      // PayPal return: ?paypal=1&token=<orderId>
+      const paypalOrderId = params.get("paypal") ? params.get("token") : null;
+      if (paypalOrderId) {
+        try {
+          const res = await capturePayPal({ data: { orderId: paypalOrderId } });
+          const pack = res?.packId ? getPack(res.packId) : null;
+          if (!cancelled) {
+            if (pack) setReward(pack);
+            setStatus("done");
+            refreshProfile();
+            sound.play("coin");
+          }
+          return;
+        } catch (e) {
+          console.error("[payment-success] paypal capture failed", e);
+        }
+      }
+
       const txnId = params.get("_ptxn") || params.get("transaction_id") || params.get("txn_id");
 
       if (txnId) {
