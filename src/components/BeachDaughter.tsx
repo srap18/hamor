@@ -188,7 +188,7 @@ export function BeachDaughter({ ships = [] }: Props) {
             <div className={`w-full h-full ${bodyAnim}`} style={{ transformOrigin: "bottom center" }}>
               <img
                 src={img}
-                alt={daughter.name}
+                alt={`صورة الشخصية ${daughter.name}`}
                 draggable={false}
                 className="w-full h-full object-contain object-bottom"
                 style={{
