@@ -104,7 +104,10 @@ type CodeRow = {
   created_at: string;
   extra_rewards: ExtraReward[] | null;
   archived_at?: string | null;
+  created_by?: string | null;
 };
+
+type CreatorMeta = { display_name: string | null; avatar_emoji: string | null };
 
 function randomCode(len = 8): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -117,6 +120,7 @@ function AdminCodesPage() {
   const [codes, setCodes] = useState<CodeRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [redemptionsFor, setRedemptionsFor] = useState<CodeRow | null>(null);
+  const [creators, setCreators] = useState<Record<string, CreatorMeta>>({});
 
   // نموذج الإنشاء
   const [rewardType, setRewardType] = useState<RewardType>("bundle");
@@ -174,8 +178,21 @@ function AdminCodesPage() {
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (error) toast.error("فشل تحميل الأكواد");
-    setCodes((data ?? []) as CodeRow[]);
+    const rows = (data ?? []) as CodeRow[];
+    setCodes(rows);
     setLoading(false);
+    const adminIds = Array.from(new Set(rows.map((r) => r.created_by).filter(Boolean) as string[]));
+    if (adminIds.length > 0) {
+      const { data: ps } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_emoji")
+        .in("id", adminIds);
+      const map: Record<string, CreatorMeta> = {};
+      (ps ?? []).forEach((p: { id: string; display_name: string | null; avatar_emoji: string | null }) => {
+        map[p.id] = { display_name: p.display_name, avatar_emoji: p.avatar_emoji };
+      });
+      setCreators(map);
+    }
   }, []);
 
   useEffect(() => {
@@ -936,6 +953,13 @@ function AdminCodesPage() {
                     </div>
                   )}
                   {c.note && <div className="text-[11px] text-slate-500 mt-0.5">📝 {c.note}</div>}
+                  <div className="text-[11px] text-emerald-300/80 mt-0.5">
+                    👤 أنشأها: {c.created_by
+                      ? `${creators[c.created_by]?.avatar_emoji ?? "🧑‍✈️"} ${creators[c.created_by]?.display_name ?? c.created_by.slice(0, 8)}`
+                      : "—"}
+                    {" • "}
+                    <span className="text-slate-500">{new Date(c.created_at).toLocaleString("ar")}</span>
+                  </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
