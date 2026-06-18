@@ -64,8 +64,15 @@ export async function createOrder(input: CreateOrderInput): Promise<{
     application_context: {
       brand_name: "Molok Alqarasna",
       locale: "ar-SA",
+      // Prefer PayPal's card/guest checkout screen over the account login screen.
+      // PayPal may still show login for risk/account reasons, but this is the
+      // strongest REST Orders hint for "pay without a PayPal account".
+      landing_page: "BILLING",
       shipping_preference: "NO_SHIPPING",
       user_action: "PAY_NOW",
+      payment_method: {
+        payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
+      },
       return_url: input.returnUrl,
       cancel_url: input.cancelUrl,
     },
