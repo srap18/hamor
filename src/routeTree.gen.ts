@@ -63,9 +63,9 @@ import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
+import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal/webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
-import { Route as ApiPublicWebhooksShopifyOrderPaidRouteImport } from './routes/api/public/webhooks/shopify/order-paid'
 
 const VipRoute = VipRouteImport.update({
   id: '/vip',
@@ -337,6 +337,11 @@ const AdminAntiCheatRoute = AdminAntiCheatRouteImport.update({
   path: '/anti-cheat',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicPaypalWebhookRoute = ApiPublicPaypalWebhookRouteImport.update({
+  id: '/api/public/paypal/webhook',
+  path: '/api/public/paypal/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -347,12 +352,6 @@ const ApiPublicHooksGoldenFisherTickRoute =
   ApiPublicHooksGoldenFisherTickRouteImport.update({
     id: '/api/public/hooks/golden-fisher-tick',
     path: '/api/public/hooks/golden-fisher-tick',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicWebhooksShopifyOrderPaidRoute =
-  ApiPublicWebhooksShopifyOrderPaidRouteImport.update({
-    id: '/api/public/webhooks/shopify/order-paid',
-    path: '/api/public/webhooks/shopify/order-paid',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -413,7 +412,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/shopify/order-paid': typeof ApiPublicWebhooksShopifyOrderPaidRoute
+  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -471,7 +470,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/shopify/order-paid': typeof ApiPublicWebhooksShopifyOrderPaidRoute
+  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -531,7 +530,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/shopify/order-paid': typeof ApiPublicWebhooksShopifyOrderPaidRoute
+  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -592,7 +591,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/webhooks/shopify/order-paid'
+    | '/api/public/paypal/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -650,7 +649,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/webhooks/shopify/order-paid'
+    | '/api/public/paypal/webhook'
   id:
     | '__root__'
     | '/'
@@ -709,7 +708,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/webhooks/shopify/order-paid'
+    | '/api/public/paypal/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -755,7 +754,7 @@ export interface RootRouteChildren {
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
-  ApiPublicWebhooksShopifyOrderPaidRoute: typeof ApiPublicWebhooksShopifyOrderPaidRoute
+  ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1138,6 +1137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAntiCheatRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/paypal/webhook': {
+      id: '/api/public/paypal/webhook'
+      path: '/api/public/paypal/webhook'
+      fullPath: '/api/public/paypal/webhook'
+      preLoaderRoute: typeof ApiPublicPaypalWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -1150,13 +1156,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/golden-fisher-tick'
       fullPath: '/api/public/hooks/golden-fisher-tick'
       preLoaderRoute: typeof ApiPublicHooksGoldenFisherTickRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/webhooks/shopify/order-paid': {
-      id: '/api/public/webhooks/shopify/order-paid'
-      path: '/api/public/webhooks/shopify/order-paid'
-      fullPath: '/api/public/webhooks/shopify/order-paid'
-      preLoaderRoute: typeof ApiPublicWebhooksShopifyOrderPaidRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1250,8 +1249,7 @@ const rootRouteChildren: RootRouteChildren = {
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
-  ApiPublicWebhooksShopifyOrderPaidRoute:
-    ApiPublicWebhooksShopifyOrderPaidRoute,
+  ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
