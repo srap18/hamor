@@ -16,6 +16,7 @@ export const Route = createFileRoute("/u/$username")({
       { title: `ملف اللاعب ${params.username} — ملوك القراصنة` },
       { name: "description", content: `صفحة اللاعب ${params.username} في لعبة ملوك القراصنة — السفن، الإنجازات، القبيلة، والترتيب.` },
       { property: "og:title", content: `ملف اللاعب ${params.username} — ملوك القراصنة` },
+      { property: "og:description", content: `استعرض ملف اللاعب ${params.username} في ملوك القراصنة: السفن، الإنجازات، القبيلة، والترتيب على لوحة الصدارة.` },
       { property: "og:url", content: `https://www.molok-alqarasna.com/u/${params.username}` },
       { property: "og:type", content: "profile" },
     ],
