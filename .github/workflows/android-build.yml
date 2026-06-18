@@ -42,14 +42,12 @@ jobs:
           bunx cap sync android
           chmod +x android/gradlew
 
-      - name: Patch Gradle & Android Configs
+      - name: Configure Android Compatibility
         run: |
-          # إضافة ممانعة الخطأ قبل البدء
+          # إضافة ممانعة الخطأ في ملف الخصائص بدلاً من تعديل ملفات الكود
           echo "android.suppressUnsupportedCompileSdk=36" >> android/gradle.properties
-          # تحديث نسخة الـ compileSdk داخل ملف الـ build.gradle الخاص بالتطبيق
-          sed -i 's/compileSdk [0-9]*/compileSdk 36/g' android/app/build.gradle
-          # التأكد من صلاحيات التنفيذ لـ gradlew داخل مجلد android
-          cd android && chmod +x gradlew && ./gradlew wrapper --gradle-version 8.10
+          # تثبيت نسخة جرادل متوافقة
+          cd android && ./gradlew wrapper --gradle-version 8.10
 
       - name: Decode Keystore & Secrets
         env:
@@ -65,9 +63,8 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تحديث رقم الإصدار تلقائياً
+          # تحديث رقم الإصدار فقط دون لمس الـ compileSdk
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
-          # البناء من داخل المجلد لضمان رؤية gradlew
           ./gradlew clean bundleRelease assembleRelease
 
       - name: Sign & Optimize
