@@ -14,13 +14,21 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Install Dependencies
+        run: bun install
+
       - name: Setup Android Assets
         run: |
           mkdir -p assets android/app/src/main/assets
           if [ -f "icon-only.png" ]; then cp icon-only.png assets/icon.png; fi
-          if [ ! -d "android" ]; then npx cap add android; fi
+          # إذا لم يكن مجلد أندرويد موجوداً، قم بإضافته
+          if [ ! -d "android" ]; then bunx cap add android; fi
+          
+          # توليد الأيقونات
           bunx @capacitor/assets generate --android
-          npx cap sync android
+          
+          # مزامنة الملفات
+          bunx cap sync android
           chmod +x android/gradlew
 
       - name: Decode Keystore
@@ -38,9 +46,12 @@ jobs:
 
       - name: Sign Files
         run: |
+          # توقيع AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB hamor-key-alias
           mv $AAB ./hamor-play-store.aab
+          
+          # توقيع APK
           APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $APK hamor-key-alias
           mv $APK ./hamor-app-release.apk
