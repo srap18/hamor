@@ -50,6 +50,20 @@ export async function createOrder(input: CreateOrderInput): Promise<{
   const token = await getAccessToken();
   const body = {
     intent: "CAPTURE",
+    payment_source: {
+      paypal: {
+        experience_context: {
+          brand_name: "Molok Alqarasna",
+          locale: "ar-SA",
+          payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+          landing_page: "GUEST_CHECKOUT",
+          shipping_preference: "NO_SHIPPING",
+          user_action: "PAY_NOW",
+          return_url: input.returnUrl,
+          cancel_url: input.cancelUrl,
+        },
+      },
+    },
     purchase_units: [
       {
         reference_id: input.packId,
@@ -61,21 +75,6 @@ export async function createOrder(input: CreateOrderInput): Promise<{
         },
       },
     ],
-    application_context: {
-      brand_name: "Molok Alqarasna",
-      locale: "ar-SA",
-      // Prefer PayPal's card/guest checkout screen over the account login screen.
-      // PayPal may still show login for risk/account reasons, but this is the
-      // strongest REST Orders hint for "pay without a PayPal account".
-      landing_page: "BILLING",
-      shipping_preference: "NO_SHIPPING",
-      user_action: "PAY_NOW",
-      payment_method: {
-        payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
-      },
-      return_url: input.returnUrl,
-      cancel_url: input.cancelUrl,
-    },
   };
   const res = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
     method: "POST",
@@ -94,9 +93,12 @@ export async function createOrder(input: CreateOrderInput): Promise<{
   if (!res.ok || !json.id) {
     throw new Error(`PayPal createOrder failed: ${json.message ?? json.name ?? res.status}`);
   }
-  const approveUrl = json.links?.find((l) => l.rel === "approve")?.href;
+  const approveUrl = json.links?.find((l) => l.rel === "payer-action")?.href
+    ?? json.links?.find((l) => l.rel === "approve")?.href;
   if (!approveUrl) throw new Error("PayPal createOrder: no approve link");
-  return { id: json.id, approveUrl };
+  const cardFirstUrl = new URL(approveUrl);
+  cardFirstUrl.searchParams.set("fundingSource", "card");
+  return { id: json.id, approveUrl: cardFirstUrl.toString() };
 }
 
 export type CaptureResult = {
