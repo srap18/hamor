@@ -46,7 +46,7 @@ function RewardIcon({ r, size }: { r: Reward; size: number }) {
     return <img src={iconCoins} alt="مكافأة الذهب اليومية" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
   if (r.item_type === "gems") {
-    return <img src={iconGems} alt="جواهر" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+    return <img src={iconGems} alt="أيقونة الجواهر الزرقاء" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
   return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
 }
