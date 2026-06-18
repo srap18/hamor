@@ -7,7 +7,17 @@ import bossImg from "@/assets/world-boss.png";
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🐲 وحش العالم — معركة بحرية" }] }),
+  head: () => ({
+    meta: [
+      { title: "🐲 وحش العالم — معركة بحرية" },
+      { name: "description", content: "تحدّى وحش العالم في معركة جماعية بحرية، أطلق الصواريخ على البوس واحصد المكافآت النادرة مع أقوى لاعبي ملوك القراصنة." },
+      { property: "og:title", content: "🐲 وحش العالم — معركة بحرية" },
+      { property: "og:description", content: "معركة جماعية ضد وحش العالم — أطلق صواريخك واحصد المكافآت." },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/boss" },
+    ],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/boss" }],
+  }),
   component: BossPage,
 });
 
