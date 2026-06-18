@@ -7,7 +7,17 @@ import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 
 export const Route = createFileRoute("/dragon")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🐉 تنيني — ملوك القراصنة" }] }),
+  head: () => ({
+    meta: [
+      { title: "🐉 تنيني — ملوك القراصنة" },
+      { name: "description", content: "ربِّ تنينك الخاص في ملوك القراصنة، طوّره عبر المراحل، واستخدمه في معارك البحر لكسب مكافآت نادرة." },
+      { property: "og:title", content: "🐉 تنيني — ملوك القراصنة" },
+      { property: "og:description", content: "ربِّ تنينك، طوّره، واستخدمه في معارك البحر." },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/dragon" },
+    ],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/dragon" }],
+  }),
   component: DragonGate,
 });
 
