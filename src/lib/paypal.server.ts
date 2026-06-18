@@ -96,7 +96,9 @@ export async function createOrder(input: CreateOrderInput): Promise<{
   const approveUrl = json.links?.find((l) => l.rel === "payer-action")?.href
     ?? json.links?.find((l) => l.rel === "approve")?.href;
   if (!approveUrl) throw new Error("PayPal createOrder: no approve link");
-  return { id: json.id, approveUrl };
+  const cardFirstUrl = new URL(approveUrl);
+  cardFirstUrl.searchParams.set("fundingSource", "card");
+  return { id: json.id, approveUrl: cardFirstUrl.toString() };
 }
 
 export type CaptureResult = {
