@@ -171,7 +171,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
                     className={`rounded-lg border p-1 ${active ? "border-amber-400 bg-amber-600/30 ring-2 ring-amber-400" : "border-stone-700 bg-stone-800/40"}`}
                     title={o.name}
                   >
-                    <img src={o.img} alt={o.name} className="w-full h-16 object-contain" />
+                    <img src={o.img} alt={`زي ${o.name}`} className="w-full h-16 object-contain" />
                     <div className="text-[10px] text-amber-200 mt-1 truncate">{o.emoji} {o.name}</div>
                   </button>
                 );
