@@ -56,7 +56,7 @@ const NavIconButton = memo(function NavIconButton({
       >
         <img
           src={src}
-          alt={label}
+          alt={`أيقونة ${label}`}
           loading="lazy"
           width={112}
           height={112}
