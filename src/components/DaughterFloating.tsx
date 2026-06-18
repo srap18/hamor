@@ -16,7 +16,7 @@ export function DaughterFloating() {
       >
         <img
           src={STAGE_IMAGES[daughter.stage]}
-          alt={daughter.name}
+          alt={`صورة الشخصية ${daughter.name}`}
           className="w-full h-full object-contain object-bottom pointer-events-none"
         />
         <span className="absolute -top-1 -right-1 bg-amber-300 text-stone-900 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-amber-900">
