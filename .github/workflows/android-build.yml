@@ -1,4 +1,3 @@
-name: Global-Scale-Android-Build
 on:
   push:
     branches: [ main, "رئيسي" ]
@@ -7,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
       - name: Setup Bun
@@ -15,72 +14,78 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup Java 21
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Prepare Clean Dummy Web Directory for Ultra-Light Size
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Hamor Game</title><script>window.location.href="https://www.molok-alqarasna.com";</script></head><body></body></html>' > dist/index.html
+
+      - name: Set up JDK 21 (Required for modern Android/Gradle)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Cache Node Modules & Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-build-${{ hashFiles('**/bun.lock') }}
-
-      - name: Install Dependencies
-        run: bun install
-
-      - name: Setup Android Environment
+      - name: Map Custom Assets and Generate Icons & Splash Screens
         run: |
-          mkdir -p assets android/app/src/main/assets
-          if [ -f "icon-only.png" ]; then cp icon-only.png assets/icon.png; fi
-          if [ ! -d "android" ]; then bunx cap add android; fi
-          bunx @capacitor/assets generate --android
-          bunx cap sync android
+          mkdir -p assets
+          if [ -f "assets/icon-only.png" ]; then
+            cp assets/icon-only.png assets/icon.png
+          elif [ -f "icon-only.png" ]; then
+            cp icon-only.png assets/icon.png
+          fi
+
+          if [ -f "splash.png" ] && [ ! -f "assets/splash.png" ]; then cp splash.png assets/splash.png; fi
+          if [ -f "splash-dark.png" ] && [ ! -f "assets/splash-dark.png" ]; then cp splash-dark.png assets/splash-dark.png; fi
+
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          
+          bunx @capacitor/assets generate --android || true
+          npx cap sync android
           chmod +x android/gradlew
 
-      - name: Configure Android Compatibility
-        run: |
-          # إضافة ممانعة الخطأ في ملف الخصائص بدلاً من تعديل ملفات الكود
-          echo "android.suppressUnsupportedCompileSdk=36" >> android/gradle.properties
-          # تثبيت نسخة جرادل متوافقة
-          cd android && ./gradlew wrapper --gradle-version 8.10
-
-      - name: Decode Keystore & Secrets
+      # 🔐 فك تشفير الملف الثابت والموحد الذي حفظناه في الأسرار (التوقيع الجديد والدائم)
+      - name: Decode Production Keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.production
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.production
 
-      - name: Build Artifacts
+      # 🏗️ بناء ملفات الأندرويد بالاعتماد على كلمة السر الثابتة
+      - name: Build Android Artifacts (APK & AAB)
         env:
           SIGNING_STORE_PASSWORD: "HamorGame2026"
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تحديث رقم الإصدار فقط دون لمس الـ compileSdk
-          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
-          ./gradlew clean bundleRelease assembleRelease
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease
 
-      - name: Sign & Optimize
+      # ✍️توقيع التطبيق بالتوقيع الثابت الموحد لضمان قبوله دائماً
+      - name: Sign AAB for Google Play Console
         run: |
-          AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB hamor-key-alias
-          mv $AAB ./hamor-play-store.aab
-          
-          APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $APK hamor-key-alias
-          mv $APK ./hamor-app-release.apk
+          AAB_FILE=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB_FILE hamor-key-alias
+          mv $AAB_FILE ./hamor-play-store.aab
 
-      - name: Upload Final Production Artifacts
+      # 🔍 خطوة فحص البصمة الرقمية للتوقيع (للتأكد والاطمئنان العملي)
+      - name: Verify and Print Signature Fingerprint
+        run: |
+          echo "=========================================================="
+          echo "🎯 البصمة الرقمية لملف اللعبة الحالي هي:"
+          keytool -printcert -jarfile ./hamor-play-store.aab | grep SHA256
+          echo "=========================================================="
+
+      - name: Upload Final Signed Files to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: Global-Scale-Build-Ready
+          name: Google-Play-Ready-Builds
           path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
             ./hamor-play-store.aab
-            ./hamor-app-release.apk
+            android/app/hamor-upload-key.keystore
