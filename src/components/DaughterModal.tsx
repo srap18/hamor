@@ -147,7 +147,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
         <div className="flex flex-col items-center gap-3">
           <img
             src={outfitImage(daughter.outfit)}
-            alt={daughter.name}
+            alt={`صورة الشخصية ${daughter.name}`}
             className="w-40 h-56 object-contain drop-shadow-[0_8px_24px_rgba(255,200,100,0.3)]"
           />
           <div className="text-sm text-amber-300">
