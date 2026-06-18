@@ -64,6 +64,17 @@ export async function createOrder(input: CreateOrderInput): Promise<{
         },
       },
     },
+    // Keep the legacy context too: PayPal still uses BILLING on some hosted
+    // checkout variants to surface card/guest checkout instead of account login.
+    application_context: {
+      brand_name: "Molok Alqarasna",
+      locale: "ar-SA",
+      landing_page: "BILLING",
+      shipping_preference: "NO_SHIPPING",
+      user_action: "PAY_NOW",
+      return_url: input.returnUrl,
+      cancel_url: input.cancelUrl,
+    },
     purchase_units: [
       {
         reference_id: input.packId,
