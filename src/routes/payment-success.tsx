@@ -155,7 +155,7 @@ function PaymentSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [claimTxn, reconcile]);
+  }, [claimTxn, reconcile, capturePayPal]);
 
   return (
     <div
