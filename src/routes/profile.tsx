@@ -13,8 +13,13 @@ export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "ملفي الشخصي — ملوك القراصنة" },
-      { name: "description", content: "غيّر اسمك وصورتك وإطاراتك" },
+      { name: "description", content: "أدر ملفك الشخصي في ملوك القراصنة: غيّر اسمك وصورتك وإطاراتك، خصّص أفاتارك واستعرض إنجازاتك وترتيبك في اللعبة." },
+      { property: "og:title", content: "ملفي الشخصي — ملوك القراصنة" },
+      { property: "og:description", content: "أدر ملفك الشخصي في ملوك القراصنة: غيّر اسمك وصورتك وإطاراتك، خصّص أفاتارك واستعرض إنجازاتك." },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/profile" },
     ],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/profile" }],
   }),
   component: ProfilePage,
 });

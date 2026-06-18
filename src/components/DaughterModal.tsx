@@ -147,7 +147,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
         <div className="flex flex-col items-center gap-3">
           <img
             src={outfitImage(daughter.outfit)}
-            alt={daughter.name}
+            alt={`صورة الشخصية ${daughter.name}`}
             className="w-40 h-56 object-contain drop-shadow-[0_8px_24px_rgba(255,200,100,0.3)]"
           />
           <div className="text-sm text-amber-300">
@@ -171,7 +171,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
                     className={`rounded-lg border p-1 ${active ? "border-amber-400 bg-amber-600/30 ring-2 ring-amber-400" : "border-stone-700 bg-stone-800/40"}`}
                     title={o.name}
                   >
-                    <img src={o.img} alt={o.name} className="w-full h-16 object-contain" />
+                    <img src={o.img} alt={`زي ${o.name}`} className="w-full h-16 object-contain" />
                     <div className="text-[10px] text-amber-200 mt-1 truncate">{o.emoji} {o.name}</div>
                   </button>
                 );
@@ -245,7 +245,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
                     >
                       <button onClick={() => addOne(f.fish_id)} className="w-full flex items-center justify-center">
                         {fish?.img ? (
-                          <img src={fish.img} alt={fish.name} className="w-10 h-10 object-contain drop-shadow"/>
+                          <img src={fish.img} alt={`سمكة ${fish.name}`} className="w-10 h-10 object-contain drop-shadow"/>
                         ) : (
                           <span className="text-2xl">🐟</span>
                         )}
