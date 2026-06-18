@@ -75,7 +75,7 @@ export function MfaSetupSection() {
         <form onSubmit={verifyEnroll} className="space-y-2">
           <div className="text-[11px] text-accent/80 mb-1">امسح هذا الرمز بتطبيق Google Authenticator أو Authy</div>
           <div className="flex justify-center bg-white p-2 rounded">
-            <img src={enrolling.qr} alt="QR" className="w-40 h-40" />
+            <img src={enrolling.qr} alt="رمز استجابة سريعة لإعداد المصادقة الثنائية" className="w-40 h-40" />
           </div>
           <div className="text-[10px] text-accent/60 text-center break-all">
             أو أدخل المفتاح يدوياً: <span className="font-mono text-amber-300">{enrolling.secret}</span>

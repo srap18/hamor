@@ -5,7 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/arena")({
   ssr: false,
-  head: () => ({ meta: [{ title: "🏟️ الأرينا — ملوك القراصنة" }] }),
+  head: () => ({
+    meta: [
+      { title: "🏟️ الأرينا — ملوك القراصنة" },
+      { name: "description", content: "تنافس في الأرينا الأسبوعية في ملوك القراصنة، اربح المعارك، واصعد إلى قمة لوحة المتصدرين لتنال جوائز VIP." },
+      { property: "og:title", content: "🏟️ الأرينا — ملوك القراصنة" },
+      { property: "og:description", content: "منافسات أسبوعية ولوحة متصدرين — اربح المعارك واحصد الجوائز." },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: "https://www.molok-alqarasna.com/arena" },
+    ],
+    links: [{ rel: "canonical", href: "https://www.molok-alqarasna.com/arena" }],
+  }),
   component: ArenaPage,
 });
 
