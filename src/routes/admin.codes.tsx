@@ -953,6 +953,13 @@ function AdminCodesPage() {
                     </div>
                   )}
                   {c.note && <div className="text-[11px] text-slate-500 mt-0.5">📝 {c.note}</div>}
+                  <div className="text-[11px] text-emerald-300/80 mt-0.5">
+                    👤 أنشأها: {c.created_by
+                      ? `${creators[c.created_by]?.avatar_emoji ?? "🧑‍✈️"} ${creators[c.created_by]?.display_name ?? c.created_by.slice(0, 8)}`
+                      : "—"}
+                    {" • "}
+                    <span className="text-slate-500">{new Date(c.created_at).toLocaleString("ar")}</span>
+                  </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button
