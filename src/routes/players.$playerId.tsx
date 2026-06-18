@@ -27,7 +27,17 @@ import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 export const Route = createFileRoute("/players/$playerId")({
   ssr: false,
-  head: () => ({ meta: [{ title: "زيارة لاعب — ملوك القراصنة" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "زيارة لاعب — ملوك القراصنة" },
+      { name: "description", content: "استعرض ملف اللاعب في ملوك القراصنة: سفنه، أسلحته، طاقمه، مستواه، وآخر معاركه — وأهجم عليه لتسرق غنائمه." },
+      { property: "og:title", content: "زيارة لاعب — ملوك القراصنة" },
+      { property: "og:description", content: "ملف اللاعب: سفن، أسلحة، طاقم، ومعارك أخيرة." },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: `https://www.molok-alqarasna.com/players/${params.playerId}` },
+    ],
+    links: [{ rel: "canonical", href: `https://www.molok-alqarasna.com/players/${params.playerId}` }],
+  }),
   component: PlayerPage,
 });
 
