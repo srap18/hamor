@@ -245,7 +245,7 @@ export function DaughterModal({ open, onOpenChange }: { open: boolean; onOpenCha
                     >
                       <button onClick={() => addOne(f.fish_id)} className="w-full flex items-center justify-center">
                         {fish?.img ? (
-                          <img src={fish.img} alt={fish.name} className="w-10 h-10 object-contain drop-shadow"/>
+                          <img src={fish.img} alt={`سمكة ${fish.name}`} className="w-10 h-10 object-contain drop-shadow"/>
                         ) : (
                           <span className="text-2xl">🐟</span>
                         )}
