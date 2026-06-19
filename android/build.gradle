@@ -6,14 +6,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // تحديث إصدار الـ Gradle plugin ليتوافق مع الإصدارات الحديثة
-        classpath 'com.android.tools.build:gradle:8.4.0'
+        // تم التحديث إلى 8.9.1 ليتوافق مع المكتبات الحديثة وتجاوز خطأ الـ AAR Metadata
+        classpath 'com.android.tools.build:gradle:8.9.1'
         
-        // تأكد من إصدار Google Services
+        // تحديث Google Services إلى أحدث إصدار مستقر
         classpath 'com.google.gms:google-services:4.4.2'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
@@ -24,12 +21,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // أضف هذه المكتبة إذا كنت تستخدم أي إضافات من Maven
         maven { url 'https://jitpack.io' }
     }
 }
 
 task clean(type: Delete) {
-    // تصحيح مسار الـ buildDir ليتوافق مع الإصدارات الحديثة من Gradle
-    delete rootProject.layout.buildDirectory.get().asFile
+    // تم استخدام الطريقة الحديثة والموصى بها في Gradle 8+
+    delete rootProject.layout.buildDirectory
 }
