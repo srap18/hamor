@@ -38,6 +38,8 @@ jobs:
           cd android
           ./gradlew wrapper --gradle-version 8.11.1
           echo "android.suppressUnsupportedCompileSdk=36" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
 
       - name: Decode Keystore & Secrets
         env:
@@ -45,19 +47,10 @@ jobs:
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
 
-      - name: Verify Keystore & Extract Alias
-        id: keystore_check
-        run: |
-          echo "--- فحص ملف التوقيع ---"
-          # هذا الأمر سيطبع كل تفاصيل الملف في سجلات الـ GitHub Actions
-          keytool -list -v -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026"
-          
-          # استخراج الاسم الفعلي وتخزينه كمتغير
-          ALIAS=$(keytool -list -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" | grep "Alias name:" | head -n 1 | cut -d':' -f2 | xargs)
-          echo "REAL_ALIAS=$ALIAS" >> $GITHUB_ENV
-          echo "تم اكتشاف الاسم المستعار بنجاح وهو: $ALIAS"
-
       - name: Build Artifacts
+        env:
+          SIGNING_STORE_PASSWORD: "HamorGame2026"
+          SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
@@ -67,15 +60,16 @@ jobs:
         run: |
           KEYSTORE="android/app/hamor-upload-key.keystore"
           PASSWORD="HamorGame2026"
+          ALIAS="hamor-key-alias"
           
-          echo "جاري التوقيع باستخدام Alias: ${{ env.REAL_ALIAS }}"
-          
+          # توقيع AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB "${{ env.REAL_ALIAS }}"
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS
           mv $AAB ./hamor-play-store.aab
           
+          # توقيع APK
           APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $APK "${{ env.REAL_ALIAS }}"
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $APK $ALIAS
           mv $APK ./hamor-app-release.apk
 
       - name: Upload Final Production Artifacts
