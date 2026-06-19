@@ -42,17 +42,16 @@ jobs:
           bunx cap sync android
           chmod +x android/gradlew
 
-      - name: Force Android Gradle Plugin Update
+      - name: Configure Android Compatibility
         run: |
-          # 1. تحديث نسخة الـ AGP في ملف build.gradle الرئيسي
-          # البحث عن السطر الذي يحتوي على com.android.tools.build:gradle وتحديثه إلى 8.9.1
-          sed -i 's/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.9.1/g' android/build.gradle
-          
-          # 2. إضافة ممانعة الخطأ لـ SDK
+          # إضافة ممانعة الخطأ لـ SDK
           echo "android.suppressUnsupportedCompileSdk=36" >> android/gradle.properties
           
-          # 3. التأكد من استخدام Gradle wrapper حديث
-          cd android && ./gradlew wrapper --gradle-version 8.10
+          # ترقية الجرادل إلى الإصدار المطلوب 8.11.1
+          cd android && ./gradlew wrapper --gradle-version 8.11.1
+          
+          # ترقية الـ AGP في ملف build.gradle الرئيسي ليتوافق مع Gradle 8.11
+          sed -i 's/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.9.1/g' build.gradle
 
       - name: Decode Keystore & Secrets
         env:
