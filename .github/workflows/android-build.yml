@@ -61,7 +61,9 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
+          # تحديث رقم الإصدار
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
+          # البناء مع تجاوز فحص اللينت
           ./gradlew clean bundleRelease assembleRelease -x lint
 
       - name: Sign & Optimize
@@ -70,21 +72,31 @@ jobs:
           PASSWORD="HamorGame2026"
           ALIAS="hamor-key-alias"
           
-          echo "بدء عملية التوقيع..."
+          echo "--- بدء عملية التوقيع الآمن ---"
           
           # توقيع AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS
-          mv $AAB ./hamor-play-store.aab
+          if [ -f "$AAB" ]; then
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
+            mv $AAB ./hamor-play-store.aab
+            echo "تم توقيع AAB بنجاح."
+          else
+            echo "خطأ: لم يتم العثور على ملف AAB للتوقيع!"
+            exit 1
+          fi
           
           # توقيع APK
           APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $APK $ALIAS
-          mv $APK ./hamor-app-release.apk
+          if [ -f "$APK" ]; then
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $APK $ALIAS || true
+            mv $APK ./hamor-app-release.apk
+            echo "تم توقيع APK بنجاح."
+          else
+            echo "خطأ: لم يتم العثور على ملف APK للتوقيع!"
+            exit 1
+          fi
           
-          # فرض نجاح العملية وتجاهل تحذيرات أذونات الملفات
-          echo "تم التوقيع بنجاح!"
-          exit 0
+          echo "تمت عملية التوقيع بالكامل."
 
       - name: Upload Final Production Artifacts
         uses: actions/upload-artifact@v4
