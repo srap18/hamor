@@ -21,17 +21,41 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Cache Node Modules & Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-build-${{ hashFiles('**/bun.lock') }}
+
       - name: Install Dependencies
         run: bun install
 
+      # إضافة خطوة بناء مشروع الـ Remix/Vite لضمان تحديث مجلد dist
+      - name: Build Web Assets
+        run: bun run build
+
       - name: Setup Android Environment
         run: |
-          mkdir -p assets android/app/src/main/assets
+          mkdir -p assets
           if [ -f "icon-only.png" ]; then cp icon-only.png assets/icon.png; fi
+          if [ -f "splash.png" ]; then cp splash.png assets/splash.png; fi
+          if [ -f "splash-dark.png" ]; then cp splash-dark.png assets/splash-dark.png; fi
+          
           if [ ! -d "android" ]; then bunx cap add android; fi
+          
           bunx @capacitor/assets generate --android
           bunx cap sync android
           chmod +x android/gradlew
+
+      - name: Configure Compatibility
+        run: |
+          cd android
+          echo "android.suppressUnsupportedCompileSdk=36" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
 
       - name: Decode Keystore & Secrets
         env:
@@ -45,10 +69,7 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تحديث رقم الإصدار
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
-          
-          # البناء الكامل (Bundle و APK)
           ./gradlew clean bundleRelease assembleRelease -x lint
 
       - name: Sign & Align Artifacts
@@ -57,27 +78,27 @@ jobs:
           PASSWORD="HamorGame2026"
           ALIAS="hamor-key-alias"
           
-          echo "--- بدء التوقيع والتحسين الاحترافي ---"
+          echo "--- بدء عملية التوقيع والتحسين ---"
           
           # 1. توقيع الـ AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
-          mv $AAB ./hamor-play-store.aab
+          if [ -f "$AAB" ]; then
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
+            mv $AAB ./hamor-play-store.aab
+          fi
           
-          # 2. تحسين وتوقيع الـ APK (السر هنا في Zipalign)
-          # نأخذ الملف الخام
+          # 2. تحسين وتوقيع الـ APK
           RAW_APK=$(find android/app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
-          
-          # استخدام Zipalign (مهم جداً لجعل الملف صالحاً للتثبيت)
-          # ملاحظة: يجب التأكد من مسار zipalign في بيئة ubuntu-latest
-          ZIPALIGN_PATH=$ANDROID_HOME/build-tools/*/zipalign
-          $ZIPALIGN_PATH -v 4 $RAW_APK ./hamor-app-unsigned-aligned.apk
-          
-          # توقيع الملف المحسن
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD ./hamor-app-unsigned-aligned.apk $ALIAS || true
-          mv ./hamor-app-unsigned-aligned.apk ./hamor-app-release.apk
-          
-          echo "تمت عملية التوقيع والتحسين بنجاح!"
+          if [ -f "$RAW_APK" ]; then
+            ZIPALIGN_PATH=$(find $ANDROID_HOME/build-tools/ -name zipalign | head -n 1)
+            $ZIPALIGN_PATH -v 4 $RAW_APK ./hamor-app-aligned.apk
+            
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD ./hamor-app-aligned.apk $ALIAS || true
+            mv ./hamor-app-aligned.apk ./hamor-app-release.apk
+          else
+            echo "خطأ: لم يتم العثور على ملف APK!"
+            exit 1
+          fi
 
       - name: Upload Final Production Artifacts
         uses: actions/upload-artifact@v4
