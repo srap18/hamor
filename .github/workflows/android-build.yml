@@ -42,16 +42,13 @@ jobs:
           bunx cap sync android
           chmod +x android/gradlew
 
-      - name: Configure Android Compatibility
+      - name: Hard Fix Gradle and AGP Compatibility
         run: |
-          # إضافة ممانعة الخطأ لـ SDK
-          echo "android.suppressUnsupportedCompileSdk=36" >> android/gradle.properties
-          
-          # ترقية الجرادل إلى الإصدار المطلوب 8.11.1
-          cd android && ./gradlew wrapper --gradle-version 8.11.1
-          
-          # ترقية الـ AGP في ملف build.gradle الرئيسي ليتوافق مع Gradle 8.11
-          sed -i 's/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.9.1/g' build.gradle
+          cd android
+          ./gradlew wrapper --gradle-version 8.11.1
+          echo "android.suppressUnsupportedCompileSdk=36" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
 
       - name: Decode Keystore & Secrets
         env:
@@ -72,12 +69,20 @@ jobs:
 
       - name: Sign & Optimize
         run: |
+          # استخراج اسم الـ Alias الحقيقي من الملف تلقائياً لتجنب خطأ الاسم
+          KEYSTORE="android/app/hamor-upload-key.keystore"
+          PASSWORD="HamorGame2026"
+          ALIAS=$(keytool -list -keystore $KEYSTORE -storepass $PASSWORD | grep "Alias name:" | head -n 1 | cut -d':' -f2 | xargs)
+          echo "Using Alias: $ALIAS"
+
+          # توقيع AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $AAB hamor-key-alias
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS
           mv $AAB ./hamor-play-store.aab
           
+          # توقيع APK
           APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore android/app/hamor-upload-key.keystore -storepass "HamorGame2026" -keypass "HamorGame2026" $APK hamor-key-alias
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $APK $ALIAS
           mv $APK ./hamor-app-release.apk
 
       - name: Upload Final Production Artifacts
