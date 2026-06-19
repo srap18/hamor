@@ -1715,6 +1715,45 @@ export type Database = {
         }
         Relationships: []
       }
+      polar_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          environment: string
+          granted_at: string | null
+          id: string
+          pack_id: string
+          polar_checkout_id: string
+          polar_order_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          environment?: string
+          granted_at?: string | null
+          id?: string
+          pack_id: string
+          polar_checkout_id: string
+          polar_order_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          environment?: string
+          granted_at?: string | null
+          id?: string
+          pack_id?: string
+          polar_checkout_id?: string
+          polar_order_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profanity_warnings: {
         Row: {
           body: string
@@ -4424,6 +4463,22 @@ export type Database = {
           _vip_days: number
         }
         Returns: Json
+      }
+      grant_polar_purchase: {
+        Args: {
+          _amount_cents: number
+          _checkout_id: string
+          _coins?: number
+          _env?: string
+          _gems?: number
+          _order_id: string
+          _pack_id: string
+          _rubies?: number
+          _shield_days?: number
+          _user: string
+          _vip_days?: number
+        }
+        Returns: boolean
       }
       grant_referral_bonus: {
         Args: { _amount_cents: number; _txn_id: string; _user: string }

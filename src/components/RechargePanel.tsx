@@ -7,7 +7,7 @@ import {
 } from "@/lib/paddle-checkout.functions";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { buyPackWithPayPal } from "@/lib/paypal-buy";
+import { buyPackWithPolar } from "@/lib/polar-buy";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
@@ -97,8 +97,8 @@ export function RechargePanel() {
     setBusy(pack.id);
     try {
       await eligibility({ data: { packId: pack.id } });
-      await buyPackWithPayPal(pack.id);
-      flash("✨ تم فتح صفحة PayPal. أكمل الدفع ثم ارجع للعبة.");
+      await buyPackWithPolar(pack.id);
+      flash("✨ تم فتح صفحة الدفع. أكمل العملية ثم ارجع للعبة.");
       sound.play("coin");
     } catch (e) {
       console.error("[purchase] failed", e);
@@ -313,7 +313,7 @@ export function RechargePanel() {
         })}
 
         <p className="text-center text-[10px] text-stone-400 pt-2 leading-relaxed px-4">
-          🔒 الدفع آمن عبر PayPal. ستُفتح صفحة الدفع في نافذة جديدة وتُضاف المشتريات تلقائياً بعد إتمام الطلب.
+          🔒 الدفع آمن. ستُفتح صفحة الدفع وتُضاف المشتريات تلقائياً بعد إتمام الطلب.
         </p>
       </div>
 

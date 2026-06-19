@@ -63,7 +63,7 @@ import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
-import { Route as ApiPublicPaypalWebhookRouteImport } from './routes/api/public/paypal/webhook'
+import { Route as ApiPublicPolarWebhookRouteImport } from './routes/api/public/polar/webhook'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 
@@ -337,9 +337,9 @@ const AdminAntiCheatRoute = AdminAntiCheatRouteImport.update({
   path: '/anti-cheat',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiPublicPaypalWebhookRoute = ApiPublicPaypalWebhookRouteImport.update({
-  id: '/api/public/paypal/webhook',
-  path: '/api/public/paypal/webhook',
+const ApiPublicPolarWebhookRoute = ApiPublicPolarWebhookRouteImport.update({
+  id: '/api/public/polar/webhook',
+  path: '/api/public/polar/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
@@ -412,7 +412,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/polar/webhook': typeof ApiPublicPolarWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -470,7 +470,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/polar/webhook': typeof ApiPublicPolarWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -530,7 +530,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/paypal/webhook': typeof ApiPublicPaypalWebhookRoute
+  '/api/public/polar/webhook': typeof ApiPublicPolarWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -591,7 +591,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/paypal/webhook'
+    | '/api/public/polar/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -649,7 +649,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/paypal/webhook'
+    | '/api/public/polar/webhook'
   id:
     | '__root__'
     | '/'
@@ -708,7 +708,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
-    | '/api/public/paypal/webhook'
+    | '/api/public/polar/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -754,7 +754,7 @@ export interface RootRouteChildren {
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
-  ApiPublicPaypalWebhookRoute: typeof ApiPublicPaypalWebhookRoute
+  ApiPublicPolarWebhookRoute: typeof ApiPublicPolarWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1137,11 +1137,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAntiCheatRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/api/public/paypal/webhook': {
-      id: '/api/public/paypal/webhook'
-      path: '/api/public/paypal/webhook'
-      fullPath: '/api/public/paypal/webhook'
-      preLoaderRoute: typeof ApiPublicPaypalWebhookRouteImport
+    '/api/public/polar/webhook': {
+      id: '/api/public/polar/webhook'
+      path: '/api/public/polar/webhook'
+      fullPath: '/api/public/polar/webhook'
+      preLoaderRoute: typeof ApiPublicPolarWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -1249,18 +1249,8 @@ const rootRouteChildren: RootRouteChildren = {
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
-  ApiPublicPaypalWebhookRoute: ApiPublicPaypalWebhookRoute,
+  ApiPublicPolarWebhookRoute: ApiPublicPolarWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
