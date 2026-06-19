@@ -1,21 +1,17 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# حماية مكتبة Capacitor الأساسية (بدونها قد يتوقف التطبيق)
+-keep class com.getcapacitor.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# حماية مكتبات Google و Firebase
+-keep class com.google.** { *; }
+-keep class com.google.firebase.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# حماية مكتبات AndroidX
+-keep class androidx.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# حماية واجهة الاتصال بين الجافا سكريبت والنيتيف (ضروري لـ WebView)
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# الحفاظ على أسماء الفئات والأساليب المهمة للعمل
+-keepattributes Signature,InnerClasses,EnclosingMethod,Exceptions,SourceFile,LineNumberTable
