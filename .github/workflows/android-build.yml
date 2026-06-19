@@ -1,19 +1,72 @@
-- name: Build and Optimize Artifacts
+name: Global-Scale-Android-Build
+on:
+  push:
+    branches: [ main, "رئيسي" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Install Dependencies
+        run: |
+          bun install
+          # حذف الحزم غير الضرورية للبناء النهائي لتقليل المساحة
+          bun pm prune
+
+      - name: Build Web Assets
+        run: bun run build
+
+      - name: Setup Android Environment
+        run: |
+          mkdir -p assets
+          if [ -f "icon-only.png" ]; then cp icon-only.png assets/icon.png; fi
+          if [ -f "splash.png" ]; then cp splash.png assets/splash.png; fi
+          if [ ! -d "android" ]; then bunx cap add android; fi
+          bunx @capacitor/assets generate --android
+          bunx cap sync android
+          chmod +x android/gradlew
+
+      - name: Configure Compatibility
+        run: |
+          cd android
+          echo "android.suppressUnsupportedCompileSdk=36" >> gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
+
+      - name: Decode Keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
+
+      - name: Build and Optimize Artifacts
         env:
           SIGNING_STORE_PASSWORD: "HamorGame2026"
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تنظيف شامل
           ./gradlew clean
-          
-          # بناء الـ AAB (للمتجر)
-          ./gradlew bundleRelease -x lint
-          
-          # بناء APK (Universal) لضمان التوافق مع كل الأجهزة
-          ./gradlew assembleRelease -x lint
+          # مسح كامل للمجلدات المؤقتة لضمان أن البناء يبدأ من الصفر
+          rm -rf app/build/outputs/apk/
+          rm -rf app/build/outputs/bundle/
           
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
+          
+          # بناء AAB للمتجر و APK مضغوط
+          ./gradlew bundleRelease assembleRelease -x lint
 
       - name: Sign & Align Artifacts
         run: |
@@ -21,25 +74,24 @@
           PASSWORD="HamorGame2026"
           ALIAS="hamor-key-alias"
           
-          echo "--- توقيع الملفات ---"
-          
-          # 1. توقيع الـ AAB (المستخدم للرفع على Google Play)
+          # توقيع وتسمية AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
           mv $AAB ./hamor-play-store.aab
           
-          # 2. توقيع الـ APK (المستخدم للتثبيت اليدوي)
-          # نستخدم find للبحث عن أي ملف APK في مجلد الـ release
-          RAW_APK=$(find android/app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
-          
-          if [ -f "$RAW_APK" ]; then
-            # التأكد من عمل zipalign للملف
-            ZIPALIGN_PATH=$(find $ANDROID_HOME/build-tools/ -name zipalign | head -n 1)
-            $ZIPALIGN_PATH -v 4 $RAW_APK ./hamor-aligned.apk
-            
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD ./hamor-aligned.apk $ALIAS || true
-            mv ./hamor-aligned.apk ./hamor-app-release.apk
-          else
-            echo "خطأ: لم يتم العثور على ملف APK!"
-            exit 1
+          # توقيع وتسمية APK (نسخة Universal لتعمل على كل الأجهزة)
+          APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" -o -name "app-release.apk" | head -n 1)
+          if [ -f "$APK" ]; then
+            $ANDROID_HOME/build-tools/*/zipalign -v 4 $APK ./hamor-app-release-aligned.apk
+            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD ./hamor-app-release-aligned.apk $ALIAS || true
+            mv ./hamor-app-release-aligned.apk ./hamor-app-release.apk
           fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Production-Ready-Artifacts
+          path: |
+            ./hamor-play-store.aab
+            ./hamor-app-release.apk
+          if-no-files-found: error
