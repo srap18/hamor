@@ -5,6 +5,8 @@ import {
   checkPackEligibility,
   getStorePurchaseStatus,
 } from "@/lib/paddle-checkout.functions";
+import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { buyPackWithPaddle } from "@/lib/paddle-buy";
