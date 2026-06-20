@@ -2875,11 +2875,13 @@ export type Database = {
           description: string
           ends_at: string
           id: string
+          prize_tiers: Json
           prizes_distributed_at: string | null
           reward_gems: number
           starts_at: string
           title: string
           winner_tribe_id: string | null
+          winner_tribe_points: number
         }
         Insert: {
           active?: boolean
@@ -2890,11 +2892,13 @@ export type Database = {
           description?: string
           ends_at: string
           id?: string
+          prize_tiers?: Json
           prizes_distributed_at?: string | null
           reward_gems?: number
           starts_at?: string
           title: string
           winner_tribe_id?: string | null
+          winner_tribe_points?: number
         }
         Update: {
           active?: boolean
@@ -2905,11 +2909,13 @@ export type Database = {
           description?: string
           ends_at?: string
           id?: string
+          prize_tiers?: Json
           prizes_distributed_at?: string | null
           reward_gems?: number
           starts_at?: string
           title?: string
           winner_tribe_id?: string | null
+          winner_tribe_points?: number
         }
         Relationships: [
           {
@@ -3066,6 +3072,7 @@ export type Database = {
           name: string
           overflow_warning_until: string | null
           owner_id: string
+          points: number
           total_donations: number
           treasure_coins: number
           treasure_tribe_gems: number
@@ -3081,6 +3088,7 @@ export type Database = {
           name: string
           overflow_warning_until?: string | null
           owner_id: string
+          points?: number
           total_donations?: number
           treasure_coins?: number
           treasure_tribe_gems?: number
@@ -3096,6 +3104,7 @@ export type Database = {
           name?: string
           overflow_warning_until?: string | null
           owner_id?: string
+          points?: number
           total_donations?: number
           treasure_coins?: number
           treasure_tribe_gems?: number
@@ -3723,6 +3732,10 @@ export type Database = {
         Args: { _pts: number; _user: string }
         Returns: undefined
       }
+      admin_adjust_tribe_points: {
+        Args: { p_delta: number; p_reason?: string; p_tribe_id: string }
+        Returns: Json
+      }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
@@ -3926,6 +3939,10 @@ export type Database = {
           _target: string
         }
         Returns: undefined
+      }
+      admin_set_tribe_points: {
+        Args: { p_reason?: string; p_tribe_id: string; p_value: number }
+        Returns: Json
       }
       admin_set_username: {
         Args: { _new: string; _target: string }
@@ -4986,6 +5003,18 @@ export type Database = {
         }[]
       }
       tribe_level_from_donations: { Args: { _d: number }; Returns: number }
+      tribes_ranking: {
+        Args: { p_limit?: number }
+        Returns: {
+          level: number
+          members_count: number
+          points: number
+          tribe_banner: string
+          tribe_emblem: string
+          tribe_id: string
+          tribe_name: string
+        }[]
+      }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
         Returns: undefined
