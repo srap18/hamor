@@ -1559,6 +1559,7 @@ function PlayerPage() {
                       <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
                         badge={alreadyOnShip ? { text: "موجود ✓", tone: "rose" } : null}
                         disabled={alreadyOnShip}
+                        onBlocked={() => flash("سفينته فيها نفس الطاقم بالفعل")}
                         onSend={() => sendSupport("crew", c.id)}
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
@@ -1573,6 +1574,7 @@ function PlayerPage() {
                       <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
                         badge={traderActive ? { text: "عنده تاجر نشط", tone: "rose" } : { text: "→ سوق السمك", tone: "emerald" }}
                         disabled={traderActive}
+                        onBlocked={() => flash("💰 عنده تاجر نشط — انتظر ينتهي")}
                         onSend={() => sendSupport("crew", c.id)}
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
