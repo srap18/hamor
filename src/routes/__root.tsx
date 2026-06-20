@@ -13,6 +13,7 @@ import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
 import { GiftPopup } from "@/components/GiftPopup";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
 import { useEffect, useState } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
@@ -491,6 +492,7 @@ function RootComponent() {
           <Outlet />
 
           <AdminEditToggle />
+          <InstallAppButton />
           <Toaster position="top-center" richColors />
         </MobileFrame>
         {splashMounted && (
