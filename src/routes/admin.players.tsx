@@ -568,7 +568,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   };
 
   const saveMarkets = async () => {
-    const s = Math.max(1, Math.min(30, Number(shipMarketLevel) | 0));
+    const s = Math.max(1, Math.min(31, Number(shipMarketLevel) | 0));
     const f = Math.max(1, Math.min(30, Number(fishMarketLevel) | 0));
     setSavingMarkets(true);
     const { error } = await (supabase as any).rpc("admin_set_market_levels", {
