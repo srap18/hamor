@@ -20,7 +20,7 @@ export async function buyPackWithPaddle(externalPriceId: string): Promise<void> 
   window.Paddle.Checkout.open({
     items: [{ priceId, quantity: 1 }],
     customer: email ? { email } : undefined,
-    customData: { pack_id: externalPriceId, user_id: userId },
+    customData: { packId: externalPriceId, userId },
     settings: {
       successUrl,
       displayMode: "overlay",
