@@ -151,6 +151,21 @@ export function RechargePanel() {
       {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
       <PaymentTestModeBanner />
 
+      {/* Self-service recovery: claim any paid Paddle purchases that didn't deliver */}
+      <div className="mx-2 mt-2 p-2 rounded-xl bg-amber-950/40 border border-amber-400/40 text-center">
+        <button
+          onClick={runRecovery}
+          disabled={recovering || !userId}
+          className="w-full py-2 rounded-lg bg-amber-600/30 border border-amber-300/60 text-amber-100 text-xs font-extrabold disabled:opacity-50"
+        >
+          {recovering ? "⏳ جاري التحقق..." : "🔄 ما وصلتك مشترياتك؟ اضغط للاسترجاع"}
+        </button>
+        {recoverMsg && (
+          <p className="mt-1 text-[11px] text-amber-100/90">{recoverMsg}</p>
+        )}
+      </div>
+
+
       {/* Sub-tabs */}
       <div className="px-2 pt-2 grid grid-cols-7 gap-1">
         {SUB_TABS.map((t) => (
