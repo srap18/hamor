@@ -254,6 +254,30 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_ips: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          ip: string
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          ip: string
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          ip?: string
+          reason?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bans: {
         Row: {
           active: boolean
@@ -3820,6 +3844,10 @@ export type Database = {
         Args: { _player: string; _type_id: string }
         Returns: string
       }
+      admin_hard_ban: {
+        Args: { _reason?: string; _uid: string }
+        Returns: Json
+      }
       admin_hard_delete_user: { Args: { _uid: string }; Returns: undefined }
       admin_list_redemptions: {
         Args: { _code_id: string }
@@ -4695,11 +4723,13 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_device_banned: { Args: { _device_id: string }; Returns: boolean }
       is_display_name_taken: {
         Args: { p_except?: string; p_name: string }
         Returns: boolean
       }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
+      is_ip_banned: { Args: { _ip: string }; Returns: boolean }
       is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
       is_privileged_caller: { Args: never; Returns: boolean }
@@ -4939,6 +4969,10 @@ export type Database = {
       shield_purchases_last_week: { Args: { _user: string }; Returns: number }
       ship_from_storage: { Args: { p_ship_id: string }; Returns: Json }
       ship_to_storage: { Args: { p_ship_id: string }; Returns: Json }
+      signup_block_reason: {
+        Args: { _device_id: string; _email: string }
+        Returns: string
+      }
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string

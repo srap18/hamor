@@ -65,10 +65,12 @@ function SignupPage() {
       } catch {}
     }
     try {
-      const { data: blocked } = await (supabase as any).rpc("is_email_banned", { _email: email });
-      if (blocked === true) {
+      const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
+      const { authPreflight } = await import("@/lib/auth-preflight.functions");
+      const pre = await authPreflight({ data: { email, deviceId } });
+      if (pre.blocked) {
         setLoading(false);
-        setErr("هذا البريد محظور من إنشاء حساب");
+        setErr(pre.reason || "ممنوع إنشاء حساب");
         return;
       }
     } catch {}

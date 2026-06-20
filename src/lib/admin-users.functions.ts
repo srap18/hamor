@@ -201,3 +201,31 @@ export const adminBlockLogin = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/**
+ * Hard ban — blocks creating a new account AND blocks changing the connection.
+ * Bans this user's email + every device_id they've used + every IP they've used,
+ * then activates a permanent ban row and Auth ban_duration.
+ */
+export const adminHardBan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; reason?: string }) => {
+    if (!input?.userId) throw new Error("userId required");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
+
+    const reason = data.reason?.trim() || "حظر قوي";
+    const { data: result, error } = await (supabaseAdmin as any).rpc("admin_hard_ban", {
+      _uid: data.userId,
+      _reason: reason,
+    });
+    if (error) throw new Error(error.message);
+
+    // Lock the Auth account permanently as well
+    await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: "87600h" } as never);
+
+    return { ok: true, ...(result as { email: string | null; devices: number; ips: number }) };
+  });
