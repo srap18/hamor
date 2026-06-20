@@ -194,7 +194,7 @@ function AdminPlayers() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث بالاسم أو اليوزر..."
+            placeholder="ابحث بالاسم أو اليوزر أو الإيميل..."
             className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 flex-1 md:w-64"
           />
         </div>
