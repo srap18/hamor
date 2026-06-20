@@ -802,7 +802,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-slate-400">🚢 سوق السفن (1-30)</label>
-              <input type="number" min={1} max={30} value={shipMarketLevel} onChange={(e) => setShipMarketLevel(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+              <input type="number" min={1} max={31} value={shipMarketLevel} onChange={(e) => setShipMarketLevel(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
             </div>
             <div>
               <label className="text-xs text-slate-400">🐟 سوق السمك (1-30)</label>
