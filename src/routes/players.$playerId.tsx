@@ -1658,12 +1658,13 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: numb
   );
 }
 
-function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
+function CrewSendRow({ crew, qty, busy, badge, disabled, onBlocked, onSend, onBuy }: {
   crew: (typeof CREWS)[number];
   qty: number;
   busy: boolean;
   badge: { text: string; tone: "rose" | "emerald" } | null;
   disabled?: boolean;
+  onBlocked?: () => void;
   onSend: () => void;
   onBuy: () => void;
 }) {
@@ -1674,7 +1675,7 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
     : "bg-emerald-900/60 text-emerald-200 border-emerald-500/40";
   return (
     <div className="flex items-stretch gap-2">
-      <button disabled={busy || !canSend} onClick={hasCrew ? onSend : onBuy}
+      <button disabled={busy} onClick={canSend ? (hasCrew ? onSend : onBuy) : onBlocked}
         className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 active:scale-95 disabled:opacity-50 text-right transition-all ${canSend ? "bg-stone-800/90 border-amber-600/50 hover:border-amber-400" : "bg-stone-900/60 border-stone-700"}`}>
         {crew.image ? <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain drop-shadow" /> : <span className="text-3xl">{crew.emoji}</span>}
         <div className="flex-1 min-w-0">
