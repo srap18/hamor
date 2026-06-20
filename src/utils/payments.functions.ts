@@ -14,11 +14,21 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data }) => {
-    const res = await gatewayFetch(
-      data.environment,
-      `/prices?external_id=${encodeURIComponent(data.priceId)}`,
-    );
-    const result = await res.json();
-    if (!result.data?.length) throw new Error("Price not found");
-    return result.data[0].id as string;
+    const lookup = async (env: PaddleEnv) => {
+      const res = await gatewayFetch(
+        env,
+        `/prices?external_id=${encodeURIComponent(data.priceId)}`,
+      );
+      const result = await res.json();
+      return result.data?.[0]?.id as string | undefined;
+    };
+    let id = await lookup(data.environment);
+    // Fallback: if not found in the requested env, try the other env.
+    // Useful when stale client bundles still send "sandbox" but only live keys exist.
+    if (!id) {
+      const other: PaddleEnv = data.environment === "sandbox" ? "live" : "sandbox";
+      try { id = await lookup(other); } catch { /* ignore */ }
+    }
+    if (!id) throw new Error("Price not found");
+    return id;
   });
