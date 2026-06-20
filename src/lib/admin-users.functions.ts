@@ -120,22 +120,9 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
       active: true,
     });
 
-    await Promise.all([
-      supabaseAdmin.from("inventory").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("fish_caught").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("fish_stock").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("ships_owned").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("lootbox_owned").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("daily_login_streaks").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("quest_progress").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("transactions").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("device_accounts").delete().eq("user_id", data.userId),
-      supabaseAdmin.from("friends").delete().or(`requester_id.eq.${data.userId},addressee_id.eq.${data.userId}`),
-      supabaseAdmin.from("messages").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`),
-      supabaseAdmin.from("notifications").delete().or(`recipient_id.eq.${data.userId},created_by.eq.${data.userId}`),
-      supabaseAdmin.from("support_gifts").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`),
-      supabaseAdmin.from("profiles").delete().eq("id", data.userId),
-    ]);
+    // Hard-wipe every trace of this user across all known tables
+    const { error: wipeErr } = await (supabaseAdmin as any).rpc("admin_hard_delete_user", { _uid: data.userId });
+    if (wipeErr) throw new Error(`فشل حذف بيانات اللاعب: ${wipeErr.message}`);
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
