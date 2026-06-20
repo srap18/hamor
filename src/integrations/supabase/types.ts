@@ -3019,6 +3019,51 @@ export type Database = {
           },
         ]
       }
+      unmapped_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          email: string | null
+          environment: string
+          id: string
+          pack_id_hint: string | null
+          paddle_transaction_id: string
+          raw: Json | null
+          reason: string
+          resolved: boolean
+          resolved_at: string | null
+          user_id_hint: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          email?: string | null
+          environment: string
+          id?: string
+          pack_id_hint?: string | null
+          paddle_transaction_id: string
+          raw?: Json | null
+          reason: string
+          resolved?: boolean
+          resolved_at?: string | null
+          user_id_hint?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          email?: string | null
+          environment?: string
+          id?: string
+          pack_id_hint?: string | null
+          paddle_transaction_id?: string
+          raw?: Json | null
+          reason?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          user_id_hint?: string | null
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
