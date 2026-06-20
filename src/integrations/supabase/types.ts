@@ -3663,6 +3663,7 @@ export type Database = {
         Args: { _player: string; _type_id: string }
         Returns: string
       }
+      admin_hard_delete_user: { Args: { _uid: string }; Returns: undefined }
       admin_list_redemptions: {
         Args: { _code_id: string }
         Returns: {
