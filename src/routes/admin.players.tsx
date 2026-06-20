@@ -529,11 +529,12 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const blockLogin = async () => {
     const hoursStr = prompt("منع تسجيل الدخول لكم ساعة؟ (اتركه فارغاً للمنع الدائم)", "");
     const hours = hoursStr ? Number(hoursStr) : 87600;
-    if (!confirm(`منع ${player.display_name} من تسجيل الدخول ${hoursStr ? `${hours} ساعة` : "نهائياً"}؟`)) return;
+    const reason = prompt("سبب منع الدخول:", "منع تسجيل الدخول") ?? "";
+    if (!confirm(`منع ${player.display_name} من تسجيل الدخول ${hoursStr ? `${hours} ساعة` : "نهائياً"}؟\n(يؤثر على هذا الحساب فقط — لا يحظر الجهاز ولا الحسابات المرتبطة)`)) return;
     try {
       const { adminBlockLogin } = await import("@/lib/admin-users.functions");
-      await adminBlockLogin({ data: { userId: player.id, hours } });
-      toast.success("تم منع تسجيل الدخول");
+      await adminBlockLogin({ data: { userId: player.id, hours, reason } });
+      toast.success("تم منع تسجيل الدخول وأُضيف للعقوبات");
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
     }
