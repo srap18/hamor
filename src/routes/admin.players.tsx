@@ -505,10 +505,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
-    } finally {
-      setDeleting(false);
     }
   };
+
+  const reconcilePayments = async () => {
+    if (!confirm(`فحص ومنح أي مشتريات Paddle مدفوعة ولم تُسلَّم لـ ${player.display_name}؟`)) return;
+    try {
+      const { adminReconcilePaddleForUser } = await import("@/lib/admin-payments.functions");
+      const r = await adminReconcilePaddleForUser({ data: { userId: player.id, environment: "live" } });
+      if (r?.grantedCount && r.grantedCount > 0) {
+        toast.success(`✅ تم منح ${r.grantedCount} عملية شراء معلقة`);
+      } else {
+        toast.message(r?.reason ? `لا شيء للمنح (${r.reason})` : "لا توجد مشتريات معلقة");
+      }
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+
 
 
   const blockLogin = async () => {
