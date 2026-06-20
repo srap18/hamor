@@ -49,18 +49,19 @@ function PaymentSuccess() {
 
   useEffect(() => {
     let cancelled = false;
-    let lastGems = -1;
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       const params = new URLSearchParams(window.location.search);
+      const txnId =
+        params.get("_ptxn") || params.get("transaction_id") || params.get("txn_id");
+      const env = getPaddleEnvironment();
 
-      const txnId = params.get("_ptxn") || params.get("transaction_id") || params.get("txn_id");
-
+      // 1) Try instant claim when Paddle returned us with a txn id.
       if (txnId) {
         try {
           const claimed = await claimTxn({
-            data: { transactionId: txnId, environment: getPaddleEnvironment() },
+            data: { transactionId: txnId, environment: env },
           });
           const pack = claimed?.packId ? getPack(claimed.packId) : null;
           if (!cancelled) {
@@ -75,29 +76,28 @@ function PaymentSuccess() {
         }
       }
 
-      const { data: p0 } = await supabase
-        .from("profiles")
-        .select("gems")
-        .eq("id", u.user.id)
-        .maybeSingle();
-      lastGems = p0?.gems ?? 0;
-
-      for (let i = 0; i < 30 && !cancelled; i++) {
-        await new Promise((r) => setTimeout(r, 500));
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("gems")
-          .eq("id", u.user.id)
-          .maybeSingle();
-        if (p && p.gems !== lastGems) {
-          if (!cancelled) {
-            setStatus("done");
-            refreshProfile();
-            sound.play("coin");
+      // 2) No txn id (or claim failed) → auto-reconcile by email, retrying
+      // for ~60s to handle webhook delay and slow PayPal settlements.
+      for (let i = 0; i < 12 && !cancelled; i++) {
+        try {
+          const r = await reconcile({ data: { environment: env } });
+          if (r?.grantedCount && r.grantedCount > 0) {
+            const firstPack = r.granted?.[0] ? getPack(r.granted[0]) : null;
+            if (!cancelled) {
+              if (firstPack) setReward(firstPack);
+              setStatus("done");
+              refreshProfile();
+              sound.play("coin");
+            }
+            return;
           }
-          return;
+        } catch (e) {
+          console.error("[payment-success] reconcile attempt failed", e);
         }
+        await new Promise((res) => setTimeout(res, 5000));
       }
+
+      // 3) Give up waiting — show success screen with manual recovery button.
       if (!cancelled) {
         setStatus("done");
         refreshProfile();
