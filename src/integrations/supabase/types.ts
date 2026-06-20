@@ -2823,6 +2823,62 @@ export type Database = {
         }
         Relationships: []
       }
+      tribe_fish_events: {
+        Row: {
+          active: boolean
+          banner_emoji: string
+          banner_theme: string
+          created_at: string
+          created_by: string | null
+          description: string
+          ends_at: string
+          id: string
+          prizes_distributed_at: string | null
+          reward_gems: number
+          starts_at: string
+          title: string
+          winner_tribe_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          banner_emoji?: string
+          banner_theme?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at: string
+          id?: string
+          prizes_distributed_at?: string | null
+          reward_gems?: number
+          starts_at?: string
+          title: string
+          winner_tribe_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          banner_emoji?: string
+          banner_theme?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          ends_at?: string
+          id?: string
+          prizes_distributed_at?: string | null
+          reward_gems?: number
+          starts_at?: string
+          title?: string
+          winner_tribe_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_fish_events_winner_tribe_id_fkey"
+            columns: ["winner_tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tribe_gem_daily: {
         Row: {
           day: string
@@ -4087,6 +4143,10 @@ export type Database = {
         Returns: Json
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      distribute_tribe_fish_event_prizes: {
+        Args: { p_event_id: string }
+        Returns: Json
+      }
       distribute_weekly_xp_prizes: { Args: never; Returns: Json }
       donate_to_tribe: {
         Args: { _amount: number; _tribe_id: string }
@@ -4864,6 +4924,17 @@ export type Database = {
         Returns: undefined
       }
       trader_snapshot_anchor: { Args: never; Returns: string }
+      tribe_fish_event_leaderboard: {
+        Args: { p_event_id: string }
+        Returns: {
+          members_count: number
+          total_fish: number
+          tribe_banner: string
+          tribe_emblem: string
+          tribe_id: string
+          tribe_name: string
+        }[]
+      }
       tribe_level_from_donations: { Args: { _d: number }; Returns: number }
       update_inventory_meta: {
         Args: { _inv_id: string; _meta: Json }
