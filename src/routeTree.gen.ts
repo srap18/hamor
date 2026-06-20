@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VipRouteImport } from './routes/vip'
 import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as TribeEventsRouteImport } from './routes/tribe-events'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -52,6 +53,7 @@ import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
+import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
@@ -74,6 +76,11 @@ const VipRoute = VipRouteImport.update({
 const UpdatesRoute = UpdatesRouteImport.update({
   id: '/updates',
   path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TribeEventsRoute = TribeEventsRouteImport.update({
+  id: '/tribe-events',
+  path: '/tribe-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -281,6 +288,11 @@ const AdminWeeklyXpRoute = AdminWeeklyXpRouteImport.update({
   path: '/weekly-xp',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTribeEventsRoute = AdminTribeEventsRouteImport.update({
+  id: '/tribe-events',
+  path: '/tribe-events',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTicketsRoute = AdminTicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
@@ -384,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -397,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -441,6 +455,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -454,6 +469,7 @@ export interface FileRoutesByTo {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -500,6 +516,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -513,6 +530,7 @@ export interface FileRoutesById {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -560,6 +578,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -573,6 +592,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -617,6 +637,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -630,6 +651,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -675,6 +697,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -688,6 +711,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -734,6 +758,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TribeEventsRoute: typeof TribeEventsRoute
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
   GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
@@ -758,6 +783,13 @@ declare module '@tanstack/react-router' {
       path: '/updates'
       fullPath: '/updates'
       preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tribe-events': {
+      id: '/tribe-events'
+      path: '/tribe-events'
+      fullPath: '/tribe-events'
+      preLoaderRoute: typeof TribeEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1047,6 +1079,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWeeklyXpRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tribe-events': {
+      id: '/admin/tribe-events'
+      path: '/tribe-events'
+      fullPath: '/admin/tribe-events'
+      preLoaderRoute: typeof AdminTribeEventsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/tickets': {
       id: '/admin/tickets'
       path: '/tickets'
@@ -1153,6 +1192,7 @@ interface AdminRouteChildren {
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
+  AdminTribeEventsRoute: typeof AdminTribeEventsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1169,6 +1209,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminTicketsRoute: AdminTicketsRoute,
+  AdminTribeEventsRoute: AdminTribeEventsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -1221,6 +1262,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TribeEventsRoute: TribeEventsRoute,
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
   GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,

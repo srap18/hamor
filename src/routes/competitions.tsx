@@ -215,6 +215,21 @@ function CompetitionsPage() {
       <main className="relative max-w-3xl mx-auto p-3 md:p-5 space-y-7">
         <WeeklyXpCard />
 
+        <Link
+          to="/tribe-events"
+          className="block rounded-2xl overflow-hidden border border-cyan-500/40 bg-gradient-to-l from-cyan-700/40 via-blue-700/30 to-indigo-700/40 p-4 hover:from-cyan-600/50 hover:to-indigo-600/50 transition-colors shadow-lg shadow-cyan-500/20"
+        >
+          <div className="flex items-center gap-3">
+            <div className="text-4xl">🎣</div>
+            <div className="flex-1">
+              <div className="font-black text-cyan-100">فعاليات صيد القبائل</div>
+              <div className="text-xs text-cyan-200/80 mt-0.5">تنافسوا مع قبيلتكم على جوائز جواهر تتوزع على الأعضاء</div>
+            </div>
+            <div className="text-cyan-200 text-xl">‹</div>
+          </div>
+        </Link>
+
+
 
 
 
