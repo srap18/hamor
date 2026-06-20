@@ -1,4 +1,4 @@
-import { initializePaddle, getPaddlePriceId } from "./paddle";
+import { createPaddleTransaction, initializePaddle } from "./paddle";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -14,19 +14,22 @@ export async function buyPackWithPaddle(externalPriceId: string): Promise<void> 
   const email = u.user?.email;
   if (!userId) throw new Error("سجّل الدخول أولاً");
 
-  const priceId = await getPaddlePriceId(externalPriceId);
-  const successUrl = `${window.location.origin}/payment-success`;
+  const { transactionId, checkoutUrl } = await createPaddleTransaction(externalPriceId);
 
   window.Paddle.Checkout.open({
-    items: [{ priceId, quantity: 1 }],
+    transactionId,
     customer: email ? { email } : undefined,
-    customData: { pack_id: externalPriceId, user_id: userId },
     settings: {
-      successUrl,
+      successUrl: `${window.location.origin}/payment-success?_ptxn=${encodeURIComponent(transactionId)}`,
       displayMode: "overlay",
       theme: "dark",
       locale: "ar",
       allowLogout: false,
     },
   });
+
+  window.setTimeout(() => {
+    const frame = document.querySelector('iframe[src*="paddle"], #paddle-checkout-frame');
+    if (!frame) window.location.assign(checkoutUrl);
+  }, 2500);
 }
