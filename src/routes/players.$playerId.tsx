@@ -765,68 +765,81 @@ function PlayerPage() {
     if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
     if (!selectedShip) { flash("اختر سفينة أولاً من الأعلى"); return; }
     setBusy(true); sound.play("click");
-    const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
-    const { error } = await (supabase as any).rpc("send_support", {
-      _recipient_id: playerId,
-      _ship_id: selectedShip.id,
-      _kind: kind,
-      _crew_id: kind === "crew" ? itemId : null,
-    });
-    if (!error) {
-      broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
-      await playProjectile(selectedShip.id, fxEmoji, true);
-      if (kind === "crew") {
-        setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
-      }
-      if (kind === "crew") loadPlayerCrews();
-      const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
-      if (kind === "repair" || isFixerCrew) {
-        await reloadShipsRef.current();
-      }
-      sound.play("success");
-      const isTrader = kind === "crew" && itemId === "trader";
-      flash(
-        kind === "crew"
-          ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته"
-            : isTrader ? "💰 التاجر فعّل سوق السمك عنده"
-            : "👨‍✈️ تم إرسال الطاقم — يعمل على سفينته")
-          : "🛠️ تم إصلاح سفينته بالكامل"
-      );
+    flash(kind === "crew" ? "⏳ جاري إرسال الطاقم..." : "⏳ جاري إصلاح السفينة...");
+    try {
+      const fxEmoji = kind === "crew" ? "👨‍✈️" : "🛠️";
+      const { error } = await (supabase as any).rpc("send_support", {
+        _recipient_id: playerId,
+        _ship_id: selectedShip.id,
+        _kind: kind,
+        _crew_id: kind === "crew" ? itemId : null,
+      });
+      if (!error) {
+        broadcastFx({ targetId: selectedShip.id, emoji: fxEmoji, friendly: true, toast: kind === "crew" ? `👨‍✈️ ${myName || "لاعب"} أرسل طاقم دعم` : `🛠️ ${myName || "لاعب"} يصلح السفينة` });
+        await playProjectile(selectedShip.id, fxEmoji, true);
+        if (kind === "crew") {
+          setInv((arr) => arr.map((x) => x.item_id === itemId && x.item_type === "crew" ? { ...x, quantity: Math.max(0, x.quantity - 1) } : x).filter((x) => x.quantity > 0));
+        }
+        if (kind === "crew") loadPlayerCrews();
+        const isFixerCrew = kind === "crew" && itemId.startsWith("fixer_");
+        if (kind === "repair" || isFixerCrew) {
+          await reloadShipsRef.current();
+        }
+        sound.play("success");
+        const isTrader = kind === "crew" && itemId === "trader";
+        flash(
+          kind === "crew"
+            ? (isFixerCrew ? "🛠️ تم إرسال المصلّح — وأصلح سفينته"
+              : isTrader ? "💰 التاجر فعّل سوق السمك عنده"
+              : "👨‍✈️ تم إرسال الطاقم — يعمل على سفينته")
+            : "🛠️ تم إصلاح سفينته بالكامل"
+        );
 
-    } else {
-      const msg = (error as any).message || "";
-      if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم");
-      else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
-      else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
-      else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
-      else if (msg.includes("recipient is a new player")) flash("🛡️ هذا اللاعب جديد — ما يقدر يستقبل دعم");
-      else if (msg.includes("same device")) flash("🚫 ما تقدر ترسل دعم لحساب على نفس الجهاز");
-      else if (msg.includes("target ship does not belong")) flash("السفينة المختارة مو لهذا اللاعب");
-      else if (msg.includes("banned")) flash("🚫 الحساب محظور");
-      else if (msg.includes("not authenticated")) flash("سجّل دخول أولاً");
-      else flash(`تعذّر إرسال الدعم: ${msg || "خطأ غير معروف"}`);
+      } else {
+        const msg = (error as any).message || "";
+        if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
+        else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
+        else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
+        else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
+        else if (msg.includes("recipient is a new player")) flash("🛡️ هذا اللاعب جديد — ما يقدر يستقبل دعم");
+        else if (msg.includes("same device")) flash("🚫 ما تقدر ترسل دعم لحساب على نفس الجهاز");
+        else if (msg.includes("target ship does not belong")) flash("السفينة المختارة مو لهذا اللاعب");
+        else if (msg.includes("banned")) flash("🚫 الحساب محظور");
+        else if (msg.includes("not authenticated")) flash("سجّل دخول أولاً");
+        else flash(`تعذّر إرسال الدعم: ${msg || "خطأ غير معروف"}`);
+      }
+    } catch (e) {
+      flash(`تعذّر إرسال الدعم: ${(e as Error)?.message || "مشكلة اتصال"}`);
+    } finally {
+      setBusy(false);
+      if (kind !== "crew") closeMenu();
     }
-
-    setBusy(false);
-    if (kind !== "crew") closeMenu();
   };
 
 
   const buyAndSendCrew = async (crewId: string) => {
-    if (!me || !selectedShip) return;
+    if (!me) { flash("سجّل دخول أولاً"); return; }
+    if (!selectedShip) { flash("اختر سفينة أولاً من الأعلى"); return; }
     if (me === playerId) { flash("ما تقدر ترسل لنفسك — هذي ميزة دعم للاعبين الآخرين"); return; }
     const c = CREWS.find((x) => x.id === crewId);
     if (!c) return;
     setBusy(true); sound.play("click");
-    const { error } = c.currency === "gems"
-      ? await buyWithGems(c.id, "crew", c.price)
-      : await buyWithCoins(c.id, "crew", c.price);
-    if (error) {
+    flash(`⏳ شراء ${c.name} ثم إرساله...`);
+    try {
+      const { error } = c.currency === "gems"
+        ? await buyWithGems(c.id, "crew", c.price)
+        : await buyWithCoins(c.id, "crew", c.price);
+      if (error) {
+        setBusy(false);
+        const msg = (error as any).message || "";
+        if (msg.includes("insufficient") || msg.includes("not enough")) {
+          flash(c.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
+        } else flash("تعذّر الشراء");
+        return;
+      }
+    } catch (e) {
       setBusy(false);
-      const msg = (error as any).message || "";
-      if (msg.includes("insufficient") || msg.includes("not enough")) {
-        flash(c.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
-      } else flash("تعذّر الشراء");
+      flash(`تعذّر الشراء: ${(e as Error)?.message || "مشكلة اتصال"}`);
       return;
     }
     setInv((arr) => {
@@ -1553,6 +1566,7 @@ function PlayerPage() {
                       <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
                         badge={alreadyOnShip ? { text: "موجود ✓", tone: "rose" } : null}
                         disabled={alreadyOnShip}
+                        onBlocked={() => flash("سفينته فيها نفس الطاقم بالفعل")}
                         onSend={() => sendSupport("crew", c.id)}
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
@@ -1567,6 +1581,7 @@ function PlayerPage() {
                       <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
                         badge={traderActive ? { text: "عنده تاجر نشط", tone: "rose" } : { text: "→ سوق السمك", tone: "emerald" }}
                         disabled={traderActive}
+                        onBlocked={() => flash("💰 عنده تاجر نشط — انتظر ينتهي")}
                         onSend={() => sendSupport("crew", c.id)}
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
@@ -1650,22 +1665,24 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: numb
   );
 }
 
-function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
+function CrewSendRow({ crew, qty, busy, badge, disabled, onBlocked, onSend, onBuy }: {
   crew: (typeof CREWS)[number];
   qty: number;
   busy: boolean;
   badge: { text: string; tone: "rose" | "emerald" } | null;
   disabled?: boolean;
+  onBlocked?: () => void;
   onSend: () => void;
   onBuy: () => void;
 }) {
-  const canSend = qty > 0 && !disabled;
+  const hasCrew = qty > 0;
+  const canSend = !disabled;
   const toneCls = badge?.tone === "rose"
     ? "bg-rose-900/60 text-rose-200 border-rose-500/40"
     : "bg-emerald-900/60 text-emerald-200 border-emerald-500/40";
   return (
     <div className="flex items-stretch gap-2">
-      <button disabled={busy || !canSend} onClick={onSend}
+      <button disabled={busy} onClick={canSend ? (hasCrew ? onSend : onBuy) : onBlocked}
         className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 active:scale-95 disabled:opacity-50 text-right transition-all ${canSend ? "bg-stone-800/90 border-amber-600/50 hover:border-amber-400" : "bg-stone-900/60 border-stone-700"}`}>
         {crew.image ? <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain drop-shadow" /> : <span className="text-3xl">{crew.emoji}</span>}
         <div className="flex-1 min-w-0">
@@ -1676,8 +1693,8 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
           <div className="text-[10px] text-amber-300/70 leading-tight mt-0.5 line-clamp-2">{crew.bonus}</div>
         </div>
         <div className="flex flex-col items-center justify-center">
-          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>عندك</span>
-          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>×{qty}</span>
+          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? "عندك" : "شراء"}</span>
+          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? `×${qty}` : crew.currency === "gems" ? `💎${crew.price}` : "💰"}</span>
         </div>
       </button>
       {qty === 0 && !disabled && (
