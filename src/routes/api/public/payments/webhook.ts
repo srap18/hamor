@@ -138,13 +138,42 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   }
 }
 
+async function recordUnmapped(
+  txnId: string,
+  reason: string,
+  env: PaddleEnv,
+  data: any,
+) {
+  try {
+    await getSupabase().from("unmapped_payments").upsert(
+      {
+        paddle_transaction_id: txnId,
+        reason,
+        amount_cents: Number(data?.details?.totals?.total ?? 0),
+        environment: env,
+        email: data?.customer?.email ?? data?.customData?.email ?? null,
+        user_id_hint: data?.customData?.userId ?? null,
+        pack_id_hint: getPackIdFromTransaction(data) ?? null,
+        raw: data,
+      },
+      { onConflict: "paddle_transaction_id" },
+    );
+  } catch (e) {
+    console.error("recordUnmapped failed:", e);
+  }
+}
+
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   const userId = data.customData?.userId;
-  if (!userId) return console.error("transaction: no userId in customData");
+  if (!userId) {
+    await recordUnmapped(data.id, "missing_user_id", env, data);
+    // Throw so Paddle retries the webhook — never silently drop a paid txn.
+    throw new Error("transaction: no userId in customData");
+  }
   const priceExt = getPackIdFromTransaction(data);
   if (!priceExt) {
-    console.warn("transaction: missing pack id");
-    return;
+    await recordUnmapped(data.id, "missing_pack_id", env, data);
+    throw new Error("transaction: missing pack id");
   }
   // For subscriptions, rewards are granted per renewal cycle too.
   const reward = rewardFor(priceExt);
@@ -162,6 +191,7 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     _env: env,
   });
   if (error) {
+    await recordUnmapped(data.id, `grant_rpc:${error.message}`, env, data);
     console.error("grant_paddle_purchase failed:", error);
     throw new Error(`grant_paddle_purchase failed: ${error.message}`);
   }
