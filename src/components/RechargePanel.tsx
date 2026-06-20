@@ -7,7 +7,7 @@ import {
 } from "@/lib/paddle-checkout.functions";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { buyPackWithPolar } from "@/lib/polar-buy";
+import { buyPackWithPaddle } from "@/lib/paddle-buy";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { STORE_PACKS, getPack, type StorePack, type PackCategory } from "@/lib/store-catalog";
@@ -97,7 +97,7 @@ export function RechargePanel() {
     setBusy(pack.id);
     try {
       await eligibility({ data: { packId: pack.id } });
-      await buyPackWithPolar(pack.id);
+      await buyPackWithPaddle(pack.id);
       flash("✨ تم فتح صفحة الدفع. أكمل العملية ثم ارجع للعبة.");
       sound.play("coin");
     } catch (e) {

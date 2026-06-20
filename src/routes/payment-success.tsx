@@ -6,7 +6,6 @@ import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
 import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
-import { verifyPolarCheckout } from "@/lib/polar-checkout.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { getPack, type StorePack } from "@/lib/store-catalog";
 import { RewardPopup } from "@/components/RewardPopup";
@@ -17,13 +16,12 @@ export const Route = createFileRoute("/payment-success")({
   component: PaymentSuccess,
 });
 
-// Polar/Paddle webhooks grant the rewards asynchronously. We poll the
-// profile briefly so the user sees their new balance before navigating home.
+// Paddle webhooks grant rewards asynchronously. We poll the profile briefly
+// so the user sees their new balance before navigating home.
 function PaymentSuccess() {
   const nav = useNavigate();
   const claimTxn = useServerFn(claimPaddleTransaction);
   const reconcile = useServerFn(reconcileMyPaddlePurchases);
-  const verifyPolar = useServerFn(verifyPolarCheckout);
   const [status, setStatus] = useState<"waiting" | "done">("waiting");
   const [reward, setReward] = useState<StorePack | null>(null);
   const [recovering, setRecovering] = useState(false);
@@ -56,46 +54,6 @@ function PaymentSuccess() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       const params = new URLSearchParams(window.location.search);
-
-      // Polar return: ?polar_checkout_id=<id>
-      const polarCheckoutId = params.get("polar_checkout_id");
-      if (polarCheckoutId) {
-        // Webhook grants asynchronously; poll polar_purchases for granted=true.
-        try {
-          const res = await verifyPolar({ data: { checkoutId: polarCheckoutId } });
-          const pack = res?.packId ? getPack(res.packId) : null;
-
-          // Wait up to ~15s for the webhook to grant
-          for (let i = 0; i < 30 && !cancelled; i++) {
-            const { data: p } = await supabase
-              .from("polar_purchases")
-              .select("status, pack_id")
-              .eq("polar_checkout_id", polarCheckoutId)
-              .eq("status", "granted")
-              .maybeSingle();
-            if (p) {
-              if (!cancelled) {
-                const pk = p.pack_id ? getPack(p.pack_id) : pack;
-                if (pk) setReward(pk);
-                setStatus("done");
-                refreshProfile();
-                sound.play("coin");
-              }
-              return;
-            }
-            await new Promise((r) => setTimeout(r, 500));
-          }
-          // Timed out — show done anyway; user can recover later.
-          if (!cancelled) {
-            if (pack) setReward(pack);
-            setStatus("done");
-            refreshProfile();
-          }
-          return;
-        } catch (e) {
-          console.error("[payment-success] polar verify failed", e);
-        }
-      }
 
       const txnId = params.get("_ptxn") || params.get("transaction_id") || params.get("txn_id");
 
@@ -148,7 +106,7 @@ function PaymentSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [claimTxn, reconcile, verifyPolar]);
+  }, [claimTxn, reconcile]);
 
   return (
     <div
