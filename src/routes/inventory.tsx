@@ -200,14 +200,13 @@ function InventoryPage() {
                   {n > 0 && (
                     <button
                       onClick={() => {
-                        if (c.id === "golden_fisher") { toast.info("🏅 الصياد الذهبي موقوف مؤقتاً"); return; }
                         if (isGoldenLocked) { toast.info("🏅 الصياد الذهبي مفعّل بالفعل على حسابك"); return; }
                         return c.id === "trader" ? useCrew(c.id, null) : setCrewToUse(c.id);
                       }}
-                      disabled={usingCrew === c.id || isGoldenLocked || c.id === "golden_fisher"}
+                      disabled={usingCrew === c.id || isGoldenLocked}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
-                      {usingCrew === c.id ? "..." : c.id === "golden_fisher" ? "موقوف ⛔" : isGoldenLocked ? "مفعّل ✓" : "استخدام"}
+                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : "استخدام"}
                     </button>
                   )}
                 </div>
