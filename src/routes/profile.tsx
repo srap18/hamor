@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
+import { LevelSkillsCard } from "@/components/LevelSkillsCard";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
@@ -255,6 +256,10 @@ function ProfilePage() {
           className="w-full px-4 py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-bold text-base active:scale-95 disabled:opacity-50 shadow-lg">
           {saving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
         </button>
+
+        {/* Level + Skills */}
+        {userId && <LevelSkillsCard userId={userId} />}
+
 
         {/* Name */}
         <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">

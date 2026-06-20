@@ -1411,6 +1411,24 @@ export type Database = {
         }
         Relationships: []
       }
+      level_xp_table: {
+        Row: {
+          cumulative_xp: number
+          level: number
+          to_next: number
+        }
+        Insert: {
+          cumulative_xp: number
+          level: number
+          to_next: number
+        }
+        Update: {
+          cumulative_xp?: number
+          level?: number
+          to_next?: number
+        }
+        Relationships: []
+      }
       lootbox_owned: {
         Row: {
           acquired_at: string
@@ -1872,6 +1890,12 @@ export type Database = {
           rubies: number
           selected_bg_id: string
           ship_flag: string
+          skill_def: number
+          skill_fish: number
+          skill_luck: number
+          skill_points: number
+          skill_speed: number
+          skill_str: number
           steal_blocked_until: string | null
           tribe_gems: number
           tribe_id: string | null
@@ -1883,6 +1907,8 @@ export type Database = {
           vip_subs_claimed: number
           weekly_xp: number
           xp: number
+          xp_today: number
+          xp_today_date: string | null
         }
         Insert: {
           active_session_id?: string | null
@@ -1923,6 +1949,12 @@ export type Database = {
           rubies?: number
           selected_bg_id?: string
           ship_flag?: string
+          skill_def?: number
+          skill_fish?: number
+          skill_luck?: number
+          skill_points?: number
+          skill_speed?: number
+          skill_str?: number
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
@@ -1934,6 +1966,8 @@ export type Database = {
           vip_subs_claimed?: number
           weekly_xp?: number
           xp?: number
+          xp_today?: number
+          xp_today_date?: string | null
         }
         Update: {
           active_session_id?: string | null
@@ -1974,6 +2008,12 @@ export type Database = {
           rubies?: number
           selected_bg_id?: string
           ship_flag?: string
+          skill_def?: number
+          skill_fish?: number
+          skill_luck?: number
+          skill_points?: number
+          skill_speed?: number
+          skill_str?: number
           steal_blocked_until?: string | null
           tribe_gems?: number
           tribe_id?: string | null
@@ -1985,6 +2025,8 @@ export type Database = {
           vip_subs_claimed?: number
           weekly_xp?: number
           xp?: number
+          xp_today?: number
+          xp_today_date?: string | null
         }
         Relationships: [
           {
@@ -3891,6 +3933,7 @@ export type Database = {
       }
       admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
+      allocate_skill_point: { Args: { _stat: string }; Returns: Json }
       apply_referral_code: { Args: { p_code: string }; Returns: Json }
       apply_ship_damage: {
         Args: {
@@ -3948,6 +3991,10 @@ export type Database = {
         Returns: undefined
       }
       award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
+      award_event_xp: {
+        Args: { _amount: number; _user: string }
+        Returns: number
+      }
       boss_attack_status: { Args: never; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
@@ -4133,6 +4180,7 @@ export type Database = {
         Returns: undefined
       }
       daily_rockets_status: { Args: never; Returns: Json }
+      daily_xp_cap: { Args: never; Returns: number }
       daughter_apply_purchase_bonus: {
         Args: { _spent_coins: number; _spent_gems: number }
         Returns: Json
@@ -4653,6 +4701,7 @@ export type Database = {
         Returns: string
       }
       launch_nuke: { Args: { _target_id: string }; Returns: string }
+      level_from_xp: { Args: { _xp: number }; Returns: number }
       mark_me_offline: { Args: never; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {
@@ -4965,6 +5014,8 @@ export type Database = {
       }
       verify_session_integrity: { Args: { _token: string }; Returns: boolean }
       warn_overfull_tribes: { Args: never; Returns: number }
+      xp_gain_scale: { Args: { _level: number }; Returns: number }
+      xp_progress: { Args: { _user: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
