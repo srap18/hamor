@@ -5,6 +5,8 @@ import {
   checkPackEligibility,
   getStorePurchaseStatus,
 } from "@/lib/paddle-checkout.functions";
+import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { buyPackWithPaddle } from "@/lib/paddle-buy";
@@ -43,6 +45,7 @@ const TAG_STYLES: Record<string, string> = {
 export function RechargePanel() {
   const eligibility = useServerFn(checkPackEligibility);
   const getStatus = useServerFn(getStorePurchaseStatus);
+  const reconcile = useServerFn(reconcileMyPaddlePurchases);
 
   const [userId, setUserId] = useState<string | null>(null);
   const [, setUserEmail] = useState<string | null>(null);
@@ -53,6 +56,29 @@ export function RechargePanel() {
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
   const [reward, setReward] = useState<StorePack | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
+
+  const runRecovery = async () => {
+    if (recovering) return;
+    setRecovering(true);
+    setRecoverMsg(null);
+    try {
+      const r = await reconcile({ data: { environment: getPaddleEnvironment() } });
+      refreshProfile();
+      if (r?.grantedCount && r.grantedCount > 0) {
+        setRecoverMsg(`✅ تم استرجاع ${r.grantedCount} عملية شراء. تحقق من حسابك.`);
+        sound.play("coin");
+      } else {
+        setRecoverMsg("لا توجد مشتريات معلقة. كل شي وصلك. لو فيه مشكلة راسل الدعم.");
+      }
+    } catch (e) {
+      console.error(e);
+      setRecoverMsg("تعذر التحقق الآن. حاول بعد لحظات أو راسل الدعم.");
+    } finally {
+      setRecovering(false);
+    }
+  };
 
   const flash = (m: string) => {
     setPop(m);
@@ -124,6 +150,21 @@ export function RechargePanel() {
     <div className="text-white" dir="rtl">
       {reward && <RewardPopup pack={reward} onClose={() => setReward(null)} />}
       <PaymentTestModeBanner />
+
+      {/* Self-service recovery: claim any paid Paddle purchases that didn't deliver */}
+      <div className="mx-2 mt-2 p-2 rounded-xl bg-amber-950/40 border border-amber-400/40 text-center">
+        <button
+          onClick={runRecovery}
+          disabled={recovering || !userId}
+          className="w-full py-2 rounded-lg bg-amber-600/30 border border-amber-300/60 text-amber-100 text-xs font-extrabold disabled:opacity-50"
+        >
+          {recovering ? "⏳ جاري التحقق..." : "🔄 ما وصلتك مشترياتك؟ اضغط للاسترجاع"}
+        </button>
+        {recoverMsg && (
+          <p className="mt-1 text-[11px] text-amber-100/90">{recoverMsg}</p>
+        )}
+      </div>
+
 
       {/* Sub-tabs */}
       <div className="px-2 pt-2 grid grid-cols-7 gap-1">

@@ -505,10 +505,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
-    } finally {
-      setDeleting(false);
     }
   };
+
+  const reconcilePayments = async () => {
+    if (!confirm(`فحص ومنح أي مشتريات Paddle مدفوعة ولم تُسلَّم لـ ${player.display_name}؟`)) return;
+    try {
+      const { adminReconcilePaddleForUser } = await import("@/lib/admin-payments.functions");
+      const r = await adminReconcilePaddleForUser({ data: { userId: player.id, environment: "live" } });
+      if (r?.grantedCount && r.grantedCount > 0) {
+        toast.success(`✅ تم منح ${r.grantedCount} عملية شراء معلقة`);
+      } else {
+        toast.message(r?.reason ? `لا شيء للمنح (${r.reason})` : "لا توجد مشتريات معلقة");
+      }
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+
 
 
   const blockLogin = async () => {
@@ -974,8 +989,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
           </div>
           <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي قوي + الجهاز</button>
+          <button onClick={reconcilePayments} className="w-full px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold">💰 استرجاع مشتريات Paddle المعلقة</button>
           <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
         </div>
+
 
         <div className="mt-4 pt-4 border-t border-slate-800">
           <h3 className="text-sm font-semibold text-slate-300 mb-2">📜 سجل العقوبات ({history.length})</h3>
