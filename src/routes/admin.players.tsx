@@ -478,19 +478,27 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     }
   };
 
-  const deleteAccount = async () => {
-    if (!confirm(`⚠️ حذف حساب ${player.display_name} نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
-    const banEmail = confirm("هل تريد أيضاً منع نفس البريد من إنشاء حساب جديد؟");
-    const reason = prompt("سبب الحذف (اختياري):", "") ?? "";
+  const deleteAccount = () => {
+    setDeleteReason("");
+    setDeleteBanEmail(true);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleting(true);
     try {
       const { adminDeleteUser } = await import("@/lib/admin-users.functions");
-      await adminDeleteUser({ data: { userId: player.id, banEmail, banDevices: true, reason } });
-      toast.success("تم حذف الحساب");
+      await adminDeleteUser({ data: { userId: player.id, banEmail: deleteBanEmail, banDevices: true, reason: deleteReason } });
+      toast.success("تم حذف الحساب نهائياً");
+      setShowDeleteModal(false);
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    } finally {
+      setDeleting(false);
     }
   };
+
 
   const blockLogin = async () => {
     const hoursStr = prompt("منع تسجيل الدخول لكم ساعة؟ (اتركه فارغاً للمنع الدائم)", "");
