@@ -551,12 +551,25 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   };
 
   const permanentBan = async () => {
-    const reason = prompt("سبب الحظر النهائي القوي:", "غش أو استغلال قلتش") ?? "";
-    if (!confirm(`حظر ${player.display_name} نهائياً مع حظر أجهزته المعروفة؟`)) return;
+    const reason = prompt("سبب الحظر النهائي:", "غش أو استغلال قلتش") ?? "";
+    if (!confirm(`حظر ${player.display_name} نهائياً؟\n(هذا الحساب فقط — لا يمنع إنشاء حساب ثاني)`)) return;
     try {
       const { adminPermanentBan } = await import("@/lib/admin-users.functions");
       await adminPermanentBan({ data: { userId: player.id, reason } });
-      toast.success("تم تطبيق الحظر النهائي القوي");
+      toast.success("تم تطبيق الحظر النهائي");
+      onClose();
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    }
+  };
+
+  const hardBan = async () => {
+    const reason = prompt("سبب الحظر القوي الشامل:", "غش / تخريب") ?? "";
+    if (!confirm(`حظر قوي شامل لـ ${player.display_name}؟\n\nسيتم حظر:\n• الحساب نهائياً\n• البريد (لا يقدر يسجل من جديد)\n• كل أجهزته (لا يقدر يفتح حساب من نفس الجهاز)\n• كل عناوين IP الخاصة به (تغيير الشبكة لن يفيد)\n\n(لا يؤثر على الحسابات المرتبطة الأخرى — فقط هذا اللاعب)`)) return;
+    try {
+      const { adminHardBan } = await import("@/lib/admin-users.functions");
+      const r = await adminHardBan({ data: { userId: player.id, reason } });
+      toast.success(`تم الحظر القوي ✓ — ${r.devices} جهاز / ${r.ips} IP / بريد ${r.email ? "✓" : "—"}`);
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
@@ -989,7 +1002,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
             <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
           </div>
-          <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي قوي + الجهاز</button>
+          <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي (هذا الحساب فقط)</button>
+          <button onClick={hardBan} className="w-full px-3 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-extrabold">🛡️ حظر قوي شامل — يمنع حساب ثاني وتغيير الاتصال</button>
           <button onClick={reconcilePayments} className="w-full px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold">💰 استرجاع مشتريات Paddle المعلقة</button>
           <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
         </div>
