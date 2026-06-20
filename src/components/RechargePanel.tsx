@@ -45,6 +45,7 @@ const TAG_STYLES: Record<string, string> = {
 export function RechargePanel() {
   const eligibility = useServerFn(checkPackEligibility);
   const getStatus = useServerFn(getStorePurchaseStatus);
+  const reconcile = useServerFn(reconcileMyPaddlePurchases);
 
   const [userId, setUserId] = useState<string | null>(null);
   const [, setUserEmail] = useState<string | null>(null);
@@ -55,6 +56,29 @@ export function RechargePanel() {
   const [shieldLimit, setShieldLimit] = useState(2);
   const [boughtStarter, setBoughtStarter] = useState(false);
   const [reward, setReward] = useState<StorePack | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
+
+  const runRecovery = async () => {
+    if (recovering) return;
+    setRecovering(true);
+    setRecoverMsg(null);
+    try {
+      const r = await reconcile({ data: { environment: getPaddleEnvironment() } });
+      refreshProfile();
+      if (r?.grantedCount && r.grantedCount > 0) {
+        setRecoverMsg(`✅ تم استرجاع ${r.grantedCount} عملية شراء. تحقق من حسابك.`);
+        sound.play("coin");
+      } else {
+        setRecoverMsg("لا توجد مشتريات معلقة. كل شي وصلك. لو فيه مشكلة راسل الدعم.");
+      }
+    } catch (e) {
+      console.error(e);
+      setRecoverMsg("تعذر التحقق الآن. حاول بعد لحظات أو راسل الدعم.");
+    } finally {
+      setRecovering(false);
+    }
+  };
 
   const flash = (m: string) => {
     setPop(m);
