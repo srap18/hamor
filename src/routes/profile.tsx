@@ -257,6 +257,10 @@ function ProfilePage() {
           {saving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
         </button>
 
+        {/* Level + Skills */}
+        {userId && <LevelSkillsCard userId={userId} />}
+
+
         {/* Name */}
         <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
           <label className="text-sm font-bold text-accent">الاسم الظاهر</label>
