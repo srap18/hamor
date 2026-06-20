@@ -4055,24 +4055,22 @@ export type Database = {
       cleanup_global_banners: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
-      collect_fishing_reward:
-        | { Args: { _ship_db_id: string }; Returns: Json }
-        | {
-            Args: {
-              _client_progress?: number
-              _requested_fish_id?: string
-              _ship_id: string
-            }
-            Returns: {
-              base_qty: number
-              duration_seconds: number
-              elapsed_seconds: number
-              fish_id: string
-              fish_qty: number
-              luck_bonus: number
-              xp_awarded: number
-            }[]
-          }
+      collect_fishing_reward: {
+        Args: {
+          _client_progress?: number
+          _requested_fish_id?: string
+          _ship_id: string
+        }
+        Returns: {
+          base_qty: number
+          duration_seconds: number
+          elapsed_seconds: number
+          fish_id: string
+          fish_qty: number
+          luck_bonus: number
+          xp_awarded: number
+        }[]
+      }
       compute_vip_level: { Args: { _points: number }; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
