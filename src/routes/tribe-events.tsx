@@ -99,7 +99,7 @@ function TribeEventsPage() {
     <div dir="rtl" className="min-h-screen text-slate-100 bg-[radial-gradient(ellipse_at_top,#0c1a30_0%,#070d1a_55%,#03060d_100%)]">
       <div className="max-w-3xl mx-auto p-3 md:p-5 space-y-5">
         <div className="flex items-center gap-2">
-          <BackButton />
+          <BackButton className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700">← رجوع</BackButton>
           <h1 className="text-xl md:text-2xl font-black text-cyan-200">🎣 فعاليات صيد القبائل</h1>
         </div>
 
