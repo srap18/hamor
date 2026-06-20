@@ -824,15 +824,22 @@ function PlayerPage() {
     const c = CREWS.find((x) => x.id === crewId);
     if (!c) return;
     setBusy(true); sound.play("click");
-    const { error } = c.currency === "gems"
-      ? await buyWithGems(c.id, "crew", c.price)
-      : await buyWithCoins(c.id, "crew", c.price);
-    if (error) {
+    flash(`⏳ شراء ${c.name} ثم إرساله...`);
+    try {
+      const { error } = c.currency === "gems"
+        ? await buyWithGems(c.id, "crew", c.price)
+        : await buyWithCoins(c.id, "crew", c.price);
+      if (error) {
+        setBusy(false);
+        const msg = (error as any).message || "";
+        if (msg.includes("insufficient") || msg.includes("not enough")) {
+          flash(c.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
+        } else flash("تعذّر الشراء");
+        return;
+      }
+    } catch (e) {
       setBusy(false);
-      const msg = (error as any).message || "";
-      if (msg.includes("insufficient") || msg.includes("not enough")) {
-        flash(c.currency === "gems" ? "💎 جواهرك ما تكفي" : "💰 عملاتك ما تكفي");
-      } else flash("تعذّر الشراء");
+      flash(`تعذّر الشراء: ${(e as Error)?.message || "مشكلة اتصال"}`);
       return;
     }
     setInv((arr) => {
