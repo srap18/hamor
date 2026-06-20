@@ -4719,6 +4719,7 @@ export type Database = {
           seconds: number
         }[]
       }
+      message_contains_link: { Args: { _body: string }; Returns: boolean }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
       notify_steal_started: {
         Args: {

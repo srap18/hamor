@@ -17,6 +17,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
+import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — ملوك القراصنة" }] }),
@@ -303,6 +304,11 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
+    if (containsLink(body)) {
+      showNotice(LINK_BLOCK_MESSAGE);
+      return;
+    }
+
 
     const now = Date.now();
     const target = tab === "dm" ? (dmWith || "") : tab === "tribe" ? (profile?.tribe_id || "") : "public";
