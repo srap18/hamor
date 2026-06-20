@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
+import { LevelSkillsCard } from "@/components/LevelSkillsCard";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
