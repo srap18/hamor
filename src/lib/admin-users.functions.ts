@@ -112,14 +112,6 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
       }
     }
 
-    await supabaseAdmin.from("bans").insert({
-      user_id: data.userId,
-      reason: data.reason || "حذف الحساب نهائياً",
-      banned_by: context.userId,
-      expires_at: null,
-      active: true,
-    });
-
     // Hard-wipe every trace of this user across all known tables
     const { error: wipeErr } = await (supabaseAdmin as any).rpc("admin_hard_delete_user", { _uid: data.userId });
     if (wipeErr) throw new Error(`فشل حذف بيانات اللاعب: ${wipeErr.message}`);
