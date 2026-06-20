@@ -43,6 +43,16 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setResendMsg(null); setNeedsConfirm(false); setLoading(true);
+    try {
+      const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
+      const { authPreflight } = await import("@/lib/auth-preflight.functions");
+      const pre = await authPreflight({ data: { email, deviceId } });
+      if (pre.blocked) {
+        setLoading(false);
+        setErr(pre.reason || "ممنوع تسجيل الدخول");
+        return;
+      }
+    } catch {}
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
