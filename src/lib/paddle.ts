@@ -1,4 +1,4 @@
-import { createPaddleCheckoutTransaction, resolvePaddlePrice } from "@/utils/payments.functions";
+import { resolvePaddlePrice } from "@/utils/payments.functions";
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
 
@@ -102,6 +102,3 @@ export async function getPaddlePriceId(priceId: string): Promise<string> {
   return resolvePaddlePrice({ data: { priceId, environment: getPaddleEnvironment() } });
 }
 
-export async function createPaddleTransaction(priceId: string) {
-  return createPaddleCheckoutTransaction({ data: { priceId, environment: getPaddleEnvironment() } });
-}
