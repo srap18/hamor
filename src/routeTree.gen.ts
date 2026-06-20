@@ -52,6 +52,7 @@ import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
+import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
@@ -281,6 +282,11 @@ const AdminWeeklyXpRoute = AdminWeeklyXpRouteImport.update({
   path: '/weekly-xp',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTribeEventsRoute = AdminTribeEventsRouteImport.update({
+  id: '/tribe-events',
+  path: '/tribe-events',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTicketsRoute = AdminTicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
@@ -397,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -454,6 +461,7 @@ export interface FileRoutesByTo {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -513,6 +521,7 @@ export interface FileRoutesById {
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
@@ -573,6 +582,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -630,6 +640,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -688,6 +699,7 @@ export interface FileRouteTypes {
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
+    | '/admin/tribe-events'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
@@ -1047,6 +1059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWeeklyXpRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tribe-events': {
+      id: '/admin/tribe-events'
+      path: '/tribe-events'
+      fullPath: '/admin/tribe-events'
+      preLoaderRoute: typeof AdminTribeEventsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/tickets': {
       id: '/admin/tickets'
       path: '/tickets'
@@ -1153,6 +1172,7 @@ interface AdminRouteChildren {
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
+  AdminTribeEventsRoute: typeof AdminTribeEventsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1169,6 +1189,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminTicketsRoute: AdminTicketsRoute,
+  AdminTribeEventsRoute: AdminTribeEventsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
