@@ -72,9 +72,19 @@ function AdminPlayers() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    let q = supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).order("created_at", { ascending: false }).limit(200);
     const s = search.trim();
-    if (s) q = q.or(`display_name.ilike.%${s}%,username.ilike.%${s.toLowerCase()}%`);
+    let emailIds: string[] = [];
+    if (s) {
+      const { data: emailMatches } = await (supabase as any).rpc("admin_search_player_ids_by_email", { _q: s });
+      emailIds = ((emailMatches ?? []) as { id: string }[]).map((r) => r.id);
+    }
+    let q = supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).order("created_at", { ascending: false }).limit(200);
+    if (s) {
+      const esc = s.replace(/[,()]/g, "");
+      const filters = [`display_name.ilike.%${esc}%`, `username.ilike.%${esc.toLowerCase()}%`];
+      if (emailIds.length > 0) filters.push(`id.in.(${emailIds.join(",")})`);
+      q = q.or(filters.join(","));
+    }
     const { data } = await q;
     setPlayers((data ?? []) as Player[]);
     const { data: bans } = await supabase.from("bans").select("user_id").eq("active", true);
@@ -84,6 +94,7 @@ function AdminPlayers() {
     setMuted(new Set((mutes ?? []).filter((m) => !m.expires_at || m.expires_at > nowIso).map((m) => m.user_id)));
     setLoading(false);
   }, [search]);
+
 
   useEffect(() => { load(); }, [load]);
 
@@ -183,7 +194,7 @@ function AdminPlayers() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث بالاسم أو اليوزر..."
+            placeholder="ابحث بالاسم أو اليوزر أو الإيميل..."
             className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500 flex-1 md:w-64"
           />
         </div>

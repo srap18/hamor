@@ -3623,6 +3623,7 @@ export type Database = {
           elite_vip_level: number
         }[]
       }
+      admin_get_player_email: { Args: { _uid: string }; Returns: string }
       admin_get_player_fish: {
         Args: { _player: string }
         Returns: {
@@ -3724,6 +3725,13 @@ export type Database = {
             Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
             Returns: Json
           }
+      admin_search_player_ids_by_email: {
+        Args: { _q: string }
+        Returns: {
+          email: string
+          id: string
+        }[]
+      }
       admin_set_inventory_quantity: {
         Args: { _quantity: number; _row_id: string }
         Returns: undefined
