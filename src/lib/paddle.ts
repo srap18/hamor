@@ -1,4 +1,4 @@
-import { resolvePaddlePrice } from "@/utils/payments.functions";
+import { createPaddleCheckoutTransaction, resolvePaddlePrice } from "@/utils/payments.functions";
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
 
@@ -50,10 +50,18 @@ export async function initializePaddle() {
         window.Paddle.Environment.set(paddleJsEnvironment);
         window.Paddle.Initialize({
           token: clientToken,
+          checkout: {
+            settings: {
+              displayMode: "overlay",
+              theme: "dark",
+              locale: "ar",
+              allowLogout: false,
+            },
+          },
           eventCallback: (event: any) => {
             const name = event?.name ?? "";
             // eslint-disable-next-line no-console
-            console.log("[Paddle]", name);
+            console.log("[Paddle]", name, event?.code ?? "", event?.detail ?? "");
             if (typeof document !== "undefined") {
               if (name === "checkout.loaded" || name === "checkout.opened") {
                 document.body.classList.add("paddle-checkout-open");
@@ -92,4 +100,8 @@ export async function initializePaddle() {
 
 export async function getPaddlePriceId(priceId: string): Promise<string> {
   return resolvePaddlePrice({ data: { priceId, environment: getPaddleEnvironment() } });
+}
+
+export async function createPaddleTransaction(priceId: string) {
+  return createPaddleCheckoutTransaction({ data: { priceId, environment: getPaddleEnvironment() } });
 }
