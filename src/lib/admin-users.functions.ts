@@ -152,20 +152,52 @@ export const adminPermanentBan = createServerFn({ method: "POST" })
 
 export const adminBlockLogin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; hours?: number; unblock?: boolean }) => {
+  .inputValidator((input: { userId: string; hours?: number; unblock?: boolean; reason?: string }) => {
     if (!input?.userId) throw new Error("userId required");
     return input;
   })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const ban_duration = data.unblock ? "none" : `${Math.max(1, Math.min(8760 * 10, data.hours ?? 87600))}h`;
+    if (data.userId === context.userId) throw new Error("لا يمكن منع حسابك");
+
+    if (data.unblock) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: "none" } as never);
+      if (error) throw new Error(error.message);
+      // Lift any active ban rows so the sanctions page reflects the change
+      await supabaseAdmin.from("bans").update({ active: false }).eq("user_id", data.userId).eq("active", true);
+      await supabaseAdmin.from("admin_audit").insert({
+        admin_id: context.userId,
+        action: "admin_unblock_login",
+        target_user_id: data.userId,
+        details: { ban_duration: "none" } as never,
+      });
+      return { ok: true };
+    }
+
+    const hours = Math.max(1, Math.min(8760 * 10, data.hours ?? 87600));
+    const ban_duration = `${hours}h`;
+    const expires_at = hours >= 87600 ? null : new Date(Date.now() + hours * 3600_000).toISOString();
+    const reason = data.reason?.trim() || "منع تسجيل الدخول";
+
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration } as never);
     if (error) throw new Error(error.message);
+
+    // Surface this in the Sanctions page by recording a ban row.
+    // Only this auth account is affected — no devices, IPs, or linked accounts are touched.
+    await supabaseAdmin.from("bans").update({ active: false }).eq("user_id", data.userId).eq("active", true);
+    await supabaseAdmin.from("bans").insert({
+      user_id: data.userId,
+      reason,
+      banned_by: context.userId,
+      expires_at,
+      active: true,
+    });
+
     await supabaseAdmin.from("admin_audit").insert({
       admin_id: context.userId,
-      action: data.unblock ? "admin_unblock_login" : "admin_block_login",
+      action: "admin_block_login",
       target_user_id: data.userId,
-      details: { ban_duration } as never,
+      details: { ban_duration, hours, reason } as never,
     });
     return { ok: true };
   });
