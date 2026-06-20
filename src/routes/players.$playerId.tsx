@@ -1665,13 +1665,14 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
   onSend: () => void;
   onBuy: () => void;
 }) {
-  const canSend = qty > 0 && !disabled;
+  const hasCrew = qty > 0;
+  const canSend = !disabled;
   const toneCls = badge?.tone === "rose"
     ? "bg-rose-900/60 text-rose-200 border-rose-500/40"
     : "bg-emerald-900/60 text-emerald-200 border-emerald-500/40";
   return (
     <div className="flex items-stretch gap-2">
-      <button disabled={busy || !canSend} onClick={onSend}
+      <button disabled={busy || !canSend} onClick={hasCrew ? onSend : onBuy}
         className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 active:scale-95 disabled:opacity-50 text-right transition-all ${canSend ? "bg-stone-800/90 border-amber-600/50 hover:border-amber-400" : "bg-stone-900/60 border-stone-700"}`}>
         {crew.image ? <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain drop-shadow" /> : <span className="text-3xl">{crew.emoji}</span>}
         <div className="flex-1 min-w-0">
@@ -1682,8 +1683,8 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onSend, onBuy }: {
           <div className="text-[10px] text-amber-300/70 leading-tight mt-0.5 line-clamp-2">{crew.bonus}</div>
         </div>
         <div className="flex flex-col items-center justify-center">
-          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>عندك</span>
-          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-stone-500"}`}>×{qty}</span>
+          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? "عندك" : "شراء"}</span>
+          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? `×${qty}` : crew.currency === "gems" ? `💎${crew.price}` : "💰"}</span>
         </div>
       </button>
       {qty === 0 && !disabled && (
