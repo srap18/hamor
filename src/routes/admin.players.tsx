@@ -1004,6 +1004,43 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => !deleting && setShowDeleteModal(false)}>
+          <div className="bg-slate-900 border border-red-700 rounded-2xl p-5 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-red-300">⚠️ حذف الحساب نهائياً</div>
+            <div className="text-sm text-slate-300">
+              سيتم محو حساب <span className="font-bold text-white">{player.display_name}</span> بالكامل من اللعبة (المتصدّرين، الأصدقاء، الرسائل، المخزن، السفن، كل شيء). لا يمكن التراجع.
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-200">
+              <input type="checkbox" checked={deleteBanEmail} onChange={(e) => setDeleteBanEmail(e.target.checked)} />
+              منع نفس البريد من إنشاء حساب جديد
+            </label>
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">سبب الحذف (اختياري)</label>
+              <input
+                type="text"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm"
+                placeholder="مثال: مخالفة قواعد اللعبة"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold disabled:opacity-50"
+              >إلغاء</button>
+              <button
+                onClick={confirmDeleteAccount}
+                disabled={deleting}
+                className="flex-1 px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-bold disabled:opacity-50"
+              >{deleting ? "...جاري الحذف" : "🗑️ احذف نهائياً"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
