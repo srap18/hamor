@@ -492,6 +492,7 @@ function RootComponent() {
           <Outlet />
 
           <AdminEditToggle />
+          <InstallAppButton />
           <Toaster position="top-center" richColors />
         </MobileFrame>
         {splashMounted && (
