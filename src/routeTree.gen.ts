@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VipRouteImport } from './routes/vip'
 import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as TribeEventsRouteImport } from './routes/tribe-events'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -75,6 +76,11 @@ const VipRoute = VipRouteImport.update({
 const UpdatesRoute = UpdatesRouteImport.update({
   id: '/updates',
   path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TribeEventsRoute = TribeEventsRouteImport.update({
+  id: '/tribe-events',
+  path: '/tribe-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -390,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -448,6 +455,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -508,6 +516,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
@@ -569,6 +578,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -627,6 +637,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -686,6 +697,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/tribe-events'
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
@@ -746,6 +758,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TribeEventsRoute: typeof TribeEventsRoute
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
   GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
@@ -770,6 +783,13 @@ declare module '@tanstack/react-router' {
       path: '/updates'
       fullPath: '/updates'
       preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tribe-events': {
+      id: '/tribe-events'
+      path: '/tribe-events'
+      fullPath: '/tribe-events'
+      preLoaderRoute: typeof TribeEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1242,6 +1262,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TribeEventsRoute: TribeEventsRoute,
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
   GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,
