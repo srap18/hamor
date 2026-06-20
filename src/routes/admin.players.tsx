@@ -291,6 +291,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     self: { user_id: string; email: string | null; devices: { device_id: string; created_at: string; updated_at: string }[]; ips: { ip: string; first_seen: string; last_seen: string; hits: number }[] };
     linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[] }>;
   } | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteBanEmail, setDeleteBanEmail] = useState(true);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const loadLinked = useCallback(async () => {
     setLinkedLoading(true);
@@ -474,19 +478,27 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     }
   };
 
-  const deleteAccount = async () => {
-    if (!confirm(`⚠️ حذف حساب ${player.display_name} نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`)) return;
-    const banEmail = confirm("هل تريد أيضاً منع نفس البريد من إنشاء حساب جديد؟");
-    const reason = prompt("سبب الحذف (اختياري):", "") ?? "";
+  const deleteAccount = () => {
+    setDeleteReason("");
+    setDeleteBanEmail(true);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleting(true);
     try {
       const { adminDeleteUser } = await import("@/lib/admin-users.functions");
-      await adminDeleteUser({ data: { userId: player.id, banEmail, banDevices: true, reason } });
-      toast.success("تم حذف الحساب");
+      await adminDeleteUser({ data: { userId: player.id, banEmail: deleteBanEmail, banDevices: true, reason: deleteReason } });
+      toast.success("تم حذف الحساب نهائياً");
+      setShowDeleteModal(false);
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    } finally {
+      setDeleting(false);
     }
   };
+
 
   const blockLogin = async () => {
     const hoursStr = prompt("منع تسجيل الدخول لكم ساعة؟ (اتركه فارغاً للمنع الدائم)", "");
@@ -992,6 +1004,43 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => !deleting && setShowDeleteModal(false)}>
+          <div className="bg-slate-900 border border-red-700 rounded-2xl p-5 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-bold text-red-300">⚠️ حذف الحساب نهائياً</div>
+            <div className="text-sm text-slate-300">
+              سيتم محو حساب <span className="font-bold text-white">{player.display_name}</span> بالكامل من اللعبة (المتصدّرين، الأصدقاء، الرسائل، المخزن، السفن، كل شيء). لا يمكن التراجع.
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-200">
+              <input type="checkbox" checked={deleteBanEmail} onChange={(e) => setDeleteBanEmail(e.target.checked)} />
+              منع نفس البريد من إنشاء حساب جديد
+            </label>
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">سبب الحذف (اختياري)</label>
+              <input
+                type="text"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm"
+                placeholder="مثال: مخالفة قواعد اللعبة"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold disabled:opacity-50"
+              >إلغاء</button>
+              <button
+                onClick={confirmDeleteAccount}
+                disabled={deleting}
+                className="flex-1 px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-bold disabled:opacity-50"
+              >{deleting ? "...جاري الحذف" : "🗑️ احذف نهائياً"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
