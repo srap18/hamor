@@ -483,20 +483,17 @@ function FishMarket() {
     if (selected && (qtyMap[selected] ?? 0) <= 0) setSelected(null);
   }, [selected, qtyMap]);
 
-  const sell = async (amount: number) => {
+  const sell = async (amount: number, ctx: { currentPrice: number; rotMult: number }) => {
     if (!sel || !user || selling) return;
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
     setSelling(true);
-    // Optimistic UI: only remove fish from view. Coins are credited ONLY
-    // after the server confirms the real amount (server-side authority).
-    // This prevents the "amount jumps then drops" flicker caused by the
-    // client's price guess (rotMult) differing from the server's age-decay formula.
+    const fishName = sel.name;
+    const basePrice = sel.basePrice;
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
 
     try {
-      // Server-side: deletes oldest N rows for this fish in a single call.
       const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
         _fish_id: sel.id,
         _qty: requestedQty,
@@ -514,10 +511,12 @@ function FishMarket() {
         await loadFish();
         return;
       }
-      // Credit coins from the authoritative server value only.
       applyOptimisticProfileDelta({ coins: +serverEarned });
-      setPop(`+${serverEarned.toLocaleString()} ذهب`);
-      setTimeout(() => setPop(null), 1500);
+      const gross = Math.round(ctx.currentPrice * requestedQty);
+      const rotLoss = Math.max(0, gross - serverEarned);
+      const marketMult = basePrice > 0 ? ctx.currentPrice / basePrice : 1;
+      const tier = computeTier(marketMult, ctx.rotMult);
+      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
       await loadFish();
       refreshProfile();
     } finally {
