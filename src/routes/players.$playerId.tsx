@@ -754,7 +754,10 @@ function PlayerPage() {
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - serverNowMs()) / 1000)) : 0;
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
+      setShips((arr) => arr.map((s) => s.id === targetShipId ? { ...s, at_sea: false } : s));
+      setSelectedShip((cur) => cur && cur.id === targetShipId ? { ...cur, at_sea: false } : cur);
       loadRaiders();
+      reloadShipsRef.current();
       broadcastRaid();
     }
     setBusy(false); closeMenu();
