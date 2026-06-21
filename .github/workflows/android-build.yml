@@ -6,25 +6,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write  # أضفنا هذه الصلاحيات لضمان عمل النظام بسلاسة
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Delete Old Artifacts
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const artifacts = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            for (const artifact of artifacts.data.artifacts) {
-              await github.rest.actions.deleteArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: artifact.id,
-              });
-            }
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -105,3 +92,4 @@ jobs:
             ./hamor-play-store.aab
             ./hamor-app-release.apk
           if-no-files-found: error
+          retention-days: 1
