@@ -822,9 +822,22 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       if (!ok) return;
       setBusy(true);
       await supabase.from("chat_mutes").update({ active: false }).eq("user_id", target.id).eq("active", true);
-      await logAudit("unmute_user", { name: target.display_name, via: "chat" });
+      if (isAdmin) await logAudit("unmute_user", { name: target.display_name, via: "chat" });
       await notify("✅ تم رفع الكتم", "يمكنك الكتابة في الدردشة الآن.");
       setIsMuted(false); setMsg("فُكّ الكتم");
+      setBusy(false);
+      return;
+    }
+    // Chat moderators: silent, fixed 24h, no reason prompt, no audit log
+    if (!isAdmin && isChatMod) {
+      const ok = await confirmDialog({ title: "كتم في الشات", message: `كتم ${target.display_name} لمدة 24 ساعة؟`, danger: true });
+      if (!ok) return;
+      const expires_at = new Date(Date.now() + 24 * 3600_000).toISOString();
+      setBusy(true);
+      const { error } = await supabase.from("chat_mutes").insert({ user_id: target.id, reason: "مخالفة قواعد الدردشة", muted_by: me, expires_at });
+      if (error) { setMsg(error.message); setBusy(false); return; }
+      await notify("🔇 تم كتمك", "تم كتمك من قبل مشرف لمدة 24 ساعة.");
+      setIsMuted(true); setMsg("كُتم لمدة 24 ساعة");
       setBusy(false);
       return;
     }
