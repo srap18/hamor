@@ -10,6 +10,37 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
+import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
+import tier2Asset from "@/assets/sell-results/tier2_khaser.png.asset.json";
+import tier3Asset from "@/assets/sell-results/tier3_motad.png.asset.json";
+import tier4Asset from "@/assets/sell-results/tier4_rae3.png.asset.json";
+import tier5Asset from "@/assets/sell-results/tier5_momtaz.png.asset.json";
+
+type SellResult = {
+  tier: 1 | 2 | 3 | 4 | 5;
+  gross: number;
+  rotLoss: number;
+  net: number;
+  fishName: string;
+};
+
+const TIER_INFO: Record<1|2|3|4|5, { img: string; label: string; stars: number; text: string }> = {
+  1: { img: tier1Asset.url, label: "يائس", stars: 1, text: "أنت تاجر سمك سيء، كنت تقوم ببيع السمك عندما تكون الأسعار في أدنى مستوياتها، وأسماكك فاسدة في ذات الوقت." },
+  2: { img: tier2Asset.url, label: "خاسر", stars: 1, text: "أسماكك طازجة ولكنك قمت ببيعها بسعر أقل، حاول تحسين هامش الربح في المرات القادمة وبيع أسماكك بأعلى الأسعار." },
+  3: { img: tier3Asset.url, label: "كالمعتاد", stars: 2, text: "لقد بعت سمكك بسعر متوسط، لحسن حظك أن سمكك مازال طازجاً، مازال لديك فرصة في الحصول على أرباح قليلة." },
+  4: { img: tier4Asset.url, label: "عمل رائع", stars: 3, text: "لقد بعت سمكك بسعر ممتاز، أسماكك طازجة وحصلت على أرباح ممتازة في هذه الصفقة." },
+  5: { img: tier5Asset.url, label: "ممتاز", stars: 3, text: "تهانينا! لديك فرصة للحصول على أفضل الصفقات بما أن سمكك من النوع الممتاز والمرغوب في السوق، قد تتمكن من الحصول على صافي أرباح قد تصل إلى 500% في هذه المرحلة." },
+};
+
+function computeTier(marketMult: number, rotMult: number): 1|2|3|4|5 {
+  // marketMult = currentPrice/basePrice ; rotMult 0..1
+  if (rotMult < 0.5) return 1; // very rotted
+  if (marketMult >= 1.5 && rotMult >= 0.95) return 5;
+  if (marketMult >= 1.2 && rotMult >= 0.85) return 4;
+  if (marketMult >= 0.9 && rotMult >= 0.7) return 3;
+  if (rotMult < 0.7) return 2;
+  return 2;
+}
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
