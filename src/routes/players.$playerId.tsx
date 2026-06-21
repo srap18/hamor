@@ -94,7 +94,7 @@ function PlayerPage() {
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<"menu" | "weapon" | "myship" | "support" | "ad_bomb" | null>(null);
   const [myShips, setMyShips] = useState<Ship[]>([]);
-  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; fishing_power: number; owner_name: string; owner_emoji: string }[]>([]);
+  const [raiders, setRaiders] = useState<{ id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; stealing_started_at?: string | null; fishing_power: number; owner_name: string; owner_emoji: string }[]>([]);
   const [nowTs, setNowTs] = useState<number>(serverNowMs());
   const [cancelRaiderId, setCancelRaiderId] = useState<string | null>(null);
   const [inv, setInv] = useState<{ item_id: string; item_type: string; quantity: number }[]>([]);
@@ -266,10 +266,10 @@ function PlayerPage() {
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
-      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id,fishing_started_at")
+      .select("id,user_id,catalog_code,template_id,stealing_ends_at,stealing_target_ship_id,fishing_started_at,stealing_started_at")
       .eq("stealing_target_user_id", playerId)
       .not("stealing_ends_at", "is", null);
-    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null }[];
+    const list = (rs ?? []) as { id: string; user_id: string; catalog_code: string | null; template_id: number; stealing_ends_at: string | null; stealing_target_ship_id: string | null; fishing_started_at: string | null; stealing_started_at?: string | null }[];
     if (list.length === 0) { setRaiders([]); return; }
     const ids = Array.from(new Set(list.map((r) => r.user_id)));
     const codes = Array.from(new Set(list.map((r) => r.catalog_code).filter(Boolean) as string[]));
@@ -754,7 +754,10 @@ function PlayerPage() {
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - serverNowMs()) / 1000)) : 0;
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
+      setShips((arr) => arr.map((s) => s.id === targetShipId ? { ...s, at_sea: false } : s));
+      setSelectedShip((cur) => cur && cur.id === targetShipId ? { ...cur, at_sea: false } : cur);
       loadRaiders();
+      reloadShipsRef.current();
       broadcastRaid();
     }
     setBusy(false); closeMenu();
@@ -1054,7 +1057,7 @@ function PlayerPage() {
         }
         const isMine = me === r.user_id;
         const endMs = r.stealing_ends_at ? new Date(r.stealing_ends_at).getTime() : 0;
-        const startMs = r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0;
+        const startMs = r.stealing_started_at ? new Date(r.stealing_started_at).getTime() : (r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0);
         const total = Math.max(1, endMs - startMs);
         const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
         const ratio = total > 0 ? elapsed / total : 0;

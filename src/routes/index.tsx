@@ -121,6 +121,7 @@ interface Ship {
   repairEndsAt?: string | null;
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
+  stealingStartedAt?: string | null;
   seaSide?: "left" | "right";
   stars?: number;
   maxStars?: number;
@@ -337,11 +338,11 @@ function Index() {
     if (!uid) return;
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stars, max_stars")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
       .eq("user_id", uid)
       .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stars: number | null; max_stars: number | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null }[];
 
     setShips((curr) => {
       // If the user has zero ships in DB, keep whatever is on screen (starter scene).
@@ -387,6 +388,11 @@ function Index() {
             // always shown when the player taps collect.
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
+          } else if (!row.at_sea || !row.fishing_started_at) {
+            // Server may stop the ship externally (for example when another
+            // player starts stealing from it). Reflect that immediately.
+            fishing = false;
+            startedAt = undefined;
           } else if (s.fishing === false) {
             // Local says STOPPED — that's the source of truth.
             // If DB still says at_sea, push the stop again to fix the race.
@@ -413,7 +419,7 @@ function Index() {
           const sailorAtStart = sameTrip
             ? (!!s.sailorAtStart || hasSailorNow)
             : (fishing ? hasSailorNow : false);
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -479,6 +485,7 @@ function Index() {
           repairEndsAt: dbShip.repair_ends_at,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
+          stealingStartedAt: dbShip.stealing_started_at,
           stars: dbShip.stars ?? 1,
           maxStars: dbShip.max_stars ?? 1,
           sailorAtStart,
@@ -500,6 +507,7 @@ function Index() {
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
           && (s.stealingEndsAt ?? null) === (c.stealingEndsAt ?? null)
+          && (s.stealingStartedAt ?? null) === (c.stealingStartedAt ?? null)
           && !!s.fishing === !!c.fishing
           && (s.startedAt ?? null) === (c.startedAt ?? null)
           && !!s.sailorAtStart === !!c.sailorAtStart
@@ -715,7 +723,7 @@ function Index() {
   const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
-    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number }[] }[])[0] : null;
+    const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number; qty?: number }[] }[])[0] : null;
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
     const groups: Record<string, { id: string; name: string; emoji: string; img?: string; qty: number }> = {};
@@ -723,7 +731,7 @@ function Index() {
       const f = FISH[it.fish_id];
       const id = it.fish_id;
       if (!groups[id]) groups[id] = { id, name: f?.name ?? "سمكة", emoji: f?.emoji ?? "🐟", img: f?.img, qty: 0 };
-      groups[id].qty += 1;
+      groups[id].qty += Math.max(1, Number(it.qty ?? 1));
     });
     setStealResult({ count: n, value: v, items: Object.values(groups), cancelled });
     sound.play(n > 0 ? "catch" : "click");
@@ -1022,7 +1030,7 @@ function Index() {
     const { data: profs } = await supabase
       .from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
     const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
-    setRaids(list.map((s) => ({
+    const nextRaids = list.map((s) => ({
       ship_id: s.id,
       attacker_id: s.user_id,
       attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
@@ -1030,7 +1038,16 @@ function Index() {
       ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
       target_ship_id: s.stealing_target_ship_id,
-    })));
+    }));
+    setRaids(nextRaids);
+    const targetedShipIds = new Set(nextRaids.map((r) => r.target_ship_id).filter(Boolean) as string[]);
+    if (targetedShipIds.size > 0) {
+      setShips((curr) => curr.map((s) => {
+        if (!s.dbId || !targetedShipIds.has(s.dbId)) return s;
+        delete seaStateOverrideRef.current[s.dbId];
+        return { ...s, fishing: false, startedAt: undefined, progress: 0, sail: 0 };
+      }));
+    }
   };
   useEffect(() => {
     reloadRaids();
