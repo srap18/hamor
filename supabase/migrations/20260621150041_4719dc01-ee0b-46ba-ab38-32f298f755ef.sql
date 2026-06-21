@@ -1,0 +1,1 @@
+UPDATE public.achievements SET title = 'سيد البحار' WHERE code = 'lvl_500' AND title = 'إله البحار';
