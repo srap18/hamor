@@ -68,6 +68,8 @@ type Fish = {
   name: string;
   emoji: string;
   basePrice: number;
+  minPrice: number;
+  maxPrice: number;
   volatility: number; // 0.1 - 0.6
   qty: number;
   color: string;
@@ -92,6 +94,8 @@ function fishMeta(id: string): Omit<Fish, "qty"> | null {
     name: f.name,
     emoji: f.emoji,
     basePrice: f.price,
+    minPrice: Math.max(0.0001, f.price * 0.25),
+    maxPrice: Math.max(0.0001, f.price * 1.75),
     volatility: TIER_VOL[f.tier] ?? 0.3,
     color: TIER_COLOR[f.tier] ?? "from-sky-400 to-sky-700",
   };
@@ -473,9 +477,12 @@ function FishMarket() {
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
       if (!meta) return null;
-      const live = priceMap[id]?.current;
+      const livePrice = priceMap[id];
+      const live = livePrice?.current;
       const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
-      return { ...meta, basePrice, qty };
+      const minPrice = typeof livePrice?.min === "number" && livePrice.min > 0 ? livePrice.min : meta.minPrice;
+      const maxPrice = typeof livePrice?.max === "number" && livePrice.max > minPrice ? livePrice.max : meta.maxPrice;
+      return { ...meta, basePrice, minPrice, maxPrice, qty };
     })
     .filter((f): f is Fish => !!f && f.qty > 0)
     .sort((a, b) => b.basePrice - a.basePrice);
