@@ -480,6 +480,7 @@ function Index() {
           repairEndsAt: dbShip.repair_ends_at,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
+          stealingStartedAt: dbShip.stealing_started_at,
           stars: dbShip.stars ?? 1,
           maxStars: dbShip.max_stars ?? 1,
           sailorAtStart,
@@ -501,6 +502,7 @@ function Index() {
           && (s.maxHp ?? null) === (c.maxHp ?? null)
           && (s.stealingTargetUserId ?? null) === (c.stealingTargetUserId ?? null)
           && (s.stealingEndsAt ?? null) === (c.stealingEndsAt ?? null)
+          && (s.stealingStartedAt ?? null) === (c.stealingStartedAt ?? null)
           && !!s.fishing === !!c.fishing
           && (s.startedAt ?? null) === (c.startedAt ?? null)
           && !!s.sailorAtStart === !!c.sailorAtStart
