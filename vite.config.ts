@@ -6,21 +6,16 @@ export default defineConfig({
   },
   vite: {
     build: {
-      // تفعيل محرك Terser للضغط المكثف
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true, // حذف الـ logs لتوفير مساحة
-          drop_debugger: true,
-          passes: 2, // ضغط مزدوج
-        },
-        mangle: true, // اختصار أسماء الدوال والمتغيرات
-      },
-      // تم إزالة manualChunks لأن TanStack Start يدير تقسيم الكود تلقائياً
-      // ولن يتسبب هذا في زيادة الحجم لأن النظام ذكي بما يكفي
+      // نستخدم 'esbuild' بدلاً من 'terser' لأنه مضمن تلقائياً في Vite
+      minify: 'esbuild', 
       rollupOptions: {
         output: {
-          // نترك النظام يقرر التقسيم تلقائياً لتجنب الأخطاء
+          // تقسيم ذكي تلقائي للملفات
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          }
         }
       }
     }
