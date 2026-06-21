@@ -18,7 +18,6 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true
   },
-  // إضافة هذا الجزء يضمن توافق الأيقونات مع أداة التوليد التي نستخدمها
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
