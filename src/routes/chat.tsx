@@ -314,6 +314,10 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
+    if (!canChat) {
+      showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${marketLevel ?? 1})`);
+      return;
+    }
     if (containsLink(body)) {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
