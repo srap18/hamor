@@ -731,21 +731,25 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const { isAdmin } = useIsAdmin();
+  const { isChatMod } = useIsChatMod();
+  const canModerateChat = isAdmin || isChatMod;
   const [isBanned, setIsBanned] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canModerateChat) return;
     (async () => {
       const nowIso = new Date().toISOString();
-      const { data: b } = await supabase.from("bans").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
-      setIsBanned(!!b && (!b.expires_at || b.expires_at > nowIso));
+      if (isAdmin) {
+        const { data: b } = await supabase.from("bans").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
+        setIsBanned(!!b && (!b.expires_at || b.expires_at > nowIso));
+      }
       const { data: m } = await supabase.from("chat_mutes").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
       setIsMuted(!!m && (!m.expires_at || m.expires_at > nowIso));
     })();
-  }, [isAdmin, target.id]);
+  }, [canModerateChat, isAdmin, target.id]);
 
   const addFriend = async () => {
     setBusy(true); setMsg(null);
