@@ -4,9 +4,11 @@ import ship04 from "@/assets/ships/ship-lvl-4.png";
 import ship07 from "@/assets/ships/ship-lvl-7.png";
 import ship11 from "@/assets/ships/ship-lvl-11.png";
 import ship15 from "@/assets/ships/ship-05-hunter.png";
-import ship19 from "@/assets/ships/ship-06-factory.png";
+import ship19Asset from "@/assets/ships/ship-lvl-19-v2.png.asset.json";
+const ship19 = ship19Asset.url;
 import ship23 from "@/assets/ships/ship-07-legendary.png";
-import ship27 from "@/assets/ships/ship-08-mythic.png";
+import ship27Asset from "@/assets/ships/ship-lvl-27-v2.png.asset.json";
+const ship27 = ship27Asset.url;
 
 // 22 new unique ships — one per remaining market level
 import ship02 from "@/assets/ships/ship-lvl-2.png";
@@ -28,7 +30,8 @@ import ship22 from "@/assets/ships/ship-lvl-22.png";
 import ship24 from "@/assets/ships/ship-lvl-24.png";
 import ship25 from "@/assets/ships/ship-lvl-25.png";
 import ship26 from "@/assets/ships/ship-lvl-26.png";
-import ship28 from "@/assets/ships/ship-lvl-28.png";
+import ship28Asset from "@/assets/ships/ship-lvl-28-v2.png.asset.json";
+const ship28 = ship28Asset.url;
 import ship29 from "@/assets/ships/ship-lvl-29.png";
 import ship30 from "@/assets/ships/ship-lvl-30.png";
 import shipPhoenix from "@/assets/ships/ship-phoenix.png";
