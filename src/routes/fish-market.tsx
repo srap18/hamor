@@ -950,6 +950,7 @@ function SellView({
   const quoteSold = Number(saleQuote?.sold ?? 0);
   const quoteReady = !!saleQuote && quoteSold >= requestedAmount && Number(saleQuote.total_amount) > 0;
   const saleTotal = quoteReady ? Number(saleQuote.total_amount) : Math.round(fallbackEffectivePrice * requestedAmount);
+  const effectivePriceText = effectivePrice >= 100 ? Math.round(effectivePrice).toLocaleString() : effectivePrice.toFixed(2);
 
   const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
   const [busy, setBusy] = useState(false);
@@ -1012,7 +1013,7 @@ function SellView({
 
       <div className="absolute bottom-16 left-2 right-2 z-20 flex flex-col gap-1.5">
         <div className="text-center text-white text-sm font-bold text-glow" dir="rtl">
-          السعر بعد التعفّن: <span className="text-amber-300">{effectivePrice}</span>
+          السعر بعد التعفّن: <span className="text-amber-300 tabular-nums">{effectivePriceText}</span>
           {rotPct < 100 && <span className="text-rose-300 text-[10px] mr-2">(من {currentPrice})</span>}
         </div>
         <div className="flex items-center gap-2">
