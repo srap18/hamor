@@ -946,8 +946,10 @@ function SellView({
 
   const effectivePrice = Number(saleQuote?.effective_unit_price ?? fallbackEffectivePrice);
   const rotPct = Math.round(Number(saleQuote?.rot ?? rot) * 100);
-  const quoteReady = !!saleQuote && saleQuote.sold === Math.min(amount, fish.qty);
-  const saleTotal = quoteReady ? Number(saleQuote.total_amount) : 0;
+  const requestedAmount = Math.max(0, Math.min(Math.floor(amount), fish.qty));
+  const quoteSold = Number(saleQuote?.sold ?? 0);
+  const quoteReady = !!saleQuote && quoteSold >= requestedAmount && Number(saleQuote.total_amount) > 0;
+  const saleTotal = quoteReady ? Number(saleQuote.total_amount) : Math.round(fallbackEffectivePrice * requestedAmount);
 
   const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
   const [busy, setBusy] = useState(false);
@@ -1019,9 +1021,9 @@ function SellView({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{quoteReady ? saleTotal.toLocaleString() : "..."}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{saleTotal.toLocaleString()}</span>
           </div>
-          <button onClick={() => onSell(amount, { currentPrice, rotMult: Number(saleQuote?.rot ?? rot), minPrice: Math.min(...past), maxPrice: Math.max(...past) })} disabled={amount === 0 || selling || !quoteReady} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
+          <button onClick={() => onSell(requestedAmount, { currentPrice: Number(saleQuote?.current_price ?? currentPrice), rotMult: Number(saleQuote?.rot ?? rot), minPrice: fish.minPrice, maxPrice: fish.maxPrice })} disabled={requestedAmount === 0 || selling} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
         </div>
       </div>
 
