@@ -953,6 +953,13 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
           </div>
         )}
 
+        {!isAdmin && isChatMod && target.id !== me && (
+          <button onClick={adminToggleMute} disabled={busy}
+            className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
+            {isMuted ? "🔊 رفع الكتم" : "🔇 كتم 24 ساعة"}
+          </button>
+        )}
+
 
 
         {msg && <div className="text-xs text-amber-300 text-center">{msg}</div>}
