@@ -520,8 +520,8 @@ function FishMarket() {
       applyOptimisticProfileDelta({ coins: +serverEarned });
       const gross = Math.round(ctx.currentPrice * requestedQty);
       const rotLoss = Math.max(0, gross - serverEarned);
-      const marketMult = basePrice > 0 ? ctx.currentPrice / basePrice : 1;
-      const profitRatio = basePrice > 0 && requestedQty > 0 ? serverEarned / (basePrice * requestedQty) : 1;
+      const marketMult = trueBase > 0 ? ctx.currentPrice / trueBase : 1;
+      const profitRatio = trueBase > 0 && requestedQty > 0 ? serverEarned / (trueBase * requestedQty) : 1;
       const tier = computeTier({ marketMult, rotMult: ctx.rotMult, profitRatio });
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
       await loadFish();
