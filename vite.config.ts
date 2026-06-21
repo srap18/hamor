@@ -4,26 +4,23 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  // هنا التعديل: سنضيف إعدادات الضغط داخل الـ vite
   vite: {
     build: {
-      minify: 'terser', // استخدام محرك Terser للضغط المكثف
+      // تفعيل محرك Terser للضغط المكثف
+      minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true, // حذف الـ logs لتقليل الحجم
+          drop_console: true, // حذف الـ logs لتوفير مساحة
           drop_debugger: true,
-          passes: 2, // ضغط الملفات على مرحلتين للحصول على أصغر حجم ممكن
+          passes: 2, // ضغط مزدوج
         },
-        mangle: true, // اختصار أسماء المتغيرات والدوال لتقليل الحجم
+        mangle: true, // اختصار أسماء الدوال والمتغيرات
       },
+      // تم إزالة manualChunks لأن TanStack Start يدير تقسيم الكود تلقائياً
+      // ولن يتسبب هذا في زيادة الحجم لأن النظام ذكي بما يكفي
       rollupOptions: {
         output: {
-          // تقسيم الحزم لضمان عدم تكرار الأكواد
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
-          }
+          // نترك النظام يقرر التقسيم تلقائياً لتجنب الأخطاء
         }
       }
     }
