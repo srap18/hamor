@@ -396,8 +396,16 @@ function ChatPage() {
         setMyMute({ reason: data?.reason || "profanity", expires_at: data?.expires_at ?? null });
         return;
       }
+      if (status === "level_locked") {
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        const cur = (data?.current_level as number | undefined) ?? marketLevel ?? 1;
+        showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${cur})`);
+        setMarketLevel(cur);
+        setText(t => t ? t : body);
+        return;
+      }
     });
-  }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
+  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel]);
 
 
 
