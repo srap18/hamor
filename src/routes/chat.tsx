@@ -101,7 +101,10 @@ function ChatPage() {
   const [pinned, setPinned] = useState<{ body: string; pinned_at: string } | null>(null);
   const [pinEditOpen, setPinEditOpen] = useState(false);
   const [pinDraft, setPinDraft] = useState("");
+  const [marketLevel, setMarketLevel] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const SHIP_MARKET_MIN = 6;
+  const canChat = isAdmin || (marketLevel !== null && marketLevel >= SHIP_MARKET_MIN);
 
   // Pause background music while on the chat screen, resume on leave
   useEffect(() => {
@@ -138,6 +141,13 @@ function ChatPage() {
         if (data.expires_at && data.expires_at <= nowIso) { setMyMute(null); return; }
         setMyMute(data as any);
       });
+  }, [user]);
+
+  // Load my ship-market level — required to write in chat
+  useEffect(() => {
+    if (!user) { setMarketLevel(null); return; }
+    supabase.from("user_market").select("level").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setMarketLevel(((data as any)?.level as number | undefined) ?? 1));
   }, [user]);
 
   // Pinned admin message — live
@@ -304,6 +314,10 @@ function ChatPage() {
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
     if (tab === "dm" && !dmWith) return;
+    if (!canChat) {
+      showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${marketLevel ?? 1})`);
+      return;
+    }
     if (containsLink(body)) {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
@@ -382,8 +396,16 @@ function ChatPage() {
         setMyMute({ reason: data?.reason || "profanity", expires_at: data?.expires_at ?? null });
         return;
       }
+      if (status === "level_locked") {
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        const cur = (data?.current_level as number | undefined) ?? marketLevel ?? 1;
+        showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${cur})`);
+        setMarketLevel(cur);
+        setText(t => t ? t : body);
+        return;
+      }
     });
-  }, [user, text, tab, profile, dmWith, showNotice, replyTo]);
+  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel]);
 
 
 
@@ -614,6 +636,13 @@ function ChatPage() {
               {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
               {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
+          </div>
+        ) : !canChat ? (
+          <div className="px-3 pb-3">
+            <Link to="/ship-market" className="block rounded-2xl bg-sky-900/50 border-2 border-amber-400/70 text-amber-100 px-4 py-3 text-sm text-center hover:bg-sky-900/70">
+              🔒 الكتابة في الشات مغلقة — تحتاج <b className="text-amber-300">سوق السفن مستوى {SHIP_MARKET_MIN}</b>
+              <div className="text-xs mt-1 text-amber-200/80">مستواك الحالي: 🏪 {marketLevel ?? 1} — اضغط للذهاب لسوق السفن وترقيته</div>
+            </Link>
           </div>
         ) : (
           <ChatComposer
