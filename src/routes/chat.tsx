@@ -637,6 +637,13 @@ function ChatPage() {
               {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
           </div>
+        ) : !canChat ? (
+          <div className="px-3 pb-3">
+            <Link to="/ship-market" className="block rounded-2xl bg-sky-900/50 border-2 border-amber-400/70 text-amber-100 px-4 py-3 text-sm text-center hover:bg-sky-900/70">
+              🔒 الكتابة في الشات مغلقة — تحتاج <b className="text-amber-300">سوق السفن مستوى {SHIP_MARKET_MIN}</b>
+              <div className="text-xs mt-1 text-amber-200/80">مستواك الحالي: 🏪 {marketLevel ?? 1} — اضغط للذهاب لسوق السفن وترقيته</div>
+            </Link>
+          </div>
         ) : (
           <ChatComposer
             text={text}
