@@ -1627,21 +1627,21 @@ function Index() {
       <Link
         to="/quests"
         aria-label="المهام والإنجازات"
-        className="fixed z-40 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition"
+        className="fixed z-40 flex flex-col items-center justify-center active:scale-95 transition"
         style={{
-          right: "calc(env(safe-area-inset-right, 0px) + 10px)",
-          top: "calc(env(safe-area-inset-top, 0px) + 120px)",
-          width: 54,
-          height: 54,
-          borderRadius: 14,
+          left: "calc(env(safe-area-inset-left, 0px) + 8px)",
+          top: "calc(env(safe-area-inset-top, 0px) + 230px)",
+          width: 40,
+          height: 40,
+          borderRadius: 10,
           background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
-          border: "2px solid #fde68a",
-          boxShadow: "0 4px 14px rgba(0,0,0,.7), 0 0 18px rgba(251,191,36,.45)",
+          border: "1.5px solid #fde68a",
+          boxShadow: "0 3px 10px rgba(0,0,0,.7), 0 0 12px rgba(251,191,36,.4)",
           color: "#1a0f04",
         }}
       >
-        <span style={{ fontSize: 22, lineHeight: 1 }}>🏆</span>
-        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: ".3px" }}>المهام</span>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
       </Link>
 
 
