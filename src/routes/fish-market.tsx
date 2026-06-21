@@ -605,6 +605,65 @@ function FishMarket() {
           {pop}
         </div>
       )}
+
+      {sellResult && (
+        <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
+      )}
+    </div>
+  );
+}
+
+function SellResultModal({ result, onClose }: { result: SellResult; onClose: () => void }) {
+  const info = TIER_INFO[result.tier];
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={onClose}>
+      <div
+        className="w-full max-w-sm rounded-2xl border-4 shadow-2xl overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #f5d9a8 0%, #e9bf7e 100%)", borderColor: "#8a5a2b" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center py-2 font-extrabold text-white text-base" style={{ background: "linear-gradient(180deg,#6b4326,#3e2614)" }}>
+          السعر النهائي
+        </div>
+        <div className="p-3 flex flex-col items-center gap-3">
+          <div className="w-full rounded-xl overflow-hidden border-2 border-amber-900/40 bg-white/40 flex items-center justify-center">
+            <img src={info.img} alt={info.label} className="w-full h-auto object-contain" />
+          </div>
+
+          <div className="w-full text-right text-amber-950 font-bold space-y-1 text-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(i => (
+                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                ))}
+              </div>
+              <div>السعر الاجمالي: <span className="tabular-nums">{result.gross.toLocaleString()}</span>ذهب</div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(i => (
+                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                ))}
+              </div>
+              <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
+            </div>
+            <div className="pt-1 text-base">
+              الدخل: <span className="tabular-nums text-amber-900">{result.net.toLocaleString()}</span>ذهب
+            </div>
+            <p className="pt-1 text-[13px] leading-relaxed text-amber-950/90 font-semibold">
+              {info.text}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-lg text-white font-extrabold text-base shadow-lg active:scale-95"
+            style={{ background: "linear-gradient(180deg,#f0a040,#d77520)", border: "2px solid #b35c10" }}
+          >
+            الرئيسية
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
