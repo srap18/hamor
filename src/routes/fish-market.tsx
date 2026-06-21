@@ -10,6 +10,37 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
+import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
+import tier2Asset from "@/assets/sell-results/tier2_khaser.png.asset.json";
+import tier3Asset from "@/assets/sell-results/tier3_motad.png.asset.json";
+import tier4Asset from "@/assets/sell-results/tier4_rae3.png.asset.json";
+import tier5Asset from "@/assets/sell-results/tier5_momtaz.png.asset.json";
+
+type SellResult = {
+  tier: 1 | 2 | 3 | 4 | 5;
+  gross: number;
+  rotLoss: number;
+  net: number;
+  fishName: string;
+};
+
+const TIER_INFO: Record<1|2|3|4|5, { img: string; label: string; stars: number; text: string }> = {
+  1: { img: tier1Asset.url, label: "يائس", stars: 1, text: "أنت تاجر سمك سيء، كنت تقوم ببيع السمك عندما تكون الأسعار في أدنى مستوياتها، وأسماكك فاسدة في ذات الوقت." },
+  2: { img: tier2Asset.url, label: "خاسر", stars: 1, text: "أسماكك طازجة ولكنك قمت ببيعها بسعر أقل، حاول تحسين هامش الربح في المرات القادمة وبيع أسماكك بأعلى الأسعار." },
+  3: { img: tier3Asset.url, label: "كالمعتاد", stars: 2, text: "لقد بعت سمكك بسعر متوسط، لحسن حظك أن سمكك مازال طازجاً، مازال لديك فرصة في الحصول على أرباح قليلة." },
+  4: { img: tier4Asset.url, label: "عمل رائع", stars: 3, text: "لقد بعت سمكك بسعر ممتاز، أسماكك طازجة وحصلت على أرباح ممتازة في هذه الصفقة." },
+  5: { img: tier5Asset.url, label: "ممتاز", stars: 3, text: "تهانينا! لديك فرصة للحصول على أفضل الصفقات بما أن سمكك من النوع الممتاز والمرغوب في السوق، قد تتمكن من الحصول على صافي أرباح قد تصل إلى 500% في هذه المرحلة." },
+};
+
+function computeTier(marketMult: number, rotMult: number): 1|2|3|4|5 {
+  // marketMult = currentPrice/basePrice ; rotMult 0..1
+  if (rotMult < 0.5) return 1; // very rotted
+  if (marketMult >= 1.5 && rotMult >= 0.95) return 5;
+  if (marketMult >= 1.2 && rotMult >= 0.85) return 4;
+  if (marketMult >= 0.9 && rotMult >= 0.7) return 3;
+  if (rotMult < 0.7) return 2;
+  return 2;
+}
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
@@ -116,6 +147,7 @@ function FishMarket() {
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
+  const [sellResult, setSellResult] = useState<SellResult | null>(null);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
@@ -451,20 +483,17 @@ function FishMarket() {
     if (selected && (qtyMap[selected] ?? 0) <= 0) setSelected(null);
   }, [selected, qtyMap]);
 
-  const sell = async (amount: number) => {
+  const sell = async (amount: number, ctx: { currentPrice: number; rotMult: number }) => {
     if (!sel || !user || selling) return;
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
     setSelling(true);
-    // Optimistic UI: only remove fish from view. Coins are credited ONLY
-    // after the server confirms the real amount (server-side authority).
-    // This prevents the "amount jumps then drops" flicker caused by the
-    // client's price guess (rotMult) differing from the server's age-decay formula.
+    const fishName = sel.name;
+    const basePrice = sel.basePrice;
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
 
     try {
-      // Server-side: deletes oldest N rows for this fish in a single call.
       const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
         _fish_id: sel.id,
         _qty: requestedQty,
@@ -482,10 +511,12 @@ function FishMarket() {
         await loadFish();
         return;
       }
-      // Credit coins from the authoritative server value only.
       applyOptimisticProfileDelta({ coins: +serverEarned });
-      setPop(`+${serverEarned.toLocaleString()} ذهب`);
-      setTimeout(() => setPop(null), 1500);
+      const gross = Math.round(ctx.currentPrice * requestedQty);
+      const rotLoss = Math.max(0, gross - serverEarned);
+      const marketMult = basePrice > 0 ? ctx.currentPrice / basePrice : 1;
+      const tier = computeTier(marketMult, ctx.rotMult);
+      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
       await loadFish();
       refreshProfile();
     } finally {
@@ -574,6 +605,65 @@ function FishMarket() {
           {pop}
         </div>
       )}
+
+      {sellResult && (
+        <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
+      )}
+    </div>
+  );
+}
+
+function SellResultModal({ result, onClose }: { result: SellResult; onClose: () => void }) {
+  const info = TIER_INFO[result.tier];
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={onClose}>
+      <div
+        className="w-full max-w-sm rounded-2xl border-4 shadow-2xl overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #f5d9a8 0%, #e9bf7e 100%)", borderColor: "#8a5a2b" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center py-2 font-extrabold text-white text-base" style={{ background: "linear-gradient(180deg,#6b4326,#3e2614)" }}>
+          السعر النهائي
+        </div>
+        <div className="p-3 flex flex-col items-center gap-3">
+          <div className="w-full rounded-xl overflow-hidden border-2 border-amber-900/40 bg-white/40 flex items-center justify-center">
+            <img src={info.img} alt={info.label} className="w-full h-auto object-contain" />
+          </div>
+
+          <div className="w-full text-right text-amber-950 font-bold space-y-1 text-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(i => (
+                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                ))}
+              </div>
+              <div>السعر الاجمالي: <span className="tabular-nums">{result.gross.toLocaleString()}</span>ذهب</div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {[1,2,3].map(i => (
+                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                ))}
+              </div>
+              <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
+            </div>
+            <div className="pt-1 text-base">
+              الدخل: <span className="tabular-nums text-amber-900">{result.net.toLocaleString()}</span>ذهب
+            </div>
+            <p className="pt-1 text-[13px] leading-relaxed text-amber-950/90 font-semibold">
+              {info.text}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-lg text-white font-extrabold text-base shadow-lg active:scale-95"
+            style={{ background: "linear-gradient(180deg,#f0a040,#d77520)", border: "2px solid #b35c10" }}
+          >
+            الرئيسية
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -775,7 +865,7 @@ function SellView({
   rot: number;
   selling: boolean;
   onBack: () => void;
-  onSell: (amount: number) => void;
+  onSell: (amount: number, ctx: { currentPrice: number; rotMult: number }) => void;
   onPurchased: () => void;
 }) {
   const past = useMemo(() => {
@@ -916,7 +1006,7 @@ function SellView({
           <div className="flex items-center gap-1 text-amber-300 font-bold">
             <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{quoteReady ? saleTotal.toLocaleString() : "..."}</span>
           </div>
-          <button onClick={() => onSell(amount)} disabled={amount === 0 || selling || !quoteReady} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
+          <button onClick={() => onSell(amount, { currentPrice, rotMult: Number(saleQuote?.rot ?? rot) })} disabled={amount === 0 || selling || !quoteReady} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
         </div>
       </div>
 
