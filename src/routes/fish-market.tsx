@@ -68,6 +68,8 @@ type Fish = {
   name: string;
   emoji: string;
   basePrice: number;
+  minPrice: number;
+  maxPrice: number;
   volatility: number; // 0.1 - 0.6
   qty: number;
   color: string;
@@ -92,6 +94,8 @@ function fishMeta(id: string): Omit<Fish, "qty"> | null {
     name: f.name,
     emoji: f.emoji,
     basePrice: f.price,
+    minPrice: Math.max(0.0001, f.price * 0.25),
+    maxPrice: Math.max(0.0001, f.price * 1.75),
     volatility: TIER_VOL[f.tier] ?? 0.3,
     color: TIER_COLOR[f.tier] ?? "from-sky-400 to-sky-700",
   };
@@ -473,9 +477,12 @@ function FishMarket() {
     .map(([id, qty]): Fish | null => {
       const meta = fishMeta(id);
       if (!meta) return null;
-      const live = priceMap[id]?.current;
+      const livePrice = priceMap[id];
+      const live = livePrice?.current;
       const basePrice = typeof live === "number" && live > 0 ? live : meta.basePrice;
-      return { ...meta, basePrice, qty };
+      const minPrice = typeof livePrice?.min === "number" && livePrice.min > 0 ? livePrice.min : meta.minPrice;
+      const maxPrice = typeof livePrice?.max === "number" && livePrice.max > minPrice ? livePrice.max : meta.maxPrice;
+      return { ...meta, basePrice, minPrice, maxPrice, qty };
     })
     .filter((f): f is Fish => !!f && f.qty > 0)
     .sort((a, b) => b.basePrice - a.basePrice);
@@ -939,8 +946,11 @@ function SellView({
 
   const effectivePrice = Number(saleQuote?.effective_unit_price ?? fallbackEffectivePrice);
   const rotPct = Math.round(Number(saleQuote?.rot ?? rot) * 100);
-  const quoteReady = !!saleQuote && saleQuote.sold === Math.min(amount, fish.qty);
-  const saleTotal = quoteReady ? Number(saleQuote.total_amount) : 0;
+  const requestedAmount = Math.max(0, Math.min(Math.floor(amount), fish.qty));
+  const quoteSold = Number(saleQuote?.sold ?? 0);
+  const quoteReady = !!saleQuote && quoteSold >= requestedAmount && Number(saleQuote.total_amount) > 0;
+  const saleTotal = quoteReady ? Number(saleQuote.total_amount) : Math.round(fallbackEffectivePrice * requestedAmount);
+  const effectivePriceText = effectivePrice >= 100 ? Math.round(effectivePrice).toLocaleString() : effectivePrice.toFixed(2);
 
   const [buyOpen, setBuyOpen] = useState<null | "trader" | "freeze">(null);
   const [busy, setBusy] = useState(false);
@@ -1003,7 +1013,7 @@ function SellView({
 
       <div className="absolute bottom-16 left-2 right-2 z-20 flex flex-col gap-1.5">
         <div className="text-center text-white text-sm font-bold text-glow" dir="rtl">
-          السعر بعد التعفّن: <span className="text-amber-300">{effectivePrice}</span>
+          السعر بعد التعفّن: <span className="text-amber-300 tabular-nums">{effectivePriceText}</span>
           {rotPct < 100 && <span className="text-rose-300 text-[10px] mr-2">(من {currentPrice})</span>}
         </div>
         <div className="flex items-center gap-2">
@@ -1012,9 +1022,9 @@ function SellView({
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-amber-300 font-bold">
-            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{quoteReady ? saleTotal.toLocaleString() : "..."}</span>
+            <CoinIcon size={16} /> <span className="text-emerald-300 text-sm">{saleTotal.toLocaleString()}</span>
           </div>
-          <button onClick={() => onSell(amount, { currentPrice, rotMult: Number(saleQuote?.rot ?? rot), minPrice: Math.min(...past), maxPrice: Math.max(...past) })} disabled={amount === 0 || selling || !quoteReady} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
+          <button onClick={() => onSell(requestedAmount, { currentPrice: Number(saleQuote?.current_price ?? currentPrice), rotMult: Number(saleQuote?.rot ?? rot), minPrice: fish.minPrice, maxPrice: fish.maxPrice })} disabled={requestedAmount === 0 || selling} className="px-8 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-50">{selling ? "..." : "بيع"}</button>
         </div>
       </div>
 
