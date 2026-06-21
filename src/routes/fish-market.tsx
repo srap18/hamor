@@ -32,21 +32,22 @@ const TIER_INFO: Record<1|2|3|4|5, { img: string; label: string; stars: number; 
   5: { img: tier5Asset.url, label: "ممتاز", stars: 3, text: "تهانينا! لديك فرصة للحصول على أفضل الصفقات بما أن سمكك من النوع الممتاز والمرغوب في السوق، قد تتمكن من الحصول على صافي أرباح قد تصل إلى 500% في هذه المرحلة." },
 };
 
-function computeTier(opts: { marketMult: number; rotMult: number; profitRatio: number }): 1|2|3|4|5 {
-  // profitRatio = net / (basePrice * qty) — the real outcome of the sale.
-  // marketMult = currentPrice / basePrice, rotMult = quality 0..1
-  const { marketMult, rotMult, profitRatio } = opts;
-  // Disaster: rot wiped a big chunk OR net way below base
-  if (rotMult < 0.55 || profitRatio < 0.45) return 1; // يائس
-  // Excellent: high market and almost no rot loss
-  if (profitRatio >= 1.55 && rotMult >= 0.9 && marketMult >= 1.4) return 5; // ممتاز
-  // Great: solidly above base
-  if (profitRatio >= 1.15 && rotMult >= 0.85) return 4; // عمل رائع
-  // Normal: around base price, fresh
-  if (profitRatio >= 0.85) return 3; // كالمعتاد
-  // Loser: below base (low market or moderate rot)
-  return 2; // خاسر
+function computeTier(opts: { marketRank: number; rotMult: number }): 1|2|3|4|5 {
+  // marketRank = (currentPrice - minRecent) / (maxRecent - minRecent) ∈ [0,1]
+  // rotMult = fish freshness 0..1
+  const { marketRank, rotMult } = opts;
+  // Very rotten → يائس regardless of price
+  if (rotMult < 0.6) return 1;
+  // Top of recent price window + fresh → ممتاز
+  if (marketRank >= 0.85 && rotMult >= 0.85) return 5;
+  // Upper third, decent quality → عمل رائع
+  if (marketRank >= 0.6 && rotMult >= 0.8) return 4;
+  // Mid range → كالمعتاد
+  if (marketRank >= 0.35) return 3;
+  // Near the bottom of the window → خاسر
+  return 2;
 }
+
 
 export const Route = createFileRoute("/fish-market")({
   head: () => ({
