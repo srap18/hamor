@@ -490,14 +490,13 @@ function FishMarket() {
     if (selected && (qtyMap[selected] ?? 0) <= 0) setSelected(null);
   }, [selected, qtyMap]);
 
-  const sell = async (amount: number, ctx: { currentPrice: number; rotMult: number }) => {
+  const sell = async (amount: number, ctx: { currentPrice: number; rotMult: number; minPrice: number; maxPrice: number }) => {
     if (!sel || !user || selling) return;
     const requestedQty = Math.min(amount, sel.qty);
     if (requestedQty <= 0) return;
 
     setSelling(true);
     const fishName = sel.name;
-    const trueBase = fishMeta(sel.id)?.basePrice ?? sel.basePrice;
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
 
     try {
@@ -521,9 +520,9 @@ function FishMarket() {
       applyOptimisticProfileDelta({ coins: +serverEarned });
       const gross = Math.round(ctx.currentPrice * requestedQty);
       const rotLoss = Math.max(0, gross - serverEarned);
-      const marketMult = trueBase > 0 ? ctx.currentPrice / trueBase : 1;
-      const profitRatio = trueBase > 0 && requestedQty > 0 ? serverEarned / (trueBase * requestedQty) : 1;
-      const tier = computeTier({ marketMult, rotMult: ctx.rotMult, profitRatio });
+      const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
+      const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
+      const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
       await loadFish();
       refreshProfile();
@@ -531,6 +530,7 @@ function FishMarket() {
       setSelling(false);
     }
   };
+
 
 
 
