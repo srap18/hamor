@@ -4,7 +4,7 @@ android {
     namespace = "com.hamor.game"
     compileSdk = rootProject.ext.compileSdkVersion
     
-    // التعديل الجديد: تفعيل تقسيم الموارد لتقليل الحجم الفعلي للمستخدم
+    // تفعيل تقسيم الموارد لتقليل الحجم الفعلي للمستخدم
     bundle {
         language { enableSplit = true }
         density { enableSplit = true }
@@ -27,6 +27,8 @@ android {
         }
 
         aaptOptions {
+            // هذا السطر يقوم بضغط الصور تلقائياً أثناء البناء
+            cruncherEnabled = true 
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
