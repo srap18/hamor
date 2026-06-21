@@ -281,7 +281,7 @@ function PlayerPage() {
     const cmap = new Map((cats ?? []).map((c: any) => [c.code, c.fishing_power]));
     setRaiders(list.map((r) => ({
       ...r,
-      fishing_power: Math.max(1, Math.min(100, (r.catalog_code && cmap.get(r.catalog_code)) || 5)),
+      fishing_power: Math.max(1, (r.catalog_code && cmap.get(r.catalog_code)) || 5),
       owner_name: pmap.get(r.user_id)?.display_name || "قرصان",
       owner_emoji: pmap.get(r.user_id)?.avatar_emoji || "🏴‍☠️",
     })));
