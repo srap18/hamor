@@ -1030,7 +1030,7 @@ function Index() {
     const { data: profs } = await supabase
       .from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
     const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
-    setRaids(list.map((s) => ({
+    const nextRaids = list.map((s) => ({
       ship_id: s.id,
       attacker_id: s.user_id,
       attacker_name: pmap.get(s.user_id)?.display_name || "لاعب",
@@ -1038,7 +1038,16 @@ function Index() {
       ends_at: s.stealing_ends_at || serverNow().toISOString(),
       template_id: s.template_id ?? 1,
       target_ship_id: s.stealing_target_ship_id,
-    })));
+    }));
+    setRaids(nextRaids);
+    const targetedShipIds = new Set(nextRaids.map((r) => r.target_ship_id).filter(Boolean) as string[]);
+    if (targetedShipIds.size > 0) {
+      setShips((curr) => curr.map((s) => {
+        if (!s.dbId || !targetedShipIds.has(s.dbId)) return s;
+        delete seaStateOverrideRef.current[s.dbId];
+        return { ...s, fishing: false, startedAt: undefined, progress: 0, sail: 0 };
+      }));
+    }
   };
   useEffect(() => {
     reloadRaids();
