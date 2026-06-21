@@ -14,17 +14,27 @@ export function isDragonUnlockedFor(userId: string | null | undefined): boolean 
   return !!userId && DRAGON_UNLOCKED_USER_IDS.has(userId);
 }
 
-/** Hook: returns true once we confirm the signed-in user has dragon access. */
+/** Hook: returns true once we confirm the signed-in user has dragon access (allowlist OR admin/moderator). */
 export function useDragonUnlocked(): boolean {
   const [unlocked, setUnlocked] = useState(false);
   useEffect(() => {
     let alive = true;
+    const check = async (uid: string | null | undefined) => {
+      if (!uid) { if (alive) setUnlocked(false); return; }
+      if (isDragonUnlockedFor(uid)) { if (alive) setUnlocked(true); return; }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .in("role", ["admin", "moderator"]);
+      if (alive) setUnlocked(!!data && data.length > 0);
+    };
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (alive) setUnlocked(isDragonUnlockedFor(data.user?.id));
+      await check(data.user?.id);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUnlocked(isDragonUnlockedFor(session?.user?.id));
+      void check(session?.user?.id);
     });
     return () => {
       alive = false;
