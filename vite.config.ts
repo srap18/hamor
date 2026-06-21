@@ -6,18 +6,10 @@ export default defineConfig({
   },
   vite: {
     build: {
-      // نستخدم 'esbuild' بدلاً من 'terser' لأنه مضمن تلقائياً في Vite
-      minify: 'esbuild', 
-      rollupOptions: {
-        output: {
-          // تقسيم ذكي تلقائي للملفات
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
-          }
-        }
-      }
+      // نستخدم 'esbuild' للضغط السريع والمدمج بدون الحاجة لتثبيت مكتبات إضافية
+      minify: 'esbuild',
+      // قمنا بإزالة manualChunks لأنها السبب في فشل البناء
+      // النظام يقوم بالتقسيم تلقائياً وبأمان تام
     }
   },
 });
