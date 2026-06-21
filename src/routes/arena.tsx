@@ -47,7 +47,13 @@ function ArenaPage() {
       const { data: { user } } = await supabase.auth.getUser();
       const uid = user?.id ?? null;
       setMyId(uid);
-      const ok = !!uid && ARENA_ALLOWED_USERS.has(uid);
+      let ok = !!uid && ARENA_ALLOWED_USERS.has(uid);
+      if (!ok && uid) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", uid)
+          .in("role", ["admin", "moderator"]);
+        ok = !!roles && roles.length > 0;
+      }
       setAllowed(ok);
       setAuthChecked(true);
       if (!ok) return;
