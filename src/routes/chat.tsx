@@ -781,8 +781,8 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
     onBlocksChanged();
   };
 
-  const notify = async (title: string, body: string) => {
-    await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: me });
+  const notify = async (title: string, body: string, anonymous = false) => {
+    await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: anonymous ? null : me });
   };
   const logAudit = async (action: string, details: Record<string, unknown>) => {
     await supabase.from("admin_audit").insert({ admin_id: me, action, target_user_id: target.id, details: details as never });
