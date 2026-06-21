@@ -14,6 +14,7 @@ import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { useIsChatMod } from "@/hooks/use-chat-mod";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
