@@ -521,7 +521,8 @@ function FishMarket() {
       const gross = Math.round(ctx.currentPrice * requestedQty);
       const rotLoss = Math.max(0, gross - serverEarned);
       const marketMult = basePrice > 0 ? ctx.currentPrice / basePrice : 1;
-      const tier = computeTier(marketMult, ctx.rotMult);
+      const profitRatio = basePrice > 0 && requestedQty > 0 ? serverEarned / (basePrice * requestedQty) : 1;
+      const tier = computeTier({ marketMult, rotMult: ctx.rotMult, profitRatio });
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
       await loadFish();
       refreshProfile();
