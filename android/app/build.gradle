@@ -27,7 +27,7 @@ android {
         }
 
         aaptOptions {
-            // هذا السطر يقوم بضغط الصور تلقائياً أثناء البناء
+            // ضغط الصور تلقائياً أثناء البناء
             cruncherEnabled = true 
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
@@ -44,10 +44,10 @@ android {
 
     buildTypes {
         release {
-            // ضغط الكود (ProGuard)
+            // ضغط الكود (ProGuard) وإزالة الموارد غير المستخدمة
             minifyEnabled true
             shrinkResources true
-            // إزالة ملفات الـ Debug غير الضرورية
+            // إزالة ملفات الـ Debug لتقليل الحجم
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
