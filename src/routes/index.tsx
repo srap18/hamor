@@ -388,6 +388,11 @@ function Index() {
             // always shown when the player taps collect.
             fishing = true;
             startedAt = new Date(row.fishing_started_at).getTime();
+          } else if (!row.at_sea || !row.fishing_started_at) {
+            // Server may stop the ship externally (for example when another
+            // player starts stealing from it). Reflect that immediately.
+            fishing = false;
+            startedAt = undefined;
           } else if (s.fishing === false) {
             // Local says STOPPED — that's the source of truth.
             // If DB still says at_sea, push the stop again to fix the race.
