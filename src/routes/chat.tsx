@@ -836,7 +836,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       setBusy(true);
       const { error } = await supabase.from("chat_mutes").insert({ user_id: target.id, reason: "مخالفة قواعد الدردشة", muted_by: me, expires_at });
       if (error) { setMsg(error.message); setBusy(false); return; }
-      await notify("🔇 تم كتمك", "تم كتمك من قبل مشرف لمدة 24 ساعة.");
+      await notify("🔇 تم كتمك", "تم كتمك من قبل مشرف لمدة 24 ساعة.", true);
       setIsMuted(true); setMsg("كُتم لمدة 24 ساعة");
       setBusy(false);
       return;
