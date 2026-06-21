@@ -380,6 +380,24 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_moderators: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_mutes: {
         Row: {
           active: boolean
@@ -4738,6 +4756,7 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_chat_mod: { Args: { _uid: string }; Returns: boolean }
       is_device_banned: { Args: { _device_id: string }; Returns: boolean }
       is_display_name_taken: {
         Args: { p_except?: string; p_name: string }

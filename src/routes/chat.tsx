@@ -14,6 +14,7 @@ import { ForumTopics } from "@/components/ForumTopics";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { sound } from "@/lib/sound";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { useIsChatMod } from "@/hooks/use-chat-mod";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
@@ -730,21 +731,25 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const { isAdmin } = useIsAdmin();
+  const { isChatMod } = useIsChatMod();
+  const canModerateChat = isAdmin || isChatMod;
   const [isBanned, setIsBanned] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canModerateChat) return;
     (async () => {
       const nowIso = new Date().toISOString();
-      const { data: b } = await supabase.from("bans").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
-      setIsBanned(!!b && (!b.expires_at || b.expires_at > nowIso));
+      if (isAdmin) {
+        const { data: b } = await supabase.from("bans").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
+        setIsBanned(!!b && (!b.expires_at || b.expires_at > nowIso));
+      }
       const { data: m } = await supabase.from("chat_mutes").select("id,expires_at").eq("user_id", target.id).eq("active", true).maybeSingle();
       setIsMuted(!!m && (!m.expires_at || m.expires_at > nowIso));
     })();
-  }, [isAdmin, target.id]);
+  }, [canModerateChat, isAdmin, target.id]);
 
   const addFriend = async () => {
     setBusy(true); setMsg(null);
@@ -776,8 +781,8 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
     onBlocksChanged();
   };
 
-  const notify = async (title: string, body: string) => {
-    await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: me });
+  const notify = async (title: string, body: string, anonymous = false) => {
+    await supabase.from("notifications").insert({ recipient_id: target.id, title, body, kind: "warning", created_by: anonymous ? null : me });
   };
   const logAudit = async (action: string, details: Record<string, unknown>) => {
     await supabase.from("admin_audit").insert({ admin_id: me, action, target_user_id: target.id, details: details as never });
@@ -817,9 +822,22 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
       if (!ok) return;
       setBusy(true);
       await supabase.from("chat_mutes").update({ active: false }).eq("user_id", target.id).eq("active", true);
-      await logAudit("unmute_user", { name: target.display_name, via: "chat" });
+      if (isAdmin) await logAudit("unmute_user", { name: target.display_name, via: "chat" });
       await notify("✅ تم رفع الكتم", "يمكنك الكتابة في الدردشة الآن.");
       setIsMuted(false); setMsg("فُكّ الكتم");
+      setBusy(false);
+      return;
+    }
+    // Chat moderators: silent, fixed 24h, no reason prompt, no audit log
+    if (!isAdmin && isChatMod) {
+      const ok = await confirmDialog({ title: "كتم في الشات", message: `كتم ${target.display_name} لمدة 24 ساعة؟`, danger: true });
+      if (!ok) return;
+      const expires_at = new Date(Date.now() + 24 * 3600_000).toISOString();
+      setBusy(true);
+      const { error } = await supabase.from("chat_mutes").insert({ user_id: target.id, reason: "مخالفة قواعد الدردشة", muted_by: me, expires_at });
+      if (error) { setMsg(error.message); setBusy(false); return; }
+      await notify("🔇 تم كتمك", "تم كتمك من قبل مشرف لمدة 24 ساعة.", true);
+      setIsMuted(true); setMsg("كُتم لمدة 24 ساعة");
       setBusy(false);
       return;
     }
@@ -933,6 +951,13 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
               </div>
             )}
           </div>
+        )}
+
+        {!isAdmin && isChatMod && target.id !== me && (
+          <button onClick={adminToggleMute} disabled={busy}
+            className={`w-full py-2 rounded-lg text-white font-bold text-sm disabled:opacity-50 ${isMuted ? "bg-stone-700" : "bg-amber-700"}`}>
+            {isMuted ? "🔊 رفع الكتم" : "🔇 كتم 24 ساعة"}
+          </button>
         )}
 
 
