@@ -968,3 +968,13 @@ html.native-app body > * {
     max-width: 540px;
   }
 }
+
+/* Ensure full-screen modal overlays respect the device safe-area insets so
+   modal content never disappears under the iOS status bar / notch or the
+   home indicator at the bottom. Applies to any overlay that uses the common
+   "fixed inset-0 flex items-center justify-center" pattern; Tailwind's
+   p-3/p-4 keep horizontal padding while we expand the vertical padding. */
+.fixed.inset-0.flex.items-center.justify-center {
+  padding-top: max(var(--tw-padding-top, 0.75rem), env(safe-area-inset-top, 0px));
+  padding-bottom: max(var(--tw-padding-bottom, 0.75rem), env(safe-area-inset-bottom, 0px));
+}
