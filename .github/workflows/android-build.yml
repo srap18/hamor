@@ -10,6 +10,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Delete Old Artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            for (const artifact of artifacts.data.artifacts) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+              });
+            }
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -24,7 +40,6 @@ jobs:
       - name: Install Dependencies
         run: |
           bun install
-          # حذف حزم التطوير (DevDependencies) فوراً لتقليل المساحة
           bun install --production --ignore-scripts
 
       - name: Build Web Assets
@@ -58,15 +73,10 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تنظيف دقيق للمجلدات قبل البناء
           ./gradlew clean
           rm -rf app/build/outputs/apk/
           rm -rf app/build/outputs/bundle/
-          
-          # تحديث رقم الإصدار
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
-          
-          # بناء المشروع
           ./gradlew bundleRelease assembleRelease -x lint
 
       - name: Sign & Align Artifacts
@@ -75,12 +85,10 @@ jobs:
           PASSWORD="HamorGame2026"
           ALIAS="hamor-key-alias"
           
-          # توقيع AAB
           AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
           mv $AAB ./hamor-play-store.aab
           
-          # توقيع APK
           APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" -o -name "app-release.apk" | head -n 1)
           if [ -f "$APK" ]; then
             ZIPALIGN_PATH=$(find $ANDROID_HOME/build-tools/ -name zipalign | head -n 1)
