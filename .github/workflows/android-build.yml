@@ -23,9 +23,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # تثبيت الحزم الأساسية
           bun install
-          # تثبيت حزم الإنتاج فقط وحذف حزم التطوير (DevDependencies) لتصغير الحجم
+          # حذف حزم التطوير (DevDependencies) فوراً لتقليل المساحة
           bun install --production --ignore-scripts
 
       - name: Build Web Assets
@@ -59,7 +58,7 @@ jobs:
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
-          # تنظيف كامل قبل البناء
+          # تنظيف دقيق للمجلدات قبل البناء
           ./gradlew clean
           rm -rf app/build/outputs/apk/
           rm -rf app/build/outputs/bundle/
@@ -67,7 +66,7 @@ jobs:
           # تحديث رقم الإصدار
           sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
           
-          # بناء AAB و APK مع الضغط
+          # بناء المشروع
           ./gradlew bundleRelease assembleRelease -x lint
 
       - name: Sign & Align Artifacts
