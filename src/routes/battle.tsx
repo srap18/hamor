@@ -22,7 +22,14 @@ function BattlePage() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setAllowed(!!user?.id && BATTLE_ALLOWED_USERS.has(user.id));
+      let ok = !!user?.id && BATTLE_ALLOWED_USERS.has(user.id);
+      if (!ok && user?.id) {
+        const { data: roles } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id)
+          .in("role", ["admin", "moderator"]);
+        ok = !!roles && roles.length > 0;
+      }
+      setAllowed(ok);
       setChecked(true);
     })();
   }, []);
