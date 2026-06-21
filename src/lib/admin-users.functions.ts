@@ -222,6 +222,7 @@ export const adminHardBan = createServerFn({ method: "POST" })
     const { data: result, error } = await (supabaseAdmin as any).rpc("admin_hard_ban", {
       _uid: data.userId,
       _reason: reason,
+      _admin: context.userId,
     });
     if (error) throw new Error(error.message);
 
