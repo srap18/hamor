@@ -163,13 +163,14 @@ export const adminBlockLogin = createServerFn({ method: "POST" })
     if (data.unblock) {
       const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: "none" } as never);
       if (error) throw new Error(error.message);
-      // Lift any active ban rows so the sanctions page reflects the change
       await supabaseAdmin.from("bans").update({ active: false }).eq("user_id", data.userId).eq("active", true);
+      // Also fully reverse any hard-ban (email + devices + IPs) — one button lifts everything
+      await (supabaseAdmin as any).rpc("admin_unhard_ban", { _uid: data.userId, _admin: context.userId });
       await supabaseAdmin.from("admin_audit").insert({
         admin_id: context.userId,
         action: "admin_unblock_login",
         target_user_id: data.userId,
-        details: { ban_duration: "none" } as never,
+        details: { ban_duration: "none", hard_ban_cleared: true } as never,
       });
       return { ok: true };
     }
@@ -221,6 +222,7 @@ export const adminHardBan = createServerFn({ method: "POST" })
     const { data: result, error } = await (supabaseAdmin as any).rpc("admin_hard_ban", {
       _uid: data.userId,
       _reason: reason,
+      _admin: context.userId,
     });
     if (error) throw new Error(error.message);
 

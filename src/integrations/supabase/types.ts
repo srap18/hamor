@@ -3845,7 +3845,7 @@ export type Database = {
         Returns: string
       }
       admin_hard_ban: {
-        Args: { _reason?: string; _uid: string }
+        Args: { _admin?: string; _reason?: string; _uid: string }
         Returns: Json
       }
       admin_hard_delete_user: { Args: { _uid: string }; Returns: undefined }
@@ -3974,6 +3974,10 @@ export type Database = {
       }
       admin_set_username: {
         Args: { _new: string; _target: string }
+        Returns: Json
+      }
+      admin_unhard_ban: {
+        Args: { _admin?: string; _uid: string }
         Returns: Json
       }
       admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
