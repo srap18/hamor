@@ -806,7 +806,7 @@ function SellView({
   rot: number;
   selling: boolean;
   onBack: () => void;
-  onSell: (amount: number) => void;
+  onSell: (amount: number, ctx: { currentPrice: number; rotMult: number }) => void;
   onPurchased: () => void;
 }) {
   const past = useMemo(() => {
