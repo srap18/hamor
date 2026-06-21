@@ -1623,6 +1623,29 @@ function Index() {
         />
       )}
 
+      {/* Quests & achievements floating button */}
+      <Link
+        to="/quests"
+        aria-label="المهام والإنجازات"
+        className="fixed z-40 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition"
+        style={{
+          right: "calc(env(safe-area-inset-right, 0px) + 10px)",
+          top: "calc(env(safe-area-inset-top, 0px) + 120px)",
+          width: 54,
+          height: 54,
+          borderRadius: 14,
+          background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
+          border: "2px solid #fde68a",
+          boxShadow: "0 4px 14px rgba(0,0,0,.7), 0 0 18px rgba(251,191,36,.45)",
+          color: "#1a0f04",
+        }}
+      >
+        <span style={{ fontSize: 22, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: ".3px" }}>المهام</span>
+      </Link>
+
+
+
       {/* Incoming raids — pirates stealing from me */}
       {raids.length > 0 && (
         <div className="absolute top-20 left-2 right-2 z-30 flex flex-col gap-2 pointer-events-none">

@@ -4050,6 +4050,14 @@ export type Database = {
         Returns: undefined
       }
       build_trader_snapshot: { Args: never; Returns: Json }
+      bump_achievement_progress: {
+        Args: { _delta: number; _goal_type: string; _user: string }
+        Returns: undefined
+      }
+      bump_quest_progress: {
+        Args: { _delta: number; _goal_type: string; _user: string }
+        Returns: undefined
+      }
       burn_target_bg: { Args: { _target_id: string }; Returns: string }
       buy_background: {
         Args: { _bg_id: string; _price: number }
@@ -4164,6 +4172,7 @@ export type Database = {
       }
       change_username: { Args: { _new: string }; Returns: Json }
       check_profanity: { Args: { _body: string }; Returns: string }
+      claim_achievement: { Args: { _ach_id: string }; Returns: Json }
       claim_daily_dragon_rockets: { Args: never; Returns: Json }
       claim_daily_login: {
         Args: never
@@ -4184,6 +4193,7 @@ export type Database = {
           reward_type: string
         }[]
       }
+      claim_daily_quest: { Args: { _quest_id: string }; Returns: Json }
       claim_elite_vip_daily_gems: { Args: never; Returns: Json }
       claim_quest: {
         Args: { _day_key: string; _quest_id: string }
@@ -4803,6 +4813,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      qa_award: {
+        Args: { _coins: number; _gems: number; _user: string; _xp: number }
+        Returns: undefined
+      }
+      qa_day_key: { Args: never; Returns: string }
       quote_fish_sale_by_qty: {
         Args: { _fish_id: string; _qty: number }
         Returns: {
