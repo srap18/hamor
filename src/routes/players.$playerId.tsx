@@ -1057,7 +1057,7 @@ function PlayerPage() {
         }
         const isMine = me === r.user_id;
         const endMs = r.stealing_ends_at ? new Date(r.stealing_ends_at).getTime() : 0;
-        const startMs = r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0;
+        const startMs = r.stealing_started_at ? new Date(r.stealing_started_at).getTime() : (r.fishing_started_at ? new Date(r.fishing_started_at).getTime() : 0);
         const total = Math.max(1, endMs - startMs);
         const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
         const ratio = total > 0 ? elapsed / total : 0;
