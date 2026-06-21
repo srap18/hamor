@@ -496,7 +496,7 @@ function FishMarket() {
 
     setSelling(true);
     const fishName = sel.name;
-    const basePrice = sel.basePrice;
+    const trueBase = fishMeta(sel.id)?.basePrice ?? sel.basePrice;
     setQtyMap((curr) => ({ ...curr, [sel.id]: Math.max(0, (curr[sel.id] ?? 0) - requestedQty) }));
 
     try {
