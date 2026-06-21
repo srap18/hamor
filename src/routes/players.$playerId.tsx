@@ -440,8 +440,8 @@ function PlayerPage() {
     const row = Array.isArray(data) && data[0] ? data[0] : null;
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
-    if (n > 0) flash(`🛑 أوقفت السرقة — غنمت ${n} (قيمتها ${v})`);
-    else flash("🛑 أوقفت السرقة — سفينتك ترجع فاضية");
+    if (n > 0) flash(`🛑 أوقفت السرقة — رجعت سفينة اللص ومعها ${n} سمكة (قيمتها ${v})`);
+    else flash("🛑 أوقفت السرقة — ما فيه غنيمة متاحة الآن");
     loadRaiders();
     broadcastRaid();
   };
@@ -1104,7 +1104,7 @@ function PlayerPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setCancelRaiderId(null)}>
           <div className="w-full max-w-xs glass-hud rounded-2xl border-2 border-rose-400/60 p-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
             <div className="text-center text-amber-100 font-bold">إيقاف السرقة؟</div>
-            <div className="text-center text-amber-300/70 text-xs">سترجع سفينتك بدون غنيمة</div>
+            <div className="text-center text-amber-300/70 text-xs">سترجع سفينة اللص بالغنيمة الحالية فقط</div>
             <div className="flex gap-2">
               <button onClick={() => setCancelRaiderId(null)} className="flex-1 py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
               <button onClick={() => stopRaid(cancelRaiderId)} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">🛑 أوقف</button>
