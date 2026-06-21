@@ -143,6 +143,13 @@ function ChatPage() {
       });
   }, [user]);
 
+  // Load my ship-market level — required to write in chat
+  useEffect(() => {
+    if (!user) { setMarketLevel(null); return; }
+    supabase.from("user_market").select("level").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setMarketLevel(((data as any)?.level as number | undefined) ?? 1));
+  }, [user]);
+
   // Pinned admin message — live
   useEffect(() => {
     const load = async () => {
