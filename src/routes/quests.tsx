@@ -165,7 +165,7 @@ function QuestsPage() {
     }}>
       <div className="max-w-xl mx-auto px-3">
         <div className="flex items-center justify-between py-3">
-          <BackButton />
+          <BackButton className="px-3 py-1.5 rounded-lg bg-black/50 border-2 border-amber-900/40 text-amber-200 font-black text-sm">← رجوع</BackButton>
           <h1 className="text-xl font-black" style={{ fontFamily: "'Pirata One', serif", textShadow: "0 0 12px rgba(255,180,80,.5)" }}>
             🏆 المهام والإنجازات
           </h1>
