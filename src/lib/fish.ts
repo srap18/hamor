@@ -120,7 +120,7 @@ const FISH_DEFS: Record<string, FishDef> = {
   goldfish:   { id: "goldfish",   name: "سمكة ذهبية",    emoji: "🐡", price: 35,   tier: 5, rarity: "legendary" },
   pearl:      { id: "pearl",      name: "لؤلؤ",          emoji: "🫧", price: 36,   tier: 5, rarity: "legendary" },
 
-  // ========== TIER 6 — أسطورية إلهية — 95-100 ==========
+  // ========== TIER 6 — أسطورية خرافية — 95-100 ==========
   kraken:     { id: "kraken",     name: "كراكن",         emoji: "🐙", price: 38,   tier: 6, rarity: "mythic" },
   leviathan:  { id: "leviathan",  name: "لوياثان",       emoji: "🐉", price: 38,   tier: 6, rarity: "mythic" },
   megalodon:  { id: "megalodon",  name: "ميغالودون",     emoji: "🦈", price: 39,   tier: 6, rarity: "mythic" },

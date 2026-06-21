@@ -49,12 +49,12 @@ export const DRAGON_STAGES: DragonStage[] = [
   { level: 7,  name: "ملكي",            icon: "👑", dpRequired: 12000,    image: dragonStage7  },
   { level: 8,  name: "أسطوري",          icon: "🌌", dpRequired: 25000,    image: dragonStage8  },
   { level: 9,  name: "كوني",            icon: "☄️", dpRequired: 50000,    image: dragonStage9  },
-  { level: 10, name: "إلهي",            icon: "🔱", dpRequired: 100000,   image: dragonStage10 },
+  { level: 10, name: "خرافي",            icon: "🔱", dpRequired: 100000,   image: dragonStage10 },
   { level: 11, name: "تنين النار الذهبي", icon: "🜂", dpRequired: 200000,   image: dragonStage11 },
   { level: 12, name: "ملك التنانين",     icon: "♛", dpRequired: 400000,   image: dragonStage12 },
   { level: 13, name: "تنين الرونا",      icon: "🜔", dpRequired: 800000,   image: dragonStage13 },
   { level: 14, name: "تنين الكون",       icon: "✦", dpRequired: 1600000,  image: dragonStage14 },
-  { level: 15, name: "إله التنانين",     icon: "☼", dpRequired: 3500000,  image: dragonStage15 },
+  { level: 15, name: "سيد التنانين",     icon: "☼", dpRequired: 3500000,  image: dragonStage15 },
 ];
 
 export const MAX_FORMS = DRAGON_STAGES.length;     // 15

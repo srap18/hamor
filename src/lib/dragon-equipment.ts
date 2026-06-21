@@ -34,7 +34,7 @@ export const RARITY_LABEL: Record<Rarity, string> = {
   rare: "نادر",
   epic: "ملحمي",
   legendary: "أسطوري",
-  divine: "إلهي",
+  divine: "خرافي",
 };
 
 export const RARITY_COLOR: Record<Rarity, { ring: string; glow: string; text: string; bg: string }> = {
