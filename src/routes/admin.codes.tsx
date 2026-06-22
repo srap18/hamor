@@ -6,7 +6,7 @@ import { DurationPicker } from "@/components/admin/DurationPicker";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { ALL_FRAMES, FRAME_KIND_TO_ITEM_TYPE } from "@/lib/frames";
-import { VIP_TIERS } from "@/lib/vip-perks";
+
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 import { formatSarFromUsd } from "@/lib/currency";
 import { BACKGROUNDS } from "@/lib/backgrounds";
@@ -566,11 +566,9 @@ function AdminCodesPage() {
         </div>
       </div>
 
-      {/* ───────── إنشاء كود VIP ───────── */}
-      <VipCodeCreator onCreated={loadCodes} />
-
-      {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 5 مستويات) ───────── */}
+      {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 10 مستويات) ───────── */}
       <EliteVipCodeCreator onCreated={loadCodes} />
+
 
 
       {/* ───────── الإنشاء المجمّع (كود واحد = عدة عناصر) ───────── */}
@@ -1155,102 +1153,7 @@ function ArchivedLookup({ onOpenRedemptions }: { onOpenRedemptions: (c: CodeRow)
   );
 }
 
-function VipCodeCreator({ onCreated }: { onCreated: () => void }) {
-  const [level, setLevel] = useState(1);
-  const [days, setDays] = useState(30);
-  const [maxUses, setMaxUses] = useState(1);
-  const [dist, setDist] = useState<"limited" | "public">("limited");
-  const [customCode, setCustomCode] = useState("");
-  const [saving, setSaving] = useState(false);
-  const tier = VIP_TIERS.find((t) => t.level === level);
 
-  const create = async () => {
-    const finalCode = (customCode.trim() || randomCode()).toUpperCase();
-    if (!/^[A-Z0-9_-]{4,32}$/.test(finalCode)) { toast.error("الكود يجب أن يكون 4–32 حرف/رقم"); return; }
-    setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("redemption_codes" as never).insert({
-      code: finalCode,
-      reward_type: "bundle",
-      reward_coins: 0, reward_gems: 0, reward_xp: 0,
-      quantity: 1,
-      max_uses: dist === "public" ? 0 : Math.max(1, maxUses),
-      expires_at: null,
-      note: `VIP ${level} ${tier?.name ?? ""} — ${days === 0 ? "دائم" : `${days} يوم`}`,
-      extra_rewards: [],
-      reward_vip_level: level,
-      reward_vip_days: days,
-      created_by: user?.id,
-    } as never);
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
-    toast.success(`✅ ${finalCode} — تم النسخ`);
-    setCustomCode("");
-    onCreated();
-  };
-
-  return (
-    <div className="rounded-xl border border-amber-700/70 bg-gradient-to-br from-amber-950/40 to-stone-950 p-3 md:p-4 space-y-3">
-      <div className="text-sm font-bold text-amber-200">👑 إنشاء كود VIP — يفعّل اشتراك VIP للاعب</div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <label className="text-xs text-amber-200 space-y-1">
-          <span>مستوى VIP</span>
-          <select value={level} onChange={(e) => setLevel(Number(e.target.value))}
-            className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100">
-            {VIP_TIERS.map((t) => (
-              <option key={t.level} value={t.level}>{t.emoji} VIP {t.level} — {t.name}</option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs text-amber-200 space-y-1">
-          <span>المدة بالأيام (0 = دائم)</span>
-          <input type="number" min={0} value={days}
-            onChange={(e) => setDays(Math.max(0, Number(e.target.value) || 0))}
-            className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold" />
-        </label>
-        <label className="text-xs text-amber-200 space-y-1">
-          <span>التوزيع</span>
-          <select value={dist} onChange={(e) => setDist(e.target.value as "limited" | "public")}
-            className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100">
-            <option value="limited">🔒 محدود</option>
-            <option value="public">🌍 للجميع — مرة لكل لاعب</option>
-          </select>
-        </label>
-        {dist === "limited" && (
-          <label className="text-xs text-amber-200 space-y-1">
-            <span>عدد الاستخدامات</span>
-            <input type="number" min={1} value={maxUses}
-              onChange={(e) => setMaxUses(Math.max(1, Number(e.target.value) || 1))}
-              className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100 text-center font-bold" />
-          </label>
-        )}
-      </div>
-
-      <label className="block text-xs text-amber-200 space-y-1">
-        <span>الكود (فارغ = توليد تلقائي)</span>
-        <input value={customCode} onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
-          placeholder="مثلاً: VIPGOLD30"
-          className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100 font-mono tracking-wider" />
-      </label>
-
-      {tier && (
-        <div className="text-[11px] text-amber-100/90 bg-black/40 rounded-lg p-2 border border-amber-900/60">
-          <div className="font-bold mb-1">{tier.emoji} مميزات VIP {tier.level} — {tier.name}:</div>
-          <ul className="space-y-0.5 pr-3">
-            {tier.perks.map((p, i) => <li key={i}>• {p}</li>)}
-          </ul>
-        </div>
-      )}
-
-      <button disabled={saving} onClick={create}
-        className="w-full md:w-auto px-4 py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 text-stone-950 font-extrabold disabled:opacity-50">
-        {saving ? "جاري الإنشاء..." : "👑 إنشاء كود VIP ونسخه"}
-      </button>
-    </div>
-  );
-}
 
 // ════════════════════════════════════════════════════════════════════
 // 💎 Elite VIP Code Creator — grants exclusive 5-tier subscription perks
