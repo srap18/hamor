@@ -3149,6 +3149,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"comp" | "xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("comp");
   const [comps, setComps] = useState<CompLb[]>([]);
+  const [tribeEvents, setTribeEvents] = useState<Array<{ id: string; title: string; banner_emoji: string; starts_at: string; ends_at: string }>>([]);
   const [compBoards, setCompBoards] = useState<Record<string, CompLbRow[]>>({});
   const [rows, setRows] = useState<LbProfile[]>([]);
   const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
