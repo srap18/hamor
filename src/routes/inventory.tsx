@@ -267,7 +267,7 @@ function InventoryPage() {
                   <div key={s.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-sky-400/60":"border-border/40 opacity-60"}`}>
                     <div className="h-16 flex items-center justify-center text-5xl">{s.emoji}</div>
                     <div className="text-sm font-bold text-center mt-1">{s.name}</div>
-                    <div className="text-[10px] text-sky-300 text-center">حماية {s.hours} ساعة</div>
+                    <div className="text-[10px] text-sky-300 text-center">حماية {s.hours >= 24 ? `${Math.round(s.hours/24)} يوم` : `${s.hours} ساعة`}</div>
                     <div className="text-center mt-2 text-sm font-bold">
                       {n > 0 ? <span className="text-sky-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                     </div>
