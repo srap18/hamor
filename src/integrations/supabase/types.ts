@@ -398,6 +398,88 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_mute_devices: {
+        Row: {
+          active: boolean
+          created_at: string
+          device_id: string
+          expires_at: string | null
+          id: string
+          mute_id: string | null
+          reason: string
+          source_user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          device_id: string
+          expires_at?: string | null
+          id?: string
+          mute_id?: string | null
+          reason?: string
+          source_user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          device_id?: string
+          expires_at?: string | null
+          id?: string
+          mute_id?: string | null
+          reason?: string
+          source_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mute_devices_mute_id_fkey"
+            columns: ["mute_id"]
+            isOneToOne: false
+            referencedRelation: "chat_mutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_mute_ips: {
+        Row: {
+          active: boolean
+          created_at: string
+          expires_at: string | null
+          id: string
+          ip: string
+          mute_id: string | null
+          reason: string
+          source_user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip: string
+          mute_id?: string | null
+          reason?: string
+          source_user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          ip?: string
+          mute_id?: string | null
+          reason?: string
+          source_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mute_ips_mute_id_fkey"
+            columns: ["mute_id"]
+            isOneToOne: false
+            referencedRelation: "chat_mutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_mutes: {
         Row: {
           active: boolean
