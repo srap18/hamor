@@ -631,18 +631,18 @@ function ChatPage() {
 
       {tab !== "topics" && (
         myMute ? (
-          <div className="px-3 pb-3">
-            <div className="rounded-2xl bg-amber-900/40 border-2 border-amber-500/60 text-amber-100 px-4 py-3 text-sm text-center">
+          <div className="absolute left-2 right-2 z-40" style={{ bottom: "calc(12px + var(--keyboard-inset, 0px))" }}>
+            <div className="rounded-2xl bg-amber-900/60 border-2 border-amber-500/60 text-amber-100 px-3 py-2 text-xs text-center backdrop-blur shadow-lg">
               🔇 أنت مكتوم من قِبل الإدارة — لا تقدر ترسل في أي محادثة (عام/قبيلة/خاص)
-              {myMute.reason && <div className="text-xs mt-1 text-amber-200/80">السبب: {myMute.reason}</div>}
-              {myMute.expires_at && <div className="text-[10px] mt-1 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
+              {myMute.reason && <div className="text-[11px] mt-0.5 text-amber-200/80">السبب: {myMute.reason}</div>}
+              {myMute.expires_at && <div className="text-[10px] mt-0.5 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
           </div>
         ) : !canChat ? (
-          <div className="px-3 pb-3">
-            <Link to="/ship-market" className="block rounded-2xl bg-sky-900/50 border-2 border-amber-400/70 text-amber-100 px-4 py-3 text-sm text-center hover:bg-sky-900/70">
+          <div className="absolute left-2 right-2 z-40" style={{ bottom: "calc(12px + var(--keyboard-inset, 0px))" }}>
+            <Link to="/ship-market" className="block rounded-2xl bg-sky-900/70 border-2 border-amber-400/70 text-amber-100 px-3 py-2 text-xs text-center hover:bg-sky-900/80 backdrop-blur shadow-lg">
               🔒 الكتابة في الشات مغلقة — تحتاج <b className="text-amber-300">سوق السفن مستوى {SHIP_MARKET_MIN}</b>
-              <div className="text-xs mt-1 text-amber-200/80">مستواك الحالي: 🏪 {marketLevel ?? 1} — اضغط للذهاب لسوق السفن وترقيته</div>
+              <div className="text-[11px] mt-0.5 text-amber-200/80">مستواك الحالي: 🏪 {marketLevel ?? 1} — اضغط للذهاب لسوق السفن وترقيته</div>
             </Link>
           </div>
         ) : (
