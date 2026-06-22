@@ -237,8 +237,6 @@ function Shop() {
       const itemType = tab === "weapons" ? "weapon" : "crew";
       const { error } = selected.currency === "gem"
         ? await buyWithGems(selected.id, itemType, selected.price, undefined, qty)
-        : useGemFallback
-        ? await buyWithCoinsGemFallback(selected.id, itemType, selected.price, undefined, qty)
         : await buyWithCoins(selected.id, itemType, selected.price, undefined, qty);
       if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
       setBusy(false);
