@@ -1452,7 +1452,7 @@ function PlayerPage() {
                       setMode(null);
                       setSelectedShip(null);
                       // ─── Validate FIRST on the server (same rules as other weapons) ───
-                      const { error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ error: { message: string } | null }> })
+                      const { data: adRes, error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ data: string | null; error: { message: string } | null }> })
                         .rpc("launch_ad_bomb", { _target_id: playerId, _video_key: v.key });
                       if (error) {
                         const m = error.message || "";
@@ -1467,8 +1467,20 @@ function PlayerPage() {
                         if (m.includes("cannot target self")) { sound.play("error"); flash("❌ لا يمكن استهداف نفسك"); return; }
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
+                      // Consume the ad_bomb locally — server already consumed it (even on block).
+                      setInv((arr) => arr
+                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+                        .filter((x) => x.quantity > 0));
+                      // BLOCKED by anti-ad-bomb: no ad video, no destruction, no broadcast.
+                      if (adRes === null || adRes === undefined) {
+                        sound.play("error");
+                        flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الإعلانية!`);
+                        setBusy(false);
+                        return;
+                      }
                       // ─── Success: now play FX + apply local view ───
                       try { window.dispatchEvent(new CustomEvent("ad-bomb:created")); } catch { /* noop */ }
+
                       sound.play("nuke");
                       const cx = window.innerWidth / 2;
                       const cy = window.innerHeight / 2;
