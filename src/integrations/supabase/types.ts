@@ -1911,6 +1911,7 @@ export type Database = {
           display_name: string
           elite_vip_expires_at: string | null
           elite_vip_level: number
+          elite_vip_login_broadcast_enabled: boolean
           gems: number
           golden_fisher_last_activated_at: string | null
           golden_fisher_until: string | null
@@ -1970,6 +1971,7 @@ export type Database = {
           display_name: string
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
+          elite_vip_login_broadcast_enabled?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_until?: string | null
@@ -2029,6 +2031,7 @@ export type Database = {
           display_name?: string
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
+          elite_vip_login_broadcast_enabled?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_until?: string | null
@@ -4999,6 +5002,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      set_elite_vip_login_broadcast: {
+        Args: { _enabled: boolean }
+        Returns: boolean
       }
       set_guide_fish: {
         Args: { _fish_id: string; _ship_db_id: string }
