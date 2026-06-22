@@ -458,19 +458,22 @@ function PlayerPage() {
     else { setFriendStatus("pending"); sound.play("success"); flash("تم إرسال طلب الصداقة ✓"); }
   };
 
-  // If my armor is still active, warn before any offensive action.
-  // Confirming clears protection_until immediately (server-side).
+  // Any offensive action (attack/steal) instantly removes the attacker's shield —
+  // no confirmation, even if golden fisher is active. Runs on the server.
   const confirmDropArmorIfActive = async (): Promise<boolean> => {
     if (!me) return true;
     const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
     if (until <= serverNowMs()) return true;
-    const ok = window.confirm(
-      "⚠️ تحذير: درعك مفعّل. لو هاجمت أو سرقت الحين، الدرع راح ينفك منك ولازم تشتري درع جديد. هل تكمل؟"
-    );
-    if (!ok) return false;
-    const { error } = await (supabase as any).rpc("drop_my_protection");
-    if (error) { flash("تعذّر إزالة الدرع"); return false; }
+    // Optimistically clear locally so UI updates immediately.
     setMyProtectionUntil(null);
+    const { error } = await (supabase as any).rpc("drop_my_protection");
+    if (error) {
+      // Restore on failure so the badge reflects reality.
+      setMyProtectionUntil(new Date(until).toISOString());
+      flash("تعذّر إزالة الدرع");
+      return false;
+    }
+    flash("🛡️ تم إزالة درعك بسبب الهجوم");
     return true;
   };
 
