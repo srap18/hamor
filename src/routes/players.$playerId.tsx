@@ -478,6 +478,12 @@ function PlayerPage() {
     if (!me || !selectedShip) return;
     const w = WEAPONS.find((x) => x.id === weaponId);
     if (!w) return;
+    // Block ALL attacks (every weapon) while any of my ships is on an active steal mission.
+    if (myShips.some((s) => s.stealing_ends_at && new Date(s.stealing_ends_at).getTime() > serverNowMs())) {
+      sound.play("error");
+      flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
+      return;
+    }
     if (!(await confirmDropArmorIfActive())) return;
     // Server-side rate limit (also logs spam to cheat_flags)
     if (!(await rateLimit("attack", 800))) {
