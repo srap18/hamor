@@ -40,6 +40,8 @@ function MyVipPage() {
   const [claimedToday, setClaimedToday] = useState<boolean>(false);
   const [claiming, setClaiming] = useState(false);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
+  const [broadcastEnabled, setBroadcastEnabled] = useState<boolean>(true);
+  const [savingBroadcast, setSavingBroadcast] = useState(false);
 
   useEffect(() => {
     if (!user) return;
