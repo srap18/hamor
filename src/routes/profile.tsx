@@ -150,6 +150,15 @@ function ProfilePage() {
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
     if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
     setSaving(true);
+    // Religious-name policy
+    try {
+      const { data: bad } = await (supabase as any).rpc("is_disallowed_religious_name", { p_name: trimmed });
+      if (bad === true) {
+        setSaving(false);
+        flash("هذا الاسم غير مسموح. أمثلة مسموحة: بسم الله، سبحان الله، حسبي الله، لا إله إلا الله.");
+        return;
+      }
+    } catch (e) { console.warn("[name policy check failed]", e); }
     // Check name uniqueness (Arabic + English, case-insensitive)
     try {
       const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: trimmed, p_except: userId });
