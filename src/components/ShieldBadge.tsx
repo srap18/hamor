@@ -29,6 +29,7 @@ export function ShieldBadge() {
 
   const removeShield = async () => {
     if (busy) return;
+    if (!profile?.id) return;
     if (!window.confirm("هل تريد إزالة الدرع؟ سيتم إيقافه فوراً وتصير عرضة للهجمات.")) return;
     setBusy(true);
     try {
@@ -38,12 +39,13 @@ export function ShieldBadge() {
         .eq("id", profile.id);
       if (error) throw error;
       toast.success("🗑️ تم إزالة الدرع");
-      await refresh?.();
+      refreshProfile();
     } catch {
       toast.error("تعذّر إزالة الدرع");
     } finally {
       setBusy(false);
     }
+
   };
 
   return (
