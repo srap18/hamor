@@ -8,21 +8,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write  # ضروري جداً للسماح بحذف الملفات القديمة
+      actions: write 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # هذه الخطوة ستقوم بمسح أي Artifacts قديمة فوراً لتفريغ المساحة
-      - name: Force Clean Old Artifacts
+      # خطوة تنظيف استباقية تحذف جميع الـ Artifacts السابقة قبل البدء
+      - name: Force Clean All Old Artifacts
         uses: actions/github-script@v7
         with:
           script: |
-            const artifacts = await github.rest.actions.listArtifactsForRepo({
+            const { data: { artifacts } } = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            for (const artifact of artifacts.data.artifacts) {
+            for (const artifact of artifacts) {
               await github.rest.actions.deleteArtifact({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -102,10 +102,11 @@ jobs:
             mv ./hamor-app-release-aligned.apk ./hamor-app-release.apk
           fi
 
+      # استخدام اسم فريد لكل عملية بناء يمنع تعارض الـ Storage Quota
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Production-Ready-Artifacts
+          name: Build-${{ github.run_number }}
           path: |
             ./hamor-play-store.aab
             ./hamor-app-release.apk
