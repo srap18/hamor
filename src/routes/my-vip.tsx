@@ -48,7 +48,7 @@ function MyVipPage() {
     let cancelled = false;
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const [{ data }, { data: claim }] = await Promise.all([
+      const [{ data }, { data: claim }, { data: prefRow }] = await Promise.all([
         (supabase as any).rpc("get_my_elite_vip"),
         supabase
           .from("elite_vip_daily_claims" as never)
@@ -56,11 +56,17 @@ function MyVipPage() {
           .eq("user_id", user.id)
           .eq("claim_date", today)
           .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("elite_vip_login_broadcast_enabled" as never)
+          .eq("id", user.id)
+          .maybeSingle(),
       ]);
       if (cancelled) return;
       const r = Array.isArray(data) ? data[0] : data;
       setRow(r ?? null);
       setClaimedToday(!!claim);
+      setBroadcastEnabled((prefRow as any)?.elite_vip_login_broadcast_enabled ?? true);
       setLoading(false);
     })();
     const ch = supabase
