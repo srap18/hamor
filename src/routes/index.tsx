@@ -13,6 +13,7 @@ import {
   sellShip,
   deleteInventoryRows,
   buyWithCoinsGemFallback,
+  buyWithCoins,
   buyWithGems,
   setShipAtSea,
 } from "@/lib/economy";
