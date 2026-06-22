@@ -16,7 +16,7 @@ function fmt(ms: number) {
 }
 
 export function ShieldBadge() {
-  const { profile, refresh } = useProfile() as any;
+  const { profile } = useProfile();
   const [now, setNow] = useState(serverNowMs());
   const [busy, setBusy] = useState(false);
   useEffect(() => {
