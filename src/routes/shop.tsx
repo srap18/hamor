@@ -186,14 +186,15 @@ function Shop() {
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
     const total = selected.price * qty;
     if (selected.currency === "gem" && gems < total) { flash("لا تملك جواهر كافيه"); return; }
-    let useGemFallback = false;
     if (selected.currency === "coin" && coins < total) {
-      const shortfall = total - coins;
-      const gemsNeeded = Math.ceil(shortfall / 1000);
-      if (gems < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
-      if (!window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
-      useGemFallback = true;
+      flash("الذهب غير كافٍ");
+      return;
     }
+    // تأكيد لكل عملية شراء
+    const currencyLabel = selected.currency === "gem" ? "جوهرة" : "ذهب";
+    if (!window.confirm(`تأكيد شراء ${qty} × ${selected.name} مقابل ${total.toLocaleString()} ${currencyLabel}؟`)) return;
+
+
 
     busyRef.current = true;
     setBusy(true);
