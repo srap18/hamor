@@ -492,7 +492,7 @@ function PlayerPage() {
 
     // ─── NUKE: use server RPC that destroys all target ships in one shot ───
     if (weaponId === "nuke") {
-      const { error: nukeErr } = await (supabase as any).rpc("launch_nuke", { _target_id: playerId });
+      const { data: nukeRes, error: nukeErr } = await (supabase as any).rpc("launch_nuke", { _target_id: playerId });
       if (nukeErr) {
         const m = String(nukeErr.message || "");
         setBusy(false);
@@ -505,11 +505,17 @@ function PlayerPage() {
         if (m.includes("protected") || m.includes("staff account")) { sound.play("error"); flash("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
       }
-      // Success: launch_nuke already consumed the nuke server-side.
-      // Just decrement local inventory view to match (do NOT call consume RPC again — double-deduct bug).
+      // Consume the nuke locally (server already consumed it).
       setInv((arr) => arr
         .map((x) => x.item_id === "nuke" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
         .filter((x) => x.quantity > 0));
+      // BLOCKED by anti-nuke: server returned NULL. No destruction, no banner, no broadcast.
+      if (nukeRes === null || nukeRes === undefined) {
+        sound.play("error");
+        flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الذرية!`);
+        setBusy(false);
+        return;
+      }
       sound.play("nuke");
       burnTargetBg(playerId).catch(() => {});
       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
@@ -525,6 +531,7 @@ function PlayerPage() {
       setTimeout(() => { setNukeMsg(""); setNukeMsgOpen(true); }, 2000);
       return;
     }
+
 
     // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
