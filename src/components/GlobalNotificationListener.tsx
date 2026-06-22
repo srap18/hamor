@@ -18,6 +18,8 @@ const iconFor = (kind: string) =>
   : kind === "attack" ? "⚔️"
   : kind === "support" ? "🛠️"
   : kind === "support_reply" ? "🛡️"
+  : kind === "anti_block" ? "🛡️"
+  : kind === "anti_block_attacker" ? "⚠️"
   : kind === "ship" ? "⛵"
   : kind === "friend" ? "🤝"
   : "📢";
