@@ -1216,12 +1216,13 @@ function Index() {
               if (now - lastGfTickRef.current > 800) {
                 lastGfTickRef.current = now;
                 tickGoldenFisher({ data: {} })
-                  .then((res: any) => {
-                    if (res && (res.cycles > 0 || res.ships > 0)) {
-                      syncFleetFromDb();
-                    }
+                  .then(() => {
+                    // Always re-sync so the UI picks up the new fishing_started_at
+                    // even when the server processed cycles silently.
+                    syncFleetFromDb();
                   })
                   .catch(() => {});
+
               }
             }
 
