@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useProfile } from "@/hooks/use-auth";
+import { useProfile, refreshProfile } from "@/hooks/use-auth";
 import { serverNowMs } from "@/lib/server-time";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
