@@ -3177,7 +3177,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (tab === "search") return;
     const hasCachedData =
-      (tab === "comp" && comps.length > 0) ||
+      (tab === "comp" && (comps.length > 0 || tribeEvents.length > 0)) ||
       (tab === "tribes" && tribes.length > 0) ||
       (tab === "fish" && fishRows.length > 0) ||
       (tab === "ships" && shipRows.length > 0) ||
