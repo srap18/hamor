@@ -245,6 +245,8 @@ function InventoryPage() {
             { id: "shield_4h", name: "درع 4 ساعات", hours: 4, emoji: "🛡️" },
             { id: "shield_1d", name: "درع يوم", hours: 24, emoji: "🛡️" },
             { id: "shield_2d", name: "درع يومين", hours: 48, emoji: "🛡️" },
+            { id: "shield_7d", name: "درع أسبوع", hours: 24 * 7, emoji: "🛡️" },
+            { id: "shield_30d", name: "درع شهر", hours: 24 * 30, emoji: "🛡️" },
           ];
           const useShield = async (id: string) => {
             const { error } = await supabase.rpc("use_shield_from_inventory" as never, { _item_id: id } as never);
