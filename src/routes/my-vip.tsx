@@ -95,6 +95,17 @@ function MyVipPage() {
     setClaimMsg(`🎉 حصلت على ${data?.gems ?? 0} 💎`);
   };
 
+  const toggleBroadcast = async () => {
+    const next = !broadcastEnabled;
+    setSavingBroadcast(true);
+    setBroadcastEnabled(next); // optimistic
+    const { error } = await (supabase as any).rpc("set_elite_vip_login_broadcast", { _enabled: next });
+    setSavingBroadcast(false);
+    if (error) {
+      setBroadcastEnabled(!next); // revert
+    }
+  };
+
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
