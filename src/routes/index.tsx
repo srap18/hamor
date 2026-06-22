@@ -4058,12 +4058,19 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           }
         } else if (ship.fishing && !ready) {
           const rem = Math.max(0, Math.ceil(ship.timeLeft));
-          const m = Math.floor(rem / 60);
-          const s = rem % 60;
-          label = `⏱ ${m}:${String(s).padStart(2, "0")}`;
+          if (rem <= 0) {
+            // Timer expired but trip didn't complete → server capped catch
+            // because the global fish stock is full. Show a clear hint.
+            label = "📦 المخزن ممتلئ — بيع السمك";
+          } else {
+            const m = Math.floor(rem / 60);
+            const s = rem % 60;
+            label = `⏱ ${m}:${String(s).padStart(2, "0")}`;
+          }
         } else if (ship.fishing && ready) {
           label = "✅ جاهز";
         }
+
         if (!label) return null;
         return (
           <div
