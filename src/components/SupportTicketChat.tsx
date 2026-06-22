@@ -74,6 +74,16 @@ export function SupportTicketChat({ ticketId, currentUserId, asAdmin, ticketOwne
     if (asAdmin) {
       // Auto-bump status to in_progress when admin replies
       await supabase.from("support_tickets").update({ status: "in_progress" }).eq("id", ticketId).eq("status", "open");
+      // Notify the ticket owner instantly so they know admin replied
+      if (ticketOwnerId && ticketOwnerId !== currentUserId) {
+        await supabase.from("notifications").insert({
+          recipient_id: ticketOwnerId,
+          kind: "support_reply",
+          title: "🛡️ رد جديد من الإدارة على تذكرتك",
+          body: body.length > 140 ? body.slice(0, 137) + "..." : body,
+          meta: { ticket_id: ticketId },
+        });
+      }
     }
   };
 

@@ -17,6 +17,7 @@ const iconFor = (kind: string) =>
   kind === "nuke" ? "☢️"
   : kind === "attack" ? "⚔️"
   : kind === "support" ? "🛠️"
+  : kind === "support_reply" ? "🛡️"
   : kind === "ship" ? "⛵"
   : kind === "friend" ? "🤝"
   : "📢";
@@ -51,7 +52,7 @@ export function GlobalNotificationListener() {
       // Sonner: use info as default; attack uses warning style.
       if (n.kind === "attack" || n.kind === "nuke") {
         toast.error(title, opts);
-      } else if (n.kind === "support" || n.kind === "ship" || n.kind === "friend") {
+      } else if (n.kind === "support" || n.kind === "support_reply" || n.kind === "ship" || n.kind === "friend") {
         toast.success(title, opts);
       } else {
         toast(title, opts);
