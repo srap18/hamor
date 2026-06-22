@@ -51,6 +51,28 @@ function timeLeft(iso: string) {
   return `${m}د`;
 }
 
+function timeUntil(iso: string) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "بدأت";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  if (d > 0) return `${d}ي ${h}س`;
+  if (h > 0) return `${h}س ${m}د`;
+  if (m > 0) return `${m}د ${s}ث`;
+  return `${s}ث`;
+}
+
+function formatStart(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString("ar-SA", { timeZone: "Asia/Riyadh", hour: "2-digit", minute: "2-digit" });
+  if (sameDay) return `اليوم الساعة ${time}`;
+  return `${d.toLocaleDateString("ar-SA", { timeZone: "Asia/Riyadh", month: "short", day: "numeric" })} الساعة ${time}`;
+}
+
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
@@ -91,7 +113,7 @@ function TribeEventsPage() {
 
   const [, setTick] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTick(x => x + 1), 60000);
+    const t = setInterval(() => setTick(x => x + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
