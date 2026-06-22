@@ -1452,6 +1452,11 @@ function PlayerPage() {
                     key={v.key}
                     disabled={busy}
                     onClick={async () => {
+                      if (myShips.some((s) => s.stealing_ends_at && new Date(s.stealing_ends_at).getTime() > serverNowMs())) {
+                        sound.play("error");
+                        flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
+                        return;
+                      }
                       if (!(await confirmDropArmorIfActive())) return;
                       setBusy(true); sound.play("click");
                       // Close the picker so the explosion will be visible — but DO NOT play FX yet.
