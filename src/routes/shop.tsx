@@ -102,6 +102,9 @@ const PROTECTION: Item[] = [
   { id: "shield-4h", name: "درع لمده 4 ساعات", emoji: "🛡️", price: 60, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
   { id: "shield-1d", name: "درع لمده يوم", emoji: "🛡️", price: 280, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
   { id: "shield-2d", name: "درع لمده يومين", emoji: "🛡️", price: 550, currency: "gem", desc: "الحد الاقصى • بعد الشراء: 4 ايام بدون شراء درع" },
+  { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
+  { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
+  { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
 ];
 
 
