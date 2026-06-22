@@ -3187,10 +3187,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (showSpinner) setLoading(true);
     if (tab === "comp") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_active_competitions");
+        const nowIso = new Date().toISOString();
+        const [{ data }, { data: tev }] = await Promise.all([
+          (supabase as any).rpc("get_active_competitions"),
+          (supabase as any).from("tribe_fish_events").select("id,title,banner_emoji,starts_at,ends_at").eq("active", true).gte("ends_at", nowIso).order("starts_at", { ascending: true }),
+        ]);
         if (cancelled) return;
         const list = ((data ?? []) as CompLb[]);
         setComps(list);
+        setTribeEvents((tev ?? []) as any);
         const entries = await Promise.all(list.map(async (c) => {
           const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
           return [c.id, ((lb ?? []) as CompLbRow[])] as const;
