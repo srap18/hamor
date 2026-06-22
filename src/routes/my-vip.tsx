@@ -223,6 +223,39 @@ function MyVipPage() {
             </ul>
           </div>
 
+          {/* Login broadcast privacy toggle (VIP 3+) */}
+          {tier.level >= 3 && (
+            <div className="mt-4 rounded-3xl border border-amber-400/30 bg-slate-900/70 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="text-sm font-black text-amber-200">🌟 لافتة دخول عالمية</div>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    عند تفعيلها، يشاهد جميع اللاعبين لافتة قصيرة باسمك عند دخولك للعبة.
+                    أوقفها إذا كنت تفضّل الخصوصية.
+                  </p>
+                  <div className={`mt-2 text-xs font-bold ${broadcastEnabled ? "text-emerald-300" : "text-slate-400"}`}>
+                    {broadcastEnabled ? "✓ مُفعّلة — يراك الجميع عند الدخول" : "✕ مُعطّلة — دخولك مخفي"}
+                  </div>
+                </div>
+                <button
+                  onClick={toggleBroadcast}
+                  disabled={savingBroadcast}
+                  aria-pressed={broadcastEnabled}
+                  className={`shrink-0 relative w-14 h-8 rounded-full transition-colors disabled:opacity-50 ${
+                    broadcastEnabled ? "bg-emerald-500" : "bg-slate-700"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-all ${
+                      broadcastEnabled ? "left-1" : "left-7"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+
+
           {/* Upgrade CTA */}
           {tier.level < 5 && (
             <Link to="/vip" className="block mt-4 text-center py-4 rounded-2xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition">
