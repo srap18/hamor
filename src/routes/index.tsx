@@ -3149,6 +3149,7 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"comp" | "xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("comp");
   const [comps, setComps] = useState<CompLb[]>([]);
+  const [tribeEvents, setTribeEvents] = useState<Array<{ id: string; title: string; banner_emoji: string; starts_at: string; ends_at: string }>>([]);
   const [compBoards, setCompBoards] = useState<Record<string, CompLbRow[]>>({});
   const [rows, setRows] = useState<LbProfile[]>([]);
   const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
@@ -3186,10 +3187,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     if (showSpinner) setLoading(true);
     if (tab === "comp") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_active_competitions");
+        const nowIso = new Date().toISOString();
+        const [{ data }, { data: tev }] = await Promise.all([
+          (supabase as any).rpc("get_active_competitions"),
+          (supabase as any).from("tribe_fish_events").select("id,title,banner_emoji,starts_at,ends_at").eq("active", true).gte("ends_at", nowIso).order("starts_at", { ascending: true }),
+        ]);
         if (cancelled) return;
         const list = ((data ?? []) as CompLb[]);
         setComps(list);
+        setTribeEvents((tev ?? []) as any);
         const entries = await Promise.all(list.map(async (c) => {
           const { data: lb } = await (supabase as any).rpc("get_competition_leaderboard", { _competition_id: c.id });
           return [c.id, ((lb ?? []) as CompLbRow[])] as const;
@@ -3393,13 +3399,45 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
           {loading ? (
             <div className="text-center text-accent/60 py-6 text-sm">جاري التحميل…</div>
           ) : tab === "comp" ? (
-            comps.length === 0 ? (
+            comps.length === 0 && tribeEvents.length === 0 ? (
               <div className="text-center text-accent/60 py-10 text-sm">
                 <div className="text-5xl mb-2">🎪</div>
                 لا توجد فعاليات نشطة حالياً
               </div>
             ) : (
               <div className="space-y-3 pb-2">
+                {tribeEvents.map(ev => {
+                  const now = Date.now();
+                  const startsMs = new Date(ev.starts_at).getTime();
+                  const endsMs = new Date(ev.ends_at).getTime();
+                  const notStarted = now < startsMs;
+                  const target = notStarted ? startsMs : endsMs;
+                  const diff = Math.max(0, target - now);
+                  const d = Math.floor(diff / 86400000);
+                  const h = Math.floor((diff % 86400000) / 3600000);
+                  const m = Math.floor((diff % 3600000) / 60000);
+                  const cd = d > 0 ? `${d}ي ${h}س` : h > 0 ? `${h}س ${m}د` : `${m}د`;
+                  return (
+                    <button
+                      key={ev.id}
+                      onClick={() => { sound.play("click"); onClose(); navigate({ to: "/tribe-events" }); }}
+                      className="w-full text-right rounded-xl overflow-hidden border-2 border-amber-400/60 bg-gradient-to-br from-amber-600/40 via-orange-700/30 to-amber-900/40 p-3 active:scale-[0.98] transition shadow-[0_2px_8px_rgba(251,191,36,0.35)]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="text-3xl drop-shadow">{ev.banner_emoji || "🐠🏆"}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-black text-amber-50 drop-shadow truncate">{ev.title}</div>
+                          <div className="text-[10px] font-bold text-amber-100/90">🏴‍☠️ فعالية القبائل</div>
+                        </div>
+                        <div className="text-end shrink-0">
+                          <div className="text-[9px] text-amber-100/80">{notStarted ? "تبدأ خلال" : "تنتهي خلال"}</div>
+                          <div className="text-xs font-black text-amber-50">⏳ {cd}</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-center text-[11px] font-bold text-amber-200">اضغط للترتيب والتفاصيل ←</div>
+                    </button>
+                  );
+                })}
                 {comps.map(c => {
                   const meta = COMP_METRIC_LABEL[c.metric] ?? { icon: "🏆", name: c.metric, unit: "" };
                   const themeClass = COMP_THEME[c.banner_theme] ?? COMP_THEME.gold;
