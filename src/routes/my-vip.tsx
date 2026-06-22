@@ -40,13 +40,15 @@ function MyVipPage() {
   const [claimedToday, setClaimedToday] = useState<boolean>(false);
   const [claiming, setClaiming] = useState(false);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
+  const [broadcastEnabled, setBroadcastEnabled] = useState<boolean>(true);
+  const [savingBroadcast, setSavingBroadcast] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const [{ data }, { data: claim }] = await Promise.all([
+      const [{ data }, { data: claim }, { data: prefRow }] = await Promise.all([
         (supabase as any).rpc("get_my_elite_vip"),
         supabase
           .from("elite_vip_daily_claims" as never)
@@ -54,11 +56,17 @@ function MyVipPage() {
           .eq("user_id", user.id)
           .eq("claim_date", today)
           .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("elite_vip_login_broadcast_enabled" as never)
+          .eq("id", user.id)
+          .maybeSingle(),
       ]);
       if (cancelled) return;
       const r = Array.isArray(data) ? data[0] : data;
       setRow(r ?? null);
       setClaimedToday(!!claim);
+      setBroadcastEnabled((prefRow as any)?.elite_vip_login_broadcast_enabled ?? true);
       setLoading(false);
     })();
     const ch = supabase
@@ -85,6 +93,17 @@ function MyVipPage() {
     }
     setClaimedToday(true);
     setClaimMsg(`🎉 حصلت على ${data?.gems ?? 0} 💎`);
+  };
+
+  const toggleBroadcast = async () => {
+    const next = !broadcastEnabled;
+    setSavingBroadcast(true);
+    setBroadcastEnabled(next); // optimistic
+    const { error } = await (supabase as any).rpc("set_elite_vip_login_broadcast", { _enabled: next });
+    setSavingBroadcast(false);
+    if (error) {
+      setBroadcastEnabled(!next); // revert
+    }
   };
 
   useEffect(() => {
@@ -203,6 +222,39 @@ function MyVipPage() {
               ))}
             </ul>
           </div>
+
+          {/* Login broadcast privacy toggle (VIP 3+) */}
+          {tier.level >= 3 && (
+            <div className="mt-4 rounded-3xl border border-amber-400/30 bg-slate-900/70 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="text-sm font-black text-amber-200">🌟 لافتة دخول عالمية</div>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    عند تفعيلها، يشاهد جميع اللاعبين لافتة قصيرة باسمك عند دخولك للعبة.
+                    أوقفها إذا كنت تفضّل الخصوصية.
+                  </p>
+                  <div className={`mt-2 text-xs font-bold ${broadcastEnabled ? "text-emerald-300" : "text-slate-400"}`}>
+                    {broadcastEnabled ? "✓ مُفعّلة — يراك الجميع عند الدخول" : "✕ مُعطّلة — دخولك مخفي"}
+                  </div>
+                </div>
+                <button
+                  onClick={toggleBroadcast}
+                  disabled={savingBroadcast}
+                  aria-pressed={broadcastEnabled}
+                  className={`shrink-0 relative w-14 h-8 rounded-full transition-colors disabled:opacity-50 ${
+                    broadcastEnabled ? "bg-emerald-500" : "bg-slate-700"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-all ${
+                      broadcastEnabled ? "left-1" : "left-7"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+
 
           {/* Upgrade CTA */}
           {tier.level < 5 && (
