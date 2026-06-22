@@ -566,11 +566,9 @@ function AdminCodesPage() {
         </div>
       </div>
 
-      {/* ───────── إنشاء كود VIP ───────── */}
-      <VipCodeCreator onCreated={loadCodes} />
-
-      {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 5 مستويات) ───────── */}
+      {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 10 مستويات) ───────── */}
       <EliteVipCodeCreator onCreated={loadCodes} />
+
 
 
       {/* ───────── الإنشاء المجمّع (كود واحد = عدة عناصر) ───────── */}
