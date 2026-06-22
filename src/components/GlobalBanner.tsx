@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 
 type NukeBannerData = {
-  kind: "nuke" | "ad_bomb";
+  kind: "nuke" | "ad_bomb" | "anti_block";
   attacker_name: string;
   target_name: string;
   message: string;
