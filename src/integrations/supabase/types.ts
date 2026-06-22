@@ -4770,6 +4770,10 @@ export type Database = {
       is_banned: { Args: { _user_id: string }; Returns: boolean }
       is_chat_mod: { Args: { _uid: string }; Returns: boolean }
       is_device_banned: { Args: { _device_id: string }; Returns: boolean }
+      is_disallowed_religious_name: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
       is_display_name_taken: {
         Args: { p_except?: string; p_name: string }
         Returns: boolean
@@ -4813,6 +4817,7 @@ export type Database = {
         }[]
       }
       message_contains_link: { Args: { _body: string }; Returns: boolean }
+      normalize_ar: { Args: { p: string }; Returns: string }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
       notify_steal_started: {
         Args: {
