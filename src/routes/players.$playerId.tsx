@@ -14,6 +14,7 @@ import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
+import { AntiBlockBurst } from "@/components/AntiBlockBurst";
 import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { recordAttackWithRetry } from "@/lib/record-attack";
@@ -956,6 +957,8 @@ function PlayerPage() {
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
 
       <AdBombOverlay targetUserId={playerId} isOwner={me === playerId} onFlash={flash} />
+      <AntiBlockBurst defenderId={playerId} />
+
 
       {scene.burned && me && me !== playerId && (
         <DraggableRepairBgButton

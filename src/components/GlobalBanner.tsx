@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 
 type NukeBannerData = {
-  kind: "nuke" | "ad_bomb";
+  kind: "nuke" | "ad_bomb" | "anti_block";
   attacker_name: string;
   target_name: string;
   message: string;
@@ -57,14 +57,14 @@ export function GlobalBanner() {
     const ageMs = Date.now() - new Date(row.created_at).getTime();
     if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
     seenIds.current.add(row.id);
-    if (row.kind === "nuke" || row.kind === "ad_bomb") {
+    if (row.kind === "nuke" || row.kind === "ad_bomb" || row.kind === "anti_block") {
       show({
         _t: "nuke",
-        kind: row.kind as "nuke" | "ad_bomb",
+        kind: row.kind as "nuke" | "ad_bomb" | "anti_block",
         attacker_name: row.attacker_name || "لاعب",
         target_name: row.target_name || "لاعب",
         message: row.message || "",
-        emoji: row.emoji || (row.kind === "nuke" ? "☢️" : "📺"),
+        emoji: row.emoji || (row.kind === "nuke" ? "☢️" : row.kind === "ad_bomb" ? "📺" : "🛡️"),
       }, 6000);
     } else if (row.kind === "admin") {
       show({
@@ -127,11 +127,20 @@ export function GlobalBanner() {
   }
 
   const isAd = banner.kind === "ad_bomb";
-  const verb = isAd ? "ضرب إعلانية على" : "فجّر";
-  const suffix = isAd ? "بقنبلة إعلانية!" : "بقنبلة ذرية!";
-  const borderColor = isAd ? "border-amber-400/80" : "border-red-500/80";
-  const shadow = isAd ? "shadow-[0_0_30px_rgba(251,191,36,0.5)]" : "shadow-[0_0_30px_rgba(220,38,38,0.5)]";
-  const titleColor = isAd ? "text-amber-200" : "text-red-300";
+  const isAnti = banner.kind === "anti_block";
+  const borderColor = isAnti ? "border-emerald-400/80" : isAd ? "border-amber-400/80" : "border-red-500/80";
+  const shadow = isAnti ? "shadow-[0_0_30px_rgba(16,185,129,0.55)]" : isAd ? "shadow-[0_0_30px_rgba(251,191,36,0.5)]" : "shadow-[0_0_30px_rgba(220,38,38,0.5)]";
+  const titleColor = isAnti ? "text-emerald-200" : isAd ? "text-amber-200" : "text-red-300";
+
+  let line: string;
+  if (isAnti) {
+    // banner.message holds the weapon label (e.g. "قنبلة ذرية"), target_name = defender, attacker_name = attacker
+    line = `🛡️ ${banner.target_name} صدّ ${banner.message || "هجوماً"} من ${banner.attacker_name}!`;
+  } else {
+    const verb = isAd ? "ضرب إعلانية على" : "فجّر";
+    const suffix = isAd ? "بقنبلة إعلانية!" : "بقنبلة ذرية!";
+    line = `${banner.attacker_name} ${verb} ${banner.target_name} ${suffix}`;
+  }
 
   return (
     <div
@@ -140,11 +149,11 @@ export function GlobalBanner() {
       }`}
     >
       <div className={`mx-2 mt-2 w-full max-w-md rounded-xl border-2 ${borderColor} bg-gradient-to-b from-stone-900 to-stone-950 ${shadow} p-3 text-center`}>
-        <div className="text-2xl mb-1">{banner.emoji || (isAd ? "📺" : "☢️")}</div>
+        <div className="text-2xl mb-1">{banner.emoji || (isAnti ? "🛡️" : isAd ? "📺" : "☢️")}</div>
         <div className={`${titleColor} font-extrabold text-sm leading-tight`}>
-          {banner.attacker_name} {verb} {banner.target_name} {suffix}
+          {line}
         </div>
-        {banner.message && (
+        {!isAnti && banner.message && (
           <div className="text-amber-200/90 text-xs mt-1 leading-tight truncate">
             "{banner.message}"
           </div>
