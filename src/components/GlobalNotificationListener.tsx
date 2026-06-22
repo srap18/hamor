@@ -54,8 +54,10 @@ export function GlobalNotificationListener() {
       // Sonner: use info as default; attack uses warning style.
       if (n.kind === "attack" || n.kind === "nuke") {
         toast.error(title, opts);
-      } else if (n.kind === "support" || n.kind === "support_reply" || n.kind === "ship" || n.kind === "friend") {
+      } else if (n.kind === "support" || n.kind === "support_reply" || n.kind === "ship" || n.kind === "friend" || n.kind === "anti_block") {
         toast.success(title, opts);
+      } else if (n.kind === "anti_block_attacker") {
+        toast.warning(title, opts);
       } else {
         toast(title, opts);
       }
