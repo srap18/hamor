@@ -146,6 +146,7 @@ function TribeEventsPage() {
           const lb = boards[ev.id] ?? [];
           const myRank = myTribeId ? lb.findIndex(t => t.tribe_id === myTribeId) : -1;
           const themeCls = THEME_CLASS[ev.banner_theme] ?? THEME_CLASS.ocean;
+          const started = Date.now() >= new Date(ev.starts_at).getTime();
           return (
             <div key={ev.id} className="rounded-2xl overflow-hidden border-2 border-slate-700 bg-slate-900/70 shadow-2xl">
               {/* Banner */}
