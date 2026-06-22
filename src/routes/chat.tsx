@@ -19,6 +19,8 @@ import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
+import { useServerFn } from "@tanstack/react-start";
+import { moderateChatText } from "@/lib/chat-moderation.functions";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — ملوك القراصنة" }] }),
@@ -308,7 +310,8 @@ function ChatPage() {
     noticeTimerRef.current = window.setTimeout(() => setNotice(null), 2500);
   }, []);
   const lastSendRef = useRef<{ body: string; at: number; channel: string; target: string }>({ body: "", at: 0, channel: "", target: "" });
-  const send = useCallback((override?: string) => {
+  const moderateText = useServerFn(moderateChatText);
+  const send = useCallback(async (override?: string) => {
     if (!user) return;
     const raw = override ?? text;
     const body = raw.trim().slice(0, 500);
@@ -323,6 +326,22 @@ function ChatPage() {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
     }
+
+    // AI pre-check before showing the message in chat
+    setSending(true);
+    try {
+      const mod = await moderateText({ data: { text: body } });
+      if (!mod.safe) {
+        showNotice("🚫 رسالتك تحتوي على ألفاظ غير مسموحة" + (mod.reason ? ` — ${mod.reason}` : ""));
+        setSending(false);
+        return;
+      }
+    } catch {
+      // network/AI failure: continue and rely on DB-side filter
+    }
+    setSending(false);
+
+
 
 
     const now = Date.now();
@@ -406,7 +425,7 @@ function ChatPage() {
         return;
       }
     });
-  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel]);
+  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
 
 
 
