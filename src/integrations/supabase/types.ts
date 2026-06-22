@@ -3768,6 +3768,10 @@ export type Database = {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
       }
+      _try_anti_block: {
+        Args: { _anti_id: string; _defender: string; _pct: number }
+        Returns: boolean
+      }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       activate_golden_fisher: { Args: never; Returns: Json }
       add_vip_points: {
@@ -4077,6 +4081,10 @@ export type Database = {
         Returns: undefined
       }
       burn_target_bg: { Args: { _target_id: string }; Returns: string }
+      buy_anti_to_inventory: {
+        Args: { _item_id: string; _qty: number }
+        Returns: Json
+      }
       buy_background: {
         Args: { _bg_id: string; _price: number }
         Returns: undefined

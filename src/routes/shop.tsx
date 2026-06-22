@@ -102,6 +102,9 @@ const PROTECTION: Item[] = [
   { id: "shield-4h", name: "درع لمده 4 ساعات", emoji: "🛡️", price: 60, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
   { id: "shield-1d", name: "درع لمده يوم", emoji: "🛡️", price: 280, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
   { id: "shield-2d", name: "درع لمده يومين", emoji: "🛡️", price: 550, currency: "gem", desc: "الحد الاقصى • بعد الشراء: 4 ايام بدون شراء درع" },
+  { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
+  { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
+  { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
 ];
 
 
@@ -201,6 +204,13 @@ function Shop() {
     try {
 
     if (tab === "protection") {
+      // Anti-weapon items go through a dedicated RPC
+      if (selected.id.startsWith("anti_")) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)("buy_anti_to_inventory", { _item_id: selected.id, _qty: qty });
+        setBusy(false);
+        if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
+      } else {
       // Server-side: deduct currency AND extend protection_until atomically.
       const days =
         selected.id === "shield-4h" ? (qty / 6) :     // 4h × qty = qty/6 days (will round up server-side)
@@ -222,6 +232,7 @@ function Shop() {
           flash("فشل الشراء: " + msg, 2000);
         }
         return;
+      }
       }
     } else if (tab === "ships") {
       // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity

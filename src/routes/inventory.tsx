@@ -259,7 +259,13 @@ function InventoryPage() {
             await load();
             toast.success("🛡️ تم تفعيل الدرع!");
           };
+          const ANTIS = [
+            { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", pct: 60, desc: "يصد أي صاروخ قادم" },
+            { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", pct: 75, desc: "يصد القنبلة الذرية" },
+            { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", pct: 70, desc: "يصد القنبلة الإعلانية" },
+          ];
           return (
+            <>
             <div className="grid grid-cols-2 gap-2">
               {SHIELDS.map(s => {
                 const n = qty("shield", s.id);
@@ -281,6 +287,23 @@ function InventoryPage() {
                 );
               })}
             </div>
+            <div className="mt-4 mb-2 text-xs font-bold text-amber-200/90 text-center">🛡️ المضادات الدفاعية (تعمل تلقائياً عند الهجوم)</div>
+            <div className="grid grid-cols-3 gap-2">
+              {ANTIS.map(a => {
+                const n = qty("anti", a.id);
+                return (
+                  <div key={a.id} className={`glass-hud rounded-xl p-2 border ${n>0?"border-amber-400/60":"border-border/40 opacity-60"}`}>
+                    <div className="h-12 flex items-center justify-center text-3xl">{a.emoji}</div>
+                    <div className="text-[11px] font-bold text-center mt-1">{a.name}</div>
+                    <div className="text-[9px] text-amber-300 text-center">صد {a.pct}%</div>
+                    <div className="text-center mt-1 text-xs font-bold">
+                      {n > 0 ? <span className="text-amber-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            </>
           );
         })()}
         {!loading && tab === "fish" && (() => {
