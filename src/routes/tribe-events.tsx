@@ -51,6 +51,28 @@ function timeLeft(iso: string) {
   return `${m}د`;
 }
 
+function timeUntil(iso: string) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return "بدأت";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  if (d > 0) return `${d}ي ${h}س`;
+  if (h > 0) return `${h}س ${m}د`;
+  if (m > 0) return `${m}د ${s}ث`;
+  return `${s}ث`;
+}
+
+function formatStart(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString("ar-SA", { timeZone: "Asia/Riyadh", hour: "2-digit", minute: "2-digit" });
+  if (sameDay) return `اليوم الساعة ${time}`;
+  return `${d.toLocaleDateString("ar-SA", { timeZone: "Asia/Riyadh", month: "short", day: "numeric" })} الساعة ${time}`;
+}
+
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
@@ -91,7 +113,7 @@ function TribeEventsPage() {
 
   const [, setTick] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTick(x => x + 1), 60000);
+    const t = setInterval(() => setTick(x => x + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -124,6 +146,7 @@ function TribeEventsPage() {
           const lb = boards[ev.id] ?? [];
           const myRank = myTribeId ? lb.findIndex(t => t.tribe_id === myTribeId) : -1;
           const themeCls = THEME_CLASS[ev.banner_theme] ?? THEME_CLASS.ocean;
+          const started = Date.now() >= new Date(ev.starts_at).getTime();
           return (
             <div key={ev.id} className="rounded-2xl overflow-hidden border-2 border-slate-700 bg-slate-900/70 shadow-2xl">
               {/* Banner */}
@@ -134,7 +157,7 @@ function TribeEventsPage() {
                     <div className="text-4xl drop-shadow">{ev.banner_emoji}</div>
                     <div className="flex-1">
                       <div className="text-lg md:text-xl font-black text-white drop-shadow">{ev.title}</div>
-                      <div className="text-xs text-white/80 mt-0.5">⏳ يتبقى {timeLeft(ev.ends_at)}</div>
+                      <div className="text-xs text-white/80 mt-0.5">⏳ {started ? `يتبقى ${timeLeft(ev.ends_at)}` : `يبدأ خلال ${timeUntil(ev.starts_at)}`}</div>
                     </div>
                     <div className="text-end">
                       <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">جائزة القبيلة</div>
@@ -151,14 +174,18 @@ function TribeEventsPage() {
               {myTribeId && (
                 <div className="px-3 py-2 border-b border-slate-800 bg-slate-950/60 text-xs flex items-center justify-between">
                   <span className="text-slate-400">قبيلتك:</span>
-                  {myRank >= 0 ? (
-                    <span className="text-cyan-300 font-bold">
-                      {myRank === 0 ? "🥇 في المركز الأول" : myRank === 1 ? "🥈 في المركز الثاني" : myRank === 2 ? "🥉 في المركز الثالث" : `في المركز #${myRank+1}`}
-                      {" · "}
-                      <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} 🐟</span>
-                    </span>
+                  {started ? (
+                    myRank >= 0 ? (
+                      <span className="text-cyan-300 font-bold">
+                        {myRank === 0 ? "🥇 في المركز الأول" : myRank === 1 ? "🥈 في المركز الثاني" : myRank === 2 ? "🥉 في المركز الثالث" : `في المركز #${myRank+1}`}
+                        {" · "}
+                        <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} 🐟</span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-500">لم تصطد قبيلتك أي سمكة بعد</span>
+                    )
                   ) : (
-                    <span className="text-slate-500">لم تصطد قبيلتك أي سمكة بعد</span>
+                    <span className="text-amber-300 font-bold">تبدأ الفعالية قريباً</span>
                   )}
                 </div>
               )}
@@ -166,7 +193,12 @@ function TribeEventsPage() {
               {/* Leaderboard */}
               <div className="p-3 space-y-1.5">
                 <div className="text-xs font-black text-slate-300 mb-1">🏆 ترتيب القبائل</div>
-                {lb.length === 0 ? (
+                {!started ? (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-center space-y-1">
+                    <div className="text-sm text-amber-200 font-bold">⏳ لم تبدأ الفعالية بعد</div>
+                    <div className="text-xs text-amber-200/80">الترتيب يبدأ {formatStart(ev.starts_at)}</div>
+                  </div>
+                ) : lb.length === 0 ? (
                   <div className="text-sm text-slate-500 py-4 text-center">لا يوجد مشاركون بعد — كن أول قبيلة تتصدر!</div>
                 ) : (
                   <ol className="space-y-1">
