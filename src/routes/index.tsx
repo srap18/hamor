@@ -13,6 +13,7 @@ import {
   sellShip,
   deleteInventoryRows,
   buyWithCoinsGemFallback,
+  buyWithCoins,
   buyWithGems,
   setShipAtSea,
 } from "@/lib/economy";
@@ -2740,7 +2741,7 @@ function Index() {
                         ? !globallyActive
                         : (assignedRows.length < slots && !alreadyOnShip)
                   );
-                  const canAfford = c.currency === "gems" ? gems >= c.price : (coins + gems * 1000) >= c.price;
+                  const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
                   const isBuying = buyingCrewId === cid;
 
                   const buyCrew = () => {
@@ -2750,6 +2751,8 @@ function Index() {
                       setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                       return;
                     }
+                    const currencyLabel = c.currency === "gems" ? "جوهرة" : "ذهب";
+                    if (!window.confirm(`تأكيد شراء ${c.name} مقابل ${c.price.toLocaleString()} ${currencyLabel}؟`)) return;
                     buyingCrewRef.current = cid;
                     setBuyingCrewId(cid);
                     sound.play("coin");
@@ -2758,7 +2761,7 @@ function Index() {
                       try {
                         const { error } = c.currency === "gems"
                           ? await buyWithGems(cid, "crew", c.price, undefined, 1)
-                          : await buyWithCoinsGemFallback(cid, "crew", c.price, undefined, 1);
+                          : await buyWithCoins(cid, "crew", c.price, undefined, 1);
                         if (error) {
                           sound.play("error");
                           setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
