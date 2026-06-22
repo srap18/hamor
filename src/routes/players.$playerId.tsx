@@ -1488,10 +1488,8 @@ function PlayerPage() {
                       setTimeout(() => setFx(null), 1600);
                       setShake("shake-lg");
                       setTimeout(() => setShake(""), 1500);
-                      // decrement local inventory + scorch bg + show damage locally
-                      setInv((arr) => arr
-                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
-                        .filter((x) => x.quantity > 0));
+                      // scorch bg + show damage locally (inventory already decremented above)
+
                       burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
                       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
                       const nowIso = serverNow().toISOString();
