@@ -492,7 +492,7 @@ function PlayerPage() {
 
     // ─── NUKE: use server RPC that destroys all target ships in one shot ───
     if (weaponId === "nuke") {
-      const { error: nukeErr } = await (supabase as any).rpc("launch_nuke", { _target_id: playerId });
+      const { data: nukeRes, error: nukeErr } = await (supabase as any).rpc("launch_nuke", { _target_id: playerId });
       if (nukeErr) {
         const m = String(nukeErr.message || "");
         setBusy(false);
@@ -505,11 +505,17 @@ function PlayerPage() {
         if (m.includes("protected") || m.includes("staff account")) { sound.play("error"); flash("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
       }
-      // Success: launch_nuke already consumed the nuke server-side.
-      // Just decrement local inventory view to match (do NOT call consume RPC again — double-deduct bug).
+      // Consume the nuke locally (server already consumed it).
       setInv((arr) => arr
         .map((x) => x.item_id === "nuke" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
         .filter((x) => x.quantity > 0));
+      // BLOCKED by anti-nuke: server returned NULL. No destruction, no banner, no broadcast.
+      if (nukeRes === null || nukeRes === undefined) {
+        sound.play("error");
+        flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الذرية!`);
+        setBusy(false);
+        return;
+      }
       sound.play("nuke");
       burnTargetBg(playerId).catch(() => {});
       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
@@ -525,6 +531,7 @@ function PlayerPage() {
       setTimeout(() => { setNukeMsg(""); setNukeMsgOpen(true); }, 2000);
       return;
     }
+
 
     // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
@@ -547,8 +554,19 @@ function PlayerPage() {
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
 
+    // BLOCKED by anti-rocket: server sets blocked=true and applied no damage. Stop here — no FX, no weapon consume.
+    const firstRow: any = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
+    if (firstRow?.blocked === true) {
+      sound.play("error");
+      flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ ${w.name}!`);
+      setBusy(false);
+      return;
+    }
+
     // Validation passed — now consume the weapon and run FX/damage for all targets.
     await consumeItem(weaponId, "weapon");
+
+
 
     // For nuke (AOE): burn the target's background FIRST so it always lands,
     // even if any per-ship damage call fails. Update local view immediately.
@@ -1434,7 +1452,7 @@ function PlayerPage() {
                       setMode(null);
                       setSelectedShip(null);
                       // ─── Validate FIRST on the server (same rules as other weapons) ───
-                      const { error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ error: { message: string } | null }> })
+                      const { data: adRes, error } = await (supabase as never as { rpc: (n: string, p: object) => Promise<{ data: string | null; error: { message: string } | null }> })
                         .rpc("launch_ad_bomb", { _target_id: playerId, _video_key: v.key });
                       if (error) {
                         const m = error.message || "";
@@ -1449,8 +1467,20 @@ function PlayerPage() {
                         if (m.includes("cannot target self")) { sound.play("error"); flash("❌ لا يمكن استهداف نفسك"); return; }
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
+                      // Consume the ad_bomb locally — server already consumed it (even on block).
+                      setInv((arr) => arr
+                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+                        .filter((x) => x.quantity > 0));
+                      // BLOCKED by anti-ad-bomb: no ad video, no destruction, no broadcast.
+                      if (adRes === null || adRes === undefined) {
+                        sound.play("error");
+                        flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الإعلانية!`);
+                        setBusy(false);
+                        return;
+                      }
                       // ─── Success: now play FX + apply local view ───
                       try { window.dispatchEvent(new CustomEvent("ad-bomb:created")); } catch { /* noop */ }
+
                       sound.play("nuke");
                       const cx = window.innerWidth / 2;
                       const cy = window.innerHeight / 2;
@@ -1458,10 +1488,8 @@ function PlayerPage() {
                       setTimeout(() => setFx(null), 1600);
                       setShake("shake-lg");
                       setTimeout(() => setShake(""), 1500);
-                      // decrement local inventory + scorch bg + show damage locally
-                      setInv((arr) => arr
-                        .map((x) => x.item_id === "ad_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
-                        .filter((x) => x.quantity > 0));
+                      // scorch bg + show damage locally (inventory already decremented above)
+
                       burnTargetBg(playerId).catch((e) => console.error("burn_target_bg failed", e));
                       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
                       const nowIso = serverNow().toISOString();

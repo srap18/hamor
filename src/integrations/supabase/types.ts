@@ -4025,6 +4025,7 @@ export type Database = {
           _weapon_id: string
         }
         Returns: {
+          blocked: boolean
           damage_applied: number
           destroyed: boolean
           new_hp: number
