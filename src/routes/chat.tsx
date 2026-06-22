@@ -888,8 +888,9 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
         already_redeemed: "تم تفعيله مسبقاً لهذا اللاعب",
         admin_only: "للأدمن فقط",
       };
-      const key = (error.message || "").match(/[a-z_]+/)?.[0] || "";
-      setMsg(map[key] || error.message);
+      const raw = (error.message || "").toString();
+      const key = (raw.match(/(invalid_code|code_disabled|code_expired|code_exhausted|already_redeemed|admin_only)/) || [, ""])[1];
+      setMsg(map[key] || raw);
     } else {
       setMsg(`✅ تم تفعيل الكود "${(data as any)?.code || code}" لـ ${target.display_name}`);
     }
