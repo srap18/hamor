@@ -56,6 +56,14 @@ function SignupPage() {
     }
     if (finalName.length >= 2) {
       try {
+        const { data: bad } = await (supabase as any).rpc("is_disallowed_religious_name", { p_name: finalName });
+        if (bad === true) {
+          setLoading(false);
+          setErr("هذا الاسم غير مسموح. أمثلة مسموحة: بسم الله، سبحان الله، حسبي الله، لا إله إلا الله.");
+          return;
+        }
+      } catch {}
+      try {
         const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: finalName });
         if (taken === true) {
           setLoading(false);
