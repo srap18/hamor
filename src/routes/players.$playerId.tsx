@@ -957,6 +957,8 @@ function PlayerPage() {
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
 
       <AdBombOverlay targetUserId={playerId} isOwner={me === playerId} onFlash={flash} />
+      <AntiBlockBurst defenderId={playerId} />
+
 
       {scene.burned && me && me !== playerId && (
         <DraggableRepairBgButton
