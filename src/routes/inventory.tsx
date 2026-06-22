@@ -245,6 +245,8 @@ function InventoryPage() {
             { id: "shield_4h", name: "درع 4 ساعات", hours: 4, emoji: "🛡️" },
             { id: "shield_1d", name: "درع يوم", hours: 24, emoji: "🛡️" },
             { id: "shield_2d", name: "درع يومين", hours: 48, emoji: "🛡️" },
+            { id: "shield_7d", name: "درع أسبوع", hours: 24 * 7, emoji: "🛡️" },
+            { id: "shield_30d", name: "درع شهر", hours: 24 * 30, emoji: "🛡️" },
           ];
           const useShield = async (id: string) => {
             const { error } = await supabase.rpc("use_shield_from_inventory" as never, { _item_id: id } as never);
@@ -265,7 +267,7 @@ function InventoryPage() {
                   <div key={s.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-sky-400/60":"border-border/40 opacity-60"}`}>
                     <div className="h-16 flex items-center justify-center text-5xl">{s.emoji}</div>
                     <div className="text-sm font-bold text-center mt-1">{s.name}</div>
-                    <div className="text-[10px] text-sky-300 text-center">حماية {s.hours} ساعة</div>
+                    <div className="text-[10px] text-sky-300 text-center">حماية {s.hours >= 24 ? `${Math.round(s.hours/24)} يوم` : `${s.hours} ساعة`}</div>
                     <div className="text-center mt-2 text-sm font-bold">
                       {n > 0 ? <span className="text-sky-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                     </div>
