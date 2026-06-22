@@ -57,14 +57,14 @@ export function GlobalBanner() {
     const ageMs = Date.now() - new Date(row.created_at).getTime();
     if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
     seenIds.current.add(row.id);
-    if (row.kind === "nuke" || row.kind === "ad_bomb") {
+    if (row.kind === "nuke" || row.kind === "ad_bomb" || row.kind === "anti_block") {
       show({
         _t: "nuke",
-        kind: row.kind as "nuke" | "ad_bomb",
+        kind: row.kind as "nuke" | "ad_bomb" | "anti_block",
         attacker_name: row.attacker_name || "لاعب",
         target_name: row.target_name || "لاعب",
         message: row.message || "",
-        emoji: row.emoji || (row.kind === "nuke" ? "☢️" : "📺"),
+        emoji: row.emoji || (row.kind === "nuke" ? "☢️" : row.kind === "ad_bomb" ? "📺" : "🛡️"),
       }, 6000);
     } else if (row.kind === "admin") {
       show({
