@@ -554,8 +554,19 @@ function PlayerPage() {
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
 
+    // BLOCKED by anti-rocket: server sets blocked=true and applied no damage. Stop here — no FX, no weapon consume.
+    const firstRow: any = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
+    if (firstRow?.blocked === true) {
+      sound.play("error");
+      flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ ${w.name}!`);
+      setBusy(false);
+      return;
+    }
+
     // Validation passed — now consume the weapon and run FX/damage for all targets.
     await consumeItem(weaponId, "weapon");
+
+
 
     // For nuke (AOE): burn the target's background FIRST so it always lands,
     // even if any per-ship damage call fails. Update local view immediately.
