@@ -4059,9 +4059,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         } else if (ship.fishing && !ready) {
           const rem = Math.max(0, Math.ceil(ship.timeLeft));
           if (rem <= 0) {
-            // Timer expired but trip didn't complete → server capped catch
-            // because the global fish stock is full. Show a clear hint.
-            label = "📦 المخزن ممتلئ — بيع السمك";
+            // Timer expired but trip not yet marked ready — either the server
+            // auto-collect (golden fisher) is in flight, or the sync is lagging.
+            // Show a neutral hint instead of a misleading 0:00.
+            label = "⏳ جارٍ الجمع... اضغط للتحديث";
           } else {
             const m = Math.floor(rem / 60);
             const s = rem % 60;
@@ -4070,6 +4071,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         } else if (ship.fishing && ready) {
           label = "✅ جاهز";
         }
+
 
         if (!label) return null;
         return (
