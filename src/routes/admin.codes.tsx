@@ -39,6 +39,7 @@ const KIND_LABEL: Record<string, string> = {
   crew: "👥 طواقم",
   weapon: "💥 أسلحة",
   shield: "🛡️ دروع",
+  anti: "🧪 مضادات",
   frame: "🖼️ إطارات صورة",
   name_frame: "🏷️ إطارات اسم",
   bubble_frame: "💬 إطارات رسالة",
