@@ -3851,6 +3851,8 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
         const { data: u } = await supabase.auth.getUser();
         const uid = u.user?.id;
         if (!uid) throw new Error("سجل الدخول");
+        // إلغاء أي طلبات سابقة معلّقة في قبائل أخرى قبل إرسال الطلب الجديد
+        await supabase.from("tribe_join_requests").delete().eq("user_id", uid).eq("status", "pending");
         const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: uid, status: "pending" });
         if (error) throw error;
         setPendingReq(true);

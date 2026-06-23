@@ -27,12 +27,19 @@ const SHIELD_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   { code: "shield_30d", name: "🛡️ درع شهر",      kind: "shield" },
 ];
 
+const ANTI_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  { code: "anti_rocket",  name: "🚀 مضاد صواريخ",        kind: "anti" },
+  { code: "anti_nuke",    name: "☢️ مضاد قنبلة ذرية",    kind: "anti" },
+  { code: "anti_ad_bomb", name: "📺 مضاد قنبلة إعلانية", kind: "anti" },
+];
+
 // Local TS catalogs merged in so admin can bundle crews/weapons/frames/shields
 // directly with proper Arabic names — without needing entries in items_catalog.
 const KIND_LABEL: Record<string, string> = {
   crew: "👥 طواقم",
   weapon: "💥 أسلحة",
   shield: "🛡️ دروع",
+  anti: "🧪 مضادات",
   frame: "🖼️ إطارات صورة",
   name_frame: "🏷️ إطارات اسم",
   bubble_frame: "💬 إطارات رسالة",
@@ -45,6 +52,7 @@ const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   ...CREWS.map((c) => ({ code: c.id, name: `${c.emoji} ${c.name}`, kind: "crew" })),
   ...WEAPONS.map((w) => ({ code: w.id, name: `${w.emoji} ${w.name}`, kind: "weapon" })),
   ...SHIELD_ITEMS,
+  ...ANTI_ITEMS,
   ...ALL_FRAMES.map((f) => ({
     code: f.id,
     name: `${f.preview ?? "🖼️"} ${f.name}`,
@@ -61,6 +69,7 @@ WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji
 BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
 ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
 SHIELD_ITEMS.forEach((s) => { ITEM_META[s.code] = { name: s.name, emoji: "🛡️" }; });
+ANTI_ITEMS.forEach((a) => { ITEM_META[a.code] = { name: a.name, emoji: "🧪" }; });
 
 function getItemMeta(code: string, kind?: string): ItemMeta {
   if (ITEM_META[code]) return ITEM_META[code];
