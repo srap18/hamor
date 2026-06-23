@@ -387,7 +387,7 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              {tab !== "ships" && tab !== "protection" && (
+              {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_")) && (
                 <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
               )}
             </div>
@@ -408,7 +408,7 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            {tab !== "ships" && tab !== "protection" ? (
+            {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_")) ? (
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
