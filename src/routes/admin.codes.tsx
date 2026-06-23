@@ -69,6 +69,7 @@ WEAPONS.forEach((w) => { ITEM_META[w.id] = { name: w.name, image: w.image, emoji
 BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, emoji: "🌅" }; });
 ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
 SHIELD_ITEMS.forEach((s) => { ITEM_META[s.code] = { name: s.name, emoji: "🛡️" }; });
+ANTI_ITEMS.forEach((a) => { ITEM_META[a.code] = { name: a.name, emoji: "🧪" }; });
 
 function getItemMeta(code: string, kind?: string): ItemMeta {
   if (ITEM_META[code]) return ITEM_META[code];
