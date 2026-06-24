@@ -243,13 +243,16 @@ function BattlePage() {
         backgroundPosition: "center bottom",
       }}>
       <style>{`
-        @keyframes bolt-mr { 0%{transform:translateX(0) scale(0.6);opacity:0} 15%{opacity:1} 100%{transform:translateX(-58vw) scale(1.1);opacity:0} }
-        @keyframes bolt-ml { 0%{transform:translateX(0) scale(0.6);opacity:0} 15%{opacity:1} 100%{transform:translateX(58vw) scale(1.1);opacity:0} }
+        @keyframes flame-r { 0%{transform:scaleX(0) scaleY(0.6);opacity:0;transform-origin:left center} 15%{opacity:1} 70%{transform:scaleX(1) scaleY(1.05);opacity:1;transform-origin:left center} 100%{transform:scaleX(1.05) scaleY(0.9);opacity:0;transform-origin:left center} }
+        @keyframes flame-l { 0%{transform:scaleX(0) scaleY(0.6);opacity:0;transform-origin:right center} 15%{opacity:1} 70%{transform:scaleX(1) scaleY(1.05);opacity:1;transform-origin:right center} 100%{transform:scaleX(1.05) scaleY(0.9);opacity:0;transform-origin:right center} }
+        @keyframes ember { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(var(--ex,30px),var(--ey,-20px)) scale(0.2);opacity:0} }
+        @keyframes flicker { 0%,100%{filter:hue-rotate(0deg) brightness(1)} 50%{filter:hue-rotate(-12deg) brightness(1.25)} }
         @keyframes flt { 0%{transform:translateY(0);opacity:0} 15%{opacity:1} 100%{transform:translateY(-60px);opacity:0} }
         @keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
         @keyframes hov { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
         @keyframes brth { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         @keyframes glow-blue { 0%,100%{filter:drop-shadow(0 0 12px rgba(34,211,238,0.7))} 50%{filter:drop-shadow(0 0 22px rgba(34,211,238,1))} }
+        @keyframes muzzle { 0%{transform:scale(0.4);opacity:0} 30%{transform:scale(1.3);opacity:1} 100%{transform:scale(1.6);opacity:0} }
       `}</style>
 
       {/* close + portals overlay glow */}
