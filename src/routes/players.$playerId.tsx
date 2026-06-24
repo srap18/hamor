@@ -631,8 +631,9 @@ function PlayerPage() {
           _xp_gain: w.xp ?? 0,
         }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
+        // نقاط الأرينا لا تُمنح من الهجمات العادية — فقط من معركة الأرينا الرسمية
+        // setShips below
 
-        (supabase as any).rpc("award_arena_score", { p_score: actualDamage, p_won: true }).then(undefined, () => {});
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: serverNow().toISOString(), repair_ends_at: repEnds ?? x.repair_ends_at } : x));
       }
@@ -656,7 +657,9 @@ function PlayerPage() {
           _xp_gain: w.xp ?? 0,
         }, { onFinalFail: () => flash("⚠️ تعذّر تسجيل الهجوم — قد لا يصل التنبيه للخصم") });
         // PvP لا يمنح نقاط تنين — DP فقط من البوس
-        (supabase as any).rpc("award_arena_score", { p_score: actualDamage, p_won: newHp === 0 }).then(undefined, () => {});
+        // نقاط الأرينا لا تُمنح من الهجمات العادية — فقط من معركة الأرينا الرسمية
+
+
 
         setShips((arr) => arr.map((x) => x.id === t.id ? { ...x, hp: newHp, destroyed_at: newHp === 0 ? serverNow().toISOString() : x.destroyed_at, repair_ends_at: newHp === 0 ? (repEnds ?? x.repair_ends_at) : x.repair_ends_at } : x));
       }
