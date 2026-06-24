@@ -361,8 +361,8 @@ function BattlePage() {
             <div className="p-6 text-center">
               {result === "win" ? (
                 <>
-                  <div className="text-7xl mb-2" style={{ animation: "glow-blue 1.5s ease-in-out infinite" }}>💎</div>
-                  <div className="text-3xl font-black text-cyan-200">+{reward}</div>
+                  <div className="text-7xl mb-2">🏆</div>
+                  <div className="text-3xl font-black text-amber-200">+{reward}</div>
                   <div className="text-xs text-amber-200/80 mt-1">نقاط أرينا</div>
                 </>
               ) : (
