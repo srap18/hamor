@@ -67,6 +67,7 @@ function BossPage() {
   const [bossDefeats, setBossDefeats] = useState(0);
   const [attacksLeft, setAttacksLeft] = useState<number>(5);
   const [attackResetAt, setAttackResetAt] = useState<number>(0);
+  const [refreshAttackCost, setRefreshAttackCost] = useState<number>(200);
   const [refreshingAttacks, setRefreshingAttacks] = useState(false);
   const myIdRef = useRef<string | null>(null);
   const idRef = useRef(0);
@@ -112,6 +113,7 @@ function BossPage() {
       if (q) {
         setAttacksLeft(Number(q.remaining ?? 5));
         setAttackResetAt(new Date(q.reset_at ?? Date.now()).getTime());
+        setRefreshAttackCost(Number(q.refresh_gem_cost ?? 200));
       }
     })();
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -161,7 +163,7 @@ function BossPage() {
   const fire = useCallback(async (weaponId: string) => {
     if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
     if (attacksLeft <= 0) {
-      alert("⛔ انتهت هجماتك اليومية على الوحش (٥/يوم). جددها بـ ١٠٠٠ جوهرة أو انتظر التجديد.");
+      alert(`⛔ انتهت هجماتك اليومية على الوحش (٥ مرات). جددها بـ ${refreshAttackCost} جوهرة أو انتظر التجديد.`);
       return;
     }
     const ammo = rockets.find((r) => r.item_id === weaponId);
@@ -196,15 +198,22 @@ function BossPage() {
       setBusy(false);
       if (data.killed) {
         setBossDefeats((n) => n + 1);
-        setTimeout(() => alert("💀 سقط الوحش! الوحش القادم أقوى."), 600);
+        const nextBoss = isBossReady(data.next_boss) ? (data.next_boss as Boss) : null;
+        if (nextBoss) {
+          setTimeout(() => {
+            setBoss(nextBoss);
+            setShipHp(100);
+          }, 650);
+        }
+        setTimeout(() => alert("💀 سقط الوحش! ظهر وحش جديد فورًا."), 600);
       }
     }, 850);
 
-  }, [busy, boss, shipHp, rockets, attacksLeft]);
+  }, [busy, boss, shipHp, rockets, attacksLeft, refreshAttackCost]);
 
   const refreshAttacks = useCallback(async () => {
     if (refreshingAttacks) return;
-    if (!confirm("استخدام ١٠٠٠ جوهرة لتجديد ٥ هجمات على الوحش؟")) return;
+    if (!confirm(`استخدام ${refreshAttackCost} جوهرة لتجديد ٥ هجمات على الوحش؟`)) return;
     setRefreshingAttacks(true);
     const { data, error } = await rpc("refresh_boss_attacks");
     setRefreshingAttacks(false);
@@ -213,7 +222,7 @@ function BossPage() {
     setAttacksLeft(5);
     setAttackResetAt(Date.now() + 24 * 3600 * 1000);
     alert("✅ تم تجديد الهجمات!");
-  }, [refreshingAttacks]);
+  }, [refreshingAttacks, refreshAttackCost]);
 
   if (authChecked && !allowed) {
     return (
@@ -359,7 +368,7 @@ function BossPage() {
             onClick={refreshAttacks}
             className="px-3 py-1 rounded-lg text-[11px] font-extrabold bg-gradient-to-b from-purple-500 to-purple-700 text-white shadow-md disabled:opacity-40 active:scale-95"
           >
-            💎 1000 تجديد
+            💎 {refreshAttackCost} تجديد
           </button>
         </div>
 
