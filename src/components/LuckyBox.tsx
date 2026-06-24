@@ -320,7 +320,7 @@ export function LuckyBoxGlobalBanner() {
 
   if (items.length === 0) return null;
   return (
-    <div className="fixed top-2 inset-x-0 z-[300] flex flex-col items-center gap-2 pointer-events-none" dir="rtl">
+    <div className="fixed top-2 inset-x-0 z-[999] flex flex-col items-center gap-2 pointer-events-none" dir="rtl">
       {items.map((n) => {
         const legend = n.kind === "lucky_legendary";
         return (
