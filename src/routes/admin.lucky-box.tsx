@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin/lucky-box")({
 });
 
 type Rarity = "common" | "rare" | "legendary";
-type PrizeType = "coins" | "gems" | "rubies" | "xp" | "item";
+type PrizeType = "coins" | "gems" | "rubies" | "xp" | "item" | "dragon_equipment";
 type Prize = {
   id: string;
   rarity: Rarity;
@@ -37,9 +37,11 @@ const RARITY_META: Record<Rarity, { ar: string; color: string; ring: string }> =
   legendary: { ar: "نادرة جدًا", color: "bg-red-700/20",    ring: "border-red-500/60" },
 };
 const ITEM_TYPES = [
-  "consumable", "decoration", "frame", "background", "name_frame", "bubble_frame", "profile_frame", "shield",
-  "anti", "anti_rocket", "anti_nuke", "anti_ad_bomb",
+  "crew", "weapon", "anti", "shield",
+  "consumable", "decoration", "frame", "background", "name_frame", "bubble_frame", "profile_frame",
 ] as const;
+const DRAGON_SLOTS = ["weapon", "armor", "talisman"] as const;
+const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine"] as const;
 
 function AdminLuckyBox() {
   const [settings, setSettings] = useState<Settings>({
@@ -226,6 +228,7 @@ function PrizeRow({
         <option value="rubies">❤️ ياقوت</option>
         <option value="xp">⭐ XP</option>
         <option value="item">🎒 عنصر مخزن</option>
+        <option value="dragon_equipment">🐉 معدة تنين</option>
       </select>
       <input type="number" min={1}
         className="col-span-1 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
@@ -242,6 +245,23 @@ function PrizeRow({
           <input className="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
             value={prize.item_id ?? ""} placeholder="معرف العنصر"
             onChange={(e) => onChange({ item_id: e.target.value || null })} />
+        </>
+      ) : prize.prize_type === "dragon_equipment" ? (
+        <>
+          <select className="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
+            value={prize.item_type ?? ""}
+            onChange={(e) => onChange({ item_type: e.target.value || null })}>
+            <option value="">— الخانة —</option>
+            {DRAGON_SLOTS.map((s) => <option key={s} value={s}>{s === "weapon" ? "سلاح" : s === "armor" ? "درع" : "تميمة"}</option>)}
+          </select>
+          <select className="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
+            value={prize.item_id ?? ""}
+            onChange={(e) => onChange({ item_id: e.target.value || null })}>
+            <option value="">— الجودة —</option>
+            {DRAGON_RARITIES.map((r) => <option key={r} value={r}>
+              {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : "خرافي"}
+            </option>)}
+          </select>
         </>
       ) : (
         <div className="col-span-4 text-[10px] text-slate-500 px-1">— يُضاف لرصيد اللاعب —</div>
