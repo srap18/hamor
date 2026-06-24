@@ -73,11 +73,39 @@ function formatStart(iso: string) {
   return `${d.toLocaleDateString("ar-SA", { timeZone: "Asia/Riyadh", month: "short", day: "numeric" })} الساعة ${time}`;
 }
 
+type MemberRow = {
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  total_fish: number;
+};
+
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
   const [loading, setLoading] = useState(true);
   const [myTribeId, setMyTribeId] = useState<string | null>(null);
+  const [openTribe, setOpenTribe] = useState<{ eventId: string; tribeId: string } | null>(null);
+  const [members, setMembers] = useState<Record<string, MemberRow[]>>({});
+  const [membersLoading, setMembersLoading] = useState<string | null>(null);
+
+  const toggleTribe = async (eventId: string, tribeId: string) => {
+    const key = `${eventId}:${tribeId}`;
+    if (openTribe && openTribe.eventId === eventId && openTribe.tribeId === tribeId) {
+      setOpenTribe(null);
+      return;
+    }
+    setOpenTribe({ eventId, tribeId });
+    if (!members[key]) {
+      setMembersLoading(key);
+      const { data } = await supabase.rpc(
+        "tribe_fish_event_member_leaderboard" as never,
+        { p_event_id: eventId, p_tribe_id: tribeId } as never
+      );
+      setMembers(prev => ({ ...prev, [key]: ((data ?? []) as MemberRow[]) }));
+      setMembersLoading(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -204,25 +232,70 @@ function TribeEventsPage() {
                   <ol className="space-y-1">
                     {lb.map((t, i) => {
                       const mine = t.tribe_id === myTribeId;
+                      const key = `${ev.id}:${t.tribe_id}`;
+                      const isOpen = openTribe?.eventId === ev.id && openTribe?.tribeId === t.tribe_id;
+                      const ms = members[key];
                       return (
-                        <li key={t.tribe_id}
-                            className={`flex items-center gap-2 px-2.5 py-2 rounded-lg ${
+                        <li key={t.tribe_id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleTribe(ev.id, t.tribe_id)}
+                            className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-right transition active:scale-[0.99] ${
                               i === 0
-                                ? "bg-gradient-to-l from-amber-500/20 via-yellow-500/10 to-transparent border border-amber-500/40"
+                                ? "bg-gradient-to-l from-amber-500/20 via-yellow-500/10 to-transparent border border-amber-500/40 hover:from-amber-500/30"
                                 : mine
-                                ? "bg-cyan-500/15 border border-cyan-500/40"
-                                : "bg-slate-950/50 border border-slate-800"
+                                ? "bg-cyan-500/15 border border-cyan-500/40 hover:bg-cyan-500/25"
+                                : "bg-slate-950/50 border border-slate-800 hover:bg-slate-900/70"
                             }`}>
-                          <span className="w-7 text-center text-lg font-black text-amber-300 shrink-0">
-                            {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`}
-                          </span>
-                          <span className="text-xl shrink-0">{t.tribe_banner}</span>
-                          <span className="flex-1 min-w-0 font-bold truncate">
-                            {t.tribe_emblem} {t.tribe_name}
-                            {mine && <span className="ms-1 text-[10px] text-cyan-300">(قبيلتك)</span>}
-                          </span>
-                          <span className="text-[11px] text-slate-400 shrink-0">{t.members_count} عضو</span>
-                          <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                            <span className="w-7 text-center text-lg font-black text-amber-300 shrink-0">
+                              {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`}
+                            </span>
+                            <span className="text-xl shrink-0">{t.tribe_banner}</span>
+                            <span className="flex-1 min-w-0 font-bold truncate">
+                              {t.tribe_emblem} {t.tribe_name}
+                              {mine && <span className="ms-1 text-[10px] text-cyan-300">(قبيلتك)</span>}
+                            </span>
+                            <span className="text-[11px] text-slate-400 shrink-0">{t.members_count} عضو</span>
+                            <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                            <span className={`shrink-0 text-slate-400 text-[10px] transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
+                          </button>
+                          {isOpen && (
+                            <div className="mt-1 mb-2 mr-7 rounded-lg border border-slate-700/70 bg-slate-950/70 p-2.5 space-y-1.5">
+                              <div className="text-[11px] font-bold text-slate-400 mb-1 flex items-center justify-between">
+                                <span>🎣 أكثر الأعضاء صيداً</span>
+                                <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>
+                              </div>
+                              {membersLoading === key && (
+                                <div className="text-xs text-slate-500 py-2 text-center">جاري التحميل…</div>
+                              )}
+                              {membersLoading !== key && ms && ms.length === 0 && (
+                                <div className="text-xs text-slate-500 py-2 text-center">لا يوجد عضو صاد سمك بعد.</div>
+                              )}
+                              {membersLoading !== key && ms && ms.length > 0 && (
+                                <ol className="space-y-1">
+                                  {ms.map((m, mi) => (
+                                    <li key={m.user_id}
+                                        className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-slate-900/60 border border-slate-800">
+                                      <span className="w-6 text-center text-xs font-black text-amber-300/90 shrink-0">
+                                        {mi === 0 ? "🥇" : mi === 1 ? "🥈" : mi === 2 ? "🥉" : `#${mi+1}`}
+                                      </span>
+                                      {m.avatar_url ? (
+                                        <img src={m.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0 border border-slate-700"/>
+                                      ) : (
+                                        <span className="w-6 h-6 rounded-full bg-slate-800 grid place-items-center text-[10px] shrink-0">👤</span>
+                                      )}
+                                      <Link to="/u/$username" params={{ username: m.username }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="flex-1 min-w-0 truncate text-xs font-bold text-slate-200 hover:text-cyan-300">
+                                        {m.username}
+                                      </Link>
+                                      <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} 🐟</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              )}
+                            </div>
+                          )}
                         </li>
                       );
                     })}
