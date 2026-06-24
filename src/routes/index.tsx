@@ -1214,7 +1214,7 @@ function Index() {
               );
             if (gfActive) {
               ratio = 0.99;
-              if (now - lastGfTickRef.current > 800) {
+              if (now - lastGfTickRef.current > 200) {
                 lastGfTickRef.current = now;
                 tickGoldenFisher({ data: {} })
                   .then(() => {
