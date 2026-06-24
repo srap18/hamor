@@ -4115,10 +4115,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         } else if (ship.fishing && !ready) {
           const rem = Math.max(0, Math.ceil(ship.timeLeft));
           if (rem <= 0) {
-            // Timer expired but trip not yet marked ready — either the server
-            // auto-collect (golden fisher) is in flight, or the sync is lagging.
-            // Show a neutral hint instead of a misleading 0:00.
-            label = "⏳ جارٍ الجمع... اضغط للتحديث";
+            // Timer expired but progress hasn't hit max — either golden fisher
+            // is mid-tick, or the storehouse is full so the auto-deposit
+            // can't make progress. Show an actionable hint in the latter case.
+            label = gfMarketFullRef.current
+              ? "🛒 المخزن ممتلئ — بِع السمك"
+              : "⏳ جارٍ الجمع...";
           } else {
             const m = Math.floor(rem / 60);
             const s = rem % 60;
