@@ -1960,6 +1960,11 @@ function Index() {
 
       <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
 
+      <LuckyBoxButton onChanged={() => refreshProfile()} />
+      <LuckyBoxGlobalBanner />
+
+
+
 
       {/* SHIPS — auto-placed inside the current background's open-water region.
           Each scene declares waterTop / waterLeft / waterRight so ships always
