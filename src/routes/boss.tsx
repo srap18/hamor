@@ -56,7 +56,10 @@ function BossPage() {
   const [loadingBoss, setLoadingBoss] = useState(true);
   const [ships, setShips] = useState<ShipRow[]>([]);
   const [selectedShip, setSelectedShip] = useState<ShipRow | null>(null);
-  const [shipHp, setShipHp] = useState(100); // local %; cosmetic
+  const [shipHp, setShipHp] = useState(0);          // real HP from DB
+  const [shipMaxHp, setShipMaxHp] = useState(1);
+  const [shipDestroyed, setShipDestroyed] = useState(false);
+  const [repairing, setRepairing] = useState(false);
   const [rockets, setRockets] = useState<RocketRow[]>([]);
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const [splashes, setSplashes] = useState<Splash[]>([]);
