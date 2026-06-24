@@ -4275,6 +4275,11 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      arena_dragon_duel: { Args: { _opponent: string }; Returns: Json }
+      arena_dragon_overall_level: {
+        Args: { _dp: number; _stage: number }
+        Returns: number
+      }
       assign_crew_to_ship: {
         Args: { _crew_id: string; _ship_id: string }
         Returns: {
