@@ -73,11 +73,39 @@ function formatStart(iso: string) {
   return `${d.toLocaleDateString("ar-SA", { timeZone: "Asia/Riyadh", month: "short", day: "numeric" })} الساعة ${time}`;
 }
 
+type MemberRow = {
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  total_fish: number;
+};
+
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [boards, setBoards] = useState<Record<string, LbRow[]>>({});
   const [loading, setLoading] = useState(true);
   const [myTribeId, setMyTribeId] = useState<string | null>(null);
+  const [openTribe, setOpenTribe] = useState<{ eventId: string; tribeId: string } | null>(null);
+  const [members, setMembers] = useState<Record<string, MemberRow[]>>({});
+  const [membersLoading, setMembersLoading] = useState<string | null>(null);
+
+  const toggleTribe = async (eventId: string, tribeId: string) => {
+    const key = `${eventId}:${tribeId}`;
+    if (openTribe && openTribe.eventId === eventId && openTribe.tribeId === tribeId) {
+      setOpenTribe(null);
+      return;
+    }
+    setOpenTribe({ eventId, tribeId });
+    if (!members[key]) {
+      setMembersLoading(key);
+      const { data } = await supabase.rpc(
+        "tribe_fish_event_member_leaderboard" as never,
+        { p_event_id: eventId, p_tribe_id: tribeId } as never
+      );
+      setMembers(prev => ({ ...prev, [key]: ((data ?? []) as MemberRow[]) }));
+      setMembersLoading(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
