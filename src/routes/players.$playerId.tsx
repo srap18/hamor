@@ -1732,32 +1732,52 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onBlocked, onSend, onBu
     ? "bg-rose-900/60 text-rose-200 border-rose-500/40"
     : "bg-emerald-900/60 text-emerald-200 border-emerald-500/40";
   return (
-    <div className="flex items-stretch gap-2">
-      <button disabled={busy} onClick={canSend ? (hasCrew ? onSend : onBuy) : onBlocked}
-        className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 active:scale-95 disabled:opacity-50 text-right transition-all ${canSend ? "bg-stone-800/90 border-amber-600/50 hover:border-amber-400" : "bg-stone-900/60 border-stone-700"}`}>
-        {crew.image ? <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain drop-shadow" /> : <span className="text-3xl">{crew.emoji}</span>}
+    <div className={`relative rounded-2xl border p-2.5 transition-all ${
+      canSend
+        ? (hasCrew
+            ? "border-emerald-500/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/60 shadow-[inset_0_0_15px_rgba(16,185,129,0.08)]"
+            : "border-amber-600/30 bg-gradient-to-br from-slate-800/60 to-slate-900/50")
+        : "border-slate-700/40 bg-slate-900/40 opacity-70"
+    }`}>
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0">
+          {crew.image ? (
+            <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/40 p-0.5" />
+          ) : (
+            <span className="grid w-11 h-11 place-items-center text-2xl rounded-xl bg-slate-950/60 border border-amber-600/40">{crew.emoji}</span>
+          )}
+          {hasCrew && (
+            <span className="absolute -bottom-1 -left-1 px-1.5 py-px rounded-md bg-gradient-to-b from-emerald-300 to-emerald-700 text-slate-950 text-[10px] font-black border border-emerald-200/60 shadow-md">×{qty}</span>
+          )}
+        </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-amber-200 font-bold text-sm truncate">{crew.name}</span>
-            {badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold ${toneCls}`}>{badge.text}</span>}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h4 className="text-amber-100 font-extrabold text-sm truncate">{crew.name}</h4>
+            {badge && (
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold ${toneCls}`}>{badge.text}</span>
+            )}
           </div>
-          <div className="text-[10px] text-amber-300/70 leading-tight mt-0.5 line-clamp-2">{crew.bonus}</div>
+          <p className="text-[10px] text-emerald-300/80 leading-tight line-clamp-2 mt-0.5">{crew.bonus}</p>
         </div>
-        <div className="flex flex-col items-center justify-center">
-          <span className={`text-[9px] font-bold ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? "عندك" : "شراء"}</span>
-          <span className={`text-base font-extrabold tabular-nums ${qty > 0 ? "text-emerald-300" : "text-amber-300"}`}>{hasCrew ? `×${qty}` : crew.currency === "gems" ? `💎${crew.price}` : "💰"}</span>
-        </div>
-      </button>
-      {qty === 0 && !disabled && (
-        <button disabled={busy} onClick={onBuy}
-          className="px-2.5 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-[11px] font-extrabold active:scale-95 disabled:opacity-40 flex flex-col items-center justify-center min-w-[76px] leading-tight shadow-lg">
-          <span className="text-base">🛒</span>
-          <span className="text-[10px] opacity-95 mt-0.5">
-            {crew.currency === "gems" ? `💎 ${crew.price}` : `💰 ${crew.price.toLocaleString()}`}
-          </span>
-          <span className="text-[9px] opacity-90">شراء وإرسال</span>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-amber-700/15 flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold text-amber-300/70">
+          {hasCrew ? "جاهز للإرسال" : `السعر ${crew.price.toLocaleString()} ${crew.currency === "gems" ? "💎" : "🪙"}`}
+        </span>
+        <button
+          disabled={busy}
+          onClick={canSend ? (hasCrew ? onSend : onBuy) : onBlocked}
+          className={`px-5 py-1.5 rounded-xl text-[11px] font-black active:scale-95 disabled:opacity-50 shadow-lg flex items-center gap-1.5 ${
+            !canSend
+              ? "bg-rose-900/50 text-rose-200 border border-rose-500/40"
+              : hasCrew
+                ? "bg-gradient-to-b from-emerald-400 to-emerald-700 text-white border border-emerald-300/60 shadow-emerald-900/60"
+                : "bg-gradient-to-b from-amber-300 to-amber-700 text-slate-950 border border-amber-200/60 shadow-amber-900/60"
+          }`}
+        >
+          {busy ? "..." : hasCrew ? "📨 إرسال" : "🛒 شراء وإرسال"}
         </button>
-      )}
+      </div>
     </div>
   );
 }
