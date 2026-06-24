@@ -106,7 +106,8 @@ function InventoryPage() {
         const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
         if (error) {
           const m = error.message || "";
-          if (/no_golden_fisher/i.test(m)) toast.error("ما عندك صياد ذهبي في المخزن");
+          if (/golden_fisher_temporarily_disabled/i.test(m)) toast.error("⏸️ الصياد الذهبي موقف مؤقتاً — قيد الفحص");
+          else if (/no_golden_fisher/i.test(m)) toast.error("ما عندك صياد ذهبي في المخزن");
           else toast.error("تعذر تفعيل الصياد الذهبي");
           return;
         }
