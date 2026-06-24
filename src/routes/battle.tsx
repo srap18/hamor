@@ -42,6 +42,59 @@ function BattlePage() {
   const [reward, setReward] = useState<number>(0);
   const fidRef = useRef(1);
 
+  // pick a random REAL opponent (must have a profile + dragon, not me, not the previous one)
+  async function pickRandomOpponent(meId: string, myStage: number, excludeId?: string | null): Promise<string | null> {
+    type Row = { user_id: string; stage: number };
+    const tryPool = async (q: ReturnType<typeof supabase.from>): Promise<Row[]> => {
+      const { data } = await (q as unknown as { limit: (n: number) => Promise<{ data: Row[] | null }> }).limit(60);
+      return (data ?? []).filter(r => r.user_id !== meId && r.user_id !== excludeId);
+    };
+    let pool = await tryPool(
+      supabase.from("dragons").select("user_id,stage").neq("user_id", meId).eq("stage", myStage) as unknown as ReturnType<typeof supabase.from>
+    );
+    if (pool.length === 0) {
+      pool = await tryPool(
+        supabase.from("dragons").select("user_id,stage").neq("user_id", meId)
+          .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1) as unknown as ReturnType<typeof supabase.from>
+      );
+    }
+    if (pool.length === 0) {
+      pool = await tryPool(
+        supabase.from("dragons").select("user_id,stage").neq("user_id", meId) as unknown as ReturnType<typeof supabase.from>
+      );
+    }
+    if (!pool.length) return null;
+    // verify the pick has a real profile (display_name set)
+    for (let tries = 0; tries < 5 && pool.length; tries++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const candidate = pool[idx].user_id;
+      const { data: prof } = await supabase.from("profiles")
+        .select("id,display_name").eq("id", candidate).maybeSingle();
+      if (prof?.display_name) return candidate;
+      pool.splice(idx, 1);
+    }
+    return pool[0]?.user_id ?? null;
+  }
+
+  async function loadOpponent(meId: string, myStage: number, myHp: number, forcedId?: string | null, excludeId?: string | null) {
+    const oppId = forcedId ?? await pickRandomOpponent(meId, myStage, excludeId);
+    if (!oppId) return;
+    const [{ data: oProf }, { data: oDragon }] = await Promise.all([
+      supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", oppId).maybeSingle(),
+      supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
+    ]);
+    const oStage = oDragon?.stage ?? myStage;
+    setOp({
+      id: oppId,
+      name: oProf?.display_name ?? "خصم",
+      avatar: oProf?.avatar_url ?? null,
+      emoji: oProf?.avatar_emoji ?? "🐲",
+      stage: oStage,
+      maxHp: myHp,
+      hp: myHp,
+    });
+  }
+
   // load fighters
   useEffect(() => {
     (async () => {
@@ -62,48 +115,9 @@ function BattlePage() {
         maxHp: myHp,
         hp: myHp,
       });
-
-      // opponent: from ?vs= OR fair match (same stage, then ±1, then any)
-      let oppId: string | null = vs ?? null;
-      if (!oppId) {
-        // 1) exact stage match
-        let pool: { user_id: string; stage: number }[] = [];
-        const exact = await supabase.from("dragons")
-          .select("user_id,stage").neq("user_id", user.id).eq("stage", myStage).limit(30);
-        pool = (exact.data ?? []) as typeof pool;
-        // 2) ±1 stage
-        if (pool.length === 0) {
-          const near = await supabase.from("dragons")
-            .select("user_id,stage").neq("user_id", user.id)
-            .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1).limit(30);
-          pool = (near.data ?? []) as typeof pool;
-        }
-        // 3) anyone
-        if (pool.length === 0) {
-          const any = await supabase.from("dragons")
-            .select("user_id,stage").neq("user_id", user.id).limit(30);
-          pool = (any.data ?? []) as typeof pool;
-        }
-        if (pool.length) oppId = pool[Math.floor(Math.random() * pool.length)].user_id;
-      }
-      if (!oppId) return;
-      const [{ data: oProf }, { data: oDragon }] = await Promise.all([
-        supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", oppId).maybeSingle(),
-        supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
-      ]);
-      // fair fight: match opponent HP/stage exactly to mine if stages differ
-      const oStage = oDragon?.stage ?? myStage;
-      const oHp = myHp;
-      setOp({
-        id: oppId,
-        name: oProf?.display_name ?? "خصم",
-        avatar: oProf?.avatar_url ?? null,
-        emoji: oProf?.avatar_emoji ?? "🐲",
-        stage: oStage,
-        maxHp: oHp,
-        hp: oHp,
-      });
+      await loadOpponent(user.id, myStage, myHp, vs ?? null);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vs]);
 
   // opponent auto-attack
