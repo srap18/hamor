@@ -214,7 +214,26 @@ function BossPage() {
       }
     }, 850);
 
-  }, [busy, boss, shipHp, rockets, attacksLeft, refreshAttackCost]);
+  }, [busy, boss, shipHp, shipDestroyed, rockets, attacksLeft, refreshAttackCost]);
+
+  // Compute gem cost = ceil(missing / 100), min 5 (matches repair_ship_instant)
+  const repairGemCost = (() => {
+    const missing = Math.max(0, shipMaxHp - shipHp);
+    if (missing <= 0) return 0;
+    return Math.max(5, Math.ceil(missing / 100));
+  })();
+
+  const repairShipNow = useCallback(async () => {
+    if (!selectedShip || repairing) return;
+    if (!confirm(`إصلاح ${selectedShip.catalog_code ?? "السفينة"} مقابل ${repairGemCost} 💎؟`)) return;
+    setRepairing(true);
+    const { error } = await rpc("repair_ship_instant", { _ship_id: selectedShip.id, _gems_cost: repairGemCost });
+    setRepairing(false);
+    if (error) return alert(error.message);
+    setShipHp(shipMaxHp);
+    setShipDestroyed(false);
+    setShips((arr) => arr.map((s) => s.id === selectedShip.id ? { ...s, hp: shipMaxHp, destroyed_at: null } : s));
+  }, [selectedShip, repairing, repairGemCost, shipMaxHp]);
 
   const refreshAttacks = useCallback(async () => {
     if (refreshingAttacks) return;
