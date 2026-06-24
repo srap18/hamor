@@ -54,7 +54,7 @@ function ArenaPage() {
       setMyId(user?.id ?? null);
 
       const { data: s } = await supabase.from("arena_settings").select("*").maybeSingle();
-      setSettings((s as Settings | null) ?? null);
+      setSettings((s as unknown as Settings | null) ?? null);
 
       const ws = weekStart().toISOString().slice(0, 10);
       const { data: r } = await supabase.from("arena_scores")
