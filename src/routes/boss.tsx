@@ -98,7 +98,7 @@ function BossPage() {
       setLoadingBoss(false);
       if (!user?.id) return;
       const [{ data: sh }, { data: inv }, { data: drg }, { count: defeats }] = await Promise.all([
-        supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
+        supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp,destroyed_at")
           .eq("user_id", user.id).eq("in_storage", false).order("acquired_at"),
         supabase.from("inventory").select("id,item_id,quantity")
           .eq("user_id", user.id).in("item_id", ["rocket_small", "rocket_medium", "rocket_large", "nuke"]),
@@ -107,8 +107,15 @@ function BossPage() {
       ]);
       const sList = (sh ?? []) as ShipRow[];
       setShips(sList);
-      const best = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0))[0];
+      // Prefer a non-destroyed ship, otherwise highest tier.
+      const sorted = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0));
+      const best = sorted.find((s) => !s.destroyed_at && (s.hp ?? 0) > 0) ?? sorted[0] ?? null;
       setSelectedShip(best ?? null);
+      if (best) {
+        setShipHp(Math.max(0, best.hp ?? 0));
+        setShipMaxHp(Math.max(1, best.max_hp ?? 1));
+        setShipDestroyed(!!best.destroyed_at || (best.hp ?? 0) <= 0);
+      }
       setRockets((inv ?? []) as RocketRow[]);
       if (drg?.stage) setDragonStage(drg.stage);
       if (typeof defeats === "number") setBossDefeats(defeats);
