@@ -1675,6 +1675,125 @@ export type Database = {
         }
         Relationships: []
       }
+      lucky_box_opens: {
+        Row: {
+          amount: number
+          created_at: string
+          icon: string
+          id: string
+          label: string
+          prize_id: string | null
+          prize_type: string
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          label: string
+          prize_id?: string | null
+          prize_type: string
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          label?: string
+          prize_id?: string | null
+          prize_type?: string
+          rarity?: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lucky_box_opens_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "lucky_box_prizes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lucky_box_prizes: {
+        Row: {
+          active: boolean
+          amount: number
+          created_at: string
+          icon: string
+          id: string
+          item_id: string | null
+          item_type: string | null
+          label: string
+          prize_type: string
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          amount?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          label: string
+          prize_type: string
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          label?: string
+          prize_type?: string
+          rarity?: Database["public"]["Enums"]["lucky_box_rarity"]
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      lucky_box_settings: {
+        Row: {
+          cost_gems: number
+          enabled: boolean
+          id: boolean
+          pct_common: number
+          pct_legendary: number
+          pct_rare: number
+          updated_at: string
+        }
+        Insert: {
+          cost_gems?: number
+          enabled?: boolean
+          id?: boolean
+          pct_common?: number
+          pct_legendary?: number
+          pct_rare?: number
+          updated_at?: string
+        }
+        Update: {
+          cost_gems?: number
+          enabled?: boolean
+          id?: boolean
+          pct_common?: number
+          pct_legendary?: number
+          pct_rare?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           audio_duration_ms: number | null
@@ -4956,6 +5075,7 @@ export type Database = {
         Returns: undefined
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
+      open_lucky_box: { Args: never; Returns: Json }
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
@@ -5275,6 +5395,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      lucky_box_rarity: "common" | "rare" | "legendary"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5403,6 +5524,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      lucky_box_rarity: ["common", "rare", "legendary"],
     },
   },
 } as const
