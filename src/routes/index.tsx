@@ -1630,21 +1630,20 @@ function Index() {
       <Link
         to="/quests"
         aria-label="المهام والإنجازات"
-        className="fixed z-40 flex flex-col items-center justify-center active:scale-95 transition"
+        className="fixed z-30 flex flex-col items-center justify-center active:scale-95 transition rounded-xl"
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
-          top: "calc(env(safe-area-inset-top, 0px) + 230px)",
-          width: 40,
-          height: 40,
-          borderRadius: 10,
+          top: "calc(env(safe-area-inset-top, 0px) + 250px)",
+          width: 44,
+          height: 50,
           background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
-          border: "1.5px solid #fde68a",
+          border: "2px solid #fde68a",
           boxShadow: "0 3px 10px rgba(0,0,0,.7), 0 0 12px rgba(251,191,36,.4)",
           color: "#1a0f04",
         }}
       >
-        <span style={{ fontSize: 18, lineHeight: 1 }}>🏆</span>
-        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
+        <span style={{ fontSize: 20, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
       </Link>
 
 
@@ -1944,8 +1943,12 @@ function Index() {
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
       <button
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
-        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl flex flex-col items-center justify-center active:scale-95"
+        className="fixed z-30 rounded-2xl flex flex-col items-center justify-center active:scale-95"
         style={{
+          left: "calc(env(safe-area-inset-left, 0px) + 8px)",
+          top: "calc(env(safe-area-inset-top, 0px) + 190px)",
+          width: 44,
+          height: 50,
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
           border: "2px solid #ffe9a8",
