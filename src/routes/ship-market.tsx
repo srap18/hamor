@@ -202,15 +202,9 @@ function ShipyardPage() {
       showToast("ارفع مستوى السوق أولًا");
       return;
     }
-    const coinShortfall = Math.max(0, ship.price - (profile.coins ?? 0));
-    const gemsNeeded = Math.ceil(coinShortfall / 1000);
-    if (coinShortfall > 0 && (profile.gems ?? 0) < gemsNeeded) {
-      showToast(`الذهب والجواهر غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`);
+    if ((profile.coins ?? 0) < ship.price) {
+      showToast("الذهب غير كافٍ — شراء السفن بالذهب فقط");
       return;
-    }
-    if (coinShortfall > 0) {
-      const ok = window.confirm(`الذهب غير كافٍ. سيتم خصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`);
-      if (!ok) return;
     }
 
     setBusy(ship.code);
