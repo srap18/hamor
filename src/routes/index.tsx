@@ -281,6 +281,13 @@ function shipSellPrice(level: number) {
   return Math.max(150, Math.round(getShipByMarketLevel(level).price * 0.5));
 }
 
+// Module-scoped flag shared by Index (writer) and ShipSlot (reader).
+// Set to true when the last golden fisher tick reported the storehouse
+// is full so the deposit can't make progress.
+const gfMarketFullRef = { current: false };
+
+
+
 
 
 function Index() {
