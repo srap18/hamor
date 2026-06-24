@@ -50,7 +50,7 @@ function BattlePage() {
       const { data: scores } = await supabase
         .from("arena_scores")
         .select("user_id, score, wins")
-        .eq("week_key", weekKey)
+        .eq("week_start", weekKey)
         .order("score", { ascending: false })
         .limit(20);
 
