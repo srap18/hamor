@@ -51,6 +51,12 @@ function BattlePage() {
   const [shake, setShake] = useState<"me" | "op" | null>(null);
   const [reward, setReward] = useState<number>(0);
   const fidRef = useRef(1);
+  const meRef = useRef<Fighter | null>(null);
+  const opRef = useRef<Fighter | null>(null);
+  const resultRef = useRef<"win" | "lose" | null>(null);
+  useEffect(() => { meRef.current = me; }, [me]);
+  useEffect(() => { opRef.current = op; }, [op]);
+  useEffect(() => { resultRef.current = result; }, [result]);
 
   // pick a matched opponent: prefer equal stage; otherwise pick the closest stage
   async function pickRandomOpponent(meId: string, myStage: number, excludeId?: string | null): Promise<string | null> {
