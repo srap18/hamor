@@ -306,23 +306,76 @@ function BattlePage() {
             )}
           </div>
 
-          {/* Bolts (fire) */}
-          {bolts.map(b => (
-            <div key={b.id} className="absolute pointer-events-none"
-              style={{
-                top: "55%",
-                [b.from === "me" ? "left" : "right"]: "38%",
-                width: 60, height: 28,
-                animation: `${b.from === "me" ? "bolt-mr" : "bolt-ml"} 0.55s linear forwards`,
+          {/* Fire breath — cone of flame from dragon's mouth */}
+          {bolts.map(b => {
+            const fromMe = b.from === "me";
+            // anchor at the mouth area of the attacking dragon
+            const anchor = fromMe
+              ? { left: "38%" }            // mouth of left dragon
+              : { right: "38%" };          // mouth of right dragon
+            return (
+              <div key={b.id} className="absolute pointer-events-none" style={{
+                top: "48%",
+                width: "48%",
+                height: 70,
+                ...anchor,
+                animation: `${fromMe ? "flame-r" : "flame-l"} 0.7s ease-out forwards`,
               } as React.CSSProperties}>
-              <div className="w-full h-full rounded-full"
-                style={{
-                  background: "radial-gradient(circle, #fff7c2 0%, #ffb347 30%, #ff4500 65%, transparent 75%)",
-                  boxShadow: "0 0 25px #ff7a00, 0 0 60px rgba(255,80,0,0.7)",
-                  transform: b.from === "op" ? "scaleX(-1)" : undefined,
-                }} />
-            </div>
-          ))}
+                {/* muzzle flash at the mouth */}
+                <div className="absolute rounded-full"
+                  style={{
+                    [fromMe ? "left" : "right"]: -14,
+                    top: "50%",
+                    width: 50, height: 50, transform: "translateY(-50%)",
+                    background: "radial-gradient(circle, #fffde7 0%, #ffd24a 30%, #ff7a00 55%, transparent 70%)",
+                    boxShadow: "0 0 40px #ff7a00, 0 0 80px rgba(255,80,0,0.8)",
+                    animation: "muzzle 0.45s ease-out forwards",
+                  } as React.CSSProperties} />
+                {/* main flame cone (gradient stream) */}
+                <div className="absolute inset-0" style={{
+                  background: fromMe
+                    ? "linear-gradient(90deg, rgba(255,253,231,0.95) 0%, #ffd24a 12%, #ff8a00 38%, #ff2d00 68%, rgba(255,45,0,0) 100%)"
+                    : "linear-gradient(270deg, rgba(255,253,231,0.95) 0%, #ffd24a 12%, #ff8a00 38%, #ff2d00 68%, rgba(255,45,0,0) 100%)",
+                  clipPath: fromMe
+                    ? "polygon(0% 45%, 0% 55%, 100% 90%, 100% 10%)"
+                    : "polygon(100% 45%, 100% 55%, 0% 90%, 0% 10%)",
+                  filter: "blur(2px) drop-shadow(0 0 18px #ff5500)",
+                  animation: "flicker 0.18s linear infinite",
+                } as React.CSSProperties} />
+                {/* inner white-hot core */}
+                <div className="absolute" style={{
+                  top: "50%", transform: "translateY(-50%)",
+                  [fromMe ? "left" : "right"]: 0,
+                  width: "85%", height: 18,
+                  background: fromMe
+                    ? "linear-gradient(90deg, #ffffff 0%, #fff7c2 25%, #ffb347 60%, rgba(255,120,0,0) 100%)"
+                    : "linear-gradient(270deg, #ffffff 0%, #fff7c2 25%, #ffb347 60%, rgba(255,120,0,0) 100%)",
+                  filter: "blur(3px)",
+                  borderRadius: 999,
+                  mixBlendMode: "screen",
+                } as React.CSSProperties} />
+                {/* embers */}
+                {Array.from({ length: 8 }).map((_, i) => {
+                  const ex = (fromMe ? 1 : -1) * (40 + Math.random() * 120);
+                  const ey = (Math.random() - 0.5) * 60;
+                  return (
+                    <div key={i} className="absolute rounded-full"
+                      style={{
+                        [fromMe ? "left" : "right"]: `${20 + i * 8}%`,
+                        top: `${30 + Math.random() * 40}%`,
+                        width: 6, height: 6,
+                        background: "#ffd24a",
+                        boxShadow: "0 0 8px #ff7a00",
+                        ["--ex" as string]: `${ex}px`,
+                        ["--ey" as string]: `${ey}px`,
+                        animation: `ember 0.65s ease-out forwards`,
+                        animationDelay: `${i * 30}ms`,
+                      } as React.CSSProperties} />
+                  );
+                })}
+              </div>
+            );
+          })}
 
           {/* Float damage numbers */}
           {floats.map(fn => (
