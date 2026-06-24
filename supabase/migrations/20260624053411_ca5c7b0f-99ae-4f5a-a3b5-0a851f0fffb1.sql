@@ -1,0 +1,1 @@
+TRUNCATE TABLE public.arena_scores;
