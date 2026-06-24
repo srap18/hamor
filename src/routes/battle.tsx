@@ -419,7 +419,18 @@ function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "
             : <span>{avatarFallback(f?.emoji ?? "")}</span>}
         </div>
         <div className={`flex-1 min-w-0 ${align}`}>
-          <div className="text-[11px] font-extrabold text-amber-100 truncate">{f?.name ?? "..."}</div>
+          <div className={`flex items-center gap-1 ${side === "op" ? "flex-row-reverse" : ""}`}>
+            <div className="text-[11px] font-extrabold text-amber-100 truncate">{f?.name ?? "..."}</div>
+            {f && (
+              <span className="text-[9px] font-black px-1 rounded bg-amber-600/30 border border-amber-500/50 text-amber-200 tabular-nums shrink-0">
+                Lv{f.stage}
+              </span>
+            )}
+          </div>
+          {/* Power */}
+          <div className={`text-[9px] font-bold text-cyan-200 tabular-nums leading-tight ${align}`}>
+            ⚔️ القوة: {f ? f.power : "—"}
+          </div>
           {/* HP bar */}
           <div className="relative h-3 rounded-full bg-black/70 border border-stone-700 overflow-hidden mt-0.5">
             <div className="absolute inset-y-0 transition-[width] duration-300"
@@ -427,13 +438,13 @@ function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "
                 [side === "me" ? "left" : "right"]: 0,
                 width: `${pct}%`,
                 background: pct > 40
-                  ? "linear-gradient(90deg,#ef4444,#dc2626 60%,#7f1d1d)"
+                  ? "linear-gradient(90deg,#22c55e,#16a34a 60%,#14532d)"
                   : "linear-gradient(90deg,#ef4444,#f97316)",
                 boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.4)",
               } as React.CSSProperties} />
             <div className={`absolute inset-0 flex items-center justify-${side === "me" ? "start" : "end"} px-1.5`}>
               <span className="text-[9px] font-black text-white drop-shadow tabular-nums">
-                {f ? `${f.hp}/${f.maxHp}` : "—"}
+                {f ? `❤️ ${f.hp}/${f.maxHp}` : "—"}
               </span>
             </div>
           </div>
