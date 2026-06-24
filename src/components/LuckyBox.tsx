@@ -27,7 +27,7 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="صندوق الحظ"
-        className="fixed left-3 bottom-28 z-[60] w-12 h-14 rounded-xl flex flex-col items-center justify-center active:scale-95"
+        className="absolute right-2 top-[16%] z-20 w-14 h-16 rounded-2xl flex flex-col items-center justify-center active:scale-95"
         style={{
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #fff3c0 0%, #f5c84a 30%, #c48a1a 70%, #5b2f06 100%)",
@@ -37,14 +37,14 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
         }}
       >
         <span
-          className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-lg opacity-60"
+          className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60"
           style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }}
         />
-        <span className="relative text-2xl animate-[lb-bob_2.4s_ease-in-out_infinite]"
+        <span className="relative text-3xl animate-[lb-bob_2.4s_ease-in-out_infinite]"
               style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🎁</span>
-        <span className="relative text-[9px] font-black mt-0.5"
+        <span className="relative text-[10px] font-black mt-0.5"
               style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>حظ</span>
-        <span className="absolute -inset-1 rounded-xl pointer-events-none animate-[lb-halo_2s_ease-in-out_infinite]"
+        <span className="absolute -inset-1 rounded-2xl pointer-events-none animate-[lb-halo_2s_ease-in-out_infinite]"
               style={{ boxShadow: "0 0 22px 4px rgba(255,210,80,0.55)" }} />
         <style>{`
           @keyframes lb-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
