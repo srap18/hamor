@@ -152,6 +152,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
 
   useEffect(() => {
     let alive = true;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     const load = async () => {
       let u = userId;
       if (!u) {
@@ -160,7 +162,6 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
       }
       if (!u) return;
       if (alive) setUid(u);
-      // Hydrate from cache first (covers the case where userId was unknown at mount).
       const cached = readCachedDragon(u);
       if (alive && cached) {
         setStage(cached.stage);
@@ -179,13 +180,38 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         setDp(nextDp);
         try { localStorage.setItem(CACHE_KEY(u), JSON.stringify({ stage: nextStage, dp: nextDp })); } catch {}
       }
+
+      // Subscribe to realtime row changes so /dragon edits show on the shore instantly.
+      if (!channel && alive && u) {
+        const userKey = u;
+        channel = supabase
+          .channel(`dragon-shore-${userKey}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "dragons", filter: `user_id=eq.${userKey}` },
+            (payload) => {
+              const row = (payload.new ?? payload.old) as { stage?: number; dp?: number } | null;
+              if (!row || !alive) return;
+              const nextStage = row.stage ?? 1;
+              const nextDp = typeof row.dp === "number" ? row.dp : 0;
+              setStage(nextStage);
+              setDp(nextDp);
+              try { localStorage.setItem(CACHE_KEY(userKey), JSON.stringify({ stage: nextStage, dp: nextDp })); } catch {}
+            },
+          )
+          .subscribe();
+      }
     };
     load();
+    // Light poll so in-app SPA navigation (e.g. back from /dragon) refreshes quickly.
+    pollTimer = setInterval(load, 6000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", load);
     return () => {
       alive = false;
+      if (pollTimer) clearInterval(pollTimer);
+      if (channel) supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", load);
     };
