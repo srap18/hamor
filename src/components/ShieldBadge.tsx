@@ -33,10 +33,7 @@ export function ShieldBadge() {
     if (!window.confirm("هل تريد إزالة الدرع؟ سيتم إيقافه فوراً وتصير عرضة للهجمات.")) return;
     setBusy(true);
     try {
-      const { error } = await (supabase as any)
-        .from("profiles")
-        .update({ protection_until: null })
-        .eq("id", profile.id);
+      const { error } = await (supabase as any).rpc("drop_my_protection");
       if (error) throw error;
       toast.success("🗑️ تم إزالة الدرع");
       refreshProfile();
