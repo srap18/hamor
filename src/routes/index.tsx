@@ -21,6 +21,7 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
+import { LuckyBoxButton, LuckyBoxGlobalBanner } from "@/components/LuckyBox";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
