@@ -1,0 +1,184 @@
+CREATE OR REPLACE FUNCTION public.golden_fisher_tick(_user uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  _ship record; _pool jsonb; _pool_len int; _chosen text;
+  _capacity int; _market_remaining bigint; _qty bigint; _unit_value bigint;
+  _cycles int := 0; _ships_processed int := 0; _total_cycles int := 0;
+  _now timestamptz := now(); _elapsed numeric; _effective_elapsed numeric;
+  _duration int; _active_until timestamptz;
+  _luck_mult int; _has_luck boolean;
+  _has_sailor boolean; _sailor_assigned_at timestamptz;
+  _has_guide boolean; _preferred text; _ship_preferred text;
+  _n_cycles int; _consumed_cycles int; _hp_ratio numeric;
+  _market_was_full boolean := false;
+BEGIN
+  SELECT public.golden_fisher_active_until(_user) INTO _active_until;
+  IF _active_until IS NULL OR _active_until <= _now THEN
+    RETURN jsonb_build_object('ok', false, 'reason', 'not_active');
+  END IF;
+
+  UPDATE public.profiles
+     SET golden_fisher_until = GREATEST(COALESCE(golden_fisher_until, '-infinity'::timestamptz), _active_until)
+   WHERE id = _user;
+
+  UPDATE public.ships_owned
+     SET at_sea = false, fishing_started_at = NULL,
+         stealing_target_user_id = NULL, stealing_target_ship_id = NULL,
+         stealing_ends_at = NULL, stealing_started_at = NULL
+   WHERE stealing_target_user_id = _user
+     AND COALESCE((SELECT protection_until FROM public.profiles WHERE id = _user), '-infinity'::timestamptz) > _now;
+
+  _market_remaining := public.user_market_remaining(_user);
+  _market_was_full := (_market_remaining <= 0);
+
+  -- If market is full, do NOT advance any ship. Pause completely so the
+  -- player has to sell fish first; ships keep their natural state.
+  IF _market_was_full THEN
+    RETURN jsonb_build_object(
+      'ok', true, 'ships', 0, 'cycles', 0, 'market_full', true
+    );
+  END IF;
+
+  -- Auto-relaunch eligible ships that aren't currently fishing so the
+  -- player doesn't have to manually re-send them. NO time boost — the
+  -- timer starts at _now and the ship fishes at its natural speed.
+  UPDATE public.ships_owned s
+     SET at_sea = true,
+         fishing_started_at = _now
+    FROM public.ship_catalog c
+   WHERE c.code = s.catalog_code
+     AND s.user_id = _user
+     AND s.in_storage = false
+     AND s.destroyed_at IS NULL
+     AND (s.repair_ends_at IS NULL OR s.repair_ends_at <= _now)
+     AND s.stealing_target_user_id IS NULL
+     AND s.stealing_ends_at IS NULL
+     AND (s.at_sea = false OR s.fishing_started_at IS NULL);
+
+  FOR _ship IN
+    SELECT s.*, c.fishing_seconds, c.fish_pool, c.storage
+    FROM public.ships_owned s
+    JOIN public.ship_catalog c ON c.code = s.catalog_code
+    WHERE s.user_id = _user
+      AND s.in_storage = false
+      AND s.destroyed_at IS NULL
+      AND (s.repair_ends_at IS NULL OR s.repair_ends_at <= _now)
+      AND s.stealing_target_user_id IS NULL
+      AND s.stealing_ends_at IS NULL
+      AND s.at_sea = true
+      AND s.fishing_started_at IS NOT NULL
+  LOOP
+    _hp_ratio := 1;
+    IF _ship.max_hp IS NOT NULL AND _ship.max_hp > 0 AND _ship.hp IS NOT NULL THEN
+      _hp_ratio := _ship.hp::numeric / _ship.max_hp::numeric;
+      IF _hp_ratio < 0.30 THEN
+        UPDATE public.ships_owned SET at_sea = false, fishing_started_at = NULL WHERE id = _ship.id;
+        CONTINUE;
+      END IF;
+      _hp_ratio := GREATEST(0.05, LEAST(1.0, _hp_ratio));
+    END IF;
+
+    _duration := GREATEST(60, COALESCE(_ship.fishing_seconds, 600));
+    _elapsed := EXTRACT(EPOCH FROM (_now - _ship.fishing_started_at));
+
+    SELECT EXISTS (
+      SELECT 1 FROM public.inventory
+       WHERE user_id = _user AND item_type='crew' AND item_id='sailor'
+         AND (meta->>'assigned_ship_id') = _ship.id::text AND quantity > 0
+    ) INTO _has_sailor;
+
+    IF _has_sailor THEN
+      SELECT MIN(acquired_at) INTO _sailor_assigned_at
+      FROM public.inventory
+       WHERE user_id = _user AND item_type='crew' AND item_id='sailor'
+         AND (meta->>'assigned_ship_id') = _ship.id::text AND quantity > 0;
+      IF _sailor_assigned_at IS NULL THEN _sailor_assigned_at := _now; END IF;
+      _effective_elapsed := _elapsed + EXTRACT(EPOCH FROM (_now - GREATEST(_ship.fishing_started_at, _sailor_assigned_at))) * 0.10;
+    ELSE
+      _effective_elapsed := _elapsed;
+    END IF;
+
+    -- Only ONE cycle per tick maximum. Golden fisher must never run faster
+    -- than the ship's natural fishing speed.
+    _n_cycles := FLOOR(_effective_elapsed / _duration)::int;
+    IF _n_cycles < 1 THEN CONTINUE; END IF;
+    _n_cycles := 1;
+
+    SELECT EXISTS (
+      SELECT 1 FROM public.inventory
+       WHERE user_id = _user AND item_type='crew' AND item_id='luck'
+         AND (meta->>'assigned_ship_id') = _ship.id::text AND quantity > 0
+         AND ((meta->>'expires_at') IS NULL OR (meta->>'expires_at')::timestamptz > _now)
+    ) INTO _has_luck;
+    _luck_mult := CASE WHEN _has_luck THEN 2 ELSE 1 END;
+
+    SELECT EXISTS (
+      SELECT 1 FROM public.inventory
+       WHERE user_id = _user AND item_type='crew' AND item_id='guide'
+         AND (meta->>'assigned_ship_id') = _ship.id::text AND quantity > 0
+    ) INTO _has_guide;
+
+    _preferred := NULL;
+    IF _has_guide THEN
+      SELECT meta->>'preferred_fish_id' INTO _preferred FROM public.inventory
+       WHERE user_id = _user AND item_type='crew' AND item_id='guide'
+         AND (meta->>'assigned_ship_id') = _ship.id::text
+       LIMIT 1;
+    END IF;
+    _ship_preferred := COALESCE(_preferred, _ship.preferred_fish_id);
+
+    _capacity := GREATEST(1, FLOOR(GREATEST(1, COALESCE(_ship.storage, 0)) * _hp_ratio)::int);
+
+    _consumed_cycles := 0;
+    IF _market_remaining > 0 THEN
+      _pool := COALESCE(_ship.fish_pool, '[]'::jsonb);
+      _pool_len := jsonb_array_length(_pool);
+      IF _pool_len > 0 THEN
+        IF _ship_preferred IS NOT NULL AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(_pool) v WHERE v = _ship_preferred
+        ) THEN
+          _chosen := _ship_preferred;
+        ELSE
+          _chosen := _pool->>FLOOR(random() * _pool_len)::int;
+        END IF;
+
+        IF _chosen IS NOT NULL THEN
+          SELECT COALESCE(current_price, 0)::bigint INTO _unit_value
+            FROM public.fish_market_prices WHERE fish_id = _chosen LIMIT 1;
+          _unit_value := COALESCE(_unit_value, 0);
+
+          _qty := (_capacity::bigint) * _luck_mult;
+          _qty := LEAST(_qty, _market_remaining);
+          IF _qty >= 1 THEN
+            INSERT INTO public.fish_stock (user_id, ship_id, fish_id, quantity, caught_at, base_value)
+            VALUES (_user, _ship.id, _chosen, _qty, _now, _unit_value);
+            _market_remaining := _market_remaining - _qty;
+            _consumed_cycles := 1;
+          END IF;
+        END IF;
+      END IF;
+    END IF;
+
+    -- Restart the natural cycle from now. No backward boost.
+    IF _consumed_cycles > 0 THEN
+      UPDATE public.ships_owned
+         SET fishing_started_at = _now,
+             at_sea = true
+       WHERE id = _ship.id;
+      _ships_processed := _ships_processed + 1;
+      _total_cycles := _total_cycles + _consumed_cycles;
+    END IF;
+  END LOOP;
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'ships', _ships_processed,
+    'cycles', _total_cycles,
+    'market_full', _market_was_full
+  );
+END;
+$function$;
