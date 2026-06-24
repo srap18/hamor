@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { overallLevel, type Dragon } from "@/lib/dragon";
 
 export const Route = createFileRoute("/arena")({
   ssr: false,
@@ -47,6 +48,7 @@ function ArenaPage() {
   const [names, setNames] = useState<Record<string, { display_name: string; avatar_emoji: string }>>({});
   const [myId, setMyId] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [dragonLvl, setDragonLvl] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -55,6 +57,15 @@ function ArenaPage() {
 
       const { data: s } = await supabase.from("arena_settings").select("*").maybeSingle();
       setSettings((s as unknown as Settings | null) ?? null);
+
+      if (user?.id) {
+        const { data: d } = await supabase.from("dragons")
+          .select("user_id,name,stage,dp,total_boss_damage,pvp_wins,pvp_losses,element,hatched_at,created_at,updated_at")
+          .eq("user_id", user.id).maybeSingle();
+        setDragonLvl(d ? overallLevel(d as Dragon) : 0);
+      } else {
+        setDragonLvl(0);
+      }
 
       const ws = weekStart().toISOString().slice(0, 10);
       const { data: r } = await supabase.from("arena_scores")
@@ -130,15 +141,23 @@ function ArenaPage() {
           </div>
         )}
 
-        <Link to="/battle"
-          className="block mb-3 py-4 rounded-2xl text-center font-black text-lg text-white shadow-2xl active:scale-95"
-          style={{
-            background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
-            boxShadow: "0 0 30px rgba(255,80,0,0.6)",
-            border: "2px solid rgba(255,200,100,0.7)",
-          }}>
-          🔥 ادخل المعركة
-        </Link>
+        {dragonLvl !== null && dragonLvl < 3 ? (
+          <div className="block mb-3 py-4 px-3 rounded-2xl text-center font-black text-base text-amber-100 shadow-2xl border-2 border-amber-500/60"
+               style={{ background: "linear-gradient(180deg,#3b1d0a 0%,#1a0a04 100%)" }}>
+            🥚 لازم تفقّس البيضة أولاً
+            <div className="text-amber-300/80 text-xs font-bold mt-1">ادخل الأرينا من مستوى تنين ٣ وفوق</div>
+          </div>
+        ) : (
+          <Link to="/battle"
+            className="block mb-3 py-4 rounded-2xl text-center font-black text-lg text-white shadow-2xl active:scale-95"
+            style={{
+              background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
+              boxShadow: "0 0 30px rgba(255,80,0,0.6)",
+              border: "2px solid rgba(255,200,100,0.7)",
+            }}>
+            🔥 ادخل المعركة
+          </Link>
+        )}
 
         <div className="bg-stone-900/70 border border-amber-600/40 rounded-2xl p-3 mb-3 backdrop-blur">
           <div className="text-amber-200 text-sm font-bold mb-2 text-center">🎁 جوائز نهاية الأسبوع</div>
