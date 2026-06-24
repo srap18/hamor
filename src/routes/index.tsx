@@ -785,6 +785,7 @@ function Index() {
   const [crewBusy, setCrewBusy] = useState(false);
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const buyingCrewRef = useRef<string | null>(null);
+  const [crewBuyQty, setCrewBuyQty] = useState<Record<string, number>>({});
   const crewRowsRef = useRef<CrewRow[]>([]);
   const crewLoadedRef = useRef(false);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
