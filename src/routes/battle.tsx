@@ -172,7 +172,7 @@ function BattlePage() {
 
   function doOpponentAttack() {
     if (!me || !op || result) return;
-    const base = 35 + op.stage * 10;
+    const base = Math.round(op.power * 0.75);
     const crit = Math.random() < 0.12;
     const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("op");
