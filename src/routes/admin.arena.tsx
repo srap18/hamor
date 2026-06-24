@@ -48,7 +48,7 @@ function AdminArenaPage() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("arena_settings").select("*").maybeSingle();
-    if (data) setS({ ...DEFAULT_SETTINGS, ...(data as Settings) });
+    if (data) setS({ ...DEFAULT_SETTINGS, ...(data as unknown as Settings) });
     const ws = (() => {
       const d = new Date();
       const day = d.getUTCDay();
