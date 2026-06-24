@@ -1,4 +1,4 @@
-import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, dragonBonusForLevel, dragonTierTable, applyDragonAttack, applyDragonDefense } from "@/lib/dragon";
