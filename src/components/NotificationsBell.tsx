@@ -134,7 +134,7 @@ export function NotificationsBell() {
 
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)}>
+          <div className="fixed inset-0 z-[60] bg-black/50" onClick={() => setOpen(false)}>
             <div
               className="absolute top-20 right-2 left-2 max-w-sm mx-auto max-h-[70vh] overflow-y-auto rounded-2xl border-2 border-amber-400/80 bg-stone-950/95 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
