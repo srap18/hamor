@@ -201,11 +201,11 @@ function BattlePage() {
   }
 
   async function finishWin() {
-    if (result) return;
+    if (resultRef.current) return;
+    resultRef.current = "win";
     setResult("win");
     const r = 5 + Math.floor(Math.random() * 6);
     setReward(r);
-    // award arena points (best-effort)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -224,17 +224,23 @@ function BattlePage() {
     } catch { /* ignore */ }
   }
   function finishLose() {
-    if (result) return;
+    if (resultRef.current) return;
+    resultRef.current = "lose";
     setResult("lose");
   }
 
   async function rematch() {
-    if (!me) return;
+    const cur = meRef.current;
+    if (!cur) return;
+    resultRef.current = null;
     setResult(null);
     setReward(0);
-    setMe({ ...me, hp: me.maxHp });
+    const reset = { ...cur, hp: cur.maxHp };
+    meRef.current = reset;
+    setMe(reset);
+    opRef.current = null;
     setOp(null);
-    await loadOpponent(me.id, me.stage, me.maxHp, null, op?.id ?? null);
+    await loadOpponent(cur.id, cur.stage, cur.maxHp, null, opRef.current ? (opRef.current as Fighter).id : null);
   }
 
   const myStageImg = useMemo(() => getStage(me?.stage ?? 1).image, [me?.stage]);
