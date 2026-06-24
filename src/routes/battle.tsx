@@ -1,15 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getStage } from "@/lib/dragon";
 
 export const Route = createFileRoute("/battle")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     vs: typeof s.vs === "string" ? s.vs : undefined,
   }),
-  head: () => ({ meta: [{ title: "⚔️ معركة الأرينا" }] }),
+  head: () => ({ meta: [{ title: "⚔️ مبارزة التنانين" }] }),
   component: BattlePage,
 });
+
+type DuelResult = {
+  won: boolean;
+  my_level: number;
+  opp_level: number;
+  my_stage: number;
+  opp_stage: number;
+  score: number;
+  win_chance: number;
+  opp_name: string;
+};
 
 type Opponent = {
   user_id: string;
