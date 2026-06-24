@@ -167,10 +167,16 @@ function BattlePage() {
       <div className="relative z-10 max-w-md mx-auto px-3 pt-16 pb-24">
         <div className="text-center mb-4">
           <div className="inline-block px-5 py-2 rounded-full bg-gradient-to-r from-rose-700/40 to-amber-700/40 border border-amber-400/60 shadow-lg">
-            <div className="text-amber-100 font-extrabold text-xl">⚔️ ساحة المعارك</div>
-            <div className="text-amber-300/80 text-[11px]">اختر خصمك واهجمه — كل انتصار يرفع نقاط الأرينا</div>
+            <div className="text-amber-100 font-extrabold text-xl">🐉 مبارزة التنانين</div>
+            <div className="text-amber-300/80 text-[11px]">تنينك ضد تنين خصمك — كل انتصار يرفع نقاط الأرينا</div>
           </div>
         </div>
+
+        {errorMsg && (
+          <div className="mb-3 rounded-xl bg-rose-900/40 border border-rose-500/50 text-rose-100 text-center text-sm py-2 font-bold">
+            {errorMsg}
+          </div>
+        )}
 
         {eventMult > 1 && (
           <div
