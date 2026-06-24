@@ -19,6 +19,7 @@ type Fighter = {
   avatar: string | null;
   emoji: string;
   stage: number;
+  power: number;
   maxHp: number;
   hp: number;
 };
@@ -28,6 +29,15 @@ type Bolt = { id: number; from: "me" | "op" };
 
 function avatarFallback(emoji: string) {
   return emoji || "🐉";
+}
+
+// HP & power scale with dragon stage so stronger dragons feel stronger
+function statsForStage(stage: number) {
+  const s = Math.max(1, stage);
+  return {
+    maxHp: 350 + s * 110,
+    power: 80 + s * 28,
+  };
 }
 
 function BattlePage() {
@@ -42,41 +52,36 @@ function BattlePage() {
   const [reward, setReward] = useState<number>(0);
   const fidRef = useRef(1);
 
-  // pick a random REAL opponent (must have a profile + dragon, not me, not the previous one)
+  // pick a matched opponent: prefer equal stage; otherwise pick the closest stage
   async function pickRandomOpponent(meId: string, myStage: number, excludeId?: string | null): Promise<string | null> {
     type Row = { user_id: string; stage: number };
-    const tryPool = async (q: ReturnType<typeof supabase.from>): Promise<Row[]> => {
-      const { data } = await (q as unknown as { limit: (n: number) => Promise<{ data: Row[] | null }> }).limit(60);
-      return (data ?? []).filter(r => r.user_id !== meId && r.user_id !== excludeId);
-    };
-    let pool = await tryPool(
-      supabase.from("dragons").select("user_id,stage").neq("user_id", meId).eq("stage", myStage) as unknown as ReturnType<typeof supabase.from>
-    );
-    if (pool.length === 0) {
-      pool = await tryPool(
-        supabase.from("dragons").select("user_id,stage").neq("user_id", meId)
-          .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1) as unknown as ReturnType<typeof supabase.from>
-      );
-    }
-    if (pool.length === 0) {
-      pool = await tryPool(
-        supabase.from("dragons").select("user_id,stage").neq("user_id", meId) as unknown as ReturnType<typeof supabase.from>
-      );
-    }
+    const { data: allRows } = await supabase
+      .from("dragons")
+      .select("user_id,stage")
+      .neq("user_id", meId)
+      .limit(500);
+    const pool: Row[] = (allRows ?? []).filter(r => r.user_id !== excludeId);
     if (!pool.length) return null;
-    // verify the pick has a real profile (display_name set)
-    for (let tries = 0; tries < 5 && pool.length; tries++) {
-      const idx = Math.floor(Math.random() * pool.length);
-      const candidate = pool[idx].user_id;
+    // prefer exact stage, else find the minimum stage difference
+    const exact = pool.filter(r => r.stage === myStage);
+    let candidates: Row[] = exact;
+    if (!candidates.length) {
+      const minDiff = Math.min(...pool.map(r => Math.abs(r.stage - myStage)));
+      candidates = pool.filter(r => Math.abs(r.stage - myStage) === minDiff);
+    }
+    // verify a real profile (display_name set), up to 5 random picks
+    for (let tries = 0; tries < 5 && candidates.length; tries++) {
+      const idx = Math.floor(Math.random() * candidates.length);
+      const candidate = candidates[idx].user_id;
       const { data: prof } = await supabase.from("profiles")
         .select("id,display_name").eq("id", candidate).maybeSingle();
       if (prof?.display_name) return candidate;
-      pool.splice(idx, 1);
+      candidates.splice(idx, 1);
     }
-    return pool[0]?.user_id ?? null;
+    return candidates[0]?.user_id ?? pool[0]?.user_id ?? null;
   }
 
-  async function loadOpponent(meId: string, myStage: number, myHp: number, forcedId?: string | null, excludeId?: string | null) {
+  async function loadOpponent(meId: string, myStage: number, _myHp: number, forcedId?: string | null, excludeId?: string | null) {
     const oppId = forcedId ?? await pickRandomOpponent(meId, myStage, excludeId);
     if (!oppId) return;
     const [{ data: oProf }, { data: oDragon }] = await Promise.all([
@@ -84,14 +89,16 @@ function BattlePage() {
       supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
     ]);
     const oStage = oDragon?.stage ?? myStage;
+    const { maxHp, power } = statsForStage(oStage);
     setOp({
       id: oppId,
       name: oProf?.display_name ?? "خصم",
       avatar: oProf?.avatar_url ?? null,
       emoji: oProf?.avatar_emoji ?? "🐲",
       stage: oStage,
-      maxHp: myHp,
-      hp: myHp,
+      power,
+      maxHp,
+      hp: maxHp,
     });
   }
 
@@ -105,13 +112,14 @@ function BattlePage() {
         supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
       ]);
       const myStage = myDragon?.stage ?? 1;
-      const myHp = 400 + myStage * 80;
+      const { maxHp: myHp, power: myPower } = statsForStage(myStage);
       setMe({
         id: user.id,
         name: myProf?.display_name ?? "أنا",
         avatar: myProf?.avatar_url ?? null,
         emoji: myProf?.avatar_emoji ?? "🐉",
         stage: myStage,
+        power: myPower,
         maxHp: myHp,
         hp: myHp,
       });
@@ -145,7 +153,7 @@ function BattlePage() {
     if (!me || !op || busy || result) return;
     setBusy(true);
     const crit = Math.random() < 0.18;
-    const base = 50 + me.stage * 12;
+    const base = me.power;
     const dmg = Math.max(10, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("me");
     setTimeout(() => {
@@ -164,7 +172,7 @@ function BattlePage() {
 
   function doOpponentAttack() {
     if (!me || !op || result) return;
-    const base = 35 + op.stage * 10;
+    const base = Math.round(op.power * 0.75);
     const crit = Math.random() < 0.12;
     const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("op");
@@ -411,7 +419,18 @@ function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "
             : <span>{avatarFallback(f?.emoji ?? "")}</span>}
         </div>
         <div className={`flex-1 min-w-0 ${align}`}>
-          <div className="text-[11px] font-extrabold text-amber-100 truncate">{f?.name ?? "..."}</div>
+          <div className={`flex items-center gap-1 ${side === "op" ? "flex-row-reverse" : ""}`}>
+            <div className="text-[11px] font-extrabold text-amber-100 truncate">{f?.name ?? "..."}</div>
+            {f && (
+              <span className="text-[9px] font-black px-1 rounded bg-amber-600/30 border border-amber-500/50 text-amber-200 tabular-nums shrink-0">
+                Lv{f.stage}
+              </span>
+            )}
+          </div>
+          {/* Power */}
+          <div className={`text-[9px] font-bold text-cyan-200 tabular-nums leading-tight ${align}`}>
+            ⚔️ القوة: {f ? f.power : "—"}
+          </div>
           {/* HP bar */}
           <div className="relative h-3 rounded-full bg-black/70 border border-stone-700 overflow-hidden mt-0.5">
             <div className="absolute inset-y-0 transition-[width] duration-300"
@@ -419,13 +438,13 @@ function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "
                 [side === "me" ? "left" : "right"]: 0,
                 width: `${pct}%`,
                 background: pct > 40
-                  ? "linear-gradient(90deg,#ef4444,#dc2626 60%,#7f1d1d)"
+                  ? "linear-gradient(90deg,#22c55e,#16a34a 60%,#14532d)"
                   : "linear-gradient(90deg,#ef4444,#f97316)",
                 boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.4)",
               } as React.CSSProperties} />
             <div className={`absolute inset-0 flex items-center justify-${side === "me" ? "start" : "end"} px-1.5`}>
               <span className="text-[9px] font-black text-white drop-shadow tabular-nums">
-                {f ? `${f.hp}/${f.maxHp}` : "—"}
+                {f ? `❤️ ${f.hp}/${f.maxHp}` : "—"}
               </span>
             </div>
           </div>
