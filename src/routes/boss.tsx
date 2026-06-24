@@ -27,7 +27,7 @@ type Boss = {
   spawned_at: string; expires_at: string;
   defeated_at: string | null;
 };
-type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null };
+type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null };
 type RocketRow = { id: string; item_id: string; quantity: number };
 
 function isBossReady(value: unknown): value is Boss {
@@ -56,7 +56,10 @@ function BossPage() {
   const [loadingBoss, setLoadingBoss] = useState(true);
   const [ships, setShips] = useState<ShipRow[]>([]);
   const [selectedShip, setSelectedShip] = useState<ShipRow | null>(null);
-  const [shipHp, setShipHp] = useState(100); // local %; cosmetic
+  const [shipHp, setShipHp] = useState(0);          // real HP from DB
+  const [shipMaxHp, setShipMaxHp] = useState(1);
+  const [shipDestroyed, setShipDestroyed] = useState(false);
+  const [repairing, setRepairing] = useState(false);
   const [rockets, setRockets] = useState<RocketRow[]>([]);
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const [splashes, setSplashes] = useState<Splash[]>([]);
@@ -73,13 +76,9 @@ function BossPage() {
   const idRef = useRef(0);
   const nextId = () => ++idRef.current;
 
-  // Difficulty multiplier: each defeat + each dragon stage cranks up boss power
-  const diffTier = dragonStage + bossDefeats * 2; // grows fast per defeat
-  const bossBaseDmg = 5 + diffTier * 3;
-  const bossSpread = 10 + diffTier * 2;
+  // Boss counter-attack pacing only — damage is server-driven per ship tier.
+  const diffTier = dragonStage + bossDefeats * 2;
   const bossInterval = Math.max(1800, 6500 - diffTier * 350);
-  const heavyEvery = Math.max(2, 5 - Math.floor(diffTier / 3)); // every Nth hit = heavy
-  const heavyHitsRef = useRef(0);
 
   // Initial fetch
   useEffect(() => {
@@ -95,7 +94,7 @@ function BossPage() {
       setLoadingBoss(false);
       if (!user?.id) return;
       const [{ data: sh }, { data: inv }, { data: drg }, { count: defeats }] = await Promise.all([
-        supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp")
+        supabase.from("ships_owned").select("id,template_id,catalog_code,hp,max_hp,destroyed_at")
           .eq("user_id", user.id).eq("in_storage", false).order("acquired_at"),
         supabase.from("inventory").select("id,item_id,quantity")
           .eq("user_id", user.id).in("item_id", ["rocket_small", "rocket_medium", "rocket_large", "nuke"]),
@@ -104,8 +103,15 @@ function BossPage() {
       ]);
       const sList = (sh ?? []) as ShipRow[];
       setShips(sList);
-      const best = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0))[0];
+      // Prefer a non-destroyed ship, otherwise highest tier.
+      const sorted = [...sList].sort((a, b) => (b.template_id ?? 0) - (a.template_id ?? 0));
+      const best = sorted.find((s) => !s.destroyed_at && (s.hp ?? 0) > 0) ?? sorted[0] ?? null;
       setSelectedShip(best ?? null);
+      if (best) {
+        setShipHp(Math.max(0, best.hp ?? 0));
+        setShipMaxHp(Math.max(1, best.max_hp ?? 1));
+        setShipDestroyed(!!best.destroyed_at || (best.hp ?? 0) <= 0);
+      }
       setRockets((inv ?? []) as RocketRow[]);
       if (drg?.stage) setDragonStage(drg.stage);
       if (typeof defeats === "number") setBossDefeats(defeats);
@@ -130,28 +136,27 @@ function BossPage() {
     return () => { supabase.removeChannel(ch); };
   }, [boss?.id]);
 
-  // Boss counter-attacks — scales harder with each defeat & dragon stage
+  // Boss counter-attacks — damages the real selected ship via RPC.
   useEffect(() => {
-    if (!boss || boss.hp_current <= 0 || !selectedShip || shipHp <= 0) return;
+    if (!boss || boss.hp_current <= 0 || !selectedShip || shipDestroyed || shipHp <= 0) return;
     const t = setInterval(() => {
       const pid = nextId();
       setProjectiles((p) => [...p, { id: pid, kind: "boss", key: nextId() }]);
-      setTimeout(() => {
+      setTimeout(async () => {
         setProjectiles((p) => p.filter((x) => x.id !== pid));
-        heavyHitsRef.current += 1;
-        const isHeavy = heavyHitsRef.current % heavyEvery === 0;
-        const isCrit = Math.random() < Math.min(0.35, 0.05 + diffTier * 0.025);
-        let dmg = bossBaseDmg + Math.floor(Math.random() * bossSpread);
-        if (isHeavy) dmg = Math.floor(dmg * 2.2);
-        if (isCrit) dmg = Math.floor(dmg * 1.8);
-        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: isCrit || isHeavy, dmg }]);
+        const { data } = await rpc("boss_hit_my_ship", { p_ship_id: selectedShip.id });
+        if (!data?.ok) return;
+        const dmg = Number(data.damage ?? 0);
+        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: dmg > (shipMaxHp * 0.2), dmg }]);
         setShake("ship");
-        setShipHp((hp) => Math.max(0, hp - dmg));
+        setShipHp(Number(data.new_hp ?? 0));
+        setShipMaxHp(Number(data.max_hp ?? shipMaxHp));
+        if (data.destroyed) setShipDestroyed(true);
         setTimeout(() => setShake("none"), 220);
       }, 900);
     }, bossInterval + Math.random() * 1500);
     return () => clearInterval(t);
-  }, [boss, selectedShip, shipHp, bossInterval, bossBaseDmg, bossSpread, heavyEvery, diffTier]);
+  }, [boss, selectedShip, shipHp, shipDestroyed, shipMaxHp, bossInterval]);
 
   // Cleanup splashes
   useEffect(() => {
@@ -161,7 +166,7 @@ function BossPage() {
   }, [splashes]);
 
   const fire = useCallback(async (weaponId: string) => {
-    if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    if (busy || !boss || boss.hp_current <= 0 || shipDestroyed || shipHp <= 0) return;
     if (attacksLeft <= 0) {
       alert(`⛔ انتهت هجماتك اليومية على الوحش (٥ مرات). جددها بـ ${refreshAttackCost} جوهرة أو انتظر التجديد.`);
       return;
@@ -202,14 +207,33 @@ function BossPage() {
         if (nextBoss) {
           setTimeout(() => {
             setBoss(nextBoss);
-            setShipHp(100);
+            // Ship keeps its actual HP between bosses — no auto-heal.
           }, 650);
         }
         setTimeout(() => alert("💀 سقط الوحش! ظهر وحش جديد فورًا."), 600);
       }
     }, 850);
 
-  }, [busy, boss, shipHp, rockets, attacksLeft, refreshAttackCost]);
+  }, [busy, boss, shipHp, shipDestroyed, rockets, attacksLeft, refreshAttackCost]);
+
+  // Compute gem cost = ceil(missing / 100), min 5 (matches repair_ship_instant)
+  const repairGemCost = (() => {
+    const missing = Math.max(0, shipMaxHp - shipHp);
+    if (missing <= 0) return 0;
+    return Math.max(5, Math.ceil(missing / 100));
+  })();
+
+  const repairShipNow = useCallback(async () => {
+    if (!selectedShip || repairing) return;
+    if (!confirm(`إصلاح ${selectedShip.catalog_code ?? "السفينة"} مقابل ${repairGemCost} 💎؟`)) return;
+    setRepairing(true);
+    const { error } = await rpc("repair_ship_instant", { _ship_id: selectedShip.id, _gems_cost: repairGemCost });
+    setRepairing(false);
+    if (error) return alert(error.message);
+    setShipHp(shipMaxHp);
+    setShipDestroyed(false);
+    setShips((arr) => arr.map((s) => s.id === selectedShip.id ? { ...s, hp: shipMaxHp, destroyed_at: null } : s));
+  }, [selectedShip, repairing, repairGemCost, shipMaxHp]);
 
   const refreshAttacks = useCallback(async () => {
     if (refreshingAttacks) return;
@@ -442,7 +466,7 @@ function BossPage() {
                 <img src={shipDef.image} alt={shipDef.name} draggable={false}
                   className="w-full h-full object-contain"
                   style={{ transform: "scaleX(-1)",
-                    filter: shipHp <= 0 ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
+                    filter: shipDestroyed ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
               </div>
               {splashes.filter((s) => s.side === "ship").map((s) => (
                 <div key={s.id}>
@@ -501,21 +525,36 @@ function BossPage() {
           <div className="bg-stone-900/80 border border-sky-700/50 rounded-xl px-3 py-2 mb-2">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-sky-200 text-xs font-bold flex-1 truncate">⚓ {shipDef.name}</span>
-              <span className="text-sky-100 font-extrabold tabular-nums text-xs">{shipHp}%</span>
+              <span className="text-sky-100 font-extrabold tabular-nums text-xs">
+                {shipHp.toLocaleString()} / {shipMaxHp.toLocaleString()}
+              </span>
             </div>
             <div className="h-2.5 rounded-full bg-stone-950 overflow-hidden border border-sky-900">
               <div className="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all"
-                style={{ width: `${shipHp}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
+                style={{ width: `${shipMaxHp > 0 ? (shipHp / shipMaxHp) * 100 : 0}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
             </div>
+            {shipDestroyed && (
+              <button onClick={repairShipNow} disabled={repairing}
+                className="mt-2 w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-extrabold border border-amber-300 shadow-lg active:scale-95 disabled:opacity-40">
+                🛠️ إصلاح فوري بطاقم الإصلاح — 💎 {repairGemCost}
+              </button>
+            )}
             {ships.length > 1 && (
               <div className="flex gap-1.5 mt-2 overflow-x-auto">
                 {ships.map((s) => {
                   const d = s.catalog_code ? getShipByCode(s.catalog_code) : getShipByMarketLevel(s.template_id ?? 1);
                   const sel = s.id === selectedShip.id;
+                  const sDead = !!s.destroyed_at || (s.hp ?? 0) <= 0;
                   return (
-                    <button key={s.id} onClick={() => { setSelectedShip(s); setShipHp(100); }}
-                      className={`shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95`}>
+                    <button key={s.id} onClick={() => {
+                      setSelectedShip(s);
+                      setShipHp(Math.max(0, s.hp ?? 0));
+                      setShipMaxHp(Math.max(1, s.max_hp ?? 1));
+                      setShipDestroyed(sDead);
+                    }}
+                      className={`relative shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95 ${sDead ? "opacity-50" : ""}`}>
                       <img src={d.image} alt="" className="w-10 h-10 object-contain" style={{ transform: "scaleX(-1)" }} />
+                      {sDead && <span className="absolute -top-1 -right-1 text-xs">💀</span>}
                     </button>
                   );
                 })}
@@ -529,7 +568,7 @@ function BossPage() {
           <div className="grid grid-cols-4 gap-2">
             {ROCKETS.map((rk) => {
               const have = rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0;
-              const disabled = busy || have <= 0 || shipHp <= 0;
+              const disabled = busy || have <= 0 || shipDestroyed || shipHp <= 0;
               return (
                 <button key={rk.id} disabled={disabled} onClick={() => fire(rk.id)}
                   className={`relative rounded-xl bg-gradient-to-b ${rk.color} border-2 ${rk.border} py-2 active:scale-95 transition-transform shadow-lg ${disabled ? "opacity-40 grayscale" : ""}`}>
@@ -542,8 +581,8 @@ function BossPage() {
             })}
           </div>
         )}
-        {shipHp <= 0 && !dead && (
-          <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تعطلت! اختر سفينة أخرى</div>
+        {shipDestroyed && !dead && (
+          <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تدمّرت! اضغط زر الإصلاح فوق أو اختر سفينة أخرى</div>
         )}
       </div>
     </div>
