@@ -789,7 +789,6 @@ function Index() {
     goldenFisherUntilRef.current = t ? new Date(t).getTime() : 0;
   }, [profile]);
   const lastGfTickRef = useRef<number>(0);
-  const gfMarketFullRef = useRef<boolean>(false);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
