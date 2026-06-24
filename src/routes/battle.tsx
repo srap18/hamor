@@ -128,16 +128,7 @@ function BattlePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vs]);
 
-  // opponent auto-attack
-  useEffect(() => {
-    if (!me || !op || result) return;
-    const t = setInterval(() => {
-      doOpponentAttack();
-    }, 1800);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [me, op, result]);
-
+  // turn-based — opponent only attacks after my attack lands
   function spawnFloat(side: "me" | "op", v: number) {
     const id = fidRef.current++;
     setFloats(f => [...f, { id, x: 40 + Math.random() * 20, y: 30 + Math.random() * 20, v, side }]);
@@ -146,7 +137,7 @@ function BattlePage() {
   function spawnBolt(from: "me" | "op") {
     const id = fidRef.current++;
     setBolts(b => [...b, { id, from }]);
-    setTimeout(() => setBolts(b => b.filter(x => x.id !== id)), 600);
+    setTimeout(() => setBolts(b => b.filter(x => x.id !== id)), 700);
   }
 
   function doMyAttack() {
@@ -160,18 +151,28 @@ function BattlePage() {
       spawnFloat("op", dmg);
       setShake("op");
       setTimeout(() => setShake(null), 200);
+      let opDead = false;
       setOp(o => {
         if (!o) return o;
         const hp = Math.max(0, o.hp - dmg);
-        if (hp === 0) finishWin();
+        if (hp === 0) opDead = true;
         return { ...o, hp };
       });
-      setBusy(false);
-    }, 350);
+      if (opDead) {
+        finishWin();
+        setBusy(false);
+        return;
+      }
+      // opponent's turn (after a short beat)
+      setTimeout(() => doOpponentAttack(), 750);
+    }, 400);
   }
 
   function doOpponentAttack() {
-    if (!me || !op || result) return;
+    if (!me || !op || result) {
+      setBusy(false);
+      return;
+    }
     const base = Math.round(op.power * 0.75);
     const crit = Math.random() < 0.12;
     const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
@@ -180,13 +181,16 @@ function BattlePage() {
       spawnFloat("me", dmg);
       setShake("me");
       setTimeout(() => setShake(null), 200);
+      let meDead = false;
       setMe(m => {
         if (!m) return m;
         const hp = Math.max(0, m.hp - dmg);
-        if (hp === 0) finishLose();
+        if (hp === 0) meDead = true;
         return { ...m, hp };
       });
-    }, 350);
+      if (meDead) finishLose();
+      setBusy(false);
+    }, 400);
   }
 
   async function finishWin() {
