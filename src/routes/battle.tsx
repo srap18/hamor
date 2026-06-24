@@ -19,6 +19,7 @@ type Fighter = {
   avatar: string | null;
   emoji: string;
   stage: number;
+  power: number;
   maxHp: number;
   hp: number;
 };
@@ -28,6 +29,15 @@ type Bolt = { id: number; from: "me" | "op" };
 
 function avatarFallback(emoji: string) {
   return emoji || "🐉";
+}
+
+// HP & power scale with dragon stage so stronger dragons feel stronger
+function statsForStage(stage: number) {
+  const s = Math.max(1, stage);
+  return {
+    maxHp: 350 + s * 110,
+    power: 80 + s * 28,
+  };
 }
 
 function BattlePage() {
