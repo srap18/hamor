@@ -5178,6 +5178,15 @@ export type Database = {
           tribe_name: string
         }[]
       }
+      tribe_fish_event_member_leaderboard: {
+        Args: { p_event_id: string; p_tribe_id: string }
+        Returns: {
+          avatar_url: string
+          total_fish: number
+          user_id: string
+          username: string
+        }[]
+      }
       tribe_level_from_donations: { Args: { _d: number }; Returns: number }
       tribes_ranking: {
         Args: { p_limit?: number }
