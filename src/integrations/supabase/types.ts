@@ -4117,6 +4117,10 @@ export type Database = {
         Returns: Json
       }
       admin_hard_delete_user: { Args: { _uid: string }; Returns: undefined }
+      admin_lift_sanction: {
+        Args: { p_id: string; p_kind: string }
+        Returns: Json
+      }
       admin_list_redemptions: {
         Args: { _code_id: string }
         Returns: {
@@ -4171,6 +4175,7 @@ export type Database = {
         Returns: Json
       }
       admin_redeem_code_for_all: { Args: { p_code: string }; Returns: Json }
+      admin_remove_email_ban: { Args: { p_email: string }; Returns: Json }
       admin_revoke_redemption:
         | { Args: { _code_id: string; _user_id: string }; Returns: Json }
         | {
