@@ -51,6 +51,12 @@ function BattlePage() {
   const [shake, setShake] = useState<"me" | "op" | null>(null);
   const [reward, setReward] = useState<number>(0);
   const fidRef = useRef(1);
+  const meRef = useRef<Fighter | null>(null);
+  const opRef = useRef<Fighter | null>(null);
+  const resultRef = useRef<"win" | "lose" | null>(null);
+  useEffect(() => { meRef.current = me; }, [me]);
+  useEffect(() => { opRef.current = op; }, [op]);
+  useEffect(() => { resultRef.current = result; }, [result]);
 
   // pick a matched opponent: prefer equal stage; otherwise pick the closest stage
   async function pickRandomOpponent(meId: string, myStage: number, excludeId?: string | null): Promise<string | null> {
@@ -141,39 +147,41 @@ function BattlePage() {
   }
 
   function doMyAttack() {
-    if (!me || !op || busy || result) return;
+    const meNow = meRef.current;
+    const opNow = opRef.current;
+    if (!meNow || !opNow || busy || resultRef.current) return;
     setBusy(true);
     const crit = Math.random() < 0.18;
-    const base = me.power;
+    const base = meNow.power;
     const dmg = Math.max(10, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("me");
     setTimeout(() => {
       spawnFloat("op", dmg);
       setShake("op");
       setTimeout(() => setShake(null), 200);
-      let opDead = false;
-      setOp(o => {
-        if (!o) return o;
-        const hp = Math.max(0, o.hp - dmg);
-        if (hp === 0) opDead = true;
-        return { ...o, hp };
-      });
-      if (opDead) {
+      const cur = opRef.current;
+      if (!cur) { setBusy(false); return; }
+      const newHp = Math.max(0, cur.hp - dmg);
+      const updated = { ...cur, hp: newHp };
+      opRef.current = updated;
+      setOp(updated);
+      if (newHp === 0) {
         finishWin();
         setBusy(false);
         return;
       }
-      // opponent's turn (after a short beat)
       setTimeout(() => doOpponentAttack(), 750);
     }, 400);
   }
 
   function doOpponentAttack() {
-    if (!me || !op || result) {
+    const meNow = meRef.current;
+    const opNow = opRef.current;
+    if (!meNow || !opNow || resultRef.current) {
       setBusy(false);
       return;
     }
-    const base = Math.round(op.power * 0.75);
+    const base = Math.round(opNow.power * 0.75);
     const crit = Math.random() < 0.12;
     const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("op");
@@ -181,24 +189,23 @@ function BattlePage() {
       spawnFloat("me", dmg);
       setShake("me");
       setTimeout(() => setShake(null), 200);
-      let meDead = false;
-      setMe(m => {
-        if (!m) return m;
-        const hp = Math.max(0, m.hp - dmg);
-        if (hp === 0) meDead = true;
-        return { ...m, hp };
-      });
-      if (meDead) finishLose();
+      const cur = meRef.current;
+      if (!cur) { setBusy(false); return; }
+      const newHp = Math.max(0, cur.hp - dmg);
+      const updated = { ...cur, hp: newHp };
+      meRef.current = updated;
+      setMe(updated);
+      if (newHp === 0) finishLose();
       setBusy(false);
     }, 400);
   }
 
   async function finishWin() {
-    if (result) return;
+    if (resultRef.current) return;
+    resultRef.current = "win";
     setResult("win");
     const r = 5 + Math.floor(Math.random() * 6);
     setReward(r);
-    // award arena points (best-effort)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -217,17 +224,23 @@ function BattlePage() {
     } catch { /* ignore */ }
   }
   function finishLose() {
-    if (result) return;
+    if (resultRef.current) return;
+    resultRef.current = "lose";
     setResult("lose");
   }
 
   async function rematch() {
-    if (!me) return;
+    const cur = meRef.current;
+    if (!cur) return;
+    resultRef.current = null;
     setResult(null);
     setReward(0);
-    setMe({ ...me, hp: me.maxHp });
+    const reset = { ...cur, hp: cur.maxHp };
+    meRef.current = reset;
+    setMe(reset);
+    opRef.current = null;
     setOp(null);
-    await loadOpponent(me.id, me.stage, me.maxHp, null, op?.id ?? null);
+    await loadOpponent(cur.id, cur.stage, cur.maxHp, null, opRef.current ? (opRef.current as Fighter).id : null);
   }
 
   const myStageImg = useMemo(() => getStage(me?.stage ?? 1).image, [me?.stage]);
