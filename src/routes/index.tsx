@@ -1642,8 +1642,8 @@ function Index() {
           color: "#1a0f04",
         }}
       >
-        <span style={{ fontSize: 18, lineHeight: 1 }}>🏆</span>
-        <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
+        <span style={{ fontSize: 20, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
       </Link>
 
 
