@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DRAGON_STAGES, getStage } from "@/lib/dragon";
+import { DRAGON_STAGES, getStage, overallLevel, type Dragon } from "@/lib/dragon";
 import arenaBg from "@/assets/battle-arena-bg.jpg";
 
 export const Route = createFileRoute("/battle")({
@@ -108,6 +108,7 @@ function BattlePage() {
     });
   }
 
+  const navigate = useNavigate();
   // load fighters
   useEffect(() => {
     (async () => {
@@ -115,8 +116,13 @@ function BattlePage() {
       if (!user) return;
       const [{ data: myProf }, { data: myDragon }] = await Promise.all([
         supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", user.id).maybeSingle(),
-        supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
+        supabase.from("dragons").select("user_id,name,stage,dp,total_boss_damage,pvp_wins,pvp_losses,element,hatched_at,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
       ]);
+      const lvl = myDragon ? overallLevel(myDragon as Dragon) : 0;
+      if (lvl < 3) {
+        navigate({ to: "/arena" });
+        return;
+      }
       const myStage = myDragon?.stage ?? 1;
       const { maxHp: myHp, power: myPower } = statsForStage(myStage);
       setMe({
