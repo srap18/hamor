@@ -166,7 +166,7 @@ function BossPage() {
   }, [splashes]);
 
   const fire = useCallback(async (weaponId: string) => {
-    if (busy || !boss || boss.hp_current <= 0 || shipHp <= 0) return;
+    if (busy || !boss || boss.hp_current <= 0 || shipDestroyed || shipHp <= 0) return;
     if (attacksLeft <= 0) {
       alert(`⛔ انتهت هجماتك اليومية على الوحش (٥ مرات). جددها بـ ${refreshAttackCost} جوهرة أو انتظر التجديد.`);
       return;
