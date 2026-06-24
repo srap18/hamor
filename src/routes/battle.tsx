@@ -153,7 +153,7 @@ function BattlePage() {
     if (!me || !op || busy || result) return;
     setBusy(true);
     const crit = Math.random() < 0.18;
-    const base = 50 + me.stage * 12;
+    const base = me.power;
     const dmg = Math.max(10, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("me");
     setTimeout(() => {
