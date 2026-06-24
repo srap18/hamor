@@ -1,15 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getStage } from "@/lib/dragon";
 
 export const Route = createFileRoute("/battle")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     vs: typeof s.vs === "string" ? s.vs : undefined,
   }),
-  head: () => ({ meta: [{ title: "⚔️ معركة الأرينا" }] }),
+  head: () => ({ meta: [{ title: "⚔️ مبارزة التنانين" }] }),
   component: BattlePage,
 });
+
+type DuelResult = {
+  won: boolean;
+  my_level: number;
+  opp_level: number;
+  my_stage: number;
+  opp_stage: number;
+  score: number;
+  win_chance: number;
+  opp_name: string;
+};
 
 type Opponent = {
   user_id: string;
@@ -26,6 +38,33 @@ function BattlePage() {
   const [opps, setOpps] = useState<Opponent[]>([]);
   const [eventMult, setEventMult] = useState<number>(1);
   const [eventTitle, setEventTitle] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [result, setResult] = useState<DuelResult | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function duel(opp: Opponent) {
+    if (busyId) return;
+    setBusyId(opp.user_id);
+    setErrorMsg(null);
+    try {
+      const { data, error } = await (supabase as never as {
+        rpc: (n: string, p: Record<string, unknown>) => Promise<{ data: DuelResult | null; error: { message: string } | null }>;
+      }).rpc("arena_dragon_duel", { _opponent: opp.user_id });
+      if (error) {
+        const m = (error.message || "").toLowerCase();
+        if (m.includes("rate_limited")) setErrorMsg("⏱️ انتظر ١٠ ثوانٍ قبل المبارزة التالية");
+        else setErrorMsg("تعذرت المبارزة، حاول مرة ثانية");
+        return;
+      }
+      if (data) {
+        setResult({ ...data, opp_name: opp.display_name ?? "خصم" });
+        // bump local score row for the active user so the list refreshes feel
+        setOpps((prev) => prev.map((p) => (p.user_id === meId ? { ...p, score: p.score + data.score, wins: p.wins + (data.won ? 1 : 0) } : p)));
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -128,10 +167,16 @@ function BattlePage() {
       <div className="relative z-10 max-w-md mx-auto px-3 pt-16 pb-24">
         <div className="text-center mb-4">
           <div className="inline-block px-5 py-2 rounded-full bg-gradient-to-r from-rose-700/40 to-amber-700/40 border border-amber-400/60 shadow-lg">
-            <div className="text-amber-100 font-extrabold text-xl">⚔️ ساحة المعارك</div>
-            <div className="text-amber-300/80 text-[11px]">اختر خصمك واهجمه — كل انتصار يرفع نقاط الأرينا</div>
+            <div className="text-amber-100 font-extrabold text-xl">🐉 مبارزة التنانين</div>
+            <div className="text-amber-300/80 text-[11px]">تنينك ضد تنين خصمك — كل انتصار يرفع نقاط الأرينا</div>
           </div>
         </div>
+
+        {errorMsg && (
+          <div className="mb-3 rounded-xl bg-rose-900/40 border border-rose-500/50 text-rose-100 text-center text-sm py-2 font-bold">
+            {errorMsg}
+          </div>
+        )}
 
         {eventMult > 1 && (
           <div
@@ -190,17 +235,18 @@ function BattlePage() {
                       أنت
                     </span>
                   ) : (
-                    <Link
-                      to="/players/$playerId"
-                      params={{ playerId: o.user_id }}
-                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95"
+                    <button
+                      type="button"
+                      disabled={busyId === o.user_id}
+                      onClick={() => duel(o)}
+                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95 disabled:opacity-60"
                       style={{
                         background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
                         border: "1px solid rgba(255,200,100,0.7)",
                       }}
                     >
-                      ⚔️ هاجم
-                    </Link>
+                      {busyId === o.user_id ? "..." : "🐉 بارز"}
+                    </button>
                   )}
                 </div>
               );
@@ -225,6 +271,58 @@ function BattlePage() {
           </Link>
         </div>
       </div>
+
+      {result && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.75)" }}
+          onClick={() => setResult(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border-2 p-5 text-center"
+            style={{
+              background: result.won
+                ? "linear-gradient(180deg,#1a3a1a 0%,#0a1a0a 100%)"
+                : "linear-gradient(180deg,#3a1a1a 0%,#1a0a0a 100%)",
+              borderColor: result.won ? "rgba(74,222,128,0.7)" : "rgba(248,113,113,0.7)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-3xl font-black mb-2" style={{ color: result.won ? "#86efac" : "#fca5a5" }}>
+              {result.won ? "🏆 انتصار!" : "💔 خسارة"}
+            </div>
+            <div className="text-amber-100/80 text-sm mb-4">
+              {result.won ? "تنينك سحق خصمك" : "تنين خصمك كان أقوى هذه المرة"}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-2xl bg-stone-900/70 p-3 border border-amber-700/40">
+                <div className="text-5xl mb-1">{getStage(result.my_stage).icon}</div>
+                <div className="text-amber-200 text-xs font-bold">تنيني</div>
+                <div className="text-amber-100 text-sm">مستوى {result.my_level}</div>
+              </div>
+              <div className="rounded-2xl bg-stone-900/70 p-3 border border-rose-700/40">
+                <div className="text-5xl mb-1">{getStage(result.opp_stage).icon}</div>
+                <div className="text-rose-200 text-xs font-bold truncate">{result.opp_name}</div>
+                <div className="text-rose-100 text-sm">مستوى {result.opp_level}</div>
+              </div>
+            </div>
+
+            <div className="text-amber-300/80 text-xs mb-3">احتمال الفوز كان {result.win_chance}%</div>
+            <div className="rounded-xl bg-amber-500/15 border border-amber-400/50 py-2 mb-4">
+              <span className="text-amber-200 font-extrabold">+{result.score} نقطة أرينا</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setResult(null)}
+              className="w-full py-3 rounded-xl bg-amber-500 text-stone-900 font-extrabold active:scale-95"
+            >
+              تمام
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
