@@ -235,17 +235,18 @@ function BattlePage() {
                       أنت
                     </span>
                   ) : (
-                    <Link
-                      to="/players/$playerId"
-                      params={{ playerId: o.user_id }}
-                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95"
+                    <button
+                      type="button"
+                      disabled={busyId === o.user_id}
+                      onClick={() => duel(o)}
+                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95 disabled:opacity-60"
                       style={{
                         background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
                         border: "1px solid rgba(255,200,100,0.7)",
                       }}
                     >
-                      ⚔️ هاجم
-                    </Link>
+                      {busyId === o.user_id ? "..." : "🐉 بارز"}
+                    </button>
                   )}
                 </div>
               );
