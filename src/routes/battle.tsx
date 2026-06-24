@@ -11,53 +11,219 @@ export const Route = createFileRoute("/battle")({
   component: BattlePage,
 });
 
+type Opponent = {
+  user_id: string;
+  score: number;
+  wins: number;
+  display_name: string | null;
+  avatar_emoji: string | null;
+  level: number | null;
+};
+
 function BattlePage() {
-  const [checked, setChecked] = useState(false);
-  const [enabled, setEnabled] = useState(true);
-  const [lockedTitle, setLockedTitle] = useState("🔒 الأرينا مقفلة مؤقتاً");
-  const [lockedMessage, setLockedMessage] = useState("سنفتحها قريباً بتحديث جديد. ترقّبوا!");
+  const [loading, setLoading] = useState(true);
+  const [meId, setMeId] = useState<string | null>(null);
+  const [opps, setOpps] = useState<Opponent[]>([]);
+  const [eventMult, setEventMult] = useState<number>(1);
+  const [eventTitle, setEventTitle] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("arena_settings")
-        .select("enabled, locked_title, locked_message").maybeSingle();
-      if (data) {
-        setEnabled(!!data.enabled);
-        setLockedTitle(data.locked_title);
-        setLockedMessage(data.locked_message);
+      const { data: u } = await supabase.auth.getUser();
+      setMeId(u?.user?.id ?? null);
+
+      const { data: s } = await supabase
+        .from("arena_settings")
+        .select("event_active, event_title, event_multiplier, event_ends_at")
+        .maybeSingle();
+      if (s?.event_active && (!s.event_ends_at || new Date(s.event_ends_at).getTime() > Date.now())) {
+        setEventMult(Number(s.event_multiplier ?? 1));
+        setEventTitle(s.event_title ?? null);
       }
-      setChecked(true);
+
+      // Build weekly window key like arena page does (UTC Monday).
+      const now = new Date();
+      const dow = (now.getUTCDay() + 6) % 7;
+      const wkStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dow));
+      const weekKey = wkStart.toISOString().slice(0, 10);
+
+      const { data: scores } = await supabase
+        .from("arena_scores")
+        .select("user_id, score, wins")
+        .eq("week_key", weekKey)
+        .order("score", { ascending: false })
+        .limit(20);
+
+      const ids = (scores ?? []).map((r) => r.user_id);
+      let nameMap: Record<string, { display_name: string | null; avatar_emoji: string | null; level: number | null }> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_emoji, level")
+          .in("id", ids);
+        nameMap = Object.fromEntries(
+          (profs ?? []).map((p) => [p.id, { display_name: p.display_name, avatar_emoji: p.avatar_emoji, level: p.level }]),
+        );
+      }
+
+      // If we have fewer than 8 active arena players, top off with the strongest live players overall.
+      let merged: Opponent[] = (scores ?? []).map((r) => ({
+        user_id: r.user_id,
+        score: r.score,
+        wins: r.wins,
+        display_name: nameMap[r.user_id]?.display_name ?? null,
+        avatar_emoji: nameMap[r.user_id]?.avatar_emoji ?? null,
+        level: nameMap[r.user_id]?.level ?? null,
+      }));
+
+      if (merged.length < 8) {
+        const { data: extras } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_emoji, level")
+          .not("display_name", "is", null)
+          .order("level", { ascending: false })
+          .limit(20);
+        for (const p of extras ?? []) {
+          if (merged.find((m) => m.user_id === p.id)) continue;
+          merged.push({
+            user_id: p.id,
+            score: 0,
+            wins: 0,
+            display_name: p.display_name,
+            avatar_emoji: p.avatar_emoji,
+            level: p.level,
+          });
+          if (merged.length >= 12) break;
+        }
+      }
+
+      setOpps(merged);
+      setLoading(false);
     })();
   }, []);
 
-  if (!checked) return null;
-
-  if (!enabled) {
-    return (
-      <div className="fixed inset-0 overflow-y-auto flex items-center justify-center" dir="rtl"
-        style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
-        <div className="absolute top-4 right-3">
-          <Link to="/" className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</Link>
-        </div>
-        <div className="max-w-sm mx-auto px-6 text-center">
-          <div className="text-7xl mb-4">🔒</div>
-          <div className="text-2xl font-black text-amber-200 mb-2">{lockedTitle}</div>
-          <div className="text-cyan-300/70 text-sm">{lockedMessage}</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 overflow-y-auto flex items-center justify-center" dir="rtl"
-      style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
-      <div className="absolute top-4 right-3">
-        <Link to="/" className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40">← رجوع</Link>
+    <div
+      className="fixed inset-0 overflow-y-auto"
+      dir="rtl"
+      style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}
+    >
+      <div className="absolute top-4 right-3 z-20">
+        <Link
+          to="/"
+          className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40"
+        >
+          ← رجوع
+        </Link>
       </div>
-      <div className="max-w-sm mx-auto px-6 text-center">
-        <div className="text-7xl mb-4">⚔️</div>
-        <div className="text-2xl font-black text-amber-200 mb-2">قريباً</div>
-        <div className="text-cyan-300/70 text-sm">واجهة المعركة قيد التطوير — الترتيب والجوائز شغّالة من صفحة الأرينا.</div>
+      <div className="absolute top-4 left-3 z-20">
+        <Link
+          to="/arena"
+          className="glass-hud rounded-full px-3 py-1.5 text-amber-200 text-sm font-bold border border-amber-500/40"
+        >
+          🏟️ الترتيب
+        </Link>
+      </div>
+
+      <div className="relative z-10 max-w-md mx-auto px-3 pt-16 pb-24">
+        <div className="text-center mb-4">
+          <div className="inline-block px-5 py-2 rounded-full bg-gradient-to-r from-rose-700/40 to-amber-700/40 border border-amber-400/60 shadow-lg">
+            <div className="text-amber-100 font-extrabold text-xl">⚔️ ساحة المعارك</div>
+            <div className="text-amber-300/80 text-[11px]">اختر خصمك واهجمه — كل انتصار يرفع نقاط الأرينا</div>
+          </div>
+        </div>
+
+        {eventMult > 1 && (
+          <div
+            className="mb-3 rounded-2xl p-3 text-center border-2 border-pink-400/70 animate-pulse"
+            style={{ background: "linear-gradient(180deg,#7c1d6f 0%,#3b0764 100%)" }}
+          >
+            <div className="text-pink-100 font-black text-base">🎉 {eventTitle || "فعالية الأرينا"}</div>
+            <div className="text-amber-200 text-sm font-bold mt-1">نقاط مضاعفة ×{eventMult}</div>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center text-amber-200/70 py-12 animate-pulse">جاري تحميل الخصوم...</div>
+        ) : opps.length === 0 ? (
+          <div className="rounded-2xl border border-amber-700/40 bg-stone-900/70 p-5 text-center">
+            <div className="text-4xl mb-2">🌊</div>
+            <div className="text-amber-200 font-bold mb-1">لا يوجد لاعبون متاحون الآن</div>
+            <div className="text-amber-100/70 text-sm">ارجع للخريطة وهاجم من ساحل البحر مباشرة.</div>
+            <Link
+              to="/"
+              className="inline-block mt-3 px-4 py-2 rounded-xl bg-amber-600 text-stone-900 font-extrabold active:scale-95"
+            >
+              للخريطة
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {opps.map((o, i) => {
+              const isMe = o.user_id === meId;
+              return (
+                <div
+                  key={o.user_id}
+                  className={`flex items-center gap-3 p-3 rounded-2xl border backdrop-blur ${
+                    isMe
+                      ? "bg-amber-500/15 border-amber-400/50"
+                      : i === 0
+                        ? "bg-amber-900/40 border-amber-500/50"
+                        : i < 3
+                          ? "bg-stone-800/70 border-amber-700/40"
+                          : "bg-stone-900/70 border-cyan-700/30"
+                  }`}
+                >
+                  <div className="w-7 text-center text-amber-200 font-extrabold">
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                  </div>
+                  <div className="text-3xl">{o.avatar_emoji ?? "🧑‍✈️"}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-amber-100 font-bold truncate">{o.display_name ?? "قبطان"}</div>
+                    <div className="text-amber-300/70 text-[11px]">
+                      {o.score > 0 ? `${o.score.toLocaleString()} نقطة • ${o.wins} انتصار` : "متاح للقتال"}
+                      {o.level ? ` • مستوى ${o.level}` : ""}
+                    </div>
+                  </div>
+                  {isMe ? (
+                    <span className="text-amber-300/80 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-400/40">
+                      أنت
+                    </span>
+                  ) : (
+                    <Link
+                      to="/players/$playerId"
+                      params={{ playerId: o.user_id }}
+                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95"
+                      style={{
+                        background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
+                        border: "1px solid rgba(255,200,100,0.7)",
+                      }}
+                    >
+                      ⚔️ هاجم
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <Link
+            to="/boss"
+            className="block rounded-2xl p-3 text-center border-2 border-rose-400/60 bg-gradient-to-br from-rose-700/50 to-black active:scale-95"
+          >
+            <div className="text-2xl">🐲</div>
+            <div className="text-rose-100 font-extrabold text-sm mt-1">معركة الوحش</div>
+          </Link>
+          <Link
+            to="/dragon"
+            className="block rounded-2xl p-3 text-center border-2 border-amber-400/60 bg-gradient-to-br from-amber-700/40 to-rose-900/40 active:scale-95"
+          >
+            <div className="text-2xl">🐉</div>
+            <div className="text-amber-100 font-extrabold text-sm mt-1">تنيني</div>
+          </Link>
+        </div>
       </div>
     </div>
   );
