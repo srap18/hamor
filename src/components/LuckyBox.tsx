@@ -27,25 +27,25 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="صندوق الحظ"
-        className="absolute left-3 top-[14%] z-10 w-11 h-13 rounded-xl flex flex-col items-center justify-center active:scale-95"
+        className="absolute left-[10%] top-[16%] z-10 w-10 h-12 rounded-lg flex flex-col items-center justify-center active:scale-95"
         style={{
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #fff3c0 0%, #f5c84a 30%, #c48a1a 70%, #5b2f06 100%)",
           border: "2px solid #ffe9a8",
           boxShadow:
-            "inset 0 2px 0 rgba(255,243,200,0.85), inset 0 -3px 6px rgba(80,40,10,0.65), 0 3px 0 #3a1f0a, 0 5px 12px rgba(0,0,0,0.6), 0 0 22px rgba(255,200,80,0.65)",
+            "inset 0 2px 0 rgba(255,243,200,0.85), inset 0 -2px 5px rgba(80,40,10,0.65), 0 3px 0 #3a1f0a, 0 4px 10px rgba(0,0,0,0.6), 0 0 16px rgba(255,200,80,0.55)",
         }}
       >
         <span
-          className="pointer-events-none absolute inset-x-1.5 top-1 h-1/2 rounded-lg opacity-60"
+          className="pointer-events-none absolute inset-x-1 top-0.5 h-1/2 rounded-md opacity-60"
           style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }}
         />
-        <span className="relative text-2xl animate-[lb-bob_2.4s_ease-in-out_infinite]"
+        <span className="relative text-xl animate-[lb-bob_2.4s_ease-in-out_infinite]"
               style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🎁</span>
-        <span className="relative text-[9px] font-black mt-0.5"
+        <span className="relative text-[8px] font-black mt-0.5"
               style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>حظ</span>
-        <span className="absolute -inset-1 rounded-xl pointer-events-none animate-[lb-halo_2s_ease-in-out_infinite]"
-              style={{ boxShadow: "0 0 18px 3px rgba(255,210,80,0.5)" }} />
+        <span className="absolute -inset-1 rounded-lg pointer-events-none animate-[lb-halo_2s_ease-in-out_infinite]"
+              style={{ boxShadow: "0 0 14px 2px rgba(255,210,80,0.45)" }} />
         <style>{`
           @keyframes lb-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
           @keyframes lb-halo{0%,100%{opacity:.55}50%{opacity:.95}}
