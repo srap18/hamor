@@ -207,7 +207,7 @@ function BossPage() {
         if (nextBoss) {
           setTimeout(() => {
             setBoss(nextBoss);
-            setShipHp(100);
+            // Ship keeps its actual HP between bosses — no auto-heal.
           }, 650);
         }
         setTimeout(() => alert("💀 سقط الوحش! ظهر وحش جديد فورًا."), 600);
