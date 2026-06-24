@@ -147,39 +147,41 @@ function BattlePage() {
   }
 
   function doMyAttack() {
-    if (!me || !op || busy || result) return;
+    const meNow = meRef.current;
+    const opNow = opRef.current;
+    if (!meNow || !opNow || busy || resultRef.current) return;
     setBusy(true);
     const crit = Math.random() < 0.18;
-    const base = me.power;
+    const base = meNow.power;
     const dmg = Math.max(10, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("me");
     setTimeout(() => {
       spawnFloat("op", dmg);
       setShake("op");
       setTimeout(() => setShake(null), 200);
-      let opDead = false;
-      setOp(o => {
-        if (!o) return o;
-        const hp = Math.max(0, o.hp - dmg);
-        if (hp === 0) opDead = true;
-        return { ...o, hp };
-      });
-      if (opDead) {
+      const cur = opRef.current;
+      if (!cur) { setBusy(false); return; }
+      const newHp = Math.max(0, cur.hp - dmg);
+      const updated = { ...cur, hp: newHp };
+      opRef.current = updated;
+      setOp(updated);
+      if (newHp === 0) {
         finishWin();
         setBusy(false);
         return;
       }
-      // opponent's turn (after a short beat)
       setTimeout(() => doOpponentAttack(), 750);
     }, 400);
   }
 
   function doOpponentAttack() {
-    if (!me || !op || result) {
+    const meNow = meRef.current;
+    const opNow = opRef.current;
+    if (!meNow || !opNow || resultRef.current) {
       setBusy(false);
       return;
     }
-    const base = Math.round(op.power * 0.75);
+    const base = Math.round(opNow.power * 0.75);
     const crit = Math.random() < 0.12;
     const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
     spawnBolt("op");
@@ -187,14 +189,13 @@ function BattlePage() {
       spawnFloat("me", dmg);
       setShake("me");
       setTimeout(() => setShake(null), 200);
-      let meDead = false;
-      setMe(m => {
-        if (!m) return m;
-        const hp = Math.max(0, m.hp - dmg);
-        if (hp === 0) meDead = true;
-        return { ...m, hp };
-      });
-      if (meDead) finishLose();
+      const cur = meRef.current;
+      if (!cur) { setBusy(false); return; }
+      const newHp = Math.max(0, cur.hp - dmg);
+      const updated = { ...cur, hp: newHp };
+      meRef.current = updated;
+      setMe(updated);
+      if (newHp === 0) finishLose();
       setBusy(false);
     }, 400);
   }
