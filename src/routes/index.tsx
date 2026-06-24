@@ -785,6 +785,7 @@ function Index() {
   const [crewBusy, setCrewBusy] = useState(false);
   const [buyingCrewId, setBuyingCrewId] = useState<string | null>(null);
   const buyingCrewRef = useRef<string | null>(null);
+  const [crewBuyQty, setCrewBuyQty] = useState<Record<string, number>>({});
   const crewRowsRef = useRef<CrewRow[]>([]);
   const crewLoadedRef = useRef(false);
   useEffect(() => { crewRowsRef.current = crewRows; }, [crewRows]);
@@ -2686,231 +2687,292 @@ function Index() {
         };
 
         return (
-          <div className="fixed inset-0 z-[90] bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-4 pt-10 max-w-sm w-full max-h-[85vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[90] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => setModal(null)}>
+            <div
+              dir="rtl"
+              className="relative w-full max-w-sm max-h-[90vh] overflow-hidden rounded-[2rem] border-2 border-amber-600/40 bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-black/95 shadow-[0_0_60px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,200,100,0.15)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Decorative ambient glows */}
+              <div className="pointer-events-none absolute -top-24 -right-16 w-56 h-56 bg-amber-500/15 blur-[100px] rounded-full" />
+              <div className="pointer-events-none absolute -bottom-24 -left-16 w-56 h-56 bg-emerald-500/15 blur-[100px] rounded-full" />
+
+              {/* Close */}
               <button
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="إغلاق"
-                className="absolute top-2 left-2 w-9 h-9 rounded-full bg-red-900/90 border-2 border-red-400/80 text-red-100 font-black text-lg flex items-center justify-center active:scale-95 z-[120] shadow-lg shadow-black/60"
+                className="absolute top-3 left-3 w-9 h-9 rounded-full bg-gradient-to-b from-red-700 to-red-900 border border-red-300/50 text-red-50 font-black text-base flex items-center justify-center active:scale-95 z-[120] shadow-lg shadow-black/70"
               >✕</button>
-              <div className="text-accent font-bold text-base mb-1 text-center">تخصيص طاقم السفينة</div>
-              <div className="text-[10px] text-accent/60 text-center mb-3">
-                المستوى {s.level} — {assignedRows.length} طاقم مفعّل · مدة التفعيل 24 ساعة
+
+              {/* Regal Header */}
+              <div className="relative pt-7 pb-4 text-center bg-gradient-to-b from-amber-900/30 via-amber-900/10 to-transparent border-b border-amber-700/30">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+                <div className="px-5">
+                  <div className="text-xl font-black tracking-wide bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_2px_6px_rgba(180,120,40,0.35)]">
+                    ⚓ تخصيص الطواقم
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] tracking-widest text-amber-300/70 font-bold">
+                    <span className="h-px w-6 bg-gradient-to-l from-transparent to-amber-500/60" />
+                    <span>السفينة {s.level} · {assignedRows.length} مفعّل · 24 ساعة</span>
+                    <span className="h-px w-6 bg-gradient-to-r from-transparent to-amber-500/60" />
+                  </div>
+                </div>
               </div>
 
-              <div className="text-[11px] text-accent/80 font-bold mb-1">الطواقم المفعّلة</div>
-              <div className="space-y-1.5 mb-3">
-                {(assignedRows.length === 0 ? [null] : assignedRows).map((r, i) => {
-                  if (!r) {
-                    return (
-                      <div key={`empty-${i}`} className="rounded-lg border border-dashed border-accent/30 bg-black/20 p-2 text-center text-[11px] text-accent/40">
-                        خانة فارغة
-                      </div>
-                    );
-                  }
-                  const c = CREWS.find((x) => x.id === r.item_id);
-                  if (!c) return null;
-                  return (
-                    <div key={r.id} className="rounded-lg bg-emerald-900/20 border border-emerald-400/40 p-2 flex items-center gap-2">
-                      {c.image ? <img src={c.image} alt={c.name} className="w-9 h-9 object-contain drop-shadow" /> : <span className="text-2xl">{c.emoji}</span>}
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-accent">{c.name}</div>
-                        <div className="text-[10px] text-emerald-300">{c.bonus}</div>
-                        <div className="text-[10px] text-amber-300">⏳ {fmtRemaining(r.meta?.expires_at)}</div>
-                      </div>
-                      <button
-                        disabled={crewBusy}
-                        className="text-[10px] text-red-300 px-2 py-1 rounded bg-red-900/40 active:scale-95 disabled:opacity-40"
-                        onClick={() => removeCrew(r.id)}
-                      >إزالة</button>
-                    </div>
-                  );
-                })}
-              </div>
+              <div className="overflow-y-auto max-h-[calc(90vh-110px)] px-4 pt-4 pb-5 space-y-5 relative">
+                {/* Active crews */}
+                <section>
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981] animate-pulse" />
+                    <h3 className="text-emerald-300 font-black text-xs tracking-widest">الطواقم المفعّلة</h3>
+                    <span className="mr-auto text-[10px] font-bold text-emerald-400/70">{assignedRows.length}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {(assignedRows.length === 0 ? [null] : assignedRows).map((r, i) => {
+                      if (!r) {
+                        return (
+                          <div key={`empty-${i}`} className="rounded-2xl border border-dashed border-emerald-500/25 bg-emerald-950/10 p-3 text-center text-[11px] text-emerald-300/50 font-bold">
+                            ⚓ لا يوجد طاقم مفعّل على هذه السفينة
+                          </div>
+                        );
+                      }
+                      const c = CREWS.find((x) => x.id === r.item_id);
+                      if (!c) return null;
+                      return (
+                        <div key={r.id} className="relative rounded-2xl bg-gradient-to-br from-emerald-950/40 to-emerald-900/10 border border-emerald-500/30 p-3 flex items-center gap-3 shadow-[inset_0_0_20px_rgba(16,185,129,0.08)]">
+                          <div className="relative shrink-0">
+                            {c.image ? (
+                              <img src={c.image} alt={c.name} className="w-12 h-12 object-contain rounded-xl bg-emerald-950/60 border-2 border-emerald-400/50 p-0.5 shadow-[0_0_15px_rgba(16,185,129,0.25)]" />
+                            ) : (
+                              <span className="grid w-12 h-12 place-items-center text-2xl rounded-xl bg-emerald-950/60 border-2 border-emerald-400/50">{c.emoji}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="text-emerald-100 font-extrabold text-sm truncate">{c.name}</h4>
+                              <button
+                                disabled={crewBusy}
+                                className="text-[10px] px-2.5 py-1 rounded-lg bg-rose-950/60 text-rose-200 border border-rose-500/40 font-bold active:scale-95 disabled:opacity-40 shrink-0"
+                                onClick={() => removeCrew(r.id)}
+                              >إزالة</button>
+                            </div>
+                            <p className="text-[10px] text-emerald-300/80 mt-0.5 line-clamp-1">{c.bonus}</p>
+                            <div className="mt-1.5 text-[10px] text-amber-300 font-mono font-bold flex items-center gap-1">
+                              <span>⏳</span><span>{fmtRemaining(r.meta?.expires_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
 
-              <div className="text-[11px] text-accent/80 font-bold mb-1">جميع الطواقم</div>
-              <div className="space-y-1.5">
-                {CREWS.filter((c) => c.id !== "golden_fisher").map((c) => {
-                  const cid = c.id;
-                  const qty = availMap.get(cid) ?? 0;
-                  const owned = qty > 0;
-                  const isFixer = cid.startsWith("fixer_");
-                  const isGlobalCrew = cid === "trader" || cid === "golden_fisher"; // single-active across the whole fleet
-                  const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
-                  // Global crews (trader / golden fisher): only one active across the whole fleet.
-                  const nowMs = serverNowMs();
-                  const goldenFisherActive =
-                    !!(profile as any)?.golden_fisher_until &&
-                    new Date((profile as any).golden_fisher_until).getTime() > nowMs;
-                  const globallyActive = isGlobalCrew && (
-                    (cid === "golden_fisher" && goldenFisherActive) ||
-                    crewRows.some(
-                      (r) => r.item_id === cid
-                        && r.meta?.assigned_ship_id != null
-                        && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
-                    )
-                  );
-                  // Fixer needs check: lock when ship(s) at 100% HP
-                  const fixerCanRepair = isFixer && (
-                    cid === "fixer_4"
-                      ? ships.some((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt))
-                      : ((s.hp ?? 0) < (s.maxHp ?? 100) || !!s.destroyedAt || !!s.repairEndsAt)
-                  );
-                  const slotsFull = !isFixer && !isGlobalCrew && !alreadyOnShip && assignedRows.length >= slots;
-                  const canAssign = owned && (
-                    isFixer
-                      ? fixerCanRepair
-                      : isGlobalCrew
-                        ? !globallyActive
-                        : (assignedRows.length < slots && !alreadyOnShip)
-                  );
-                  const canAfford = c.currency === "gems" ? gems >= c.price : coins >= c.price;
-                  const isBuying = buyingCrewId === cid;
+                {/* Ornamental divider */}
+                <div className="flex items-center gap-2 px-2">
+                  <span className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-700/40 to-transparent" />
+                  <span className="text-[10px] text-amber-500/70 tracking-widest">✦</span>
+                  <span className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-700/40 to-transparent" />
+                </div>
 
-                  const buyCrew = () => {
-                    if (isBuying || buyingCrewRef.current) return;
-                    if (!canAfford) {
-                      sound.play("error");
-                      setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
-                      return;
-                    }
-                    const currencyLabel = c.currency === "gems" ? "جوهرة" : "ذهب";
-                    if (!window.confirm(`تأكيد شراء ${c.name} مقابل ${c.price.toLocaleString()} ${currencyLabel}؟`)) return;
-                    buyingCrewRef.current = cid;
-                    setBuyingCrewId(cid);
-                    sound.play("coin");
-                    setToast(`✓ تم شراء ${c.name}`);
-                    (async () => {
-                      try {
-                        const { error } = c.currency === "gems"
-                          ? await buyWithGems(cid, "crew", c.price, undefined, 1)
-                          : await buyWithCoins(cid, "crew", c.price, undefined, 1);
-                        if (error) {
+                {/* All crews */}
+                <section>
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_10px_#f59e0b]" />
+                    <h3 className="text-amber-300 font-black text-xs tracking-widest">جميع الطواقم</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {CREWS.filter((c) => c.id !== "golden_fisher").map((c) => {
+                      const cid = c.id;
+                      const qty = availMap.get(cid) ?? 0;
+                      const owned = qty > 0;
+                      const isFixer = cid.startsWith("fixer_");
+                      const isGlobalCrew = cid === "trader" || cid === "golden_fisher";
+                      const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
+                      const nowMs = serverNowMs();
+                      const goldenFisherActive =
+                        !!(profile as any)?.golden_fisher_until &&
+                        new Date((profile as any).golden_fisher_until).getTime() > nowMs;
+                      const globallyActive = isGlobalCrew && (
+                        (cid === "golden_fisher" && goldenFisherActive) ||
+                        crewRows.some(
+                          (r) => r.item_id === cid
+                            && r.meta?.assigned_ship_id != null
+                            && (!r.meta?.expires_at || new Date(r.meta.expires_at).getTime() > nowMs)
+                        )
+                      );
+                      const fixerCanRepair = isFixer && (
+                        cid === "fixer_4"
+                          ? ships.some((x) => x.dbId && ((x.hp ?? 0) < (x.maxHp ?? 100) || x.destroyedAt || x.repairEndsAt))
+                          : ((s.hp ?? 0) < (s.maxHp ?? 100) || !!s.destroyedAt || !!s.repairEndsAt)
+                      );
+                      const slotsFull = !isFixer && !isGlobalCrew && !alreadyOnShip && assignedRows.length >= slots;
+                      const canAssign = owned && (
+                        isFixer
+                          ? fixerCanRepair
+                          : isGlobalCrew
+                            ? !globallyActive
+                            : (assignedRows.length < slots && !alreadyOnShip)
+                      );
+                      const isBuying = buyingCrewId === cid;
+                      const wantQty = Math.max(1, Math.min(99, crewBuyQty[cid] ?? 1));
+                      const totalCost = c.price * wantQty;
+                      const canAffordQty = c.currency === "gems" ? gems >= totalCost : coins >= totalCost;
+                      const setQty = (n: number) => setCrewBuyQty((m) => ({ ...m, [cid]: Math.max(1, Math.min(99, n)) }));
+
+                      const buyCrew = () => {
+                        if (isBuying || buyingCrewRef.current) return;
+                        if (!canAffordQty) {
                           sound.play("error");
-                          setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
+                          setToast(c.currency === "gems" ? "جواهر غير كافية" : "ذهب غير كافٍ");
                           return;
                         }
-                        refreshProfile();
-                        reloadCrews();
-                        setCrewTick((t) => t + 1);
-                      } finally {
-                        buyingCrewRef.current = null;
-                        setBuyingCrewId(null);
-                      }
-                    })();
-                  };
+                        const currencyLabel = c.currency === "gems" ? "جوهرة" : "ذهب";
+                        if (!window.confirm(`تأكيد شراء ${wantQty}× ${c.name} مقابل ${totalCost.toLocaleString()} ${currencyLabel}؟`)) return;
+                        buyingCrewRef.current = cid;
+                        setBuyingCrewId(cid);
+                        sound.play("coin");
+                        setToast(`✓ تم شراء ${wantQty}× ${c.name}`);
+                        (async () => {
+                          try {
+                            const { error } = c.currency === "gems"
+                              ? await buyWithGems(cid, "crew", totalCost, undefined, wantQty)
+                              : await buyWithCoins(cid, "crew", totalCost, undefined, wantQty);
+                            if (error) {
+                              sound.play("error");
+                              setToast(`فشل الشراء: ${(error as { message?: string }).message ?? "خطأ"}`);
+                              return;
+                            }
+                            refreshProfile();
+                            reloadCrews();
+                            setCrewTick((t) => t + 1);
+                            setCrewBuyQty((m) => ({ ...m, [cid]: 1 }));
+                          } finally {
+                            buyingCrewRef.current = null;
+                            setBuyingCrewId(null);
+                          }
+                        })();
+                      };
 
-                  return (
-                    <div
-                      key={cid}
-                      className={`w-full flex items-center gap-2 p-2 rounded-lg border ${
-                        owned
-                          ? (canAssign
-                              ? (isFixer ? "border-amber-400/50 bg-amber-900/20" : "border-accent/40 bg-black/30")
-                              : "border-accent/20 bg-black/10 opacity-70")
-                          : "border-cyan-400/30 bg-cyan-950/20"
-                      }`}
-                    >
-                      {c.image ? <img src={c.image} alt={c.name} className="w-9 h-9 object-contain drop-shadow" /> : <span className="text-xl">{c.emoji}</span>}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-accent flex items-center gap-1">
-                          {c.name}
-                          {owned && <span className="text-amber-300">×{qty}</span>}
+                      return (
+                        <div
+                          key={cid}
+                          className={`relative rounded-2xl border p-2.5 transition-all ${
+                            owned
+                              ? (canAssign
+                                  ? (isFixer
+                                      ? "border-amber-500/40 bg-gradient-to-br from-amber-950/30 to-amber-900/5 shadow-[inset_0_0_15px_rgba(245,158,11,0.06)]"
+                                      : "border-amber-600/30 bg-gradient-to-br from-slate-800/60 to-slate-900/40")
+                                  : "border-slate-700/40 bg-slate-900/40 opacity-70")
+                              : "border-amber-700/20 bg-slate-900/30"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative shrink-0">
+                              {c.image ? (
+                                <img src={c.image} alt={c.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/30 p-0.5" />
+                              ) : (
+                                <span className="grid w-11 h-11 place-items-center text-xl rounded-xl bg-slate-950/60 border border-amber-600/30">{c.emoji}</span>
+                              )}
+                              {owned && (
+                                <span className="absolute -bottom-1 -left-1 px-1.5 py-px rounded-md bg-gradient-to-b from-amber-300 to-amber-600 text-slate-950 text-[10px] font-black border border-amber-200/60 shadow-md">×{qty}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-amber-100 font-extrabold text-sm truncate">{c.name}</h4>
+                              <p className="text-[10px] text-emerald-300/80 leading-tight line-clamp-1">{c.bonus}</p>
+                              {isGlobalCrew && globallyActive && !alreadyOnShip && (
+                                <div className="text-[9px] text-amber-400/80 font-bold mt-0.5">🔒 {cid === "golden_fisher" ? "مفعّل بالفعل" : "مفعّل على سفينة أخرى"}</div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="mt-2.5 pt-2.5 border-t border-amber-700/15 flex items-center justify-between gap-2">
+                            {owned ? (
+                              <>
+                                <span className="text-[10px] text-amber-300/70 font-bold">جاهز للتفعيل</span>
+                                <button
+                                  disabled={crewBusy || alreadyOnShip || (isGlobalCrew && globallyActive)}
+                                  onClick={() => {
+                                    if (alreadyOnShip) return;
+                                    if (isGlobalCrew && globallyActive) {
+                                      sound.play("error");
+                                      setToast(cid === "golden_fisher"
+                                        ? "🏅 الصياد الذهبي مفعّل بالفعل على حسابك"
+                                        : "⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
+                                      return;
+                                    }
+                                    if (slotsFull) {
+                                      sound.play("error");
+                                      setToast(`⚠️ خانات الطاقم ممتلئة (${assignedRows.length}/${slots})`);
+                                      return;
+                                    }
+                                    if (isFixer && !fixerCanRepair) {
+                                      sound.play("error");
+                                      setToast(cid === "fixer_4"
+                                        ? "⚠️ جميع سفنك بدمها الكامل — لا حاجة للإصلاح"
+                                        : "⚠️ السفينة بدمها الكامل (100%) — لا حاجة للإصلاح");
+                                      return;
+                                    }
+                                    assignCrew(cid);
+                                  }}
+                                  className={`px-5 py-1.5 rounded-xl text-[11px] font-black active:scale-95 disabled:opacity-50 shadow-lg ${
+                                    canAssign && !crewBusy
+                                      ? "bg-gradient-to-b from-emerald-400 to-emerald-700 text-white border border-emerald-300/60 shadow-emerald-900/60"
+                                      : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
+                                        ? "bg-amber-900/40 text-amber-200 border border-amber-700/40"
+                                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                                  }`}
+                                >
+                                  {crewBusy
+                                    ? "..."
+                                    : alreadyOnShip
+                                      ? "مفعّل ✓"
+                                      : isFixer
+                                        ? (fixerCanRepair ? "🛠️ استخدم" : "🔒 ممتلئ 100%")
+                                        : (isGlobalCrew && globallyActive)
+                                          ? "مقفول 🔒"
+                                          : slotsFull
+                                            ? "⚠️ ممتلئ"
+                                            : "تفعيل"}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex items-center bg-slate-950/70 rounded-lg border border-amber-700/30 p-0.5 shadow-inner">
+                                  <button type="button" onClick={() => setQty(wantQty + 1)} disabled={isBuying} className="w-7 h-7 grid place-items-center text-amber-300 text-base font-black active:scale-90 disabled:opacity-40">+</button>
+                                  <span className="min-w-[28px] text-center text-[12px] font-black text-amber-200 tabular-nums">{wantQty}</span>
+                                  <button type="button" onClick={() => setQty(wantQty - 1)} disabled={isBuying} className="w-7 h-7 grid place-items-center text-amber-300 text-base font-black active:scale-90 disabled:opacity-40">−</button>
+                                </div>
+                                <button
+                                  onClick={buyCrew}
+                                  disabled={!canAffordQty || isBuying}
+                                  className={`flex-1 px-3 py-1.5 rounded-xl text-[11px] font-black active:scale-95 shadow-lg flex items-center justify-center gap-1.5 ${
+                                    canAffordQty && !isBuying
+                                      ? "bg-gradient-to-b from-amber-300 to-amber-700 text-slate-950 border border-amber-200/60 shadow-amber-900/60"
+                                      : "bg-slate-800 text-slate-400 border border-slate-700"
+                                  }`}
+                                >
+                                  <span>{isBuying ? "..." : "شراء"}</span>
+                                  <span className="text-[10px] font-bold">{totalCost.toLocaleString()}{c.currency === "gems" ? " 💎" : " 🪙"}</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-[10px] text-emerald-300 truncate">{c.bonus}</div>
-                        {isGlobalCrew && globallyActive && !alreadyOnShip && (
-                          <div className="text-[9px] text-amber-300/80">🔒 {cid === "golden_fisher" ? "مفعّل بالفعل على حسابك" : "مفعّل على سفينة أخرى"}</div>
-                        )}
-                      </div>
-                      {owned ? (
-                        <button
-                          disabled={crewBusy || alreadyOnShip || (isGlobalCrew && globallyActive)}
-                          onClick={() => {
-                            if (alreadyOnShip) return;
-                            if (isGlobalCrew && globallyActive) {
-                              sound.play("error");
-                              setToast(cid === "golden_fisher"
-                                ? "🏅 الصياد الذهبي مفعّل بالفعل على حسابك"
-                                : "⚠️ التاجر مفعّل بالفعل على سفينة أخرى");
-                              return;
-                            }
-                            if (cid === "golden_fisher") {
-                              assignCrew(cid);
-                              return;
-                            }
-                            if (slotsFull) {
-                              sound.play("error");
-                              setToast(`⚠️ خانات الطاقم ممتلئة (${assignedRows.length}/${slots}) — أزل طاقماً مفعّلاً أولاً`);
-                              return;
-                            }
-                            if (isFixer && !fixerCanRepair) {
-                              sound.play("error");
-                              setToast(cid === "fixer_4"
-                                ? "⚠️ جميع سفنك بدمها الكامل — لا حاجة للإصلاح"
-                                : "⚠️ السفينة بدمها الكامل (100%) — لا حاجة للإصلاح");
-                              return;
-                            }
-                            assignCrew(cid);
-                          }}
-                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 disabled:opacity-50 ${
-                            cid === "golden_fisher"
-                              ? (globallyActive
-                                  ? "bg-amber-900/40 text-amber-200/70 border border-amber-700/40"
-                                  : "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200")
-                              : canAssign && !crewBusy
-                                ? "bg-emerald-600/80 text-white"
-                                : (slotsFull || (isFixer && !fixerCanRepair) || (isGlobalCrew && globallyActive))
-                                  ? "bg-amber-700/60 text-amber-100"
-                                  : "bg-secondary/40 text-accent/50"
-                          }`}
-                        >
-                          {crewBusy
-                            ? "..."
-                            : cid === "golden_fisher"
-                              ? (globallyActive ? "مفعّل ✓" : "🏅 تفعيل 24س")
-                              : alreadyOnShip
-                                ? "مفعّل ✓"
-                                : isFixer
-                                  ? (fixerCanRepair ? "🛠️ استخدام" : "🔒 ممتلئ 100%")
-                                  : (isGlobalCrew && globallyActive)
-                                    ? "مقفول 🔒"
-                                    : slotsFull
-                                      ? "⚠️ ممتلئ"
-                                      : "تفعيل"}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={buyCrew}
-                          disabled={!canAfford || isBuying}
-                          className={`text-[10px] px-2 py-1.5 rounded font-bold active:scale-95 flex flex-col items-center leading-tight ${
-                            cid === "golden_fisher"
-                              ? (canAfford && !isBuying
-                                  ? "bg-gradient-to-b from-amber-300 to-amber-700 text-black border border-amber-200"
-                                  : "bg-amber-900/40 text-amber-200/60 border border-amber-700/40")
-                              : canAfford && !isBuying
-                                ? "bg-gradient-to-b from-amber-500 to-amber-700 text-white border border-amber-300"
-                                : "bg-secondary/40 text-accent/50"
-                          }`}
-                        >
-                          <span>{isBuying ? "..." : "شراء"}</span>
-                          <span className="text-[9px]">
-                            {c.price.toLocaleString()} {c.currency === "gems" ? "💎" : "🪙"}
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <button
+                  className="mt-2 w-full py-2.5 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 text-amber-200 text-xs font-black border border-amber-700/30 active:scale-95 shadow-lg"
+                  onClick={() => setModal(null)}
+                >إغلاق</button>
               </div>
-
-
-              <button
-                className="mt-3 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95 relative z-[60]"
-                onClick={() => setModal(null)}
-              >إغلاق</button>
             </div>
           </div>
+
         );
       })()}
 
