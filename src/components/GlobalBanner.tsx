@@ -81,6 +81,13 @@ export function GlobalBanner() {
         message: row.message || "",
         emoji: row.emoji || "📢",
       }, 8000);
+    } else if (row.kind === "lucky_box") {
+      show({
+        _t: "lucky", kind: "lucky_box",
+        title: row.title || "جائزة نادرة",
+        message: row.message || "",
+        emoji: row.emoji || "🎉",
+      }, 4000);
     }
   }, [show]);
 
