@@ -56,8 +56,17 @@ function AdminSanctions() {
 
   const lift = async (r: Row) => {
     if (!confirm(`إلغاء ${r.kind === "ban" ? "الحظر" : "الكتم"} عن ${r.player_name}؟`)) return;
-    const table = r.kind === "ban" ? "bans" : "chat_mutes";
-    await supabase.from(table).update({ active: false }).eq("id", r.id);
+    const { data, error } = await supabase.rpc("admin_lift_sanction", { p_kind: r.kind, p_id: r.id });
+    if (error) {
+      toast.error(`فشل الإلغاء: ${error.message}`);
+      return;
+    }
+    const affected = (data as any)?.affected ?? 0;
+    if (!affected) {
+      toast.error("لم يتم العثور على عقوبة نشطة لرفعها");
+      load();
+      return;
+    }
     await logAudit(r.kind === "ban" ? "unban_user" : "unmute_user", r.user_id, { name: r.player_name, via: "sanctions_page" });
     toast.success("تم الإلغاء");
     load();
