@@ -281,6 +281,13 @@ function shipSellPrice(level: number) {
   return Math.max(150, Math.round(getShipByMarketLevel(level).price * 0.5));
 }
 
+// Module-scoped flag shared by Index (writer) and ShipSlot (reader).
+// Set to true when the last golden fisher tick reported the storehouse
+// is full so the deposit can't make progress.
+const gfMarketFullRef = { current: false };
+
+
+
 
 
 function Index() {
@@ -1212,12 +1219,17 @@ function Index() {
               crewRowsRef.current.some(
                 (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
               );
-            if (gfActive) {
+            // Only clamp ratio to hide a one-frame flash to 100% before the
+            // server tick re-ages the timer. When the market is full the tick
+            // can never advance the timer, so DON'T clamp — let the ship show
+            // as "✅ ready" so the player can sell + collect manually.
+            if (gfActive && !gfMarketFullRef.current) {
               ratio = 0.99;
               if (now - lastGfTickRef.current > 200) {
                 lastGfTickRef.current = now;
                 tickGoldenFisher({ data: {} })
-                  .then(() => {
+                  .then((res: any) => {
+                    gfMarketFullRef.current = !!res?.market_full;
                     // Always re-sync so the UI picks up the new fishing_started_at
                     // even when the server processed cycles silently.
                     syncFleetFromDb();
@@ -4109,10 +4121,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         } else if (ship.fishing && !ready) {
           const rem = Math.max(0, Math.ceil(ship.timeLeft));
           if (rem <= 0) {
-            // Timer expired but trip not yet marked ready — either the server
-            // auto-collect (golden fisher) is in flight, or the sync is lagging.
-            // Show a neutral hint instead of a misleading 0:00.
-            label = "⏳ جارٍ الجمع... اضغط للتحديث";
+            // Timer expired but progress hasn't hit max — either golden fisher
+            // is mid-tick, or the storehouse is full so the auto-deposit
+            // can't make progress. Show an actionable hint in the latter case.
+            label = gfMarketFullRef.current
+              ? "🛒 المخزن ممتلئ — بِع السمك"
+              : "⏳ جارٍ الجمع...";
           } else {
             const m = Math.floor(rem / 60);
             const s = rem % 60;
