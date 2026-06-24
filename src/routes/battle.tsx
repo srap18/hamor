@@ -52,41 +52,36 @@ function BattlePage() {
   const [reward, setReward] = useState<number>(0);
   const fidRef = useRef(1);
 
-  // pick a random REAL opponent (must have a profile + dragon, not me, not the previous one)
+  // pick a matched opponent: prefer equal stage; otherwise pick the closest stage
   async function pickRandomOpponent(meId: string, myStage: number, excludeId?: string | null): Promise<string | null> {
     type Row = { user_id: string; stage: number };
-    const tryPool = async (q: ReturnType<typeof supabase.from>): Promise<Row[]> => {
-      const { data } = await (q as unknown as { limit: (n: number) => Promise<{ data: Row[] | null }> }).limit(60);
-      return (data ?? []).filter(r => r.user_id !== meId && r.user_id !== excludeId);
-    };
-    let pool = await tryPool(
-      supabase.from("dragons").select("user_id,stage").neq("user_id", meId).eq("stage", myStage) as unknown as ReturnType<typeof supabase.from>
-    );
-    if (pool.length === 0) {
-      pool = await tryPool(
-        supabase.from("dragons").select("user_id,stage").neq("user_id", meId)
-          .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1) as unknown as ReturnType<typeof supabase.from>
-      );
-    }
-    if (pool.length === 0) {
-      pool = await tryPool(
-        supabase.from("dragons").select("user_id,stage").neq("user_id", meId) as unknown as ReturnType<typeof supabase.from>
-      );
-    }
+    const { data: allRows } = await supabase
+      .from("dragons")
+      .select("user_id,stage")
+      .neq("user_id", meId)
+      .limit(500);
+    const pool: Row[] = (allRows ?? []).filter(r => r.user_id !== excludeId);
     if (!pool.length) return null;
-    // verify the pick has a real profile (display_name set)
-    for (let tries = 0; tries < 5 && pool.length; tries++) {
-      const idx = Math.floor(Math.random() * pool.length);
-      const candidate = pool[idx].user_id;
+    // prefer exact stage, else find the minimum stage difference
+    const exact = pool.filter(r => r.stage === myStage);
+    let candidates: Row[] = exact;
+    if (!candidates.length) {
+      const minDiff = Math.min(...pool.map(r => Math.abs(r.stage - myStage)));
+      candidates = pool.filter(r => Math.abs(r.stage - myStage) === minDiff);
+    }
+    // verify a real profile (display_name set), up to 5 random picks
+    for (let tries = 0; tries < 5 && candidates.length; tries++) {
+      const idx = Math.floor(Math.random() * candidates.length);
+      const candidate = candidates[idx].user_id;
       const { data: prof } = await supabase.from("profiles")
         .select("id,display_name").eq("id", candidate).maybeSingle();
       if (prof?.display_name) return candidate;
-      pool.splice(idx, 1);
+      candidates.splice(idx, 1);
     }
-    return pool[0]?.user_id ?? null;
+    return candidates[0]?.user_id ?? pool[0]?.user_id ?? null;
   }
 
-  async function loadOpponent(meId: string, myStage: number, myHp: number, forcedId?: string | null, excludeId?: string | null) {
+  async function loadOpponent(meId: string, myStage: number, _myHp: number, forcedId?: string | null, excludeId?: string | null) {
     const oppId = forcedId ?? await pickRandomOpponent(meId, myStage, excludeId);
     if (!oppId) return;
     const [{ data: oProf }, { data: oDragon }] = await Promise.all([
@@ -94,14 +89,16 @@ function BattlePage() {
       supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
     ]);
     const oStage = oDragon?.stage ?? myStage;
+    const { maxHp, power } = statsForStage(oStage);
     setOp({
       id: oppId,
       name: oProf?.display_name ?? "خصم",
       avatar: oProf?.avatar_url ?? null,
       emoji: oProf?.avatar_emoji ?? "🐲",
       stage: oStage,
-      maxHp: myHp,
-      hp: myHp,
+      power,
+      maxHp,
+      hp: maxHp,
     });
   }
 
@@ -115,13 +112,14 @@ function BattlePage() {
         supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
       ]);
       const myStage = myDragon?.stage ?? 1;
-      const myHp = 400 + myStage * 80;
+      const { maxHp: myHp, power: myPower } = statsForStage(myStage);
       setMe({
         id: user.id,
         name: myProf?.display_name ?? "أنا",
         avatar: myProf?.avatar_url ?? null,
         emoji: myProf?.avatar_emoji ?? "🐉",
         stage: myStage,
+        power: myPower,
         maxHp: myHp,
         hp: myHp,
       });
