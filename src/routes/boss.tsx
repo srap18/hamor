@@ -27,7 +27,7 @@ type Boss = {
   spawned_at: string; expires_at: string;
   defeated_at: string | null;
 };
-type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null };
+type ShipRow = { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null };
 type RocketRow = { id: string; item_id: string; quantity: number };
 
 function isBossReady(value: unknown): value is Boss {
