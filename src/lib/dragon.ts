@@ -40,22 +40,24 @@ export type DragonStage = {
 // 15 forms × 10 sub-levels = 150 overall levels.
 // Each form spans 10 levels; entering a new form happens every 10 levels.
 export const DRAGON_STAGES: DragonStage[] = [
-  { level: 1,  name: "بيضة",            icon: "🥚", dpRequired: 0,            image: dragonStage1  },
-  { level: 2,  name: "فقس",             icon: "🐣", dpRequired: 600,          image: dragonStage2  },
-  { level: 3,  name: "تنين صغير",        icon: "🐉", dpRequired: 2000,         image: dragonStage3  },
-  // Stages 4+ scale aggressively — long-term progression (a year or more even at ~10k DP/day on the boss).
-  { level: 4,  name: "ناشئ",            icon: "🔥", dpRequired: 10000,        image: dragonStage4  },
-  { level: 5,  name: "محارب",           icon: "⚡", dpRequired: 40000,        image: dragonStage5  },
-  { level: 6,  name: "نخبة",            icon: "🌪️", dpRequired: 150000,       image: dragonStage6  },
-  { level: 7,  name: "ملكي",            icon: "👑", dpRequired: 600000,       image: dragonStage7  },
-  { level: 8,  name: "أسطوري",          icon: "🌌", dpRequired: 2500000,      image: dragonStage8  },
-  { level: 9,  name: "كوني",            icon: "☄️", dpRequired: 10000000,     image: dragonStage9  },
-  { level: 10, name: "خرافي",            icon: "🔱", dpRequired: 40000000,     image: dragonStage10 },
-  { level: 11, name: "تنين النار الذهبي", icon: "🜂", dpRequired: 150000000,    image: dragonStage11 },
-  { level: 12, name: "ملك التنانين",     icon: "♛", dpRequired: 500000000,    image: dragonStage12 },
-  { level: 13, name: "تنين الرونا",      icon: "🜔", dpRequired: 1500000000,   image: dragonStage13 },
-  { level: 14, name: "تنين الكون",       icon: "✦", dpRequired: 5000000000,   image: dragonStage14 },
-  { level: 15, name: "سيد التنانين",     icon: "☼", dpRequired: 15000000000,  image: dragonStage15 },
+  // Each transition expressed in "nuke equivalents" (1 nuke on the boss = 1,000 DP).
+  // 1→2: 50 nukes, 2→3: 100, 3→4: 200, 4→5: 300, 5→6: 350, 6→7: 400, 7→8: 500,
+  // 8→9: 700, 9→10: 1000, 10→11: 1500, 11→12: 2500, 12→13: 4000, 13→14: 7000, 14→15: 12000
+  { level: 1,  name: "بيضة",            icon: "🥚", dpRequired: 0,           image: dragonStage1  },
+  { level: 2,  name: "فقس",             icon: "🐣", dpRequired: 50000,       image: dragonStage2  },
+  { level: 3,  name: "تنين صغير",        icon: "🐉", dpRequired: 150000,      image: dragonStage3  },
+  { level: 4,  name: "ناشئ",            icon: "🔥", dpRequired: 350000,      image: dragonStage4  },
+  { level: 5,  name: "محارب",           icon: "⚡", dpRequired: 650000,      image: dragonStage5  },
+  { level: 6,  name: "نخبة",            icon: "🌪️", dpRequired: 1000000,     image: dragonStage6  },
+  { level: 7,  name: "ملكي",            icon: "👑", dpRequired: 1400000,     image: dragonStage7  },
+  { level: 8,  name: "أسطوري",          icon: "🌌", dpRequired: 1900000,     image: dragonStage8  },
+  { level: 9,  name: "كوني",            icon: "☄️", dpRequired: 2600000,     image: dragonStage9  },
+  { level: 10, name: "خرافي",            icon: "🔱", dpRequired: 3600000,     image: dragonStage10 },
+  { level: 11, name: "تنين النار الذهبي", icon: "🜂", dpRequired: 5100000,     image: dragonStage11 },
+  { level: 12, name: "ملك التنانين",     icon: "♛", dpRequired: 7600000,     image: dragonStage12 },
+  { level: 13, name: "تنين الرونا",      icon: "🜔", dpRequired: 11600000,    image: dragonStage13 },
+  { level: 14, name: "تنين الكون",       icon: "✦", dpRequired: 18600000,    image: dragonStage14 },
+  { level: 15, name: "سيد التنانين",     icon: "☼", dpRequired: 30600000,    image: dragonStage15 },
 ];
 
 export const MAX_FORMS = DRAGON_STAGES.length;     // 15
