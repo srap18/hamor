@@ -4539,6 +4539,7 @@ export type Database = {
         Returns: Json
       }
       dragon_defense_bonus: { Args: { _user_id: string }; Returns: number }
+      dragon_is_hatched: { Args: { _user: string }; Returns: boolean }
       dragon_overall_level: { Args: { _user_id: string }; Returns: number }
       dragon_stage_for_dp: { Args: { _dp: number }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
