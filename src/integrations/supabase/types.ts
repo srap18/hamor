@@ -4371,6 +4371,8 @@ export type Database = {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json
       }
+      dragon_defense_bonus: { Args: { _user_id: string }; Returns: number }
+      dragon_overall_level: { Args: { _user_id: string }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
       equip_dragon_item: { Args: { p_item_id: string }; Returns: Json }
