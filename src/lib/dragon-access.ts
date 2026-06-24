@@ -10,31 +10,24 @@ export const DRAGON_UNLOCKED_USER_IDS = new Set<string>([
   "7035f6b9-7bb2-41e2-a8b8-050d0e7f41c0",
 ]);
 
+// Dragon feature is now LIVE for all signed-in players.
+// Allowlist + admin/moderator role logic kept above for reference but
+// access is open to everyone with an authenticated session.
 export function isDragonUnlockedFor(userId: string | null | undefined): boolean {
-  return !!userId && DRAGON_UNLOCKED_USER_IDS.has(userId);
+  return !!userId;
 }
 
-/** Hook: returns true once we confirm the signed-in user has dragon access (allowlist OR admin/moderator). */
+/** Hook: returns true once a user session is confirmed. Dragon is open to all. */
 export function useDragonUnlocked(): boolean {
   const [unlocked, setUnlocked] = useState(false);
   useEffect(() => {
     let alive = true;
-    const check = async (uid: string | null | undefined) => {
-      if (!uid) { if (alive) setUnlocked(false); return; }
-      if (isDragonUnlockedFor(uid)) { if (alive) setUnlocked(true); return; }
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid)
-        .in("role", ["admin", "moderator"]);
-      if (alive) setUnlocked(!!data && data.length > 0);
-    };
     (async () => {
       const { data } = await supabase.auth.getUser();
-      await check(data.user?.id);
+      if (alive) setUnlocked(!!data.user?.id);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      void check(session?.user?.id);
+      if (alive) setUnlocked(!!session?.user?.id);
     });
     return () => {
       alive = false;
@@ -43,3 +36,4 @@ export function useDragonUnlocked(): boolean {
   }, []);
   return unlocked;
 }
+
