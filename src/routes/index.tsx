@@ -1213,12 +1213,17 @@ function Index() {
               crewRowsRef.current.some(
                 (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
               );
-            if (gfActive) {
+            // Only clamp ratio to hide a one-frame flash to 100% before the
+            // server tick re-ages the timer. When the market is full the tick
+            // can never advance the timer, so DON'T clamp — let the ship show
+            // as "✅ ready" so the player can sell + collect manually.
+            if (gfActive && !gfMarketFullRef.current) {
               ratio = 0.99;
               if (now - lastGfTickRef.current > 200) {
                 lastGfTickRef.current = now;
                 tickGoldenFisher({ data: {} })
-                  .then(() => {
+                  .then((res: any) => {
+                    gfMarketFullRef.current = !!res?.market_full;
                     // Always re-sync so the UI picks up the new fishing_started_at
                     // even when the server processed cycles silently.
                     syncFleetFromDb();
