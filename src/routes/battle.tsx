@@ -209,12 +209,13 @@ function BattlePage() {
     setResult("lose");
   }
 
-  function rematch() {
-    if (!me || !op) return;
-    setMe({ ...me, hp: me.maxHp });
-    setOp({ ...op, hp: op.maxHp });
+  async function rematch() {
+    if (!me) return;
     setResult(null);
     setReward(0);
+    setMe({ ...me, hp: me.maxHp });
+    setOp(null);
+    await loadOpponent(me.id, me.stage, me.maxHp, null, op?.id ?? null);
   }
 
   const myStageImg = useMemo(() => getStage(me?.stage ?? 1).image, [me?.stage]);
