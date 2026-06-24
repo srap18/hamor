@@ -48,9 +48,6 @@ const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<
 type Projectile = { id: number; kind: "rocket" | "boss"; weapon?: string; key: number };
 type Splash = { id: number; side: "ship" | "boss"; crit?: boolean; dmg?: number };
 
-const BOSS_ALLOWED_USERS = new Set<string>([
-  "7035f6b9-7bb2-41e2-a8b8-050d0e7f41c0", // جاك سبارو (تجربة)
-]);
 
 function BossPage() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -88,13 +85,7 @@ function BossPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       myIdRef.current = user?.id ?? null;
-      let ok = !!user?.id && BOSS_ALLOWED_USERS.has(user.id);
-      if (!ok && user?.id) {
-        const { data: roles } = await supabase
-          .from("user_roles").select("role").eq("user_id", user.id)
-          .in("role", ["admin", "moderator"]);
-        ok = !!roles && roles.length > 0;
-      }
+      const ok = !!user?.id;
       setAllowed(ok);
       setAuthChecked(true);
       if (!ok) { setLoadingBoss(false); return; }
