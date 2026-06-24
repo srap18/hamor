@@ -1,328 +1,421 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getStage } from "@/lib/dragon";
+import { DRAGON_STAGES, getStage } from "@/lib/dragon";
+import arenaBg from "@/assets/battle-arena-bg.jpg";
 
 export const Route = createFileRoute("/battle")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     vs: typeof s.vs === "string" ? s.vs : undefined,
   }),
-  head: () => ({ meta: [{ title: "⚔️ مبارزة التنانين" }] }),
+  head: () => ({ meta: [{ title: "⚔️ معركة التنين — ساحة القتال" }] }),
   component: BattlePage,
 });
 
-type DuelResult = {
-  won: boolean;
-  my_level: number;
-  opp_level: number;
-  my_stage: number;
-  opp_stage: number;
-  score: number;
-  win_chance: number;
-  opp_name: string;
+type Fighter = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  emoji: string;
+  stage: number;
+  maxHp: number;
+  hp: number;
 };
 
-type Opponent = {
-  user_id: string;
-  score: number;
-  wins: number;
-  display_name: string | null;
-  avatar_emoji: string | null;
-  level: number | null;
-};
+type FloatNum = { id: number; x: number; y: number; v: number; side: "me" | "op" };
+type Bolt = { id: number; from: "me" | "op" };
+
+function avatarFallback(emoji: string) {
+  return emoji || "🐉";
+}
 
 function BattlePage() {
-  const [loading, setLoading] = useState(true);
-  const [meId, setMeId] = useState<string | null>(null);
-  const [opps, setOpps] = useState<Opponent[]>([]);
-  const [eventMult, setEventMult] = useState<number>(1);
-  const [eventTitle, setEventTitle] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [result, setResult] = useState<DuelResult | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { vs } = useSearch({ from: "/battle" });
+  const [me, setMe] = useState<Fighter | null>(null);
+  const [op, setOp] = useState<Fighter | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<"win" | "lose" | null>(null);
+  const [floats, setFloats] = useState<FloatNum[]>([]);
+  const [bolts, setBolts] = useState<Bolt[]>([]);
+  const [shake, setShake] = useState<"me" | "op" | null>(null);
+  const [reward, setReward] = useState<number>(0);
+  const fidRef = useRef(1);
 
-  async function duel(opp: Opponent) {
-    if (busyId) return;
-    setBusyId(opp.user_id);
-    setErrorMsg(null);
-    try {
-      const { data, error } = await (supabase as never as {
-        rpc: (n: string, p: Record<string, unknown>) => Promise<{ data: DuelResult | null; error: { message: string } | null }>;
-      }).rpc("arena_dragon_duel", { _opponent: opp.user_id });
-      if (error) {
-        const m = (error.message || "").toLowerCase();
-        if (m.includes("rate_limited")) setErrorMsg("⏱️ انتظر ١٠ ثوانٍ قبل المبارزة التالية");
-        else setErrorMsg("تعذرت المبارزة، حاول مرة ثانية");
-        return;
-      }
-      if (data) {
-        setResult({ ...data, opp_name: opp.display_name ?? "خصم" });
-        // bump local score row for the active user so the list refreshes feel
-        setOpps((prev) => prev.map((p) => (p.user_id === meId ? { ...p, score: p.score + data.score, wins: p.wins + (data.won ? 1 : 0) } : p)));
-      }
-    } finally {
-      setBusyId(null);
-    }
-  }
-
+  // load fighters
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      setMeId(u?.user?.id ?? null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const [{ data: myProf }, { data: myDragon }] = await Promise.all([
+        supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("dragons").select("stage").eq("user_id", user.id).maybeSingle(),
+      ]);
+      const myStage = myDragon?.stage ?? 1;
+      const myHp = 400 + myStage * 80;
+      setMe({
+        id: user.id,
+        name: myProf?.display_name ?? "أنا",
+        avatar: myProf?.avatar_url ?? null,
+        emoji: myProf?.avatar_emoji ?? "🐉",
+        stage: myStage,
+        maxHp: myHp,
+        hp: myHp,
+      });
 
-      const { data: s } = await supabase
-        .from("arena_settings")
-        .select("event_active, event_title, event_multiplier, event_ends_at")
-        .maybeSingle();
-      if (s?.event_active && (!s.event_ends_at || new Date(s.event_ends_at).getTime() > Date.now())) {
-        setEventMult(Number(s.event_multiplier ?? 1));
-        setEventTitle(s.event_title ?? null);
-      }
-
-      // Build weekly window key like arena page does (UTC Monday).
-      const now = new Date();
-      const dow = (now.getUTCDay() + 6) % 7;
-      const wkStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dow));
-      const weekKey = wkStart.toISOString().slice(0, 10);
-
-      const { data: scores } = await supabase
-        .from("arena_scores")
-        .select("user_id, score, wins")
-        .eq("week_start", weekKey)
-        .order("score", { ascending: false })
-        .limit(20);
-
-      const ids = (scores ?? []).map((r) => r.user_id);
-      let nameMap: Record<string, { display_name: string | null; avatar_emoji: string | null; level: number | null }> = {};
-      if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_emoji, level")
-          .in("id", ids);
-        nameMap = Object.fromEntries(
-          (profs ?? []).map((p) => [p.id, { display_name: p.display_name, avatar_emoji: p.avatar_emoji, level: p.level }]),
-        );
-      }
-
-      // If we have fewer than 8 active arena players, top off with the strongest live players overall.
-      let merged: Opponent[] = (scores ?? []).map((r) => ({
-        user_id: r.user_id,
-        score: r.score,
-        wins: r.wins,
-        display_name: nameMap[r.user_id]?.display_name ?? null,
-        avatar_emoji: nameMap[r.user_id]?.avatar_emoji ?? null,
-        level: nameMap[r.user_id]?.level ?? null,
-      }));
-
-      if (merged.length < 8) {
-        const { data: extras } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_emoji, level")
-          .not("display_name", "is", null)
-          .order("level", { ascending: false })
-          .limit(20);
-        for (const p of extras ?? []) {
-          if (merged.find((m) => m.user_id === p.id)) continue;
-          merged.push({
-            user_id: p.id,
-            score: 0,
-            wins: 0,
-            display_name: p.display_name,
-            avatar_emoji: p.avatar_emoji,
-            level: p.level,
-          });
-          if (merged.length >= 12) break;
+      // opponent: from ?vs= OR fair match (same stage, then ±1, then any)
+      let oppId: string | null = vs ?? null;
+      if (!oppId) {
+        // 1) exact stage match
+        let pool: { user_id: string; stage: number }[] = [];
+        const exact = await supabase.from("dragons")
+          .select("user_id,stage").neq("user_id", user.id).eq("stage", myStage).limit(30);
+        pool = (exact.data ?? []) as typeof pool;
+        // 2) ±1 stage
+        if (pool.length === 0) {
+          const near = await supabase.from("dragons")
+            .select("user_id,stage").neq("user_id", user.id)
+            .gte("stage", Math.max(1, myStage - 1)).lte("stage", myStage + 1).limit(30);
+          pool = (near.data ?? []) as typeof pool;
         }
+        // 3) anyone
+        if (pool.length === 0) {
+          const any = await supabase.from("dragons")
+            .select("user_id,stage").neq("user_id", user.id).limit(30);
+          pool = (any.data ?? []) as typeof pool;
+        }
+        if (pool.length) oppId = pool[Math.floor(Math.random() * pool.length)].user_id;
       }
-
-      setOpps(merged);
-      setLoading(false);
+      if (!oppId) return;
+      const [{ data: oProf }, { data: oDragon }] = await Promise.all([
+        supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", oppId).maybeSingle(),
+        supabase.from("dragons").select("stage").eq("user_id", oppId).maybeSingle(),
+      ]);
+      // fair fight: match opponent HP/stage exactly to mine if stages differ
+      const oStage = oDragon?.stage ?? myStage;
+      const oHp = myHp;
+      setOp({
+        id: oppId,
+        name: oProf?.display_name ?? "خصم",
+        avatar: oProf?.avatar_url ?? null,
+        emoji: oProf?.avatar_emoji ?? "🐲",
+        stage: oStage,
+        maxHp: oHp,
+        hp: oHp,
+      });
     })();
-  }, []);
+  }, [vs]);
+
+  // opponent auto-attack
+  useEffect(() => {
+    if (!me || !op || result) return;
+    const t = setInterval(() => {
+      doOpponentAttack();
+    }, 1800);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, op, result]);
+
+  function spawnFloat(side: "me" | "op", v: number) {
+    const id = fidRef.current++;
+    setFloats(f => [...f, { id, x: 40 + Math.random() * 20, y: 30 + Math.random() * 20, v, side }]);
+    setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 900);
+  }
+  function spawnBolt(from: "me" | "op") {
+    const id = fidRef.current++;
+    setBolts(b => [...b, { id, from }]);
+    setTimeout(() => setBolts(b => b.filter(x => x.id !== id)), 600);
+  }
+
+  function doMyAttack() {
+    if (!me || !op || busy || result) return;
+    setBusy(true);
+    const crit = Math.random() < 0.18;
+    const base = 50 + me.stage * 12;
+    const dmg = Math.max(10, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
+    spawnBolt("me");
+    setTimeout(() => {
+      spawnFloat("op", dmg);
+      setShake("op");
+      setTimeout(() => setShake(null), 200);
+      setOp(o => {
+        if (!o) return o;
+        const hp = Math.max(0, o.hp - dmg);
+        if (hp === 0) finishWin();
+        return { ...o, hp };
+      });
+      setBusy(false);
+    }, 350);
+  }
+
+  function doOpponentAttack() {
+    if (!me || !op || result) return;
+    const base = 35 + op.stage * 10;
+    const crit = Math.random() < 0.12;
+    const dmg = Math.max(8, Math.round((base + Math.random() * base * 0.4) * (crit ? 2 : 1)));
+    spawnBolt("op");
+    setTimeout(() => {
+      spawnFloat("me", dmg);
+      setShake("me");
+      setTimeout(() => setShake(null), 200);
+      setMe(m => {
+        if (!m) return m;
+        const hp = Math.max(0, m.hp - dmg);
+        if (hp === 0) finishLose();
+        return { ...m, hp };
+      });
+    }, 350);
+  }
+
+  async function finishWin() {
+    if (result) return;
+    setResult("win");
+    const r = 5 + Math.floor(Math.random() * 6);
+    setReward(r);
+    // award arena points (best-effort)
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const ws = (() => {
+          const d = new Date();
+          const day = d.getUTCDay();
+          const diff = (day + 6) % 7;
+          d.setUTCDate(d.getUTCDate() - diff);
+          d.setUTCHours(0, 0, 0, 0);
+          return d.toISOString().slice(0, 10);
+        })();
+        await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<unknown> })
+          .rpc("award_arena_score", { _score: r, _week_start: ws })
+          .catch(() => {});
+      }
+    } catch { /* ignore */ }
+  }
+  function finishLose() {
+    if (result) return;
+    setResult("lose");
+  }
+
+  function rematch() {
+    if (!me || !op) return;
+    setMe({ ...me, hp: me.maxHp });
+    setOp({ ...op, hp: op.maxHp });
+    setResult(null);
+    setReward(0);
+  }
+
+  const myStageImg = useMemo(() => getStage(me?.stage ?? 1).image, [me?.stage]);
+  const opStageImg = useMemo(() => getStage(op?.stage ?? 1).image, [op?.stage]);
+  const myPct = me ? (me.hp / me.maxHp) * 100 : 100;
+  const opPct = op ? (op.hp / op.maxHp) * 100 : 100;
 
   return (
-    <div
-      className="fixed inset-0 overflow-y-auto"
-      dir="rtl"
-      style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}
-    >
-      <div className="absolute top-4 right-3 z-20">
-        <Link
-          to="/"
-          className="glass-hud rounded-full px-3 py-1.5 text-cyan-200 text-sm font-bold border border-cyan-500/40"
-        >
-          ← رجوع
-        </Link>
-      </div>
-      <div className="absolute top-4 left-3 z-20">
-        <Link
-          to="/arena"
-          className="glass-hud rounded-full px-3 py-1.5 text-amber-200 text-sm font-bold border border-amber-500/40"
-        >
-          🏟️ الترتيب
-        </Link>
-      </div>
+    <div dir="rtl" className="fixed inset-0 overflow-hidden text-white select-none"
+      style={{
+        backgroundImage: `url(${arenaBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center bottom",
+      }}>
+      <style>{`
+        @keyframes bolt-mr { 0%{transform:translateX(0) scale(0.6);opacity:0} 15%{opacity:1} 100%{transform:translateX(-58vw) scale(1.1);opacity:0} }
+        @keyframes bolt-ml { 0%{transform:translateX(0) scale(0.6);opacity:0} 15%{opacity:1} 100%{transform:translateX(58vw) scale(1.1);opacity:0} }
+        @keyframes flt { 0%{transform:translateY(0);opacity:0} 15%{opacity:1} 100%{transform:translateY(-60px);opacity:0} }
+        @keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        @keyframes hov { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes brth { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+        @keyframes glow-blue { 0%,100%{filter:drop-shadow(0 0 12px rgba(34,211,238,0.7))} 50%{filter:drop-shadow(0 0 22px rgba(34,211,238,1))} }
+      `}</style>
 
-      <div className="relative z-10 max-w-md mx-auto px-3 pt-16 pb-24">
-        <div className="text-center mb-4">
-          <div className="inline-block px-5 py-2 rounded-full bg-gradient-to-r from-rose-700/40 to-amber-700/40 border border-amber-400/60 shadow-lg">
-            <div className="text-amber-100 font-extrabold text-xl">🐉 مبارزة التنانين</div>
-            <div className="text-amber-300/80 text-[11px]">تنينك ضد تنين خصمك — كل انتصار يرفع نقاط الأرينا</div>
-          </div>
-        </div>
+      {/* close + portals overlay glow */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(ellipse at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.5) 100%)"
+      }}/>
 
-        {errorMsg && (
-          <div className="mb-3 rounded-xl bg-rose-900/40 border border-rose-500/50 text-rose-100 text-center text-sm py-2 font-bold">
-            {errorMsg}
-          </div>
-        )}
-
-        {eventMult > 1 && (
-          <div
-            className="mb-3 rounded-2xl p-3 text-center border-2 border-pink-400/70 animate-pulse"
-            style={{ background: "linear-gradient(180deg,#7c1d6f 0%,#3b0764 100%)" }}
-          >
-            <div className="text-pink-100 font-black text-base">🎉 {eventTitle || "فعالية الأرينا"}</div>
-            <div className="text-amber-200 text-sm font-bold mt-1">نقاط مضاعفة ×{eventMult}</div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center text-amber-200/70 py-12 animate-pulse">جاري تحميل الخصوم...</div>
-        ) : opps.length === 0 ? (
-          <div className="rounded-2xl border border-amber-700/40 bg-stone-900/70 p-5 text-center">
-            <div className="text-4xl mb-2">🌊</div>
-            <div className="text-amber-200 font-bold mb-1">لا يوجد لاعبون متاحون الآن</div>
-            <div className="text-amber-100/70 text-sm">ارجع للخريطة وهاجم من ساحل البحر مباشرة.</div>
-            <Link
-              to="/"
-              className="inline-block mt-3 px-4 py-2 rounded-xl bg-amber-600 text-stone-900 font-extrabold active:scale-95"
-            >
-              للخريطة
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {opps.map((o, i) => {
-              const isMe = o.user_id === meId;
-              return (
-                <div
-                  key={o.user_id}
-                  className={`flex items-center gap-3 p-3 rounded-2xl border backdrop-blur ${
-                    isMe
-                      ? "bg-amber-500/15 border-amber-400/50"
-                      : i === 0
-                        ? "bg-amber-900/40 border-amber-500/50"
-                        : i < 3
-                          ? "bg-stone-800/70 border-amber-700/40"
-                          : "bg-stone-900/70 border-cyan-700/30"
-                  }`}
-                >
-                  <div className="w-7 text-center text-amber-200 font-extrabold">
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
-                  </div>
-                  <div className="text-3xl">{o.avatar_emoji ?? "🧑‍✈️"}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-amber-100 font-bold truncate">{o.display_name ?? "قبطان"}</div>
-                    <div className="text-amber-300/70 text-[11px]">
-                      {o.score > 0 ? `${o.score.toLocaleString()} نقطة • ${o.wins} انتصار` : "متاح للقتال"}
-                      {o.level ? ` • مستوى ${o.level}` : ""}
-                    </div>
-                  </div>
-                  {isMe ? (
-                    <span className="text-amber-300/80 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-400/40">
-                      أنت
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={busyId === o.user_id}
-                      onClick={() => duel(o)}
-                      className="px-3 py-2 rounded-xl text-stone-900 font-extrabold text-sm shadow-lg active:scale-95 disabled:opacity-60"
-                      style={{
-                        background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
-                        border: "1px solid rgba(255,200,100,0.7)",
-                      }}
-                    >
-                      {busyId === o.user_id ? "..." : "🐉 بارز"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <Link
-            to="/boss"
-            className="block rounded-2xl p-3 text-center border-2 border-rose-400/60 bg-gradient-to-br from-rose-700/50 to-black active:scale-95"
-          >
-            <div className="text-2xl">🐲</div>
-            <div className="text-rose-100 font-extrabold text-sm mt-1">معركة الوحش</div>
-          </Link>
-          <Link
-            to="/dragon"
-            className="block rounded-2xl p-3 text-center border-2 border-amber-400/60 bg-gradient-to-br from-amber-700/40 to-rose-900/40 active:scale-95"
-          >
-            <div className="text-2xl">🐉</div>
-            <div className="text-amber-100 font-extrabold text-sm mt-1">تنيني</div>
-          </Link>
+      {/* Top HUD: 2 fighter cards + VS */}
+      <div className="absolute top-0 inset-x-0 z-30 px-2 pt-2">
+        <div className="max-w-md mx-auto flex items-center gap-2">
+          <Link to="/" className="w-9 h-9 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-white text-lg shrink-0">✕</Link>
+          {/* Me card */}
+          <FighterCard f={me} pct={myPct} side="me" />
+          <div className="text-white text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] px-1">VS</div>
+          {/* Op card */}
+          <FighterCard f={op} pct={opPct} side="op" />
         </div>
       </div>
 
-      {result && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.75)" }}
-          onClick={() => setResult(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-3xl border-2 p-5 text-center"
+      {/* Arena scene: two dragons facing */}
+      <div className="absolute inset-x-0 bottom-40 top-24 z-10">
+        <div className="relative w-full h-full max-w-md mx-auto">
+          {/* My dragon (left) */}
+          <div className="absolute" style={{
+            left: "4%", top: "40%", width: "38%", aspectRatio: "1/1",
+            animation: `hov 2.6s ease-in-out infinite${shake === "me" ? ", shk 0.2s" : ""}`,
+          }}>
+            {me && (
+              <div className="w-full h-full" style={{ transform: "scaleX(-1)" }}>
+                <img src={myStageImg} alt="me" draggable={false}
+                  className="w-full h-full object-contain"
+                  style={{
+                    filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
+                    animation: "brth 3s ease-in-out infinite",
+                  }} />
+              </div>
+            )}
+          </div>
+          {/* Op dragon (right) */}
+          <div className="absolute" style={{
+            right: "4%", top: "40%", width: "38%", aspectRatio: "1/1",
+            animation: `hov 2.4s ease-in-out infinite${shake === "op" ? ", shk 0.2s" : ""}`,
+          }}>
+            {op && (
+              <img src={opStageImg} alt="op" draggable={false}
+                className="w-full h-full object-contain"
+                style={{
+                  filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
+                  animation: "brth 2.8s ease-in-out infinite",
+                }} />
+            )}
+          </div>
+
+          {/* Bolts (fire) */}
+          {bolts.map(b => (
+            <div key={b.id} className="absolute pointer-events-none"
+              style={{
+                top: "55%",
+                [b.from === "me" ? "left" : "right"]: "38%",
+                width: 60, height: 28,
+                animation: `${b.from === "me" ? "bolt-mr" : "bolt-ml"} 0.55s linear forwards`,
+              } as React.CSSProperties}>
+              <div className="w-full h-full rounded-full"
+                style={{
+                  background: "radial-gradient(circle, #fff7c2 0%, #ffb347 30%, #ff4500 65%, transparent 75%)",
+                  boxShadow: "0 0 25px #ff7a00, 0 0 60px rgba(255,80,0,0.7)",
+                  transform: b.from === "op" ? "scaleX(-1)" : undefined,
+                }} />
+            </div>
+          ))}
+
+          {/* Float damage numbers */}
+          {floats.map(fn => (
+            <div key={fn.id} className="absolute pointer-events-none font-black text-2xl"
+              style={{
+                top: `${fn.y}%`,
+                [fn.side === "me" ? "left" : "right"]: `${fn.x}%`,
+                color: "#ff3b3b",
+                textShadow: "0 0 6px #000, 0 2px 4px rgba(0,0,0,0.9)",
+                animation: "flt 0.9s ease-out forwards",
+              } as React.CSSProperties}>
+              -{fn.v}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom attack panel */}
+      <div className="absolute bottom-0 inset-x-0 z-30 px-3 pb-4 pt-3 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <button onClick={doMyAttack} disabled={busy || !!result}
+            className="flex-1 py-4 rounded-2xl font-black text-lg shadow-2xl active:scale-95 transition-transform disabled:opacity-50"
             style={{
-              background: result.won
-                ? "linear-gradient(180deg,#1a3a1a 0%,#0a1a0a 100%)"
-                : "linear-gradient(180deg,#3a1a1a 0%,#1a0a0a 100%)",
-              borderColor: result.won ? "rgba(74,222,128,0.7)" : "rgba(248,113,113,0.7)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-3xl font-black mb-2" style={{ color: result.won ? "#86efac" : "#fca5a5" }}>
-              {result.won ? "🏆 انتصار!" : "💔 خسارة"}
-            </div>
-            <div className="text-amber-100/80 text-sm mb-4">
-              {result.won ? "تنينك سحق خصمك" : "تنين خصمك كان أقوى هذه المرة"}
-            </div>
+              background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",
+              boxShadow: "0 0 30px rgba(255,80,0,0.6), inset 0 -3px 0 rgba(0,0,0,0.3)",
+              border: "2px solid rgba(255,200,100,0.7)",
+            }}>
+            🔥 اضرب
+          </button>
+          <Link to="/arena" className="px-4 py-4 rounded-2xl bg-black/60 border border-white/30 font-bold text-sm">
+            🏟️ الأرينا
+          </Link>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-2xl bg-stone-900/70 p-3 border border-amber-700/40">
-                <div className="text-5xl mb-1">{getStage(result.my_stage).icon}</div>
-                <div className="text-amber-200 text-xs font-bold">تنيني</div>
-                <div className="text-amber-100 text-sm">مستوى {result.my_level}</div>
+      {/* Win/Lose modal */}
+      {result && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/65 p-4">
+          <div className="relative max-w-xs w-full rounded-3xl overflow-hidden border-4"
+            style={{
+              borderColor: result === "win" ? "#fbbf24" : "#6b7280",
+              background: "linear-gradient(180deg,#3a2412 0%,#1a0e08 100%)",
+              boxShadow: result === "win"
+                ? "0 0 60px rgba(251,191,36,0.7)"
+                : "0 0 40px rgba(0,0,0,0.7)",
+            }}>
+            <div className="text-center py-3 text-2xl font-black tracking-widest"
+              style={{ background: result === "win" ? "linear-gradient(180deg,#fbbf24,#b45309)" : "linear-gradient(180deg,#475569,#1f2937)" }}>
+              {result === "win" ? "🏆 لقد فزت" : "💀 خسرت"}
+            </div>
+            <div className="p-6 text-center">
+              {result === "win" ? (
+                <>
+                  <div className="text-7xl mb-2" style={{ animation: "glow-blue 1.5s ease-in-out infinite" }}>💎</div>
+                  <div className="text-3xl font-black text-cyan-200">+{reward}</div>
+                  <div className="text-xs text-amber-200/80 mt-1">نقاط أرينا</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-7xl mb-2 opacity-70">☠️</div>
+                  <div className="text-base text-slate-300">حاول مرة ثانية!</div>
+                </>
+              )}
+              <div className="mt-5 flex gap-2">
+                <button onClick={rematch}
+                  className="flex-1 py-3 rounded-xl font-black text-base bg-gradient-to-b from-amber-500 to-amber-700 active:scale-95 shadow-lg"
+                  style={{ border: "2px solid #fde68a" }}>
+                  ⚔️ معركة جديدة
+                </button>
+                <Link to="/" className="px-4 py-3 rounded-xl font-bold text-sm bg-black/50 border border-white/30">
+                  خروج
+                </Link>
               </div>
-              <div className="rounded-2xl bg-stone-900/70 p-3 border border-rose-700/40">
-                <div className="text-5xl mb-1">{getStage(result.opp_stage).icon}</div>
-                <div className="text-rose-200 text-xs font-bold truncate">{result.opp_name}</div>
-                <div className="text-rose-100 text-sm">مستوى {result.opp_level}</div>
-              </div>
             </div>
-
-            <div className="text-amber-300/80 text-xs mb-3">احتمال الفوز كان {result.win_chance}%</div>
-            <div className="rounded-xl bg-amber-500/15 border border-amber-400/50 py-2 mb-4">
-              <span className="text-amber-200 font-extrabold">+{result.score} نقطة أرينا</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setResult(null)}
-              className="w-full py-3 rounded-xl bg-amber-500 text-stone-900 font-extrabold active:scale-95"
-            >
-              تمام
-            </button>
           </div>
         </div>
       )}
+
+      {/* Quick tier hint (debug-ish — shows current stage) */}
+      <div className="absolute bottom-24 inset-x-0 z-20 text-center pointer-events-none">
+        {me && op && !result && (
+          <div className="inline-block px-3 py-1 rounded-full bg-black/55 backdrop-blur text-[10px] font-bold text-cyan-100 border border-white/20">
+            تنينك: {DRAGON_STAGES[me.stage - 1]?.name}  •  خصمك: {DRAGON_STAGES[op.stage - 1]?.name}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "me" | "op" }) {
+  const align = side === "me" ? "text-right" : "text-left";
+  return (
+    <div className="flex-1 min-w-0 rounded-xl bg-gradient-to-b from-stone-900/95 to-stone-950/95 border-2 border-amber-700/70 px-2 py-1.5 shadow-lg backdrop-blur"
+      style={{ boxShadow: "0 4px 10px rgba(0,0,0,0.6)" }}>
+      <div className={`flex items-center gap-2 ${side === "op" ? "flex-row-reverse" : ""}`}>
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-black/60 border-2 border-amber-500/70 flex items-center justify-center text-xl shrink-0"
+          style={{ boxShadow: "0 0 8px rgba(251,191,36,0.5)" }}>
+          {f?.avatar
+            ? <img src={f.avatar} alt={f.name} className="w-full h-full object-cover" />
+            : <span>{avatarFallback(f?.emoji ?? "")}</span>}
+        </div>
+        <div className={`flex-1 min-w-0 ${align}`}>
+          <div className="text-[11px] font-extrabold text-amber-100 truncate">{f?.name ?? "..."}</div>
+          {/* HP bar */}
+          <div className="relative h-3 rounded-full bg-black/70 border border-stone-700 overflow-hidden mt-0.5">
+            <div className="absolute inset-y-0 transition-[width] duration-300"
+              style={{
+                [side === "me" ? "left" : "right"]: 0,
+                width: `${pct}%`,
+                background: pct > 40
+                  ? "linear-gradient(90deg,#ef4444,#dc2626 60%,#7f1d1d)"
+                  : "linear-gradient(90deg,#ef4444,#f97316)",
+                boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.4)",
+              } as React.CSSProperties} />
+            <div className={`absolute inset-0 flex items-center justify-${side === "me" ? "start" : "end"} px-1.5`}>
+              <span className="text-[9px] font-black text-white drop-shadow tabular-nums">
+                {f ? `${f.hp}/${f.maxHp}` : "—"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
