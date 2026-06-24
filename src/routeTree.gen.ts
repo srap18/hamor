@@ -65,6 +65,7 @@ import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminCodesRouteImport } from './routes/admin.codes'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminArenaRouteImport } from './routes/admin.arena'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
@@ -349,6 +350,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminArenaRoute = AdminArenaRouteImport.update({
+  id: '/arena',
+  path: '/arena',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAntiCheatRoute = AdminAntiCheatRouteImport.update({
   id: '/anti-cheat',
   path: '/anti-cheat',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
+  '/admin/arena': typeof AdminArenaRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -467,6 +474,7 @@ export interface FileRoutesByTo {
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
+  '/admin/arena': typeof AdminArenaRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -529,6 +537,7 @@ export interface FileRoutesById {
   '/updates': typeof UpdatesRoute
   '/vip': typeof VipRoute
   '/admin/anti-cheat': typeof AdminAntiCheatRoute
+  '/admin/arena': typeof AdminArenaRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/codes': typeof AdminCodesRoute
@@ -592,6 +601,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
+    | '/admin/arena'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -652,6 +662,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
+    | '/admin/arena'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -713,6 +724,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/vip'
     | '/admin/anti-cheat'
+    | '/admin/arena'
     | '/admin/audit'
     | '/admin/broadcasts'
     | '/admin/codes'
@@ -1176,6 +1188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/arena': {
+      id: '/admin/arena'
+      path: '/arena'
+      fullPath: '/admin/arena'
+      preLoaderRoute: typeof AdminArenaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/anti-cheat': {
       id: '/admin/anti-cheat'
       path: '/anti-cheat'
@@ -1202,6 +1221,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAntiCheatRoute: typeof AdminAntiCheatRoute
+  AdminArenaRoute: typeof AdminArenaRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCodesRoute: typeof AdminCodesRoute
@@ -1219,6 +1239,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAntiCheatRoute: AdminAntiCheatRoute,
+  AdminArenaRoute: AdminArenaRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCodesRoute: AdminCodesRoute,

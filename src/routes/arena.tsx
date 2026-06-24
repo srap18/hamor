@@ -20,23 +20,29 @@ export const Route = createFileRoute("/arena")({
 });
 
 type Row = { user_id: string; score: number; wins: number };
+type Reward = { rank: string; text: string };
+type Settings = {
+  enabled: boolean;
+  locked_title: string;
+  locked_message: string;
+  rewards: Reward[];
+  event_active: boolean;
+  event_title: string | null;
+  event_multiplier: number;
+  event_ends_at: string | null;
+};
 
 function weekStart() {
   const d = new Date();
   const day = d.getUTCDay();
-  const diff = (day + 6) % 7; // Monday-based like date_trunc('week')
+  const diff = (day + 6) % 7;
   d.setUTCDate(d.getUTCDate() - diff);
   d.setUTCHours(0, 0, 0, 0);
   return d;
 }
 
-const ARENA_ALLOWED_USERS = new Set<string>([
-  "7035f6b9-7bb2-41e2-a8b8-050d0e7f41c0", // جاك سبارو (تجربة)
-]);
-
 function ArenaPage() {
-  const [authChecked, setAuthChecked] = useState(false);
-  const [allowed, setAllowed] = useState(false);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [names, setNames] = useState<Record<string, { display_name: string; avatar_emoji: string }>>({});
   const [myId, setMyId] = useState<string | null>(null);
@@ -45,20 +51,12 @@ function ArenaPage() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const uid = user?.id ?? null;
-      setMyId(uid);
-      let ok = !!uid && ARENA_ALLOWED_USERS.has(uid);
-      if (!ok && uid) {
-        const { data: roles } = await supabase
-          .from("user_roles").select("role").eq("user_id", uid)
-          .in("role", ["admin", "moderator"]);
-        ok = !!roles && roles.length > 0;
-      }
-      setAllowed(ok);
-      setAuthChecked(true);
-      if (!ok) return;
-      const ws = weekStart().toISOString().slice(0, 10);
+      setMyId(user?.id ?? null);
 
+      const { data: s } = await supabase.from("arena_settings").select("*").maybeSingle();
+      setSettings((s as unknown as Settings | null) ?? null);
+
+      const ws = weekStart().toISOString().slice(0, 10);
       const { data: r } = await supabase.from("arena_scores")
         .select("user_id,score,wins").eq("week_start", ws)
         .order("score", { ascending: false }).limit(50);
@@ -84,14 +82,11 @@ function ArenaPage() {
   const days = Math.max(0, Math.floor(ms / 86400000));
   const hrs = Math.max(0, Math.floor((ms % 86400000) / 3600000));
 
-  const rewards = [
-    { rank: "🥇 #1",    text: "قطعة أسطورية مضمونة + 100,000 🪙" },
-    { rank: "🥈 #2-3",  text: "قطعة ملحمية مضمونة + 50,000 🪙" },
-    { rank: "🥉 #4-10", text: "قطعة نادرة مضمونة + 20,000 🪙" },
-    { rank: "#11-25",   text: "قطعة عادية + 5,000 🪙" },
-  ];
+  const rewards: Reward[] = settings?.rewards ?? [];
+  const eventLive = !!settings?.event_active &&
+    (!settings?.event_ends_at || new Date(settings.event_ends_at).getTime() > now);
 
-  if (authChecked && !allowed) {
+  if (settings && !settings.enabled) {
     return (
       <div className="fixed inset-0 overflow-y-auto flex items-center justify-center" dir="rtl"
         style={{ background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 60%, #000 100%)" }}>
@@ -100,8 +95,8 @@ function ArenaPage() {
         </div>
         <div className="max-w-sm mx-auto px-6 text-center">
           <div className="text-7xl mb-4">🔒</div>
-          <div className="text-2xl font-black text-amber-200 mb-2">الأرينا مقفلة مؤقتاً</div>
-          <div className="text-cyan-300/70 text-sm">سنفتحها قريباً بتحديث جديد. ترقّبوا!</div>
+          <div className="text-2xl font-black text-amber-200 mb-2">{settings.locked_title}</div>
+          <div className="text-cyan-300/70 text-sm">{settings.locked_message}</div>
         </div>
       </div>
     );
@@ -125,7 +120,16 @@ function ArenaPage() {
           </div>
         </div>
 
-        {/* Enter battle CTA */}
+        {eventLive && (
+          <div className="mb-3 rounded-2xl p-3 text-center border-2 border-pink-400/70 animate-pulse"
+               style={{ background: "linear-gradient(180deg,#7c1d6f 0%,#3b0764 100%)" }}>
+            <div className="text-pink-100 font-black text-base">🎉 {settings?.event_title || "فعالية الأرينا"}</div>
+            <div className="text-amber-200 text-sm font-bold mt-1">
+              نقاط مضاعفة ×{settings?.event_multiplier}
+            </div>
+          </div>
+        )}
+
         <Link to="/battle"
           className="block mb-3 py-4 rounded-2xl text-center font-black text-lg text-white shadow-2xl active:scale-95"
           style={{
@@ -136,7 +140,6 @@ function ArenaPage() {
           🔥 ادخل المعركة
         </Link>
 
-        {/* Rewards */}
         <div className="bg-stone-900/70 border border-amber-600/40 rounded-2xl p-3 mb-3 backdrop-blur">
           <div className="text-amber-200 text-sm font-bold mb-2 text-center">🎁 جوائز نهاية الأسبوع</div>
           <div className="space-y-1">
@@ -149,7 +152,6 @@ function ArenaPage() {
           </div>
         </div>
 
-        {/* Leaderboard */}
         <div className="bg-stone-900/70 border border-cyan-600/40 rounded-2xl p-3 backdrop-blur">
           <div className="text-cyan-200 text-sm font-bold mb-2 text-center">📊 الترتيب</div>
           {rows.length === 0 ? (

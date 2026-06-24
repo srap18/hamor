@@ -170,6 +170,45 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_settings: {
+        Row: {
+          enabled: boolean
+          event_active: boolean
+          event_ends_at: string | null
+          event_multiplier: number
+          event_title: string | null
+          id: boolean
+          locked_message: string
+          locked_title: string
+          rewards: Json
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          event_active?: boolean
+          event_ends_at?: string | null
+          event_multiplier?: number
+          event_title?: string | null
+          id?: boolean
+          locked_message?: string
+          locked_title?: string
+          rewards?: Json
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          event_active?: boolean
+          event_ends_at?: string | null
+          event_multiplier?: number
+          event_title?: string | null
+          id?: boolean
+          locked_message?: string
+          locked_title?: string
+          rewards?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attacks: {
         Row: {
           attacker_id: string

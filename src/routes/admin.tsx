@@ -42,6 +42,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/fish", label: "أسعار السمك", icon: "🐟" },
   { to: "/admin/codes", label: "أكواد الاستعمال", icon: "🎟️" },
   { to: "/admin/competitions", label: "الفعاليات", icon: "🏆" },
+  { to: "/admin/arena", label: "الأرينا", icon: "🏟️" },
   { to: "/admin/tribe-events", label: "فعاليات القبائل", icon: "🎣" },
   { to: "/admin/weekly-xp", label: "مسابقة XP الأسبوعية", icon: "⭐" },
   { to: "/admin/community", label: "القبائل والغرف", icon: "🏴‍☠️" },
