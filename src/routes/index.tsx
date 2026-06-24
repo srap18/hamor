@@ -1944,8 +1944,12 @@ function Index() {
       {/* Daily-login chest button (replaces the old جائزة + ✨ buttons) */}
       <button
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
-        className="absolute left-2 top-[22%] z-20 w-14 h-16 rounded-2xl flex flex-col items-center justify-center active:scale-95"
+        className="fixed z-30 rounded-2xl flex flex-col items-center justify-center active:scale-95"
         style={{
+          left: "calc(env(safe-area-inset-left, 0px) + 8px)",
+          top: "calc(env(safe-area-inset-top, 0px) + 190px)",
+          width: 44,
+          height: 50,
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
           border: "2px solid #ffe9a8",
