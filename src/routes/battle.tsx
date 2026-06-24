@@ -271,6 +271,58 @@ function BattlePage() {
           </Link>
         </div>
       </div>
+
+      {result && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.75)" }}
+          onClick={() => setResult(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border-2 p-5 text-center"
+            style={{
+              background: result.won
+                ? "linear-gradient(180deg,#1a3a1a 0%,#0a1a0a 100%)"
+                : "linear-gradient(180deg,#3a1a1a 0%,#1a0a0a 100%)",
+              borderColor: result.won ? "rgba(74,222,128,0.7)" : "rgba(248,113,113,0.7)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-3xl font-black mb-2" style={{ color: result.won ? "#86efac" : "#fca5a5" }}>
+              {result.won ? "🏆 انتصار!" : "💔 خسارة"}
+            </div>
+            <div className="text-amber-100/80 text-sm mb-4">
+              {result.won ? "تنينك سحق خصمك" : "تنين خصمك كان أقوى هذه المرة"}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-2xl bg-stone-900/70 p-3 border border-amber-700/40">
+                <div className="text-5xl mb-1">{getStage(result.my_stage).icon}</div>
+                <div className="text-amber-200 text-xs font-bold">تنيني</div>
+                <div className="text-amber-100 text-sm">مستوى {result.my_level}</div>
+              </div>
+              <div className="rounded-2xl bg-stone-900/70 p-3 border border-rose-700/40">
+                <div className="text-5xl mb-1">{getStage(result.opp_stage).icon}</div>
+                <div className="text-rose-200 text-xs font-bold truncate">{result.opp_name}</div>
+                <div className="text-rose-100 text-sm">مستوى {result.opp_level}</div>
+              </div>
+            </div>
+
+            <div className="text-amber-300/80 text-xs mb-3">احتمال الفوز كان {result.win_chance}%</div>
+            <div className="rounded-xl bg-amber-500/15 border border-amber-400/50 py-2 mb-4">
+              <span className="text-amber-200 font-extrabold">+{result.score} نقطة أرينا</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setResult(null)}
+              className="w-full py-3 rounded-xl bg-amber-500 text-stone-900 font-extrabold active:scale-95"
+            >
+              تمام
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
