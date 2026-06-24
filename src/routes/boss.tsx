@@ -140,28 +140,27 @@ function BossPage() {
     return () => { supabase.removeChannel(ch); };
   }, [boss?.id]);
 
-  // Boss counter-attacks — scales harder with each defeat & dragon stage
+  // Boss counter-attacks — damages the real selected ship via RPC.
   useEffect(() => {
-    if (!boss || boss.hp_current <= 0 || !selectedShip || shipHp <= 0) return;
+    if (!boss || boss.hp_current <= 0 || !selectedShip || shipDestroyed || shipHp <= 0) return;
     const t = setInterval(() => {
       const pid = nextId();
       setProjectiles((p) => [...p, { id: pid, kind: "boss", key: nextId() }]);
-      setTimeout(() => {
+      setTimeout(async () => {
         setProjectiles((p) => p.filter((x) => x.id !== pid));
-        heavyHitsRef.current += 1;
-        const isHeavy = heavyHitsRef.current % heavyEvery === 0;
-        const isCrit = Math.random() < Math.min(0.35, 0.05 + diffTier * 0.025);
-        let dmg = bossBaseDmg + Math.floor(Math.random() * bossSpread);
-        if (isHeavy) dmg = Math.floor(dmg * 2.2);
-        if (isCrit) dmg = Math.floor(dmg * 1.8);
-        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: isCrit || isHeavy, dmg }]);
+        const { data } = await rpc("boss_hit_my_ship", { p_ship_id: selectedShip.id });
+        if (!data?.ok) return;
+        const dmg = Number(data.damage ?? 0);
+        setSplashes((s) => [...s, { id: nextId(), side: "ship", crit: dmg > (shipMaxHp * 0.2), dmg }]);
         setShake("ship");
-        setShipHp((hp) => Math.max(0, hp - dmg));
+        setShipHp(Number(data.new_hp ?? 0));
+        setShipMaxHp(Number(data.max_hp ?? shipMaxHp));
+        if (data.destroyed) setShipDestroyed(true);
         setTimeout(() => setShake("none"), 220);
       }, 900);
     }, bossInterval + Math.random() * 1500);
     return () => clearInterval(t);
-  }, [boss, selectedShip, shipHp, bossInterval, bossBaseDmg, bossSpread, heavyEvery, diffTier]);
+  }, [boss, selectedShip, shipHp, shipDestroyed, shipMaxHp, bossInterval]);
 
   // Cleanup splashes
   useEffect(() => {
