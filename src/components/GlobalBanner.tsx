@@ -17,9 +17,17 @@ type AdminPayload = {
   emoji?: string;
 };
 
+type LuckyPayload = {
+  kind: "lucky_box";
+  title: string;
+  message: string;
+  emoji?: string;
+};
+
 type BannerState =
   | ({ _t: "nuke" } & NukeBannerData)
-  | ({ _t: "admin" } & AdminPayload);
+  | ({ _t: "admin" } & AdminPayload)
+  | ({ _t: "lucky" } & LuckyPayload);
 
 type BannerRow = {
   id: string;
