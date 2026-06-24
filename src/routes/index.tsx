@@ -2503,13 +2503,15 @@ function Index() {
               sound.play("error");
               const msg = e?.message ?? "خطأ";
               setToast(
-                /already_active/i.test(msg)
-                  ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
-                  : /daily_limit/i.test(msg)
-                    ? "⏳ استعملت الصياد الذهبي اليوم — متاح بعد 24 ساعة من آخر تفعيل"
-                    : /no_golden_fisher/i.test(msg)
-                      ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
-                      : `❌ فشل التفعيل: ${msg}`,
+                /golden_fisher_temporarily_disabled/i.test(msg)
+                  ? "⏸️ الصياد الذهبي موقف مؤقتاً — قيد الفحص"
+                  : /already_active/i.test(msg)
+                    ? "🏅 الصياد الذهبي مفعّل عندك بالفعل"
+                    : /daily_limit/i.test(msg)
+                      ? "⏳ استعملت الصياد الذهبي اليوم — متاح بعد 24 ساعة من آخر تفعيل"
+                      : /no_golden_fisher/i.test(msg)
+                        ? "لا تملك طاقم صياد ذهبي — اشترِ من المتجر"
+                        : `❌ فشل التفعيل: ${msg}`,
               );
             }
             return;
