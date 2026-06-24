@@ -4319,6 +4319,7 @@ export type Database = {
         Returns: number
       }
       boss_attack_status: { Args: never; Returns: Json }
+      boss_hit_my_ship: { Args: { p_ship_id: string }; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
         Returns: undefined
