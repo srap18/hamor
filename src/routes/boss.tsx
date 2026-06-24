@@ -525,21 +525,36 @@ function BossPage() {
           <div className="bg-stone-900/80 border border-sky-700/50 rounded-xl px-3 py-2 mb-2">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-sky-200 text-xs font-bold flex-1 truncate">⚓ {shipDef.name}</span>
-              <span className="text-sky-100 font-extrabold tabular-nums text-xs">{shipHp}%</span>
+              <span className="text-sky-100 font-extrabold tabular-nums text-xs">
+                {shipHp.toLocaleString()} / {shipMaxHp.toLocaleString()}
+              </span>
             </div>
             <div className="h-2.5 rounded-full bg-stone-950 overflow-hidden border border-sky-900">
               <div className="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all"
-                style={{ width: `${shipHp}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
+                style={{ width: `${shipMaxHp > 0 ? (shipHp / shipMaxHp) * 100 : 0}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
             </div>
+            {shipDestroyed && (
+              <button onClick={repairShipNow} disabled={repairing}
+                className="mt-2 w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-extrabold border border-amber-300 shadow-lg active:scale-95 disabled:opacity-40">
+                🛠️ إصلاح فوري بطاقم الإصلاح — 💎 {repairGemCost}
+              </button>
+            )}
             {ships.length > 1 && (
               <div className="flex gap-1.5 mt-2 overflow-x-auto">
                 {ships.map((s) => {
                   const d = s.catalog_code ? getShipByCode(s.catalog_code) : getShipByMarketLevel(s.template_id ?? 1);
                   const sel = s.id === selectedShip.id;
+                  const sDead = !!s.destroyed_at || (s.hp ?? 0) <= 0;
                   return (
-                    <button key={s.id} onClick={() => { setSelectedShip(s); setShipHp(100); }}
-                      className={`shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95`}>
+                    <button key={s.id} onClick={() => {
+                      setSelectedShip(s);
+                      setShipHp(Math.max(0, s.hp ?? 0));
+                      setShipMaxHp(Math.max(1, s.max_hp ?? 1));
+                      setShipDestroyed(sDead);
+                    }}
+                      className={`relative shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95 ${sDead ? "opacity-50" : ""}`}>
                       <img src={d.image} alt="" className="w-10 h-10 object-contain" style={{ transform: "scaleX(-1)" }} />
+                      {sDead && <span className="absolute -top-1 -right-1 text-xs">💀</span>}
                     </button>
                   );
                 })}
@@ -553,7 +568,7 @@ function BossPage() {
           <div className="grid grid-cols-4 gap-2">
             {ROCKETS.map((rk) => {
               const have = rockets.find((r) => r.item_id === rk.id)?.quantity ?? 0;
-              const disabled = busy || have <= 0 || shipHp <= 0;
+              const disabled = busy || have <= 0 || shipDestroyed || shipHp <= 0;
               return (
                 <button key={rk.id} disabled={disabled} onClick={() => fire(rk.id)}
                   className={`relative rounded-xl bg-gradient-to-b ${rk.color} border-2 ${rk.border} py-2 active:scale-95 transition-transform shadow-lg ${disabled ? "opacity-40 grayscale" : ""}`}>
@@ -566,8 +581,8 @@ function BossPage() {
             })}
           </div>
         )}
-        {shipHp <= 0 && !dead && (
-          <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تعطلت! اختر سفينة أخرى</div>
+        {shipDestroyed && !dead && (
+          <div className="mt-2 text-center text-rose-300 text-sm font-bold">سفينتك تدمّرت! اضغط زر الإصلاح فوق أو اختر سفينة أخرى</div>
         )}
       </div>
     </div>
