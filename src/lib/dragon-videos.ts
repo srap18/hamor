@@ -32,9 +32,9 @@ export type DragonEvoStage = "egg" | "small" | "teen" | "mature";
 
 // One entry per dragon form (index = stage 1..15). clipIndex is 1-based into ALL.
 const STAGE_TO_CLIP: Array<{ clipIndex: number; stage: DragonEvoStage }> = [
-  { clipIndex: 3,  stage: "egg"    }, // form 1 — بيضة ثابتة بدون تفريخ
-  { clipIndex: 3,  stage: "egg"    }, // form 2 — نفس البيضة، التفريخ يحصل عند مستوى 3
-  { clipIndex: 13, stage: "small"  }, // form 3
+  { clipIndex: 3,  stage: "egg"    }, // form 1 — بيضة
+  { clipIndex: 4,  stage: "egg"    }, // form 2 — بيضة تتحرك (قرب الفقس)
+  { clipIndex: 13, stage: "small"  }, // form 3 — فقس
   { clipIndex: 5,  stage: "small"  }, // form 4
   { clipIndex: 2,  stage: "small"  }, // form 5
   { clipIndex: 6,  stage: "small"  }, // form 6
@@ -48,6 +48,7 @@ const STAGE_TO_CLIP: Array<{ clipIndex: number; stage: DragonEvoStage }> = [
   { clipIndex: 15, stage: "mature" }, // form 14
   { clipIndex: 12, stage: "mature" }, // form 15
 ];
+
 
 /** Returns the fixed clip for a dragon form (stage 1..15). */
 export function getDragonVideoForStage(stage: number): {
