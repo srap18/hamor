@@ -466,7 +466,7 @@ function BossPage() {
                 <img src={shipDef.image} alt={shipDef.name} draggable={false}
                   className="w-full h-full object-contain"
                   style={{ transform: "scaleX(-1)",
-                    filter: shipHp <= 0 ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
+                    filter: shipDestroyed ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
               </div>
               {splashes.filter((s) => s.side === "ship").map((s) => (
                 <div key={s.id}>
