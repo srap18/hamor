@@ -58,6 +58,7 @@ import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-event
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
+import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
@@ -315,6 +316,11 @@ const AdminPlayersRoute = AdminPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLuckyBoxRoute = AdminLuckyBoxRouteImport.update({
+  id: '/lucky-box',
+  path: '/lucky-box',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFishRoute = AdminFishRouteImport.update({
   id: '/fish',
   path: '/fish',
@@ -421,6 +427,7 @@ export interface FileRoutesByFullPath {
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
@@ -545,6 +553,7 @@ export interface FileRoutesById {
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
@@ -609,6 +618,7 @@ export interface FileRouteTypes {
     | '/admin/competitions'
     | '/admin/content'
     | '/admin/fish'
+    | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
@@ -670,6 +680,7 @@ export interface FileRouteTypes {
     | '/admin/competitions'
     | '/admin/content'
     | '/admin/fish'
+    | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
@@ -732,6 +743,7 @@ export interface FileRouteTypes {
     | '/admin/competitions'
     | '/admin/content'
     | '/admin/fish'
+    | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/sanctions'
     | '/admin/tickets'
@@ -1139,6 +1151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlayersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/lucky-box': {
+      id: '/admin/lucky-box'
+      path: '/lucky-box'
+      fullPath: '/admin/lucky-box'
+      preLoaderRoute: typeof AdminLuckyBoxRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fish': {
       id: '/admin/fish'
       path: '/fish'
@@ -1229,6 +1248,7 @@ interface AdminRouteChildren {
   AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminFishRoute: typeof AdminFishRoute
+  AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
@@ -1247,6 +1267,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContentRoute: AdminContentRoute,
   AdminFishRoute: AdminFishRoute,
+  AdminLuckyBoxRoute: AdminLuckyBoxRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminTicketsRoute: AdminTicketsRoute,
