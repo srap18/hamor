@@ -27,7 +27,7 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="صندوق الحظ"
-        className="absolute left-[5%] top-[14%] z-10 w-10 h-12 rounded-lg flex flex-col items-center justify-center active:scale-95"
+        className="absolute left-[5%] top-[14%] z-30 w-10 h-12 rounded-lg flex flex-col items-center justify-center active:scale-95"
         style={{
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #fff3c0 0%, #f5c84a 30%, #c48a1a 70%, #5b2f06 100%)",
@@ -128,10 +128,11 @@ function LuckyBoxModal({ onClose }: { onClose: () => void }) {
       setStage("idle");
       setBusy(false);
       const msg = error.message || "";
-      if (/insufficient_gems/i.test(msg)) toast.error("لا تملك جواهر كافية");
+      if (/insufficient_gems|not_enough_gems/i.test(msg)) toast.error("لا تملك جواهر كافية");
       else if (/lucky_box_disabled/i.test(msg)) toast.error("صندوق الحظ متوقف حاليًا");
+      else if (/market_level_too_low/i.test(msg)) toast.error("يجب أن يكون مستوى السوق ٦ أو أعلى");
       else if (/no_prizes/i.test(msg)) toast.error("لم يتم إعداد جوائز بعد");
-      else toast.error("تعذّر فتح الصندوق");
+      else toast.error(`تعذّر فتح الصندوق: ${msg}`);
       return;
     }
     const r = data as OpenResult;
