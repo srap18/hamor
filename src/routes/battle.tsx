@@ -38,6 +38,33 @@ function BattlePage() {
   const [opps, setOpps] = useState<Opponent[]>([]);
   const [eventMult, setEventMult] = useState<number>(1);
   const [eventTitle, setEventTitle] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [result, setResult] = useState<DuelResult | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function duel(opp: Opponent) {
+    if (busyId) return;
+    setBusyId(opp.user_id);
+    setErrorMsg(null);
+    try {
+      const { data, error } = await (supabase as never as {
+        rpc: (n: string, p: Record<string, unknown>) => Promise<{ data: DuelResult | null; error: { message: string } | null }>;
+      }).rpc("arena_dragon_duel", { _opponent: opp.user_id });
+      if (error) {
+        const m = (error.message || "").toLowerCase();
+        if (m.includes("rate_limited")) setErrorMsg("⏱️ انتظر ١٠ ثوانٍ قبل المبارزة التالية");
+        else setErrorMsg("تعذرت المبارزة، حاول مرة ثانية");
+        return;
+      }
+      if (data) {
+        setResult({ ...data, opp_name: opp.display_name ?? "خصم" });
+        // bump local score row for the active user so the list refreshes feel
+        setOpps((prev) => prev.map((p) => (p.user_id === meId ? { ...p, score: p.score + data.score, wins: p.wins + (data.won ? 1 : 0) } : p)));
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   useEffect(() => {
     (async () => {
