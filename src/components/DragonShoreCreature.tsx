@@ -191,24 +191,28 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
     };
   }, [userId]);
 
-  // Auto-hatch: once the dragon advances to stage 3+ in the DB, the ocean
-  // creature should immediately show the hatched form (no tap required).
+  // Real overall level 1..150 — this is the visible level shown to the player.
+  const realLevel = Math.max(1, overallLevel({ stage, dp } as Dragon));
+
+  // Hatch as soon as the player reaches overall level 3, even if the DB stage
+  // is still 1 (DB stage only bumps when DP crosses each form threshold).
+  const hatchedByLevel = realLevel >= 3;
+
+  // Auto-hatch flag: persist once the dragon has visibly hatched in the ocean.
   useEffect(() => {
-    if (stage >= 3 && !hatched && uid) {
+    if (hatchedByLevel && !hatched && uid) {
       try { localStorage.setItem(HATCH_KEY(uid), "1"); } catch {}
       setHatched(true);
     }
-  }, [stage, hatched, uid]);
+  }, [hatchedByLevel, hatched, uid]);
 
-  // Hatch readiness: stage >= 3 means the dragon has earned enough DP to break the shell.
-  const canHatch = false; // hatching is now automatic — no manual tap
-  const showEgg = stage < 3;
+  const canHatch = false; // hatching is automatic — no manual tap required
+  const showEgg = !hatchedByLevel;
 
-  // Real overall level 1..150 for the evolution video. While the egg hasn't
-  // hatched yet we clamp to 1-2 so the egg clips play regardless of DP.
-  const realLevel = Math.max(1, overallLevel({ stage, dp } as Dragon));
+  // While the egg hasn't hatched yet, clamp the displayed clip to 1-2 (egg).
   const displayLevel = showEgg ? Math.min(2, realLevel) : realLevel;
   const stageMode = showEgg ? "egg" : "adult";
+
 
 
   const navigate = useNavigate();
