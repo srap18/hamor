@@ -1960,7 +1960,7 @@ function Index() {
 
       <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
 
-      <LuckyBoxButton onChanged={() => refreshProfile()} />
+      {marketLevel >= 6 && <LuckyBoxButton onChanged={() => refreshProfile()} />}
       <LuckyBoxGlobalBanner />
 
 

@@ -1,0 +1,117 @@
+CREATE OR REPLACE FUNCTION public.open_lucky_box()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_user uuid := auth.uid();
+  v_settings record;
+  v_market_level int;
+  v_gems int;
+  v_roll numeric;
+  v_rarity text;
+  v_prize record;
+  v_total_weight numeric;
+  v_pick numeric;
+  v_acc numeric := 0;
+  v_result jsonb;
+BEGIN
+  IF v_user IS NULL THEN
+    RAISE EXCEPTION 'unauthorized';
+  END IF;
+
+  SELECT * INTO v_settings FROM public.lucky_box_settings LIMIT 1;
+  IF v_settings IS NULL OR v_settings.enabled = false THEN
+    RAISE EXCEPTION 'lucky_box_disabled';
+  END IF;
+
+  -- Require ship market level >= 6
+  SELECT COALESCE(level, 1) INTO v_market_level
+  FROM public.user_market WHERE user_id = v_user;
+  IF COALESCE(v_market_level, 1) < 6 THEN
+    RAISE EXCEPTION 'market_level_too_low';
+  END IF;
+
+  -- Deduct gems
+  SELECT gems INTO v_gems FROM public.profiles WHERE id = v_user FOR UPDATE;
+  IF COALESCE(v_gems, 0) < v_settings.cost_gems THEN
+    RAISE EXCEPTION 'not_enough_gems';
+  END IF;
+  UPDATE public.profiles SET gems = gems - v_settings.cost_gems WHERE id = v_user;
+
+  -- Pick rarity
+  v_roll := random() * 100;
+  IF v_roll < v_settings.legendary_pct THEN
+    v_rarity := 'legendary';
+  ELSIF v_roll < v_settings.legendary_pct + v_settings.rare_pct THEN
+    v_rarity := 'rare';
+  ELSE
+    v_rarity := 'common';
+  END IF;
+
+  -- Pick weighted prize within rarity
+  SELECT COALESCE(SUM(weight),0) INTO v_total_weight
+  FROM public.lucky_box_prizes WHERE rarity = v_rarity AND enabled = true;
+  IF v_total_weight <= 0 THEN
+    -- fallback to common
+    v_rarity := 'common';
+    SELECT COALESCE(SUM(weight),0) INTO v_total_weight
+    FROM public.lucky_box_prizes WHERE rarity = v_rarity AND enabled = true;
+  END IF;
+  IF v_total_weight <= 0 THEN
+    RAISE EXCEPTION 'no_prizes_configured';
+  END IF;
+
+  v_pick := random() * v_total_weight;
+  FOR v_prize IN
+    SELECT * FROM public.lucky_box_prizes
+    WHERE rarity = v_rarity AND enabled = true
+    ORDER BY id
+  LOOP
+    v_acc := v_acc + v_prize.weight;
+    IF v_pick <= v_acc THEN
+      EXIT;
+    END IF;
+  END LOOP;
+
+  -- Award prize
+  IF v_prize.reward_type = 'coins' THEN
+    UPDATE public.profiles SET coins = COALESCE(coins,0) + v_prize.amount WHERE id = v_user;
+  ELSIF v_prize.reward_type = 'gems' THEN
+    UPDATE public.profiles SET gems = COALESCE(gems,0) + v_prize.amount WHERE id = v_user;
+  ELSIF v_prize.reward_type = 'rubies' THEN
+    UPDATE public.profiles SET rubies = COALESCE(rubies,0) + v_prize.amount WHERE id = v_user;
+  ELSIF v_prize.reward_type = 'xp' THEN
+    UPDATE public.profiles SET xp = COALESCE(xp,0) + v_prize.amount WHERE id = v_user;
+  ELSIF v_prize.reward_type = 'item' THEN
+    INSERT INTO public.inventory (user_id, item_type, item_id, quantity)
+    VALUES (v_user, v_prize.item_type, v_prize.item_id, v_prize.amount)
+    ON CONFLICT (user_id, item_type, item_id)
+    DO UPDATE SET quantity = public.inventory.quantity + EXCLUDED.quantity;
+  END IF;
+
+  INSERT INTO public.lucky_box_opens (user_id, prize_id, rarity, reward_type, item_type, item_id, amount)
+  VALUES (v_user, v_prize.id, v_rarity, v_prize.reward_type, v_prize.item_type, v_prize.item_id, v_prize.amount);
+
+  -- Global banner for rare/legendary
+  IF v_rarity IN ('rare','legendary') THEN
+    INSERT INTO public.global_banners (kind, message, color, meta)
+    VALUES (
+      'lucky_box',
+      'حصل لاعب على جائزة ' || CASE WHEN v_rarity='legendary' THEN 'نادرة جدًا 🔥' ELSE 'نادرة' END || ': ' || v_prize.name,
+      CASE WHEN v_rarity='legendary' THEN 'red' ELSE 'blue' END,
+      jsonb_build_object('user_id', v_user, 'rarity', v_rarity, 'prize_name', v_prize.name)
+    );
+  END IF;
+
+  v_result := jsonb_build_object(
+    'rarity', v_rarity,
+    'prize_id', v_prize.id,
+    'prize_name', v_prize.name,
+    'reward_type', v_prize.reward_type,
+    'amount', v_prize.amount
+  );
+  RETURN v_result;
+END;
+$$;
