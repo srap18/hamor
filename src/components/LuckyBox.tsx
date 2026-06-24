@@ -316,7 +316,7 @@ export function LuckyBoxGlobalBanner() {
           setItems((prev) => [...prev, n].slice(-3));
           window.setTimeout(() => {
             setItems((prev) => prev.filter((x) => x.id !== n.id));
-          }, 6500);
+          }, 10000);
         },
       )
       .subscribe();
