@@ -369,22 +369,24 @@ function SmeltTab({ items, onSmelt, gems, busy }:
   const [bId, setBId] = useState<string | null>(null);
   const cost = 1000;
   const canAfford = gems >= cost;
-  const list = items.filter((i) => i.slot === slot && !i.equipped);
+  // Exclude equipped + already-smelted items
+  const list = items.filter((i) => i.slot === slot && !i.equipped && !(i as unknown as { smelted?: boolean }).smelted);
 
   const a = list.find((x) => x.id === aId) ?? null;
   const b = list.find((x) => x.id === bId) ?? null;
 
-  // Stability/risk: same rarity = 55% success, diff = 35%
   const sameR = a && b && a.rarity === b.rarity;
-  const stability = !a || !b ? 0 : sameR ? 55 : 35;
-  const risk = !a || !b ? 0 : 100 - stability;
+  // New luck system: same rarity = 40% upgrade / 45% same / 15% downgrade,
+  // different rarity = 20% upgrade / 55% keep higher / 25% downgrade.
+  const pUp   = !a || !b ? 0 : sameR ? 40 : 20;
+  const pSame = !a || !b ? 0 : sameR ? 45 : 55;
+  const pDown = !a || !b ? 0 : sameR ? 15 : 25;
 
   const toggle = (id: string) => {
     if (aId === id) { setAId(bId); setBId(null); return; }
     if (bId === id) { setBId(null); return; }
     if (!aId) { setAId(id); return; }
     if (!bId) { setBId(id); return; }
-    // both filled, replace b
     setBId(id);
   };
 
@@ -393,6 +395,10 @@ function SmeltTab({ items, onSmelt, gems, busy }:
     onSmelt(a.id, b.id);
     setAId(null); setBId(null);
   };
+
+  const upTarget = a && b
+    ? RARITY_LABEL[(nextRarity(sameR ? a.rarity : (a.rarity === b.rarity ? a.rarity : (Object.keys(RARITY_LABEL) as Rarity[]).reduce((m, r) => RARITY_ORDER[r] > RARITY_ORDER[m] ? r : m, a.rarity)))) ?? a.rarity]
+    : "—";
 
   return (
     <div className="space-y-3">
@@ -415,16 +421,16 @@ function SmeltTab({ items, onSmelt, gems, busy }:
 
       {/* Two slots */}
       <div className="grid grid-cols-2 gap-2">
-        {[a, b].map((slot, i) => {
-          const c = slot ? RARITY_COLOR[slot.rarity] : null;
+        {[a, b].map((it, i) => {
+          const c = it ? RARITY_COLOR[it.rarity] : null;
           return (
             <div key={i} className={`h-28 rounded-2xl border-2 flex items-center justify-center ${
-              slot ? `${c!.ring} bg-gradient-to-br ${c!.bg}` : "border-dashed border-amber-700/40 bg-stone-900/50"
+              it ? `${c!.ring} bg-gradient-to-br ${c!.bg}` : "border-dashed border-amber-700/40 bg-stone-900/50"
             }`}>
-              {slot ? (
+              {it ? (
                 <div className="text-center px-2">
-                  <img src={SLOT_IMG[slot.slot]} alt="" className="w-10 h-10 mx-auto opacity-90" />
-                  <div className={`text-[11px] font-bold ${c!.text}`}>{RARITY_LABEL[slot.rarity]}</div>
+                  <img src={SLOT_IMG[it.slot]} alt="" className="w-10 h-10 mx-auto opacity-90" />
+                  <div className={`text-[11px] font-bold ${c!.text}`}>{RARITY_LABEL[it.rarity]}</div>
                 </div>
               ) : (
                 <div className="text-amber-400/40 text-3xl">＋</div>
@@ -434,26 +440,42 @@ function SmeltTab({ items, onSmelt, gems, busy }:
         })}
       </div>
 
-      {/* Stability meter */}
-      <div className="bg-stone-900/70 border border-amber-700/40 rounded-2xl p-3">
-        <div className="text-amber-200 text-xs font-bold text-center mb-2">⚖️ مقياس الاستقرار</div>
-        <div className="relative h-3 bg-stone-800 rounded-full overflow-hidden">
-          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 rounded-full"
-               style={{ width: `${stability}%` }} />
+      {/* Luck panel */}
+      <div className="bg-gradient-to-br from-stone-900/90 to-stone-950/90 border border-amber-700/40 rounded-2xl p-3 shadow-inner">
+        <div className="text-amber-200 text-xs font-bold text-center mb-2">🎲 نظام الحظ</div>
+
+        {/* Probability bar */}
+        <div className="relative h-3 bg-stone-800 rounded-full overflow-hidden flex">
+          <div className="h-full bg-emerald-500" style={{ width: `${pUp}%` }} />
+          <div className="h-full bg-amber-500" style={{ width: `${pSame}%` }} />
+          <div className="h-full bg-rose-500" style={{ width: `${pDown}%` }} />
         </div>
-        <div className="flex justify-between text-[10px] mt-1.5">
-          <span className="text-emerald-300">نجاح {stability}%</span>
-          <span className="text-rose-300">مخاطرة {risk}%</span>
+
+        <div className="grid grid-cols-3 gap-1 mt-2 text-center text-[10px]">
+          <div className="text-emerald-300">⬆ ترقية<br/><b className="text-emerald-200 text-xs">{pUp}%</b></div>
+          <div className="text-amber-300">➡ ثبات<br/><b className="text-amber-200 text-xs">{pSame}%</b></div>
+          <div className="text-rose-300">⬇ تراجع<br/><b className="text-rose-200 text-xs">{pDown}%</b></div>
         </div>
-        <div className="text-center text-amber-100/60 text-[10px] mt-1">
-          {sameR ? "نفس الندرة — فرصة ترقية أعلى" : a && b ? "ندرات مختلفة — مخاطرة أكبر" : "اختر قطعتين للصهر"}
+
+        <div className="mt-2 border-t border-stone-700/50 pt-2 text-[10px] text-amber-100/70 leading-relaxed text-center">
+          {!a || !b ? (
+            "اختر قطعتين من نفس النوع لبدء الصهر."
+          ) : sameR ? (
+            <>دمج قطعتين بنفس الندرة <b className="text-amber-200">({RARITY_LABEL[a.rarity]})</b> — فرصة ترقية إلى <b className="text-emerald-300">{upTarget}</b>.</>
+          ) : (
+            <>ندرات مختلفة — الناتج يعتمد على الأعلى. فرصة الترقية أقل.</>
+          )}
+        </div>
+
+        <div className="mt-2 text-[10px] text-amber-100/50 text-center">
+          ⚠ القطع المصهورة لا يمكن صهرها مرة أخرى.
         </div>
       </div>
 
       {/* Inventory pick list */}
       <div className="bg-stone-900/60 border border-amber-700/30 rounded-2xl p-2">
         {list.length === 0 ? (
-          <div className="text-center text-amber-200/60 text-xs py-6">لا توجد قطع متاحة من هذا النوع</div>
+          <div className="text-center text-amber-200/60 text-xs py-6">لا توجد قطع متاحة للصهر من هذا النوع</div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {list.map((it) => {
@@ -491,3 +513,6 @@ function SmeltTab({ items, onSmelt, gems, busy }:
     </div>
   );
 }
+
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3, divine: 4 };
+
