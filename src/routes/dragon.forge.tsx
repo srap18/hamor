@@ -214,6 +214,10 @@ function ItemCard({ item, action }: { item: EquipmentItem; action?: React.ReactN
       {item.equipped && (
         <div className="absolute -top-1.5 -end-1.5 z-10 bg-emerald-500 text-stone-900 text-[10px] font-extrabold rounded-full px-2 py-0.5 border-2 border-emerald-900">مُجهَّز</div>
       )}
+      {(item as unknown as { smelted?: boolean }).smelted && (
+        <div className="absolute -top-1.5 -start-1.5 z-10 bg-gradient-to-b from-orange-400 to-rose-600 text-white text-[10px] font-extrabold rounded-full px-2 py-0.5 border-2 border-orange-900 shadow-lg">🔥 مصهور</div>
+      )}
+
       <div className="flex items-center gap-3">
         <div className="w-16 h-16 rounded-xl bg-stone-950/60 border border-stone-700/50 flex items-center justify-center overflow-hidden flex-shrink-0">
           <img src={SLOT_IMG[item.slot]} alt={item.name} className="w-full h-full object-contain"
