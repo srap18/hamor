@@ -396,9 +396,10 @@ function SmeltTab({ items, onSmelt, gems, busy }:
     setAId(null); setBId(null);
   };
 
-  const upTarget = a && b
-    ? RARITY_LABEL[(nextRarity(sameR ? a.rarity : (a.rarity === b.rarity ? a.rarity : (Object.keys(RARITY_LABEL) as Rarity[]).reduce((m, r) => RARITY_ORDER[r] > RARITY_ORDER[m] ? r : m, a.rarity)))) ?? a.rarity]
-    : "—";
+  const higher = a && b ? (RARITY_ORDER[a.rarity] >= RARITY_ORDER[b.rarity] ? a.rarity : b.rarity) : null;
+  const upNext = higher ? nextRarity(higher) : null;
+  const upTarget = upNext ? RARITY_LABEL[upNext] : (higher ? RARITY_LABEL[higher] : "—");
+
 
   return (
     <div className="space-y-3">
