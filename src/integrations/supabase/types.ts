@@ -919,6 +919,7 @@ export type Database = {
           name: string
           rarity: string
           slot: string
+          smelted: boolean
           stats: Json
           user_id: string
         }
@@ -929,6 +930,7 @@ export type Database = {
           name: string
           rarity?: string
           slot: string
+          smelted?: boolean
           stats?: Json
           user_id: string
         }
@@ -939,6 +941,7 @@ export type Database = {
           name?: string
           rarity?: string
           slot?: string
+          smelted?: boolean
           stats?: Json
           user_id?: string
         }
