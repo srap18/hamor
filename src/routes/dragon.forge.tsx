@@ -112,6 +112,20 @@ function ForgePage() {
     reload();
   };
 
+  const smelt = async (aId: string, bId: string) => {
+    if (busy) return;
+    if (!(await rateLimit("purchase", 1500))) { flash("⏳ تمهّل قليلاً"); return; }
+    setBusy(true);
+    const { data, error } = await rpc("smelt_dragon_items", { p_a_id: aId, p_b_id: bId });
+    setBusy(false);
+    if (error) return flash("❌ " + error.message);
+    if (data?.ok === false) return flash("❌ " + (data.error ?? "فشل الصهر"));
+    const icon = data.outcome === "upgrade" ? "🌟" : data.outcome === "downgrade" ? "💔" : "✨";
+    const label = data.outcome === "upgrade" ? "ترقية ناجحة!" : data.outcome === "downgrade" ? "تراجع!" : "بدون تغيير";
+    flash(`${icon} ${label} — ${RARITY_LABEL[data.rarity as Rarity]}`);
+    reload();
+  };
+
   return (
     <div
       className="fixed inset-0 overflow-y-auto"
