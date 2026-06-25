@@ -44,7 +44,7 @@ type Tab = "smelt" | "inventory" | "shop" | "upgrade";
 const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
 
 function ForgePage() {
-  const [tab, setTab] = useState<Tab>("inventory");
+  const [tab, setTab] = useState<Tab>("smelt");
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [coins, setCoins] = useState(0);
   const [gems, setGems] = useState(0);
