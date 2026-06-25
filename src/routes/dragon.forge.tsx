@@ -169,19 +169,23 @@ function ForgePage() {
         </div>
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 mb-3 bg-stone-900/60 p-1 rounded-xl border border-amber-700/30">
+        <div className="grid grid-cols-4 gap-1.5 mb-3 bg-stone-900/60 p-1 rounded-xl border border-amber-700/30">
           {([
+            ["smelt", "🔥 صهر"],
             ["inventory", "🎒 الانفنتري"],
             ["shop", "🛒 المتجر"],
-            ["upgrade", "✨ الترقية"],
+            ["upgrade", "✨ ترقية"],
           ] as [Tab, string][]).map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`py-2 rounded-lg text-[11px] font-bold transition-all ${
                 tab === k ? "bg-gradient-to-b from-amber-500 to-orange-600 text-stone-900 shadow-lg" : "text-amber-200/70"
               }`}>{label}</button>
           ))}
         </div>
 
+        {tab === "smelt" && (
+          <SmeltTab items={items} onSmelt={smelt} gems={gems} busy={busy} />
+        )}
         {tab === "inventory" && (
           <InventoryTab items={items} onEquip={equip} />
         )}
