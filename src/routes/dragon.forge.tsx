@@ -38,13 +38,13 @@ function ForgeLocked() {
 
 
 
-type Tab = "inventory" | "shop" | "upgrade";
+type Tab = "smelt" | "inventory" | "shop" | "upgrade";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
 
 function ForgePage() {
-  const [tab, setTab] = useState<Tab>("inventory");
+  const [tab, setTab] = useState<Tab>("smelt");
   const [items, setItems] = useState<EquipmentItem[]>([]);
   const [coins, setCoins] = useState(0);
   const [gems, setGems] = useState(0);
@@ -112,6 +112,20 @@ function ForgePage() {
     reload();
   };
 
+  const smelt = async (aId: string, bId: string) => {
+    if (busy) return;
+    if (!(await rateLimit("purchase", 1500))) { flash("⏳ تمهّل قليلاً"); return; }
+    setBusy(true);
+    const { data, error } = await rpc("smelt_dragon_items", { p_a_id: aId, p_b_id: bId });
+    setBusy(false);
+    if (error) return flash("❌ " + error.message);
+    if (data?.ok === false) return flash("❌ " + (data.error ?? "فشل الصهر"));
+    const icon = data.outcome === "upgrade" ? "🌟" : data.outcome === "downgrade" ? "💔" : "✨";
+    const label = data.outcome === "upgrade" ? "ترقية ناجحة!" : data.outcome === "downgrade" ? "تراجع!" : "بدون تغيير";
+    flash(`${icon} ${label} — ${RARITY_LABEL[data.rarity as Rarity]}`);
+    reload();
+  };
+
   return (
     <div
       className="fixed inset-0 overflow-y-auto"
@@ -155,19 +169,23 @@ function ForgePage() {
         </div>
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 mb-3 bg-stone-900/60 p-1 rounded-xl border border-amber-700/30">
+        <div className="grid grid-cols-4 gap-1.5 mb-3 bg-stone-900/60 p-1 rounded-xl border border-amber-700/30">
           {([
+            ["smelt", "🔥 صهر"],
             ["inventory", "🎒 الانفنتري"],
             ["shop", "🛒 المتجر"],
-            ["upgrade", "✨ الترقية"],
+            ["upgrade", "✨ ترقية"],
           ] as [Tab, string][]).map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`py-2 rounded-lg text-[11px] font-bold transition-all ${
                 tab === k ? "bg-gradient-to-b from-amber-500 to-orange-600 text-stone-900 shadow-lg" : "text-amber-200/70"
               }`}>{label}</button>
           ))}
         </div>
 
+        {tab === "smelt" && (
+          <SmeltTab items={items} onSmelt={smelt} gems={gems} busy={busy} />
+        )}
         {tab === "inventory" && (
           <InventoryTab items={items} onEquip={equip} />
         )}
@@ -340,6 +358,136 @@ function UpgradeTab({ items, onUpgrade, gems }: { items: EquipmentItem[]; onUpgr
           } />
         );
       })}
+    </div>
+  );
+}
+
+function SmeltTab({ items, onSmelt, gems, busy }:
+  { items: EquipmentItem[]; onSmelt: (a: string, b: string) => void; gems: number; busy: boolean }) {
+  const [slot, setSlot] = useState<Slot>("weapon");
+  const [aId, setAId] = useState<string | null>(null);
+  const [bId, setBId] = useState<string | null>(null);
+  const cost = 1000;
+  const canAfford = gems >= cost;
+  const list = items.filter((i) => i.slot === slot && !i.equipped);
+
+  const a = list.find((x) => x.id === aId) ?? null;
+  const b = list.find((x) => x.id === bId) ?? null;
+
+  // Stability/risk: same rarity = 55% success, diff = 35%
+  const sameR = a && b && a.rarity === b.rarity;
+  const stability = !a || !b ? 0 : sameR ? 55 : 35;
+  const risk = !a || !b ? 0 : 100 - stability;
+
+  const toggle = (id: string) => {
+    if (aId === id) { setAId(bId); setBId(null); return; }
+    if (bId === id) { setBId(null); return; }
+    if (!aId) { setAId(id); return; }
+    if (!bId) { setBId(id); return; }
+    // both filled, replace b
+    setBId(id);
+  };
+
+  const doSmelt = () => {
+    if (!a || !b || !canAfford || busy) return;
+    onSmelt(a.id, b.id);
+    setAId(null); setBId(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="text-center text-amber-100 font-extrabold text-base">
+        🐲 مختبر صهر التنين الاستراتيجي
+      </div>
+
+      {/* Slot tabs */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {(["weapon", "armor", "talisman"] as Slot[]).map((s) => (
+          <button key={s} onClick={() => { setSlot(s); setAId(null); setBId(null); }}
+            className={`py-2 rounded-lg text-xs font-bold border-2 transition-all ${
+              slot === s ? "bg-amber-500/20 border-amber-400 text-amber-100" : "bg-stone-900/50 border-stone-700/50 text-stone-400"
+            }`}>
+            <div className="text-base">{s === "weapon" ? "⚔️" : s === "armor" ? "🛡️" : "📿"}</div>
+            <div>{SLOT_LABEL[s]}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Two slots */}
+      <div className="grid grid-cols-2 gap-2">
+        {[a, b].map((slot, i) => {
+          const c = slot ? RARITY_COLOR[slot.rarity] : null;
+          return (
+            <div key={i} className={`h-28 rounded-2xl border-2 flex items-center justify-center ${
+              slot ? `${c!.ring} bg-gradient-to-br ${c!.bg}` : "border-dashed border-amber-700/40 bg-stone-900/50"
+            }`}>
+              {slot ? (
+                <div className="text-center px-2">
+                  <img src={SLOT_IMG[slot.slot]} alt="" className="w-10 h-10 mx-auto opacity-90" />
+                  <div className={`text-[11px] font-bold ${c!.text}`}>{RARITY_LABEL[slot.rarity]}</div>
+                </div>
+              ) : (
+                <div className="text-amber-400/40 text-3xl">＋</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Stability meter */}
+      <div className="bg-stone-900/70 border border-amber-700/40 rounded-2xl p-3">
+        <div className="text-amber-200 text-xs font-bold text-center mb-2">⚖️ مقياس الاستقرار</div>
+        <div className="relative h-3 bg-stone-800 rounded-full overflow-hidden">
+          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 rounded-full"
+               style={{ width: `${stability}%` }} />
+        </div>
+        <div className="flex justify-between text-[10px] mt-1.5">
+          <span className="text-emerald-300">نجاح {stability}%</span>
+          <span className="text-rose-300">مخاطرة {risk}%</span>
+        </div>
+        <div className="text-center text-amber-100/60 text-[10px] mt-1">
+          {sameR ? "نفس الندرة — فرصة ترقية أعلى" : a && b ? "ندرات مختلفة — مخاطرة أكبر" : "اختر قطعتين للصهر"}
+        </div>
+      </div>
+
+      {/* Inventory pick list */}
+      <div className="bg-stone-900/60 border border-amber-700/30 rounded-2xl p-2">
+        {list.length === 0 ? (
+          <div className="text-center text-amber-200/60 text-xs py-6">لا توجد قطع متاحة من هذا النوع</div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {list.map((it) => {
+              const c = RARITY_COLOR[it.rarity];
+              const selected = it.id === aId || it.id === bId;
+              return (
+                <button key={it.id} onClick={() => toggle(it.id)}
+                  className={`p-2 rounded-xl border-2 text-end ${selected ? "border-amber-300 bg-amber-500/10" : c.ring + " bg-gradient-to-br " + c.bg}`}>
+                  <div className="flex items-center gap-2">
+                    <img src={SLOT_IMG[it.slot]} alt="" className="w-8 h-8" />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-[11px] font-extrabold ${c.text} truncate`}>{RARITY_LABEL[it.rarity]}</div>
+                      <div className="text-stone-400 text-[9px] truncate">{it.name}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Smelt button */}
+      <button disabled={!a || !b || !canAfford || busy} onClick={doSmelt}
+        className={`w-full py-3.5 rounded-2xl font-black text-base shadow-2xl transition-all ${
+          a && b && canAfford
+            ? "bg-gradient-to-b from-amber-400 via-orange-500 to-rose-600 text-white active:scale-95"
+            : "bg-stone-800 text-stone-500 border border-stone-700"
+        }`}>
+        🔥 صهر — 💎 {cost.toLocaleString()}
+      </button>
+      {!canAfford && (
+        <div className="text-center text-rose-300 text-[11px]">جواهر غير كافية</div>
+      )}
     </div>
   );
 }

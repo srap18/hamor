@@ -4315,8 +4315,8 @@ export type Database = {
         }[]
       }
       award_arena_score: {
-        Args: { p_score: number; p_won?: boolean }
-        Returns: undefined
+        Args: { _score: number; _week_start?: string; _won?: boolean }
+        Returns: Json
       }
       award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
       award_event_xp: {
@@ -5291,6 +5291,10 @@ export type Database = {
       signup_block_reason: {
         Args: { _device_id: string; _email: string }
         Returns: string
+      }
+      smelt_dragon_items: {
+        Args: { p_a_id: string; p_b_id: string }
+        Returns: Json
       }
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }

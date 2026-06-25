@@ -224,7 +224,7 @@ function BattlePage() {
           return d.toISOString().slice(0, 10);
         })();
         await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<unknown> })
-          .rpc("award_arena_score", { _score: r, _week_start: ws })
+          .rpc("award_arena_score", { _score: r, _week_start: ws, _won: true })
           .catch(() => {});
       }
     } catch { /* ignore */ }
