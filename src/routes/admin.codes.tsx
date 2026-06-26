@@ -1176,6 +1176,29 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
   const [saving, setSaving] = useState(false);
   const tier = ELITE_VIP_TIERS.find((t) => t.level === level);
 
+  // 🎯 Target player — when set, the code is automatically activated on that user after creation
+  const [targetQuery, setTargetQuery] = useState("");
+  const [targetResults, setTargetResults] = useState<Array<{ id: string; display_name: string | null; avatar_emoji: string | null; username: string | null }>>([]);
+  const [targetUser, setTargetUser] = useState<{ id: string; display_name: string | null } | null>(null);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    if (targetUser) return; // don't search while a user is locked in
+    const q = targetQuery.trim();
+    if (q.length < 2) { setTargetResults([]); return; }
+    setSearching(true);
+    const h = setTimeout(async () => {
+      const { data } = await (supabase as any)
+        .from("profiles")
+        .select("id, display_name, avatar_emoji, username")
+        .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+        .limit(8);
+      setTargetResults((data ?? []) as never);
+      setSearching(false);
+    }, 250);
+    return () => clearTimeout(h);
+  }, [targetQuery, targetUser]);
+
   const create = async () => {
     const finalCode = (customCode.trim() || randomCode()).toUpperCase();
     if (!/^[A-Z0-9_-]{4,32}$/.test(finalCode)) { toast.error("الكود يجب أن يكون 4–32 حرف/رقم"); return; }
@@ -1196,10 +1219,30 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
       reward_elite_vip_days: days,
       created_by: user?.id,
     } as never);
+    if (error) { setSaving(false); toast.error(error.message); return; }
+
+    // 🎯 Auto-activate on target player (if selected)
+    if (targetUser) {
+      const { error: redeemErr } = await (supabase as any).rpc("admin_redeem_code_for", {
+        p_code: finalCode,
+        p_target_user: targetUser.id,
+      });
+      if (redeemErr) {
+        setSaving(false);
+        toast.error(`الكود أُنشئ لكن فشل التفعيل على ${targetUser.display_name ?? ""}: ${redeemErr.message}`);
+        onCreated();
+        return;
+      }
+      try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+      toast.success(`✅ تم تفعيل Elite VIP ${level} على ${targetUser.display_name ?? "اللاعب"} — كود: ${finalCode}`);
+      setTargetUser(null);
+      setTargetQuery("");
+    } else {
+      try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+      toast.success(`✅ ${finalCode} — تم النسخ`);
+    }
+
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
-    toast.success(`✅ ${finalCode} — تم النسخ`);
     setCustomCode("");
     onCreated();
   };
@@ -1252,6 +1295,47 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
           className="w-full bg-slate-800 border border-fuchsia-700 rounded-md px-2 py-1.5 text-sm text-slate-100 font-mono tracking-wider" />
       </label>
 
+      {/* 🎯 Target player — optional: auto-activates the code on this user */}
+      <div className="rounded-lg border-2 border-amber-500/50 bg-amber-950/30 p-2 space-y-2">
+        <div className="text-xs font-bold text-amber-200 flex items-center justify-between">
+          <span>🎯 تفعيل مباشر على لاعب (اختياري)</span>
+          {targetUser && (
+            <button onClick={() => { setTargetUser(null); setTargetQuery(""); }}
+              className="text-[10px] px-2 py-0.5 rounded bg-red-600/40 hover:bg-red-600/60 text-red-100">✕ إلغاء</button>
+          )}
+        </div>
+        {targetUser ? (
+          <div className="flex items-center gap-2 bg-emerald-900/40 border border-emerald-500/50 rounded px-2 py-1.5">
+            <span className="text-emerald-300 font-bold">✓</span>
+            <span className="text-sm text-emerald-100 font-bold">{targetUser.display_name ?? targetUser.id.slice(0, 8)}</span>
+            <span className="text-[10px] text-emerald-300/80 mr-auto">سيُفعَّل تلقائياً عند إنشاء الكود</span>
+          </div>
+        ) : (
+          <div className="relative">
+            <input
+              value={targetQuery}
+              onChange={(e) => setTargetQuery(e.target.value)}
+              placeholder="ابحث باسم اللاعب أو اليوزرنيم..."
+              className="w-full bg-slate-800 border border-amber-700 rounded-md px-2 py-1.5 text-sm text-slate-100"
+            />
+            {targetQuery.trim().length >= 2 && (
+              <div className="absolute z-10 left-0 right-0 mt-1 max-h-48 overflow-auto bg-slate-900 border border-amber-700 rounded-md shadow-xl">
+                {searching && <div className="px-3 py-2 text-xs text-amber-200/70">جاري البحث...</div>}
+                {!searching && targetResults.length === 0 && <div className="px-3 py-2 text-xs text-amber-200/70">لا نتائج</div>}
+                {targetResults.map((p) => (
+                  <button key={p.id} onClick={() => { setTargetUser({ id: p.id, display_name: p.display_name }); setTargetResults([]); }}
+                    className="w-full text-right px-3 py-1.5 hover:bg-amber-800/40 text-sm text-slate-100 flex items-center gap-2">
+                    <span>{p.avatar_emoji ?? "🧑"}</span>
+                    <span className="font-bold">{p.display_name ?? p.id.slice(0, 8)}</span>
+                    {p.username && <span className="text-[10px] text-amber-300/70">@{p.username}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {tier && (
         <div className="text-[11px] text-fuchsia-100/90 bg-black/40 rounded-lg p-2 border border-fuchsia-900/60">
           <div className="font-bold mb-1 flex items-center gap-2">
@@ -1266,11 +1350,12 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
 
       <button disabled={saving} onClick={create}
         className="w-full md:w-auto px-4 py-2 rounded-lg bg-gradient-to-b from-fuchsia-500 to-purple-700 hover:from-fuchsia-400 hover:to-purple-600 text-white font-extrabold disabled:opacity-50 shadow-lg">
-        {saving ? "جاري الإنشاء..." : "💎 إنشاء كود Elite VIP ونسخه"}
+        {saving ? "جاري الإنشاء..." : targetUser ? `💎 إنشاء الكود وتفعيله على ${targetUser.display_name ?? "اللاعب"}` : "💎 إنشاء كود Elite VIP ونسخه"}
       </button>
     </div>
   );
 }
+
 
 
 // ════════════════════════════════════════════════════════════════════
