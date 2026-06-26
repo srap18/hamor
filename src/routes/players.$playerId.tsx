@@ -478,9 +478,15 @@ function PlayerPage() {
   };
 
   const fireWeapon = async (weaponId: string) => {
-    if (!me || !selectedShip) return;
+    if (!me) { sound.play("error"); flash("سجّل دخول أولاً"); return; }
     const w = WEAPONS.find((x) => x.id === weaponId);
-    if (!w) return;
+    if (!w) { sound.play("error"); flash("سلاح غير معروف"); return; }
+    if (!w.aoe && !selectedShip) {
+      sound.play("error");
+      flash("⚓ اختر سفينة الخصم أولاً ثم اضغط الصاروخ");
+      setMode("menu");
+      return;
+    }
     // Block ALL attacks (every weapon) while any of my ships is on an active steal mission.
     if (myShips.some((s) => s.stealing_ends_at && new Date(s.stealing_ends_at).getTime() > serverNowMs())) {
       sound.play("error");
@@ -544,7 +550,7 @@ function PlayerPage() {
 
     // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
-    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
+    const targets: Ship[] = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip!];
 
     // Dragon attack bonus
     const boostedDamage = applyDragonAttack(w.damage, myDragonLvl);
