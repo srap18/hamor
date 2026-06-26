@@ -27,7 +27,29 @@ export type Dragon = {
   hatched_at: string | null;
   created_at: string;
   updated_at: string;
+  pearls?: number;
+  pearl_level?: number;
 };
+
+/** Cost of pearls required to upgrade FROM the given level to level+1. Null = max. */
+export function pearlUpgradeCost(fromLevel: number): number | null {
+  const n = fromLevel;
+  if (n == null || n < 1 || n >= 150) return null;
+  if (n <= 9) return 15;
+  if (n <= 20) return 15 + (n - 9) * 50;
+  if (n <= 40) return 565 + (n - 20) * 200;
+  if (n <= 60) return 4565 + (n - 40) * 400;
+  if (n <= 100) return 12565 + (n - 60) * 600;
+  if (n <= 149) return 36565 + (n - 100) * 650;
+  return null;
+}
+
+/** Effective dragon level — max of pearl level and the DP-derived level. */
+export function effectiveLevel(d: Dragon): number {
+  const dpLvl = overallLevel(d);
+  const pearlLvl = Math.max(0, d.pearl_level ?? 0);
+  return Math.max(dpLvl, pearlLvl);
+}
 
 export type DragonStage = {
   level: number;        // form index 1..15

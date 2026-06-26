@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, dragonBonusForLevel, dragonTierTable, applyDragonAttack, applyDragonDefense } from "@/lib/dragon";
+import { Dragon, DRAGON_STAGES, getStage, dpProgress, overallLevel, MAX_LEVEL, dragonBonusForLevel, dragonTierTable, applyDragonAttack, applyDragonDefense, effectiveLevel, pearlUpgradeCost } from "@/lib/dragon";
 import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 
 
@@ -124,9 +124,12 @@ function DragonPage() {
             <span className="text-amber-300/70 text-xs ms-2">الشكل {d.stage}/{DRAGON_STAGES.length}</span>
           </div>
           <div className="mt-1 text-amber-200/90 text-xs font-bold">
-            ⭐ المستوى {overallLevel(d)} / {MAX_LEVEL}
+            ⭐ المستوى {effectiveLevel(d)} / {MAX_LEVEL}
           </div>
         </div>
+
+        {/* Pearls wallet + upgrade */}
+        <PearlsCard d={d} onChanged={(nd) => setD(nd)} />
 
         {/* Dragon/Egg display — driven by the level-based evolution video */}
         <div className="relative my-6 flex items-center justify-center" style={{ minHeight: "320px" }}>
@@ -181,7 +184,7 @@ function DragonPage() {
         </div>
 
         {/* Dragon combat perks — attack/defense bonus by tier */}
-        <DragonPerksCard level={overallLevel(d)} />
+        <DragonPerksCard level={effectiveLevel(d)} />
 
         {/* Stages roadmap */}
         <div className="bg-stone-900/70 border border-amber-700/40 rounded-2xl p-3 backdrop-blur">
@@ -363,6 +366,64 @@ function DailyRocketsCard() {
         </button>
       </div>
       {msg && <div className="mt-2 text-center text-emerald-200 text-xs font-bold">{msg}</div>}
+    </div>
+  );
+}
+
+function PearlsCard({ d, onChanged }: { d: Dragon; onChanged: (d: Dragon) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const lvl = effectiveLevel(d);
+  const atMax = lvl >= MAX_LEVEL;
+  const cost = atMax ? null : pearlUpgradeCost(lvl);
+  const pearls = d.pearls ?? 0;
+  const canAfford = cost != null && pearls >= cost;
+
+  const upgrade = async () => {
+    if (busy || atMax || cost == null) return;
+    if (!canAfford) { setMsg(`❌ تحتاج ${cost?.toLocaleString()} لؤلؤة`); setTimeout(() => setMsg(null), 2200); return; }
+    if (!confirm(`ترقية إلى المستوى ${lvl + 1}؟ التكلفة ${cost.toLocaleString()} 🦪`)) return;
+    setBusy(true);
+    const { data, error } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { ok: boolean; reason?: string; pearls?: number; level?: number; spent?: number; cost?: number }; error: { message: string } | null }> }).rpc("dragon_pearl_upgrade");
+    setBusy(false);
+    if (error) { setMsg("❌ " + error.message); setTimeout(() => setMsg(null), 2500); return; }
+    if (!data?.ok) {
+      const reason = data?.reason === "max_level" ? "وصلت للحد الأقصى"
+        : data?.reason === "need_pearls" ? `تحتاج ${(data?.cost ?? 0).toLocaleString()} لؤلؤة`
+        : data?.reason ?? "فشل";
+      setMsg("❌ " + reason);
+      setTimeout(() => setMsg(null), 2500);
+      return;
+    }
+    // refetch dragon
+    const { data: fresh } = await (supabase as never as { rpc: (n: string) => Promise<{ data: Dragon | null; error: unknown }> }).rpc("get_or_init_dragon");
+    if (fresh) onChanged(fresh);
+    setMsg(`✅ صعدت للمستوى ${data.level}!`);
+    setTimeout(() => setMsg(null), 2500);
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-cyan-900/60 to-fuchsia-900/60 border-2 border-cyan-300/60 rounded-2xl p-3 mb-3 backdrop-blur">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div>
+          <div className="text-cyan-100 font-extrabold text-sm">🦪 اللؤلؤ</div>
+          <div className="text-cyan-200/80 text-[10px]">اربح من الحلبة (٢) ومن قتل البوس (٢٠)</div>
+        </div>
+        <div className="text-cyan-100 text-2xl font-black tabular-nums">{pearls.toLocaleString()}</div>
+      </div>
+      {atMax ? (
+        <div className="text-center text-amber-200 text-sm font-bold py-2">🏆 المستوى الأقصى ١٥٠</div>
+      ) : (
+        <button onClick={upgrade} disabled={busy || !canAfford}
+          className={`w-full py-2.5 rounded-xl font-extrabold text-sm shadow-lg ${
+            canAfford
+              ? "bg-gradient-to-b from-cyan-300 to-fuchsia-600 text-stone-900"
+              : "bg-stone-800 text-stone-500 border border-stone-700"
+          }`}>
+          {busy ? "..." : `⬆️ ترقية إلى ${lvl + 1} • ${cost?.toLocaleString()} 🦪`}
+        </button>
+      )}
+      {msg && <div className="mt-2 text-center text-cyan-100 text-xs font-bold">{msg}</div>}
     </div>
   );
 }
