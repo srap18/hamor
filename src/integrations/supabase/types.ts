@@ -1625,6 +1625,69 @@ export type Database = {
         }
         Relationships: []
       }
+      golden_fisher_errors: {
+        Row: {
+          created_at: string
+          cycles: number | null
+          error: string | null
+          exec_ms: number | null
+          fish_added: number | null
+          id: string
+          remaining_storage: number | null
+          ship_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cycles?: number | null
+          error?: string | null
+          exec_ms?: number | null
+          fish_added?: number | null
+          id?: string
+          remaining_storage?: number | null
+          ship_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cycles?: number | null
+          error?: string | null
+          exec_ms?: number | null
+          fish_added?: number | null
+          id?: string
+          remaining_storage?: number | null
+          ship_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      golden_fisher_rewards: {
+        Row: {
+          created_at: string
+          fish_id: string | null
+          qty: number
+          reward_slot: number
+          ship_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fish_id?: string | null
+          qty?: number
+          reward_slot: number
+          ship_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fish_id?: string | null
+          qty?: number
+          reward_slot?: number
+          ship_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           acquired_at: string
