@@ -167,22 +167,26 @@ function RoomView() {
   );
 
   return (
-    <div className="fixed inset-0 overflow-hidden text-white flex flex-col" dir="rtl"
+    <div className="fixed inset-0 z-[100] overflow-hidden text-white flex flex-col" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, #1e1b4b 0%, #0f172a 60%, #000 100%)" }}>
       {/* Header */}
-      <div className="p-2 flex items-center gap-2 border-b border-white/10">
-        <button onClick={leave} className="w-10 h-10 rounded-xl bg-rose-700 border-2 border-rose-400 flex items-center justify-center">✕</button>
+      <div
+        className="px-2 pb-2 flex items-center gap-2 border-b border-white/10"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+      >
+        <button onClick={leave} aria-label="خروج" className="w-10 h-10 shrink-0 rounded-xl bg-rose-700 border-2 border-rose-400 flex items-center justify-center text-lg">✕</button>
         <div className="flex-1 min-w-0">
           <div className="font-bold truncate">{room.name}</div>
           <div className="text-[11px] text-white/60">{members.length} موجود • {room.is_private ? "🔒 خاصة" : "🌐 عامة"}</div>
         </div>
         {isMod && (
-          <button onClick={() => setShowRequests(true)} className="relative px-3 h-10 rounded-xl bg-amber-600 font-bold text-sm">
+          <button onClick={() => setShowRequests(true)} className="relative px-3 h-10 shrink-0 rounded-xl bg-amber-600 font-bold text-sm">
             طلبات
             {requests.length > 0 && <span className="absolute -top-1 -right-1 bg-rose-600 rounded-full text-[10px] px-1.5">{requests.length}</span>}
           </button>
         )}
       </div>
+
 
       {/* Seats grid */}
       <div className="flex-1 overflow-y-auto p-3">
