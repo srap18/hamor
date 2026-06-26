@@ -19,8 +19,9 @@ type Room = {
 };
 type Member = {
   room_id: string; user_id: string; role: "owner" | "mod" | "speaker" | "listener";
-  seat_index: number | null; muted: boolean; speaking: boolean;
+  seat_index: number | null; muted: boolean; speaking: boolean; last_seen_at?: string | null;
 };
+
 type Profile = { id: string; display_name: string; avatar_emoji: string; level: number; avatar_url?: string | null };
 type Req = { id: string; user_id: string; created_at: string };
 type Msg = { id: string; user_id: string; content: string; pinned: boolean; deleted: boolean; created_at: string };
@@ -68,7 +69,7 @@ function RoomView() {
     }
   }, [id]);
 
-  // Auto-join + realtime
+  // Auto-join + realtime + heartbeat
   useEffect(() => {
     if (!user) return;
     (supabase as any).rpc("vr_join_room", { _room: id, _password: "" }).then(loadAll);
@@ -78,8 +79,11 @@ function RoomView() {
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_room_requests", filter: `room_id=eq.${id}` }, () => loadAll())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "voice_room_messages", filter: `room_id=eq.${id}` }, () => loadAll())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    const beat = setInterval(() => { (supabase as any).rpc("vr_heartbeat", { _room: id }); }, 20000);
+    const refetch = setInterval(loadAll, 15000); // safety refetch
+    return () => { supabase.removeChannel(ch); clearInterval(beat); clearInterval(refetch); };
   }, [id, user, loadAll]);
+
 
   // Connect to LiveKit
   useEffect(() => {
@@ -179,14 +183,45 @@ function RoomView() {
     }
   };
 
+  const takeSeat = async (seat: number) => {
+    const { error } = await (supabase as any).rpc("vr_take_seat", { _room: id, _seat: seat });
+    if (error) {
+      const map: Record<string, string> = {
+        seat_taken: "المقعد محجوز",
+        listeners_only: "الغرفة للاستماع فقط",
+        banned_from_room: "أنت محظور من هذه الغرفة",
+        invalid_seat: "مقعد غير صحيح",
+      };
+      alert(map[error.message] || error.message);
+    } else {
+      loadAll();
+    }
+  };
+
+  const leaveSeat = async () => {
+    await (supabase as any).rpc("vr_leave_seat", { _room: id });
+    loadAll();
+  };
+
+  // Filter out stale members (no heartbeat for > 90 seconds) so the room
+  // shows only people who are actually still there.
+  const STALE_MS = 90_000;
+  const now = Date.now();
+  const liveMembers = useMemo(() => members.filter(m => {
+    if (m.user_id === user?.id) return true;
+    if (onlineIds.has(m.user_id)) return true;
+    const ts = m.last_seen_at ? new Date(m.last_seen_at).getTime() : 0;
+    return now - ts < STALE_MS;
+  }), [members, user?.id, onlineIds, now]);
 
   const seats = useMemo(() => {
     const arr: (Member | null)[] = Array.from({ length: room?.seat_count || 8 }, () => null);
-    members.forEach(m => { if (m.seat_index !== null && m.seat_index < arr.length) arr[m.seat_index] = m; });
+    liveMembers.forEach(m => { if (m.seat_index !== null && m.seat_index < arr.length) arr[m.seat_index] = m; });
     return arr;
-  }, [members, room?.seat_count]);
+  }, [liveMembers, room?.seat_count]);
 
-  const listeners = members.filter(m => m.seat_index === null);
+  const listeners = liveMembers.filter(m => m.seat_index === null);
+
 
   if (!room) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center" dir="rtl">جاري التحميل...</div>;
   if (room.closed_at) return (
@@ -225,25 +260,41 @@ function RoomView() {
           {seats.map((m, i) => {
             const p = m ? profiles[m.user_id] : null;
             const speaking = m && speakingIds.has(m.user_id);
+            const isMine = m?.user_id === user?.id;
+            const canTake = !m && i !== 0 && !room.listeners_only;
+            const handleSeatClick = () => {
+              if (canTake) takeSeat(i);
+              else if (isMine && me?.role === "speaker") {
+                if (confirm("النزول من المايك؟")) leaveSeat();
+              }
+            };
             return (
               <div key={i} className="flex flex-col items-center gap-1">
-                <div className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl
+                <button
+                  onClick={handleSeatClick}
+                  disabled={!canTake && !isMine}
+                  className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl transition
                     ${m ? "bg-gradient-to-b from-amber-500 to-amber-800" : "bg-white/5 border-2 border-dashed border-white/20"}
-                    ${speaking ? "ring-4 ring-emerald-400 animate-pulse" : ""}`}>
+                    ${speaking ? "ring-4 ring-emerald-400 animate-pulse" : ""}
+                    ${canTake ? "hover:bg-emerald-700/30 hover:border-emerald-400 cursor-pointer active:scale-95" : ""}`}
+                >
                   {p ? (p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover rounded-full" alt="" /> : <span>{p.avatar_emoji}</span>)
                      : <span className="text-white/30 text-3xl">+</span>}
                   {m?.muted && <div className="absolute -bottom-1 -right-1 bg-rose-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">🔇</div>}
                   {m && onlineIds.has(m.user_id) && !m.muted && <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-stone-900" title="متصل"></div>}
                   {m?.role === "owner" && <div className="absolute -top-1 -left-1 bg-amber-400 text-amber-950 text-[10px] rounded px-1 font-bold">👑</div>}
                   {m?.role === "mod" && <div className="absolute -top-1 -left-1 bg-sky-500 text-white text-[10px] rounded px-1 font-bold">⚔</div>}
+                </button>
+                <div className="text-[11px] truncate w-full text-center">
+                  {p?.display_name || (canTake ? <span className="text-emerald-400">اجلس هنا</span> : `مقعد ${i + 1}`)}
                 </div>
-                <div className="text-[11px] truncate w-full text-center">{p?.display_name || `مقعد ${i + 1}`}</div>
                 {isMod && m && m.user_id !== user?.id && (
                   <SeatMenu memberId={m.user_id} onAction={(act) => modAct(m.user_id, act)} role={m.role} isOwner={isOwner} />
                 )}
               </div>
             );
           })}
+
         </div>
 
         {/* Listeners */}

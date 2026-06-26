@@ -5999,6 +5999,7 @@ export type Database = {
         }
         Returns: string
       }
+      vr_heartbeat: { Args: { _room: string }; Returns: undefined }
       vr_is_admin: { Args: { _uid: string }; Returns: boolean }
       vr_is_banned: { Args: { _room: string; _uid: string }; Returns: boolean }
       vr_is_mod_or_owner: {
@@ -6011,6 +6012,7 @@ export type Database = {
         Returns: undefined
       }
       vr_leave_room: { Args: { _room: string }; Returns: undefined }
+      vr_leave_seat: { Args: { _room: string }; Returns: undefined }
       vr_mod_action: {
         Args: {
           _action: string
@@ -6023,6 +6025,10 @@ export type Database = {
       vr_request_mic: { Args: { _room: string }; Returns: string }
       vr_resolve_request: {
         Args: { _accept: boolean; _req: string }
+        Returns: undefined
+      }
+      vr_take_seat: {
+        Args: { _room: string; _seat: number }
         Returns: undefined
       }
       warn_overfull_tribes: { Args: never; Returns: number }
