@@ -184,7 +184,7 @@ function DragonPage() {
         </div>
 
         {/* Dragon combat perks — attack/defense bonus by tier */}
-        <DragonPerksCard level={overallLevel(d)} />
+        <DragonPerksCard level={effectiveLevel(d)} />
 
         {/* Stages roadmap */}
         <div className="bg-stone-900/70 border border-amber-700/40 rounded-2xl p-3 backdrop-blur">
