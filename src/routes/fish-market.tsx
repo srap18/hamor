@@ -514,7 +514,23 @@ function FishMarket() {
         _client_version: FISH_MARKET_CLIENT_VERSION,
       } as never);
       if (error) {
-        setPop(`❌ ${error.message || "تعذر البيع"}`);
+        const msg = error.message || "";
+        if (msg.includes("update_required")) {
+          setPop("🔄 جاري تحديث اللعبة...");
+          try {
+            if ("caches" in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map((k) => caches.delete(k)));
+            }
+          } catch {}
+          setTimeout(() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("_v", Date.now().toString());
+            window.location.replace(url.toString());
+          }, 800);
+          return;
+        }
+        setPop(`❌ ${msg || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
         await loadFish();
         return;
