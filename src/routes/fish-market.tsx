@@ -159,6 +159,8 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
+  const [bulkResult, setBulkResult] = useState<{ items: Array<{ name: string; qty: number; net: number }>; totalGross: number; totalNet: number; totalRot: number } | null>(null);
+  const [sellingAll, setSellingAll] = useState(false);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
@@ -538,6 +540,45 @@ function FishMarket() {
     }
   };
 
+  const sellAll = async () => {
+    if (!user || sellingAll || selling) return;
+    const targets = fish.filter((f) => f.qty > 0);
+    if (targets.length === 0) return;
+    const ok = await confirmDialog({
+      title: "بيع كل السمك",
+      message: "هل تريد بيع كل السمك في المخزن الآن بالأسعار الحالية؟",
+      confirmText: "بيع الكل",
+    });
+    if (!ok) return;
+    setSellingAll(true);
+    const items: Array<{ name: string; qty: number; net: number }> = [];
+    let totalGross = 0;
+    let totalNet = 0;
+    try {
+      for (const f of targets) {
+        const cur = priceMap[f.id]?.current ?? f.basePrice;
+        const gross = Math.round(cur * f.qty);
+        const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
+          _fish_id: f.id,
+          _qty: f.qty,
+        } as never);
+        if (error) continue;
+        const earned = Number(data ?? 0);
+        if (earned <= 0) continue;
+        applyOptimisticProfileDelta({ coins: +earned });
+        totalGross += gross;
+        totalNet += earned;
+        items.push({ name: f.name, qty: f.qty, net: earned });
+      }
+      const totalRot = Math.max(0, totalGross - totalNet);
+      setBulkResult({ items, totalGross, totalNet, totalRot });
+      await loadFish();
+      refreshProfile();
+    } finally {
+      setSellingAll(false);
+    }
+  };
+
 
 
 
@@ -579,6 +620,8 @@ function FishMarket() {
           onUpgrade={startFishUpgrade}
           onBoost={finishFishUpgrade}
           onPick={setSelected}
+          onSellAll={sellAll}
+          sellingAll={sellingAll}
         />
       )}
 
@@ -624,6 +667,50 @@ function FishMarket() {
       {sellResult && (
         <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
       )}
+
+      {bulkResult && (
+        <BulkSellResultModal result={bulkResult} onClose={() => setBulkResult(null)} />
+      )}
+    </div>
+  );
+}
+
+function BulkSellResultModal({ result, onClose }: { result: { items: Array<{ name: string; qty: number; net: number }>; totalGross: number; totalNet: number; totalRot: number }; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={onClose}>
+      <div
+        className="w-full max-w-sm rounded-2xl border-4 shadow-2xl overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #f5d9a8 0%, #e9bf7e 100%)", borderColor: "#8a5a2b" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-center py-2 font-extrabold text-white text-base" style={{ background: "linear-gradient(180deg,#6b4326,#3e2614)" }}>
+          نتيجة بيع الكل
+        </div>
+        <div className="p-3 flex flex-col gap-3">
+          <div className="max-h-56 overflow-y-auto rounded-xl border-2 border-amber-900/40 bg-white/40 p-2 text-amber-950 text-sm font-bold space-y-1">
+            {result.items.length === 0 ? (
+              <div className="text-center py-4">لم يتم بيع أي سمك</div>
+            ) : result.items.map((it, i) => (
+              <div key={i} className="flex items-center justify-between border-b border-amber-900/20 last:border-0 pb-1">
+                <span>{it.name} × {it.qty.toLocaleString()}</span>
+                <span className="tabular-nums">{it.net.toLocaleString()} 🪙</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-amber-950 font-extrabold text-sm space-y-1">
+            <div className="flex justify-between"><span>السعر الإجمالي:</span><span className="tabular-nums">{result.totalGross.toLocaleString()} ذهب</span></div>
+            <div className="flex justify-between"><span>صلاحية السمك:</span><span className="tabular-nums">-{result.totalRot.toLocaleString()} ذهب</span></div>
+            <div className="flex justify-between text-base pt-1"><span>الدخل:</span><span className="tabular-nums text-amber-900">{result.totalNet.toLocaleString()} ذهب</span></div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-lg text-white font-extrabold text-base shadow-lg active:scale-95"
+            style={{ background: "linear-gradient(180deg,#f0a040,#d77520)", border: "2px solid #b35c10" }}
+          >
+            تم
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -710,6 +797,8 @@ function StorageView({
   onUpgrade,
   onBoost,
   onPick,
+  onSellAll,
+  sellingAll,
 }: {
   fish: Fish[];
   capUsed: number;
@@ -723,6 +812,8 @@ function StorageView({
   onUpgrade: () => void;
   onBoost: () => void;
   onPick: (id: string) => void;
+  onSellAll: () => void;
+  sellingAll: boolean;
 }) {
   const pct = (capUsed / capMax) * 100;
   return (
@@ -735,7 +826,18 @@ function StorageView({
           <h1 className="relative text-sm font-bold text-glow whitespace-nowrap">
             مخزن السمك lvl {lvl}
           </h1>
-        </div>
+      </div>
+
+      {/* Sell All button */}
+      {fish.length > 0 && (
+        <button
+          onClick={onSellAll}
+          disabled={sellingAll}
+          className="absolute top-48 right-3 z-20 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-600 border-2 border-emerald-200 shadow-lg text-white text-xs font-extrabold active:scale-95 disabled:opacity-50"
+        >
+          {sellingAll ? "...جارٍ البيع" : "💰 بيع الكل"}
+        </button>
+      )}
         <div className="text-center text-white text-xs mt-1 font-bold text-glow">
           <span className="text-amber-200">{capUsed.toLocaleString()}</span>
           <span className="opacity-80">/{capMax.toLocaleString()} السعة</span>
