@@ -257,24 +257,48 @@ function InventoryTab({ items, onEquip }: { items: EquipmentItem[]; onEquip: (id
       </div>
     );
   }
+
+  // Group identical items (same slot+rarity+stats+smelted). Equipped items stay separate
+  // so the user can clearly see what's currently fitted and unequip it.
+  const groups = new Map<string, { rep: EquipmentItem; count: number; ids: string[] }>();
+  for (const it of items) {
+    const smelted = (it as unknown as { smelted?: boolean }).smelted ? 1 : 0;
+    const statsKey = JSON.stringify(
+      Object.keys(it.stats ?? {}).sort().reduce((acc, k) => {
+        (acc as Record<string, unknown>)[k] = (it.stats as Record<string, unknown>)[k];
+        return acc;
+      }, {} as Record<string, unknown>)
+    );
+    const key = `${it.equipped ? "E" : "U"}|${it.slot}|${it.rarity}|${smelted}|${statsKey}`;
+    const g = groups.get(key);
+    if (g) { g.count += 1; g.ids.push(it.id); }
+    else groups.set(key, { rep: it, count: 1, ids: [it.id] });
+  }
+  const list = Array.from(groups.values());
+
   return (
     <div className="space-y-2">
-      {items.map((it) => (
-        <ItemCard key={it.id} item={it} action={
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); console.log("[equip-click]", it.id); onEquip(it.id); }}
-            className={`w-full py-2 rounded-lg text-xs font-bold relative z-20 touch-manipulation ${
-
-              it.equipped
-                ? "bg-stone-800 text-stone-300 border border-stone-600/50"
-                : "bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-md"
-            }`}>
-            {it.equipped ? "↩ إزالة التجهيز" : "⚔ تجهيز"}
-          </button>
-        } />
+      {list.map((g) => (
+        <div key={g.ids[0]} className="relative">
+          {g.count > 1 && (
+            <div className="absolute -top-2 -start-2 z-20 bg-gradient-to-b from-amber-300 to-amber-600 text-stone-900 text-[11px] font-extrabold rounded-full px-2 py-0.5 border-2 border-amber-900 shadow-lg">
+              ×{g.count}
+            </div>
+          )}
+          <ItemCard item={g.rep} action={
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onEquip(g.ids[0]); }}
+              className={`w-full py-2 rounded-lg text-xs font-bold relative z-20 touch-manipulation ${
+                g.rep.equipped
+                  ? "bg-stone-800 text-stone-300 border border-stone-600/50"
+                  : "bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-md"
+              }`}>
+              {g.rep.equipped ? "↩ إزالة التجهيز" : "⚔ تجهيز"}
+            </button>
+          } />
+        </div>
       ))}
-
     </div>
   );
 }
