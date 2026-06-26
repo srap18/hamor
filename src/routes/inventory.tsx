@@ -195,9 +195,6 @@ function InventoryPage() {
                   <div className="text-center mt-2 text-sm font-bold">
                     {n > 0 ? <span className="text-emerald-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>
-                  {c.id === "golden_fisher" && (
-                    <div className="text-[10px] text-amber-300 text-center mt-1 bg-amber-900/30 border border-amber-700/40 rounded px-1 py-0.5">⏸️ موقف مؤقت — قيد الفحص</div>
-                  )}
                   {isGoldenLocked && (
                     <div className="text-[10px] text-amber-300 text-center mt-1">🏅 مفعّل حالياً على حسابك</div>
                   )}
@@ -216,11 +213,10 @@ function InventoryPage() {
                   {n > 0 && c.id === "golden_fisher" && (
                     <button
                       onClick={() => useCrew(c.id, null)}
-                      disabled={usingCrew === c.id}
-                      className="mt-2 w-full py-1.5 rounded-lg bg-secondary/40 border border-border text-amber-200/70 text-xs font-bold active:scale-95 disabled:opacity-60"
-                      title="متاح فقط لحسابات الإدارة أثناء الفحص"
+                      disabled={usingCrew === c.id || isGoldenLocked}
+                      className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
-                      {usingCrew === c.id ? "..." : "تفعيل (إدارة فقط)"}
+                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : "تفعيل"}
                     </button>
                   )}
                 </div>
