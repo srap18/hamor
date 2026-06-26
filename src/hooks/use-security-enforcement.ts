@@ -51,44 +51,12 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     let channel: ReturnType<typeof supabase.channel> | null = null;
     const localToken = getOrCreateSessionToken();
 
-    // ===== Duplicate-tab guard (same browser, multiple tabs/windows) =====
-    // Uses BroadcastChannel to detect another live tab with the same user.
-    // The NEWER tab gets blocked; the existing tab keeps playing.
+    // ===== Duplicate-tab guard DISABLED =====
+    // Caused false positives on mobile Safari (BFCache keeps old BroadcastChannel alive
+    // after refresh / app switch), locking users out of the game.
     let tabChannel: BroadcastChannel | null = null;
     let tabHeartbeat: ReturnType<typeof setInterval> | null = null;
-    const tabId = crypto.randomUUID();
-    try {
-      if (typeof BroadcastChannel !== "undefined") {
-        tabChannel = new BroadcastChannel(`oc_tabs:${user.id}`);
-        let gotReply = false;
-        tabChannel.onmessage = (ev: MessageEvent) => {
-          const m = ev.data;
-          if (!m || m.tabId === tabId) return;
-          if (m.type === "hello") {
-            // Another tab is opening — tell it we're already here
-            try { tabChannel?.postMessage({ type: "exists", tabId, ts: Date.now() }); } catch {}
-          } else if (m.type === "exists" || m.type === "heartbeat") {
-            // An older tab is alive → we're the duplicate
-            gotReply = true;
-            if (!cancelled) {
-              setBlock({
-                kind: "duplicate_tab",
-                message: "اللعبة مفتوحة بالفعل في نافذة أو تبويب آخر. أغلق النوافذ الأخرى ثم أعد المحاولة.",
-              });
-            }
-          }
-        };
-        // Announce ourselves; wait briefly for replies
-        try { tabChannel.postMessage({ type: "hello", tabId, ts: Date.now() }); } catch {}
-        setTimeout(() => {
-          if (cancelled || gotReply) return;
-          // We're the owner tab — start heartbeating so future tabs see us
-          tabHeartbeat = setInterval(() => {
-            try { tabChannel?.postMessage({ type: "heartbeat", tabId, ts: Date.now() }); } catch {}
-          }, 2000);
-        }, 600);
-      }
-    } catch {}
+
 
 
 
