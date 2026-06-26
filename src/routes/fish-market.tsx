@@ -685,9 +685,6 @@ function FishMarket() {
         <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
       )}
 
-      {bulkResult && (
-        <BulkSellResultModal result={bulkResult} onClose={() => setBulkResult(null)} />
-      )}
     </div>
   );
 }
