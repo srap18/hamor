@@ -816,6 +816,20 @@ function Index() {
     return a === ship.dbId || a === String(ship.id);
   };
 
+  // Same as above, but ALSO requires the assignment to still be active
+  // (expires_at in the future). Use this for any display surface — expired
+  // crews should not appear on the ship UI even if the row hasn't been
+  // deleted yet by the periodic sweep.
+  const isCrewActiveOnShip = (
+    meta: { assigned_ship_id?: number | string; expires_at?: string } | null | undefined,
+    ship: { id: number; dbId?: string },
+    nowMs: number,
+  ) => {
+    if (!isCrewAssignedToShip(meta, ship)) return false;
+    const exp = meta?.expires_at ? new Date(meta.expires_at).getTime() : Infinity;
+    return exp > nowMs;
+  };
+
   // Active crew bonuses for a given ship (luck doubles fish, sailor -50% time, guide reveals fish)
   const getCrewBonuses = (ship: Ship) => {
     const assigned = crewRowsRef.current.filter((r) => isCrewAssignedToShip(r.meta, ship));
