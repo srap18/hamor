@@ -249,6 +249,10 @@ function BattlePage() {
         await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<unknown> })
           .rpc("award_arena_score", { _score: r, _week_start: ws, _won: true })
           .catch(() => {});
+        // +2 pearls per arena win
+        await (supabase as unknown as { rpc: (n: string) => Promise<unknown> })
+          .rpc("arena_award_pearls")
+          .catch(() => {});
       }
     } catch { /* ignore */ }
   }
