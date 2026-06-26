@@ -38,8 +38,10 @@ function RoomView() {
   const [showRequests, setShowRequests] = useState(false);
   const [lkConfigured, setLkConfigured] = useState<boolean | null>(null);
   const [speakingIds, setSpeakingIds] = useState<Set<string>>(new Set());
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
   const lkRoomRef = useRef<LKRoom | null>(null);
   const fetchToken = useServerFn(getLivekitToken);
+
 
   const me = members.find(m => m.user_id === user?.id);
   const isOwner = room?.owner_id === user?.id;
@@ -92,10 +94,21 @@ function RoomView() {
         if (lkRoomRef.current) await lkRoomRef.current.disconnect();
         const lk = new LKRoom({ adaptiveStream: true, dynacast: true });
         lkRoomRef.current = lk;
+        const refreshOnline = () => {
+          if (!user) return;
+          const ids = new Set<string>([user.id]);
+          lk.remoteParticipants.forEach(p => { if (p.identity) ids.add(p.identity); });
+          setOnlineIds(ids);
+        };
         lk.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
           setSpeakingIds(new Set(speakers.map(s => s.identity)));
         });
+        lk.on(RoomEvent.ParticipantConnected, refreshOnline);
+        lk.on(RoomEvent.ParticipantDisconnected, refreshOnline);
+        lk.on(RoomEvent.Connected, refreshOnline);
         await lk.connect(res.url, res.token);
+        refreshOnline();
+
         if (isSpeaker && !me?.muted) {
           const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
           await lk.localParticipant.publishTrack(track);
@@ -137,17 +150,35 @@ function RoomView() {
   const toggleMic = async () => {
     if (!me || !user) return;
     const lk = lkRoomRef.current;
-    if (me.muted) {
-      await (supabase as any).from("voice_room_members").update({ muted: false }).eq("room_id", id).eq("user_id", user.id);
-      if (lk && lk.localParticipant.audioTrackPublications.size === 0) {
-        const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
-        await lk.localParticipant.publishTrack(track);
+    const wasMuted = me.muted;
+    try {
+      if (wasMuted) {
+        const { error } = await (supabase as any).from("voice_room_members").update({ muted: false }).eq("room_id", id).eq("user_id", user.id);
+        if (error) { alert("تعذر فتح المايك: " + error.message); return; }
+        if (lk && lk.localParticipant.audioTrackPublications.size === 0) {
+          try {
+            const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
+            await lk.localParticipant.publishTrack(track);
+          } catch (e: any) {
+            alert("تعذر الوصول للمايكروفون: " + (e?.message || e));
+          }
+        } else if (lk) {
+          lk.localParticipant.audioTrackPublications.forEach(p => p.track && p.track.unmute());
+        }
+      } else {
+        const { error } = await (supabase as any).from("voice_room_members").update({ muted: true }).eq("room_id", id).eq("user_id", user.id);
+        if (error) { alert("تعذر كتم المايك: " + error.message); return; }
+        if (lk) {
+          lk.localParticipant.audioTrackPublications.forEach(p => p.track && p.track.mute());
+        }
       }
-    } else {
-      await (supabase as any).from("voice_room_members").update({ muted: true }).eq("room_id", id).eq("user_id", user.id);
-      lk?.localParticipant.audioTrackPublications.forEach(p => p.track && lk.localParticipant.unpublishTrack(p.track));
+      loadAll();
+    } catch (e: any) {
+      console.error("[toggleMic]", e);
+      alert("خطأ: " + (e?.message || e));
     }
   };
+
 
   const seats = useMemo(() => {
     const arr: (Member | null)[] = Array.from({ length: room?.seat_count || 8 }, () => null);
@@ -167,22 +198,26 @@ function RoomView() {
   );
 
   return (
-    <div className="fixed inset-0 overflow-hidden text-white flex flex-col" dir="rtl"
+    <div className="fixed inset-0 z-[100] overflow-hidden text-white flex flex-col" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, #1e1b4b 0%, #0f172a 60%, #000 100%)" }}>
       {/* Header */}
-      <div className="p-2 flex items-center gap-2 border-b border-white/10">
-        <button onClick={leave} className="w-10 h-10 rounded-xl bg-rose-700 border-2 border-rose-400 flex items-center justify-center">✕</button>
+      <div
+        className="px-2 pb-2 flex items-center gap-2 border-b border-white/10"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+      >
+        <button onClick={leave} aria-label="خروج" className="w-10 h-10 shrink-0 rounded-xl bg-rose-700 border-2 border-rose-400 flex items-center justify-center text-lg">✕</button>
         <div className="flex-1 min-w-0">
           <div className="font-bold truncate">{room.name}</div>
           <div className="text-[11px] text-white/60">{members.length} موجود • {room.is_private ? "🔒 خاصة" : "🌐 عامة"}</div>
         </div>
         {isMod && (
-          <button onClick={() => setShowRequests(true)} className="relative px-3 h-10 rounded-xl bg-amber-600 font-bold text-sm">
+          <button onClick={() => setShowRequests(true)} className="relative px-3 h-10 shrink-0 rounded-xl bg-amber-600 font-bold text-sm">
             طلبات
             {requests.length > 0 && <span className="absolute -top-1 -right-1 bg-rose-600 rounded-full text-[10px] px-1.5">{requests.length}</span>}
           </button>
         )}
       </div>
+
 
       {/* Seats grid */}
       <div className="flex-1 overflow-y-auto p-3">
@@ -198,6 +233,7 @@ function RoomView() {
                   {p ? (p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover rounded-full" alt="" /> : <span>{p.avatar_emoji}</span>)
                      : <span className="text-white/30 text-3xl">+</span>}
                   {m?.muted && <div className="absolute -bottom-1 -right-1 bg-rose-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">🔇</div>}
+                  {m && onlineIds.has(m.user_id) && !m.muted && <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-stone-900" title="متصل"></div>}
                   {m?.role === "owner" && <div className="absolute -top-1 -left-1 bg-amber-400 text-amber-950 text-[10px] rounded px-1 font-bold">👑</div>}
                   {m?.role === "mod" && <div className="absolute -top-1 -left-1 bg-sky-500 text-white text-[10px] rounded px-1 font-bold">⚔</div>}
                 </div>
@@ -213,12 +249,14 @@ function RoomView() {
         {/* Listeners */}
         {listeners.length > 0 && (
           <div className="mt-4">
-            <div className="text-xs text-white/60 mb-2">المستمعون ({listeners.length})</div>
+            <div className="text-xs text-white/60 mb-2">المستمعون ({listeners.length}) • <span className="text-emerald-400">{listeners.filter(m => onlineIds.has(m.user_id)).length} متصل</span></div>
             <div className="flex flex-wrap gap-2">
               {listeners.map(m => {
                 const p = profiles[m.user_id];
+                const online = onlineIds.has(m.user_id);
                 return (
-                  <div key={m.user_id} className="flex items-center gap-1.5 bg-white/5 rounded-full pl-2 pr-1 py-1">
+                  <div key={m.user_id} className={`flex items-center gap-1.5 rounded-full pl-2 pr-1 py-1 ${online ? "bg-emerald-900/40 border border-emerald-500/40" : "bg-white/5 border border-white/10 opacity-60"}`}>
+                    <span className={`w-2 h-2 rounded-full ${online ? "bg-emerald-400" : "bg-stone-500"}`}></span>
                     <span className="text-xs truncate max-w-[80px]">{p?.display_name || "..."}</span>
                     <div className="w-6 h-6 rounded-full bg-stone-700 flex items-center justify-center text-xs">{p?.avatar_emoji}</div>
                   </div>
@@ -227,6 +265,7 @@ function RoomView() {
             </div>
           </div>
         )}
+
 
         {/* Chat */}
         <div className="mt-4 space-y-1.5">
@@ -244,18 +283,22 @@ function RoomView() {
       </div>
 
       {/* Bottom bar */}
-      <div className="p-2 border-t border-white/10 flex items-center gap-2">
+      <div
+        className="px-2 pt-2 border-t border-white/10 flex items-center gap-2"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
+      >
         {isSpeaker ? (
-          <button onClick={toggleMic} className={`w-12 h-12 rounded-full font-bold text-2xl ${me?.muted ? "bg-rose-600" : "bg-emerald-600"}`}>
+          <button onClick={toggleMic} aria-label={me?.muted ? "فتح المايك" : "كتم المايك"} className={`w-12 h-12 shrink-0 rounded-full font-bold text-2xl flex items-center justify-center ${me?.muted ? "bg-rose-600" : "bg-emerald-600"}`}>
             {me?.muted ? "🔇" : "🎤"}
           </button>
         ) : room.allow_mic_requests && !room.listeners_only ? (
-          <button onClick={requestMic} className="px-3 h-12 rounded-full bg-amber-600 font-bold text-sm">✋ طلب مايك</button>
+          <button onClick={requestMic} className="px-3 h-12 shrink-0 rounded-full bg-amber-600 font-bold text-sm">✋ طلب مايك</button>
         ) : null}
         <input value={chatText} onChange={e => setChatText(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
-          placeholder="اكتب رسالة..." className="flex-1 h-12 px-3 rounded-full bg-white/10 border border-white/20" />
-        <button onClick={sendMsg} className="px-4 h-12 rounded-full bg-sky-600 font-bold">إرسال</button>
+          placeholder="اكتب رسالة..." className="flex-1 min-w-0 h-12 px-3 rounded-full bg-white/10 border border-white/20" />
+        <button onClick={sendMsg} className="px-4 h-12 shrink-0 rounded-full bg-sky-600 font-bold">إرسال</button>
       </div>
+
 
       {lkConfigured === false && (
         <div className="absolute top-14 left-2 right-2 bg-amber-900/90 text-amber-100 text-xs p-2 rounded-lg border border-amber-500">
