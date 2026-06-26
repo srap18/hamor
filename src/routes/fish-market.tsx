@@ -810,7 +810,7 @@ function StorageView({
       </div>
 
       {/* Fish storage panel */}
-      <div className="absolute top-52 left-2 right-2 bottom-28 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
+      <div className="absolute top-52 left-2 right-2 bottom-40 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
         {fish.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center text-cyan-100 gap-2">
             <div className="text-5xl opacity-70">🎣</div>
