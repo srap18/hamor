@@ -159,7 +159,7 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-  const [bulkResult, setBulkResult] = useState<{ items: Array<{ name: string; qty: number; net: number }>; totalGross: number; totalNet: number; totalRot: number } | null>(null);
+  
   const [sellingAll, setSellingAll] = useState(false);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
@@ -551,12 +551,18 @@ function FishMarket() {
     });
     if (!ok) return;
     setSellingAll(true);
-    const items: Array<{ name: string; qty: number; net: number }> = [];
     let totalGross = 0;
     let totalNet = 0;
+    let weightedRankNum = 0;
+    let weightedRotNum = 0;
+    let weightDen = 0;
+    let soldCount = 0;
     try {
       for (const f of targets) {
-        const cur = priceMap[f.id]?.current ?? f.basePrice;
+        const pm = priceMap[f.id];
+        const cur = pm?.current ?? f.basePrice;
+        const minP = pm?.min ?? f.minPrice;
+        const maxP = pm?.max ?? f.maxPrice;
         const gross = Math.round(cur * f.qty);
         const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
           _fish_id: f.id,
@@ -568,10 +574,21 @@ function FishMarket() {
         applyOptimisticProfileDelta({ coins: +earned });
         totalGross += gross;
         totalNet += earned;
-        items.push({ name: f.name, qty: f.qty, net: earned });
+        soldCount += 1;
+        const span = Math.max(0.0001, maxP - minP);
+        const rank = Math.max(0, Math.min(1, (cur - minP) / span));
+        const w = Math.max(1, gross);
+        weightedRankNum += rank * w;
+        weightedRotNum += rotMult(f.id) * w;
+        weightDen += w;
       }
       const totalRot = Math.max(0, totalGross - totalNet);
-      setBulkResult({ items, totalGross, totalNet, totalRot });
+      if (soldCount > 0 && weightDen > 0) {
+        const avgRank = weightedRankNum / weightDen;
+        const avgRot = weightedRotNum / weightDen;
+        const tier = computeTier({ marketRank: avgRank, rotMult: avgRot });
+        setSellResult({ tier, gross: totalGross, rotLoss: totalRot, net: totalNet, fishName: `كل السمك (${soldCount} نوع)` });
+      }
       await loadFish();
       refreshProfile();
     } finally {
@@ -668,52 +685,10 @@ function FishMarket() {
         <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
       )}
 
-      {bulkResult && (
-        <BulkSellResultModal result={bulkResult} onClose={() => setBulkResult(null)} />
-      )}
     </div>
   );
 }
 
-function BulkSellResultModal({ result, onClose }: { result: { items: Array<{ name: string; qty: number; net: number }>; totalGross: number; totalNet: number; totalRot: number }; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={onClose}>
-      <div
-        className="w-full max-w-sm rounded-2xl border-4 shadow-2xl overflow-hidden"
-        style={{ background: "linear-gradient(180deg, #f5d9a8 0%, #e9bf7e 100%)", borderColor: "#8a5a2b" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="text-center py-2 font-extrabold text-white text-base" style={{ background: "linear-gradient(180deg,#6b4326,#3e2614)" }}>
-          نتيجة بيع الكل
-        </div>
-        <div className="p-3 flex flex-col gap-3">
-          <div className="max-h-56 overflow-y-auto rounded-xl border-2 border-amber-900/40 bg-white/40 p-2 text-amber-950 text-sm font-bold space-y-1">
-            {result.items.length === 0 ? (
-              <div className="text-center py-4">لم يتم بيع أي سمك</div>
-            ) : result.items.map((it, i) => (
-              <div key={i} className="flex items-center justify-between border-b border-amber-900/20 last:border-0 pb-1">
-                <span>{it.name} × {it.qty.toLocaleString()}</span>
-                <span className="tabular-nums">{it.net.toLocaleString()} 🪙</span>
-              </div>
-            ))}
-          </div>
-          <div className="text-amber-950 font-extrabold text-sm space-y-1">
-            <div className="flex justify-between"><span>السعر الإجمالي:</span><span className="tabular-nums">{result.totalGross.toLocaleString()} ذهب</span></div>
-            <div className="flex justify-between"><span>صلاحية السمك:</span><span className="tabular-nums">-{result.totalRot.toLocaleString()} ذهب</span></div>
-            <div className="flex justify-between text-base pt-1"><span>الدخل:</span><span className="tabular-nums text-amber-900">{result.totalNet.toLocaleString()} ذهب</span></div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-full py-2.5 rounded-lg text-white font-extrabold text-base shadow-lg active:scale-95"
-            style={{ background: "linear-gradient(180deg,#f0a040,#d77520)", border: "2px solid #b35c10" }}
-          >
-            تم
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SellResultModal({ result, onClose }: { result: SellResult; onClose: () => void }) {
   const info = TIER_INFO[result.tier];
