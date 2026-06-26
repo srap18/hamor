@@ -297,7 +297,7 @@ async function handleAdjustment(data: any, _env: PaddleEnv) {
     _shield_days: reward.shieldDays ?? 0,
     _vip_days: reward.vipDays ?? 0,
     _revoke_elite_level: isElite ? 1 : 0,
-    _block_account: true,
+    _block_account: false,
   });
   if (error) {
     console.error("revoke_paddle_purchase failed:", error);
