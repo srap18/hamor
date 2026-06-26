@@ -236,25 +236,31 @@ function BattlePage() {
     const r = 5 + Math.floor(Math.random() * 6);
     setReward(r);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const ws = (() => {
-          const d = new Date();
-          const day = d.getUTCDay();
-          const diff = (day + 6) % 7;
-          d.setUTCDate(d.getUTCDate() - diff);
-          d.setUTCHours(0, 0, 0, 0);
-          return d.toISOString().slice(0, 10);
-        })();
-        await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<unknown> })
-          .rpc("award_arena_score", { _score: r, _week_start: ws, _won: true })
-          .catch(() => {});
-        // +2 pearls per arena win
-        await (supabase as unknown as { rpc: (n: string) => Promise<unknown> })
-          .rpc("arena_award_pearls")
-          .catch(() => {});
+      const ws = (() => {
+        const d = new Date();
+        const day = d.getUTCDay();
+        const diff = (day + 6) % 7;
+        d.setUTCDate(d.getUTCDate() - diff);
+        d.setUTCHours(0, 0, 0, 0);
+        return d.toISOString().slice(0, 10);
+      })();
+      // award_arena_score also grants +2 pearls internally via _arena_grant_pearls_on_win,
+      // so don't call arena_award_pearls (would double-award).
+      const { data, error } = await (supabase as unknown as { rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> })
+        .rpc("award_arena_score", { _score: r, _week_start: ws, _won: true });
+      if (error) {
+        console.error("[arena] award_arena_score failed", error);
+        alert("⚠️ تعذّر تسجيل النقاط: " + error.message);
+      } else {
+        const d = data as { ok?: boolean; reason?: string } | null;
+        if (d && d.ok === false) {
+          console.error("[arena] award_arena_score rejected", d);
+          alert("⚠️ تعذّر تسجيل النقاط: " + (d.reason ?? "غير معروف"));
+        }
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      console.error("[arena] finishWin exception", e);
+    }
   }
   function finishLose() {
     if (resultRef.current) return;
