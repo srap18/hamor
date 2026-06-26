@@ -203,6 +203,11 @@ function BossPage() {
       setBusy(false);
       if (data.killed) {
         setBossDefeats((n) => n + 1);
+        // Award 20 pearls to this hunter (once per boss)
+        const killedBossId = boss?.id;
+        if (killedBossId) {
+          rpc("boss_award_pearls", { _boss_id: killedBossId }).catch(() => {});
+        }
         const nextBoss = isBossReady(data.next_boss) ? (data.next_boss as Boss) : null;
         if (nextBoss) {
           setTimeout(() => {
@@ -210,7 +215,7 @@ function BossPage() {
             // Ship keeps its actual HP between bosses — no auto-heal.
           }, 650);
         }
-        setTimeout(() => alert("💀 سقط الوحش! ظهر وحش جديد فورًا."), 600);
+        setTimeout(() => alert("💀 سقط الوحش! +٢٠ 🦪 لؤلؤ. ظهر وحش جديد فورًا."), 600);
       }
     }, 850);
 
