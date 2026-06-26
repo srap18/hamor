@@ -233,6 +233,7 @@ function RoomView() {
                   {p ? (p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover rounded-full" alt="" /> : <span>{p.avatar_emoji}</span>)
                      : <span className="text-white/30 text-3xl">+</span>}
                   {m?.muted && <div className="absolute -bottom-1 -right-1 bg-rose-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">🔇</div>}
+                  {m && onlineIds.has(m.user_id) && !m.muted && <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-stone-900" title="متصل"></div>}
                   {m?.role === "owner" && <div className="absolute -top-1 -left-1 bg-amber-400 text-amber-950 text-[10px] rounded px-1 font-bold">👑</div>}
                   {m?.role === "mod" && <div className="absolute -top-1 -left-1 bg-sky-500 text-white text-[10px] rounded px-1 font-bold">⚔</div>}
                 </div>
@@ -248,12 +249,14 @@ function RoomView() {
         {/* Listeners */}
         {listeners.length > 0 && (
           <div className="mt-4">
-            <div className="text-xs text-white/60 mb-2">المستمعون ({listeners.length})</div>
+            <div className="text-xs text-white/60 mb-2">المستمعون ({listeners.length}) • <span className="text-emerald-400">{listeners.filter(m => onlineIds.has(m.user_id)).length} متصل</span></div>
             <div className="flex flex-wrap gap-2">
               {listeners.map(m => {
                 const p = profiles[m.user_id];
+                const online = onlineIds.has(m.user_id);
                 return (
-                  <div key={m.user_id} className="flex items-center gap-1.5 bg-white/5 rounded-full pl-2 pr-1 py-1">
+                  <div key={m.user_id} className={`flex items-center gap-1.5 rounded-full pl-2 pr-1 py-1 ${online ? "bg-emerald-900/40 border border-emerald-500/40" : "bg-white/5 border border-white/10 opacity-60"}`}>
+                    <span className={`w-2 h-2 rounded-full ${online ? "bg-emerald-400" : "bg-stone-500"}`}></span>
                     <span className="text-xs truncate max-w-[80px]">{p?.display_name || "..."}</span>
                     <div className="w-6 h-6 rounded-full bg-stone-700 flex items-center justify-center text-xs">{p?.avatar_emoji}</div>
                   </div>
@@ -262,6 +265,7 @@ function RoomView() {
             </div>
           </div>
         )}
+
 
         {/* Chat */}
         <div className="mt-4 space-y-1.5">
