@@ -1,0 +1,1 @@
+UPDATE public.profiles SET golden_fisher_until = GREATEST(COALESCE(golden_fisher_until, now()), now() + interval '24 hours');
