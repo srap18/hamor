@@ -190,8 +190,7 @@ function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; 
             className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="الوصف (اختياري)" maxLength={300} rows={2}
             className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
-          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="رابط الصورة (اختياري)"
-            className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
+          <div className="text-[11px] text-amber-200/60 -mt-1">🎙️ سيتم استخدام أيقونة الغرفة الافتراضية</div>
           <label className="flex items-center justify-between gap-3 text-sm">
             <span>عدد المقاعد ({seats})</span>
             <input type="range" min={2} max={20} value={seats} onChange={e => setSeats(+e.target.value)} className="flex-1" />
