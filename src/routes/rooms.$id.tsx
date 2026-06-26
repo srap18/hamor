@@ -137,17 +137,35 @@ function RoomView() {
   const toggleMic = async () => {
     if (!me || !user) return;
     const lk = lkRoomRef.current;
-    if (me.muted) {
-      await (supabase as any).from("voice_room_members").update({ muted: false }).eq("room_id", id).eq("user_id", user.id);
-      if (lk && lk.localParticipant.audioTrackPublications.size === 0) {
-        const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
-        await lk.localParticipant.publishTrack(track);
+    const wasMuted = me.muted;
+    try {
+      if (wasMuted) {
+        const { error } = await (supabase as any).from("voice_room_members").update({ muted: false }).eq("room_id", id).eq("user_id", user.id);
+        if (error) { alert("تعذر فتح المايك: " + error.message); return; }
+        if (lk && lk.localParticipant.audioTrackPublications.size === 0) {
+          try {
+            const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
+            await lk.localParticipant.publishTrack(track);
+          } catch (e: any) {
+            alert("تعذر الوصول للمايكروفون: " + (e?.message || e));
+          }
+        } else if (lk) {
+          lk.localParticipant.audioTrackPublications.forEach(p => p.track && p.track.unmute());
+        }
+      } else {
+        const { error } = await (supabase as any).from("voice_room_members").update({ muted: true }).eq("room_id", id).eq("user_id", user.id);
+        if (error) { alert("تعذر كتم المايك: " + error.message); return; }
+        if (lk) {
+          lk.localParticipant.audioTrackPublications.forEach(p => p.track && p.track.mute());
+        }
       }
-    } else {
-      await (supabase as any).from("voice_room_members").update({ muted: true }).eq("room_id", id).eq("user_id", user.id);
-      lk?.localParticipant.audioTrackPublications.forEach(p => p.track && lk.localParticipant.unpublishTrack(p.track));
+      loadAll();
+    } catch (e: any) {
+      console.error("[toggleMic]", e);
+      alert("خطأ: " + (e?.message || e));
     }
   };
+
 
   const seats = useMemo(() => {
     const arr: (Member | null)[] = Array.from({ length: room?.seat_count || 8 }, () => null);
