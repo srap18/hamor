@@ -183,14 +183,45 @@ function RoomView() {
     }
   };
 
+  const takeSeat = async (seat: number) => {
+    const { error } = await (supabase as any).rpc("vr_take_seat", { _room: id, _seat: seat });
+    if (error) {
+      const map: Record<string, string> = {
+        seat_taken: "المقعد محجوز",
+        listeners_only: "الغرفة للاستماع فقط",
+        banned_from_room: "أنت محظور من هذه الغرفة",
+        invalid_seat: "مقعد غير صحيح",
+      };
+      alert(map[error.message] || error.message);
+    } else {
+      loadAll();
+    }
+  };
+
+  const leaveSeat = async () => {
+    await (supabase as any).rpc("vr_leave_seat", { _room: id });
+    loadAll();
+  };
+
+  // Filter out stale members (no heartbeat for > 90 seconds) so the room
+  // shows only people who are actually still there.
+  const STALE_MS = 90_000;
+  const now = Date.now();
+  const liveMembers = useMemo(() => members.filter(m => {
+    if (m.user_id === user?.id) return true;
+    if (onlineIds.has(m.user_id)) return true;
+    const ts = m.last_seen_at ? new Date(m.last_seen_at).getTime() : 0;
+    return now - ts < STALE_MS;
+  }), [members, user?.id, onlineIds, now]);
 
   const seats = useMemo(() => {
     const arr: (Member | null)[] = Array.from({ length: room?.seat_count || 8 }, () => null);
-    members.forEach(m => { if (m.seat_index !== null && m.seat_index < arr.length) arr[m.seat_index] = m; });
+    liveMembers.forEach(m => { if (m.seat_index !== null && m.seat_index < arr.length) arr[m.seat_index] = m; });
     return arr;
-  }, [members, room?.seat_count]);
+  }, [liveMembers, room?.seat_count]);
 
-  const listeners = members.filter(m => m.seat_index === null);
+  const listeners = liveMembers.filter(m => m.seat_index === null);
+
 
   if (!room) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center" dir="rtl">جاري التحميل...</div>;
   if (room.closed_at) return (
