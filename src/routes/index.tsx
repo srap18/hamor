@@ -797,6 +797,7 @@ function Index() {
     goldenFisherUntilRef.current = t ? new Date(t).getTime() : 0;
   }, [profile]);
   const lastGfTickRef = useRef<number>(0);
+  const gfTickInFlightRef = useRef(false);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
@@ -1238,10 +1239,11 @@ function Index() {
             // server tick re-ages the timer. When the market is full the tick
             // can never advance the timer, so DON'T clamp — let the ship show
             // as "✅ ready" so the player can sell + collect manually.
-            if (gfActive && !gfMarketFullRef.current) {
+              if (gfActive && !gfMarketFullRef.current) {
               ratio = 0.99;
-              if (now - lastGfTickRef.current > 200) {
+              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 200) {
                 lastGfTickRef.current = now;
+                gfTickInFlightRef.current = true;
                 tickGoldenFisher({ data: {} })
                   .then((res: any) => {
                     gfMarketFullRef.current = !!res?.market_full;
@@ -1249,7 +1251,8 @@ function Index() {
                     // even when the server processed cycles silently.
                     syncFleetFromDb();
                   })
-                  .catch(() => {});
+                  .catch(() => {})
+                  .finally(() => { gfTickInFlightRef.current = false; });
 
               }
             }
