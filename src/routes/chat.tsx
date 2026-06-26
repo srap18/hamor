@@ -449,7 +449,6 @@ function ChatPage() {
       )}
 
       <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
-
         {(["public", "tribe", "dm", "topics"] as Channel[]).map(t => (
           <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
             className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
@@ -461,10 +460,6 @@ function ChatPage() {
             )}
           </button>
         ))}
-        <Link to="/rooms"
-          className="relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 bg-gradient-to-b from-fuchsia-600 to-purple-800 border-fuchsia-300 text-white text-center">
-          🎙️ غرف
-        </Link>
       </div>
 
 
