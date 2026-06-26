@@ -2359,6 +2359,7 @@ export type Database = {
           online_at: string
           profile_frame: string | null
           protection_until: string | null
+          purchases_blocked: boolean
           referral_code: string | null
           referral_locked_at: string | null
           referred_by: string | null
@@ -2419,6 +2420,7 @@ export type Database = {
           online_at?: string
           profile_frame?: string | null
           protection_until?: string | null
+          purchases_blocked?: boolean
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
@@ -2479,6 +2481,7 @@ export type Database = {
           online_at?: string
           profile_frame?: string | null
           protection_until?: string | null
+          purchases_blocked?: boolean
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
@@ -5405,6 +5408,19 @@ export type Database = {
         Returns: undefined
       }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
+      revoke_paddle_purchase: {
+        Args: {
+          _block_account?: boolean
+          _coins?: number
+          _gems?: number
+          _revoke_elite_level?: number
+          _rubies?: number
+          _shield_days?: number
+          _txn_id: string
+          _vip_days?: number
+        }
+        Returns: Json
+      }
       revoke_vip_protection: { Args: { _user: string }; Returns: undefined }
       rl_guard: {
         Args: { _action: string; _min_interval_ms: number }
