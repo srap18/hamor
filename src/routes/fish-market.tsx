@@ -540,6 +540,45 @@ function FishMarket() {
     }
   };
 
+  const sellAll = async () => {
+    if (!user || sellingAll || selling) return;
+    const targets = fish.filter((f) => f.qty > 0);
+    if (targets.length === 0) return;
+    const ok = await confirmDialog({
+      title: "بيع كل السمك",
+      message: "هل تريد بيع كل السمك في المخزن الآن بالأسعار الحالية؟",
+      confirmText: "بيع الكل",
+    });
+    if (!ok) return;
+    setSellingAll(true);
+    const items: Array<{ name: string; qty: number; net: number }> = [];
+    let totalGross = 0;
+    let totalNet = 0;
+    try {
+      for (const f of targets) {
+        const cur = priceMap[f.id]?.current ?? f.basePrice;
+        const gross = Math.round(cur * f.qty);
+        const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
+          _fish_id: f.id,
+          _qty: f.qty,
+        } as never);
+        if (error) continue;
+        const earned = Number(data ?? 0);
+        if (earned <= 0) continue;
+        applyOptimisticProfileDelta({ coins: +earned });
+        totalGross += gross;
+        totalNet += earned;
+        items.push({ name: f.name, qty: f.qty, net: earned });
+      }
+      const totalRot = Math.max(0, totalGross - totalNet);
+      setBulkResult({ items, totalGross, totalNet, totalRot });
+      await loadFish();
+      refreshProfile();
+    } finally {
+      setSellingAll(false);
+    }
+  };
+
 
 
 
