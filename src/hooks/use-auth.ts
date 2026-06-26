@@ -84,17 +84,33 @@ export function useAuth() {
 
 /* ─────────────── Global profile singleton ─────────────── */
 const PROFILE_LS_KEY = "lov_profile_cache_v1";
+// Fields that change frequently and MUST NOT be served from localStorage on reload —
+// stale values here make the player think they lost coins/gems/xp after a refresh.
+// They are persisted as 0 and only filled in after the live DB fetch returns.
+const VOLATILE_KEYS = ["coins", "gems", "rubies", "xp", "level", "weekly_xp"] as const;
 let profileCache: Profile | null = null;
 let profileLoadingFlag = false;
 let profileChannelUserId: string | null = null;
 let profilePingTimer: ReturnType<typeof setInterval> | null = null;
+// Monotonic version of the freshest server payload we've applied. Used to drop
+// stale Realtime UPDATEs (out-of-order or replayed) that would otherwise roll
+// back coins/gems to an older value.
+let profileFreshVersion = 0;
 const profileSubs = new Set<() => void>();
 const notifyProfile = () => profileSubs.forEach((fn) => { try { fn(); } catch {} });
+
+function stripVolatile(p: Profile): Profile {
+  const out = { ...p } as any;
+  for (const k of VOLATILE_KEYS) out[k] = 0;
+  return out as Profile;
+}
 
 function persistProfile(p: Profile | null) {
   if (typeof window === "undefined") return;
   try {
-    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(p));
+    // Persist only stable fields (name, avatar, frames…). Currencies are
+    // intentionally zeroed so a hard refresh never shows yesterday's balance.
+    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(stripVolatile(p)));
     else window.localStorage.removeItem(PROFILE_LS_KEY);
   } catch {}
 }
@@ -105,7 +121,10 @@ function loadPersistedProfile(userId: string): Profile | null {
     const raw = window.localStorage.getItem(PROFILE_LS_KEY);
     if (!raw) return null;
     const p = JSON.parse(raw) as Profile;
-    return p && p.id === userId ? p : null;
+    if (!p || p.id !== userId) return null;
+    // Defensive: even if an older client wrote currency values into the cache,
+    // strip them before showing anything to the user.
+    return stripVolatile(p);
   } catch { return null; }
 }
 
@@ -114,7 +133,9 @@ function primeProfileForUser(userId: string) {
     const persisted = loadPersistedProfile(userId);
     if (persisted) profileCache = persisted;
   }
-  profileLoadingFlag = !profileCache || profileCache.id !== userId;
+  // Always show loading until the fresh server fetch returns — the persisted
+  // copy has no currency values, so we cannot display 0 as if it were real.
+  profileLoadingFlag = true;
   notifyProfile();
   fetchProfileNow(userId);
 }
@@ -134,10 +155,12 @@ async function fetchProfileNow(userId: string, attempt = 0) {
   profileLoadingFlag = false;
   if (data) {
     profileCache = data as Profile;
+    profileFreshVersion += 1;
     persistProfile(profileCache);
   }
   notifyProfile();
 }
+
 
 
 function ensureProfileBootstrap(userId: string) {
@@ -158,17 +181,18 @@ function ensureProfileBootstrap(userId: string) {
   }
   profileChannelUserId = userId;
   // Rehydrate from localStorage instantly so name/avatar appear without a network round-trip.
+  // Currency fields are stripped from the persisted copy (see stripVolatile) so the UI
+  // never displays a stale coin/gem balance after a refresh.
   if (!profileCache || profileCache.id !== userId) {
     const persisted = loadPersistedProfile(userId);
     if (persisted) {
       profileCache = persisted;
-      profileLoadingFlag = false;
-      notifyProfile();
-    } else {
-      profileLoadingFlag = true;
-      notifyProfile();
     }
   }
+  // Until the fresh fetch completes, treat the profile as loading so currency
+  // widgets can show a skeleton instead of the zeroed cache.
+  profileLoadingFlag = true;
+  notifyProfile();
   fetchProfileNow(userId);
 
 
@@ -189,20 +213,33 @@ function ensureProfileBootstrap(userId: string) {
     window.addEventListener("beforeunload", onHide);
   }
 
-  // Realtime subscription
+  // Realtime subscription. We refetch authoritative data on every UPDATE
+  // instead of trusting payload.new directly — Realtime can deliver replayed
+  // or out-of-order events that would otherwise roll currencies backwards.
   supabase
     .channel(`profile:${userId}:${Math.random().toString(36).slice(2)}`)
     .on(
       "postgres_changes",
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
-        profileCache = payload.new as Profile;
-        persistProfile(profileCache);
-        notifyProfile();
+        const next = payload.new as Profile;
+        // Merge non-currency fields immediately so frame/avatar/name changes
+        // feel instant, but defer currency values to the fresh refetch below.
+        if (profileCache && profileCache.id === userId) {
+          const merged = { ...profileCache } as any;
+          for (const k of Object.keys(next) as Array<keyof Profile>) {
+            if ((VOLATILE_KEYS as readonly string[]).includes(k as string)) continue;
+            (merged as any)[k] = (next as any)[k];
+          }
+          profileCache = merged as Profile;
+          notifyProfile();
+        }
+        fetchProfileNow(userId);
       },
     )
     .subscribe();
 }
+
 
 export function useProfile() {
   const { user, loading: authLoading } = useAuth();
