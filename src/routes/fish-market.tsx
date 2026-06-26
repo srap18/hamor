@@ -557,6 +557,7 @@ function FishMarket() {
     let weightedRotNum = 0;
     let weightDen = 0;
     let soldCount = 0;
+    let failedCount = 0;
     try {
       for (const f of targets) {
         const pm = priceMap[f.id];
@@ -568,9 +569,9 @@ function FishMarket() {
           _fish_id: f.id,
           _qty: f.qty,
         } as never);
-        if (error) continue;
+        if (error) { failedCount += 1; await new Promise((r) => setTimeout(r, 250)); continue; }
         const earned = Number(data ?? 0);
-        if (earned <= 0) continue;
+        if (earned <= 0) { failedCount += 1; continue; }
         applyOptimisticProfileDelta({ coins: +earned });
         totalGross += gross;
         totalNet += earned;
@@ -581,6 +582,8 @@ function FishMarket() {
         weightedRankNum += rank * w;
         weightedRotNum += rotMult(f.id) * w;
         weightDen += w;
+        // tiny breather to avoid action throttle rejections
+        await new Promise((r) => setTimeout(r, 120));
       }
       const totalRot = Math.max(0, totalGross - totalNet);
       if (soldCount > 0 && weightDen > 0) {
@@ -588,6 +591,10 @@ function FishMarket() {
         const avgRot = weightedRotNum / weightDen;
         const tier = computeTier({ marketRank: avgRank, rotMult: avgRot });
         setSellResult({ tier, gross: totalGross, rotLoss: totalRot, net: totalNet, fishName: `كل السمك (${soldCount} نوع)` });
+      }
+      if (failedCount > 0) {
+        setPop(`⚠️ تعذر بيع ${failedCount} نوع — أعد المحاولة`);
+        setTimeout(() => setPop(null), 2500);
       }
       await loadFish();
       refreshProfile();
