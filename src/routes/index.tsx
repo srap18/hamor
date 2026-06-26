@@ -451,7 +451,7 @@ function Index() {
         const maxProg = catchAmountForShip({ level: resolvedLevel, catalogCode: dbShip.catalog_code, maxHp: dbShip.max_hp ?? undefined, hp: dbShip.hp ?? undefined });
         const duration = shipDef.fishingSeconds;
         const onSteal = !!dbShip.stealing_target_user_id;
-        const destroyed = !!dbShip.destroyed_at && !!dbShip.repair_ends_at && new Date(dbShip.repair_ends_at).getTime() > serverNowMs();
+        const destroyed = isShipBlocked(dbShip.destroyed_at, dbShip.repair_ends_at, dbShip.hp, dbShip.max_hp);
         let isFishing = !destroyed && !onSteal && !!dbShip.at_sea && !!dbShip.fishing_started_at;
         let startedAt = isFishing ? new Date(dbShip.fishing_started_at!).getTime() : undefined;
         if (!destroyed && !onSteal && seaOverride) {
