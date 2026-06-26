@@ -63,20 +63,27 @@ function RoomsList() {
   }, []);
 
   const join = async (r: Room, password?: string) => {
-    const { error } = await (supabase as any).rpc("vr_join_room", { _room: r.id, _password: password || "" });
-    if (error) {
-      const msg: Record<string, string> = {
-        banned_from_room: "أنت محظور من هذه الغرفة",
-        wrong_password: "كلمة المرور خاطئة",
-        room_locked: "الغرفة مقفلة حالياً",
-        room_not_found: "الغرفة غير موجودة",
-      };
-      const key = (error.message || "").replace(/^.*?:\s*/, "").trim();
-      alert(msg[key] || error.message);
-      return;
+    try {
+      const { error } = await (supabase as any).rpc("vr_join_room", { _room: r.id, _password: password || "" });
+      if (error) {
+        console.error("[vr_join_room]", error);
+        const msg: Record<string, string> = {
+          banned_from_room: "أنت محظور من هذه الغرفة",
+          wrong_password: "كلمة المرور خاطئة",
+          room_locked: "الغرفة مقفلة حالياً",
+          room_not_found: "الغرفة غير موجودة",
+          unauthorized: "يجب تسجيل الدخول أولاً",
+        };
+        const key = (error.message || "").replace(/^.*?:\s*/, "").trim();
+        alert(msg[key] || error.message || "تعذر الدخول للغرفة");
+        return;
+      }
+      setJoinPw(null); setPwInput("");
+      nav({ to: "/rooms/$id", params: { id: r.id } });
+    } catch (e: any) {
+      console.error("[join] threw", e);
+      alert("تعذر الدخول للغرفة: " + (e?.message || e));
     }
-    setJoinPw(null); setPwInput("");
-    nav({ to: "/rooms/$id", params: { id: r.id } });
   };
 
   return (
