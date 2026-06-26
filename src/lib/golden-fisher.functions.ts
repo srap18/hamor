@@ -12,7 +12,7 @@ export const activateGoldenFisher = createServerFn({ method: "POST" })
       ok: boolean;
       until: string;
       already_active?: boolean;
-      tick?: { ok?: boolean; reason?: string; cycles?: number; ships?: number };
+      tick?: { ok?: boolean; reason?: string; cycles?: number; ships?: number; launched?: number; fish_added?: number; market_full?: boolean; waiting_for_space?: number };
     };
   });
 
@@ -23,7 +23,7 @@ export const tickGoldenFisher = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data, error } = await (supabase as any).rpc("golden_fisher_tick", { _user: userId });
     if (error) throw new Error(error.message);
-    return data as { ok?: boolean; reason?: string; cycles?: number; ships?: number };
+    return data as { ok?: boolean; reason?: string; cycles?: number; ships?: number; launched?: number; fish_added?: number; market_full?: boolean; waiting_for_space?: number };
   });
 
 export const removeGoldenFisher = createServerFn({ method: "POST" })
