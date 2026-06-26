@@ -551,12 +551,18 @@ function FishMarket() {
     });
     if (!ok) return;
     setSellingAll(true);
-    const items: Array<{ name: string; qty: number; net: number }> = [];
     let totalGross = 0;
     let totalNet = 0;
+    let weightedRankNum = 0;
+    let weightedRotNum = 0;
+    let weightDen = 0;
+    let soldCount = 0;
     try {
       for (const f of targets) {
-        const cur = priceMap[f.id]?.current ?? f.basePrice;
+        const pm = priceMap[f.id];
+        const cur = pm?.current ?? f.basePrice;
+        const minP = pm?.min ?? f.minPrice;
+        const maxP = pm?.max ?? f.maxPrice;
         const gross = Math.round(cur * f.qty);
         const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
           _fish_id: f.id,
@@ -568,10 +574,21 @@ function FishMarket() {
         applyOptimisticProfileDelta({ coins: +earned });
         totalGross += gross;
         totalNet += earned;
-        items.push({ name: f.name, qty: f.qty, net: earned });
+        soldCount += 1;
+        const span = Math.max(0.0001, maxP - minP);
+        const rank = Math.max(0, Math.min(1, (cur - minP) / span));
+        const w = Math.max(1, gross);
+        weightedRankNum += rank * w;
+        weightedRotNum += rotMult(f.id) * w;
+        weightDen += w;
       }
       const totalRot = Math.max(0, totalGross - totalNet);
-      setBulkResult({ items, totalGross, totalNet, totalRot });
+      if (soldCount > 0 && weightDen > 0) {
+        const avgRank = weightedRankNum / weightDen;
+        const avgRot = weightedRotNum / weightDen;
+        const tier = computeTier({ marketRank: avgRank, rotMult: avgRot });
+        setSellResult({ tier, gross: totalGross, rotLoss: totalRot, net: totalNet, fishName: `كل السمك (${soldCount} نوع)` });
+      }
       await loadFish();
       refreshProfile();
     } finally {
