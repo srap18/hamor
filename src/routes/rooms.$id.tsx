@@ -94,10 +94,21 @@ function RoomView() {
         if (lkRoomRef.current) await lkRoomRef.current.disconnect();
         const lk = new LKRoom({ adaptiveStream: true, dynacast: true });
         lkRoomRef.current = lk;
+        const refreshOnline = () => {
+          if (!user) return;
+          const ids = new Set<string>([user.id]);
+          lk.remoteParticipants.forEach(p => { if (p.identity) ids.add(p.identity); });
+          setOnlineIds(ids);
+        };
         lk.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
           setSpeakingIds(new Set(speakers.map(s => s.identity)));
         });
+        lk.on(RoomEvent.ParticipantConnected, refreshOnline);
+        lk.on(RoomEvent.ParticipantDisconnected, refreshOnline);
+        lk.on(RoomEvent.Connected, refreshOnline);
         await lk.connect(res.url, res.token);
+        refreshOnline();
+
         if (isSpeaker && !me?.muted) {
           const track = await createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true });
           await lk.localParticipant.publishTrack(track);
