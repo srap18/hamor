@@ -550,7 +550,7 @@ function PlayerPage() {
 
     // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
-    const targets = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip];
+    const targets: Ship[] = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip!];
 
     // Dragon attack bonus
     const boostedDamage = applyDragonAttack(w.damage, myDragonLvl);
