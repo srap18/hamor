@@ -54,8 +54,9 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     // ===== Duplicate-tab guard DISABLED =====
     // Caused false positives on mobile Safari (BFCache keeps old BroadcastChannel alive
     // after refresh / app switch), locking users out of the game.
-    let tabChannel: BroadcastChannel | null = null;
-    let tabHeartbeat: ReturnType<typeof setInterval> | null = null;
+    const tabChannel: BroadcastChannel | null = null;
+    const tabHeartbeat: ReturnType<typeof setInterval> | null = null;
+
 
 
 
