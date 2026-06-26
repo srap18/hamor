@@ -38,8 +38,10 @@ function RoomView() {
   const [showRequests, setShowRequests] = useState(false);
   const [lkConfigured, setLkConfigured] = useState<boolean | null>(null);
   const [speakingIds, setSpeakingIds] = useState<Set<string>>(new Set());
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
   const lkRoomRef = useRef<LKRoom | null>(null);
   const fetchToken = useServerFn(getLivekitToken);
+
 
   const me = members.find(m => m.user_id === user?.id);
   const isOwner = room?.owner_id === user?.id;
