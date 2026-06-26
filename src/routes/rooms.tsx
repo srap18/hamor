@@ -73,14 +73,16 @@ function RoomsList() {
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
-      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2">
+      <div className="absolute top-0 left-0 right-0 z-30 p-2 flex items-center gap-2"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}>
         <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
         <div className="flex-1 text-center text-lg font-extrabold text-amber-300">🎙️ الغرف الصوتية</div>
         <button onClick={() => setShowCreate(true)}
           className="px-3 h-10 rounded-xl bg-emerald-600 border-2 border-emerald-300 font-bold text-sm">+ غرفة</button>
       </div>
 
-      <div className="absolute top-14 bottom-2 left-2 right-2 overflow-y-auto rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 p-3 space-y-2 pb-6">
+      <div className="absolute left-2 right-2 overflow-y-auto rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 p-3 space-y-2 pb-6"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 56px)", bottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}>
         {rooms.length === 0 && (
           <div className="text-center text-amber-200/70 py-12">
             <div className="text-5xl mb-3">🎙️</div>
