@@ -5,6 +5,11 @@ export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
   server: {
     handlers: {
       POST: async () => {
+        // Global cleanup: remove any expired crew assignments from inventory
+        // so ships free up their crew slots automatically even while owners are offline.
+        const { error: sweepErr } = await supabaseAdmin.rpc("sweep_expired_crews");
+        if (sweepErr) console.error("[golden-fisher-tick] sweep_expired_crews failed", sweepErr);
+
         // Find all users with active Golden Fisher, whether it was activated
         // globally or is still stored as an assigned crew row from the old flow.
         const nowIso = new Date().toISOString();
