@@ -856,6 +856,17 @@ function StorageView({
         </div>
       </div>
 
+      {/* Sell All bar (below storage, above upgrade footer) */}
+      {fish.length > 0 && (
+        <button
+          onClick={onSellAll}
+          disabled={sellingAll}
+          className="absolute bottom-[7rem] left-2 right-2 z-20 py-2.5 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-600 border-2 border-emerald-200 shadow-lg text-white text-sm font-extrabold active:scale-95 disabled:opacity-50"
+        >
+          {sellingAll ? "...جارٍ بيع كل السمك" : `💰 بيع كل السمك (${fish.length} أنواع)`}
+        </button>
+      )}
+
       {/* Upgrade footer */}
       <div className="absolute bottom-16 left-2 right-2 z-20 flex items-center gap-3">
         {upgradingTo ? (
