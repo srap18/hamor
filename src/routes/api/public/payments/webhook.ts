@@ -255,6 +255,56 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   }
 }
 
+async function handleAdjustment(data: any, _env: PaddleEnv) {
+  // Only act on refund/chargeback adjustments. Ignore credits.
+  const action: string = data.action || data.type || "";
+  if (action !== "refund" && action !== "chargeback") {
+    console.log("[adjustment] ignored action:", action);
+    return;
+  }
+  // Only revoke once Paddle approved (not pending/rejected)
+  const status: string = data.status || "";
+  if (status && status !== "approved" && status !== "completed") {
+    console.log("[adjustment] not approved yet:", status);
+    return;
+  }
+  const txnId: string | undefined = data.transaction_id || data.transactionId;
+  if (!txnId) {
+    console.warn("[adjustment] missing transaction_id");
+    return;
+  }
+
+  const supabase = getSupabase();
+  // Look up the original purchase so we know what to revoke.
+  const { data: purchase } = await supabase
+    .from("paddle_purchases")
+    .select("user_id, pack_id, status")
+    .eq("paddle_transaction_id", txnId)
+    .maybeSingle();
+  if (!purchase) {
+    console.warn("[adjustment] no purchase for txn", txnId);
+    return;
+  }
+
+  const reward = rewardFor((purchase as any).pack_id);
+  const isElite = /^elite_vip_[1-5]_monthly$/.test((purchase as any).pack_id || "");
+
+  const { error } = await supabase.rpc("revoke_paddle_purchase", {
+    _txn_id: txnId,
+    _gems: reward.gems ?? 0,
+    _coins: reward.coins ?? 0,
+    _rubies: reward.rubies ?? 0,
+    _shield_days: reward.shieldDays ?? 0,
+    _vip_days: reward.vipDays ?? 0,
+    _revoke_elite_level: isElite ? 1 : 0,
+    _block_account: true,
+  });
+  if (error) {
+    console.error("revoke_paddle_purchase failed:", error);
+    throw new Error(`revoke_paddle_purchase failed: ${error.message}`);
+  }
+}
+
 async function handleWebhook(req: Request, env: PaddleEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.eventType) {
@@ -269,6 +319,10 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
       break;
     case EventName.TransactionCompleted:
       await handleTransactionCompleted(event.data, env);
+      break;
+    case EventName.AdjustmentCreated:
+    case EventName.AdjustmentUpdated:
+      await handleAdjustment(event.data, env);
       break;
     default:
       console.log("Unhandled event:", event.eventType);
