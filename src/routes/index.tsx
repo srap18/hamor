@@ -2018,7 +2018,7 @@ function Index() {
 
 
         const shipCrews = crewRows
-          .filter((r) => isCrewAssignedToShip(r.meta, s))
+          .filter((r) => isCrewActiveOnShip(r.meta, s, now))
           .map((r) => CREWS.find((c) => c.id === r.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader" && c.id !== "guide");
 
