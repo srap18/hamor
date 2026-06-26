@@ -121,8 +121,7 @@ if (typeof window !== "undefined") {
   // we wipe Cache Storage and reload once so the user always runs the latest
   // version without needing to hit the manual "تحديث اللعبة" button.
   try {
-    const BUILD_ID = (import.meta as any).env?.VITE_BUILD_ID
-      || (import.meta as any).env?.MODE + ":" + ((import.meta as any).env?.DEV ? "dev" : "prod");
+    const BUILD_ID = "force-update-20260626-fish-sell-lock-1";
     const KEY = "oc-build-id";
     const prev = localStorage.getItem(KEY);
     if (prev && prev !== BUILD_ID) {
