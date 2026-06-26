@@ -797,6 +797,8 @@ function StorageView({
   onUpgrade,
   onBoost,
   onPick,
+  onSellAll,
+  sellingAll,
 }: {
   fish: Fish[];
   capUsed: number;
@@ -810,6 +812,8 @@ function StorageView({
   onUpgrade: () => void;
   onBoost: () => void;
   onPick: (id: string) => void;
+  onSellAll: () => void;
+  sellingAll: boolean;
 }) {
   const pct = (capUsed / capMax) * 100;
   return (
