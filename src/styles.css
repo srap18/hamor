@@ -672,13 +672,22 @@ html.keyboard-open .mobile-frame-root {
   min-height: 100%;
   background: #050b10;
   overflow: hidden;
-  /* NOTE: do NOT add `transform` / `filter` / `perspective` here.
-     They create a containing block that breaks `position: fixed` overlays
-     (Paddle Checkout, toasts, modals) by scoping them to the phone frame. */
+  /* `contain: paint` establishes a containing block for descendant
+     `position: fixed` elements WITHOUT creating a stacking/transform context
+     that would break Paddle/toast portals (those render at document.body
+     level, outside this element, so they are unaffected). This lets us
+     apply real safe-area padding here and have full-screen `fixed inset-0`
+     page shells (battle, rooms, chat, etc.) properly sit inside the
+     iPhone notch and Android display-cutout area. */
+  contain: paint;
   isolation: isolate;
-  padding: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: 0;
+  padding-right: 0;
   box-sizing: border-box;
 }
+
 
 /* Make sure the Paddle Checkout overlay always sits above the mobile frame. */
 #paddle-checkout-frame,
