@@ -260,25 +260,41 @@ function RoomView() {
           {seats.map((m, i) => {
             const p = m ? profiles[m.user_id] : null;
             const speaking = m && speakingIds.has(m.user_id);
+            const isMine = m?.user_id === user?.id;
+            const canTake = !m && i !== 0 && !room.listeners_only;
+            const handleSeatClick = () => {
+              if (canTake) takeSeat(i);
+              else if (isMine && me?.role === "speaker") {
+                if (confirm("النزول من المايك؟")) leaveSeat();
+              }
+            };
             return (
               <div key={i} className="flex flex-col items-center gap-1">
-                <div className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl
+                <button
+                  onClick={handleSeatClick}
+                  disabled={!canTake && !isMine}
+                  className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl transition
                     ${m ? "bg-gradient-to-b from-amber-500 to-amber-800" : "bg-white/5 border-2 border-dashed border-white/20"}
-                    ${speaking ? "ring-4 ring-emerald-400 animate-pulse" : ""}`}>
+                    ${speaking ? "ring-4 ring-emerald-400 animate-pulse" : ""}
+                    ${canTake ? "hover:bg-emerald-700/30 hover:border-emerald-400 cursor-pointer active:scale-95" : ""}`}
+                >
                   {p ? (p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover rounded-full" alt="" /> : <span>{p.avatar_emoji}</span>)
                      : <span className="text-white/30 text-3xl">+</span>}
                   {m?.muted && <div className="absolute -bottom-1 -right-1 bg-rose-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">🔇</div>}
                   {m && onlineIds.has(m.user_id) && !m.muted && <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-4 h-4 rounded-full border-2 border-stone-900" title="متصل"></div>}
                   {m?.role === "owner" && <div className="absolute -top-1 -left-1 bg-amber-400 text-amber-950 text-[10px] rounded px-1 font-bold">👑</div>}
                   {m?.role === "mod" && <div className="absolute -top-1 -left-1 bg-sky-500 text-white text-[10px] rounded px-1 font-bold">⚔</div>}
+                </button>
+                <div className="text-[11px] truncate w-full text-center">
+                  {p?.display_name || (canTake ? <span className="text-emerald-400">اجلس هنا</span> : `مقعد ${i + 1}`)}
                 </div>
-                <div className="text-[11px] truncate w-full text-center">{p?.display_name || `مقعد ${i + 1}`}</div>
                 {isMod && m && m.user_id !== user?.id && (
                   <SeatMenu memberId={m.user_id} onAction={(act) => modAct(m.user_id, act)} role={m.role} isOwner={isOwner} />
                 )}
               </div>
             );
           })}
+
         </div>
 
         {/* Listeners */}
