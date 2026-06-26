@@ -1025,6 +1025,51 @@ export type Database = {
         }
         Relationships: []
       }
+      economy_audit: {
+        Row: {
+          changed_at: string
+          coins_after: number | null
+          coins_before: number | null
+          coins_delta: number
+          gems_after: number | null
+          gems_before: number | null
+          gems_delta: number
+          id: number
+          meta: Json | null
+          reason: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          coins_after?: number | null
+          coins_before?: number | null
+          coins_delta?: number
+          gems_after?: number | null
+          gems_before?: number | null
+          gems_delta?: number
+          id?: number
+          meta?: Json | null
+          reason?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          coins_after?: number | null
+          coins_before?: number | null
+          coins_delta?: number
+          gems_after?: number | null
+          gems_before?: number | null
+          gems_delta?: number
+          id?: number
+          meta?: Json | null
+          reason?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       economy_settings: {
         Row: {
           key: string
@@ -1303,6 +1348,48 @@ export type Database = {
           id?: string
           quantity?: number
           ship_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fish_stock_audit: {
+        Row: {
+          changed_at: string
+          fish_id: string | null
+          fish_stock_id: string | null
+          id: number
+          meta: Json | null
+          op: string
+          qty_after: number | null
+          qty_before: number | null
+          qty_delta: number
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          fish_id?: string | null
+          fish_stock_id?: string | null
+          id?: number
+          meta?: Json | null
+          op: string
+          qty_after?: number | null
+          qty_before?: number | null
+          qty_delta?: number
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          fish_id?: string | null
+          fish_stock_id?: string | null
+          id?: number
+          meta?: Json | null
+          op?: string
+          qty_after?: number | null
+          qty_before?: number | null
+          qty_delta?: number
+          source?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4011,6 +4098,8 @@ export type Database = {
         Args: { _won: boolean }
         Returns: undefined
       }
+      _audit_current_reason: { Args: never; Returns: string }
+      _audit_current_source: { Args: never; Returns: string }
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
@@ -4219,6 +4308,22 @@ export type Database = {
       }
       admin_redeem_code_for_all: { Args: { p_code: string }; Returns: Json }
       admin_remove_email_ban: { Args: { p_email: string }; Returns: Json }
+      admin_revert_economy_window: {
+        Args: { _from: string; _reason?: string; _source: string; _to: string }
+        Returns: {
+          coins_reverted: number
+          gems_reverted: number
+          user_id: string
+        }[]
+      }
+      admin_revert_fish_window: {
+        Args: { _from: string; _source: string; _to: string }
+        Returns: {
+          fish_id: string
+          qty_reversed: number
+          user_id: string
+        }[]
+      }
       admin_revoke_redemption:
         | { Args: { _code_id: string; _user_id: string }; Returns: Json }
         | {
@@ -5304,6 +5409,10 @@ export type Database = {
           _recipient_id: string
           _ship_id: string
         }
+        Returns: undefined
+      }
+      set_audit_context: {
+        Args: { _reason?: string; _source: string }
         Returns: undefined
       }
       set_daughter_outfit: {
