@@ -35,6 +35,18 @@ export const checkPackEligibility = createServerFn({ method: "POST" })
     const pack = getPack(data.packId);
     if (!pack) throw new Error("الباقة غير موجودة");
 
+    // Block accounts that previously refunded a delivered purchase.
+    const { data: prof } = await supabaseAdmin
+      .from("profiles")
+      .select("purchases_blocked")
+      .eq("id", userId)
+      .maybeSingle();
+    if (prof && (prof as { purchases_blocked?: boolean }).purchases_blocked) {
+      throw new Error(
+        "تم تعليق إمكانية الشراء على حسابك بسبب استرداد سابق لمشتريات تم تسليمها. تواصل مع الدعم.",
+      );
+    }
+
     if (pack.weeklyLimit && pack.category === "shield") {
       const { data: count, error } = await supabaseAdmin.rpc(
         "shield_purchases_last_week",
