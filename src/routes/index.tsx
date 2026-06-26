@@ -2480,7 +2480,7 @@ function Index() {
         const s = ships.find((x) => x.id === modal.shipId);
         if (!s) return null;
         const slots = 999; // unlimited crew slots — dedup enforced separately
-        const assignedRows = crewRows.filter((r) => isCrewAssignedToShip(r.meta, s));
+        const assignedRows = crewRows.filter((r) => isCrewActiveOnShip(r.meta, s, now));
         // available = rows not assigned to any ship (or assigned-but-expired already purged)
         const availableRows = crewRows.filter((r) => r.meta?.assigned_ship_id == null);
         // group available by item_id with total qty
