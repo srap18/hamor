@@ -265,6 +265,8 @@ function BattlePage() {
   async function rematch() {
     const cur = meRef.current;
     if (!cur) return;
+    const okGate = await gateArenaAttack();
+    if (!okGate) return;
     resultRef.current = null;
     setResult(null);
     setReward(0);
