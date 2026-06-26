@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -149,6 +149,8 @@ function RoomsList() {
         <CreateRoomDialog vipLevel={vipLevel} onClose={() => setShowCreate(false)}
           onCreated={(id) => { setShowCreate(false); nav({ to: "/rooms/$id", params: { id } }); }} />
       )}
+
+      <Outlet />
     </div>
   );
 }
