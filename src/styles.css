@@ -672,13 +672,22 @@ html.keyboard-open .mobile-frame-root {
   min-height: 100%;
   background: #050b10;
   overflow: hidden;
-  /* NOTE: do NOT add `transform` / `filter` / `perspective` here.
-     They create a containing block that breaks `position: fixed` overlays
-     (Paddle Checkout, toasts, modals) by scoping them to the phone frame. */
+  /* `contain: paint` establishes a containing block for descendant
+     `position: fixed` elements WITHOUT creating a stacking/transform context
+     that would break Paddle/toast portals (those render at document.body
+     level, outside this element, so they are unaffected). This lets us
+     apply real safe-area padding here and have full-screen `fixed inset-0`
+     page shells (battle, rooms, chat, etc.) properly sit inside the
+     iPhone notch and Android display-cutout area. */
+  contain: paint;
   isolation: isolate;
-  padding: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: 0;
+  padding-right: 0;
   box-sizing: border-box;
 }
+
 
 /* Make sure the Paddle Checkout overlay always sits above the mobile frame. */
 #paddle-checkout-frame,
@@ -921,15 +930,16 @@ html { touch-action: manipulation; }
   }
 }
 
-/* Apply safe-area padding to the app shell when running inside the
- * native build. Web layouts keep their existing spacing. */
+/* Safe-area padding is applied on .mobile-frame-device above (which is the
+ * `contain: paint` containing block for fixed children) so both native
+ * Capacitor builds AND iOS Safari with notch get correct insets. We only
+ * keep horizontal padding on the body here for completeness. */
 html.native-app body {
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
   box-sizing: border-box;
 }
+
 
 /* Disable browser-style interactions inside the native shell so the app
  * feels like a real Native app: no text selection, no callouts, no
