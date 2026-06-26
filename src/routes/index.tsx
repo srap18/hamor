@@ -3003,6 +3003,16 @@ function Index() {
 
       {/* Dragon + Totem removed per user request */}
 
+      {/* Voice rooms quick access */}
+      <Link
+        to="/rooms"
+        className="fixed top-20 left-2 z-[70] flex items-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-br from-fuchsia-600 to-purple-800 border-2 border-fuchsia-300 shadow-lg active:scale-95 transition"
+        style={{ boxShadow: "0 4px 16px rgba(217,70,239,0.5)" }}
+      >
+        <span className="text-base">🎙️</span>
+        <span className="text-xs font-extrabold text-white">غرف صوتية</span>
+      </Link>
+
       {/* BOTTOM NAV */}
       <div
         className="fixed inset-x-0 bottom-0 z-[80] pb-2"
