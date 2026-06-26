@@ -19,8 +19,9 @@ type Room = {
 };
 type Member = {
   room_id: string; user_id: string; role: "owner" | "mod" | "speaker" | "listener";
-  seat_index: number | null; muted: boolean; speaking: boolean;
+  seat_index: number | null; muted: boolean; speaking: boolean; last_seen_at?: string | null;
 };
+
 type Profile = { id: string; display_name: string; avatar_emoji: string; level: number; avatar_url?: string | null };
 type Req = { id: string; user_id: string; created_at: string };
 type Msg = { id: string; user_id: string; content: string; pinned: boolean; deleted: boolean; created_at: string };
