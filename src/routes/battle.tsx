@@ -109,6 +109,27 @@ function BattlePage() {
   }
 
   const navigate = useNavigate();
+
+  // Gate one arena attack (5 free/day, then 5 × 200 gems, then 1000 gems each).
+  async function gateArenaAttack(): Promise<boolean> {
+    const { data: status } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { ok: boolean; free_left: number; extra_bought: number; next_cost: number } | null; error: unknown }> }).rpc("arena_attack_status");
+    if (status?.ok && status.free_left <= 0 && status.next_cost > 0) {
+      const ok = confirm(`نفدت هجماتك المجانية. شراء هجمة جديدة بـ ${status.next_cost.toLocaleString()} 💎؟`);
+      if (!ok) return false;
+    }
+    const { data, error } = await (supabase as never as { rpc: (n: string) => Promise<{ data: { ok: boolean; reason?: string; cost?: number; have?: number } | null; error: { message: string } | null }> }).rpc("arena_attack_request");
+    if (error) { alert("❌ " + error.message); return false; }
+    if (!data?.ok) {
+      if (data?.reason === "need_gems") {
+        alert(`❌ تحتاج ${(data.cost ?? 0).toLocaleString()} 💎 (لديك ${(data.have ?? 0).toLocaleString()})`);
+      } else {
+        alert("❌ تعذرت الهجمة: " + (data?.reason ?? ""));
+      }
+      return false;
+    }
+    return true;
+  }
+
   // load fighters
   useEffect(() => {
     (async () => {
@@ -116,13 +137,15 @@ function BattlePage() {
       if (!user) return;
       const [{ data: myProf }, { data: myDragon }] = await Promise.all([
         supabase.from("profiles").select("display_name,avatar_emoji,avatar_url").eq("id", user.id).maybeSingle(),
-        supabase.from("dragons").select("user_id,name,stage,dp,total_boss_damage,pvp_wins,pvp_losses,element,hatched_at,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
+        supabase.from("dragons").select("user_id,name,stage,dp,total_boss_damage,pvp_wins,pvp_losses,element,hatched_at,created_at,updated_at,pearls,pearl_level").eq("user_id", user.id).maybeSingle(),
       ]);
       const lvl = myDragon ? overallLevel(myDragon as Dragon) : 0;
       if (lvl < 3) {
         navigate({ to: "/arena" });
         return;
       }
+      const okGate = await gateArenaAttack();
+      if (!okGate) { navigate({ to: "/arena" }); return; }
       const myStage = myDragon?.stage ?? 1;
       const { maxHp: myHp, power: myPower } = statsForStage(myStage);
       setMe({
