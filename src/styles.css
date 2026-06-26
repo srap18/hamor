@@ -930,15 +930,16 @@ html { touch-action: manipulation; }
   }
 }
 
-/* Apply safe-area padding to the app shell when running inside the
- * native build. Web layouts keep their existing spacing. */
+/* Safe-area padding is applied on .mobile-frame-device above (which is the
+ * `contain: paint` containing block for fixed children) so both native
+ * Capacitor builds AND iOS Safari with notch get correct insets. We only
+ * keep horizontal padding on the body here for completeness. */
 html.native-app body {
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
   box-sizing: border-box;
 }
+
 
 /* Disable browser-style interactions inside the native shell so the app
  * feels like a real Native app: no text selection, no callouts, no
