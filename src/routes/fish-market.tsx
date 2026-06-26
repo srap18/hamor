@@ -137,6 +137,7 @@ type PriceCache = {
 type FishMarketLevelCache = { level: number; upgradingTo: number | null; upgradeEndsAt: string | null };
 type FishStockCache = { qty: Record<string, number>; ages: Record<string, string> };
 type SaleQuote = { sold: number; total_amount: number; effective_unit_price: number; current_price: number; rot: number };
+const FISH_MARKET_CLIENT_VERSION = "fish-market-v20260626-force-update-1";
 
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
@@ -159,8 +160,6 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-  
-  const [sellingAll, setSellingAll] = useState(false);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
@@ -512,6 +511,7 @@ function FishMarket() {
       const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
         _fish_id: sel.id,
         _qty: requestedQty,
+        _client_version: FISH_MARKET_CLIENT_VERSION,
       } as never);
       if (error) {
         setPop(`❌ ${error.message || "تعذر البيع"}`);
@@ -539,72 +539,6 @@ function FishMarket() {
       setSelling(false);
     }
   };
-
-  const sellAll = async () => {
-    if (!user || sellingAll || selling) return;
-    const targets = fish.filter((f) => f.qty > 0);
-    if (targets.length === 0) return;
-    const ok = await confirmDialog({
-      title: "بيع كل السمك",
-      message: "هل تريد بيع كل السمك في المخزن الآن بالأسعار الحالية؟",
-      confirmText: "بيع الكل",
-    });
-    if (!ok) return;
-    setSellingAll(true);
-    let totalGross = 0;
-    let totalNet = 0;
-    let weightedRankNum = 0;
-    let weightedRotNum = 0;
-    let weightDen = 0;
-    let soldCount = 0;
-    let failedCount = 0;
-    try {
-      for (const f of targets) {
-        const pm = priceMap[f.id];
-        const cur = pm?.current ?? f.basePrice;
-        const minP = pm?.min ?? f.minPrice;
-        const maxP = pm?.max ?? f.maxPrice;
-        const gross = Math.round(cur * f.qty);
-        const { data, error } = await supabase.rpc("sell_fish_by_qty" as never, {
-          _fish_id: f.id,
-          _qty: f.qty,
-        } as never);
-        if (error) { failedCount += 1; await new Promise((r) => setTimeout(r, 250)); continue; }
-        const earned = Number(data ?? 0);
-        if (earned <= 0) { failedCount += 1; continue; }
-        applyOptimisticProfileDelta({ coins: +earned });
-        totalGross += gross;
-        totalNet += earned;
-        soldCount += 1;
-        const span = Math.max(0.0001, maxP - minP);
-        const rank = Math.max(0, Math.min(1, (cur - minP) / span));
-        const w = Math.max(1, gross);
-        weightedRankNum += rank * w;
-        weightedRotNum += rotMult(f.id) * w;
-        weightDen += w;
-        // tiny breather to avoid action throttle rejections
-        await new Promise((r) => setTimeout(r, 120));
-      }
-      const totalRot = Math.max(0, totalGross - totalNet);
-      if (soldCount > 0 && weightDen > 0) {
-        const avgRank = weightedRankNum / weightDen;
-        const avgRot = weightedRotNum / weightDen;
-        const tier = computeTier({ marketRank: avgRank, rotMult: avgRot });
-        setSellResult({ tier, gross: totalGross, rotLoss: totalRot, net: totalNet, fishName: `كل السمك (${soldCount} نوع)` });
-      }
-      if (failedCount > 0) {
-        setPop(`⚠️ تعذر بيع ${failedCount} نوع — أعد المحاولة`);
-        setTimeout(() => setPop(null), 2500);
-      }
-      await loadFish();
-      refreshProfile();
-    } finally {
-      setSellingAll(false);
-    }
-  };
-
-
-
 
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl">
@@ -644,8 +578,6 @@ function FishMarket() {
           onUpgrade={startFishUpgrade}
           onBoost={finishFishUpgrade}
           onPick={setSelected}
-          onSellAll={sellAll}
-          sellingAll={sellingAll}
         />
       )}
 
@@ -779,8 +711,6 @@ function StorageView({
   onUpgrade,
   onBoost,
   onPick,
-  onSellAll,
-  sellingAll,
 }: {
   fish: Fish[];
   capUsed: number;
@@ -794,8 +724,6 @@ function StorageView({
   onUpgrade: () => void;
   onBoost: () => void;
   onPick: (id: string) => void;
-  onSellAll: () => void;
-  sellingAll: boolean;
 }) {
   const pct = (capUsed / capMax) * 100;
   return (
