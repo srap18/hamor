@@ -557,6 +557,7 @@ function FishMarket() {
     let weightedRotNum = 0;
     let weightDen = 0;
     let soldCount = 0;
+    let failedCount = 0;
     try {
       for (const f of targets) {
         const pm = priceMap[f.id];
@@ -568,9 +569,9 @@ function FishMarket() {
           _fish_id: f.id,
           _qty: f.qty,
         } as never);
-        if (error) continue;
+        if (error) { failedCount += 1; await new Promise((r) => setTimeout(r, 250)); continue; }
         const earned = Number(data ?? 0);
-        if (earned <= 0) continue;
+        if (earned <= 0) { failedCount += 1; continue; }
         applyOptimisticProfileDelta({ coins: +earned });
         totalGross += gross;
         totalNet += earned;
@@ -581,6 +582,8 @@ function FishMarket() {
         weightedRankNum += rank * w;
         weightedRotNum += rotMult(f.id) * w;
         weightDen += w;
+        // tiny breather to avoid action throttle rejections
+        await new Promise((r) => setTimeout(r, 120));
       }
       const totalRot = Math.max(0, totalGross - totalNet);
       if (soldCount > 0 && weightDen > 0) {
@@ -588,6 +591,10 @@ function FishMarket() {
         const avgRot = weightedRotNum / weightDen;
         const tier = computeTier({ marketRank: avgRank, rotMult: avgRot });
         setSellResult({ tier, gross: totalGross, rotLoss: totalRot, net: totalNet, fishName: `كل السمك (${soldCount} نوع)` });
+      }
+      if (failedCount > 0) {
+        setPop(`⚠️ تعذر بيع ${failedCount} نوع — أعد المحاولة`);
+        setTimeout(() => setPop(null), 2500);
       }
       await loadFish();
       refreshProfile();
@@ -803,16 +810,6 @@ function StorageView({
           </h1>
       </div>
 
-      {/* Sell All button */}
-      {fish.length > 0 && (
-        <button
-          onClick={onSellAll}
-          disabled={sellingAll}
-          className="absolute top-48 right-3 z-20 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-600 border-2 border-emerald-200 shadow-lg text-white text-xs font-extrabold active:scale-95 disabled:opacity-50"
-        >
-          {sellingAll ? "...جارٍ البيع" : "💰 بيع الكل"}
-        </button>
-      )}
         <div className="text-center text-white text-xs mt-1 font-bold text-glow">
           <span className="text-amber-200">{capUsed.toLocaleString()}</span>
           <span className="opacity-80">/{capMax.toLocaleString()} السعة</span>
@@ -820,7 +817,7 @@ function StorageView({
       </div>
 
       {/* Fish storage panel */}
-      <div className="absolute top-52 left-2 right-2 bottom-28 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
+      <div className="absolute top-52 left-2 right-2 bottom-40 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
         {fish.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center text-cyan-100 gap-2">
             <div className="text-5xl opacity-70">🎣</div>
@@ -865,6 +862,17 @@ function StorageView({
           </div>
         </div>
       </div>
+
+      {/* Sell All bar (below storage, above upgrade footer) */}
+      {fish.length > 0 && (
+        <button
+          onClick={onSellAll}
+          disabled={sellingAll}
+          className="absolute bottom-[7rem] left-2 right-2 z-20 py-2.5 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-600 border-2 border-emerald-200 shadow-lg text-white text-sm font-extrabold active:scale-95 disabled:opacity-50"
+        >
+          {sellingAll ? "...جارٍ بيع كل السمك" : `💰 بيع كل السمك (${fish.length} أنواع)`}
+        </button>
+      )}
 
       {/* Upgrade footer */}
       <div className="absolute bottom-16 left-2 right-2 z-20 flex items-center gap-3">
