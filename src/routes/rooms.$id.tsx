@@ -283,18 +283,22 @@ function RoomView() {
       </div>
 
       {/* Bottom bar */}
-      <div className="p-2 border-t border-white/10 flex items-center gap-2">
+      <div
+        className="px-2 pt-2 border-t border-white/10 flex items-center gap-2"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}
+      >
         {isSpeaker ? (
-          <button onClick={toggleMic} className={`w-12 h-12 rounded-full font-bold text-2xl ${me?.muted ? "bg-rose-600" : "bg-emerald-600"}`}>
+          <button onClick={toggleMic} aria-label={me?.muted ? "فتح المايك" : "كتم المايك"} className={`w-12 h-12 shrink-0 rounded-full font-bold text-2xl flex items-center justify-center ${me?.muted ? "bg-rose-600" : "bg-emerald-600"}`}>
             {me?.muted ? "🔇" : "🎤"}
           </button>
         ) : room.allow_mic_requests && !room.listeners_only ? (
-          <button onClick={requestMic} className="px-3 h-12 rounded-full bg-amber-600 font-bold text-sm">✋ طلب مايك</button>
+          <button onClick={requestMic} className="px-3 h-12 shrink-0 rounded-full bg-amber-600 font-bold text-sm">✋ طلب مايك</button>
         ) : null}
         <input value={chatText} onChange={e => setChatText(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
-          placeholder="اكتب رسالة..." className="flex-1 h-12 px-3 rounded-full bg-white/10 border border-white/20" />
-        <button onClick={sendMsg} className="px-4 h-12 rounded-full bg-sky-600 font-bold">إرسال</button>
+          placeholder="اكتب رسالة..." className="flex-1 min-w-0 h-12 px-3 rounded-full bg-white/10 border border-white/20" />
+        <button onClick={sendMsg} className="px-4 h-12 shrink-0 rounded-full bg-sky-600 font-bold">إرسال</button>
       </div>
+
 
       {lkConfigured === false && (
         <div className="absolute top-14 left-2 right-2 bg-amber-900/90 text-amber-100 text-xs p-2 rounded-lg border border-amber-500">
