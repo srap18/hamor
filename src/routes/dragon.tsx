@@ -124,9 +124,12 @@ function DragonPage() {
             <span className="text-amber-300/70 text-xs ms-2">الشكل {d.stage}/{DRAGON_STAGES.length}</span>
           </div>
           <div className="mt-1 text-amber-200/90 text-xs font-bold">
-            ⭐ المستوى {overallLevel(d)} / {MAX_LEVEL}
+            ⭐ المستوى {effectiveLevel(d)} / {MAX_LEVEL}
           </div>
         </div>
+
+        {/* Pearls wallet + upgrade */}
+        <PearlsCard d={d} onChanged={(nd) => setD(nd)} />
 
         {/* Dragon/Egg display — driven by the level-based evolution video */}
         <div className="relative my-6 flex items-center justify-center" style={{ minHeight: "320px" }}>
