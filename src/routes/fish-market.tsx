@@ -159,6 +159,8 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
+  const [bulkResult, setBulkResult] = useState<{ items: Array<{ name: string; qty: number; net: number }>; totalGross: number; totalNet: number; totalRot: number } | null>(null);
+  const [sellingAll, setSellingAll] = useState(false);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
