@@ -136,7 +136,7 @@ export function RechargePanel() {
 
 
   const list = useMemo(
-    () => STORE_PACKS.filter((p) => p.category === sub),
+    () => STORE_PACKS.filter((p) => p.category === sub && !p.disabled),
     [sub],
   );
 
