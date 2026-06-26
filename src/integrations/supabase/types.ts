@@ -893,6 +893,27 @@ export type Database = {
         }
         Relationships: []
       }
+      dragon_boss_pearl_claims: {
+        Row: {
+          boss_id: number
+          claimed_at: string
+          pearls: number
+          user_id: string
+        }
+        Insert: {
+          boss_id: number
+          claimed_at?: string
+          pearls?: number
+          user_id: string
+        }
+        Update: {
+          boss_id?: number
+          claimed_at?: string
+          pearls?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       dragon_claims: {
         Row: {
           last_daily_rockets: string | null
@@ -950,10 +971,15 @@ export type Database = {
       dragons: {
         Row: {
           created_at: string
+          daily_arena_date: string | null
+          daily_arena_extra_bought: number
+          daily_arena_used: number
           dp: number
           element: string
           hatched_at: string | null
           name: string
+          pearl_level: number
+          pearls: number
           pvp_losses: number
           pvp_wins: number
           stage: number
@@ -963,10 +989,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_arena_date?: string | null
+          daily_arena_extra_bought?: number
+          daily_arena_used?: number
           dp?: number
           element?: string
           hatched_at?: string | null
           name?: string
+          pearl_level?: number
+          pearls?: number
           pvp_losses?: number
           pvp_wins?: number
           stage?: number
@@ -976,10 +1007,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_arena_date?: string | null
+          daily_arena_extra_bought?: number
+          daily_arena_used?: number
           dp?: number
           element?: string
           hatched_at?: string | null
           name?: string
+          pearl_level?: number
+          pearls?: number
           pvp_losses?: number
           pvp_wins?: number
           stage?: number
@@ -4286,6 +4322,9 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      arena_attack_request: { Args: never; Returns: Json }
+      arena_attack_status: { Args: never; Returns: Json }
+      arena_award_pearls: { Args: never; Returns: Json }
       arena_dragon_duel: { Args: { _opponent: string }; Returns: Json }
       arena_dragon_overall_level: {
         Args: { _dp: number; _stage: number }
@@ -4327,6 +4366,7 @@ export type Database = {
         Returns: number
       }
       boss_attack_status: { Args: never; Returns: Json }
+      boss_award_pearls: { Args: { _boss_id: number }; Returns: Json }
       boss_hit_my_ship: { Args: { p_ship_id: string }; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
@@ -4520,6 +4560,10 @@ export type Database = {
           xp_awarded: number
         }[]
       }
+      compute_dragon_overall_level: {
+        Args: { _dp: number; _stage: number }
+        Returns: number
+      }
       compute_vip_level: { Args: { _points: number }; Returns: number }
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
@@ -4549,6 +4593,11 @@ export type Database = {
       dragon_defense_bonus: { Args: { _user_id: string }; Returns: number }
       dragon_is_hatched: { Args: { _user: string }; Returns: boolean }
       dragon_overall_level: { Args: { _user_id: string }; Returns: number }
+      dragon_pearl_upgrade: { Args: never; Returns: Json }
+      dragon_pearl_upgrade_cost: {
+        Args: { _from_level: number }
+        Returns: number
+      }
       dragon_stage_for_dp: { Args: { _dp: number }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
@@ -4824,10 +4873,15 @@ export type Database = {
         Args: never
         Returns: {
           created_at: string
+          daily_arena_date: string | null
+          daily_arena_extra_bought: number
+          daily_arena_used: number
           dp: number
           element: string
           hatched_at: string | null
           name: string
+          pearl_level: number
+          pearls: number
           pvp_losses: number
           pvp_wins: number
           stage: number
