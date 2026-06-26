@@ -181,17 +181,18 @@ function ensureProfileBootstrap(userId: string) {
   }
   profileChannelUserId = userId;
   // Rehydrate from localStorage instantly so name/avatar appear without a network round-trip.
+  // Currency fields are stripped from the persisted copy (see stripVolatile) so the UI
+  // never displays a stale coin/gem balance after a refresh.
   if (!profileCache || profileCache.id !== userId) {
     const persisted = loadPersistedProfile(userId);
     if (persisted) {
       profileCache = persisted;
-      profileLoadingFlag = false;
-      notifyProfile();
-    } else {
-      profileLoadingFlag = true;
-      notifyProfile();
     }
   }
+  // Until the fresh fetch completes, treat the profile as loading so currency
+  // widgets can show a skeleton instead of the zeroed cache.
+  profileLoadingFlag = true;
+  notifyProfile();
   fetchProfileNow(userId);
 
 
@@ -212,20 +213,33 @@ function ensureProfileBootstrap(userId: string) {
     window.addEventListener("beforeunload", onHide);
   }
 
-  // Realtime subscription
+  // Realtime subscription. We refetch authoritative data on every UPDATE
+  // instead of trusting payload.new directly — Realtime can deliver replayed
+  // or out-of-order events that would otherwise roll currencies backwards.
   supabase
     .channel(`profile:${userId}:${Math.random().toString(36).slice(2)}`)
     .on(
       "postgres_changes",
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
-        profileCache = payload.new as Profile;
-        persistProfile(profileCache);
-        notifyProfile();
+        const next = payload.new as Profile;
+        // Merge non-currency fields immediately so frame/avatar/name changes
+        // feel instant, but defer currency values to the fresh refetch below.
+        if (profileCache && profileCache.id === userId) {
+          const merged = { ...profileCache } as any;
+          for (const k of Object.keys(next) as Array<keyof Profile>) {
+            if ((VOLATILE_KEYS as readonly string[]).includes(k as string)) continue;
+            (merged as any)[k] = (next as any)[k];
+          }
+          profileCache = merged as Profile;
+          notifyProfile();
+        }
+        fetchProfileNow(userId);
       },
     )
     .subscribe();
 }
+
 
 export function useProfile() {
   const { user, loading: authLoading } = useAuth();
