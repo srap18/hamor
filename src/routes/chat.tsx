@@ -460,6 +460,10 @@ function ChatPage() {
             )}
           </button>
         ))}
+        <Link to="/rooms"
+          className="relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 bg-gradient-to-b from-fuchsia-600 to-purple-800 border-fuchsia-300 text-white text-center">
+          🎙️ غرف
+        </Link>
       </div>
 
 
