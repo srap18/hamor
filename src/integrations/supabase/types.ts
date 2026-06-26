@@ -4007,6 +4007,10 @@ export type Database = {
       }
     }
     Functions: {
+      _arena_grant_pearls_on_win: {
+        Args: { _won: boolean }
+        Returns: undefined
+      }
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
