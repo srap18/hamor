@@ -68,7 +68,7 @@ function RoomView() {
     }
   }, [id]);
 
-  // Auto-join + realtime
+  // Auto-join + realtime + heartbeat
   useEffect(() => {
     if (!user) return;
     (supabase as any).rpc("vr_join_room", { _room: id, _password: "" }).then(loadAll);
@@ -78,8 +78,11 @@ function RoomView() {
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_room_requests", filter: `room_id=eq.${id}` }, () => loadAll())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "voice_room_messages", filter: `room_id=eq.${id}` }, () => loadAll())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    const beat = setInterval(() => { (supabase as any).rpc("vr_heartbeat", { _room: id }); }, 20000);
+    const refetch = setInterval(loadAll, 15000); // safety refetch
+    return () => { supabase.removeChannel(ch); clearInterval(beat); clearInterval(refetch); };
   }, [id, user, loadAll]);
+
 
   // Connect to LiveKit
   useEffect(() => {
