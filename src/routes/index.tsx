@@ -3393,12 +3393,14 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
     window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
-      tab === "comp" ? ["competitions", "competition_catches"] :
       tab === "fish" ? ["fish_caught", "profiles"] :
       tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
       tab === "ships" ? ["ships_owned", "profiles"] :
       tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
       [];
+    // NOTE: "comp" tab intentionally has no realtime subscription. get_active_competitions
+    // internally calls finalize_due_competitions() which may UPDATE the competitions row,
+    // which would fire postgres_changes and re-trigger this fetch in a tight loop.
     const ch = watchedTables.length > 0
       ? watchedTables.reduce((channel, table) => (
           channel.on("postgres_changes", { event: "*", schema: "public", table }, refreshNow)
