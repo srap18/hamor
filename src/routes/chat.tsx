@@ -461,7 +461,12 @@ function ChatPage() {
             )}
           </button>
         ))}
+        <Link to="/rooms"
+          className="relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 bg-gradient-to-b from-fuchsia-600 to-purple-800 border-fuchsia-300 text-white text-center">
+          🎙️ غرف
+        </Link>
       </div>
+
 
       <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "topics" ? (
