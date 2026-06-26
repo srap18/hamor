@@ -31,6 +31,7 @@ export type StorePack = {
   bonus?: string;
   description?: string;
   images?: string[];
+  disabled?: boolean;
   reward: {
     gems?: number;
     coins?: number;
