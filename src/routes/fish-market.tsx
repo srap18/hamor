@@ -826,7 +826,18 @@ function StorageView({
           <h1 className="relative text-sm font-bold text-glow whitespace-nowrap">
             مخزن السمك lvl {lvl}
           </h1>
-        </div>
+      </div>
+
+      {/* Sell All button */}
+      {fish.length > 0 && (
+        <button
+          onClick={onSellAll}
+          disabled={sellingAll}
+          className="absolute top-48 right-3 z-20 px-3 py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-600 border-2 border-emerald-200 shadow-lg text-white text-xs font-extrabold active:scale-95 disabled:opacity-50"
+        >
+          {sellingAll ? "...جارٍ البيع" : "💰 بيع الكل"}
+        </button>
+      )}
         <div className="text-center text-white text-xs mt-1 font-bold text-glow">
           <span className="text-amber-200">{capUsed.toLocaleString()}</span>
           <span className="opacity-80">/{capMax.toLocaleString()} السعة</span>
