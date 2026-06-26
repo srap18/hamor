@@ -895,19 +895,19 @@ export type Database = {
       }
       dragon_boss_pearl_claims: {
         Row: {
-          boss_id: number
+          boss_id: string
           claimed_at: string
           pearls: number
           user_id: string
         }
         Insert: {
-          boss_id: number
+          boss_id: string
           claimed_at?: string
           pearls?: number
           user_id: string
         }
         Update: {
-          boss_id?: number
+          boss_id?: string
           claimed_at?: string
           pearls?: number
           user_id?: string
@@ -4366,7 +4366,7 @@ export type Database = {
         Returns: number
       }
       boss_attack_status: { Args: never; Returns: Json }
-      boss_award_pearls: { Args: { _boss_id: number }; Returns: Json }
+      boss_award_pearls: { Args: { _boss_id: string }; Returns: Json }
       boss_hit_my_ship: { Args: { p_ship_id: string }; Returns: Json }
       broadcast_nuke: {
         Args: { _message: string; _target_id: string }
