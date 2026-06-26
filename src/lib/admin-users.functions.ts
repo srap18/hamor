@@ -139,15 +139,24 @@ export const adminPermanentBan = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
 
+    const reason = data.reason || "حظر نهائي";
+
     await (supabaseAdmin as any).rpc("admin_permanent_ban", {
       _uid: data.userId,
-      _reason: data.reason || "حظر نهائي",
+      _reason: reason,
     } as never);
+
+    // Permanent ban now ALSO bans the device(s), IP(s) and email — same as hard ban.
+    const { data: hard } = await (supabaseAdmin as any).rpc("admin_hard_ban", {
+      _uid: data.userId,
+      _reason: reason,
+      _admin: context.userId,
+    });
 
     await supabaseAdmin.auth.admin.updateUserById(data.userId, { ban_duration: "87600h" } as never);
     await supabaseAdmin.from("profiles").update({ active_session_id: `banned-${Date.now()}` }).eq("id", data.userId);
 
-    return { ok: true };
+    return { ok: true, ...(hard as { email?: string | null; devices?: number; ips?: number } | null ?? {}) };
   });
 
 export const adminBlockLogin = createServerFn({ method: "POST" })
