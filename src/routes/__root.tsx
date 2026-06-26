@@ -25,12 +25,14 @@ import { SoftProtection } from "@/components/SoftProtection";
 import { I18nProvider } from "@/lib/i18n";
 import { NetworkRecovery } from "@/components/NetworkRecovery";
 import { installNativeShell } from "@/lib/native-shell";
+import { installToastSanitizer } from "@/lib/sanitize-toast";
 
 
 // Install the server-time clock as early as possible on the client so every
 // Date.now() / new Date() call across the app reflects server time, not the
 // user's (potentially tampered) device clock.
 if (typeof window !== "undefined") {
+  installToastSanitizer();
   installServerClock();
   // Re-sync whenever the tab regains focus or comes back from background.
   try {
