@@ -1246,7 +1246,14 @@ function Index() {
                 gfTickInFlightRef.current = true;
                 tickGoldenFisher({ data: {} })
                   .then((res: any) => {
-                    gfMarketFullRef.current = !!res?.market_full;
+                    const wasFull = gfMarketFullRef.current;
+                    const isFull = !!res?.market_full;
+                    gfMarketFullRef.current = isFull;
+                    if (isFull && !wasFull) {
+                      setToast("📦 سوق السمك ممتلئ! الصياد الذهبي توقف — فرّغ السوق ليبدأ الصيد من جديد");
+                      setTimeout(() => setToast(null), 3500);
+                      try { sound.play("error"); } catch {}
+                    }
                     // Always re-sync so the UI picks up the new fishing_started_at
                     // even when the server processed cycles silently.
                     syncFleetFromDb();
