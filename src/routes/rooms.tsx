@@ -50,7 +50,16 @@ function RoomsList() {
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_rooms" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_room_members" }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const iv = setInterval(load, 8000);
+    return () => {
+      supabase.removeChannel(ch);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      clearInterval(iv);
+    };
   }, []);
 
   const join = async (r: Room, password?: string) => {
