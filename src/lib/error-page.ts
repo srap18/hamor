@@ -1,28 +1,28 @@
 export function renderErrorPage(): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <title>This page didn't load</title>
+    <title>حدث خطأ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      body { font: 15px/1.5 'Cairo','Tajawal',system-ui,-apple-system,sans-serif; background:#0a1929; color:#f5c45e; display:grid; place-items:center; min-height:100vh; margin:0; padding:1.5rem; }
       .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
-      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: #4b5563; margin: 0 0 1.5rem; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; color:#ffe9a8; }
+      p { color:#cbd5e1; margin: 0 0 1.5rem; }
       .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
-      a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #111; color: #fff; }
-      .secondary { background: #fff; color: #111; border-color: #d1d5db; }
+      a, button { padding: 0.5rem 1rem; border-radius: 0.5rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; font-weight:700; }
+      .primary { background:#f5c45e; color:#0a1929; }
+      .secondary { background:transparent; color:#f5c45e; border-color:#f5c45e; }
     </style>
   </head>
   <body>
     <div class="card">
-      <h1>This page didn't load</h1>
-      <p>Something went wrong on our end. You can try refreshing or head back home.</p>
+      <h1>حدث خطأ</h1>
+      <p>عذراً، حدث خطأ غير متوقع. حاول مرة أخرى أو ارجع للرئيسية.</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Try again</button>
-        <a class="secondary" href="/">Go home</a>
+        <button class="primary" onclick="location.reload()">حاول مرة أخرى</button>
+        <a class="secondary" href="/">الرئيسية</a>
       </div>
     </div>
   </body>
