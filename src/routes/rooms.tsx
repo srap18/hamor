@@ -140,7 +140,6 @@ function RoomsList() {
 function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; onClose: () => void; onCreated: (id: string) => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [seats, setSeats] = useState(8);
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
@@ -151,7 +150,7 @@ function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; 
     if (name.trim().length < 2) { alert("اسم الغرفة قصير"); return; }
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("vr_create_room", {
-      _name: name.trim(), _description: description.trim(), _image_url: imageUrl.trim(),
+      _name: name.trim(), _description: description.trim(), _image_url: "",
       _seats: seats, _is_private: isPrivate, _password: password, _allow_mic_requests: allowMic,
     });
     setBusy(false);
