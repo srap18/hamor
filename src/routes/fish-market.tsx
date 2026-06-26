@@ -620,6 +620,8 @@ function FishMarket() {
           onUpgrade={startFishUpgrade}
           onBoost={finishFishUpgrade}
           onPick={setSelected}
+          onSellAll={sellAll}
+          sellingAll={sellingAll}
         />
       )}
 
