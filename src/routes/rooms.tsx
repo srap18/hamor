@@ -50,24 +50,40 @@ function RoomsList() {
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_rooms" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "voice_room_members" }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const iv = setInterval(load, 8000);
+    return () => {
+      supabase.removeChannel(ch);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      clearInterval(iv);
+    };
   }, []);
 
   const join = async (r: Room, password?: string) => {
-    const { error } = await (supabase as any).rpc("vr_join_room", { _room: r.id, _password: password || "" });
-    if (error) {
-      const msg: Record<string, string> = {
-        banned_from_room: "أنت محظور من هذه الغرفة",
-        wrong_password: "كلمة المرور خاطئة",
-        room_locked: "الغرفة مقفلة حالياً",
-        room_not_found: "الغرفة غير موجودة",
-      };
-      const key = (error.message || "").replace(/^.*?:\s*/, "").trim();
-      alert(msg[key] || error.message);
-      return;
+    try {
+      const { error } = await (supabase as any).rpc("vr_join_room", { _room: r.id, _password: password || "" });
+      if (error) {
+        console.error("[vr_join_room]", error);
+        const msg: Record<string, string> = {
+          banned_from_room: "أنت محظور من هذه الغرفة",
+          wrong_password: "كلمة المرور خاطئة",
+          room_locked: "الغرفة مقفلة حالياً",
+          room_not_found: "الغرفة غير موجودة",
+          unauthorized: "يجب تسجيل الدخول أولاً",
+        };
+        const key = (error.message || "").replace(/^.*?:\s*/, "").trim();
+        alert(msg[key] || error.message || "تعذر الدخول للغرفة");
+        return;
+      }
+      setJoinPw(null); setPwInput("");
+      nav({ to: "/rooms/$id", params: { id: r.id } });
+    } catch (e: any) {
+      console.error("[join] threw", e);
+      alert("تعذر الدخول للغرفة: " + (e?.message || e));
     }
-    setJoinPw(null); setPwInput("");
-    nav({ to: "/rooms/$id", params: { id: r.id } });
   };
 
   return (
@@ -140,7 +156,6 @@ function RoomsList() {
 function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; onClose: () => void; onCreated: (id: string) => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [seats, setSeats] = useState(8);
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
@@ -151,7 +166,7 @@ function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; 
     if (name.trim().length < 2) { alert("اسم الغرفة قصير"); return; }
     setBusy(true);
     const { data, error } = await (supabase as any).rpc("vr_create_room", {
-      _name: name.trim(), _description: description.trim(), _image_url: imageUrl.trim(),
+      _name: name.trim(), _description: description.trim(), _image_url: "",
       _seats: seats, _is_private: isPrivate, _password: password, _allow_mic_requests: allowMic,
     });
     setBusy(false);
@@ -191,8 +206,7 @@ function CreateRoomDialog({ vipLevel, onClose, onCreated }: { vipLevel: number; 
             className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="الوصف (اختياري)" maxLength={300} rows={2}
             className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
-          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="رابط الصورة (اختياري)"
-            className="w-full px-3 py-2 rounded-lg bg-stone-950 border border-amber-700/60" />
+          <div className="text-[11px] text-amber-200/60 -mt-1">🎙️ سيتم استخدام أيقونة الغرفة الافتراضية</div>
           <label className="flex items-center justify-between gap-3 text-sm">
             <span>عدد المقاعد ({seats})</span>
             <input type="range" min={2} max={20} value={seats} onChange={e => setSeats(+e.target.value)} className="flex-1" />
