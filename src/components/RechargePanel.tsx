@@ -340,7 +340,7 @@ export function RechargePanel() {
                 <button
                   onClick={() => purchase(p)}
                   disabled={disabled}
-                  className="px-2.5 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-extrabold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight shadow-[0_4px_14px_rgba(16,185,129,0.5)] shrink-0 min-w-[62px]"
+                  className="px-2.5 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-extrabold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight shadow-[0_4px_14px_rgba(16,185,129,0.5)] shrink-0 min-w-[72px]"
                 >
                   {busy === p.id ? (
                     <span className="text-[10px]">⏳</span>
@@ -348,11 +348,13 @@ export function RechargePanel() {
                     <span className="text-[10px]">{disabledLabel}</span>
                   ) : (
                     <>
+                      <span className="text-[9px] font-bold opacity-90">السعر</span>
                       <span className="text-sm">{formatSarFromUsd(p.priceUSD)}</span>
-                      <span className="text-[9px] font-bold">شراء</span>
+                      <span className="text-[9px] font-bold mt-0.5 bg-white/20 px-1.5 rounded">ادفع</span>
                     </>
                   )}
                 </button>
+
               </div>
             </div>
           );
