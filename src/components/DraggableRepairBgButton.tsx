@@ -20,6 +20,7 @@ export function DraggableRepairBgButton({
 }) {
   const SIZE = 44;
   const MARGIN = 6;
+  const BOTTOM_RESERVED = 140; // keep clear of bottom nav
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(true);
