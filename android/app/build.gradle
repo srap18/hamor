@@ -35,6 +35,7 @@ android {
 
     signingConfigs {
         release {
+            // استخدام المسار النسبي لضمان العثور على الملف داخل المستودع
             storeFile file("hamor-upload-key.keystore")
             storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: "HamorGame2026"
             keyAlias "hamor-key-alias"
