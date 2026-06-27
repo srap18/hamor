@@ -839,6 +839,7 @@ function Index() {
       sailorMult: ids.has("sailor") ? (1 / 0.5) : 1, // 50% time reduction
       hasSailor: ids.has("sailor"),
       guide: ids.has("guide"),
+      hasLuck: ids.has("luck"),
     };
   };
 
