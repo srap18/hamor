@@ -187,6 +187,17 @@ function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode:
       <div className="text-xs text-amber-100/70">
         أرسلنا كوداً من 6 أرقام إلى <span className="text-amber-300 break-all">{email}</span>
       </div>
+      <div className="text-[11px] text-amber-100/90 bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-right leading-relaxed">
+        ⚠️ <strong>لم تجد الكود؟</strong> تحقق من مجلد <strong>الرسائل غير المرغوب فيها (Spam / Junk)</strong>.
+        <br />
+        لتصل الرسائل القادمة لبريدك الأساسي:
+        <br />
+        • <strong>Gmail:</strong> افتح الرسالة ← اضغط <strong>«ليست رسالة غير مرغوب فيها» (Not spam)</strong>، ثم أضف
+        <span dir="ltr" className="px-1 text-amber-300">notify@notify.www.molok-alqarasna.com</span> إلى جهات الاتصال.
+        <br />
+        • <strong>Outlook / Hotmail:</strong> اضغط <strong>«ليست بريدًا عشوائيًا»</strong> وأضف المرسل للمصادر الموثوقة.
+      </div>
+
       <input
         type="text"
         inputMode="numeric"
