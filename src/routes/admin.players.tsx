@@ -643,6 +643,45 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     toast.success(`تم: سوق السفن L${s} • سوق السمك L${f}`);
   };
 
+  const applyDragon = (d: any) => {
+    if (!d) return;
+    setDragonStage(String(d.stage ?? 1));
+    setDragonDp(String(d.dp ?? 0));
+    setDragonPearls(String(d.pearls ?? 0));
+    setDragonPearlLevel(String(d.pearl_level ?? 0));
+  };
+
+  const saveDragon = async () => {
+    const stage = Math.max(1, Math.min(15, Number(dragonStage) | 0));
+    const dp = Math.max(0, Math.floor(Number(dragonDp) || 0));
+    const pearls = Math.max(0, Math.floor(Number(dragonPearls) || 0));
+    const pl = Math.max(0, Math.min(150, Number(dragonPearlLevel) | 0));
+    setSavingDragon(true);
+    const { data, error } = await (supabase as any).rpc("admin_set_dragon", {
+      _player: player.id, _stage: stage, _dp: dp, _pearls: pearls, _pearl_level: pl,
+    });
+    setSavingDragon(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    applyDragon(data);
+    await logAudit("admin_set_dragon", player.id, { stage, dp, pearls, pearl_level: pl });
+    toast.success("🐉 تم حفظ التنين");
+  };
+
+  const maxDragon = async () => {
+    if (!confirm("هل تريد تنّين كامل (مرحلة 15 + مستوى 150)؟")) return;
+    setSavingDragon(true);
+    const { data, error } = await (supabase as any).rpc("admin_max_dragon", { _player: player.id });
+    setSavingDragon(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    applyDragon(data);
+    await logAudit("admin_max_dragon", player.id, {});
+    toast.success("🐉 تم رفع التنين للحد الأقصى");
+  };
+
+
+
+
+
 
 
 
