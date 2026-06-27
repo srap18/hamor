@@ -1417,9 +1417,34 @@ function Index() {
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
     sound.play("whoosh");
 
-    // No predictive popup — wait for the server's actual fish so the player
-    // never sees one fish flash and then swap to a different one. The RPC is
-    // fast enough that the brief pause is preferable to a misleading preview.
+    // 100%-accurate predictive popup: only show when we KNOW which fish the
+    // server will pick (guide assigned with a chosen fish, or a persisted
+    // preferred fish on the ship). Count is computed with the exact same
+    // formula as collect_fishing_reward, so the popup never swaps after the
+    // server responds. When the fish is uncertain (no guide, random pool),
+    // we wait silently for the server instead of guessing.
+    const _crewNow = getCrewBonuses(s);
+    const _luckMult = _crewNow.hasLuck ? 2 : 1;
+    const _predFishId = (_crewNow.guide && requestedFishId) ? requestedFishId : null;
+    const _predFish = _predFishId ? FISH[_predFishId] : null;
+    if (_predFish) {
+      // Mirror server: base = min(client_progress, capacity), floored to >=1,
+      // then * luck. Server further caps by market_remaining, which can only
+      // lower the value — predictive count is therefore an upper bound that
+      // will only ever shrink, never grow, when the server reconciles.
+      const _predBase = Math.max(1, Math.min(s.max, Math.round(s.progress)));
+      const _predCount = _predBase * _luckMult;
+      setCatchResult({
+        img: _predFish.img,
+        emoji: _predFish.emoji ?? "🎣",
+        name: _predFish.name ?? "سمكة",
+        count: _predCount,
+        shipId: s.id,
+        shipLevel: s.level,
+        baseCount: _predBase,
+        luckBonus: _predCount - _predBase,
+      });
+    }
 
     // Fire clock sync in background (do not block the reward RPC).
     if (!isServerClockSynced()) {
