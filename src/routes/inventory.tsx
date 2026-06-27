@@ -263,9 +263,14 @@ function InventoryPage() {
             if (error) {
               const m = error.message || "";
               if (m.includes("not_enough")) toast.error("لا تملك هذا الدرع");
+              else if (m.includes("shield_cooldown")) {
+                const secs = parseInt(m.split("shield_cooldown:")[1] || "120", 10) || 120;
+                toast.error(`⏳ انتظر ${secs} ثانية قبل تفعيل درع جديد`);
+              }
               else toast.error("فشل تفعيل الدرع");
               return;
             }
+
             await load();
             toast.success("🛡️ تم تفعيل الدرع!");
           };
