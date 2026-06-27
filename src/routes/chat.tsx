@@ -254,7 +254,7 @@ function ChatPage() {
       }
     });
 
-    const ch = supabase.channel(`msgs-${tab}-${dmWith || ""}`)
+    const ch = supabase.channel(`msgs-${tab}-${dmWith || ""}-${Date.now()}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, async (payload) => {
         const m = payload.new as Msg;
         let ok = false;
@@ -277,8 +277,50 @@ function ChatPage() {
         setMsgs(s => s.filter(x => x.id !== oldId));
       })
       .subscribe();
-    return () => { active = false; supabase.removeChannel(ch); };
+
+    // Fallback poller: realtime can drop on flaky mobile connections or when the
+    // socket disconnects silently. Poll for new messages every 4s as a safety net
+    // so messages always appear without a manual refresh.
+    const pollNewer = async () => {
+      if (!active) return;
+      // Determine the newest timestamp we already have
+      let newestAt: string | null = null;
+      setMsgs(cur => {
+        newestAt = cur.length ? cur[cur.length - 1].created_at : null;
+        return cur;
+      });
+      let pq = supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
+      if (tab === "public") pq = pq.eq("channel", "public");
+      else if (tab === "tribe" && profile?.tribe_id) pq = pq.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
+      else if (tab === "dm" && dmWith) pq = pq.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
+      else return;
+      if (newestAt) pq = pq.gt("created_at", newestAt);
+      const { data } = await pq;
+      if (!active || !data || data.length === 0) return;
+      const fresh = data as Msg[];
+      setMsgs(s => {
+        const have = new Set(s.map(x => x.id));
+        const add = fresh.filter(x => !have.has(x.id));
+        return add.length ? [...s, ...add] : s;
+      });
+      const newIds = Array.from(new Set(fresh.map(m => m.sender_id)));
+      if (newIds.length) {
+        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", newIds);
+        if (active && ps) setProfMap(prev => { const n = new Map(prev); (ps as any[]).forEach(p => n.set(p.id, p)); return n; });
+      }
+    };
+    const pollTimer = window.setInterval(pollNewer, 4000);
+    const onVis = () => { if (document.visibilityState === "visible") pollNewer(); };
+    document.addEventListener("visibilitychange", onVis);
+
+    return () => {
+      active = false;
+      window.clearInterval(pollTimer);
+      document.removeEventListener("visibilitychange", onVis);
+      supabase.removeChannel(ch);
+    };
   }, [tab, dmWith, user, profile?.tribe_id]);
+
 
   // Track first render per chat tab/conversation so we always land on the latest
   // messages when opening chat (instead of being stuck at the top).
