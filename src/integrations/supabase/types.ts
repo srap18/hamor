@@ -2452,6 +2452,7 @@ export type Database = {
           referred_by: string | null
           rubies: number
           selected_bg_id: string
+          shield_cooldown_until: string | null
           ship_flag: string
           skill_def: number
           skill_fish: number
@@ -2513,6 +2514,7 @@ export type Database = {
           referred_by?: string | null
           rubies?: number
           selected_bg_id?: string
+          shield_cooldown_until?: string | null
           ship_flag?: string
           skill_def?: number
           skill_fish?: number
@@ -2574,6 +2576,7 @@ export type Database = {
           referred_by?: string | null
           rubies?: number
           selected_bg_id?: string
+          shield_cooldown_until?: string | null
           ship_flag?: string
           skill_def?: number
           skill_fish?: number
