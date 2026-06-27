@@ -77,11 +77,11 @@ function LoginPage() {
     if (!email || resending) return;
     setResending(true); setResendMsg(null);
     const { error } = await supabase.auth.resend({
+    const { error } = await supabase.auth.resend({
       type: "signup", email,
-      options: { emailRedirectTo: window.location.origin },
     });
     setResending(false);
-    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط التأكيد إلى بريدك ✓");
+    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال كود جديد إلى بريدك ✓");
   };
 
   const google = async () => {
