@@ -373,16 +373,22 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   useEffect(() => {
     (async () => {
-      const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }] = await Promise.all([
+      const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
+        (supabase as any).from("dragons").select("stage,dp,pearls,pearl_level").eq("user_id", player.id).maybeSingle(),
       ]);
       setShipMarketLevel(String((um as any)?.level ?? 1));
       setFishMarketLevel(String((ufm as any)?.level ?? 1));
+      const dr: any = dragonRow ?? {};
+      setDragonStage(String(dr.stage ?? 1));
+      setDragonDp(String(dr.dp ?? 0));
+      setDragonPearls(String(dr.pearls ?? 0));
+      setDragonPearlLevel(String(dr.pearl_level ?? 0));
       const all: HistoryEntry[] = [
         ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
         ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
