@@ -19,7 +19,6 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShipsShopRouteImport } from './routes/ships-shop'
 import { Route as ShipMarketRouteImport } from './routes/ship-market'
-import { Route as RoomsRouteImport } from './routes/rooms'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RechargeRouteImport } from './routes/recharge'
@@ -50,13 +49,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
-import { Route as RoomsIdRouteImport } from './routes/rooms.$id'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
-import { Route as AdminVoiceRoomsRouteImport } from './routes/admin.voice-rooms'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
@@ -125,11 +122,6 @@ const ShipsShopRoute = ShipsShopRouteImport.update({
 const ShipMarketRoute = ShipMarketRouteImport.update({
   id: '/ship-market',
   path: '/ship-market',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoomsRoute = RoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -282,11 +274,6 @@ const UUsernameRoute = UUsernameRouteImport.update({
   path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoomsIdRoute = RoomsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => RoomsRoute,
-} as any)
 const PlayersPlayerIdRoute = PlayersPlayerIdRouteImport.update({
   id: '/players/$playerId',
   path: '/players/$playerId',
@@ -310,11 +297,6 @@ const DragonForgeRoute = DragonForgeRouteImport.update({
 const AdminWeeklyXpRoute = AdminWeeklyXpRouteImport.update({
   id: '/weekly-xp',
   path: '/weekly-xp',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminVoiceRoomsRoute = AdminVoiceRoomsRouteImport.update({
-  id: '/voice-rooms',
-  path: '/voice-rooms',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminTribeEventsRoute = AdminTribeEventsRouteImport.update({
@@ -445,7 +427,6 @@ export interface FileRoutesByFullPath {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/rooms': typeof RoomsRouteWithChildren
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -470,13 +451,11 @@ export interface FileRoutesByFullPath {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
-  '/admin/voice-rooms': typeof AdminVoiceRoomsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
-  '/rooms/$id': typeof RoomsIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
@@ -513,7 +492,6 @@ export interface FileRoutesByTo {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/rooms': typeof RoomsRouteWithChildren
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -538,13 +516,11 @@ export interface FileRoutesByTo {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
-  '/admin/voice-rooms': typeof AdminVoiceRoomsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
-  '/rooms/$id': typeof RoomsIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
@@ -583,7 +559,6 @@ export interface FileRoutesById {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/rooms': typeof RoomsRouteWithChildren
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -608,13 +583,11 @@ export interface FileRoutesById {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
-  '/admin/voice-rooms': typeof AdminVoiceRoomsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
-  '/rooms/$id': typeof RoomsIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
@@ -654,7 +627,6 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
-    | '/rooms'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -679,13 +651,11 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
-    | '/admin/voice-rooms'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
-    | '/rooms/$id'
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
@@ -722,7 +692,6 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
-    | '/rooms'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -747,13 +716,11 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
-    | '/admin/voice-rooms'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
-    | '/rooms/$id'
     | '/u/$username'
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
@@ -791,7 +758,6 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
-    | '/rooms'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -816,13 +782,11 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
-    | '/admin/voice-rooms'
     | '/admin/weekly-xp'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
-    | '/rooms/$id'
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
@@ -861,7 +825,6 @@ export interface RootRouteChildren {
   RechargeRoute: typeof RechargeRoute
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  RoomsRoute: typeof RoomsRouteWithChildren
   ShipMarketRoute: typeof ShipMarketRoute
   ShipsShopRoute: typeof ShipsShopRoute
   ShopRoute: typeof ShopRoute
@@ -953,13 +916,6 @@ declare module '@tanstack/react-router' {
       path: '/ship-market'
       fullPath: '/ship-market'
       preLoaderRoute: typeof ShipMarketRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rooms': {
-      id: '/rooms'
-      path: '/rooms'
-      fullPath: '/rooms'
-      preLoaderRoute: typeof RoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1172,13 +1128,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rooms/$id': {
-      id: '/rooms/$id'
-      path: '/$id'
-      fullPath: '/rooms/$id'
-      preLoaderRoute: typeof RoomsIdRouteImport
-      parentRoute: typeof RoomsRoute
-    }
     '/players/$playerId': {
       id: '/players/$playerId'
       path: '/players/$playerId'
@@ -1212,13 +1161,6 @@ declare module '@tanstack/react-router' {
       path: '/weekly-xp'
       fullPath: '/admin/weekly-xp'
       preLoaderRoute: typeof AdminWeeklyXpRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/voice-rooms': {
-      id: '/admin/voice-rooms'
-      path: '/voice-rooms'
-      fullPath: '/admin/voice-rooms'
-      preLoaderRoute: typeof AdminVoiceRoomsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/tribe-events': {
@@ -1372,7 +1314,6 @@ interface AdminRouteChildren {
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminTribeEventsRoute: typeof AdminTribeEventsRoute
-  AdminVoiceRoomsRoute: typeof AdminVoiceRoomsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -1392,7 +1333,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminTribeEventsRoute: AdminTribeEventsRoute,
-  AdminVoiceRoomsRoute: AdminVoiceRoomsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -1409,16 +1349,6 @@ const DragonRouteChildren: DragonRouteChildren = {
 
 const DragonRouteWithChildren =
   DragonRoute._addFileChildren(DragonRouteChildren)
-
-interface RoomsRouteChildren {
-  RoomsIdRoute: typeof RoomsIdRoute
-}
-
-const RoomsRouteChildren: RoomsRouteChildren = {
-  RoomsIdRoute: RoomsIdRoute,
-}
-
-const RoomsRouteWithChildren = RoomsRoute._addFileChildren(RoomsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -1449,7 +1379,6 @@ const rootRouteChildren: RootRouteChildren = {
   RechargeRoute: RechargeRoute,
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  RoomsRoute: RoomsRouteWithChildren,
   ShipMarketRoute: ShipMarketRoute,
   ShipsShopRoute: ShipsShopRoute,
   ShopRoute: ShopRoute,

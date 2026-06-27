@@ -1184,6 +1184,93 @@ export type Database = {
         }
         Relationships: []
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           active: boolean
@@ -3234,6 +3321,30 @@ export type Database = {
         }
         Relationships: []
       }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
+      }
       transaction_logs: {
         Row: {
           balance_after: number
@@ -3935,327 +4046,6 @@ export type Database = {
           shields_awarded?: number
           user_id?: string
           vip_level?: number
-        }
-        Relationships: []
-      }
-      voice_room_bans: {
-        Row: {
-          banned_by: string
-          created_at: string
-          room_id: string
-          user_id: string
-        }
-        Insert: {
-          banned_by: string
-          created_at?: string
-          room_id: string
-          user_id: string
-        }
-        Update: {
-          banned_by?: string
-          created_at?: string
-          room_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_bans_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_creation_bans: {
-        Row: {
-          banned_by: string | null
-          created_at: string
-          expires_at: string | null
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          banned_by?: string | null
-          created_at?: string
-          expires_at?: string | null
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          banned_by?: string | null
-          created_at?: string
-          expires_at?: string | null
-          reason?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      voice_room_global_mutes: {
-        Row: {
-          created_at: string
-          expires_at: string | null
-          muted_by: string | null
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string | null
-          muted_by?: string | null
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string | null
-          muted_by?: string | null
-          reason?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      voice_room_logs: {
-        Row: {
-          action: string
-          actor_id: string | null
-          created_at: string
-          details: Json
-          id: string
-          room_id: string
-          target_user_id: string | null
-        }
-        Insert: {
-          action: string
-          actor_id?: string | null
-          created_at?: string
-          details?: Json
-          id?: string
-          room_id: string
-          target_user_id?: string | null
-        }
-        Update: {
-          action?: string
-          actor_id?: string | null
-          created_at?: string
-          details?: Json
-          id?: string
-          room_id?: string
-          target_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_logs_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_members: {
-        Row: {
-          joined_at: string
-          last_seen_at: string
-          muted: boolean
-          role: Database["public"]["Enums"]["voice_room_role"]
-          room_id: string
-          seat_index: number | null
-          speaking: boolean
-          user_id: string
-        }
-        Insert: {
-          joined_at?: string
-          last_seen_at?: string
-          muted?: boolean
-          role?: Database["public"]["Enums"]["voice_room_role"]
-          room_id: string
-          seat_index?: number | null
-          speaking?: boolean
-          user_id: string
-        }
-        Update: {
-          joined_at?: string
-          last_seen_at?: string
-          muted?: boolean
-          role?: Database["public"]["Enums"]["voice_room_role"]
-          room_id?: string
-          seat_index?: number | null
-          speaking?: boolean
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_members_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_messages: {
-        Row: {
-          content: string
-          created_at: string
-          deleted: boolean
-          id: string
-          pinned: boolean
-          room_id: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          deleted?: boolean
-          id?: string
-          pinned?: boolean
-          room_id: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          deleted?: boolean
-          id?: string
-          pinned?: boolean
-          room_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_messages_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_reports: {
-        Row: {
-          created_at: string
-          id: string
-          reason: string
-          reporter_id: string
-          resolved: boolean
-          room_id: string
-          target_type: Database["public"]["Enums"]["voice_room_report_target"]
-          target_user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          reason: string
-          reporter_id: string
-          resolved?: boolean
-          room_id: string
-          target_type: Database["public"]["Enums"]["voice_room_report_target"]
-          target_user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          reason?: string
-          reporter_id?: string
-          resolved?: boolean
-          room_id?: string
-          target_type?: Database["public"]["Enums"]["voice_room_report_target"]
-          target_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_reports_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_room_requests: {
-        Row: {
-          created_at: string
-          id: string
-          resolved_at: string | null
-          room_id: string
-          status: Database["public"]["Enums"]["voice_room_req_status"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          resolved_at?: string | null
-          room_id: string
-          status?: Database["public"]["Enums"]["voice_room_req_status"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          resolved_at?: string | null
-          room_id?: string
-          status?: Database["public"]["Enums"]["voice_room_req_status"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "voice_room_requests_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "voice_rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      voice_rooms: {
-        Row: {
-          allow_mic_requests: boolean
-          closed_at: string | null
-          created_at: string
-          description: string | null
-          id: string
-          image_url: string | null
-          is_private: boolean
-          listeners_only: boolean
-          locked: boolean
-          name: string
-          owner_id: string
-          password: string | null
-          seat_count: number
-          updated_at: string
-        }
-        Insert: {
-          allow_mic_requests?: boolean
-          closed_at?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          is_private?: boolean
-          listeners_only?: boolean
-          locked?: boolean
-          name: string
-          owner_id: string
-          password?: string | null
-          seat_count?: number
-          updated_at?: string
-        }
-        Update: {
-          allow_mic_requests?: boolean
-          closed_at?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          is_private?: boolean
-          listeners_only?: boolean
-          locked?: boolean
-          name?: string
-          owner_id?: string
-          password?: string | null
-          seat_count?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -5095,7 +4885,6 @@ export type Database = {
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
       cleanup_elite_login_broadcasts: { Args: never; Returns: undefined }
-      cleanup_empty_voice_rooms: { Args: never; Returns: number }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
@@ -5136,6 +4925,10 @@ export type Database = {
         Args: { _amount?: number; _user_id: string }
         Returns: Json
       }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
       distribute_tribe_fish_event_prizes: {
         Args: { p_event_id: string }
@@ -5157,6 +4950,10 @@ export type Database = {
       dragon_stage_for_dp: { Args: { _dp: number }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
       equip_dragon_item: { Args: { p_item_id: string }; Returns: Json }
       feed_daughter: { Args: { _fish_stock_ids: string[] }; Returns: Json }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
@@ -5688,6 +5485,15 @@ export type Database = {
         }[]
       }
       message_contains_link: { Args: { _body: string }; Returns: boolean }
+      move_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
       normalize_ar: { Args: { p: string }; Returns: string }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
       notify_steal_started: {
@@ -5735,6 +5541,14 @@ export type Database = {
           rot: number
           sold: number
           total_amount: number
+        }[]
+      }
+      read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
         }[]
       }
       recompute_fish_prices: { Args: never; Returns: undefined }
@@ -6042,55 +5856,6 @@ export type Database = {
         }[]
       }
       verify_session_integrity: { Args: { _token: string }; Returns: boolean }
-      vr_admin_creation_ban: {
-        Args: { _expires: string; _reason: string; _target: string }
-        Returns: undefined
-      }
-      vr_admin_creation_unban: { Args: { _target: string }; Returns: undefined }
-      vr_create_room: {
-        Args: {
-          _allow_mic_requests: boolean
-          _description: string
-          _image_url: string
-          _is_private: boolean
-          _name: string
-          _password: string
-          _seats: number
-        }
-        Returns: string
-      }
-      vr_heartbeat: { Args: { _room: string }; Returns: undefined }
-      vr_is_admin: { Args: { _uid: string }; Returns: boolean }
-      vr_is_banned: { Args: { _room: string; _uid: string }; Returns: boolean }
-      vr_is_mod_or_owner: {
-        Args: { _room: string; _uid: string }
-        Returns: boolean
-      }
-      vr_is_owner: { Args: { _room: string; _uid: string }; Returns: boolean }
-      vr_join_room: {
-        Args: { _password: string; _room: string }
-        Returns: undefined
-      }
-      vr_leave_room: { Args: { _room: string }; Returns: undefined }
-      vr_leave_seat: { Args: { _room: string }; Returns: undefined }
-      vr_mod_action: {
-        Args: {
-          _action: string
-          _details?: Json
-          _room: string
-          _target: string
-        }
-        Returns: undefined
-      }
-      vr_request_mic: { Args: { _room: string }; Returns: string }
-      vr_resolve_request: {
-        Args: { _accept: boolean; _req: string }
-        Returns: undefined
-      }
-      vr_take_seat: {
-        Args: { _room: string; _seat: number }
-        Returns: undefined
-      }
       warn_overfull_tribes: { Args: never; Returns: number }
       xp_gain_scale: { Args: { _level: number }; Returns: number }
       xp_progress: { Args: { _user: string }; Returns: Json }
@@ -6098,9 +5863,6 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       lucky_box_rarity: "common" | "rare" | "legendary"
-      voice_room_report_target: "room" | "user"
-      voice_room_req_status: "pending" | "accepted" | "rejected" | "cancelled"
-      voice_room_role: "owner" | "mod" | "speaker" | "listener"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6230,9 +5992,6 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       lucky_box_rarity: ["common", "rare", "legendary"],
-      voice_room_report_target: ["room", "user"],
-      voice_room_req_status: ["pending", "accepted", "rejected", "cancelled"],
-      voice_room_role: ["owner", "mod", "speaker", "listener"],
     },
   },
 } as const
