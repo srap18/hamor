@@ -916,6 +916,40 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </button>
         </div>
 
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-semibold text-slate-300">🐉 التنين</div>
+            <button onClick={maxDragon} disabled={savingDragon} className="px-2 py-1 rounded-lg bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-xs font-bold disabled:opacity-50">
+              ⚡ مكس التنين
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-slate-400">🐲 المرحلة (1-15)</label>
+              <input type="number" min={1} max={15} value={dragonStage} onChange={(e) => setDragonStage(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-rose-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400">📈 مستوى اللؤلؤ (0-150)</label>
+              <input type="number" min={0} max={150} value={dragonPearlLevel} onChange={(e) => setDragonPearlLevel(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-rose-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400">💥 نقاط التنين (DP)</label>
+              <input type="number" min={0} value={dragonDp} onChange={(e) => setDragonDp(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-rose-500" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400">🦪 اللآلئ</label>
+              <input type="number" min={0} value={dragonPearls} onChange={(e) => setDragonPearls(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-rose-500" />
+            </div>
+          </div>
+          <button onClick={saveDragon} disabled={savingDragon} className="w-full mt-2 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-sm font-semibold">
+            {savingDragon ? "جاري الحفظ..." : "💾 حفظ التنين"}
+          </button>
+          <div className="text-[10px] text-slate-500 mt-1">يمكنك زيادة أو إنقاص القيم بحرّية. القيم تُحفظ مباشرة على ملف التنين.</div>
+        </div>
+
+
+
+
 
 
         <div className="mt-4 grid grid-cols-2 gap-2">
