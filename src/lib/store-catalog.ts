@@ -253,7 +253,7 @@ export const STORE_PACKS: StorePack[] = [
     label: "حفنة جواهر",
     emoji: "💎",
     priceUSD: 0.99,
-    reward: { gems: 100 },
+    reward: { gems: 200 },
   },
   {
     id: "gp_300",
@@ -262,7 +262,7 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "💎",
     priceUSD: 2.49,
     bonus: "+20%",
-    reward: { gems: 300 },
+    reward: { gems: 550 },
   },
   {
     id: "gp_550",
@@ -270,8 +270,8 @@ export const STORE_PACKS: StorePack[] = [
     label: "كيس جواهر",
     emoji: "💎",
     priceUSD: 4.99,
-    bonus: "+10%",
-    reward: { gems: 550 },
+    bonus: "+15%",
+    reward: { gems: 1_150 },
   },
   {
     id: "gp_1250",
@@ -282,7 +282,7 @@ export const STORE_PACKS: StorePack[] = [
     bonus: "+25%",
     popular: true,
     tag: "أفضل قيمة",
-    reward: { gems: 1_250 },
+    reward: { gems: 2_400 },
   },
   {
     id: "gp_2800",
@@ -290,8 +290,8 @@ export const STORE_PACKS: StorePack[] = [
     label: "خزنة جواهر",
     emoji: "🔷",
     priceUSD: 19.99,
-    bonus: "+12%",
-    reward: { gems: 2_800 },
+    bonus: "+15%",
+    reward: { gems: 5_000 },
   },
   {
     id: "gp_4500",
@@ -300,7 +300,7 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "🔶",
     priceUSD: 29.99,
     bonus: "+30%",
-    reward: { gems: 4_500 },
+    reward: { gems: 7_800 },
   },
   {
     id: "gp_7500",
@@ -309,7 +309,7 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "🏴‍☠️",
     priceUSD: 49.99,
     bonus: "+25% + صندوق",
-    reward: { gems: 7_500 },
+    reward: { gems: 13_500 },
   },
   {
     id: "gp_12000",
@@ -319,7 +319,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 74.99,
     bonus: "+35%",
     tag: "ملكي",
-    reward: { gems: 12_000 },
+    reward: { gems: 21_000 },
   },
   {
     id: "gp_17000",
@@ -327,10 +327,11 @@ export const STORE_PACKS: StorePack[] = [
     label: "كنز الإمبراطور",
     emoji: "👑",
     priceUSD: 99.99,
-    bonus: "+36% + 3 صناديق",
+    bonus: "+40% + 3 صناديق",
     tag: "أفضل قيمة",
-    reward: { gems: 17_000 },
+    reward: { gems: 29_000 },
   },
+
 
 
   // ───── Coins ──────────────────────────────────────────────
