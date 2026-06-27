@@ -1484,7 +1484,13 @@ function Index() {
       }
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
-        // Server already considers the ship docked — silent.
+        // Server already considers the ship docked (stale local state — another
+        // tab/device collected, realtime lag, or a golden-fisher tick consumed
+        // the cycle). Without feedback the player thinks the ship returned empty.
+        // Show a clear toast, refresh fleet, and auto-relaunch when possible so
+        // they don't lose time.
+        showToast("🔄 تم تحديث حالة السفينة — أعد المحاولة");
+        sound.play("error");
       } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("network")) {
         showToast("⚠️ انقطع الاتصال — حاول مرة ثانية");
         sound.play("error");
