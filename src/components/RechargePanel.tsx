@@ -264,65 +264,69 @@ export function RechargePanel() {
                     {p.label}
                   </div>
 
-
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {r.phoenixShips ? (
-                      <span className="text-[10px] font-extrabold text-rose-100 bg-gradient-to-r from-rose-600 to-orange-500 border border-rose-300/50 px-1.5 py-0.5 rounded">
-                        🦅 ×{r.phoenixShips} سفينة العنقاء
-                      </span>
-                    ) : null}
-                    {r.gems ? (
-                      <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
-                        +{r.gems.toLocaleString()} 💎
-                      </span>
-                    ) : null}
-                    {r.coins ? (
-                      <span className="text-[10px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
-                        +{r.coins.toLocaleString()} <CoinIcon size={11} />
-                      </span>
-                    ) : null}
-                    {r.rubies ? (
-                      <span className="text-[10px] font-extrabold text-rose-200 bg-rose-900/50 border border-rose-400/40 px-1.5 py-0.5 rounded">
-                        +{r.rubies} 🔴
-                      </span>
-                    ) : null}
-                    {r.shieldDays ? (
-                      <span className="text-[10px] font-extrabold text-sky-200 bg-sky-900/50 border border-sky-400/40 px-1.5 py-0.5 rounded">
-                        🛡️ {r.shieldDays} أيام
-                      </span>
-                    ) : null}
-                    {r.vipDays ? (
-                      <span className="text-[10px] font-extrabold text-violet-200 bg-violet-900/50 border border-violet-400/40 px-1.5 py-0.5 rounded">
-                        👑 VIP {r.vipDays}ي
-                      </span>
-                    ) : null}
-                    {r.items?.map((it) => {
-                      const labels: Record<string, string> = {
-                        ad_bomb: "📺 قنبلة إعلانية",
-                        rocket_small: "🚀 صاروخ صغير",
-                        rocket_medium: "🚀 صاروخ متوسط",
-                        rocket_large: "🚀 صاروخ كبير",
-                        nuke: "☢️ نووية",
-                        thief: "🥷 السارق",
-                        police: "👮 شرطي",
-                        trader: "💰 التاجر",
-                        luck: "🍀 الحظ",
-                        sailor: "⛵ بحار",
-                        guide: "🧭 المرشد",
-                        fixer_1: "🔧 مصلح صغير",
-                        fixer_2: "🛠️ مصلح متوسط",
-                        fixer_3: "⚒️ مصلح كبير",
-                        fixer_4: "🏆 مصلح أسطوري",
-                      };
-                      return (
-                        <span
-                          key={`${it.itemType}:${it.itemId}`}
-                          className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
-                        >
-                          ×{it.qty} {labels[it.itemId] ?? it.itemId}
+                  <div className="mt-1 rounded-lg border border-emerald-400/40 bg-emerald-950/40 p-1.5">
+                    <div className="text-[9px] font-extrabold text-emerald-300 mb-1 flex items-center gap-1">
+                      🎁 <span>تحصل على:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {r.phoenixShips ? (
+                        <span className="text-[10px] font-extrabold text-rose-100 bg-gradient-to-r from-rose-600 to-orange-500 border border-rose-300/50 px-1.5 py-0.5 rounded">
+                          🦅 ×{r.phoenixShips} سفينة العنقاء
                         </span>
-                      );
-                    })}
+                      ) : null}
+                      {r.gems ? (
+                        <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
+                          {r.gems.toLocaleString()} 💎
+                        </span>
+                      ) : null}
+                      {r.coins ? (
+                        <span className="text-[10px] font-extrabold text-amber-200 bg-amber-900/50 border border-amber-400/40 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                          {r.coins.toLocaleString()} <CoinIcon size={11} />
+                        </span>
+                      ) : null}
+                      {r.rubies ? (
+                        <span className="text-[10px] font-extrabold text-rose-200 bg-rose-900/50 border border-rose-400/40 px-1.5 py-0.5 rounded">
+                          {r.rubies} 🔴
+                        </span>
+                      ) : null}
+                      {r.shieldDays ? (
+                        <span className="text-[10px] font-extrabold text-sky-200 bg-sky-900/50 border border-sky-400/40 px-1.5 py-0.5 rounded">
+                          🛡️ {r.shieldDays} أيام
+                        </span>
+                      ) : null}
+                      {r.vipDays ? (
+                        <span className="text-[10px] font-extrabold text-violet-200 bg-violet-900/50 border border-violet-400/40 px-1.5 py-0.5 rounded">
+                          👑 VIP {r.vipDays}ي
+                        </span>
+                      ) : null}
+                      {r.items?.map((it) => {
+                        const labels: Record<string, string> = {
+                          ad_bomb: "📺 قنبلة إعلانية",
+                          rocket_small: "🚀 صاروخ صغير",
+                          rocket_medium: "🚀 صاروخ متوسط",
+                          rocket_large: "🚀 صاروخ كبير",
+                          nuke: "☢️ نووية",
+                          thief: "🥷 السارق",
+                          police: "👮 شرطي",
+                          trader: "💰 التاجر",
+                          luck: "🍀 الحظ",
+                          sailor: "⛵ بحار",
+                          guide: "🧭 المرشد",
+                          fixer_1: "🔧 مصلح صغير",
+                          fixer_2: "🛠️ مصلح متوسط",
+                          fixer_3: "⚒️ مصلح كبير",
+                          fixer_4: "🏆 مصلح أسطوري",
+                        };
+                        return (
+                          <span
+                            key={`${it.itemType}:${it.itemId}`}
+                            className="text-[10px] font-extrabold text-fuchsia-200 bg-fuchsia-900/50 border border-fuchsia-400/40 px-1.5 py-0.5 rounded"
+                          >
+                            ×{it.qty} {labels[it.itemId] ?? it.itemId}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {p.description && (
@@ -332,10 +336,11 @@ export function RechargePanel() {
                   )}
                 </div>
 
+
                 <button
                   onClick={() => purchase(p)}
                   disabled={disabled}
-                  className="px-2.5 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-extrabold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight shadow-[0_4px_14px_rgba(16,185,129,0.5)] shrink-0 min-w-[62px]"
+                  className="px-2.5 py-2 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-extrabold active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight shadow-[0_4px_14px_rgba(16,185,129,0.5)] shrink-0 min-w-[72px]"
                 >
                   {busy === p.id ? (
                     <span className="text-[10px]">⏳</span>
@@ -343,11 +348,13 @@ export function RechargePanel() {
                     <span className="text-[10px]">{disabledLabel}</span>
                   ) : (
                     <>
+                      <span className="text-[9px] font-bold opacity-90">السعر</span>
                       <span className="text-sm">{formatSarFromUsd(p.priceUSD)}</span>
-                      <span className="text-[9px] font-bold">شراء</span>
+                      <span className="text-[9px] font-bold mt-0.5 bg-white/20 px-1.5 rounded">ادفع</span>
                     </>
                   )}
                 </button>
+
               </div>
             </div>
           );
