@@ -101,16 +101,7 @@ function SignupPage() {
     nav({ to: "/" });
   };
 
-  const resend = async () => {
-    if (!pendingEmail || resending) return;
-    setResending(true); setResendMsg(null);
-    const { error } = await supabase.auth.resend({
-      type: "signup", email: pendingEmail,
-      options: { emailRedirectTo: window.location.origin },
-    });
-    setResending(false);
-    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إعادة إرسال الرابط ✓");
-  };
+  // Resend kept for VerifyOtpForm; no separate button here anymore.
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 text-white" dir="rtl" style={{
