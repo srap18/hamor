@@ -20,6 +20,7 @@ export function DraggableRepairBgButton({
 }) {
   const SIZE = 44;
   const MARGIN = 6;
+  const BOTTOM_RESERVED = 140; // keep clear of bottom nav
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(true);
@@ -65,7 +66,7 @@ export function DraggableRepairBgButton({
     } catch {}
     setPos({
       x: Math.max(MARGIN, bounds.w / 2 - 100),
-      y: Math.max(MARGIN, bounds.h - 180),
+      y: Math.max(MARGIN, bounds.h - BOTTOM_RESERVED - 60),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds, storageKey]);
@@ -76,7 +77,7 @@ export function DraggableRepairBgButton({
     const elH = r?.height ?? (open ? 52 : SIZE);
     return {
       x: Math.max(MARGIN, Math.min(b.w - elW - MARGIN, x)),
-      y: Math.max(MARGIN, Math.min(b.h - elH - MARGIN, y)),
+      y: Math.max(MARGIN, Math.min(b.h - elH - BOTTOM_RESERVED, y)),
     };
   }
 
