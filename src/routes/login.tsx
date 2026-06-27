@@ -77,7 +77,6 @@ function LoginPage() {
     if (!email || resending) return;
     setResending(true); setResendMsg(null);
     const { error } = await supabase.auth.resend({
-    const { error } = await supabase.auth.resend({
       type: "signup", email,
     });
     setResending(false);
