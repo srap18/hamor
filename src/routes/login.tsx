@@ -114,10 +114,15 @@ function LoginPage() {
             className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm focus:outline-none focus:border-amber-400" />
           {err && <div className="text-amber-300 text-xs text-center">{err}</div>}
           {needsConfirm && (
-            <div className="p-2 rounded-lg bg-amber-900/40 border border-amber-700/50 space-y-2">
+            <div className="p-3 rounded-lg bg-amber-900/40 border border-amber-700/50 space-y-2 text-center">
+              <div className="text-xs text-amber-100">حسابك يحتاج تأكيد. أرسلنا كوداً من 6 أرقام إلى بريدك.</div>
+              <button type="button" onClick={() => nav({ to: "/signup" })}
+                className="w-full py-1.5 rounded bg-amber-600 text-white text-xs font-bold active:scale-95">
+                إدخال كود التأكيد
+              </button>
               <button type="button" onClick={resend} disabled={resending || !email}
                 className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
-                {resending ? "جاري الإرسال..." : "📧 إعادة إرسال رابط التأكيد"}
+                {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الكود"}
               </button>
               {resendMsg && <div className="text-[11px] text-emerald-300 text-center">{resendMsg}</div>}
             </div>
