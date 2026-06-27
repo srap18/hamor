@@ -2,13 +2,12 @@ import * as React from 'react'
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
   Html,
-  Link,
   Preview,
+  Section,
   Text,
 } from '@react-email/components'
 
@@ -17,39 +16,32 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  token: string
 }
 
 export const SignupEmail = ({
   siteName,
-  siteUrl,
   recipient,
-  confirmationUrl,
+  token,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="ar" dir="rtl">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>كود تأكيد حسابك في {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Heading style={brand}>⚓ {siteName}</Heading>
+        <Heading style={h1}>كود تأكيد الحساب</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+          مرحباً بك يا قبطان! استخدم الكود التالي لتأكيد بريدك {recipient} وتفعيل حسابك في ملوك القراصنة:
         </Text>
+        <Section style={codeBox}>
+          <Text style={codeStyle}>{token}</Text>
+        </Section>
         <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+          الكود صالح لمدة <strong>ساعة واحدة</strong>. أدخله في صفحة التسجيل لإكمال إنشاء حسابك.
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          إذا لم تكن أنت من طلب إنشاء الحساب، تجاهل هذه الرسالة بأمان.
         </Text>
       </Container>
     </Body>
@@ -58,27 +50,43 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Tahoma, Arial, sans-serif' }
+const container = { padding: '30px 25px', maxWidth: '520px' }
+const brand = {
+  fontSize: '20px',
+  fontWeight: 'bold' as const,
+  color: '#b8841f',
+  margin: '0 0 20px',
+  textAlign: 'center' as const,
+}
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#0a1929',
   margin: '0 0 20px',
+  textAlign: 'center' as const,
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
+  fontSize: '15px',
+  color: '#3f3f46',
+  lineHeight: '1.7',
+  margin: '0 0 20px',
+  textAlign: 'right' as const,
+}
+const codeBox = {
+  backgroundColor: '#fef3c7',
+  border: '2px dashed #b8841f',
+  borderRadius: '12px',
+  padding: '20px',
   margin: '0 0 25px',
+  textAlign: 'center' as const,
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
+const codeStyle = {
+  fontFamily: 'Courier, monospace',
+  fontSize: '36px',
+  fontWeight: 'bold' as const,
+  color: '#0a1929',
+  letterSpacing: '8px',
+  margin: '0',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'right' as const }

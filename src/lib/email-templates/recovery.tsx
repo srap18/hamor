@@ -2,40 +2,40 @@ import * as React from 'react'
 
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
   Html,
   Preview,
+  Section,
   Text,
 } from '@react-email/components'
 
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
+  token: string
 }
 
-export const RecoveryEmail = ({
-  siteName,
-  confirmationUrl,
-}: RecoveryEmailProps) => (
-  <Html lang="en" dir="ltr">
+export const RecoveryEmail = ({ siteName, token }: RecoveryEmailProps) => (
+  <Html lang="ar" dir="rtl">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>كود إعادة تعيين كلمة المرور في {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Reset your password</Heading>
+        <Heading style={brand}>⚓ {siteName}</Heading>
+        <Heading style={h1}>كود إعادة تعيين كلمة المرور</Heading>
         <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
+          استخدم الكود التالي لإعادة تعيين كلمة المرور:
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Reset Password
-        </Button>
+        <Section style={codeBox}>
+          <Text style={codeStyle}>{token}</Text>
+        </Section>
+        <Text style={text}>
+          الكود صالح لمدة <strong>ساعة واحدة</strong>.
+        </Text>
         <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
+          إذا لم تطلب إعادة تعيين، تجاهل هذه الرسالة. كلمة مرورك لن تتغير.
         </Text>
       </Container>
     </Body>
@@ -44,26 +44,11 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Tahoma, Arial, sans-serif' }
+const container = { padding: '30px 25px', maxWidth: '520px' }
+const brand = { fontSize: '20px', fontWeight: 'bold' as const, color: '#b8841f', margin: '0 0 20px', textAlign: 'center' as const }
+const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#0a1929', margin: '0 0 20px', textAlign: 'center' as const }
+const text = { fontSize: '15px', color: '#3f3f46', lineHeight: '1.7', margin: '0 0 20px', textAlign: 'right' as const }
+const codeBox = { backgroundColor: '#fef3c7', border: '2px dashed #b8841f', borderRadius: '12px', padding: '20px', margin: '0 0 25px', textAlign: 'center' as const }
+const codeStyle = { fontFamily: 'Courier, monospace', fontSize: '36px', fontWeight: 'bold' as const, color: '#0a1929', letterSpacing: '8px', margin: '0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'right' as const }
