@@ -104,7 +104,7 @@ function ProfilePage() {
     if (!userId) return;
     if (file.size > 3 * 1024 * 1024) { flash("الصورة كبيرة (الحد 3 ميجا)"); return; }
     setSaving(true);
-    // Content moderation: block NSFW / explicit images before upload (fail closed).
+    // Content moderation: try to block NSFW; fail-open if service unavailable.
     try {
       flash("جاري فحص الصورة...");
       const b64 = await new Promise<string>((resolve, reject) => {
@@ -125,11 +125,10 @@ function ProfilePage() {
         return;
       }
     } catch (e: any) {
-      setSaving(false);
-      console.error("[avatar moderation]", e);
-      flash("⚠️ تعذّر فحص الصورة، حاول لاحقاً");
-      return;
+      // Fail-open: continue upload if moderation can't run (credits, network, etc.)
+      console.warn("[avatar moderation skipped]", e?.message || e);
     }
+
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
     const path = `${userId}/avatar.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, cacheControl: "0" });
