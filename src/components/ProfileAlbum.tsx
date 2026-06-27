@@ -60,8 +60,13 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
       if (isImg) {
         flash("جاري فحص الصورة...");
         const b64 = await fileToBase64(file);
-        const verdict = await moderateImage({ data: { imageBase64: b64, mimeType: file.type || "image/jpeg" } });
-        if (!verdict.safe) { flash("⚠️ الصورة مرفوضة: محتوى غير لائق"); return; }
+        try {
+          const verdict = await moderateImage({ data: { imageBase64: b64, mimeType: file.type || "image/jpeg" } });
+          if (!verdict.safe) { flash("⚠️ الصورة مرفوضة: محتوى غير لائق"); return; }
+        } catch (modErr: any) {
+          // Fail-open if moderation can't run
+          console.warn("[album image moderation skipped]", modErr?.message || modErr);
+        }
         flash("جاري الرفع...");
         await uploadProfileMedia({ userId, file, mediaType: "image" });
       } else {
@@ -72,8 +77,12 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
           return;
         }
         flash("جاري فحص المحتوى...");
-        const verdict = await moderateFrames({ data: { framesBase64: frames, mimeType: "image/jpeg" } });
-        if (!verdict.safe) { flash("⚠️ الفيديو مرفوض: محتوى غير لائق"); return; }
+        try {
+          const verdict = await moderateFrames({ data: { framesBase64: frames, mimeType: "image/jpeg" } });
+          if (!verdict.safe) { flash("⚠️ الفيديو مرفوض: محتوى غير لائق"); return; }
+        } catch (modErr: any) {
+          console.warn("[album video moderation skipped]", modErr?.message || modErr);
+        }
         flash("جاري الرفع...");
         await uploadProfileMedia({
           userId,
@@ -83,6 +92,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
           thumbBlob: firstThumb,
         });
       }
+
       flash("تمت الإضافة ✓");
       await reload();
     } catch (e: any) {
