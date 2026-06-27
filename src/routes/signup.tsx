@@ -145,3 +145,76 @@ function SignupPage() {
     </div>
   );
 }
+
+function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode: string; onVerified: () => void }) {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
+
+  const verify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    const token = code.trim();
+    if (token.length < 6) { setErr("أدخل الكود المكون من 6 أرقام"); return; }
+    setBusy(true);
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+    setBusy(false);
+    if (error) { setErr("الكود غير صحيح أو منتهي. أعد المحاولة"); return; }
+    if (!data.session) { setErr("تعذر إكمال التأكيد، حاول مرة أخرى"); return; }
+    if (refCode) {
+      try {
+        await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
+        localStorage.removeItem("pending_referral_code");
+      } catch {}
+    }
+    onVerified();
+  };
+
+  const resend = async () => {
+    if (resending) return;
+    setResending(true); setResendMsg(null); setErr(null);
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    setResending(false);
+    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال كود جديد ✓");
+  };
+
+  return (
+    <form onSubmit={verify} className="space-y-3 text-center">
+      <div className="text-5xl">📧</div>
+      <div className="text-amber-200 font-bold">أدخل كود التأكيد</div>
+      <div className="text-xs text-amber-100/70">
+        أرسلنا كوداً من 6 أرقام إلى <span className="text-amber-300 break-all">{email}</span>
+      </div>
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
+        required
+        placeholder="------"
+        value={code}
+        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        className="w-full px-3 py-3 rounded-lg bg-stone-900 border-2 border-amber-700/50 text-white text-2xl font-bold tracking-[0.6em] text-center focus:outline-none focus:border-amber-400"
+      />
+      {err && <div className="text-rose-400 text-xs">{err}</div>}
+      <button
+        disabled={busy || code.length < 6}
+        type="submit"
+        className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60"
+      >
+        {busy ? "جاري التأكيد..." : "✓ تأكيد الحساب"}
+      </button>
+      <button
+        type="button"
+        onClick={resend}
+        disabled={resending}
+        className="w-full py-2 rounded-lg bg-emerald-700/70 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
+      >
+        {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الكود"}
+      </button>
+      {resendMsg && <div className="text-[11px] text-emerald-300">{resendMsg}</div>}
+    </form>
+  );
+}
