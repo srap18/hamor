@@ -4653,6 +4653,33 @@ export type Database = {
         Args: { _coins: number; _gems: number; _xp: number }
         Returns: number
       }
+      admin_max_dragon: {
+        Args: { _player: string }
+        Returns: {
+          created_at: string
+          daily_arena_date: string | null
+          daily_arena_extra_bought: number
+          daily_arena_used: number
+          dp: number
+          element: string
+          hatched_at: string | null
+          name: string
+          pearl_level: number
+          pearls: number
+          pvp_losses: number
+          pvp_wins: number
+          stage: number
+          total_boss_damage: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dragons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_permanent_ban: {
         Args: { _reason?: string; _uid: string }
         Returns: number
@@ -4723,6 +4750,39 @@ export type Database = {
           email: string
           id: string
         }[]
+      }
+      admin_set_dragon: {
+        Args: {
+          _dp?: number
+          _pearl_level?: number
+          _pearls?: number
+          _player: string
+          _stage?: number
+        }
+        Returns: {
+          created_at: string
+          daily_arena_date: string | null
+          daily_arena_extra_bought: number
+          daily_arena_used: number
+          dp: number
+          element: string
+          hatched_at: string | null
+          name: string
+          pearl_level: number
+          pearls: number
+          pvp_losses: number
+          pvp_wins: number
+          stage: number
+          total_boss_damage: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dragons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_set_inventory_quantity: {
         Args: { _quantity: number; _row_id: string }
