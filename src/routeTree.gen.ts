@@ -71,6 +71,9 @@ import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminArenaRouteImport } from './routes/admin.arena'
 import { Route as AdminAntiCheatRouteImport } from './routes/admin.anti-cheat'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 
@@ -384,6 +387,22 @@ const AdminAntiCheatRoute = AdminAntiCheatRouteImport.update({
   path: '/anti-cheat',
   getParentRoute: () => AdminRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -462,6 +481,9 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -527,6 +549,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -594,6 +619,9 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -662,6 +690,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -727,6 +758,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -793,6 +827,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/payments/webhook'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -841,6 +878,9 @@ export interface RootRouteChildren {
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1279,6 +1319,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAntiCheatRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -1405,17 +1466,10 @@ const rootRouteChildren: RootRouteChildren = {
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
