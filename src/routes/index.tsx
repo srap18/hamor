@@ -1416,12 +1416,22 @@ function Index() {
     setShips((curr) => curr.map((x) => x.id === shipId ? { ...x, progress: 0, timeLeft: x.duration, fishing: false, startedAt: undefined } : x));
     sound.play("whoosh");
 
-    // Show an instant placeholder result popup so the user gets immediate feedback
-    // — feels offline. The real fish/qty fills in the moment the server responds.
+    // Show an instant PREDICTED result popup so the user gets immediate feedback
+    // with the real fish image and an estimated count. The server reconciles
+    // the moment it responds (usually fixes only the exact count). This kills
+    // the perceived delay of "pulling the net..." while the RPC roundtrips.
+    const _predShipDef = s.catalogCode ? getShipByCode(s.catalogCode) : getShipByMarketLevel(s.level);
+    const _predPool = _predShipDef.fishPool ?? [];
+    const _predFishId = (requestedFishId && _predPool.includes(requestedFishId))
+      ? requestedFishId
+      : _predPool[0] ?? null;
+    const _predFish = _predFishId ? FISH[_predFishId] : null;
+    const _predCount = Math.max(1, Math.min(s.max, Math.round(s.progress)));
     setCatchResult({
-      emoji: "🎣",
-      name: "جارٍ سحب الشبكة...",
-      count: 0,
+      img: _predFish?.img,
+      emoji: _predFish?.emoji ?? "🎣",
+      name: _predFish?.name ?? "سمكة",
+      count: _predCount,
       shipId: s.id,
       shipLevel: s.level,
     });
