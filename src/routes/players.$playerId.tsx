@@ -357,9 +357,10 @@ function PlayerPage() {
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "ships_owned" },
+        { event: "*", schema: "public", table: "ships_owned", filter: `stealing_target_user_id=eq.${playerId}` },
         () => { loadRaiders(); }
       )
+
       .subscribe();
 
     // Backstop: realtime + focus already cover most cases — poll slowly to save CPU
