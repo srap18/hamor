@@ -123,17 +123,11 @@ function SignupPage() {
           <div className="text-xs text-amber-100/70 inline-flex items-center justify-center gap-1 w-full">ابدأ رحلتك من 500 <CoinIcon size={12} /></div>
         </div>
         {pendingEmail ? (
-          <div className="space-y-3 text-center">
-            <div className="text-5xl">📧</div>
-            <div className="text-amber-200 font-bold">تحقق من بريدك الإلكتروني</div>
-            <div className="text-xs text-amber-100/70">أرسلنا رابط تأكيد إلى <span className="text-amber-300 break-all">{pendingEmail}</span>. افتح الرابط لتفعيل حسابك ثم ادخل من صفحة الدخول.</div>
-            <button onClick={resend} disabled={resending}
-              className="w-full py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
-              {resending ? "جاري الإرسال..." : "إعادة إرسال الرابط"}
-            </button>
-            {resendMsg && <div className="text-[11px] text-emerald-300">{resendMsg}</div>}
-            <Link to="/login" className="block text-amber-300 text-xs font-bold">الذهاب لتسجيل الدخول</Link>
-          </div>
+          <VerifyOtpForm
+            email={pendingEmail}
+            refCode={refCode}
+            onVerified={() => nav({ to: "/" })}
+          />
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <input required maxLength={15} placeholder="اسم القبطان (15 حرف كحد أقصى)" value={name} onChange={(e) => setName(e.target.value.slice(0, 15))}
