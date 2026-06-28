@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { SupportTicketChat } from "@/components/SupportTicketChat";
 import { useAuth } from "@/hooks/use-auth";
+import { useServerFn } from "@tanstack/react-start";
+import { adminReconcilePaddleForUser } from "@/lib/admin-payments.functions";
 
 
 export const Route = createFileRoute("/admin/tickets")({
@@ -50,6 +52,27 @@ function AdminTicketsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [openChat, setOpenChat] = useState<Record<string, boolean>>({});
+  const [reconciling, setReconciling] = useState<Record<string, boolean>>({});
+  const reconcileFn = useServerFn(adminReconcilePaddleForUser);
+
+  const reconcileForTicket = async (t: Ticket) => {
+    setReconciling((p) => ({ ...p, [t.id]: true }));
+    try {
+      const res = await reconcileFn({ data: { userId: t.user_id, environment: "live" } }) as { ok?: boolean; grantedCount?: number; reason?: string; skipped?: { id: string; reason: string }[] };
+      if (res?.ok === false) {
+        toast.error(`فشل: ${res.reason ?? "غير معروف"}`);
+      } else if ((res?.grantedCount ?? 0) > 0) {
+        toast.success(`✅ تم صرف ${res.grantedCount} عملية للاعب`);
+      } else {
+        const skipReasons = res?.skipped?.map((s) => s.reason).join(", ") ?? "";
+        toast.message("ℹ️ لا توجد عمليات معلقة للصرف", { description: skipReasons || undefined });
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "فشل الصرف");
+    } finally {
+      setReconciling((p) => ({ ...p, [t.id]: false }));
+    }
+  };
 
   const load = async () => {
 
@@ -219,6 +242,14 @@ function AdminTicketsPage() {
 
 
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => reconcileForTicket(t)}
+                    disabled={!!reconciling[t.id]}
+                    className="text-xs px-3 py-1 rounded bg-emerald-700/70 hover:bg-emerald-700 text-white border border-emerald-600 disabled:opacity-50"
+                    title="يجلب مدفوعات اللاعب من Paddle ويصرف أي عملية لم تُصرف (جواهر/VIP/دروع...)"
+                  >
+                    {reconciling[t.id] ? "⏳ جاري الصرف..." : "💰 صرف المدفوعات المعلقة"}
+                  </button>
                   {STATUSES.filter((s) => s.value !== t.status).map((s) => (
                     <button
                       key={s.value}
