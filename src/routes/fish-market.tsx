@@ -22,6 +22,7 @@ type SellResult = {
   rotLoss: number;
   net: number;
   fishName: string;
+  marketExpertBoost?: { basePrice: number; boostedPrice: number; qty: number } | null;
 };
 
 const TIER_INFO: Record<1|2|3|4|5, { img: string; label: string; stars: number; text: string }> = {
