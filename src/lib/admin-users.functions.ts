@@ -24,8 +24,8 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     if (input.email !== undefined && (input.email.length > 255 || !input.email.includes("@"))) {
       throw new Error("Invalid email");
     }
-    if (input.display_name !== undefined && (input.display_name.trim().length < 1 || input.display_name.length > 50)) {
-      throw new Error("Invalid name");
+    if (input.display_name !== undefined && (input.display_name.trim().length < 2 || input.display_name.trim().length > 15)) {
+      throw new Error("الاسم يجب أن يكون بين 2 و 15 حرف");
     }
     return input;
   })
