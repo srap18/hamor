@@ -359,6 +359,10 @@ function FishMarket() {
   }, [user?.id, lvl]);
 
   const tickNow = useServerTick();
+
+  const marketExpertUntil = (profile as any)?.market_expert_until as string | null | undefined;
+  const marketExpertMs = marketExpertUntil ? Math.max(0, new Date(marketExpertUntil).getTime() - tickNow) : 0;
+  const marketExpertActive = marketExpertMs > 0;
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
