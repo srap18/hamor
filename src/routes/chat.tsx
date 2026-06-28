@@ -259,36 +259,48 @@ function ChatPage() {
       }
     });
 
-    const ch = supabase.channel(`msgs-${tab}-${dmWith || ""}-${Date.now()}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, async (payload) => {
-        const m = payload.new as Msg;
-        let ok = false;
-        if (tab === "public" && m.channel === "public") ok = true;
-        else if (tab === "tribe" && m.channel === "tribe" && m.tribe_id === profile?.tribe_id) ok = true;
-        else if (tab === "dm" && m.channel === "dm" && dmWith && ((m.sender_id === user.id && m.recipient_id === dmWith) || (m.sender_id === dmWith && m.recipient_id === user.id))) ok = true;
-        if (!ok) return;
-        setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m]);
-        setProfMap(prev => {
-          if (prev.has(m.sender_id)) return prev;
-          supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
-            if (p) setProfMap(s => new Map(s).set((p as any).id, p as Prof));
+    // Ensure realtime uses the authenticated JWT so RLS-protected channels
+    // (tribe + DM) actually deliver INSERT events. Without setAuth, realtime
+    // runs as anon and silently drops events the user can't SELECT — which is
+    // why messages used to "arrive in batches" via the fallback poller only.
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        try { await supabase.realtime.setAuth(session.access_token); } catch { /* ignore */ }
+      }
+      if (!active) return;
+      ch = supabase.channel(`msgs-${tab}-${dmWith || ""}-${Date.now()}`, {
+        config: { broadcast: { self: false }, presence: { key: "" } },
+      })
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, async (payload) => {
+          const m = payload.new as Msg;
+          let ok = false;
+          if (tab === "public" && m.channel === "public") ok = true;
+          else if (tab === "tribe" && m.channel === "tribe" && m.tribe_id === profile?.tribe_id) ok = true;
+          else if (tab === "dm" && m.channel === "dm" && dmWith && ((m.sender_id === user.id && m.recipient_id === dmWith) || (m.sender_id === dmWith && m.recipient_id === user.id))) ok = true;
+          if (!ok) return;
+          setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m]);
+          setProfMap(prev => {
+            if (prev.has(m.sender_id)) return prev;
+            supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").eq("id", m.sender_id).maybeSingle().then(({ data: p }) => {
+              if (p) setProfMap(s => new Map(s).set((p as any).id, p as Prof));
+            });
+            return prev;
           });
-          return prev;
-        });
-      })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
-        const oldId = (payload.old as any)?.id;
-        if (!oldId) return;
-        setMsgs(s => s.filter(x => x.id !== oldId));
-      })
-      .subscribe();
+        })
+        .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
+          const oldId = (payload.old as any)?.id;
+          if (!oldId) return;
+          setMsgs(s => s.filter(x => x.id !== oldId));
+        })
+        .subscribe();
+    })();
 
-    // Fallback poller: realtime can drop on flaky mobile connections or when the
-    // socket disconnects silently. Poll for new messages every 4s as a safety net
-    // so messages always appear without a manual refresh.
+    // Fallback poller — kept as a safety net for flaky mobile sockets, but
+    // tightened to 1.5s so missed messages still feel near-instant.
     const pollNewer = async () => {
       if (!active) return;
-      // Determine the newest timestamp we already have
       let newestAt: string | null = null;
       setMsgs(cur => {
         newestAt = cur.length ? cur[cur.length - 1].created_at : null;
@@ -314,15 +326,16 @@ function ChatPage() {
         if (active && ps) setProfMap(prev => { const n = new Map(prev); (ps as any[]).forEach(p => n.set(p.id, p)); return n; });
       }
     };
-    const pollTimer = window.setInterval(pollNewer, 4000);
+    const pollTimer = window.setInterval(pollNewer, 1500);
     const onVis = () => { if (document.visibilityState === "visible") pollNewer(); };
     document.addEventListener("visibilitychange", onVis);
+
 
     return () => {
       active = false;
       window.clearInterval(pollTimer);
       document.removeEventListener("visibilitychange", onVis);
-      supabase.removeChannel(ch);
+      if (ch) supabase.removeChannel(ch);
     };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
