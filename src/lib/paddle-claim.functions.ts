@@ -97,6 +97,19 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     // already granted this transaction — prevents double-grants.
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
+    // Elite VIP fallback — activate level immediately even if SubscriptionCreated
+    // never fires for this price config.
+    const eliteMatch = /^elite_vip_([1-5])_monthly$/.exec(packId);
+    if (!alreadyGranted && eliteMatch) {
+      const level = Number(eliteMatch[1]);
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabaseAdmin
+        .from("profiles")
+        .update({ elite_vip_level: level, elite_vip_expires_at: expiresAt } as never)
+        .eq("id", userId);
+    }
+
+
     if (!alreadyGranted && reward.items?.length) {
       for (const it of reward.items) {
         await supabaseAdmin.rpc("grant_inventory_item", {
