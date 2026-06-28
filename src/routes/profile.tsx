@@ -148,6 +148,15 @@ function ProfilePage() {
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
     if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
+    // Block decorations / symbols / emojis client-side (Arabic + English letters/digits + space/_/-)
+    if (!/^[\u0600-\u06FFA-Za-z0-9 _-]+$/.test(trimmed)) {
+      flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
+      return;
+    }
+    if (!/[\u0600-\u06FFA-Za-z]/.test(trimmed)) {
+      flash("الاسم لازم يحتوي على حرف واحد على الأقل");
+      return;
+    }
     setSaving(true);
     // Religious-name policy
     try {
@@ -177,7 +186,18 @@ function ProfilePage() {
       profile_frame: profileFrame,
     } as any).eq("id", userId).select("id");
     setSaving(false);
-    if (error) { console.error("[profile save]", error); flash(`فشل الحفظ: ${error.message}`); return; }
+    if (error) {
+      const m = String(error.message || "");
+      console.error("[profile save]", error);
+      if (m.includes("display_name_taken")) flash("هذا الاسم محجوز");
+      else if (m.includes("display_name_invalid_chars")) flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
+      else if (m.includes("display_name_must_have_letter")) flash("الاسم لازم يحتوي على حرف واحد");
+      else if (m.includes("display_name_disallowed_religious")) flash("هذا الاسم الديني غير مسموح");
+      else if (m.includes("too long")) flash("الاسم أطول من 15 حرف");
+      else if (m.includes("too short")) flash("الاسم قصير جداً");
+      else flash(`فشل الحفظ: ${m}`);
+      return;
+    }
     if (!updated || updated.length === 0) { console.warn("[profile save] no rows updated", { userId }); flash("لم يتم تحديث الملف"); return; }
     flash("تم الحفظ ✓");
   };
