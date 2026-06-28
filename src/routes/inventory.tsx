@@ -31,6 +31,7 @@ function InventoryPage() {
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
   const [ships, setShips] = useState<OwnedShip[]>([]);
   const [goldenFisherUntil, setGoldenFisherUntil] = useState<string | null>(null);
+  const [marketExpertUntil, setMarketExpertUntil] = useState<string | null>(null);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
   const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const usingCrewRef = useRef(false);
@@ -45,9 +46,10 @@ function InventoryPage() {
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
-        supabase.from("profiles").select("golden_fisher_until").eq("id", u.user.id).maybeSingle(),
+        supabase.from("profiles").select("golden_fisher_until, market_expert_until").eq("id", u.user.id).maybeSingle(),
       ]);
       setGoldenFisherUntil(((p as any)?.golden_fisher_until as string | null) ?? null);
+      setMarketExpertUntil(((p as any)?.market_expert_until as string | null) ?? null);
       let stockQty: Record<string, number> = {};
       try {
         const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
@@ -102,6 +104,20 @@ function InventoryPage() {
     usingCrewRef.current = true;
     setUsingCrew(crewId);
     try {
+      if (crewId === "market_expert") {
+        const { data, error } = await (supabase as any).rpc("activate_market_expert");
+        if (error) {
+          const m = error.message || "";
+          if (/no_market_expert/i.test(m)) toast.error("ما عندك خبير أسواق في المخزن");
+          else toast.error("تعذر تفعيل خبير الأسواق");
+          return;
+        }
+        setCrewToUse(null);
+        await load();
+        window.dispatchEvent(new Event("inventory-changed"));
+        toast.success("📈 تم تفعيل خبير الأسواق لمدة 3 ساعات");
+        return;
+      }
       if (crewId === "golden_fisher") {
         const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
         if (error) {
@@ -198,16 +214,19 @@ function InventoryPage() {
                   {isGoldenLocked && (
                     <div className="text-[10px] text-amber-300 text-center mt-1">🏅 مفعّل حالياً على حسابك</div>
                   )}
+                  {c.id === "market_expert" && marketExpertUntil && new Date(marketExpertUntil).getTime() > Date.now() && (
+                    <div className="text-[10px] text-emerald-300 text-center mt-1">📈 مفعّل — ينتهي {new Date(marketExpertUntil).toLocaleString("ar")}</div>
+                  )}
                   {n > 0 && c.id !== "golden_fisher" && (
                     <button
                       onClick={() => {
                         if (isGoldenLocked) { toast.info("🏅 الصياد الذهبي مفعّل بالفعل على حسابك"); return; }
-                        return c.id === "trader" ? useCrew(c.id, null) : setCrewToUse(c.id);
+                        return (c.id === "trader" || c.id === "market_expert") ? useCrew(c.id, null) : setCrewToUse(c.id);
                       }}
                       disabled={usingCrew === c.id || isGoldenLocked}
                       className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 text-white text-xs font-extrabold active:scale-95 disabled:opacity-60"
                     >
-                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : "استخدام"}
+                      {usingCrew === c.id ? "..." : isGoldenLocked ? "مفعّل ✓" : c.id === "market_expert" ? "تفعيل" : "استخدام"}
                     </button>
                   )}
                   {n > 0 && c.id === "golden_fisher" && (
