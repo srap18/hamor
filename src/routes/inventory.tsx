@@ -104,6 +104,20 @@ function InventoryPage() {
     usingCrewRef.current = true;
     setUsingCrew(crewId);
     try {
+      if (crewId === "market_expert") {
+        const { data, error } = await (supabase as any).rpc("activate_market_expert");
+        if (error) {
+          const m = error.message || "";
+          if (/no_market_expert/i.test(m)) toast.error("ما عندك خبير أسواق في المخزن");
+          else toast.error("تعذر تفعيل خبير الأسواق");
+          return;
+        }
+        setCrewToUse(null);
+        await load();
+        window.dispatchEvent(new Event("inventory-changed"));
+        toast.success("📈 تم تفعيل خبير الأسواق لمدة 3 ساعات");
+        return;
+      }
       if (crewId === "golden_fisher") {
         const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
         if (error) {
