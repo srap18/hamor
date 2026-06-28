@@ -139,11 +139,10 @@ export type DragonBonus = {
   label: string;      // e.g. "×7.11"
 };
 
-export function dragonMultiplier(level: number): number {
-  // Compound +4% per level. Level 0/1 → ×1.00, increases each level.
-  const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
-  if (lvl <= 1) return 1;
-  return Math.pow(1 + DRAGON_GROWTH_RATE, lvl - 1);
+export function dragonMultiplier(_level: number): number {
+  // Dragon level does NOT scale ship attack/defense directly.
+  // Instead it boosts anti-counter block percentages on the server.
+  return 1;
 }
 
 export function dragonBonusForLevel(level: number): DragonBonus {
