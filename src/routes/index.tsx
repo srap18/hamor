@@ -2708,7 +2708,12 @@ function Index() {
               // Rollback on failure
               setCrewRows(prevRows);
               sound.play("error");
-              setToast(`تعذّر التفعيل: ${(error as any).message || "خطأ"}`);
+              const msg = String((error as any).message || "خطأ");
+              if (/crew_requires_market_level_10/i.test(msg)) {
+                setToast("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
+              } else {
+                setToast(`تعذّر التفعيل: ${msg}`);
+              }
               await reloadCrews();
               return;
             }
