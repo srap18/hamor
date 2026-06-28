@@ -497,7 +497,18 @@ function RootComponent() {
 
           <AdminEditToggle />
           <InstallAppButton />
-          <Toaster position="top-center" richColors />
+          <Toaster
+            position="top-center"
+            theme="dark"
+            offset={{ top: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
+            toastOptions={{
+              style: {
+                background: "rgb(15 23 42 / 0.98)",
+                color: "rgb(248 250 252)",
+                border: "1px solid rgb(51 65 85)",
+              },
+            }}
+          />
         </MobileFrame>
         {splashMounted && (
           <div id="app-splash" aria-hidden="true" className={splashVisible ? "" : "hide"}>
