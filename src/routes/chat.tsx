@@ -86,6 +86,7 @@ function ChatPage() {
   const { isAdmin } = useIsAdmin();
   
   const [tab, setTab] = useState<Channel>("public");
+  const [soloTribe, setSoloTribe] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
   const [profMap, setProfMap] = useState<Map<string, Prof>>(new Map());
