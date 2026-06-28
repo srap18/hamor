@@ -21,7 +21,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const nav = useNavigate();
-  const [name, setName] = useState("");
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [refCode, setRefCode] = useState("");
@@ -46,30 +46,6 @@ function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setLoading(true);
-    const finalName = (name || email.split("@")[0]).trim().slice(0, 15);
-    if (finalName.length > 15) {
-      setLoading(false);
-      setErr("الاسم لا يتجاوز 15 حرف");
-      return;
-    }
-    if (finalName.length >= 2) {
-      try {
-        const { data: bad } = await (supabase as any).rpc("is_disallowed_religious_name", { p_name: finalName });
-        if (bad === true) {
-          setLoading(false);
-          setErr("هذا الاسم غير مسموح. أمثلة مسموحة: بسم الله، سبحان الله، حسبي الله، لا إله إلا الله.");
-          return;
-        }
-      } catch {}
-      try {
-        const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: finalName });
-        if (taken === true) {
-          setLoading(false);
-          setErr("هذا الاسم محجوز، اختر اسماً آخر");
-          return;
-        }
-      } catch {}
-    }
     try {
       const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
@@ -80,11 +56,13 @@ function SignupPage() {
         return;
       }
     } catch {}
+    // No display_name passed: DB generates a unique placeholder ("قبطانXXXXXX").
+    // The user picks their real name later from inside the app (profile page).
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: finalName, referral_code: refCode || null },
+        data: { referral_code: refCode || null },
       },
     });
     setLoading(false);
@@ -119,14 +97,15 @@ function SignupPage() {
           />
         ) : (
           <form onSubmit={submit} className="space-y-3">
-            <input required maxLength={15} placeholder="اسم القبطان (15 حرف كحد أقصى)" value={name} onChange={(e) => setName(e.target.value.slice(0, 15))}
-              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
+            <div className="text-[11px] text-amber-100/70 text-center bg-amber-950/40 border border-amber-700/40 rounded-lg p-2">
+              💡 تقدر تختار اسمك من داخل اللعبة بعد التسجيل من صفحة «الملف الشخصي».
+            </div>
             {err && <div className="text-rose-400 text-xs text-center">{err}</div>}
             <button disabled={loading} type="submit" className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60">
               {loading ? "..." : "تسجيل"}

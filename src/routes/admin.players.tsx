@@ -762,7 +762,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           <div className="text-sm font-semibold text-slate-300">👤 بيانات الحساب</div>
           <div>
             <label className="text-xs text-slate-400">الاسم</label>
-            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+            <input value={displayName} maxLength={15} onChange={(e) => setDisplayName(e.target.value.slice(0, 15))} className="w-full mt-1 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-indigo-500" />
+            <div className="text-[10px] text-slate-500 mt-1">2-15 حرف • بدون رموز أو زخارف • فريد بين اللاعبين</div>
           </div>
           <div>
             <label className="text-xs text-slate-400">الإيميل (اتركه فارغاً لعدم التغيير)</label>

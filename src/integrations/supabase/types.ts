@@ -5858,6 +5858,7 @@ export type Database = {
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
       user_market_remaining: { Args: { _uid: string }; Returns: number }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
+      validate_display_name: { Args: { p_name: string }; Returns: string }
       verify_and_get_vip_status: {
         Args: { _user_id: string }
         Returns: {

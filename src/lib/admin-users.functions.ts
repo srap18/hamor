@@ -24,8 +24,8 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     if (input.email !== undefined && (input.email.length > 255 || !input.email.includes("@"))) {
       throw new Error("Invalid email");
     }
-    if (input.display_name !== undefined && (input.display_name.trim().length < 1 || input.display_name.length > 50)) {
-      throw new Error("Invalid name");
+    if (input.display_name !== undefined && (input.display_name.trim().length < 2 || input.display_name.trim().length > 15)) {
+      throw new Error("الاسم يجب أن يكون بين 2 و 15 حرف");
     }
     return input;
   })
@@ -56,7 +56,16 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     if (data.avatar_url !== undefined) profileUpdate.avatar_url = data.avatar_url;
     if (Object.keys(profileUpdate).length > 0) {
       const { error } = await supabaseAdmin.from("profiles").update(profileUpdate).eq("id", data.userId);
-      if (error) throw new Error(`فشل تحديث الملف: ${error.message}`);
+      if (error) {
+        const m = String(error.message || "");
+        if (m.includes("display_name_taken")) throw new Error("هذا الاسم محجوز لاعب آخر");
+        if (m.includes("display_name_invalid_chars")) throw new Error("الاسم يحتوي رموز أو زخارف غير مسموحة");
+        if (m.includes("display_name_must_have_letter")) throw new Error("الاسم لازم يحتوي على حرف واحد على الأقل");
+        if (m.includes("display_name_disallowed_religious")) throw new Error("هذا الاسم الديني غير مسموح");
+        if (m.includes("too long")) throw new Error("الاسم أطول من 15 حرف");
+        if (m.includes("too short")) throw new Error("الاسم قصير جداً (حد أدنى حرفين)");
+        throw new Error(`فشل تحديث الملف: ${m}`);
+      }
     }
 
     await supabaseAdmin.from("admin_audit").insert({
