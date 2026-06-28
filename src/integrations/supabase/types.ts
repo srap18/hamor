@@ -4344,10 +4344,12 @@ export type Database = {
         Args: { _pts: number; _user: string }
         Returns: undefined
       }
-      admin_adjust_tribe_points: {
-        Args: { p_delta: number; p_reason?: string; p_tribe_id: string }
-        Returns: Json
-      }
+      admin_adjust_tribe_points:
+        | { Args: { _delta: number; _tribe_id: string }; Returns: Json }
+        | {
+            Args: { p_delta: number; p_reason?: string; p_tribe_id: string }
+            Returns: Json
+          }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
