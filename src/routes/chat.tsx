@@ -1222,6 +1222,10 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
             </div>
           )}
 
+          {/* === Tribe features: achievements / enemy tribes / enemy players === */}
+          <TribeFeatures tribeId={tribeId} canManage={isOfficer} />
+
+
           {isOfficer && (
             <div className="space-y-2">
               {isOwner && (!editingName ? (
