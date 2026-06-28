@@ -479,12 +479,22 @@ function ChatPage() {
   const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
 
   return (
-    <div className="fixed inset-x-0 top-0 overflow-hidden text-white" dir="rtl" style={{ height: "var(--app-height, 100dvh)", background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
+    <div className="fixed inset-x-0 top-0 overflow-hidden text-white" dir="rtl" style={{ height: "var(--app-height, 100dvh)", background: soloTribe
+      ? "radial-gradient(ellipse at top, #3b1d0a 0%, #1a0f06 55%, #050302 100%)"
+      : "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)" }}>
+      {soloTribe && (
+        <>
+          <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.18]" style={{ backgroundImage: "radial-gradient(circle at 20% 10%, rgba(252,191,73,0.35), transparent 40%), radial-gradient(circle at 80% 90%, rgba(220,38,38,0.25), transparent 45%)" }} />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-500/10 to-transparent" />
+        </>
+      )}
       <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.25rem, calc(env(safe-area-inset-top) + 0.5rem))" }}>
-        <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
-        <div className="flex-1 text-center text-lg font-extrabold text-amber-300">💬 الشات</div>
+        <Link to="/" className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center ${soloTribe ? "bg-gradient-to-b from-amber-600 to-amber-800 border-amber-300 shadow-[0_0_12px_rgba(252,191,73,0.5)]" : "bg-amber-700 border-amber-300"}`}>↩</Link>
+        <div className={`flex-1 text-center text-lg font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] ${soloTribe ? "text-amber-200 tracking-wider" : "text-amber-300"}`}>
+          {soloTribe ? "🏴‍☠️ القبيلة" : "💬 الشات"}
+        </div>
         {tab === "tribe" && profile?.tribe_id && (
-          <button onClick={() => setShowManage(true)} className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">⚙️</button>
+          <button onClick={() => setShowManage(true)} className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center ${soloTribe ? "bg-gradient-to-b from-amber-600 to-amber-800 border-amber-300 shadow-[0_0_12px_rgba(252,191,73,0.5)]" : "bg-amber-700 border-amber-300"}`}>⚙️</button>
         )}
         {!(tab === "tribe" && profile?.tribe_id) && <div className="w-10" />}
       </div>
@@ -495,22 +505,24 @@ function ChatPage() {
         </div>
       )}
 
-      <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
-        {(["public", "tribe", "dm", "topics"] as Channel[]).map(t => (
-          <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
-            className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-            {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : "📝 مواضيع"}
-            {t === "dm" && dmTotal > 0 && tab !== "dm" && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
-                {dmTotal > 9 ? "9+" : dmTotal}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {!soloTribe && (
+        <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
+          {(["public", "tribe", "dm", "topics"] as Channel[]).map(t => (
+            <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
+              className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
+              {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : "📝 مواضيع"}
+              {t === "dm" && dmTotal > 0 && tab !== "dm" && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                  {dmTotal > 9 ? "9+" : dmTotal}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
 
-      <div className={`absolute left-2 right-2 rounded-2xl bg-stone-950/70 border-2 border-amber-700/60 overflow-hidden flex flex-col`} style={{ top: "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl border-2 overflow-hidden flex flex-col ${soloTribe ? "bg-gradient-to-b from-stone-950/85 to-stone-950/70 border-amber-500/60 shadow-[0_0_30px_rgba(252,191,73,0.25)]" : "bg-stone-950/70 border-amber-700/60"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
