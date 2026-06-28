@@ -7,6 +7,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
 import { SHIPS } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
