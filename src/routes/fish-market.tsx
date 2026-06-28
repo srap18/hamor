@@ -663,7 +663,7 @@ function FishMarket() {
 
 
 function SellResultModal({ result, onClose }: { result: SellResult; onClose: () => void }) {
-  const info = TIER_INFO[result.tier];
+  const info = TIER_INFO[result.marketExpertBoost ? 5 : result.tier];
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={onClose}>
       <div
