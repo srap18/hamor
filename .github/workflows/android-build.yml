@@ -49,7 +49,6 @@ jobs:
       - name: Build Web Assets
         run: bun run build
 
-      # خطوة التأمين الجديدة
       - name: Ensure Web Assets Dir
         run: |
           mkdir -p dist
@@ -86,7 +85,11 @@ jobs:
           ./gradlew clean
           rm -rf app/build/outputs/apk/
           rm -rf app/build/outputs/bundle/
-          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" app/build.gradle
+          
+          # تعديل ذكي لزيادة رقم الإصدار تلقائياً (رقم البناء + 100)
+          NEW_VERSION=$(( ${{ github.run_number }} + 100 ))
+          sed -i "s/versionCode [0-9]*/versionCode $NEW_VERSION/" app/build.gradle
+          
           ./gradlew bundleRelease assembleRelease -x lint
 
       - name: Sign & Align Artifacts
