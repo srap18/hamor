@@ -553,7 +553,11 @@ function FishMarket() {
       const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
       const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
       const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
-      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
+      const boostedUnit = requestedQty > 0 ? Math.round(serverEarned / requestedQty) : 0;
+      const boost = marketExpertActive && boostedUnit > Math.round(ctx.currentPrice)
+        ? { basePrice: Math.round(ctx.currentPrice), boostedPrice: boostedUnit, qty: requestedQty }
+        : null;
+      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
       await loadFish();
       refreshProfile();
     } finally {
