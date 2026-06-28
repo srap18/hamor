@@ -3054,7 +3054,7 @@ function Index() {
             { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
             { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
             { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { src: navIconTribe, label: "قبيلة", to: "/chat" as const, search: { tab: "tribe" } as const, action: null, badge: 0 },
+            { src: navIconTribe, label: "قبيلة", to: "/tribe" as const, action: null, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
