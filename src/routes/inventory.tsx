@@ -46,9 +46,10 @@ function InventoryPage() {
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
-        supabase.from("profiles").select("golden_fisher_until").eq("id", u.user.id).maybeSingle(),
+        supabase.from("profiles").select("golden_fisher_until, market_expert_until").eq("id", u.user.id).maybeSingle(),
       ]);
       setGoldenFisherUntil(((p as any)?.golden_fisher_until as string | null) ?? null);
+      setMarketExpertUntil(((p as any)?.market_expert_until as string | null) ?? null);
       let stockQty: Record<string, number> = {};
       try {
         const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
