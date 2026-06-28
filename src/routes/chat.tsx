@@ -335,7 +335,7 @@ function ChatPage() {
       active = false;
       window.clearInterval(pollTimer);
       document.removeEventListener("visibilitychange", onVis);
-      supabase.removeChannel(ch);
+      if (ch) supabase.removeChannel(ch);
     };
   }, [tab, dmWith, user, profile?.tribe_id]);
 
