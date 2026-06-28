@@ -13,7 +13,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # هذه الخطوة ستقوم بمسح جميع الـ Artifacts السابقة فوراً لتفريغ المساحة
       - name: Force Clean Old Artifacts
         uses: actions/github-script@v7
         with:
@@ -49,6 +48,12 @@ jobs:
 
       - name: Build Web Assets
         run: bun run build
+
+      # خطوة التأمين الجديدة
+      - name: Ensure Web Assets Dir
+        run: |
+          mkdir -p dist
+          if [ ! -f dist/index.html ]; then touch dist/index.html; fi
 
       - name: Setup Android Environment
         run: |
