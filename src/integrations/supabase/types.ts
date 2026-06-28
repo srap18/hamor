@@ -2441,6 +2441,7 @@ export type Database = {
           last_destroyer_message: string | null
           last_destroyer_name: string | null
           level: number
+          market_expert_until: string | null
           media_banned: boolean
           name_frame: string | null
           online_at: string
@@ -2503,6 +2504,7 @@ export type Database = {
           last_destroyer_message?: string | null
           last_destroyer_name?: string | null
           level?: number
+          market_expert_until?: string | null
           media_banned?: boolean
           name_frame?: string | null
           online_at?: string
@@ -2565,6 +2567,7 @@ export type Database = {
           last_destroyer_message?: string | null
           last_destroyer_name?: string | null
           level?: number
+          market_expert_until?: string | null
           media_banned?: boolean
           name_frame?: string | null
           online_at?: string
@@ -4308,6 +4311,10 @@ export type Database = {
         Args: { _catalog_code: string; _uid: string }
         Returns: string
       }
+      _market_expert_max_price: {
+        Args: { _fish_id: string; _uid: string }
+        Returns: number
+      }
       _mutate_currency: {
         Args: {
           _coins?: number
@@ -4332,6 +4339,7 @@ export type Database = {
       }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       activate_golden_fisher: { Args: never; Returns: Json }
+      activate_market_expert: { Args: never; Returns: Json }
       add_vip_points: {
         Args: { _pts: number; _user: string }
         Returns: undefined
