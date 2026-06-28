@@ -125,14 +125,17 @@ function ChatPage() {
     const wantTab = params.get("tab");
     const wantManage = params.get("manage") === "1";
     const wantDm = params.get("dm");
+    const wantSolo = params.get("solo") === "1";
     if (wantDm) {
       setTab("dm");
       setDmWith(wantDm);
-    } else if (wantTab === "tribe" || wantManage) {
+    } else if (wantTab === "tribe" || wantManage || wantSolo) {
       setTab("tribe");
     }
+    if (wantSolo) setSoloTribe(true);
     if (wantManage && profile?.tribe_id) setShowManage(true);
   }, [profile?.tribe_id]);
+
 
 
 
