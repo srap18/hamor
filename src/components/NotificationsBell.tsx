@@ -34,6 +34,33 @@ export function NotificationsBell() {
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<TabKey>("all");
   const [actors, setActors] = useState<Record<string, PublicProfile>>({});
+  const [enemyIds, setEnemyIds] = useState<Set<string>>(new Set());
+  const [busyEnemy, setBusyEnemy] = useState<string | null>(null);
+
+  const loadEnemies = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from("user_enemies").select("enemy_id").eq("user_id", user.id);
+    setEnemyIds(new Set((data || []).map((r: any) => r.enemy_id)));
+  }, [user]);
+
+  useEffect(() => { loadEnemies(); }, [loadEnemies]);
+
+  const toggleEnemy = async (enemyId: string) => {
+    if (!user || busyEnemy) return;
+    setBusyEnemy(enemyId);
+    try {
+      if (enemyIds.has(enemyId)) {
+        await supabase.from("user_enemies").delete().eq("user_id", user.id).eq("enemy_id", enemyId);
+        setEnemyIds(s => { const n = new Set(s); n.delete(enemyId); return n; });
+      } else {
+        const { error } = await supabase.from("user_enemies").insert({ user_id: user.id, enemy_id: enemyId, reason: "من الإشعارات" });
+        if (!error) setEnemyIds(s => new Set(s).add(enemyId));
+      }
+    } finally {
+      setBusyEnemy(null);
+    }
+  };
+
 
   const loadActors = useCallback(async (notifs: Notif[]) => {
     const ids = Array.from(new Set(notifs.map(n => n.created_by).filter((x): x is string => !!x)));
@@ -248,6 +275,13 @@ export function NotificationsBell() {
                                   >
                                     👤 الملف
                                   </Link>
+                                  <button
+                                    onClick={() => toggleEnemy(actor.id)}
+                                    disabled={busyEnemy === actor.id}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${enemyIds.has(actor.id) ? "bg-red-900/80 text-red-100 border-red-400" : "bg-stone-800 text-amber-200 border-amber-700/60"} disabled:opacity-50`}
+                                  >
+                                    {enemyIds.has(actor.id) ? "🚩 عدو مثبّت ✕" : "🚩 ثبّت كعدو"}
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -287,6 +321,7 @@ export function NotificationsBell() {
                             <div className="text-sm font-bold text-amber-100 flex items-center gap-1">
                               <span>{iconFor(n.kind)}</span>
                               <span className="truncate">{n.title}</span>
+                              {actor && enemyIds.has(actor.id) && <span className="text-[9px] px-1 rounded bg-red-900/80 text-red-100 border border-red-400">🚩 عدو</span>}
                             </div>
                             {n.body && <div className="text-xs text-amber-200/80 mt-0.5">{n.body}</div>}
                             {actor && (

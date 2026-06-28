@@ -3954,6 +3954,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_enemies: {
+        Row: {
+          created_at: string
+          enemy_id: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enemy_id: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enemy_id?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_fish_market: {
         Row: {
           created_at: string
