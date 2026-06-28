@@ -359,6 +359,10 @@ function FishMarket() {
   }, [user?.id, lvl]);
 
   const tickNow = useServerTick();
+
+  const marketExpertUntil = (profile as any)?.market_expert_until as string | null | undefined;
+  const marketExpertMs = marketExpertUntil ? Math.max(0, new Date(marketExpertUntil).getTime() - tickNow) : 0;
+  const marketExpertActive = marketExpertMs > 0;
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
@@ -576,7 +580,15 @@ function FishMarket() {
           <ResChip icon="💎" v={gems} color="text-rose-300" />
           <ResChip icon="🔷" v={rubies} color="text-cyan-200" />
           <ResChip icon={<CoinIcon size={16} />} v={coins} color="text-amber-300" />
+      </div>
+
+      {marketExpertActive && (
+        <div className="absolute left-2 right-2 z-30 top-[calc(max(0.5rem,env(safe-area-inset-top))+5rem)] rounded-xl border-2 border-emerald-300/70 bg-gradient-to-b from-emerald-600/90 to-emerald-900/90 px-3 py-2 text-center shadow-xl">
+          <div className="text-[12px] font-extrabold text-emerald-100">📈 خبير الأسواق مفعّل — يبيع كل سمكة بأعلى سعر</div>
+          <div className="text-[11px] font-bold text-amber-200 tabular-nums">ينتهي خلال {formatHHMMSS(marketExpertMs)}</div>
         </div>
+      )}
+
       </div>
 
       {/* MAIN CONTENT — Storage view */}
