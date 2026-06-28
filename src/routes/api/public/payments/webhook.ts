@@ -45,8 +45,13 @@ async function setEliteVipLevel(userId: string, level: number, expiresAt: string
       elite_vip_expires_at: level > 0 ? expiresAt : null,
     })
     .eq("id", userId);
-  if (error) console.error("setEliteVipLevel failed:", error);
+  if (error) {
+    console.error("setEliteVipLevel failed:", error);
+    // Throw so Paddle retries the webhook — never silently leave a paid VIP inactive.
+    throw new Error(`setEliteVipLevel failed for ${userId}: ${error.message}`);
+  }
 }
+
 
 // Fallback: if Paddle doesn't send currentBillingPeriod.endsAt, use +30 days
 function resolveExpiry(data: any): string {
