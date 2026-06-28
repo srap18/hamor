@@ -56,11 +56,10 @@ jobs:
 
       - name: Setup Android Environment
         run: |
-          # التأكد من وجود المجلد الأساسي للصور
+          # تجهيز المجلدات والتأكد من وجود الصور الأصلية
           mkdir -p assets
           
-          # نسخ الصور من مجلد الـ assets في المستودع إلى مجلد العمل الرئيسي
-          # مع التأكد من الأسماء الصحيحة لكي يراها capacitor
+          # نسخ الصور من المستودع إلى المجلد الرئيسي ليتمكن Capacitor من معالجتها
           if [ -f "assets/icon-only.png" ]; then cp assets/icon-only.png icon-only.png; fi
           if [ -f "assets/splash.png" ]; then cp assets/splash.png splash.png; fi
           if [ -f "assets/splash-dark.png" ]; then cp assets/splash-dark.png splash-dark.png; fi
@@ -68,7 +67,8 @@ jobs:
           if [ ! -d "android" ]; then bunx cap add android; fi
           
           # توليد الأيقونات والـ Splash (سوف يقرأ الصور من المجلد الرئيسي)
-          bunx @capacitor/assets generate --android
+          # نستخدم --iconBackgroundColor لضمان خلفية ثابتة للأيقونة
+          bunx @capacitor/assets generate --android --iconBackgroundColor "#000000" --splashBackgroundColor "#000000" --splashBackgroundColorDark "#000000"
           
           bunx cap sync android
           chmod +x android/gradlew
@@ -95,7 +95,7 @@ jobs:
           rm -rf app/build/outputs/apk/
           rm -rf app/build/outputs/bundle/
           
-          # زيادة رقم الإصدار تلقائياً (رقم البناء + 100) لضمان القبول في المتجر
+          # زيادة رقم الإصدار تلقائياً لتجنب مشاكل Google Play
           NEW_VERSION=$(( ${{ github.run_number }} + 100 ))
           sed -i "s/versionCode [0-9]*/versionCode $NEW_VERSION/" app/build.gradle
           
