@@ -500,7 +500,7 @@ function RootComponent() {
           <Toaster
             position="top-center"
             theme="dark"
-            offset={{ top: "var(--notification-top-offset)" }}
+            offset={{ top: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
             toastOptions={{
               style: {
                 background: "rgb(15 23 42 / 0.98)",

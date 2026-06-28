@@ -65,7 +65,7 @@ export function LastAttackTicker() {
   if (minimized) {
     return (
       <div className="fixed top-0 inset-x-0 z-[90] flex justify-center pointer-events-none"
-        style={{ paddingTop: "var(--notification-top-offset)" }}>
+        style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}>
         <button
           onClick={() => {
             setMinimized(false);
@@ -83,7 +83,7 @@ export function LastAttackTicker() {
   return (
     <div
       className="fixed top-0 inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
-      style={{ paddingTop: "var(--notification-top-offset)" }}
+      style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}
     >
       <div className="pointer-events-auto relative max-w-md w-full rounded-full bg-gradient-to-r from-black/70 via-red-900/70 to-black/70 border border-red-300/30 shadow-[0_4px_14px_rgba(0,0,0,0.35)] px-3 py-1 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/5 to-transparent" />
