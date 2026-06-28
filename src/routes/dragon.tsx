@@ -30,14 +30,45 @@ function DragonPage() {
 
   useEffect(() => {
     if (location.pathname !== "/dragon") return;
-    (async () => {
+    let cancelled = false;
+    const fetchDragon = async () => {
       const { data, error } = await (supabase as never as {
         rpc: (n: string) => Promise<{ data: Dragon | null; error: { message: string } | null }>;
       }).rpc("get_or_init_dragon");
+      if (cancelled) return;
       if (error) console.error(error);
       setD(data);
       setLoading(false);
+    };
+    fetchDragon();
+
+    // Refetch when the tab becomes visible again (catches admin-side edits)
+    const onVis = () => { if (document.visibilityState === "visible") fetchDragon(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", fetchDragon);
+
+    // Live subscription so admin edits to the player's dragon appear instantly
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u?.user?.id;
+      if (!uid || cancelled) return;
+      channel = supabase
+        .channel(`dragon-self-${uid}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "dragons", filter: `user_id=eq.${uid}` },
+          () => { fetchDragon(); },
+        )
+        .subscribe();
     })();
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", fetchDragon);
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [location.pathname]);
 
   if (location.pathname !== "/dragon") return <Outlet />;
