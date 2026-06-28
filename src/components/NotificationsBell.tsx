@@ -169,6 +169,95 @@ export function NotificationsBell() {
                 if (filtered.length === 0) {
                   return <div className="p-6 text-center text-amber-300/60 text-sm">لا توجد إشعارات في هذا التبويب</div>;
                 }
+
+                // === Grouped view for attacks: one row per attacker ===
+                if (tab === "attack") {
+                  type Group = { attackerId: string | null; count: number; unread: number; last: Notif; sample: Notif[] };
+                  const map = new Map<string, Group>();
+                  for (const n of filtered) {
+                    const key = n.created_by || `_anon_${n.id}`;
+                    const g = map.get(key);
+                    if (g) {
+                      g.count += 1;
+                      if (!readIds.has(n.id)) g.unread += 1;
+                      if (n.created_at > g.last.created_at) g.last = n;
+                      if (g.sample.length < 3) g.sample.push(n);
+                    } else {
+                      map.set(key, { attackerId: n.created_by, count: 1, unread: readIds.has(n.id) ? 0 : 1, last: n, sample: [n] });
+                    }
+                  }
+                  const groups = Array.from(map.values()).sort((a, b) => b.last.created_at.localeCompare(a.last.created_at));
+                  return (
+                    <div className="divide-y divide-amber-800/30">
+                      <div className="px-3 py-1.5 text-[10px] text-amber-300/60 bg-stone-900/40">
+                        📊 {groups.length} مهاجم • {filtered.length} هجوم
+                      </div>
+                      {groups.map(g => {
+                        const actor = g.attackerId ? actors[g.attackerId] : null;
+                        const name = actor?.display_name || "لاعب مجهول";
+                        const when = new Date(g.last.created_at);
+                        const mins = Math.max(1, Math.round((Date.now() - when.getTime()) / 60000));
+                        const ago = mins < 60 ? `قبل ${mins} د` : mins < 1440 ? `قبل ${Math.round(mins/60)} س` : when.toLocaleDateString("ar");
+                        return (
+                          <div key={g.attackerId || g.last.id} className={`p-3 flex gap-2 ${g.unread > 0 ? "bg-red-900/20" : "opacity-70"}`}>
+                            {actor ? (
+                              <Link to="/p/$id" params={{ id: actor.id }} onClick={() => setOpen(false)} className="shrink-0 relative">
+                                {actor.avatar_url ? (
+                                  <img src={actor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-red-500/70" />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-full bg-red-900/60 border-2 border-red-500/70 flex items-center justify-center text-2xl">
+                                    {actor.avatar_emoji || "🏴‍☠️"}
+                                  </div>
+                                )}
+                                {g.count > 1 && (
+                                  <span className="absolute -bottom-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border border-stone-950">
+                                    ×{g.count}
+                                  </span>
+                                )}
+                              </Link>
+                            ) : (
+                              <div className="text-2xl w-12 h-12 flex items-center justify-center shrink-0">⚔️</div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-extrabold text-amber-100 flex items-center gap-1.5">
+                                <span>⚔️</span>
+                                <span className="truncate">{name}</span>
+                                {g.unread > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-600 text-white font-black">{g.unread} جديد</span>}
+                              </div>
+                              <div className="text-[11px] text-red-200/90 mt-0.5">
+                                {g.count === 1 ? "هاجمك مرة واحدة" : `هاجمك ${g.count} مرات`} • {ago}
+                              </div>
+                              <div className="text-[10px] text-amber-200/60 mt-0.5 truncate">
+                                آخر: {g.last.title}
+                              </div>
+                              {actor && (
+                                <div className="mt-1.5 flex gap-1.5 flex-wrap">
+                                  <Link
+                                    to="/p/$id"
+                                    params={{ id: actor.id }}
+                                    onClick={() => setOpen(false)}
+                                    className="px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold"
+                                  >
+                                    ⚔️ رد الهجوم
+                                  </Link>
+                                  <Link
+                                    to="/p/$id"
+                                    params={{ id: actor.id }}
+                                    onClick={() => setOpen(false)}
+                                    className="px-2 py-0.5 rounded-md bg-sky-600/90 text-white text-[10px] font-bold"
+                                  >
+                                    👤 الملف
+                                  </Link>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
                 return (
                   <div className="divide-y divide-amber-800/30">
                     {filtered.map(n => {
@@ -229,6 +318,7 @@ export function NotificationsBell() {
                   </div>
                 );
               })()}
+
             </div>
           </div>,
           document.body,
