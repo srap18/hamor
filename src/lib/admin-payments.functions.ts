@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
 import { STORE_PACKS } from "@/lib/store-catalog";
+import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 
 function getPaddlePackId(txn: any): string | undefined {
   const item = txn.items?.[0];
