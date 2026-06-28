@@ -350,6 +350,38 @@ function ShopTab({ onBuy, busy }: { onBuy: (s: Slot, r: Rarity, c: "coins" | "ge
           );
         })}
       </div>
+
+      {/* Fatak — lucky-box only, not purchasable */}
+      <div className="mt-4 space-y-2">
+        <div className="text-center text-red-300 text-xs font-extrabold">
+          🔥 الفئة الفتاكة — أقوى من الخرافي بـ 50%
+        </div>
+        {(["weapon", "armor", "talisman"] as Slot[]).filter((s) => s === slot).map((s) => {
+          const c = RARITY_COLOR.fatak;
+          return (
+            <div key={s} className={`rounded-xl p-3 border-2 ${c.ring} bg-gradient-to-br ${c.bg} backdrop-blur relative overflow-hidden`}
+              style={{ ["--g" as string]: c.glow } as React.CSSProperties}>
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-lg bg-stone-950/70 border border-red-700/60 flex items-center justify-center overflow-hidden flex-shrink-0 grayscale-[30%]">
+                  <img src={SLOT_IMG[s]} alt="fatak" className="w-full h-full object-contain"
+                    style={{ animation: "shimmer 2.5s ease-in-out infinite" }} loading="lazy" />
+                </div>
+                <div className="flex-1">
+                  <div className={`font-extrabold text-sm ${c.text}`}>فتاك — {SLOT_LABEL[s]}</div>
+                  <div className="text-red-200/80 text-[10px]">+75% هجوم • 30% قاضية • ⚡ مستمر</div>
+                </div>
+                <div className="flex-shrink-0 px-3 py-2 rounded-lg text-[10px] font-extrabold bg-red-950/70 text-red-200 border border-red-700/60 text-center leading-tight">
+                  🔒<br/>صندوق الحظ
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div className="text-center text-red-300/70 text-[10px]">
+          🎁 لا تُباع — تظهر في صندوق الحظ عند إضافتها من المشرفين
+        </div>
+      </div>
+
       <div className="mt-3 text-center text-amber-300/50 text-[10px]">
         💡 الذهب يصل لـ نادر فقط • الجواهر تفتح الطبقات النخبوية
       </div>
@@ -543,5 +575,5 @@ function SmeltTab({ items, onSmelt, gems, busy }:
   );
 }
 
-const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3, divine: 4 };
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3, divine: 4, fatak: 5 };
 

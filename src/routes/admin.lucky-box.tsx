@@ -41,7 +41,7 @@ const ITEM_TYPES = [
   "consumable", "decoration", "frame", "background", "name_frame", "bubble_frame", "profile_frame",
 ] as const;
 const DRAGON_SLOTS = ["weapon", "armor", "talisman"] as const;
-const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine"] as const;
+const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine", "fatak"] as const;
 
 function AdminLuckyBox() {
   const [settings, setSettings] = useState<Settings>({
@@ -259,7 +259,7 @@ function PrizeRow({
             onChange={(e) => onChange({ item_id: e.target.value || null })}>
             <option value="">— الجودة —</option>
             {DRAGON_RARITIES.map((r) => <option key={r} value={r}>
-              {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : "خرافي"}
+              {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : r === "divine" ? "خرافي" : "فتاك"}
             </option>)}
           </select>
         </>
