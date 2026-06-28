@@ -4,7 +4,7 @@ import shieldImg from "@/assets/dragon-shield.png";
 import talismanImg from "@/assets/dragon-talisman.png";
 
 export type Slot = "weapon" | "armor" | "talisman";
-export type Rarity = "common" | "rare" | "epic" | "legendary" | "divine";
+export type Rarity = "common" | "rare" | "epic" | "legendary" | "divine" | "fatak";
 
 export type EquipmentItem = {
   id: string;
