@@ -52,6 +52,7 @@ import { useServerTick } from "@/lib/use-server-tick";
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
 import navIconBattle from "@/assets/nav-icon-battle.png";
+import navIconTribe from "@/assets/nav-icon-tribe.png";
 import navIconArena from "@/assets/nav-icon-arena.png";
 import navIconFriends from "@/assets/nav-icon-friends.png";
 import navIconInventory from "@/assets/nav-icon-inventory.png";
@@ -3053,7 +3054,7 @@ function Index() {
             { src: navIconInventory, label: "مخزن", to: "/inventory" as const, action: null, badge: 0 },
             { src: navIconFriends, label: "أصدقاء", to: "/friends" as const, action: null, badge: friendsUnread },
             { src: navIconArena, label: "ترتيب", to: null, action: "boost" as const, badge: 0 },
-            { src: navIconBattle, label: "تحدي", to: null, action: "challenge" as const, badge: 0 },
+            { src: navIconTribe, label: "قبيلة", to: "/chat" as const, search: { tab: "tribe" } as const, action: null, badge: 0 },
           ].map((it, i) => {
             const inner = (
               <>
@@ -3091,8 +3092,9 @@ function Index() {
               <Link
                 key={i}
                 to={it.to}
+                search={"search" in it ? (it as any).search : undefined}
                 onClick={() => sound.play("click")}
-                  className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
+                  className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
               >
                 {inner}
               </Link>
@@ -3103,9 +3105,8 @@ function Index() {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
                   else if (it.action === "boost") setBoostOpen(true);
-                  else if (it.action === "challenge") showToast("⚔️ نظام التحديات قادم قريباً");
                 }}
-                className={`flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95 ${it.action === "challenge" ? "translate-x-2" : ""}`}
+                className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
               >
                 {inner}
               </button>

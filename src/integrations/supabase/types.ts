@@ -3438,6 +3438,44 @@ export type Database = {
           },
         ]
       }
+      tribe_achievements: {
+        Row: {
+          code: string
+          description: string | null
+          earned_at: string
+          emoji: string | null
+          id: string
+          title: string
+          tribe_id: string
+        }
+        Insert: {
+          code: string
+          description?: string | null
+          earned_at?: string
+          emoji?: string | null
+          id?: string
+          title: string
+          tribe_id: string
+        }
+        Update: {
+          code?: string
+          description?: string | null
+          earned_at?: string
+          emoji?: string | null
+          id?: string
+          title?: string
+          tribe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_achievements_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tribe_donations: {
         Row: {
           amount: number
@@ -3461,6 +3499,83 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tribe_enemies: {
+        Row: {
+          added_by: string
+          created_at: string
+          enemy_tribe_id: string
+          id: string
+          note: string | null
+          tribe_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          enemy_tribe_id: string
+          id?: string
+          note?: string | null
+          tribe_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          enemy_tribe_id?: string
+          id?: string
+          note?: string | null
+          tribe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_enemies_enemy_tribe_id_fkey"
+            columns: ["enemy_tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tribe_enemies_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tribe_enemy_players: {
+        Row: {
+          added_by: string
+          created_at: string
+          enemy_user_id: string
+          id: string
+          reason: string | null
+          tribe_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          enemy_user_id: string
+          id?: string
+          reason?: string | null
+          tribe_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          enemy_user_id?: string
+          id?: string
+          reason?: string | null
+          tribe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_enemy_players_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tribe_fish_events: {
         Row: {
