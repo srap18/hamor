@@ -35,6 +35,7 @@ export const RARITY_LABEL: Record<Rarity, string> = {
   epic: "ملحمي",
   legendary: "أسطوري",
   divine: "خرافي",
+  fatak: "فتاك",
 };
 
 export const RARITY_COLOR: Record<Rarity, { ring: string; glow: string; text: string; bg: string }> = {
@@ -43,9 +44,10 @@ export const RARITY_COLOR: Record<Rarity, { ring: string; glow: string; text: st
   epic:      { ring: "border-purple-400/80",  glow: "rgba(168,85,247,0.7)",  text: "text-purple-200",  bg: "from-purple-700/30 to-purple-950/40" },
   legendary: { ring: "border-amber-400/90",   glow: "rgba(251,191,36,0.8)",  text: "text-amber-200",   bg: "from-amber-600/30 to-amber-900/40" },
   divine:    { ring: "border-rose-400",       glow: "rgba(244,63,94,1)",     text: "text-rose-200",    bg: "from-rose-700/40 to-rose-950/50" },
+  fatak:     { ring: "border-red-500",        glow: "rgba(239,68,68,1)",     text: "text-red-100",     bg: "from-red-800/50 to-black/60" },
 };
 
-export const RARITY_ORDER: Rarity[] = ["common", "rare", "epic", "legendary", "divine"];
+export const RARITY_ORDER: Rarity[] = ["common", "rare", "epic", "legendary", "divine", "fatak"];
 
 export type ShopOffer = {
   slot: Slot;
