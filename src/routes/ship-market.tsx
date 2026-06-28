@@ -140,16 +140,24 @@ function ShipyardPage() {
       return;
     }
 
+    let zeroHits = 0;
     const tick = () => {
       const diff = Math.max(0, Math.ceil((new Date(market.upgrade_ends_at!).getTime() - serverNowMs()) / 1000));
       setSecondsLeft(diff);
-      if (diff === 0) loadData();
+      if (diff === 0) {
+        zeroHits++;
+        // Retry finalize every ~2s in case the server clock is slightly behind
+        // the client clock when the timer reaches 0 (otherwise the row stays
+        // stuck at "00:00" and never finalizes).
+        if (zeroHits === 1 || zeroHits % 2 === 0) loadData(false);
+      }
     };
 
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, [market?.upgrade_ends_at]);
+
 
   const nextUpgradePreview = async () => {
     const { data } = await supabase.rpc("market_upgrade_cost", { _level: marketLevel });
