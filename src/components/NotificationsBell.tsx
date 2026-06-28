@@ -34,6 +34,33 @@ export function NotificationsBell() {
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<TabKey>("all");
   const [actors, setActors] = useState<Record<string, PublicProfile>>({});
+  const [enemyIds, setEnemyIds] = useState<Set<string>>(new Set());
+  const [busyEnemy, setBusyEnemy] = useState<string | null>(null);
+
+  const loadEnemies = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from("user_enemies").select("enemy_id").eq("user_id", user.id);
+    setEnemyIds(new Set((data || []).map((r: any) => r.enemy_id)));
+  }, [user]);
+
+  useEffect(() => { loadEnemies(); }, [loadEnemies]);
+
+  const toggleEnemy = async (enemyId: string) => {
+    if (!user || busyEnemy) return;
+    setBusyEnemy(enemyId);
+    try {
+      if (enemyIds.has(enemyId)) {
+        await supabase.from("user_enemies").delete().eq("user_id", user.id).eq("enemy_id", enemyId);
+        setEnemyIds(s => { const n = new Set(s); n.delete(enemyId); return n; });
+      } else {
+        const { error } = await supabase.from("user_enemies").insert({ user_id: user.id, enemy_id: enemyId, reason: "من الإشعارات" });
+        if (!error) setEnemyIds(s => new Set(s).add(enemyId));
+      }
+    } finally {
+      setBusyEnemy(null);
+    }
+  };
+
 
   const loadActors = useCallback(async (notifs: Notif[]) => {
     const ids = Array.from(new Set(notifs.map(n => n.created_by).filter((x): x is string => !!x)));
