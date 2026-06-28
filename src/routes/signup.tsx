@@ -46,30 +46,6 @@ function SignupPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setLoading(true);
-    const finalName = (name || email.split("@")[0]).trim().slice(0, 15);
-    if (finalName.length > 15) {
-      setLoading(false);
-      setErr("الاسم لا يتجاوز 15 حرف");
-      return;
-    }
-    if (finalName.length >= 2) {
-      try {
-        const { data: bad } = await (supabase as any).rpc("is_disallowed_religious_name", { p_name: finalName });
-        if (bad === true) {
-          setLoading(false);
-          setErr("هذا الاسم غير مسموح. أمثلة مسموحة: بسم الله، سبحان الله، حسبي الله، لا إله إلا الله.");
-          return;
-        }
-      } catch {}
-      try {
-        const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: finalName });
-        if (taken === true) {
-          setLoading(false);
-          setErr("هذا الاسم محجوز، اختر اسماً آخر");
-          return;
-        }
-      } catch {}
-    }
     try {
       const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
@@ -80,11 +56,13 @@ function SignupPage() {
         return;
       }
     } catch {}
+    // No display_name passed: DB generates a unique placeholder ("قبطانXXXXXX").
+    // The user picks their real name later from inside the app (profile page).
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { display_name: finalName, referral_code: refCode || null },
+        data: { referral_code: refCode || null },
       },
     });
     setLoading(false);
