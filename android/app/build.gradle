@@ -16,11 +16,13 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
 
-        // تم ترك versionCode متغير لكي يقوم الـ Github Action بتحديثه تلقائياً
         versionCode 101 
         versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // هام جداً لمنع الانهيار في التطبيقات الكبيرة بعد الضغط
+        multiDexEnabled true
 
         // حصر المعالجات لتقليل الحجم
         ndk {
@@ -35,7 +37,6 @@ android {
 
     signingConfigs {
         release {
-            // المسار النسبي لملف التوقيع داخل مجلد app
             storeFile file("hamor-upload-key.keystore")
             storePassword System.getenv("SIGNING_STORE_PASSWORD") ?: "HamorGame2026"
             keyAlias "hamor-key-alias"
@@ -45,11 +46,11 @@ android {
 
     buildTypes {
         release {
-            // ضغط الكود وإزالة الموارد غير المستخدمة
             minifyEnabled true
             shrinkResources true
             debuggable false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // استخدام proguard-android.txt وهو أكثر توافقاً واستقراراً
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
@@ -57,7 +58,6 @@ android {
         }
     }
     
-    // إضافة لضمان التوافق مع الصور المولدة
     lintOptions {
         checkReleaseBuilds false
         abortOnError false
@@ -77,6 +77,9 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // إضافة مكتبة الـ multidex لدعم استقرار التطبيق بعد الضغط
+    implementation 'androidx.multidex:multidex:2.0.1'
+    
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
