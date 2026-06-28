@@ -321,6 +321,7 @@ export function NotificationsBell() {
                             <div className="text-sm font-bold text-amber-100 flex items-center gap-1">
                               <span>{iconFor(n.kind)}</span>
                               <span className="truncate">{n.title}</span>
+                              {actor && enemyIds.has(actor.id) && <span className="text-[9px] px-1 rounded bg-red-900/80 text-red-100 border border-red-400">🚩 عدو</span>}
                             </div>
                             {n.body && <div className="text-xs text-amber-200/80 mt-0.5">{n.body}</div>}
                             {actor && (
