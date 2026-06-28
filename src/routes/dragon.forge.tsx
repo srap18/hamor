@@ -543,5 +543,5 @@ function SmeltTab({ items, onSmelt, gems, busy }:
   );
 }
 
-const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3, divine: 4 };
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3, divine: 4, fatak: 5 };
 
