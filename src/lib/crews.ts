@@ -10,6 +10,7 @@ import fixer2Img from "@/assets/crews/fixer2.png";
 import fixer3Img from "@/assets/crews/fixer3.png";
 import fixer4Img from "@/assets/crews/fixer4.png";
 import goldenFisherImg from "@/assets/crews/golden-fisher.png";
+import marketExpertAsset from "@/assets/crews/market-expert.png.asset.json";
 
 export type Crew = {
   id: string;
