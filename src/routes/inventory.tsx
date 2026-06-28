@@ -31,6 +31,7 @@ function InventoryPage() {
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
   const [ships, setShips] = useState<OwnedShip[]>([]);
   const [goldenFisherUntil, setGoldenFisherUntil] = useState<string | null>(null);
+  const [marketExpertUntil, setMarketExpertUntil] = useState<string | null>(null);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
   const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const usingCrewRef = useRef(false);
