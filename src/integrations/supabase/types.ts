@@ -4468,6 +4468,7 @@ export type Database = {
         Args: { _coins_needed: number; _uid: string }
         Returns: undefined
       }
+      _require_market_level: { Args: { _min: number }; Returns: undefined }
       _ship_repair_ratio: {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
