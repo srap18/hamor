@@ -198,6 +198,15 @@ function FishMarket() {
     const cached = getCached<MarketState>(`fish-market:state:${user.id}`);
     if (cached) setMarketState(cached);
     loadMarketState();
+    // Re-load when crews are activated elsewhere (e.g. inventory page),
+    // when the tab regains focus, or on any inventory mutation.
+    const onChanged = () => { loadMarketState(); refreshProfile(); };
+    window.addEventListener("inventory-changed", onChanged);
+    window.addEventListener("focus", onChanged);
+    return () => {
+      window.removeEventListener("inventory-changed", onChanged);
+      window.removeEventListener("focus", onChanged);
+    };
   }, [user?.id]);
 
   // If the user has an active "trader" crew assigned to one of their ships,
