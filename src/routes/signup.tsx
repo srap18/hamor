@@ -97,14 +97,15 @@ function SignupPage() {
           />
         ) : (
           <form onSubmit={submit} className="space-y-3">
-            <input required maxLength={15} placeholder="اسم القبطان (15 حرف كحد أقصى)" value={name} onChange={(e) => setName(e.target.value.slice(0, 15))}
-              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
+            <div className="text-[11px] text-amber-100/70 text-center bg-amber-950/40 border border-amber-700/40 rounded-lg p-2">
+              💡 تقدر تختار اسمك من داخل اللعبة بعد التسجيل من صفحة «الملف الشخصي».
+            </div>
             {err && <div className="text-rose-400 text-xs text-center">{err}</div>}
             <button disabled={loading} type="submit" className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60">
               {loading ? "..." : "تسجيل"}
