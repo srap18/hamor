@@ -500,15 +500,19 @@ function RootComponent() {
           <Toaster
             position="top-center"
             theme="dark"
-            offset={{ top: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
+            offset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
+            mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             toastOptions={{
               style: {
                 background: "rgb(15 23 42 / 0.98)",
                 color: "rgb(248 250 252)",
                 border: "1px solid rgb(51 65 85)",
+                zIndex: 99999,
               },
             }}
+            style={{ zIndex: 99999 }}
           />
+
         </MobileFrame>
         {splashMounted && (
           <div id="app-splash" aria-hidden="true" className={splashVisible ? "" : "hide"}>
