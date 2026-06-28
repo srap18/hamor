@@ -242,6 +242,14 @@ function AdminTicketsPage() {
 
 
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => reconcileForTicket(t)}
+                    disabled={!!reconciling[t.id]}
+                    className="text-xs px-3 py-1 rounded bg-emerald-700/70 hover:bg-emerald-700 text-white border border-emerald-600 disabled:opacity-50"
+                    title="يجلب مدفوعات اللاعب من Paddle ويصرف أي عملية لم تُصرف (جواهر/VIP/دروع...)"
+                  >
+                    {reconciling[t.id] ? "⏳ جاري الصرف..." : "💰 صرف المدفوعات المعلقة"}
+                  </button>
                   {STATUSES.filter((s) => s.value !== t.status).map((s) => (
                     <button
                       key={s.value}
