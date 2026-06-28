@@ -52,6 +52,27 @@ function AdminTicketsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [openChat, setOpenChat] = useState<Record<string, boolean>>({});
+  const [reconciling, setReconciling] = useState<Record<string, boolean>>({});
+  const reconcileFn = useServerFn(adminReconcilePaddleForUser);
+
+  const reconcileForTicket = async (t: Ticket) => {
+    setReconciling((p) => ({ ...p, [t.id]: true }));
+    try {
+      const res = await reconcileFn({ data: { userId: t.user_id, environment: "live" } }) as { ok?: boolean; grantedCount?: number; reason?: string; skipped?: { id: string; reason: string }[] };
+      if (res?.ok === false) {
+        toast.error(`فشل: ${res.reason ?? "غير معروف"}`);
+      } else if ((res?.grantedCount ?? 0) > 0) {
+        toast.success(`✅ تم صرف ${res.grantedCount} عملية للاعب`);
+      } else {
+        const skipReasons = res?.skipped?.map((s) => s.reason).join(", ") ?? "";
+        toast.message("ℹ️ لا توجد عمليات معلقة للصرف", { description: skipReasons || undefined });
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "فشل الصرف");
+    } finally {
+      setReconciling((p) => ({ ...p, [t.id]: false }));
+    }
+  };
 
   const load = async () => {
 
