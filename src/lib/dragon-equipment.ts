@@ -84,7 +84,8 @@ export const UPGRADE_COST: Record<Rarity, number | null> = {
   rare: 6000,      // → epic
   epic: 15000,     // → legendary
   legendary: 35000,// → divine
-  divine: null,
+  divine: null,    // فتاك يُحصل عليه فقط من صندوق الحظ
+  fatak: null,
 };
 
 export function nextRarity(r: Rarity): Rarity | null {
