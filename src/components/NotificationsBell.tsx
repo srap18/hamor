@@ -275,6 +275,13 @@ export function NotificationsBell() {
                                   >
                                     👤 الملف
                                   </Link>
+                                  <button
+                                    onClick={() => toggleEnemy(actor.id)}
+                                    disabled={busyEnemy === actor.id}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${enemyIds.has(actor.id) ? "bg-red-900/80 text-red-100 border-red-400" : "bg-stone-800 text-amber-200 border-amber-700/60"} disabled:opacity-50`}
+                                  >
+                                    {enemyIds.has(actor.id) ? "🚩 عدو مثبّت ✕" : "🚩 ثبّت كعدو"}
+                                  </button>
                                 </div>
                               )}
                             </div>
