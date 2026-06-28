@@ -16,13 +16,18 @@ const config: CapacitorConfig = {
     ]
   },
   android: {
-    allowMixedContent: true
+    allowMixedContent: true,
+    // التعديل هنا: يفضل دائماً تحديد Scheme لضمان استقرار WebView
+    androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: "#000000",
+      // إضافة تحسينات الـ Splash Screen لضمان التوافق مع Android 12+
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP"
     }
   }
 };
