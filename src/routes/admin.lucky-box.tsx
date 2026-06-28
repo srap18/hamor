@@ -259,7 +259,7 @@ function PrizeRow({
             onChange={(e) => onChange({ item_id: e.target.value || null })}>
             <option value="">— الجودة —</option>
             {DRAGON_RARITIES.map((r) => <option key={r} value={r}>
-              {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : "خرافي"}
+              {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : r === "divine" ? "خرافي" : "فتاك"}
             </option>)}
           </select>
         </>
