@@ -17,6 +17,7 @@ import { useIsAdmin } from "@/hooks/use-admin";
 import { useIsChatMod } from "@/hooks/use-chat-mod";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { getTribeBanner } from "@/lib/tribe-banners";
+import { TribeFeatures } from "@/components/TribeFeatures";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 import { useServerFn } from "@tanstack/react-start";
