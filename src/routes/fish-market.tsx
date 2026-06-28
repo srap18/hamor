@@ -22,6 +22,7 @@ type SellResult = {
   rotLoss: number;
   net: number;
   fishName: string;
+  marketExpertBoost?: { basePrice: number; boostedPrice: number; qty: number } | null;
 };
 
 const TIER_INFO: Record<1|2|3|4|5, { img: string; label: string; stars: number; text: string }> = {
@@ -552,7 +553,11 @@ function FishMarket() {
       const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
       const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
       const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
-      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName });
+      const boostedUnit = requestedQty > 0 ? Math.round(serverEarned / requestedQty) : 0;
+      const boost = marketExpertActive && boostedUnit > Math.round(ctx.currentPrice)
+        ? { basePrice: Math.round(ctx.currentPrice), boostedPrice: boostedUnit, qty: requestedQty }
+        : null;
+      setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
       await loadFish();
       refreshProfile();
     } finally {
@@ -694,6 +699,16 @@ function SellResultModal({ result, onClose }: { result: SellResult; onClose: () 
             <div className="pt-1 text-base">
               الدخل: <span className="tabular-nums text-amber-900">{result.net.toLocaleString()}</span>ذهب
             </div>
+            {result.marketExpertBoost && (
+              <div className="mt-2 rounded-lg border-2 border-emerald-700/50 bg-emerald-100/70 p-2 text-[12px] font-bold text-emerald-950 space-y-0.5">
+                <div className="flex items-center gap-1 text-emerald-800">
+                  <span>📈</span><span>خبير الأسواق</span>
+                </div>
+                <div>كان سعر السوق: <span className="tabular-nums">{result.marketExpertBoost.basePrice.toLocaleString()}</span> ذهب للسمكة</div>
+                <div>رفعتُه إلى: <span className="tabular-nums text-emerald-900">{result.marketExpertBoost.boostedPrice.toLocaleString()}</span> ذهب للسمكة</div>
+                <div className="pt-0.5">ربح إضافي: <span className="tabular-nums text-emerald-900">+{((result.marketExpertBoost.boostedPrice - result.marketExpertBoost.basePrice) * result.marketExpertBoost.qty).toLocaleString()}</span> ذهب</div>
+              </div>
+            )}
             <p className="pt-1 text-[13px] leading-relaxed text-amber-950/90 font-semibold">
               {info.text}
             </p>
