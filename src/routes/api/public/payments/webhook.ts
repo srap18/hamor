@@ -196,6 +196,17 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     throw new Error(`grant_paddle_purchase failed: ${error.message}`);
   }
 
+  // Elite VIP fallback — if the price is an elite_vip_*_monthly tier, grant the
+  // level here too. SubscriptionCreated normally handles it, but it may not fire
+  // (one-time price config, missing importMeta.externalId, delivery hiccup), so
+  // we set it directly to avoid a paid-but-not-activated VIP.
+  const eliteLevel = eliteLevelFromPriceId(priceExt);
+  if (eliteLevel) {
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    await setEliteVipLevel(userId, eliteLevel, expiresAt);
+  }
+
+
   // Grant inventory items (e.g. ad_bomb_pack → 1× ad_bomb)
   if (reward.items?.length) {
     for (const it of reward.items) {
