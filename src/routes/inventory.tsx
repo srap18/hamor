@@ -7,6 +7,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
 import { SHIPS } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
@@ -108,12 +109,14 @@ function InventoryPage() {
         const { data, error } = await (supabase as any).rpc("activate_market_expert");
         if (error) {
           const m = error.message || "";
-          if (/no_market_expert/i.test(m)) toast.error("ما عندك خبير أسواق في المخزن");
+          if (/crew_requires_market_level_10/i.test(m)) toast.error("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
+          else if (/no_market_expert/i.test(m)) toast.error("ما عندك خبير أسواق في المخزن");
           else toast.error("تعذر تفعيل خبير الأسواق");
           return;
         }
         setCrewToUse(null);
         await load();
+        await refreshProfile();
         window.dispatchEvent(new Event("inventory-changed"));
         toast.success("📈 تم تفعيل خبير الأسواق لمدة 3 ساعات");
         return;
@@ -122,13 +125,15 @@ function InventoryPage() {
         const { data, error } = await (supabase as any).rpc("activate_golden_fisher");
         if (error) {
           const m = error.message || "";
-          if (/golden_fisher_temporarily_disabled/i.test(m)) toast.error("⏸️ الصياد الذهبي موقف مؤقتاً — قيد الفحص");
+          if (/crew_requires_market_level_10/i.test(m)) toast.error("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
+          else if (/golden_fisher_temporarily_disabled/i.test(m)) toast.error("⏸️ الصياد الذهبي موقف مؤقتاً — قيد الفحص");
           else if (/no_golden_fisher/i.test(m)) toast.error("ما عندك صياد ذهبي في المخزن");
           else toast.error("تعذر تفعيل الصياد الذهبي");
           return;
         }
         setCrewToUse(null);
         await load();
+        await refreshProfile();
         window.dispatchEvent(new Event("inventory-changed"));
         const alreadyActive = (data as any)?.already_active;
         toast.success(alreadyActive ? "🏅 الصياد الذهبي مفعّل عندك بالفعل" : "🏅 تم تفعيل الصياد الذهبي لمدة 24 ساعة");
@@ -137,13 +142,15 @@ function InventoryPage() {
       const { error } = await (supabase as any).rpc("use_crew_from_inventory", { _inventory_id: row.id, _ship_id: shipId ?? null });
       if (error) {
         const msg = error.message || "";
-        if (msg.includes("ship already")) toast.error("هذه السفينة فيها نفس الطاقم بالفعل");
+        if (/crew_requires_market_level_10/i.test(msg)) toast.error("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
+        else if (msg.includes("ship already")) toast.error("هذه السفينة فيها نفس الطاقم بالفعل");
         else if (msg.includes("missing ship")) toast.error("اختر سفينة أولًا");
         else toast.error("تعذر استخدام الطاقم");
         return;
       }
       setCrewToUse(null);
       await load();
+      await refreshProfile();
       window.dispatchEvent(new Event("inventory-changed"));
       toast.success(crewId === "trader" ? "💰 تم تفعيل التاجر في سوق السمك" : "✅ تم استخدام الطاقم");
     } catch (e: any) {
