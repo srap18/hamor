@@ -5042,22 +5042,35 @@ export type Database = {
       cleanup_global_banners: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
-      collect_fishing_reward: {
-        Args: {
-          _client_progress?: number
-          _requested_fish_id?: string
-          _ship_id: string
-        }
-        Returns: {
-          base_qty: number
-          duration_seconds: number
-          elapsed_seconds: number
-          fish_id: string
-          fish_qty: number
-          luck_bonus: number
-          xp_awarded: number
-        }[]
-      }
+      collect_fishing_reward:
+        | {
+            Args: { _requested_fish_id?: string; _ship_id: string }
+            Returns: {
+              base_qty: number
+              duration_seconds: number
+              elapsed_seconds: number
+              fish_id: string
+              fish_qty: number
+              luck_bonus: number
+              xp_awarded: number
+            }[]
+          }
+        | {
+            Args: {
+              _client_progress?: number
+              _requested_fish_id?: string
+              _ship_id: string
+            }
+            Returns: {
+              base_qty: number
+              duration_seconds: number
+              elapsed_seconds: number
+              fish_id: string
+              fish_qty: number
+              luck_bonus: number
+              xp_awarded: number
+            }[]
+          }
       compute_dragon_overall_level: {
         Args: { _dp: number; _stage: number }
         Returns: number
