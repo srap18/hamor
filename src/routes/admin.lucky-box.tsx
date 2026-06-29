@@ -43,6 +43,27 @@ const ITEM_TYPES = [
 const DRAGON_SLOTS = ["weapon", "armor", "talisman"] as const;
 const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine", "fatak"] as const;
 
+// Mirrors the validation in open_lucky_box() so we never save a prize the
+// server will later refuse to grant.
+function validatePrize(p: Pick<Prize, "prize_type" | "item_type" | "item_id" | "amount">): string | null {
+  if (p.prize_type === "coins" || p.prize_type === "gems" || p.prize_type === "rubies" || p.prize_type === "xp") {
+    if (!p.amount || p.amount <= 0) return "الكمية يجب أن تكون أكبر من صفر";
+    return null;
+  }
+  if (p.prize_type === "item") {
+    if (!p.item_type) return "اختر نوع العنصر";
+    if (!p.item_id || !p.item_id.trim()) return "أدخل معرّف العنصر";
+    if (!p.amount || p.amount <= 0) return "الكمية يجب أن تكون أكبر من صفر";
+    return null;
+  }
+  if (p.prize_type === "dragon_equipment") {
+    if (!p.item_type || !(DRAGON_SLOTS as readonly string[]).includes(p.item_type)) return "اختر الخانة (سلاح/درع/تميمة)";
+    if (!p.item_id || !(DRAGON_RARITIES as readonly string[]).includes(p.item_id)) return "اختر الجودة";
+    return null;
+  }
+  return "نوع جائزة غير معروف";
+}
+
 function AdminLuckyBox() {
   const [settings, setSettings] = useState<Settings>({
     enabled: true, cost_gems: 300, pct_common: 80, pct_rare: 18, pct_legendary: 2,
@@ -79,8 +100,43 @@ function AdminLuckyBox() {
   };
 
   const updatePrize = async (id: string, patch: Partial<Prize>) => {
-    setPrizes((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-    const { error } = await supabase.from("lucky_box_prizes").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id);
+    let merged: Prize | undefined;
+    setPrizes((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const next = { ...p, ...patch };
+        // When the prize type changes, reset incompatible fields so the row
+        // can never end up in a half-configured (invalid) state.
+        if (patch.prize_type && patch.prize_type !== p.prize_type) {
+          next.item_type = null;
+          next.item_id = null;
+          if (patch.prize_type === "dragon_equipment") next.amount = 1;
+          if (patch.prize_type === "coins" && (!next.amount || next.amount <= 0)) next.amount = 1000;
+        }
+        // Refuse to activate an invalid prize — protect open_lucky_box.
+        if (patch.active === true) {
+          const err = validatePrize(next);
+          if (err) {
+            toast.error(`لا يمكن التفعيل: ${err}`);
+            next.active = false;
+          }
+        }
+        merged = next;
+        return next;
+      }),
+    );
+    if (!merged) return;
+    const finalPatch: Partial<Prize> = {
+      ...patch,
+      item_type: merged.item_type,
+      item_id: merged.item_id,
+      amount: merged.amount,
+      active: merged.active,
+    };
+    const { error } = await supabase
+      .from("lucky_box_prizes")
+      .update({ ...finalPatch, updated_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) toast.error(error.message);
   };
 
@@ -212,8 +268,14 @@ function PrizeRow({
   onChange: (patch: Partial<Prize>) => void;
   onDelete: () => void;
 }) {
+  const invalidReason = validatePrize(prize);
   return (
-    <div className="rounded-lg bg-slate-900/60 border border-slate-800 p-2 grid grid-cols-12 gap-2 items-center">
+    <div className={`rounded-lg bg-slate-900/60 border ${invalidReason && prize.active ? "border-red-600/70" : "border-slate-800"} p-2 grid grid-cols-12 gap-2 items-center`}>
+      {invalidReason && (
+        <div className="col-span-12 text-[11px] text-red-300 bg-red-950/40 border border-red-900/50 rounded px-2 py-1">
+          ⚠️ {invalidReason} — لن تُمنح للاعبين حتى تُكمل الإعداد.
+        </div>
+      )}
       <input className="col-span-3 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
         value={prize.label} placeholder="اسم الجائزة"
         onChange={(e) => onChange({ label: e.target.value })} />
