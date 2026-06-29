@@ -222,6 +222,15 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
+        <ToggleRow
+          label={t("settings.pause_bg")}
+          value={pauseBg}
+          onChange={(v) => { sound.play("click"); setBgMotionPaused(v); }}
+        />
+        <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
+          {t("settings.pause_bg_hint")}
+        </div>
+
 
         {email && (
           <button
