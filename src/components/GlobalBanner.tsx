@@ -53,15 +53,23 @@ export function GlobalBanner() {
     setBanner(state);
     setVisible(true);
     sound.play("click");
+    // Cap every banner at 3 seconds max
+    const capped = Math.min(durationMs, 3000);
     hideTimer.current = window.setTimeout(() => {
       setVisible(false);
-      clearTimer.current = window.setTimeout(() => setBanner(null), 600);
-    }, durationMs);
+      clearTimer.current = window.setTimeout(() => setBanner(null), 300);
+    }, capped);
+  }, []);
+
+  const dismiss = useCallback(() => {
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    if (clearTimer.current) window.clearTimeout(clearTimer.current);
+    setVisible(false);
+    clearTimer.current = window.setTimeout(() => setBanner(null), 200);
   }, []);
 
   const handleRow = useCallback((row: BannerRow) => {
     if (!row?.id || seenIds.current.has(row.id)) return;
-    // Ignore old rows (more than 30s) on initial load
     const ageMs = Date.now() - new Date(row.created_at).getTime();
     if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
     seenIds.current.add(row.id);
@@ -73,21 +81,24 @@ export function GlobalBanner() {
         target_name: row.target_name || "لاعب",
         message: row.message || "",
         emoji: row.emoji || (row.kind === "nuke" ? "☢️" : row.kind === "ad_bomb" ? "📺" : "🛡️"),
-      }, 6000);
+      }, 3000);
     } else if (row.kind === "admin") {
+      if (!row.title && !row.message) return;
       show({
         _t: "admin", kind: "admin",
         title: row.title || "",
         message: row.message || "",
         emoji: row.emoji || "📢",
-      }, 8000);
+      }, 3000);
     } else if (row.kind === "lucky_box") {
+      // Skip empty banners (no title and no message) so users never see a blank popup
+      if (!row.title && !row.message) return;
       show({
         _t: "lucky", kind: "lucky_box",
-        title: row.title || "جائزة نادرة",
+        title: row.title || "جائزة نادرة 🎉",
         message: row.message || "",
         emoji: row.emoji || "🎉",
-      }, 4000);
+      }, 3000);
     }
   }, [show]);
 
