@@ -2571,6 +2571,31 @@ function Index() {
             }
             return;
           }
+          // Market Expert: account-wide activation (3h). Not assigned to a ship.
+          if (itemId === "market_expert") {
+            try {
+              const { error } = await (supabase as any).rpc("activate_market_expert");
+              if (error) {
+                const msg = String((error as any).message || "خطأ");
+                sound.play("error");
+                if (/crew_requires_market_level_10/i.test(msg)) setToast("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
+                else if (/no_market_expert/i.test(msg)) setToast("ما عندك خبير أسواق في المخزن");
+                else setToast(`❌ تعذر تفعيل خبير الأسواق: ${msg}`);
+                return;
+              }
+              sound.play("success");
+              setToast("📈 تم تفعيل خبير الأسواق لمدة 3 ساعات");
+              setModal(null);
+              refreshProfile();
+              reloadCrews();
+              setCrewTick((t) => t + 1);
+              window.dispatchEvent(new Event("inventory-changed"));
+            } catch (e: any) {
+              sound.play("error");
+              setToast(`❌ خطأ: ${e?.message ?? "غير معروف"}`);
+            }
+            return;
+          }
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
           // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
           if (itemId.startsWith("fixer_")) {
