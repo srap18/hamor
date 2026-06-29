@@ -135,11 +135,11 @@ export function GlobalBanner() {
   if (banner._t === "admin") {
     return (
       <div
-        className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-none transition-all duration-500 ease-out ${
+        className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-auto cursor-pointer transition-all duration-500 ease-out ${
           visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         }`}
       >
-        <div className="mx-2 mt-2 w-full max-w-md rounded-xl border-2 border-amber-400/80 bg-gradient-to-b from-amber-950 to-stone-950 shadow-[0_0_30px_rgba(251,191,36,0.5)] p-3 text-center">
+        <div onClick={dismiss} className="mx-2 mt-2 w-full max-w-md rounded-xl border-2 border-amber-400/80 bg-gradient-to-b from-amber-950 to-stone-950 shadow-[0_0_30px_rgba(251,191,36,0.5)] p-3 text-center">
           <div className="text-2xl mb-1">{banner.emoji || "📢"}</div>
           {banner.title && (
             <div className="text-amber-200 font-extrabold text-sm leading-tight">{banner.title}</div>
@@ -159,11 +159,11 @@ export function GlobalBanner() {
     const titleColor = legend ? "text-red-200" : "text-sky-200";
     return (
       <div
-        className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-none transition-all duration-500 ease-out ${
+        className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-auto cursor-pointer transition-all duration-500 ease-out ${
           visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         }`}
       >
-        <div className={`mx-2 mt-2 w-full max-w-md rounded-xl border-2 ${border} bg-gradient-to-b from-stone-900 to-stone-950 ${shadow} p-3 text-center`}>
+        <div onClick={dismiss} className={`mx-2 mt-2 w-full max-w-md rounded-xl border-2 ${border} bg-gradient-to-b from-stone-900 to-stone-950 ${shadow} p-3 text-center`}>
           <div className="text-2xl mb-1">{banner.emoji || "🎉"}</div>
           <div className={`${titleColor} font-extrabold text-sm leading-tight`}>{banner.title}</div>
           {banner.message && (
@@ -192,11 +192,11 @@ export function GlobalBanner() {
 
   return (
     <div
-      className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-none transition-all duration-500 ease-out ${
+      className={`fixed inset-x-0 top-0 z-[100] flex items-center justify-center pointer-events-auto cursor-pointer transition-all duration-500 ease-out ${
         visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
       }`}
     >
-      <div className={`mx-2 mt-2 w-full max-w-md rounded-xl border-2 ${borderColor} bg-gradient-to-b from-stone-900 to-stone-950 ${shadow} p-3 text-center`}>
+      <div onClick={dismiss} className={`mx-2 mt-2 w-full max-w-md rounded-xl border-2 ${borderColor} bg-gradient-to-b from-stone-900 to-stone-950 ${shadow} p-3 text-center`}>
         <div className="text-2xl mb-1">{banner.emoji || (isAnti ? "🛡️" : isAd ? "📺" : "☢️")}</div>
         <div className={`${titleColor} font-extrabold text-sm leading-tight`}>
           {line}
