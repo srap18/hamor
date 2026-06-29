@@ -56,18 +56,13 @@ jobs:
 
       - name: Setup Android Environment
         run: |
-          # تجهيز المجلدات والتأكد من وجود الصور الأصلية
           mkdir -p assets
-          
-          # نسخ الصور من المستودع إلى المجلد الرئيسي ليتمكن Capacitor من معالجتها
           if [ -f "assets/icon-only.png" ]; then cp assets/icon-only.png icon-only.png; fi
           if [ -f "assets/splash.png" ]; then cp assets/splash.png splash.png; fi
           if [ -f "assets/splash-dark.png" ]; then cp assets/splash-dark.png splash-dark.png; fi
           
           if [ ! -d "android" ]; then bunx cap add android; fi
           
-          # توليد الأيقونات والـ Splash (سوف يقرأ الصور من المجلد الرئيسي)
-          # نستخدم --iconBackgroundColor لضمان خلفية ثابتة للأيقونة
           bunx @capacitor/assets generate --android --iconBackgroundColor "#000000" --splashBackgroundColor "#000000" --splashBackgroundColorDark "#000000"
           
           bunx cap sync android
@@ -85,47 +80,31 @@ jobs:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/hamor-upload-key.keystore
 
-      - name: Build and Optimize Artifacts
+      - name: Build Android App
         env:
           SIGNING_STORE_PASSWORD: "HamorGame2026"
           SIGNING_KEY_PASSWORD: "HamorGame2026"
         run: |
           cd android
           ./gradlew clean
-          rm -rf app/build/outputs/apk/
-          rm -rf app/build/outputs/bundle/
           
-          # زيادة رقم الإصدار تلقائياً لتجنب مشاكل Google Play
+          # تحديث رقم الإصدار تلقائياً
           NEW_VERSION=$(( ${{ github.run_number }} + 100 ))
           sed -i "s/versionCode [0-9]*/versionCode $NEW_VERSION/" app/build.gradle
           
+          # البناء (التوقيع يتم تلقائياً بواسطة Gradle)
           ./gradlew bundleRelease assembleRelease -x lint
 
-      - name: Sign & Align Artifacts
+      - name: Organize Artifacts
         run: |
-          KEYSTORE="android/app/hamor-upload-key.keystore"
-          PASSWORD="HamorGame2026"
-          ALIAS="hamor-key-alias"
-          
-          AAB=$(find android/app/build/outputs/bundle/release/ -name "*.aab" | head -n 1)
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD $AAB $ALIAS || true
-          mv $AAB ./hamor-play-store.aab
-          
-          APK=$(find android/app/build/outputs/apk/release/ -name "app-release-unsigned.apk" -o -name "app-release.apk" | head -n 1)
-          if [ -f "$APK" ]; then
-            ZIPALIGN_PATH=$(find $ANDROID_HOME/build-tools/ -name zipalign | head -n 1)
-            $ZIPALIGN_PATH -v 4 $APK ./hamor-app-release-aligned.apk
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore $KEYSTORE -storepass $PASSWORD -keypass $PASSWORD ./hamor-app-release-aligned.apk $ALIAS || true
-            mv ./hamor-app-release-aligned.apk ./hamor-app-release.apk
-          fi
+          mkdir -p final-build
+          cp android/app/build/outputs/bundle/release/*.aab ./final-build/hamor-play-store.aab
+          cp android/app/build/outputs/apk/release/*.apk ./final-build/hamor-app-release.apk
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Build-Run-${{ github.run_number }}
-          path: |
-            ./hamor-play-store.aab
-            ./hamor-app-release.apk
+          path: ./final-build/
           if-no-files-found: error
           retention-days: 1
- 
