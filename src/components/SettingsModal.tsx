@@ -29,6 +29,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
+  // Translate common Supabase auth errors to Arabic
+  const arabicAuthError = (raw: string): string => {
+    const m = raw || "";
+    const sec = m.match(/after (\d+) seconds?/i);
+    if (sec) return `لأسباب أمنية، يمكنك المحاولة مجدداً بعد ${sec[1]} ثانية`;
+    if (/rate.?limit|too many/i.test(m)) return "محاولات كثيرة، انتظر قليلاً ثم حاول مرة أخرى";
+    if (/invalid|not.?valid/i.test(m) && /email/i.test(m)) return "البريد الإلكتروني غير صالح";
+    if (/already.*registered|already.*exists|already.*in use/i.test(m)) return "هذا البريد مستخدم بالفعل";
+    if (/password/i.test(m) && /weak|short|characters/i.test(m)) return "كلمة المرور ضعيفة جداً";
+    return "تعذّر إتمام العملية، حاول مرة أخرى";
+  };
+
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
