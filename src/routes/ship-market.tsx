@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, type ShipDef } from "@/lib/ships";
+import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, getShipByCode, type ShipDef } from "@/lib/ships";
 import { FISH } from "@/lib/fish";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -87,7 +87,7 @@ function ShipyardPage() {
   const fleetStorageUsed = useMemo(
     () => activeShips.reduce((sum, s) => {
       if ((s.catalog_code === "submarine" || s.catalog_code === "upgrade-sub") && s.max_hp > 0) return sum + s.max_hp;
-      return sum + (SHIPS.find((sh) => sh.code === s.catalog_code)?.storage ?? 0);
+      return sum + (getShipByCode(s.catalog_code)?.storage ?? 0);
     }, 0),
     [activeShips],
   );
