@@ -223,17 +223,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
-        <ToggleRow
-          label={t("settings.lite_mode")}
-          value={lite}
-          onChange={(v) => {
-            setLite(v);
-            setLiteMode(v); // reloads the page to apply
-          }}
-        />
-        <div className="-mt-1 mb-2 px-1 text-[10px] text-amber-300/70 leading-snug">
-          {t("settings.lite_hint")}
-        </div>
 
         {email && (
           <button
