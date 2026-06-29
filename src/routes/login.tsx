@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +79,7 @@ function LoginPage() {
     setResending(true); setResendMsg(null);
     const { error } = await supabase.auth.resend({
       type: "signup", email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
+      options: { emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/` },
     });
     setResending(false);
     setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط جديد إلى بريدك ✓");

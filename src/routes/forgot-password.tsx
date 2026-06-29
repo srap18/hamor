@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +19,7 @@ function ForgotPasswordPage() {
     e.preventDefault();
     setErr(null); setMsg(null); setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
+      redirectTo: `${siteUrl()}/auth/confirm?type=recovery&next=/reset-password`,
     });
     setLoading(false);
     if (error) { setErr(error.message); return; }

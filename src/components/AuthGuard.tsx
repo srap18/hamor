@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site-url";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
@@ -75,7 +76,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       setResending(true); setResendMsg(null);
       const { error } = await supabase.auth.resend({
         type: "signup", email: user.email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
+        options: { emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/` },
       });
       setResending(false);
       setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال الرابط ✓ راجع بريدك");
