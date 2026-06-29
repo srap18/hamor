@@ -100,8 +100,43 @@ function AdminLuckyBox() {
   };
 
   const updatePrize = async (id: string, patch: Partial<Prize>) => {
-    setPrizes((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-    const { error } = await supabase.from("lucky_box_prizes").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id);
+    let merged: Prize | null = null;
+    setPrizes((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const next = { ...p, ...patch };
+        // When the prize type changes, reset incompatible fields so the row
+        // can never end up in a half-configured (invalid) state.
+        if (patch.prize_type && patch.prize_type !== p.prize_type) {
+          next.item_type = null;
+          next.item_id = null;
+          if (patch.prize_type === "dragon_equipment") next.amount = 1;
+          if (patch.prize_type === "coins" && (!next.amount || next.amount <= 0)) next.amount = 1000;
+        }
+        // Refuse to activate an invalid prize — protect open_lucky_box.
+        if (patch.active === true) {
+          const err = validatePrize(next);
+          if (err) {
+            toast.error(`لا يمكن التفعيل: ${err}`);
+            next.active = false;
+          }
+        }
+        merged = next;
+        return next;
+      }),
+    );
+    if (!merged) return;
+    const finalPatch: Partial<Prize> = {
+      ...patch,
+      item_type: merged.item_type,
+      item_id: merged.item_id,
+      amount: merged.amount,
+      active: merged.active,
+    };
+    const { error } = await supabase
+      .from("lucky_box_prizes")
+      .update({ ...finalPatch, updated_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) toast.error(error.message);
   };
 
