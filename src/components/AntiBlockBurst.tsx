@@ -101,26 +101,26 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
   return (
     <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
       {/* dark vignette */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-black/30 to-black/70 animate-[fadeIn_0.25s_ease-out]" />
+      <div className="absolute inset-0 z-0 bg-gradient-radial from-transparent via-black/30 to-black/70 animate-[fadeIn_0.25s_ease-out]" />
 
-      {/* expanding shield ripples */}
-      <div className="absolute h-72 w-72 rounded-full border-4 border-emerald-300/80 animate-[ping_1.2s_ease-out_2]" />
-      <div className="absolute h-48 w-48 rounded-full border-2 border-cyan-300/80 animate-[ping_1.5s_ease-out_2]" />
-      <div className="absolute h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl animate-pulse" />
+      {/* expanding shield ripples (behind dragon) */}
+      <div className="absolute z-[1] h-72 w-72 rounded-full border-4 border-emerald-300/80 animate-[ping_1.2s_ease-out_2]" />
+      <div className="absolute z-[1] h-48 w-48 rounded-full border-2 border-cyan-300/80 animate-[ping_1.5s_ease-out_2]" />
+      <div className="absolute z-[1] h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl animate-pulse" />
 
       {hasGuardian && (
         <>
           {/* fiery radial glow behind dragon */}
           <div
-            className={`absolute h-[28rem] w-[28rem] rounded-full blur-3xl animate-pulse ${
+            className={`absolute z-[2] h-[28rem] w-[28rem] rounded-full blur-3xl animate-pulse ${
               isHighTier ? "bg-orange-500/40" : "bg-amber-400/25"
             }`}
           />
-          {/* dragon roar particles (ember dots) */}
+          {/* dragon roar particles (ember dots) — in front of shield, behind dragon */}
           {Array.from({ length: isHighTier ? 14 : 8 }).map((_, i) => (
             <span
               key={i}
-              className="absolute h-2 w-2 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.9)]"
+              className="absolute z-[3] h-2 w-2 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.9)]"
               style={{
                 left: `${50 + (Math.cos((i / 14) * Math.PI * 2) * 35)}%`,
                 top: `${50 + (Math.sin((i / 14) * Math.PI * 2) * 35)}%`,
@@ -130,11 +130,11 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
             />
           ))}
 
-          {/* dragon swoops in */}
+          {/* dragon swoops in — ALWAYS in front of shield rings & block effect */}
           <img
             src={dragonImg!}
             alt="Guardian Dragon"
-            className="relative h-72 w-72 object-contain drop-shadow-[0_0_40px_rgba(251,146,60,0.95)] animate-[dragonSwoop_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
+            className="relative z-[10] h-80 w-80 object-contain drop-shadow-[0_0_40px_rgba(251,146,60,0.95)] animate-[dragonSwoop_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
             style={{
               filter: isHighTier ? "drop-shadow(0 0 24px rgba(239,68,68,0.9))" : undefined,
             }}
@@ -143,7 +143,7 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
       )}
 
       {/* center plate with weapon + dragon level */}
-      <div className="absolute bottom-[18%] flex flex-col items-center gap-2 animate-[fadeIn_0.4s_ease-out_0.3s_both]">
+      <div className="absolute z-[11] bottom-[18%] flex flex-col items-center gap-2 animate-[fadeIn_0.4s_ease-out_0.3s_both]">
         {!hasGuardian && (
           <div className="text-7xl drop-shadow-[0_0_18px_rgba(16,185,129,0.9)] animate-bounce">🛡️</div>
         )}
