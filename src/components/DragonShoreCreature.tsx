@@ -204,7 +204,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
     };
     load();
     // Light poll so in-app SPA navigation (e.g. back from /dragon) refreshes quickly.
-    pollTimer = setInterval(load, 6000);
+    pollTimer = setInterval(() => { if (!document.hidden) load(); }, 30000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", load);

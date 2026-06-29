@@ -93,7 +93,7 @@ export function AdBombOverlay({
     };
     load();
     // Poll briefly as a safety net in case Realtime is delayed.
-    const poll = setInterval(load, 4000);
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 30000);
 
     const channelName = global ? "ad-bombs:global" : `ad-bombs:${targetUserId}`;
     const filter = global ? undefined : `target_user_id=eq.${targetUserId}`;

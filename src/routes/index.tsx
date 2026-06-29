@@ -1169,7 +1169,7 @@ function Index() {
           syncFleetFromDb();
         }
       }
-    }, 8000);
+    }, 20000);
     return () => clearInterval(id);
   }, []);
 
