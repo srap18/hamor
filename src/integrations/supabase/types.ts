@@ -4432,6 +4432,10 @@ export type Database = {
         Returns: undefined
       }
       _distribute_boss_loot: { Args: { p_boss_id: string }; Returns: undefined }
+      _dragon_equipment_default_stats: {
+        Args: { _rarity: string }
+        Returns: Json
+      }
       _effective_fishing_elapsed: {
         Args: {
           _as_of?: string
