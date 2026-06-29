@@ -1617,7 +1617,7 @@ function PlayerPage() {
 
                   {/* Category: Persistent crews (24h slot on ship) */}
                   <div className="text-[10px] text-amber-300/70 font-bold ps-1 mt-1">👥 طواقم دائمة — تركب سفينته 24 ساعة</div>
-                  {CREWS.filter((c) => !c.id.startsWith("fixer_") && c.id !== "trader").map((c) => {
+                  {CREWS.filter((c) => !c.id.startsWith("fixer_") && c.id !== "trader" && c.id !== "market_expert").map((c) => {
                     const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
                     const alreadyOnShip = existingIds.has(c.id);
                     return (
@@ -1644,6 +1644,19 @@ function PlayerPage() {
                         onBuy={() => buyAndSendCrew(c.id)} />
                     );
                   })}
+
+                  {/* Category: Market Expert (goes to recipient's inventory) */}
+                  <div className="text-[10px] text-amber-300/70 font-bold ps-1 mt-1">📈 خبير الأسواق — يصل مخزنه ويفعّله بنفسه</div>
+                  {CREWS.filter((c) => c.id === "market_expert").map((c) => {
+                    const q = inv.find((x) => x.item_id === c.id && x.item_type === "crew")?.quantity ?? 0;
+                    return (
+                      <CrewSendRow key={c.id} crew={c} qty={q} busy={busy}
+                        badge={{ text: "→ المخزن", tone: "emerald" }}
+                        onSend={() => sendSupport("crew", c.id)}
+                        onBuy={() => buyAndSendCrew(c.id)} />
+                    );
+                  })}
+
 
                   <button onClick={() => setMode("menu")} className="py-2 mt-1 rounded-xl bg-stone-700 text-stone-200 text-sm font-bold active:scale-95">← رجوع</button>
                 </>
