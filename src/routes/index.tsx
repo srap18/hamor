@@ -293,6 +293,7 @@ const gfMarketFullRef = { current: false };
 
 
 function Index() {
+  const bgPaused = useBgMotionPaused();
   const { isAdmin } = useIsAdmin();
   const [ships, setShips] = useState<Ship[]>(() => loadFleet());
   const [crewTick, setCrewTick] = useState(0); // re-render after crew updates
