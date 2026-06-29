@@ -86,6 +86,9 @@ export function useSecurityEnforcement(): SecurityBlock | null {
       //    result, which surfaced as the bug "I log in and immediately get
       //    logged out". We keep claim_session above for tracking, but no
       //    longer forcibly end the session here.
+    })();
+
+
 
 
     return () => {
