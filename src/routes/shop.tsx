@@ -12,7 +12,7 @@ import { BackgroundsPanel } from "@/components/BackgroundsPanel";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 import { formatSarFromUsd } from "@/lib/currency";
 
-import { serverNowMs } from "@/lib/server-time";
+
 
 
 export const Route = createFileRoute("/shop")({
