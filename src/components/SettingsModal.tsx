@@ -48,7 +48,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
-    setLite(getLiteMode());
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
