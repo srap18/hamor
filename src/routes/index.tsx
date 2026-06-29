@@ -1619,7 +1619,7 @@ function Index() {
       }}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {scene.displayVideo && !isLowPerfMode ? (
+        {scene.displayVideo && !isLowPerfMode && !bgPaused ? (
           <SeamlessVideo
             key={`vid-${scene.id}`}
             src={scene.displayVideo}
@@ -1633,7 +1633,7 @@ function Index() {
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
-            className={`absolute inset-0 h-full w-full object-cover select-none ${isHeavyFxDisabled ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            className={`absolute inset-0 h-full w-full object-cover select-none ${isHeavyFxDisabled || bgPaused ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
             style={{
               objectPosition: scene.objectPosition ?? "center center",
               ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
@@ -1645,7 +1645,7 @@ function Index() {
           />
         )}
         <div
-          className="absolute pointer-events-none animate-sea-flow"
+          className={`absolute pointer-events-none ${bgPaused ? "" : "animate-sea-flow"}`}
           style={{
             top: `${Math.max(0, scene.waterTop - 2)}%`,
             left: `${Math.max(0, scene.waterLeft - 8)}%`,
