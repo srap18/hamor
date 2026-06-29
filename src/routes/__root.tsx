@@ -12,6 +12,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
+import { SelfAntiBlockBurst } from "@/components/AntiBlockBurst";
+
 import { GiftPopup } from "@/components/GiftPopup";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
