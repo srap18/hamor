@@ -26,6 +26,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const pauseBg = useBgMotionPaused();
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
