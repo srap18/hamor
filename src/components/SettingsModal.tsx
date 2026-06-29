@@ -83,7 +83,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     );
 
     setChangingEmail(false);
-    if (error) { flash(t("settings.change_failed") + error.message); return; }
+    if (error) { flash(t("settings.change_failed") + arabicAuthError(error.message)); return; }
     flash(t("settings.email_change_sent"));
     setShowEmailForm(false);
     setNewEmail("");
