@@ -268,8 +268,14 @@ function PrizeRow({
   onChange: (patch: Partial<Prize>) => void;
   onDelete: () => void;
 }) {
+  const invalidReason = validatePrize(prize);
   return (
-    <div className="rounded-lg bg-slate-900/60 border border-slate-800 p-2 grid grid-cols-12 gap-2 items-center">
+    <div className={`rounded-lg bg-slate-900/60 border ${invalidReason && prize.active ? "border-red-600/70" : "border-slate-800"} p-2 grid grid-cols-12 gap-2 items-center`}>
+      {invalidReason && (
+        <div className="col-span-12 text-[11px] text-red-300 bg-red-950/40 border border-red-900/50 rounded px-2 py-1">
+          ⚠️ {invalidReason} — لن تُمنح للاعبين حتى تُكمل الإعداد.
+        </div>
+      )}
       <input className="col-span-3 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-sm"
         value={prize.label} placeholder="اسم الجائزة"
         onChange={(e) => onChange({ label: e.target.value })} />
