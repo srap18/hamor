@@ -5,6 +5,7 @@ import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
+import { useBgMotionPaused } from "@/lib/bg-motion";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { buyWithCoins, buyWithGems } from "@/lib/economy";
@@ -948,6 +949,7 @@ function PlayerPage() {
 
 
   const scene = getSceneVisual(p?.selected_bg_id || "onepiece", p?.bg_burned_until);
+  const bgPaused = useBgMotionPaused();
 
   const wTop = scene.waterTop ?? 45;
   const wLeft = scene.waterLeft ?? 30;
@@ -963,7 +965,7 @@ function PlayerPage() {
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
       <h1 className="sr-only">زيارة ميناء اللاعب {p?.display_name ?? ""} — Visit Player Harbor</h1>
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {scene.displayVideo ? (
+        {scene.displayVideo && !bgPaused ? (
           <SeamlessVideo
             key={`vid-${scene.id}-${scene.burned ? "b" : "c"}`}
             src={scene.displayVideo}
@@ -977,7 +979,7 @@ function PlayerPage() {
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
-            className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none animate-bg-drift ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            className={`absolute inset-0 h-full w-full object-cover pointer-events-none select-none ${bgPaused ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
             style={{
               objectPosition: scene.objectPosition ?? "center center",
               ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),

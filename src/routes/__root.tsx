@@ -36,6 +36,12 @@ import { installToastSanitizer } from "@/lib/sanitize-toast";
 if (typeof window !== "undefined") {
   installToastSanitizer();
   installServerClock();
+  // Apply the user's "pause animated background" preference before first paint.
+  try {
+    if (window.localStorage.getItem("bg-motion-paused") === "1") {
+      document.documentElement.classList.add("bg-motion-paused");
+    }
+  } catch {}
   // Re-sync whenever the tab regains focus or comes back from background.
   try {
     window.addEventListener("focus", () => syncServerTime(true));

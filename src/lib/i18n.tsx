@@ -30,6 +30,11 @@ export const dict: Dict = {
   "settings.music": { ar: "🎵 الموسيقى الخلفية", en: "🎵 Background music" },
   "settings.sfx": { ar: "🔊 المؤثرات الصوتية", en: "🔊 Sound effects" },
   "settings.death_banners": { ar: "💀 إظهار لافتات الموت", en: "💀 Show death banners" },
+  "settings.pause_bg": { ar: "🎬 إيقاف الخلفية المتحركة", en: "🎬 Pause animated background" },
+  "settings.pause_bg_hint": {
+    ar: "يوقف الفيديو والحركة في الخلفية (السحب، الطيور، البحر) ويترك صورة ثابتة — مفيد للجوالات الضعيفة أو لما يسخن الجهاز.",
+    en: "Stops video and background motion (clouds, birds, sea) and keeps a still image — useful for weaker phones or when the device overheats.",
+  },
   "settings.lite_mode": { ar: "🔋 موفر البطارية (يقلل تسخين الجوال)", en: "🔋 Battery saver (reduces device heat)" },
   "settings.lite_hint": {
     ar: "يوقف الخلفيات المتحركة، اللهب، حركات السفن، والفيديو. يخفض حرارة الجهاز ويوفر شحن البطارية بشكل كبير — مناسب للايفون والاندرويد لما يسخن.",

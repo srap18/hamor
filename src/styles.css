@@ -212,6 +212,18 @@
   html.low-perf .animate-spin {
     animation: none !important;
   }
+
+  /* User toggle: pause animated background (video, drift, sea, clouds, birds).
+     Keeps the static background image but stops continuous motion. */
+  html.bg-motion-paused .animate-bg-drift,
+  html.bg-motion-paused .animate-bg-burned-pulse,
+  html.bg-motion-paused .animate-burned-glow,
+  html.bg-motion-paused .animate-sea-flow,
+  html.bg-motion-paused .animate-cloud-drift,
+  html.bg-motion-paused .animate-bird-fly {
+    animation: none !important;
+  }
+
   /* Lite Mode: nuke every expensive paint — blurs, drop-shadows, backdrop
      effects, and gradient-heavy filters that thrash the GPU on phones. */
   html.low-perf *,
@@ -239,6 +251,7 @@
       animation: none !important;
     }
   }
+
 
   @keyframes fish-steal {
     0%   { transform: translateX(0) translateY(0) scale(0.6); opacity: 0; }

@@ -5,10 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
 import { useT, type Lang } from "@/lib/i18n";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
@@ -19,7 +19,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [showDeathBanner, setShowDeathBanner] = useState(true);
   const [showAttackBanner, setShowAttackBanner] = useState(true);
   const [showLuckyBanner, setShowLuckyBanner] = useState(true);
-  const [lite, setLite] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
@@ -27,6 +26,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const pauseBg = useBgMotionPaused();
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
@@ -48,7 +48,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
-    setLite(getLiteMode());
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
@@ -223,6 +222,15 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
+        <ToggleRow
+          label={t("settings.pause_bg")}
+          value={pauseBg}
+          onChange={(v) => { sound.play("click"); setBgMotionPaused(v); }}
+        />
+        <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
+          {t("settings.pause_bg_hint")}
+        </div>
+
 
         {email && (
           <button
