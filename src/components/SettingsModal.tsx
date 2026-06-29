@@ -9,7 +9,6 @@ import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/b
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { getLiteMode } from "@/lib/perf-mode";
 import { useT, type Lang } from "@/lib/i18n";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
