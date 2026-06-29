@@ -599,7 +599,34 @@ function AdminCodesPage() {
             ))}
           </div>
         </div>
+
+        <div className="space-y-1">
+          <div className="text-[11px] text-red-300/90">🐉 عتاد التنين الفتاك (سلاح / درع / تميمة)</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {([
+              { slot: "weapon",   rarity: "fatak",     label: "⚔️ سلاح فتاك 🩸",       cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "armor",    rarity: "fatak",     label: "🛡️ درع فتاك 🩸",        cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "talisman", rarity: "fatak",     label: "📿 تميمة فتاك 🩸",      cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "weapon",   rarity: "divine",    label: "⚔️ سلاح خرافي",          cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "armor",    rarity: "divine",    label: "🛡️ درع خرافي",           cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "talisman", rarity: "divine",    label: "📿 تميمة خرافية",        cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "weapon",   rarity: "legendary", label: "⚔️ سلاح أسطوري",         cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+              { slot: "armor",    rarity: "legendary", label: "🛡️ درع أسطوري",          cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+              { slot: "talisman", rarity: "legendary", label: "📿 تميمة أسطورية",       cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+            ] as const).map((d) => (
+              <button
+                key={`${d.slot}-${d.rarity}`}
+                onClick={() => quickCreateDragonEquip(d.slot, d.rarity, d.label)}
+                className={`px-2 py-2 rounded-lg bg-slate-800/70 border border-slate-700 text-xs text-slate-100 text-right transition truncate ${d.cls}`}
+                title={d.label}
+              >
+                {d.label}{quickQty > 1 ? <span className="text-red-300"> × {quickQty}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
 
       {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 10 مستويات) ───────── */}
       <EliteVipCodeCreator onCreated={loadCodes} />
