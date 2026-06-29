@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +62,7 @@ function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/`,
+        emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/`,
         data: { referral_code: refCode || null },
       },
     });
@@ -152,7 +153,7 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
+      options: { emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/` },
     });
     setResending(false);
     setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط جديد ✓");
