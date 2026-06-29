@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+
 
 // Dragon stage images (1..15)
 import dragon1 from "@/assets/dragon-stage-1.png";
@@ -167,3 +169,14 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
     </div>
   );
 }
+
+/**
+ * Root-mounted version that subscribes to the currently signed-in user's
+ * block events, so the dragon guardian effect always appears wherever the
+ * user is in the app (not only on the profile page).
+ */
+export function SelfAntiBlockBurst() {
+  const { user } = useAuth();
+  return <AntiBlockBurst defenderId={user?.id ?? null} />;
+}
+
