@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyProtection } from "@/lib/economy";
+import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CREWS as LIB_CREWS } from "@/lib/crews";
 import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
