@@ -125,13 +125,34 @@ function LuckyBoxModal({ onClose }: { onClose: () => void }) {
     setCanSkip(false);
     setStage("spinning");
     playSound("open");
-    skipTimer.current = window.setTimeout(() => setCanSkip(true), 1500);
+    skipTimer.current = window.setTimeout(() => setCanSkip(true), 700);
 
-    const { data, error } = await (supabase as any).rpc("open_lucky_box");
-    if (error) {
+    // Safety: never let the button hang indefinitely
+    let timedOut = false;
+    const hardReset = window.setTimeout(() => {
+      timedOut = true;
       setStage("idle");
       setBusy(false);
-      const msg = error.message || "";
+      toast.error("انتهت المهلة، حاول مجددًا");
+    }, 12000);
+
+    const startedAt = Date.now();
+    let data: any = null;
+    let error: any = null;
+    try {
+      const res = await (supabase as any).rpc("open_lucky_box");
+      data = res.data;
+      error = res.error;
+    } catch (e: any) {
+      error = e;
+    }
+    if (timedOut) return;
+    window.clearTimeout(hardReset);
+
+    if (error || !data) {
+      setStage("idle");
+      setBusy(false);
+      const msg = error?.message || "";
       if (/insufficient_gems|not_enough_gems/i.test(msg)) toast.error("لا تملك جواهر كافية");
       else if (/lucky_box_disabled/i.test(msg)) toast.error("صندوق الحظ متوقف حاليًا");
       else if (/market_level_too_low/i.test(msg)) toast.error("يجب أن يكون مستوى السوق ٦ أو أعلى");
@@ -144,16 +165,19 @@ function LuckyBoxModal({ onClose }: { onClose: () => void }) {
     setGems(r.gems_left);
     setOpensTotal(r.opens_count);
 
-    // Cinematic timing: spin -> burst -> reveal
+    // Quick cinematic: ensure ~900ms min spin, then short burst -> reveal
+    const elapsed = Date.now() - startedAt;
+    const burstDelay = Math.max(0, 900 - elapsed);
     stageTimer.current = window.setTimeout(() => {
       setStage("burst");
       playSound(r.rarity);
       stageTimer.current = window.setTimeout(() => {
         setStage("reveal");
         setBusy(false);
-      }, 700);
-    }, r.rarity === "legendary" ? 2600 : r.rarity === "rare" ? 2000 : 1500);
+      }, 450);
+    }, burstDelay);
   };
+
 
   const reset = () => { setStage("idle"); setResult(null); };
 
