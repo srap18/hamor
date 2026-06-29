@@ -86,6 +86,12 @@ function InvitePage() {
     }
   };
 
+  const shareText = `🏴‍☠️ انضم معي في لعبة ملوك القراصنة! أقوى لعبة بحرية عربية.\nسجّل من هذا الرابط واحصل على هدية بداية قوية:\n${link}`;
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("🏴‍☠️ انضم معي في ملوك القراصنة")}`;
+  const xUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+  const smsUrl = `sms:?body=${encodeURIComponent(shareText)}`;
+
   return (
     <div className="min-h-screen text-white pb-20" dir="rtl" style={{
       background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)",
@@ -108,39 +114,53 @@ function InvitePage() {
             </div>
           </div>
 
-          {/* Code box */}
-          <div className="bg-stone-950/80 rounded-xl border border-amber-600/50 p-3 mb-3">
-            <div className="text-[10px] text-amber-100/60 mb-1 text-center">كود الدعوة الخاص بك</div>
-            <div className="text-3xl font-black tracking-[0.4em] text-amber-300 text-center select-all">
-              {loading ? "..." : code || "—"}
-            </div>
-          </div>
-
-          {/* Link box */}
+          {/* PRIMARY: Link box - the easiest way to invite */}
           {link && (
-            <div className="bg-stone-950/60 rounded-lg border border-stone-700 p-2 mb-3">
-              <div className="text-[10px] text-stone-400 mb-0.5">رابط الدعوة</div>
-              <div className="text-xs text-stone-200 truncate" dir="ltr">{link}</div>
+            <div className="bg-stone-950/80 rounded-xl border-2 border-amber-500/60 p-3 mb-3">
+              <div className="text-[10px] text-amber-100/70 mb-1 text-center font-bold">🔗 رابط الدعوة المباشر (الأسهل)</div>
+              <div className="text-[11px] text-amber-200 break-all text-center mb-2 leading-relaxed" dir="ltr">{link}</div>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={copy} className="py-2 rounded-lg bg-stone-800 border border-stone-600 text-white text-sm font-bold active:scale-95">
+                  {copied ? "✓ تم النسخ" : "📋 نسخ الرابط"}
+                </button>
+                <button onClick={share} className="py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-300 text-white text-sm font-bold active:scale-95">
+                  📤 مشاركة سريعة
+                </button>
+              </div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={copy} className="py-2 rounded-lg bg-stone-800 border border-stone-600 text-white text-sm font-bold active:scale-95">
-              {copied ? "✓ تم النسخ" : "📋 نسخ"}
-            </button>
-            <button onClick={share} className="py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-300 text-white text-sm font-bold active:scale-95">
-              📤 مشاركة
-            </button>
+          {/* Quick share to specific apps */}
+          {link && (
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <a href={waUrl} target="_blank" rel="noopener noreferrer"
+                 className="flex flex-col items-center gap-1 py-2 rounded-lg bg-[#25D366]/15 border border-[#25D366]/60 text-white text-[10px] font-bold active:scale-95">
+                <span className="text-xl">💬</span>واتساب
+              </a>
+              <a href={tgUrl} target="_blank" rel="noopener noreferrer"
+                 className="flex flex-col items-center gap-1 py-2 rounded-lg bg-[#229ED9]/15 border border-[#229ED9]/60 text-white text-[10px] font-bold active:scale-95">
+                <span className="text-xl">✈️</span>تيليجرام
+              </a>
+              <a href={xUrl} target="_blank" rel="noopener noreferrer"
+                 className="flex flex-col items-center gap-1 py-2 rounded-lg bg-stone-800 border border-stone-500 text-white text-[10px] font-bold active:scale-95">
+                <span className="text-xl">𝕏</span>تويتر
+              </a>
+              <a href={smsUrl}
+                 className="flex flex-col items-center gap-1 py-2 rounded-lg bg-blue-900/40 border border-blue-500/60 text-white text-[10px] font-bold active:scale-95">
+                <span className="text-xl">✉️</span>SMS
+              </a>
+            </div>
+          )}
+
+          {/* Code box (secondary) */}
+          <div className="bg-stone-950/60 rounded-xl border border-stone-700 p-2">
+            <div className="text-[10px] text-stone-400 mb-1 text-center">أو شارك كود الدعوة يدويًا</div>
+            <div className="text-2xl font-black tracking-[0.4em] text-amber-300/90 text-center select-all">
+              {loading ? "..." : code || "—"}
+            </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-xl bg-stone-900/80 border border-amber-700/40 p-3 text-center">
-            <div className="text-2xl">👥</div>
-            <div className="text-2xl font-black text-amber-300">{invitedCount}</div>
-            <div className="text-[11px] text-amber-100/70">صديق مدعو</div>
-          </div>
           <div className="rounded-xl bg-stone-900/80 border border-emerald-700/40 p-3 text-center">
             <div className="text-2xl">💎</div>
             <div className="text-2xl font-black text-emerald-300">{totalGems.toLocaleString()}</div>
