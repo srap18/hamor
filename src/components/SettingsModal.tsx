@@ -16,6 +16,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
+  const [showAttackBanner, setShowAttackBanner] = useState(true);
+  const [showLuckyBanner, setShowLuckyBanner] = useState(true);
   const [lite, setLite] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
@@ -27,10 +29,24 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
+  // Translate common Supabase auth errors to Arabic
+  const arabicAuthError = (raw: string): string => {
+    const m = raw || "";
+    const sec = m.match(/after (\d+) seconds?/i);
+    if (sec) return `لأسباب أمنية، يمكنك المحاولة مجدداً بعد ${sec[1]} ثانية`;
+    if (/rate.?limit|too many/i.test(m)) return "محاولات كثيرة، انتظر قليلاً ثم حاول مرة أخرى";
+    if (/invalid|not.?valid/i.test(m) && /email/i.test(m)) return "البريد الإلكتروني غير صالح";
+    if (/already.*registered|already.*exists|already.*in use/i.test(m)) return "هذا البريد مستخدم بالفعل";
+    if (/password/i.test(m) && /weak|short|characters/i.test(m)) return "كلمة المرور ضعيفة جداً";
+    return "تعذّر إتمام العملية، حاول مرة أخرى";
+  };
+
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
     try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
+    try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
+    try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
     setLite(getLiteMode());
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
@@ -52,7 +68,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
     });
     setSending(false);
-    setMsg(error ? t("settings.send_failed") + error.message : t("settings.verify_sent"));
+    setMsg(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.verify_sent"));
     setTimeout(() => setMsg(null), 4000);
   };
 
@@ -67,7 +83,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     );
 
     setChangingEmail(false);
-    if (error) { flash(t("settings.change_failed") + error.message); return; }
+    if (error) { flash(t("settings.change_failed") + arabicAuthError(error.message)); return; }
     flash(t("settings.email_change_sent"));
     setShowEmailForm(false);
     setNewEmail("");
@@ -80,7 +96,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
       redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
     });
-    flash(error ? t("settings.send_failed") + error.message : t("settings.reset_sent"));
+    flash(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.reset_sent"));
   };
 
   const signOut = async () => {
@@ -179,6 +195,30 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               if (v) localStorage.removeItem("death-banner-hidden");
               else localStorage.setItem("death-banner-hidden", "1");
               window.dispatchEvent(new Event("death-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+        <ToggleRow
+          label="إظهار إشعارات الهجوم"
+          value={showAttackBanner}
+          onChange={(v) => {
+            setShowAttackBanner(v);
+            try {
+              if (v) localStorage.removeItem("attack-banner-hidden");
+              else localStorage.setItem("attack-banner-hidden", "1");
+              window.dispatchEvent(new Event("attack-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+        <ToggleRow
+          label="إظهار إشعارات الصندوق"
+          value={showLuckyBanner}
+          onChange={(v) => {
+            setShowLuckyBanner(v);
+            try {
+              if (v) localStorage.removeItem("lucky-banner-hidden");
+              else localStorage.setItem("lucky-banner-hidden", "1");
+              window.dispatchEvent(new Event("lucky-banner-pref"));
             } catch { /* noop */ }
           }}
         />

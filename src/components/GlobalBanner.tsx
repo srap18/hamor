@@ -46,6 +46,24 @@ export function GlobalBanner() {
   const hideTimer = useRef<number | null>(null);
   const clearTimer = useRef<number | null>(null);
   const seenIds = useRef<Set<string>>(new Set());
+  const attackHidden = useRef<boolean>(false);
+  const luckyHidden = useRef<boolean>(false);
+
+  useEffect(() => {
+    const readPrefs = () => {
+      try {
+        attackHidden.current = localStorage.getItem("attack-banner-hidden") === "1";
+        luckyHidden.current = localStorage.getItem("lucky-banner-hidden") === "1";
+      } catch { /* noop */ }
+    };
+    readPrefs();
+    window.addEventListener("attack-banner-pref", readPrefs);
+    window.addEventListener("lucky-banner-pref", readPrefs);
+    return () => {
+      window.removeEventListener("attack-banner-pref", readPrefs);
+      window.removeEventListener("lucky-banner-pref", readPrefs);
+    };
+  }, []);
 
   const show = useCallback((state: BannerState, durationMs: number) => {
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
@@ -74,6 +92,7 @@ export function GlobalBanner() {
     if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
     seenIds.current.add(row.id);
     if (row.kind === "nuke" || row.kind === "ad_bomb" || row.kind === "anti_block") {
+      if (attackHidden.current) return;
       show({
         _t: "nuke",
         kind: row.kind as "nuke" | "ad_bomb" | "anti_block",
@@ -91,6 +110,7 @@ export function GlobalBanner() {
         emoji: row.emoji || "📢",
       }, 3000);
     } else if (row.kind === "lucky_box") {
+      if (luckyHidden.current) return;
       // Skip empty banners (no title and no message) so users never see a blank popup
       if (!row.title && !row.message) return;
       show({
