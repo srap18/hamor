@@ -1271,7 +1271,10 @@ function Index() {
           // fleet snapshot may show 13,000 before crew history finishes loading;
           // keep that full value instead of dropping to the unboosted ~6,000.
           const progress = Math.max(s.progress, Math.round(s.max * ratio));
-          const timeLeft = Math.max(0, (s.duration - elapsed) / activeMult);
+          // Don't divide by activeMult here — `elapsed` already includes the
+          // sailor bonus accumulated since assignment. Dividing again would
+          // halve the remaining time instantly when sailor is assigned mid-trip.
+          const timeLeft = Math.max(0, s.duration - elapsed);
           if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
