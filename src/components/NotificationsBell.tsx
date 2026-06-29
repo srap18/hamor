@@ -109,7 +109,7 @@ export function NotificationsBell() {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") load();
       });
-    const poll = setInterval(load, 30000);
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 60000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);

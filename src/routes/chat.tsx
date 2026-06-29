@@ -326,7 +326,7 @@ function ChatPage() {
         if (active && ps) setProfMap(prev => { const n = new Map(prev); (ps as any[]).forEach(p => n.set(p.id, p)); return n; });
       }
     };
-    const pollTimer = window.setInterval(pollNewer, 1500);
+    const pollTimer = window.setInterval(() => { if (!document.hidden) pollNewer(); }, 5000);
     const onVis = () => { if (document.visibilityState === "visible") pollNewer(); };
     document.addEventListener("visibilitychange", onVis);
 

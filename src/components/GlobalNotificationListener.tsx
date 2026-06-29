@@ -96,7 +96,7 @@ export function GlobalNotificationListener() {
         if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
       }
     };
-    const interval = setInterval(poll, 20000);
+    const interval = setInterval(() => { if (!document.hidden) poll(); }, 60000);
     const onVis = () => { if (document.visibilityState === "visible") poll(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
