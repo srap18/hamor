@@ -232,6 +232,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
           {t("settings.pause_bg_hint")}
         </div>
+        <ToggleRow
+          label="🔋 موفر الطاقة (ضد التسخين)"
+          value={powerSaver}
+          onChange={(v) => { sound.play("click"); setPowerSaver(v); }}
+        />
+        <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
+          يوقف الحركة والظلال والـ blur والفيديو — يقلل تسخين الجوال واستهلاك البطارية.
+        </div>
 
 
         {email && (
