@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
+import { setPowerSaver, usePowerSaver } from "@/lib/power-saver";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
