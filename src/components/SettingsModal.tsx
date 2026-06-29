@@ -96,7 +96,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
       redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
     });
-    flash(error ? t("settings.send_failed") + error.message : t("settings.reset_sent"));
+    flash(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.reset_sent"));
   };
 
   const signOut = async () => {
