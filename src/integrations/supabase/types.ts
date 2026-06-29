@@ -5698,10 +5698,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      qa_award: {
-        Args: { _coins: number; _gems: number; _uid: string; _xp: number }
-        Returns: undefined
-      }
       qa_day_key: { Args: never; Returns: string }
       quote_fish_sale_by_qty: {
         Args: { _fish_id: string; _qty: number }
