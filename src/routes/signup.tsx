@@ -166,7 +166,7 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
         افتح الرابط المؤقت المرسل إلى <span className="text-amber-300 break-all">{email}</span> لتأكيد الحساب. يعمل الرابط من أي جهاز ثم ينتهي تلقائياً.
       </div>
       <div className="text-[11px] text-amber-100/90 bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-right leading-relaxed">
-        ⚠️ <strong>لم تجد الكود؟</strong> تحقق من مجلد <strong>الرسائل غير المرغوب فيها (Spam / Junk)</strong>.
+        ⚠️ <strong>لم تجد الرابط؟</strong> تحقق من مجلد <strong>الرسائل غير المرغوب فيها (Spam / Junk)</strong>.
         <br />
         لتصل الرسائل القادمة لبريدك الأساسي:
         <br />
