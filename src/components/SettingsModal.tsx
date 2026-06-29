@@ -199,6 +199,30 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <ToggleRow
+          label="إظهار إشعارات الهجوم"
+          value={showAttackBanner}
+          onChange={(v) => {
+            setShowAttackBanner(v);
+            try {
+              if (v) localStorage.removeItem("attack-banner-hidden");
+              else localStorage.setItem("attack-banner-hidden", "1");
+              window.dispatchEvent(new Event("attack-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+        <ToggleRow
+          label="إظهار إشعارات الصندوق"
+          value={showLuckyBanner}
+          onChange={(v) => {
+            setShowLuckyBanner(v);
+            try {
+              if (v) localStorage.removeItem("lucky-banner-hidden");
+              else localStorage.setItem("lucky-banner-hidden", "1");
+              window.dispatchEvent(new Event("lucky-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+        <ToggleRow
           label={t("settings.lite_mode")}
           value={lite}
           onChange={(v) => {
