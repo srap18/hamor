@@ -4269,8 +4269,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             label = `🔧 ${h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}ث`}`;
           }
         } else if (ship.fishing && !ready) {
-          const rem = Math.max(0, Math.ceil(ship.timeLeft));
-          if (rem <= 0) {
+          // `timeLeft` is in "effective trip seconds". With a sailor active the
+          // trip progresses at 2x, so real wall-clock remaining = timeLeft / 2.
+          // Display the wall-clock value so players can see the sailor's effect.
+          const { activeMult } = getEffectiveFishingElapsed(ship, serverNowMs());
+          const wallRem = Math.max(0, Math.ceil(ship.timeLeft / Math.max(1, activeMult)));
+          if (wallRem <= 0) {
             // Timer expired but progress hasn't hit max — either golden fisher
             // is mid-tick, or the storehouse is full so the auto-deposit
             // can't make progress. Show an actionable hint in the latter case.
@@ -4278,9 +4282,10 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               ? "🛒 المخزن ممتلئ — بِع السمك"
               : "⏳ جارٍ الجمع...";
           } else {
-            const m = Math.floor(rem / 60);
-            const s = rem % 60;
-            label = `⏱ ${m}:${String(s).padStart(2, "0")}`;
+            const m = Math.floor(wallRem / 60);
+            const s = wallRem % 60;
+            const boost = activeMult > 1 ? "⚓" : "⏱";
+            label = `${boost} ${m}:${String(s).padStart(2, "0")}`;
           }
         } else if (ship.fishing && ready) {
           label = "✅ جاهز";
