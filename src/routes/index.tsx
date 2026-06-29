@@ -2866,7 +2866,7 @@ function Index() {
                     <h3 className="text-amber-300 font-black text-xs tracking-widest">جميع الطواقم</h3>
                   </div>
                   <div className="space-y-2">
-                    {CREWS.filter((c) => c.id !== "golden_fisher").map((c) => {
+                    {CREWS.filter((c) => c.id !== "golden_fisher" && c.id !== "market_expert").map((c) => {
                       const cid = c.id;
                       const qty = availMap.get(cid) ?? 0;
                       const owned = qty > 0;
