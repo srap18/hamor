@@ -76,17 +76,26 @@ export function NotificationsBell() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const [{ data: ns }, { data: rs }] = await Promise.all([
+    // Fetch personal and broadcast notifications SEPARATELY so high-volume
+    // global broadcasts (lucky-box winners, etc.) don't push personal
+    // attack/support rows out of the visible window.
+    const [{ data: personal }, { data: broadcast }, { data: rs }] = await Promise.all([
       supabase.from("notifications").select("*")
-        .or(`recipient_id.eq.${user.id},recipient_id.is.null`)
+        .eq("recipient_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(30),
+        .limit(80),
+      supabase.from("notifications").select("*")
+        .is("recipient_id", null)
+        .order("created_at", { ascending: false })
+        .limit(20),
       supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
     ]);
-    const list = (ns || []) as Notif[];
-    setItems(list);
+    const merged = [...((personal || []) as Notif[]), ...((broadcast || []) as Notif[])]
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, 100);
+    setItems(merged);
     setReadIds(new Set((rs || []).map((r: any) => r.notification_id)));
-    loadActors(list);
+    loadActors(merged);
   }, [user, loadActors]);
 
   useEffect(() => {
