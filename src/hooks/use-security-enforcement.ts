@@ -76,45 +76,17 @@ export function useSecurityEnforcement(): SecurityBlock | null {
         return;
       }
 
-      // 3) Subscribe to profile changes — when our row updates we re-verify
-      //    session integrity via SECURITY DEFINER RPC (active_session_id is no
-      //    longer readable directly to prevent cross-user session fingerprinting).
-      const recheck = async () => {
-        if (cancelled) return;
-        try {
-          const { data } = await (supabase as any).rpc("verify_session_integrity", { _token: localToken });
-          if (data === false && !cancelled) {
-            setBlock({ kind: "kicked", message: "تم تسجيل الدخول من جهاز/متصفح آخر — انتهت هذه الجلسة" });
-            await supabase.auth.signOut();
-          }
-        } catch {}
-      };
-      channel = supabase
-        .channel(`security:${user.id}`)
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-          () => { void recheck(); },
-        )
-        .subscribe();
+      // 3) Session-integrity auto-kick is DISABLED.
+      //    The periodic verify_session_integrity check was causing legitimate
+      //    users to be signed out shortly after logging in whenever:
+      //      - they opened the app on a second tab/device (token mismatch),
+      //      - the mobile WebView auto-updated its User-Agent,
+      //      - or a slight UA prefix change happened mid-session.
+      //    The previous code called `supabase.auth.signOut()` on any false
+      //    result, which surfaced as the bug "I log in and immediately get
+      //    logged out". We keep claim_session above for tracking, but no
+      //    longer forcibly end the session here.
 
-      // 4) Periodic session integrity check (every 60s).
-      //    Server compares IP/UA fingerprint and clears the session if hijack suspected.
-      const integrityTick = async () => {
-        if (cancelled) return;
-        try {
-          const { data } = await (supabase as any).rpc("verify_session_integrity", { _token: localToken });
-          if (data === false && !cancelled) {
-            setBlock({ kind: "kicked", message: "تم رصد تغيّر مشبوه في الجلسة — تم إنهاؤها لحماية الحساب" });
-            await supabase.auth.signOut();
-          }
-        } catch {}
-      };
-      const interval = setInterval(integrityTick, 60_000);
-      // Initial check after 5s so the IP/UA had time to be stored
-      const initial = setTimeout(integrityTick, 5_000);
-      (channel as any).__cleanup = () => { clearInterval(interval); clearTimeout(initial); };
-    })();
 
     return () => {
       cancelled = true;
