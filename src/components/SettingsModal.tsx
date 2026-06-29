@@ -20,7 +20,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [showDeathBanner, setShowDeathBanner] = useState(true);
   const [showAttackBanner, setShowAttackBanner] = useState(true);
   const [showLuckyBanner, setShowLuckyBanner] = useState(true);
-  const [lite, setLite] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [sending, setSending] = useState(false);
