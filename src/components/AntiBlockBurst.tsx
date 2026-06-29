@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
+
 
 // Dragon stage images (1..15)
 import dragon1 from "@/assets/dragon-stage-1.png";
