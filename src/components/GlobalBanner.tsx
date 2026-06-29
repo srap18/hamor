@@ -92,6 +92,7 @@ export function GlobalBanner() {
     if (ageMs > 30_000) { seenIds.current.add(row.id); return; }
     seenIds.current.add(row.id);
     if (row.kind === "nuke" || row.kind === "ad_bomb" || row.kind === "anti_block") {
+      if (attackHidden.current) return;
       show({
         _t: "nuke",
         kind: row.kind as "nuke" | "ad_bomb" | "anti_block",
