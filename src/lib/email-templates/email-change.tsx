@@ -30,32 +30,33 @@ export const EmailChangeEmail = ({
   newEmail,
   confirmationUrl,
 }: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="ar" dir="rtl">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>تأكيد تغيير البريد في {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
+        <Heading style={h1}>تأكيد تغيير البريد</Heading>
         <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
+          طلبت تغيير بريد حسابك في {siteName} من{' '}
           <Link href={`mailto:${oldEmail}`} style={link}>
             {oldEmail}
           </Link>{' '}
-          to{' '}
+          إلى{' '}
           <Link href={`mailto:${newEmail}`} style={link}>
             {newEmail}
           </Link>
           .
         </Text>
         <Text style={text}>
-          Click the button below to confirm this change:
+          اضغط على الزر التالي لتأكيد التغيير. الرابط مؤقت وينتهي تلقائياً:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
+          تأكيد تغيير البريد
         </Button>
+        <Text style={text}>أو انسخ الرابط التالي وافتحه في المتصفح:</Text>
+        <Text style={linkBox}><Link href={confirmationUrl} style={copyLink}>{confirmationUrl}</Link></Text>
         <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+          إذا لم تطلب هذا التغيير، قم بتأمين حسابك فوراً.
         </Text>
       </Container>
     </Body>
@@ -77,8 +78,11 @@ const text = {
   color: '#55575d',
   lineHeight: '1.5',
   margin: '0 0 25px',
+  textAlign: 'right' as const,
 }
 const link = { color: 'inherit', textDecoration: 'underline' }
+const linkBox = { backgroundColor: '#f5f5f4', border: '1px solid #e7e5e4', borderRadius: '8px', padding: '12px', margin: '0 0 20px', wordBreak: 'break-all' as const, textAlign: 'left' as const }
+const copyLink = { color: '#b8841f', fontSize: '12px', textDecoration: 'underline' }
 const button = {
   backgroundColor: '#000000',
   color: '#ffffff',
@@ -87,4 +91,4 @@ const button = {
   padding: '12px 20px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'right' as const }

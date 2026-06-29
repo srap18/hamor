@@ -118,7 +118,7 @@ function LoginPage() {
               <div className="text-xs text-amber-100">حسابك يحتاج تأكيد. أرسلنا رابطاً مؤقتاً إلى بريدك.</div>
               <button type="button" onClick={() => nav({ to: "/signup" })}
                 className="w-full py-1.5 rounded bg-amber-600 text-white text-xs font-bold active:scale-95">
-                إدخال كود التأكيد
+                صفحة تأكيد الحساب
               </button>
               <button type="button" onClick={resend} disabled={resending || !email}
                 className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">

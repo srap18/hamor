@@ -126,22 +126,17 @@ function SignupPage() {
 }
 
 function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCode: string; onVerified: () => void }) {
-  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState<string | null>(null);
 
-  const verify = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkConfirmed = async () => {
     setErr(null);
-    const token = code.trim();
-    if (token.length < 6) { setErr("أدخل الكود المكون من 6 أرقام"); return; }
     setBusy(true);
-    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+    const { data, error } = await supabase.auth.refreshSession();
     setBusy(false);
-    if (error) { setErr("الكود غير صحيح أو منتهي. أعد المحاولة"); return; }
-    if (!data.session) { setErr("تعذر إكمال التأكيد، حاول مرة أخرى"); return; }
+    if (error || !data.user?.email_confirmed_at) { setErr("لم يتم تأكيد الرابط بعد"); return; }
     if (refCode) {
       try {
         await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
@@ -164,7 +159,7 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
   };
 
   return (
-    <form onSubmit={verify} className="space-y-3 text-center">
+    <div className="space-y-3 text-center">
       <div className="text-5xl">📧</div>
       <div className="text-amber-200 font-bold">تم إرسال رابط التأكيد</div>
       <div className="text-xs text-amber-100/70">
@@ -181,25 +176,14 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
         • <strong>Outlook / Hotmail:</strong> اضغط <strong>«ليست بريدًا عشوائيًا»</strong> وأضف المرسل للمصادر الموثوقة.
       </div>
 
-      <div className="text-[11px] text-amber-100/60">إذا ظهر لك كود بدلاً من الرابط، يمكنك استخدامه هنا كخيار احتياطي.</div>
-      <input
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        required
-        placeholder="------"
-        value={code}
-        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        className="w-full px-3 py-3 rounded-lg bg-stone-900 border-2 border-amber-700/50 text-white text-2xl font-bold tracking-[0.6em] text-center focus:outline-none focus:border-amber-400"
-      />
       {err && <div className="text-rose-400 text-xs">{err}</div>}
       <button
-        disabled={busy || code.length < 6}
-        type="submit"
+        disabled={busy}
+        type="button"
+        onClick={checkConfirmed}
         className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60"
       >
-        {busy ? "جاري التأكيد..." : "✓ تأكيد الحساب"}
+        {busy ? "جاري التحقق..." : "✓ تحققت من الرابط"}
       </button>
       <button
         type="button"
@@ -210,6 +194,6 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
         {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الرابط"}
       </button>
       {resendMsg && <div className="text-[11px] text-emerald-300">{resendMsg}</div>}
-    </form>
+    </div>
   );
 }
