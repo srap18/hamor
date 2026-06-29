@@ -110,6 +110,7 @@ export function GlobalBanner() {
         emoji: row.emoji || "📢",
       }, 3000);
     } else if (row.kind === "lucky_box") {
+      if (luckyHidden.current) return;
       // Skip empty banners (no title and no message) so users never see a blank popup
       if (!row.title && !row.message) return;
       show({
