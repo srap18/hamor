@@ -36,6 +36,24 @@ const SENDER_DOMAIN = "notify.www.molok-alqarasna.com"
 const ROOT_DOMAIN = "www.molok-alqarasna.com"
 const FROM_DOMAIN = "www.molok-alqarasna.com"
 
+function buildAppConfirmationUrl(actionType: string, rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null
+  try {
+    const source = new URL(rawUrl)
+    const tokenHash = source.searchParams.get('token_hash')
+    const type = source.searchParams.get('type') || actionType
+    if (!tokenHash) return rawUrl
+
+    const appUrl = new URL('/auth/confirm', `https://${ROOT_DOMAIN}`)
+    appUrl.searchParams.set('token_hash', tokenHash)
+    appUrl.searchParams.set('type', type)
+    appUrl.searchParams.set('next', actionType === 'recovery' ? '/reset-password' : '/')
+    return appUrl.toString()
+  } catch {
+    return rawUrl
+  }
+}
+
 function redactEmail(email: string | null | undefined): string {
   if (!email) return '***'
   const [localPart, domain] = email.split('@')
@@ -136,7 +154,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           siteName: SITE_NAME,
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
-          confirmationUrl: payload.data.url,
+          confirmationUrl: buildAppConfirmationUrl(emailType, payload.data.url) ?? payload.data.url,
           token: payload.data.token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,

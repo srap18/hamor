@@ -7,7 +7,9 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
+  Section,
   Text,
 } from '@react-email/components'
 
@@ -20,21 +22,24 @@ export const MagicLinkEmail = ({
   siteName,
   confirmationUrl,
 }: MagicLinkEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="ar" dir="rtl">
     <Head />
-    <Preview>Your login link for {siteName}</Preview>
+    <Preview>رابط دخول مؤقت إلى {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
+        <Heading style={h1}>رابط الدخول</Heading>
         <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
+          اضغط على الزر التالي للدخول إلى {siteName}. الرابط مؤقت وينتهي تلقائياً.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Log In
+          دخول
         </Button>
+        <Text style={text}>أو انسخ الرابط التالي وافتحه في المتصفح:</Text>
+        <Section style={linkBox}>
+          <Link href={confirmationUrl} style={linkStyle}>{confirmationUrl}</Link>
+        </Section>
         <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
+          إذا لم تطلب هذا الرابط، تجاهل الرسالة بأمان.
         </Text>
       </Container>
     </Body>
@@ -56,6 +61,7 @@ const text = {
   color: '#55575d',
   lineHeight: '1.5',
   margin: '0 0 25px',
+  textAlign: 'right' as const,
 }
 const button = {
   backgroundColor: '#000000',
@@ -65,4 +71,6 @@ const button = {
   padding: '12px 20px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const linkBox = { backgroundColor: '#f5f5f4', border: '1px solid #e7e5e4', borderRadius: '8px', padding: '12px', margin: '0 0 20px', wordBreak: 'break-all' as const, textAlign: 'left' as const }
+const linkStyle = { color: '#b8841f', fontSize: '12px', textDecoration: 'underline' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'right' as const }

@@ -48,7 +48,7 @@ export const SignupEmail = ({
           <Link href={confirmationUrl} style={linkStyle}>{confirmationUrl}</Link>
         </Section>
         <Text style={text}>
-          الرابط صالح لمدة <strong>ساعة واحدة</strong>.
+          الرابط مؤقت وصالح لمدة <strong>ساعة واحدة</strong>، ويمكن فتحه من أي جهاز لتأكيد الحساب.
         </Text>
         <Text style={footer}>
           إذا لم تكن أنت من طلب إنشاء الحساب، تجاهل هذه الرسالة بأمان.

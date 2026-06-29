@@ -61,7 +61,7 @@ function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/`,
         data: { referral_code: refCode || null },
       },
     });
@@ -90,7 +90,7 @@ function SignupPage() {
           <div className="text-xs text-amber-100/70 inline-flex items-center justify-center gap-1 w-full">ابدأ رحلتك من 500 <CoinIcon size={12} /></div>
         </div>
         {pendingEmail ? (
-          <VerifyOtpForm
+          <VerifyLinkNotice
             email={pendingEmail}
             refCode={refCode}
             onVerified={() => nav({ to: "/" })}
@@ -125,23 +125,18 @@ function SignupPage() {
   );
 }
 
-function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode: string; onVerified: () => void }) {
-  const [code, setCode] = useState("");
+function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCode: string; onVerified: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState<string | null>(null);
 
-  const verify = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkConfirmed = async () => {
     setErr(null);
-    const token = code.trim();
-    if (token.length < 6) { setErr("أدخل الكود المكون من 6 أرقام"); return; }
     setBusy(true);
-    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+    const { data, error } = await supabase.auth.refreshSession();
     setBusy(false);
-    if (error) { setErr("الكود غير صحيح أو منتهي. أعد المحاولة"); return; }
-    if (!data.session) { setErr("تعذر إكمال التأكيد، حاول مرة أخرى"); return; }
+    if (error || !data.user?.email_confirmed_at) { setErr("لم يتم تأكيد الرابط بعد"); return; }
     if (refCode) {
       try {
         await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
@@ -154,20 +149,24 @@ function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode:
   const resend = async () => {
     if (resending) return;
     setResending(true); setResendMsg(null); setErr(null);
-    const { error } = await supabase.auth.resend({ type: "signup", email });
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
+    });
     setResending(false);
-    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال كود جديد ✓");
+    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط جديد ✓");
   };
 
   return (
-    <form onSubmit={verify} className="space-y-3 text-center">
+    <div className="space-y-3 text-center">
       <div className="text-5xl">📧</div>
-      <div className="text-amber-200 font-bold">أدخل كود التأكيد</div>
+      <div className="text-amber-200 font-bold">تم إرسال رابط التأكيد</div>
       <div className="text-xs text-amber-100/70">
-        أرسلنا كوداً من 6 أرقام إلى <span className="text-amber-300 break-all">{email}</span>
+        افتح الرابط المؤقت المرسل إلى <span className="text-amber-300 break-all">{email}</span> لتأكيد الحساب. يعمل الرابط من أي جهاز ثم ينتهي تلقائياً.
       </div>
       <div className="text-[11px] text-amber-100/90 bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-right leading-relaxed">
-        ⚠️ <strong>لم تجد الكود؟</strong> تحقق من مجلد <strong>الرسائل غير المرغوب فيها (Spam / Junk)</strong>.
+        ⚠️ <strong>لم تجد الرابط؟</strong> تحقق من مجلد <strong>الرسائل غير المرغوب فيها (Spam / Junk)</strong>.
         <br />
         لتصل الرسائل القادمة لبريدك الأساسي:
         <br />
@@ -177,24 +176,14 @@ function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode:
         • <strong>Outlook / Hotmail:</strong> اضغط <strong>«ليست بريدًا عشوائيًا»</strong> وأضف المرسل للمصادر الموثوقة.
       </div>
 
-      <input
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        required
-        placeholder="------"
-        value={code}
-        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        className="w-full px-3 py-3 rounded-lg bg-stone-900 border-2 border-amber-700/50 text-white text-2xl font-bold tracking-[0.6em] text-center focus:outline-none focus:border-amber-400"
-      />
       {err && <div className="text-rose-400 text-xs">{err}</div>}
       <button
-        disabled={busy || code.length < 6}
-        type="submit"
+        disabled={busy}
+        type="button"
+        onClick={checkConfirmed}
         className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-extrabold active:scale-95 disabled:opacity-60"
       >
-        {busy ? "جاري التأكيد..." : "✓ تأكيد الحساب"}
+        {busy ? "جاري التحقق..." : "✓ تحققت من الرابط"}
       </button>
       <button
         type="button"
@@ -202,9 +191,9 @@ function VerifyOtpForm({ email, refCode, onVerified }: { email: string; refCode:
         disabled={resending}
         className="w-full py-2 rounded-lg bg-emerald-700/70 hover:bg-emerald-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
       >
-        {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الكود"}
+        {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الرابط"}
       </button>
       {resendMsg && <div className="text-[11px] text-emerald-300">{resendMsg}</div>}
-    </form>
+    </div>
   );
 }

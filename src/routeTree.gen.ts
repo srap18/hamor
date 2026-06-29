@@ -54,6 +54,7 @@ import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
+import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
@@ -300,6 +301,11 @@ const DragonForgeRoute = DragonForgeRouteImport.update({
   path: '/forge',
   getParentRoute: () => DragonRoute,
 } as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/auth/confirm',
+  path: '/auth/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminWeeklyXpRoute = AdminWeeklyXpRouteImport.update({
   id: '/weekly-xp',
   path: '/weekly-xp',
@@ -459,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -525,6 +532,7 @@ export interface FileRoutesByTo {
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -593,6 +601,7 @@ export interface FileRoutesById {
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -662,6 +671,7 @@ export interface FileRouteTypes {
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
+    | '/auth/confirm'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -728,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
+    | '/auth/confirm'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -795,6 +806,7 @@ export interface FileRouteTypes {
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
+    | '/auth/confirm'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -848,6 +860,7 @@ export interface RootRouteChildren {
   TribeEventsRoute: typeof TribeEventsRoute
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
+  AuthConfirmRoute: typeof AuthConfirmRoute
   GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
@@ -1176,6 +1189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DragonForgeRouteImport
       parentRoute: typeof DragonRoute
     }
+    '/auth/confirm': {
+      id: '/auth/confirm'
+      path: '/auth/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/weekly-xp': {
       id: '/admin/weekly-xp'
       path: '/weekly-xp'
@@ -1410,6 +1430,7 @@ const rootRouteChildren: RootRouteChildren = {
   TribeEventsRoute: TribeEventsRoute,
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
+  AuthConfirmRoute: AuthConfirmRoute,
   GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
