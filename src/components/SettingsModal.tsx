@@ -68,7 +68,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
     });
     setSending(false);
-    setMsg(error ? t("settings.send_failed") + error.message : t("settings.verify_sent"));
+    setMsg(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.verify_sent"));
     setTimeout(() => setMsg(null), 4000);
   };
 
