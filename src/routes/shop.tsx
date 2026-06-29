@@ -211,28 +211,21 @@ function Shop() {
         setBusy(false);
         if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       } else {
-      // Server-side: deduct currency AND extend protection_until atomically.
-      const days =
-        selected.id === "shield-4h" ? (qty / 6) :     // 4h × qty = qty/6 days (will round up server-side)
-        selected.id === "shield-1d" ? qty :
-        selected.id === "shield-2d" ? qty * 2 : 0;
-      const daysInt = Math.max(1, Math.ceil(days));
+      // Buy shield as an inventory item — user activates manually from المخزن.
+      const invId =
+        selected.id === "shield-4h" ? "shield_4h" :
+        selected.id === "shield-1d" ? "shield_1d" :
+        selected.id === "shield-2d" ? "shield_2d" : "";
+      if (!invId) { setBusy(false); flash("نوع درع غير معروف", 2000); return; }
       const coinsCost = selected.currency === "coin" ? total : 0;
       const gemsCost = selected.currency === "gem" ? total : 0;
-      const { error } = await buyProtection(daysInt, coinsCost, gemsCost);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.rpc as any)("buy_shield_to_inventory", {
+        _item_id: invId, _qty: qty, _coins_cost: coinsCost, _gems_cost: gemsCost,
+      });
       setBusy(false);
-      if (error) {
-        const msg = error.message || "";
-        if (msg.includes("armor_cooldown")) {
-          const m = msg.match(/until\s+(.+)$/);
-          const untilMs = m ? new Date(m[1]).getTime() : NaN;
-          const days = Number.isFinite(untilMs) ? Math.ceil(Math.max(0, untilMs - serverNowMs()) / 86400000) : 7;
-          flash(`لا يمكن شراء درع جديد قبل ${Math.max(1, days)} يوم`, 2200);
-        } else {
-          flash("فشل الشراء: " + msg, 2000);
-        }
-        return;
-      }
+      if (error) { flash("فشل الشراء: " + (error.message || ""), 2000); return; }
+      flash("✓ تم إضافة الدرع للمخزن — فعّله من المخزن وقت ما تحتاجه", 2400);
       }
     } else if (tab === "ships") {
       // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity
