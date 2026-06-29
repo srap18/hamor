@@ -5,10 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { getLiteMode, setLiteMode } from "@/lib/perf-mode";
+import { getLiteMode } from "@/lib/perf-mode";
 import { useT, type Lang } from "@/lib/i18n";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
