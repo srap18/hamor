@@ -92,14 +92,21 @@ jobs:
           NEW_VERSION=$(( ${{ github.run_number }} + 100 ))
           sed -i "s/versionCode [0-9]*/versionCode $NEW_VERSION/" app/build.gradle
           
-          # البناء (التوقيع يتم تلقائياً بواسطة Gradle)
+          # البناء بدون تدخل يدوي في التوقيع (Gradle سيتولى ذلك بفضل build.gradle)
           ./gradlew bundleRelease assembleRelease -x lint
 
       - name: Organize Artifacts
         run: |
           mkdir -p final-build
-          cp android/app/build/outputs/bundle/release/*.aab ./final-build/hamor-play-store.aab
-          cp android/app/build/outputs/apk/release/*.apk ./final-build/hamor-app-release.apk
+          # التحقق من وجود الملفات قبل النسخ لتجنب فشل الـ Action
+          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then
+            cp android/app/build/outputs/bundle/release/app-release.aab ./final-build/hamor-play-store.aab
+          fi
+          if [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release-unsigned.apk ./final-build/hamor-app-release.apk
+          elif [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk ./final-build/hamor-app-release.apk
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
