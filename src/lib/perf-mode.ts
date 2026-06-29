@@ -14,8 +14,12 @@ const LITE_KEY = "lite-mode";
 
 function readUserLite(): boolean {
   if (typeof localStorage === "undefined") return false;
-  try { return localStorage.getItem(LITE_KEY) === "1"; } catch { return false; }
+  // Lite mode was removed because it caused stuck/hanging UI for some users.
+  // Force-clear any previously stored preference and always report disabled.
+  try { localStorage.removeItem(LITE_KEY); } catch { /* noop */ }
+  return false;
 }
+
 
 function read(): { lowNet: boolean; lowDevice: boolean } {
   if (typeof navigator === "undefined") return { lowNet: false, lowDevice: false };
