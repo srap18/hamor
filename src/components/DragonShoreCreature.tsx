@@ -359,8 +359,14 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         <button
           type="button"
           onClick={(e) => {
-            // Only treat as a tap if the click actually landed on a non-transparent
-            // pixel of the dragon canvas (avoids triggering from empty area around it).
+            // Visitor (inspect) mode: always open — no alpha hit-test, that was
+            // making the dragon need 10+ taps to register.
+            if (!interactive) {
+              handleTap();
+              return;
+            }
+            // Owner mode: only accept taps on the dragon's opaque pixels so the
+            // empty area around it doesn't navigate to /dragon.
             const btn = e.currentTarget as HTMLElement;
             const canvas = btn.querySelector("canvas") as HTMLCanvasElement | null;
             if (canvas && canvas.width > 0 && canvas.height > 0) {
