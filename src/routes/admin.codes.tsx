@@ -86,13 +86,14 @@ type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
 
 type ExtraReward = {
-  type: RewardType;
+  type: RewardType | "dragon_equipment";
   item_id?: string | null;
   item_kind?: string | null;
   quantity?: number;
   coins?: number;
   gems?: number;
   xp?: number;
+  label?: string;
 };
 
 type CodeRow = {
@@ -359,6 +360,31 @@ function AdminCodesPage() {
     loadCodes();
   };
 
+  const quickCreateDragonEquip = async (slot: "weapon" | "armor" | "talisman", rarity: "fatak" | "divine" | "legendary", label: string) => {
+    const finalCode = randomCode();
+    const qty = Math.max(1, quickQty);
+    const max_uses = quickDist === "public" ? 0 : 1;
+    const { error } = await insertCode({
+      finalCode,
+      reward_type: "bundle",
+      item_id: null,
+      item_kind: null,
+      coins: 0,
+      gems: 0,
+      xp: 0,
+      quantity: 1,
+      max_uses,
+      expires_at: null,
+      note: `${label}${qty > 1 ? ` × ${qty}` : ""}${quickDist === "public" ? " — للجميع" : ""}`,
+      extra_rewards: [{ type: "dragon_equipment", item_kind: slot, item_id: rarity, quantity: qty, label }],
+    });
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    loadCodes();
+  };
+
+
   const toggleBundleItem = (code: string) => {
     setBundleSelItems((prev) => {
       const next = { ...prev };
@@ -573,7 +599,34 @@ function AdminCodesPage() {
             ))}
           </div>
         </div>
+
+        <div className="space-y-1">
+          <div className="text-[11px] text-red-300/90">🐉 عتاد التنين الفتاك (سلاح / درع / تميمة)</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {([
+              { slot: "weapon",   rarity: "fatak",     label: "⚔️ سلاح فتاك 🩸",       cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "armor",    rarity: "fatak",     label: "🛡️ درع فتاك 🩸",        cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "talisman", rarity: "fatak",     label: "📿 تميمة فتاك 🩸",      cls: "hover:bg-red-900/40 hover:border-red-500" },
+              { slot: "weapon",   rarity: "divine",    label: "⚔️ سلاح خرافي",          cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "armor",    rarity: "divine",    label: "🛡️ درع خرافي",           cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "talisman", rarity: "divine",    label: "📿 تميمة خرافية",        cls: "hover:bg-amber-900/40 hover:border-amber-500" },
+              { slot: "weapon",   rarity: "legendary", label: "⚔️ سلاح أسطوري",         cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+              { slot: "armor",    rarity: "legendary", label: "🛡️ درع أسطوري",          cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+              { slot: "talisman", rarity: "legendary", label: "📿 تميمة أسطورية",       cls: "hover:bg-yellow-900/40 hover:border-yellow-500" },
+            ] as const).map((d) => (
+              <button
+                key={`${d.slot}-${d.rarity}`}
+                onClick={() => quickCreateDragonEquip(d.slot, d.rarity, d.label)}
+                className={`px-2 py-2 rounded-lg bg-slate-800/70 border border-slate-700 text-xs text-slate-100 text-right transition truncate ${d.cls}`}
+                title={d.label}
+              >
+                {d.label}{quickQty > 1 ? <span className="text-red-300"> × {quickQty}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
 
       {/* ───────── إنشاء كود Elite VIP (اشتراك حصري 10 مستويات) ───────── */}
       <EliteVipCodeCreator onCreated={loadCodes} />
