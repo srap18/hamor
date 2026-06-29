@@ -86,13 +86,14 @@ type RewardType = "bundle" | "item" | "ship";
 type DistMode = "limited" | "public"; // limited = عدد استخدامات محدد، public = للجميع مرة واحدة لكل شخص
 
 type ExtraReward = {
-  type: RewardType;
+  type: RewardType | "dragon_equipment";
   item_id?: string | null;
   item_kind?: string | null;
   quantity?: number;
   coins?: number;
   gems?: number;
   xp?: number;
+  label?: string;
 };
 
 type CodeRow = {
