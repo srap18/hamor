@@ -2,17 +2,28 @@ import { Link } from "@tanstack/react-router";
 import harborBg from "@/assets/harbor-bg.jpg";
 import harborVideo from "@/assets/harbor-bg.mp4.asset.json";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
+import { useBgMotionPaused } from "@/lib/bg-motion";
 
 export function Landing() {
+  const bgPaused = useBgMotionPaused();
   return (
     <div className="relative min-h-screen text-amber-100" dir="rtl">
       {/* Live sea background */}
       <div className="fixed inset-0 -z-10 bg-stone-950">
-        <SeamlessVideo
-          src={harborVideo.url}
-          poster={harborBg}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {bgPaused ? (
+          <img
+            src={harborBg}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <SeamlessVideo
+            src={harborVideo.url}
+            poster={harborBg}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         <div
           className="absolute inset-0"
           style={{ background: "linear-gradient(rgba(5,10,20,0.65), rgba(5,10,20,0.85))" }}
