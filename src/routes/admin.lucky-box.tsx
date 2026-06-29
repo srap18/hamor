@@ -100,7 +100,7 @@ function AdminLuckyBox() {
   };
 
   const updatePrize = async (id: string, patch: Partial<Prize>) => {
-    let merged: Prize | null = null;
+    let merged: Prize | undefined;
     setPrizes((prev) =>
       prev.map((p) => {
         if (p.id !== id) return p;
