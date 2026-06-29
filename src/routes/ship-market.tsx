@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, type ShipDef } from "@/lib/ships";
+import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, getShipByCode, type ShipDef } from "@/lib/ships";
 import { FISH } from "@/lib/fish";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
