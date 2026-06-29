@@ -597,9 +597,9 @@ function FishMarket() {
       </div>
 
       {marketExpertActive && (
-        <div className="absolute left-2 right-2 z-30 top-[calc(max(0.5rem,env(safe-area-inset-top))+5rem)] rounded-xl border-2 border-emerald-300/70 bg-gradient-to-b from-emerald-600/90 to-emerald-900/90 px-3 py-2 text-center shadow-xl">
-          <div className="text-[12px] font-extrabold text-emerald-100">📈 خبير الأسواق مفعّل — يبيع كل سمكة بأعلى سعر</div>
-          <div className="text-[11px] font-bold text-amber-200 tabular-nums">ينتهي خلال {formatHHMMSS(marketExpertMs)}</div>
+        <div className="absolute left-2 right-2 z-30 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] rounded-xl border-2 border-emerald-300/70 bg-gradient-to-b from-emerald-600/95 to-emerald-900/95 px-3 py-1.5 text-center shadow-xl flex items-center justify-center gap-2">
+          <span className="text-[11px] font-extrabold text-emerald-100">📈 خبير الأسواق مفعّل</span>
+          <span className="text-[11px] font-bold text-amber-200 tabular-nums">{formatHHMMSS(marketExpertMs)}</span>
         </div>
       )}
 
