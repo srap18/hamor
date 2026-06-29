@@ -161,12 +161,20 @@ function InvitePage() {
           </div>
         </div>
 
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="rounded-xl bg-stone-900/80 border border-amber-700/40 p-3 text-center">
+            <div className="text-2xl">👥</div>
+            <div className="text-2xl font-black text-amber-300">{invitedCount}</div>
+            <div className="text-[11px] text-amber-100/70">صديق مدعو</div>
+          </div>
           <div className="rounded-xl bg-stone-900/80 border border-emerald-700/40 p-3 text-center">
             <div className="text-2xl">💎</div>
             <div className="text-2xl font-black text-emerald-300">{totalGems.toLocaleString()}</div>
             <div className="text-[11px] text-emerald-100/70">إجمالي الجواهر المربوحة</div>
           </div>
         </div>
+
 
         {/* Earnings list */}
         <div className="rounded-xl bg-stone-950/70 border border-stone-700 p-3">
