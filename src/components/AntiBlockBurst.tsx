@@ -96,7 +96,9 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
 
   const dragonImg = burst.dragonStage ? DRAGON_IMAGES[burst.dragonStage - 1] : null;
   const isHighTier = (burst.dragonStage ?? 0) >= 10;
-  const hasGuardian = !!dragonImg && (burst.dragonLevel ?? 0) > 0;
+  // Show guardian dragon whenever the defender owns one (stage exists),
+  // even if the overall-level RPC failed or returned 0/null.
+  const hasGuardian = !!dragonImg;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
