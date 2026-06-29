@@ -169,3 +169,14 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
     </div>
   );
 }
+
+/**
+ * Root-mounted version that subscribes to the currently signed-in user's
+ * block events, so the dragon guardian effect always appears wherever the
+ * user is in the app (not only on the profile page).
+ */
+export function SelfAntiBlockBurst() {
+  const { user } = useAuth();
+  return <AntiBlockBurst defenderId={user?.id ?? null} />;
+}
+
