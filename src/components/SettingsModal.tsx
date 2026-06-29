@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
+import { setPowerSaver, usePowerSaver } from "@/lib/power-saver";
 
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
@@ -27,6 +28,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const pauseBg = useBgMotionPaused();
+  const powerSaver = usePowerSaver();
 
   const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
@@ -229,6 +231,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         />
         <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
           {t("settings.pause_bg_hint")}
+        </div>
+        <ToggleRow
+          label="🔋 موفر الطاقة (ضد التسخين)"
+          value={powerSaver}
+          onChange={(v) => { sound.play("click"); setPowerSaver(v); }}
+        />
+        <div className="px-1 text-[10px] text-accent/60 text-center leading-snug mb-2">
+          يوقف الحركة والظلال والـ blur والفيديو — يقلل تسخين الجوال واستهلاك البطارية.
         </div>
 
 

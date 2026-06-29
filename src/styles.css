@@ -237,6 +237,21 @@
     transition: none !important;
   }
   html.low-perf [class*="blur-"] { filter: none !important; }
+
+  /* Power Saver: aggressive — kills animations, blurs, and shadows to keep the phone cool. */
+  html.power-saver *,
+  html.power-saver *::before,
+  html.power-saver *::after {
+    animation: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+  }
+  html.power-saver [class*="blur-"] { filter: none !important; }
+  html.power-saver video { display: none !important; }
   /* Honor users who have OS-level "Reduce motion" set. */
   @media (prefers-reduced-motion: reduce) {
     .animate-bg-drift,

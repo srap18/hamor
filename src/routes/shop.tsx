@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems, buyProtection } from "@/lib/economy";
+import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { CREWS as LIB_CREWS } from "@/lib/crews";
 import { WEAPONS as LIB_WEAPONS } from "@/lib/weapons";
@@ -12,7 +12,7 @@ import { BackgroundsPanel } from "@/components/BackgroundsPanel";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
 import { formatSarFromUsd } from "@/lib/currency";
 
-import { serverNowMs } from "@/lib/server-time";
+
 
 
 export const Route = createFileRoute("/shop")({
@@ -99,9 +99,9 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
 
 // Max armor duration capped at 2 days. Higher tiers removed.
 const PROTECTION: Item[] = [
-  { id: "shield-4h", name: "درع لمده 4 ساعات", emoji: "🛡️", price: 60, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
-  { id: "shield-1d", name: "درع لمده يوم", emoji: "🛡️", price: 280, currency: "gem", desc: "بعد الشراء: 4 ايام بدون شراء درع" },
-  { id: "shield-2d", name: "درع لمده يومين", emoji: "🛡️", price: 550, currency: "gem", desc: "الحد الاقصى • بعد الشراء: 4 ايام بدون شراء درع" },
+  { id: "shield-4h", name: "درع لمده 4 ساعات", emoji: "🛡️", price: 60, currency: "gem", desc: "يُضاف للمخزن — فعّله وقت ما تحتاجه" },
+  { id: "shield-1d", name: "درع لمده يوم", emoji: "🛡️", price: 280, currency: "gem", desc: "يُضاف للمخزن — فعّله وقت ما تحتاجه" },
+  { id: "shield-2d", name: "درع لمده يومين", emoji: "🛡️", price: 550, currency: "gem", desc: "يُضاف للمخزن — فعّله وقت ما تحتاجه" },
   { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
   { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
   { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
@@ -211,28 +211,21 @@ function Shop() {
         setBusy(false);
         if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
       } else {
-      // Server-side: deduct currency AND extend protection_until atomically.
-      const days =
-        selected.id === "shield-4h" ? (qty / 6) :     // 4h × qty = qty/6 days (will round up server-side)
-        selected.id === "shield-1d" ? qty :
-        selected.id === "shield-2d" ? qty * 2 : 0;
-      const daysInt = Math.max(1, Math.ceil(days));
+      // Buy shield as an inventory item — user activates manually from المخزن.
+      const invId =
+        selected.id === "shield-4h" ? "shield_4h" :
+        selected.id === "shield-1d" ? "shield_1d" :
+        selected.id === "shield-2d" ? "shield_2d" : "";
+      if (!invId) { setBusy(false); flash("نوع درع غير معروف", 2000); return; }
       const coinsCost = selected.currency === "coin" ? total : 0;
       const gemsCost = selected.currency === "gem" ? total : 0;
-      const { error } = await buyProtection(daysInt, coinsCost, gemsCost);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.rpc as any)("buy_shield_to_inventory", {
+        _item_id: invId, _qty: qty, _coins_cost: coinsCost, _gems_cost: gemsCost,
+      });
       setBusy(false);
-      if (error) {
-        const msg = error.message || "";
-        if (msg.includes("armor_cooldown")) {
-          const m = msg.match(/until\s+(.+)$/);
-          const untilMs = m ? new Date(m[1]).getTime() : NaN;
-          const days = Number.isFinite(untilMs) ? Math.ceil(Math.max(0, untilMs - serverNowMs()) / 86400000) : 7;
-          flash(`لا يمكن شراء درع جديد قبل ${Math.max(1, days)} يوم`, 2200);
-        } else {
-          flash("فشل الشراء: " + msg, 2000);
-        }
-        return;
-      }
+      if (error) { flash("فشل الشراء: " + (error.message || ""), 2000); return; }
+      flash("✓ تم إضافة الدرع للمخزن — فعّله من المخزن وقت ما تحتاجه", 2400);
       }
     } else if (tab === "ships") {
       // Phoenix shop ships — pack of 3 or single, calls dedicated RPC once per quantity
