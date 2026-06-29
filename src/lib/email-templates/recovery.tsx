@@ -42,7 +42,7 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
           <Link href={confirmationUrl} style={linkStyle}>{confirmationUrl}</Link>
         </Section>
         <Text style={text}>
-          الرابط صالح لمدة <strong>ساعة واحدة</strong>.
+          الرابط مؤقت وصالح لمدة <strong>ساعة واحدة</strong>، ويمكن فتحه من أي جهاز لإكمال التحقق.
         </Text>
         <Text style={footer}>
           إذا لم تطلب إعادة تعيين، تجاهل هذه الرسالة. كلمة مرورك لن تتغير.

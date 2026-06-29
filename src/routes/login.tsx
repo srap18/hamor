@@ -78,9 +78,10 @@ function LoginPage() {
     setResending(true); setResendMsg(null);
     const { error } = await supabase.auth.resend({
       type: "signup", email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
     });
     setResending(false);
-    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال كود جديد إلى بريدك ✓");
+    setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال رابط جديد إلى بريدك ✓");
   };
 
   const google = async () => {
@@ -114,14 +115,14 @@ function LoginPage() {
           {err && <div className="text-amber-300 text-xs text-center">{err}</div>}
           {needsConfirm && (
             <div className="p-3 rounded-lg bg-amber-900/40 border border-amber-700/50 space-y-2 text-center">
-              <div className="text-xs text-amber-100">حسابك يحتاج تأكيد. أرسلنا كوداً من 6 أرقام إلى بريدك.</div>
+              <div className="text-xs text-amber-100">حسابك يحتاج تأكيد. أرسلنا رابطاً مؤقتاً إلى بريدك.</div>
               <button type="button" onClick={() => nav({ to: "/signup" })}
                 className="w-full py-1.5 rounded bg-amber-600 text-white text-xs font-bold active:scale-95">
                 إدخال كود التأكيد
               </button>
               <button type="button" onClick={resend} disabled={resending || !email}
                 className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
-                {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الكود"}
+                {resending ? "جاري الإرسال..." : "🔁 إعادة إرسال الرابط"}
               </button>
               {resendMsg && <div className="text-[11px] text-emerald-300 text-center">{resendMsg}</div>}
             </div>

@@ -49,7 +49,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
     });
     setSending(false);
     setMsg(error ? t("settings.send_failed") + error.message : t("settings.verify_sent"));
@@ -61,7 +61,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     if (!newEmail || changingEmail) return;
     if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
     setChangingEmail(true);
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    const { error } = await supabase.auth.updateUser(
+      { email: newEmail },
+      { emailRedirectTo: `${window.location.origin}/auth/confirm?type=email_change&next=/` },
+    );
 
     setChangingEmail(false);
     if (error) { flash(t("settings.change_failed") + error.message); return; }
@@ -75,7 +78,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
 
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
     });
     flash(error ? t("settings.send_failed") + error.message : t("settings.reset_sent"));
   };

@@ -18,6 +18,14 @@ function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    const code = search.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setErr("رابط الاستعادة غير صالح أو انتهت مدته");
+        else setReady(true);
+      });
+    }
     // Supabase places a recovery token in the URL hash; the SDK exchanges it
     // automatically and fires PASSWORD_RECOVERY via onAuthStateChange.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {

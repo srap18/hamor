@@ -75,10 +75,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       setResending(true); setResendMsg(null);
       const { error } = await supabase.auth.resend({
         type: "signup", email: user.email,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup&next=/` },
       });
       setResending(false);
-      setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم الإرسال ✓ راجع بريدك");
+      setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال الرابط ✓ راجع بريدك");
     };
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-950 text-amber-100 p-6 gap-4 text-center" dir="rtl">

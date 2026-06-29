@@ -18,7 +18,7 @@ function ForgotPasswordPage() {
     e.preventDefault();
     setErr(null); setMsg(null); setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
     });
     setLoading(false);
     if (error) { setErr(error.message); return; }
@@ -33,7 +33,7 @@ function ForgotPasswordPage() {
         <div className="text-center mb-5">
           <div className="text-5xl mb-1">🔑</div>
           <div className="text-xl font-extrabold text-amber-300">استعادة كلمة المرور</div>
-          <div className="text-xs text-amber-100/70">سنرسل لك رابط لإعادة التعيين</div>
+          <div className="text-xs text-amber-100/70">سنرسل لك رابطاً مؤقتاً لإعادة التعيين</div>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
