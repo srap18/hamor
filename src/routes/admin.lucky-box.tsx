@@ -43,6 +43,27 @@ const ITEM_TYPES = [
 const DRAGON_SLOTS = ["weapon", "armor", "talisman"] as const;
 const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine", "fatak"] as const;
 
+// Mirrors the validation in open_lucky_box() so we never save a prize the
+// server will later refuse to grant.
+function validatePrize(p: Pick<Prize, "prize_type" | "item_type" | "item_id" | "amount">): string | null {
+  if (p.prize_type === "coins" || p.prize_type === "gems" || p.prize_type === "rubies" || p.prize_type === "xp") {
+    if (!p.amount || p.amount <= 0) return "الكمية يجب أن تكون أكبر من صفر";
+    return null;
+  }
+  if (p.prize_type === "item") {
+    if (!p.item_type) return "اختر نوع العنصر";
+    if (!p.item_id || !p.item_id.trim()) return "أدخل معرّف العنصر";
+    if (!p.amount || p.amount <= 0) return "الكمية يجب أن تكون أكبر من صفر";
+    return null;
+  }
+  if (p.prize_type === "dragon_equipment") {
+    if (!p.item_type || !(DRAGON_SLOTS as readonly string[]).includes(p.item_type)) return "اختر الخانة (سلاح/درع/تميمة)";
+    if (!p.item_id || !(DRAGON_RARITIES as readonly string[]).includes(p.item_id)) return "اختر الجودة";
+    return null;
+  }
+  return "نوع جائزة غير معروف";
+}
+
 function AdminLuckyBox() {
   const [settings, setSettings] = useState<Settings>({
     enabled: true, cost_gems: 300, pct_common: 80, pct_rare: 18, pct_legendary: 2,
