@@ -492,6 +492,8 @@ function RootComponent() {
 
           <LastAttackTicker />
           <GlobalNotificationListener />
+          <SelfAntiBlockBurst />
+
           <NetworkRecovery />
           <EliteVipLoginOverlay />
 
