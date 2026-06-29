@@ -360,6 +360,31 @@ function AdminCodesPage() {
     loadCodes();
   };
 
+  const quickCreateDragonEquip = async (slot: "weapon" | "armor" | "talisman", rarity: "fatak" | "divine" | "legendary", label: string) => {
+    const finalCode = randomCode();
+    const qty = Math.max(1, quickQty);
+    const max_uses = quickDist === "public" ? 0 : 1;
+    const { error } = await insertCode({
+      finalCode,
+      reward_type: "bundle",
+      item_id: null,
+      item_kind: null,
+      coins: 0,
+      gems: 0,
+      xp: 0,
+      quantity: 1,
+      max_uses,
+      expires_at: null,
+      note: `${label}${qty > 1 ? ` × ${qty}` : ""}${quickDist === "public" ? " — للجميع" : ""}`,
+      extra_rewards: [{ type: "dragon_equipment", item_kind: slot, item_id: rarity, quantity: qty, label }],
+    });
+    if (error) { toast.error(error.message); return; }
+    try { await navigator.clipboard.writeText(finalCode); } catch { /* ignore */ }
+    toast.success(`✅ ${finalCode} — تم النسخ`);
+    loadCodes();
+  };
+
+
   const toggleBundleItem = (code: string) => {
     setBundleSelItems((prev) => {
       const next = { ...prev };
