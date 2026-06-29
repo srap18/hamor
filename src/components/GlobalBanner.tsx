@@ -119,7 +119,7 @@ export function GlobalBanner() {
       .on("broadcast", { event: "admin_banner" }, (msg) => {
         const p = (msg.payload ?? {}) as AdminPayload;
         if (p.title || p.message) {
-          show({ _t: "admin", kind: "admin", title: p.title || "", message: p.message || "", emoji: p.emoji || "📢" }, 8000);
+          show({ _t: "admin", kind: "admin", title: p.title || "", message: p.message || "", emoji: p.emoji || "📢" }, 3000);
         }
       })
       .subscribe();
