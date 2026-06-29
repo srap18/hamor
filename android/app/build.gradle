@@ -4,7 +4,7 @@ android {
     namespace = "com.hamor.game"
     compileSdk = rootProject.ext.compileSdkVersion
 
-    // تفعيل تقسيم الموارد لتقليل الحجم للمستخدم النهائي
+    // إعدادات الـ bundle تسمح لمتجر جوجل بلاي بتقسيم التطبيق بكفاءة للمستخدمين
     bundle {
         language { enableSplit = true }
         density { enableSplit = true }
@@ -20,11 +20,8 @@ android {
         versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        
-        // هام جداً لمنع الانهيار في التطبيقات الكبيرة بعد الضغط
         multiDexEnabled true
 
-        // حصر المعالجات لتقليل الحجم
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
@@ -46,11 +43,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            // تم إيقاف الضغط تماماً لضمان عدم تلف أي ملفات أو أيقونات
+            minifyEnabled false
+            shrinkResources false
             debuggable false
-            // استخدام proguard-android.txt وهو أكثر توافقاً واستقراراً
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
@@ -77,7 +73,6 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
-    // إضافة مكتبة الـ multidex لدعم استقرار التطبيق بعد الضغط
     implementation 'androidx.multidex:multidex:2.0.1'
     
     testImplementation "junit:junit:$junitVersion"
