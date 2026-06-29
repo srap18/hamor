@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { FISH, FISH_TOTAL } from "@/lib/fish";
-import { SHIPS } from "@/lib/ships";
+import { SHIPS, getShipByCode } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { refreshProfile } from "@/hooks/use-auth";
 import { toast } from "sonner";
