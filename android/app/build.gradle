@@ -4,24 +4,13 @@ android {
     namespace = "com.hamor.game"
     compileSdk = rootProject.ext.compileSdkVersion
 
-    bundle {
-        language { enableSplit = true }
-        density { enableSplit = true }
-        abi { enableSplit = true }
-    }
-
     defaultConfig {
         applicationId "com.hamor.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 101
         versionName "2.0.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
-
-        ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a'
-        }
     }
 
     signingConfigs {
@@ -38,21 +27,8 @@ android {
             minifyEnabled false
             shrinkResources false
             signingConfig signingConfigs.release
-        }
-        debug {
-            minifyEnabled false
+            // هذا يمنع تضمين ملفات الـ Debug التي تزيد الحجم
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
-
-dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.billingclient:billing:6.1.0'
-    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
-    implementation project(':capacitor-android')
-    implementation 'androidx.multidex:multidex:2.0.1'
-    implementation project(':capacitor-cordova-android-plugins')
-}
-
-apply from: 'capacitor.build.gradle'
