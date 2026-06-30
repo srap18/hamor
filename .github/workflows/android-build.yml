@@ -22,7 +22,7 @@ jobs:
           bunx cap add android
           mkdir -p android/app/src/main/assets
           
-          # تثبيت الأصول والتوليد
+          # تثبيت الأصول وتوليدها
           bun add -D @capacitor/assets
           bunx capacitor-assets generate
           
@@ -44,7 +44,7 @@ jobs:
         run: |
           cd android
           ./gradlew clean assembleRelease \
-            -Pandroid.injected.signing.store.file=hamor-upload-key.keystore \
+            -Pandroid.injected.signing.store.file=$(pwd)/app/hamor-upload-key.keystore \
             -Pandroid.injected.signing.store.password=$SIGNING_RELEASE_PASSWORD \
             -Pandroid.injected.signing.key.alias=hamor-key-alias \
             -Pandroid.injected.signing.key.password=$SIGNING_RELEASE_PASSWORD
