@@ -228,6 +228,19 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           }}
         />
         <ToggleRow
+          label="🔔 إظهار التنبيهات المنبثقة"
+          value={showToasts}
+          onChange={(v) => {
+            setShowToasts(v);
+            try {
+              if (v) localStorage.removeItem("toasts-hidden");
+              else localStorage.setItem("toasts-hidden", "1");
+              window.dispatchEvent(new Event("toasts-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+
+        <ToggleRow
           label={t("settings.pause_bg")}
           value={pauseBg}
           onChange={(v) => { sound.play("click"); setBgMotionPaused(v); }}
