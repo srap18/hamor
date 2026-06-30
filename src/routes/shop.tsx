@@ -213,6 +213,12 @@ function Shop() {
         const { error } = await (supabase.rpc as any)("buy_anti_to_inventory", { _item_id: selected.id, _qty: qty });
         setBusy(false);
         if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
+      } else if (selected.id.startsWith("disabler_")) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)("buy_disabler_to_inventory", { _item_id: selected.id, _qty: qty });
+        setBusy(false);
+        if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
+        flash("✓ تم إضافة صاروخ التعطيل للمخزن", 2000);
       } else {
       // Buy shield as an inventory item — user activates manually from المخزن.
       const invId =
