@@ -460,12 +460,17 @@ function PlayerPage() {
     else { setFriendStatus("pending"); sound.play("success"); flash("تم إرسال طلب الصداقة ✓"); }
   };
 
-  // Any offensive action (attack/steal) instantly removes the attacker's shield —
-  // no confirmation, even if golden fisher is active. Runs on the server.
+  // Any offensive action (attack/steal) removes the attacker's shield —
+  // both regular protection AND golden fisher — and it does NOT come back.
+  // Asks for confirmation before dropping.
   const confirmDropArmorIfActive = async (): Promise<boolean> => {
     if (!me) return true;
     const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
     if (until <= serverNowMs()) return true;
+    const ok = window.confirm(
+      "⚠️ تحذير: درعك مفعّل (يشمل الصياد الذهبي).\nالهجوم سيُزيل درعك بالكامل ولن يعود تلقائياً.\nهل تريد المتابعة؟"
+    );
+    if (!ok) return false;
     // Optimistically clear locally so UI updates immediately.
     setMyProtectionUntil(null);
     const { error } = await (supabase as any).rpc("drop_my_protection");
@@ -475,9 +480,10 @@ function PlayerPage() {
       flash("تعذّر إزالة الدرع");
       return false;
     }
-    flash("🛡️ تم إزالة درعك بسبب الهجوم");
+    flash("🛡️ تم إزالة درعك بالكامل بسبب الهجوم");
     return true;
   };
+
 
   const fireWeapon = async (weaponId: string) => {
     if (!me) { sound.play("error"); flash("سجّل دخول أولاً"); return; }
