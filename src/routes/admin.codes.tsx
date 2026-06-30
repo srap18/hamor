@@ -33,6 +33,12 @@ const ANTI_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   { code: "anti_ad_bomb", name: "📺 مضاد قنبلة إعلانية", kind: "anti" },
 ];
 
+const DISABLER_ITEMS: Array<{ code: string; name: string; kind: string }> = [
+  { code: "disabler_rocket",  name: "⚡ صاروخ تعطيل مضاد الصواريخ",   kind: "disabler" },
+  { code: "disabler_nuke",    name: "⚡ صاروخ تعطيل مضاد الذري",      kind: "disabler" },
+  { code: "disabler_ad_bomb", name: "⚡ صاروخ تعطيل مضاد الإعلانية", kind: "disabler" },
+];
+
 // Local TS catalogs merged in so admin can bundle crews/weapons/frames/shields
 // directly with proper Arabic names — without needing entries in items_catalog.
 const KIND_LABEL: Record<string, string> = {
