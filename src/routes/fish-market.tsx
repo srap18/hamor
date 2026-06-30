@@ -377,7 +377,13 @@ function FishMarket() {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
     setSecondsLeft(diff);
-    if (diff === 0) loadMarket();
+    // When the timer reaches 0, retry finalize every ~2s in case the server
+    // clock is slightly behind the client clock (otherwise the row stays
+    // stuck at "00:00" and never finalizes).
+    if (diff === 0) {
+      const id = window.setTimeout(() => { loadMarket(); }, 2000);
+      return () => window.clearTimeout(id);
+    }
   }, [upgradeEndsAt, tickNow]);
 
   const startFishUpgrade = async () => {
