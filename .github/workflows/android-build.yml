@@ -1,23 +1,32 @@
-- name: Setup Android & Sync
+name: Build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install && bun run build
+
+      - name: Setup Android & Sync
         run: |
-          # 1. إزالة المجلد القديم لضمان نظافة البناء
           rm -rf android
-          
-          # 2. إنشاء المشروع من جديد
           bunx cap add android
-          
-          # 3. إنشاء المجلدات المطلوبة يدوياً
           mkdir -p android/app/src/main/assets
-          
-          # 4. المزامنة
           bunx cap sync android
-          
-          # 5. حذف ملفات الويب الزائدة
           find android/app/src/main/assets -type f ! -name "*.json" -delete
-          
-          # 6. إنشاء ملفات الموارد برمجياً
           mkdir -p android/app/src/main/res/values
           echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="colorPrimary">#6200EE</color><color name="colorPrimaryDark">#3700B3</color><color name="colorAccent">#03DAC5</color></resources>' > android/app/src/main/res/values/colors.xml
           echo '<?xml version="1.0" encoding="utf-8"?><resources><style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"><item name="colorPrimary">@color/colorPrimary</item><item name="colorPrimaryDark">@color/colorPrimaryDark</item><item name="colorAccent">@color/colorAccent</item></style><style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style><style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen"><item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item></style></resources>' > android/app/src/main/res/values/styles.xml
-          
           chmod +x android/gradlew
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/hamor-upload-key.keystore
+
+      - name: Build
+        env:
+          SIGNING_RELEASE_PASSWORD: ${{ secrets.SIGNING_RELEASE_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew clean assembleRelease bundleRelease -Pandroid.injected.signing.store.password=$SIGNING_RELEASE_PASSWORD -Pandroid.injected.signing.key.password=$SIGNING_RELEASE_PASSWORD -Pandroid.injected.signing.key.alias=hamor-key-alias
