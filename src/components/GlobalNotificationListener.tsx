@@ -20,6 +20,8 @@ const iconFor = (kind: string) =>
   : kind === "support_reply" ? "🛡️"
   : kind === "anti_block" ? "🛡️"
   : kind === "anti_block_attacker" ? "⚠️"
+  : kind === "anti_disabled" ? "⚡"
+  : kind === "anti_disabled_attacker" ? "⚡"
   : kind === "ship" ? "⛵"
   : kind === "friend" ? "🤝"
   : "📢";
@@ -57,7 +59,7 @@ export function GlobalNotificationListener() {
         toast.error(title, opts);
       } else if (n.kind === "support" || n.kind === "support_reply" || n.kind === "ship" || n.kind === "friend" || n.kind === "anti_block") {
         toast.success(title, opts);
-      } else if (n.kind === "anti_block_attacker") {
+      } else if (n.kind === "anti_block_attacker" || n.kind === "anti_disabled" || n.kind === "anti_disabled_attacker") {
         toast.warning(title, opts);
       } else {
         toast(title, opts);

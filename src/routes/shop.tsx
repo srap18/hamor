@@ -105,6 +105,9 @@ const PROTECTION: Item[] = [
   { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
   { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
   { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
+  { id: "disabler_rocket",  name: "صاروخ تعطيل مضاد الصواريخ", emoji: "⚡", price: 100, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد الصواريخ لديه 10 دقائق", rarity: "rare" },
+  { id: "disabler_nuke",    name: "صاروخ تعطيل مضاد الذري",    emoji: "⚡", price: 300, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد القنبلة الذرية لديه 10 دقائق", rarity: "epic" },
+  { id: "disabler_ad_bomb", name: "صاروخ تعطيل مضاد الإعلانية", emoji: "⚡", price: 500, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد القنبلة الإعلانية لديه 10 دقائق", rarity: "legendary" },
 ];
 
 
@@ -210,6 +213,12 @@ function Shop() {
         const { error } = await (supabase.rpc as any)("buy_anti_to_inventory", { _item_id: selected.id, _qty: qty });
         setBusy(false);
         if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
+      } else if (selected.id.startsWith("disabler_")) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)("buy_disabler_to_inventory", { _item_id: selected.id, _qty: qty });
+        setBusy(false);
+        if (error) { flash("فشل الشراء: " + error.message, 2000); return; }
+        flash("✓ تم إضافة صاروخ التعطيل للمخزن", 2000);
       } else {
       // Buy shield as an inventory item — user activates manually from المخزن.
       const invId =
@@ -380,7 +389,7 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_")) && (
+              {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) && (
                 <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
               )}
             </div>
@@ -401,7 +410,7 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_")) ? (
+            {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) ? (
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
