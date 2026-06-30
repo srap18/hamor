@@ -60,6 +60,7 @@ const LOCAL_ITEMS: Array<{ code: string; name: string; kind: string }> = [
   ...WEAPONS.map((w) => ({ code: w.id, name: `${w.emoji} ${w.name}`, kind: "weapon" })),
   ...SHIELD_ITEMS,
   ...ANTI_ITEMS,
+  ...DISABLER_ITEMS,
   ...ALL_FRAMES.map((f) => ({
     code: f.id,
     name: `${f.preview ?? "🖼️"} ${f.name}`,
