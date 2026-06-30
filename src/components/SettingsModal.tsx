@@ -264,6 +264,19 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         )}
 
         <a
+          href="https://t.me/PirateKingsss"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => sound.play("click")}
+          className="w-full flex items-center justify-center gap-2 py-2.5 mb-2 rounded-lg bg-gradient-to-b from-sky-400 to-sky-600 text-white text-xs font-bold active:scale-95"
+        >
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden="true">
+            <path d="M9.999 15.2 9.84 19.4c.23 0 .33-.1.45-.22l2.08-1.99 4.31 3.16c.79.44 1.36.21 1.57-.73l2.85-13.36c.27-1.21-.44-1.69-1.21-1.4L2.4 9.6c-1.18.46-1.17 1.12-.21 1.42l4.45 1.39 10.34-6.52c.49-.31.93-.14.57.2L9.999 15.2Z"/>
+          </svg>
+          قناة اللعبة على تيليجرام
+        </a>
+
+        <a
           href="https://t.me/jbbr509"
           target="_blank"
           rel="noopener noreferrer"
