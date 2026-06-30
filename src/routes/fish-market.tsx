@@ -7,7 +7,7 @@ import { FISH, type Fish as CatalogFish } from "@/lib/fish";
 import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
-import { serverNow, serverNowMs } from "@/lib/server-time";
+import { serverNow, serverNowMs, syncServerTime } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
 import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
