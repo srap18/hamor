@@ -517,12 +517,15 @@ function RootComponent() {
             mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             toastOptions={{
               style: {
-                background: "rgb(15 23 42 / 0.98)",
+                background: "rgba(15, 23, 42, 0.45)",
                 color: "rgb(248 250 252)",
-                border: "1px solid rgb(51 65 85)",
+                border: "1px solid rgba(148, 163, 184, 0.35)",
+                backdropFilter: "blur(14px) saturate(140%)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
                 zIndex: 99999,
               },
             }}
+
             style={{ zIndex: 99999 }}
           />
 
