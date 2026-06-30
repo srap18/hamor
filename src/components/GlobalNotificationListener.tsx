@@ -46,6 +46,7 @@ export function GlobalNotificationListener() {
     const showToast = (n: Notif) => {
       if (seenRef.current.has(n.id)) return;
       seenRef.current.add(n.id);
+      try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
       // Don't show toast for the user's own actions (created_by === self isn't tracked
       // here; we rely on recipient_id matching to filter).
       const title = `${iconFor(n.kind)} ${n.title}`;
