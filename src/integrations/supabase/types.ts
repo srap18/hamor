@@ -5115,6 +5115,7 @@ export type Database = {
       dragon_stage_for_dp: { Args: { _dp: number }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
