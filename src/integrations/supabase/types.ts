@@ -146,6 +146,24 @@ export type Database = {
         }
         Relationships: []
       }
+      anti_disabled_state: {
+        Row: {
+          anti_id: string
+          disabled_until: string
+          user_id: string
+        }
+        Insert: {
+          anti_id: string
+          disabled_until: string
+          user_id: string
+        }
+        Update: {
+          anti_id?: string
+          disabled_until?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       arena_scores: {
         Row: {
           score: number
@@ -4901,6 +4919,10 @@ export type Database = {
         Args: { _item_id: string; _item_type: string }
         Returns: undefined
       }
+      buy_disabler_to_inventory: {
+        Args: { _item_id: string; _qty: number }
+        Returns: undefined
+      }
       buy_dragon_equipment: {
         Args: { p_currency: string; p_rarity: string; p_slot: string }
         Returns: Json
@@ -5131,6 +5153,10 @@ export type Database = {
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
       finalize_ship_repairs: { Args: never; Returns: undefined }
+      fire_disabler: {
+        Args: { _disabler_id: string; _target_id: string }
+        Returns: Json
+      }
       fish_market_capacity: { Args: { _level: number }; Returns: number }
       fish_market_finish_upgrade_with_gems: { Args: never; Returns: number }
       fish_market_start_upgrade: {
