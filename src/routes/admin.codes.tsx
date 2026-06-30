@@ -78,6 +78,7 @@ BACKGROUNDS.forEach((b) => { ITEM_META[b.id] = { name: b.name, image: b.image, e
 ALL_FRAMES.forEach((f) => { ITEM_META[f.id] = { name: f.name, image: f.imageUrl, emoji: f.preview }; });
 SHIELD_ITEMS.forEach((s) => { ITEM_META[s.code] = { name: s.name, emoji: "🛡️" }; });
 ANTI_ITEMS.forEach((a) => { ITEM_META[a.code] = { name: a.name, emoji: "🧪" }; });
+DISABLER_ITEMS.forEach((d) => { ITEM_META[d.code] = { name: d.name, emoji: "⚡" }; });
 
 function getItemMeta(code: string, kind?: string): ItemMeta {
   if (ITEM_META[code]) return ITEM_META[code];
