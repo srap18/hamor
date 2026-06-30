@@ -5516,10 +5516,6 @@ export type Database = {
           weekly_xp: number
         }[]
       }
-      gift_gems: {
-        Args: { _amount: number; _recipient: string }
-        Returns: Json
-      }
       gift_gold: {
         Args: { _amount: number; _recipient: string }
         Returns: undefined

@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.gift_gems(uuid, integer);
