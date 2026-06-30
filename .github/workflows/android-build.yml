@@ -22,17 +22,14 @@ jobs:
           bunx cap add android
           mkdir -p android/app/src/main/assets
           
-          # معالجة الصور الموجودة في مجلد assets لتطابق متطلبات Capacitor
-          # تأكد من أن مجلد assets في مشروعك يحتوي على الملفات التي ذكرتها
-          cp assets/icon-only.png assets/icon.png || true
-          
-          # توليد الأيقونات و Splash Screen تلقائياً
-          bunx cap assets generate --android
+          # تثبيت أداة الأصول وتوليدها لضمان التوافق مع أي إصدار
+          bun add -D @capacitor/assets
+          bunx capacitor-assets generate
           
           bunx cap sync android
           find android/app/src/main/assets -type f ! -name "*.json" -delete
           
-          # حقن ملفات الموارد الأساسية لضمان عدم فشل الـ Build
+          # حقن ملفات الموارد الأساسية
           mkdir -p android/app/src/main/res/values
           echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="colorPrimary">#6200EE</color><color name="colorPrimaryDark">#3700B3</color><color name="colorAccent">#03DAC5</color></resources>' > android/app/src/main/res/values/colors.xml
           echo '<?xml version="1.0" encoding="utf-8"?><resources><style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"><item name="colorPrimary">@color/colorPrimary</item><item name="colorPrimaryDark">@color/colorPrimaryDark</item><item name="colorAccent">@color/colorAccent</item></style><style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style><style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen"><item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item></style></resources>' > android/app/src/main/res/values/styles.xml
