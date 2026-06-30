@@ -54,9 +54,8 @@ export async function buyWithCoinsGemFallback(itemId: string, itemType: string, 
   return res;
 }
 
-export async function buyShipRpc(templateId: number) {
-  return supabase.rpc("buy_ship", { _template_id: templateId });
-}
+
+
 
 
 export async function setShipAtSea(shipId: string, atSea: boolean) {
@@ -146,8 +145,3 @@ export async function marketFinishUpgradeWithGems() {
   return supabase.rpc("market_finish_upgrade_with_gems");
 }
 
-export async function deductGemsForVoiceChange(userId: string, amount = 200) {
-  return withOptimistic({ gems: -Math.abs(amount) }, () =>
-    supabase.rpc("deduct_gems_for_voice_change", { _user_id: userId, _amount: amount }) as unknown as Promise<RpcResult>,
-  );
-}
