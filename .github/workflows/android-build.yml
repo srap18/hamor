@@ -1,47 +1,26 @@
-name: Global-Scale-Android-Build
-on:
-  push:
-    branches: [ main, "رئيسي" ]
+name: Build
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install && bun run build
 
-      - name: Setup Bun & Java
-        uses: oven-sh/setup-bun@v1
-      - uses: actions/setup-java@v4
-        with: { distribution: 'zulu', java-version: '21' }
-
-      - name: Install & Build
+      - name: Setup Android & Sync
         run: |
-          bun install
-          bun run build
           mkdir -p android/app/src/main/assets
-          if [ ! -d "android" ]; then bunx cap add android; fi
+          bunx cap add android || true
           bunx cap sync android
-          chmod +x android/gradlew
 
       - name: Decode Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/hamor-upload-key.keystore
 
-      - name: Build & Sign
+      - name: Build
         env:
           SIGNING_RELEASE_PASSWORD: ${{ secrets.ANDROID_RELEASE_PASSWORD }}
         run: |
           cd android
-          ./gradlew clean
-          ./gradlew bundleRelease assembleRelease \
-            -Pandroid.injected.signing.store.password=$SIGNING_RELEASE_PASSWORD \
-            -Pandroid.injected.signing.key.password=$SIGNING_RELEASE_PASSWORD \
-            -Pandroid.injected.signing.key.alias=hamor-key-alias
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Final-Build
-          path: |
-            android/app/build/outputs/bundle/release/*.aab
-            android/app/build/outputs/apk/release/*.apk
+          ./gradlew clean assembleRelease bundleRelease
