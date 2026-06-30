@@ -7,7 +7,7 @@ import { FISH, type Fish as CatalogFish } from "@/lib/fish";
 import { fishMarketCapacity } from "@/lib/ships";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { CoinIcon } from "@/components/CurrencyIcon";
-import { serverNow, serverNowMs } from "@/lib/server-time";
+import { serverNow, serverNowMs, syncServerTime } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
 import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
@@ -377,7 +377,13 @@ function FishMarket() {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
     setSecondsLeft(diff);
-    if (diff === 0) loadMarket();
+    // When the timer reaches 0, retry finalize every ~2s in case the server
+    // clock is slightly behind the client clock (otherwise the row stays
+    // stuck at "00:00" and never finalizes).
+    if (diff === 0) {
+      const id = window.setTimeout(() => { syncServerTime(true).then(() => loadMarket()); }, 2000);
+      return () => window.clearTimeout(id);
+    }
   }, [upgradeEndsAt, tickNow]);
 
   const startFishUpgrade = async () => {
