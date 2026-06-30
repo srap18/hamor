@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { officerSetTribe, setMyTribe, giftGems } from "@/lib/economy";
+import { officerSetTribe, setMyTribe } from "@/lib/economy";
 import { AuthGuard } from "@/components/AuthGuard";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth, useProfile } from "@/hooks/use-auth";
@@ -96,7 +96,7 @@ function ChatPage() {
   const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
   const [dmTotal, setDmTotal] = useState(0);
   const [showManage, setShowManage] = useState(false);
-  const [supportTarget, setSupportTarget] = useState<Prof | null>(null);
+  
   const [warTarget, setWarTarget] = useState<Prof | null>(null);
   const [actionTarget, setActionTarget] = useState<Prof | null>(null);
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set()); // people I blocked
@@ -760,9 +760,6 @@ function ChatPage() {
       {showManage && profile?.tribe_id && user && (
         <TribeManageModal tribeId={profile.tribe_id} userId={user.id} onClose={() => setShowManage(false)} />
       )}
-      {supportTarget && user && (
-        <SupportModal sender={user.id} recipient={supportTarget} onClose={() => setSupportTarget(null)} />
-      )}
       {warTarget && user && (
         <WarModal sender={user.id} senderTribe={profile?.tribe_id || null} target={warTarget} onClose={() => setWarTarget(null)} />
       )}
@@ -1404,52 +1401,6 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   );
 }
 
-// ===================== Support Modal =====================
-function SupportModal({ sender, recipient, onClose }: { sender: string; recipient: Prof; onClose: () => void }) {
-  const [amount, setAmount] = useState(10);
-  const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const send = async () => {
-    setBusy(true); setErr(null);
-    const { data, error } = await giftGems(recipient.id, amount);
-    if (error || !(data as any)?.ok) {
-      setErr((data as any)?.error === "insufficient" ? "💎 رصيدك غير كافٍ" : (error?.message || "فشل الإرسال"));
-      setBusy(false); return;
-    }
-    await supabase.from("support_gifts").insert({
-      sender_id: sender, recipient_id: recipient.id, kind: "gems", amount, message: msg.slice(0, 200),
-    });
-    await supabase.from("messages").insert({
-      sender_id: sender, recipient_id: recipient.id, channel: "dm",
-      body: `🎁 دعم: ${amount} 💎${msg ? " — " + msg : ""}`,
-    });
-    setBusy(false); onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
-      <div className="w-full max-w-sm bg-stone-950 border-2 border-cyan-500 rounded-2xl p-4 space-y-3">
-        <div className="font-extrabold text-cyan-300">💎 دعم {recipient.display_name} بالجواهر</div>
-        <div>
-          <div className="text-xs text-cyan-200/70 mb-1">عدد الجواهر (يُخصم من رصيدك)</div>
-          <input type="number" value={amount} min={1} onChange={(e) => setAmount(Math.max(1, Number(e.target.value) || 0))}
-            className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-cyan-700/40 text-sm text-white" />
-        </div>
-        <input value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={200} placeholder="رساله مرافقه (اختياري)..."
-          className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-cyan-700/40 text-sm text-white" />
-        {err && <div className="text-xs text-red-400">{err}</div>}
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-stone-800 text-white font-bold text-sm">إلغاء</button>
-          <button onClick={send} disabled={busy} className="flex-1 py-2 rounded-lg bg-cyan-500 text-cyan-950 font-bold text-sm disabled:opacity-50">
-            {busy ? "..." : "💎 إرسال الجواهر"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ===================== War Modal =====================
 function WarModal({ sender, senderTribe, target, onClose }: { sender: string; senderTribe: string | null; target: Prof; onClose: () => void }) {

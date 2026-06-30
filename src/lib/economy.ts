@@ -76,11 +76,6 @@ export async function giftGold(recipientId: string, amount: number) {
   );
 }
 
-export async function giftGems(recipientId: string, amount: number) {
-  return withOptimistic({ gems: -Math.abs(amount) }, () =>
-    supabase.rpc("gift_gems" as any, { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
-  );
-}
 
 export async function claimDailyLogin() {
   const res = await supabase.rpc("claim_daily_login");
