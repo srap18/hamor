@@ -1,0 +1,1 @@
+UPDATE public.attacks SET damage_dealt = 0 WHERE attacker_id = '8edf9702-b9b3-4599-b942-67b22998ed40' AND created_at >= '2026-06-28 18:00:00+00' AND created_at <= '2026-06-30 18:00:00+00';
