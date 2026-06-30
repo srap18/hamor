@@ -54,41 +54,10 @@ export async function buyWithCoinsGemFallback(itemId: string, itemType: string, 
   return res;
 }
 
-export async function buyProtection(days: number, coinsCost: number, gemsCost: number) {
-  return withOptimistic({ coins: -Math.abs(coinsCost), gems: -Math.abs(gemsCost) }, () =>
-    supabase.rpc("buy_protection", { _days: days, _coins_cost: coinsCost, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
-  );
-}
-
 export async function buyShipRpc(templateId: number) {
   return supabase.rpc("buy_ship", { _template_id: templateId });
 }
 
-export async function repairShipInstant(shipId: string, gemsCost: number) {
-  return withOptimistic({ gems: -Math.abs(gemsCost) }, () =>
-    supabase.rpc("repair_ship_instant", { _ship_id: shipId, _gems_cost: gemsCost }) as unknown as Promise<RpcResult>,
-  );
-}
-
-export async function giftGold(recipientId: string, amount: number) {
-  return withOptimistic({ coins: -Math.abs(amount) }, () =>
-    supabase.rpc("gift_gold", { _recipient: recipientId, _amount: amount }) as unknown as Promise<RpcResult>,
-  );
-}
-
-
-export async function claimDailyLogin() {
-  const res = await supabase.rpc("claim_daily_login");
-  if (!res.error) setTimeout(() => refreshProfile(), 50);
-  return res;
-}
-
-
-export async function sellFish(fishStockIds: string[]) {
-  const res = await supabase.rpc("sell_fish", { _fish_stock_ids: fishStockIds });
-  if (!res.error) setTimeout(() => refreshProfile(), 50);
-  return res;
-}
 
 export async function setShipAtSea(shipId: string, atSea: boolean) {
   return supabase.rpc("set_ship_at_sea", { _ship_id: shipId, _at_sea: atSea });
