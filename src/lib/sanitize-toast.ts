@@ -1,72 +1,73 @@
 // Sanitizes user-visible error toasts so they never leak internal details
-// (file paths, function names, RPC/SQL/stack traces, URLs, English error
-// jargon). Anything that looks technical is replaced by a generic Arabic
-// message: "حدث خطأ، حاول مرة أخرى".
+// (stack traces, SQL errors, JS exceptions). Anything that clearly looks
+// like a raw JS/HTTP/SQL error is replaced by a generic Arabic message:
+// "حدث خطأ، حاول مرة أخرى".
 //
-// This monkey-patches sonner's `toast.error` / `toast.warning` once on the
-// client. Safe to import multiple times.
+// Important: this MUST NOT mangle real notifications/messages that happen
+// to contain latin characters (player names like "SAIF") or numbers
+// (level 405, etc.). We therefore only sanitize when the input is an
+// Error instance, OR when the string matches very specific raw-error
+// signatures.
 
 import { toast } from "sonner";
 
 const GENERIC = "حدث خطأ، حاول مرة أخرى";
 
-// Patterns that indicate a technical / internal-looking message.
-const TECH_PATTERNS: RegExp[] = [
-  /\//,                       // any path or URL slash
-  /\\/,                       // windows paths / escapes
-  /\bhttps?:/i,
-  /\bsupabase\b/i,
-  /\brpc\b/i,
-  /\bpostgres/i,
-  /\bsql\b/i,
-  /\bjwt\b/i,
-  /\bjson\b/i,
-  /\bfunction\b/i,
-  /\bstack\b/i,
-  /\bundefined\b/i,
-  /\bnull\b/i,
+// Hard signals of a raw JS / Postgres / HTTP error leaking through.
+const HARD_TECH_PATTERNS: RegExp[] = [
   /\bTypeError\b/,
   /\bReferenceError\b/,
   /\bSyntaxError\b/,
+  /\bRangeError\b/,
   /\bError:\s/,
-  /\bunauthorized\b/i,
-  /\bforbidden\b/i,
-  /\b40\d\b/,                 // HTTP 4xx
-  /\b50\d\b/,                 // HTTP 5xx
-  /\bcode\s*[:=]/i,
-  /\bat\s+\w+\s*\(/,          // stack frames "at fn ("
-  /[A-Za-z_]+\.[A-Za-z_]+/,   // foo.bar (function refs, file ext)
-  /[a-z]+_[a-z]+/i,           // snake_case identifiers (rpc/fn names)
-  /[{}<>]/,                   // JSON/HTML fragments
-  /policy/i,
-  /permission/i,
-  /violates/i,
-  /constraint/i,
-  /relation/i,
-  /column/i,
-  /row-level/i,
+  /\bat\s+\w+\s*\([^)]*\)/,     // stack frame "at fn (file:line)"
+  /\bstack trace\b/i,
+  /\bundefined is not\b/i,
+  /\bnull is not\b/i,
+  /\bcannot read propert/i,
+  /\brow-level security\b/i,
+  /\bviolates .*constraint\b/i,
+  /\bpermission denied for\b/i,
+  /\bpostgres(?:ql)?\b/i,
+  /\bJWT\b/,
+  /\bsupabase\b/i,
+  /https?:\/\//i,
+  /\.(?:tsx?|jsx?|css|json)\b/i, // file extensions in message
 ];
 
 function looksTechnical(msg: string): boolean {
-  if (!msg) return true;
-  // Mostly-ASCII (latin) text is almost certainly an English/system error.
-  const asciiRatio =
-    msg.replace(/[^\x20-\x7E]/g, "").length / Math.max(msg.length, 1);
-  if (asciiRatio > 0.6) return true;
-  return TECH_PATTERNS.some((re) => re.test(msg));
+  if (!msg) return false;
+  return HARD_TECH_PATTERNS.some((re) => re.test(msg));
 }
 
 function sanitize(input: unknown): string {
-  let msg = "";
-  if (typeof input === "string") msg = input;
-  else if (input instanceof Error) msg = input.message;
-  else if (input && typeof input === "object") {
-    const anyObj = input as Record<string, unknown>;
-    msg = String(anyObj.message ?? "");
+  // Plain strings: pass through unless they clearly look like a raw error.
+  if (typeof input === "string") {
+    const msg = input.trim();
+    if (!msg) return GENERIC;
+    return looksTechnical(msg) ? GENERIC : msg;
   }
-  msg = msg.trim();
-  if (!msg) return GENERIC;
-  return looksTechnical(msg) ? GENERIC : msg;
+
+  // Error instances: almost always raw JS errors → generic message,
+  // unless the message is short Arabic text deliberately thrown by us.
+  if (input instanceof Error) {
+    const msg = (input.message || "").trim();
+    if (!msg) return GENERIC;
+    if (looksTechnical(msg)) return GENERIC;
+    // If the Error message is mostly ASCII (English), treat as technical.
+    const ascii = msg.replace(/[^\x20-\x7E]/g, "").length;
+    if (ascii / Math.max(msg.length, 1) > 0.7) return GENERIC;
+    return msg;
+  }
+
+  // Objects with a message field.
+  if (input && typeof input === "object") {
+    const m = String((input as Record<string, unknown>).message ?? "").trim();
+    if (!m) return GENERIC;
+    return looksTechnical(m) ? GENERIC : m;
+  }
+
+  return GENERIC;
 }
 
 let installed = false;
