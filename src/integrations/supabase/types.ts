@@ -4921,7 +4921,7 @@ export type Database = {
       }
       buy_disabler_to_inventory: {
         Args: { _item_id: string; _qty: number }
-        Returns: undefined
+        Returns: Json
       }
       buy_dragon_equipment: {
         Args: { p_currency: string; p_rarity: string; p_slot: string }
