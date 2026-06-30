@@ -9,16 +9,22 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       - run: bun install && bun run build
 
-      - name: Setup Android & Sync
+      - name: Setup Android & Generate Missing Resources
         run: |
-          mkdir -p android/app/src/main/assets
+          # إضافة الأندرويد
           bunx cap add android || true
+          
+          # إنشاء المجلدات والموارد المفقودة برمجياً لضمان وجودها
+          mkdir -p android/app/src/main/res/values
+          
+          # إنشاء ملف الألوان
+          echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="colorPrimary">#6200EE</color><color name="colorPrimaryDark">#3700B3</color><color name="colorAccent">#03DAC5</color></resources>' > android/app/src/main/res/values/colors.xml
+          
+          # إنشاء ملف الستايلات
+          echo '<?xml version="1.0" encoding="utf-8"?><resources><style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"><item name="colorPrimary">@color/colorPrimary</item><item name="colorPrimaryDark">@color/colorPrimaryDark</item><item name="colorAccent">@color/colorAccent</item></style><style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style><style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen"><item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item></style></resources>' > android/app/src/main/res/values/styles.xml
+
           bunx cap sync android
-          
-          # خطوة التنظيف: حذف أي ملفات ويب زائدة ليبقى التطبيق خفيفاً جداً
           find android/app/src/main/assets -type f ! -name "*.json" -delete
-          
-          chmod +x android/gradlew
 
       - name: Decode Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/hamor-upload-key.keystore
