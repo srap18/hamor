@@ -344,6 +344,55 @@ function InventoryPage() {
                 );
               })}
             </div>
+            <div className="mt-4 mb-2 text-xs font-bold text-rose-200/90 text-center">⚡ صواريخ التعطيل (تطلقها على لاعب لتعطيل مضاده 10 دقائق)</div>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { id: "disabler_rocket",  name: "تعطيل مضاد الصواريخ",   emoji: "⚡", target: "🚀" },
+                { id: "disabler_nuke",    name: "تعطيل مضاد الذري",      emoji: "⚡", target: "☢️" },
+                { id: "disabler_ad_bomb", name: "تعطيل مضاد الإعلانية",  emoji: "⚡", target: "📺" },
+              ] as const).map((d) => {
+                const n = qty("disabler", d.id);
+                const fire = async () => {
+                  const name = window.prompt("اكتب اسم اللاعب المستهدف:");
+                  if (!name || !name.trim()) return;
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const { data: match, error: e1 } = await (supabase as any).from("profiles")
+                    .select("id, display_name").ilike("display_name", name.trim()).limit(2);
+                  if (e1 || !match || match.length === 0) { toast.error("لم يتم العثور على اللاعب"); return; }
+                  if (match.length > 1) { toast.error("الاسم مكرر — استخدم اسماً أدقّ"); return; }
+                  const target = match[0];
+                  if (!window.confirm(`إطلاق "${d.name}" على ${target.display_name}؟`)) return;
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const { error } = await (supabase.rpc as any)("fire_disabler", { _target_id: target.id, _disabler_id: d.id });
+                  if (error) {
+                    const m = error.message || "";
+                    if (m.includes("not_enough")) toast.error("لا تملك هذا الصاروخ");
+                    else if (m.includes("bad_target")) toast.error("لا يمكنك إطلاقه على نفسك");
+                    else if (m.includes("invalid_target")) toast.error("لاعب غير صالح");
+                    else toast.error("فشل الإطلاق");
+                    return;
+                  }
+                  await load();
+                  toast.success(`⚡ تم تعطيل ${d.target} لمدة 10 دقائق`);
+                };
+                return (
+                  <div key={d.id} className={`glass-hud rounded-xl p-2 border ${n>0?"border-rose-400/60":"border-border/40 opacity-60"}`}>
+                    <div className="h-12 flex items-center justify-center text-3xl">{d.emoji}<span className="text-xl">{d.target}</span></div>
+                    <div className="text-[11px] font-bold text-center mt-1">{d.name}</div>
+                    <div className="text-[9px] text-rose-300 text-center">تعطيل 10 دقائق</div>
+                    <div className="text-center mt-1 text-xs font-bold">
+                      {n > 0 ? <span className="text-rose-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
+                    </div>
+                    {n > 0 && (
+                      <button onClick={fire}
+                        className="mt-2 w-full py-1.5 rounded-lg bg-gradient-to-b from-rose-500 to-rose-700 text-white text-[11px] font-extrabold active:scale-95">
+                        إطلاق
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
             </>
           );
         })()}
