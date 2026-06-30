@@ -1461,6 +1461,39 @@ function PlayerPage() {
                     </div>
                   );
                 })}
+                {/* Disabler missiles — disable the matching anti-defense for 10 minutes */}
+                {[
+                  { id: "disabler_rocket",  name: "صاروخ تعطيل مضاد الصواريخ",   target: "🚀", desc: "يعطّل مضاد الصواريخ 10 دقائق" },
+                  { id: "disabler_nuke",    name: "صاروخ تعطيل مضاد الذري",      target: "☢️", desc: "يعطّل مضاد القنبلة الذرية 10 دقائق" },
+                  { id: "disabler_ad_bomb", name: "صاروخ تعطيل مضاد الإعلانية",  target: "📺", desc: "يعطّل مضاد القنبلة الإعلانية 10 دقائق" },
+                ].map((d) => {
+                  const q = inv.find((x) => x.item_id === d.id && x.item_type === "disabler")?.quantity ?? 0;
+                  const canFire = q > 0;
+                  return (
+                    <div key={d.id} className="flex items-stretch gap-2">
+                      <button disabled={busy || !canFire} onClick={async () => {
+                        if (!playerId) return;
+                        setBusy(true); sound.play("click");
+                        const { error } = await (supabase.rpc as never as (n: string, p: object) => Promise<{ error: { message: string } | null }>)
+                          ("fire_disabler", { _target_id: playerId, _disabler_id: d.id });
+                        setBusy(false);
+                        if (error) { sound.play("error"); flash(`تعذّر الإطلاق: ${(error.message || "").slice(0, 80)}`); return; }
+                        setInv((arr) => arr.map((x) => x.item_id === d.id && x.item_type === "disabler" ? { ...x, quantity: x.quantity - 1 } : x).filter((x) => x.quantity > 0));
+                        sound.play("success");
+                        flash(`⚡ تم تعطيل ${d.target} لدى ${p?.display_name || "الخصم"} لمدة 10 دقائق!`);
+                        closeMenu();
+                      }}
+                        className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-yellow-900/70 to-amber-900/70 border border-yellow-500/40 active:scale-95 disabled:opacity-40 text-right">
+                        <span className="text-3xl">⚡</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-yellow-100 font-bold text-sm">{d.name} <span className="text-base">{d.target}</span></div>
+                          <div className="text-[10px] text-yellow-300/80">{d.desc}</div>
+                        </div>
+                        <div className="text-xs text-yellow-300 font-bold tabular-nums">×{q}</div>
+                      </button>
+                    </div>
+                  );
+                })}
                 <button onClick={() => setMode("menu")} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
               </>
             )}
