@@ -381,7 +381,7 @@ function FishMarket() {
     // clock is slightly behind the client clock (otherwise the row stays
     // stuck at "00:00" and never finalizes).
     if (diff === 0) {
-      const id = window.setTimeout(() => { loadMarket(); }, 2000);
+      const id = window.setTimeout(() => { syncServerTime(true).then(() => loadMarket()); }, 2000);
       return () => window.clearTimeout(id);
     }
   }, [upgradeEndsAt, tickNow]);
