@@ -30,3 +30,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Android / Signing Keys
+# هذا السطر يضمن عدم رفع أي ملفات توقيع للمتجر
+*.jks
+*.p12
+*.keystore
+
+# إذا كنت تضع ملفات التوقيع في مجلد خاص، يمكنك استخدام هذا السطر أيضاً:
+# android/app/keystores/
