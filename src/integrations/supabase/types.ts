@@ -4922,7 +4922,6 @@ export type Database = {
         }
         Returns: Json
       }
-      buy_ship: { Args: { _template_id: number }; Returns: string }
       buy_ship_by_code: {
         Args: {
           _code: string
@@ -5091,10 +5090,6 @@ export type Database = {
         Returns: Json
       }
       daughter_gem_cost: { Args: { _from_stage: number }; Returns: number }
-      deduct_gems_for_voice_change: {
-        Args: { _amount?: number; _user_id: string }
-        Returns: Json
-      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
