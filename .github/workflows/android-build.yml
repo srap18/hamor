@@ -1,22 +1,21 @@
 - name: Setup Android & Sync
         run: |
-          # 1. إزالة المجلد القديم لضمان نظافة البناء (إلا إذا كنت تريد الاحتفاظ به)
+          # 1. إزالة المجلد القديم لضمان نظافة البناء
           rm -rf android
           
           # 2. إنشاء المشروع من جديد
           bunx cap add android
           
-          # 3. إنشاء المجلدات المطلوبة يدوياً لمنع أخطاء ENOENT
+          # 3. إنشاء المجلدات المطلوبة يدوياً
           mkdir -p android/app/src/main/assets
           
-          # 4. المزامنة (Sync)
+          # 4. المزامنة
           bunx cap sync android
           
-          # 5. التعديل الجوهري: الاحتفاظ بملفات الإعدادات وحذف ملفات الويب الثقيلة
-          # نستخدم find لحذف أي ملفات ويب مع استثناء ملفات الإعدادات الهامة (json)
+          # 5. حذف ملفات الويب الزائدة
           find android/app/src/main/assets -type f ! -name "*.json" -delete
           
-          # 6. إنشاء ملفات الموارد (الألوان والستايلات) برمجياً
+          # 6. إنشاء ملفات الموارد برمجياً
           mkdir -p android/app/src/main/res/values
           echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="colorPrimary">#6200EE</color><color name="colorPrimaryDark">#3700B3</color><color name="colorAccent">#03DAC5</color></resources>' > android/app/src/main/res/values/colors.xml
           echo '<?xml version="1.0" encoding="utf-8"?><resources><style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"><item name="colorPrimary">@color/colorPrimary</item><item name="colorPrimaryDark">@color/colorPrimaryDark</item><item name="colorAccent">@color/colorAccent</item></style><style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style><style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen"><item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item></style></resources>' > android/app/src/main/res/values/styles.xml
