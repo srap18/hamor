@@ -350,7 +350,9 @@ export function RechargePanel() {
                     <>
                       <span className="text-[9px] font-bold opacity-90">السعر</span>
                       <span className="text-sm">{formatSarFromUsd(p.priceUSD)}</span>
+                      <span className="text-[8px] font-medium opacity-80 leading-none">شامل الضريبة</span>
                       <span className="text-[9px] font-bold mt-0.5 bg-white/20 px-1.5 rounded">ادفع</span>
+
                     </>
                   )}
                 </button>
