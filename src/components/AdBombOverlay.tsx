@@ -154,7 +154,7 @@ export function AdBombOverlay({
   // unmuted audio, the next user gesture unlocks sound — without remounting
   // the <video> element.
   useEffect(() => {
-    if (!isActive || phase !== "video") return;
+    if (!isActive) return;
     const v = videoRef.current;
     if (!v) return;
 
