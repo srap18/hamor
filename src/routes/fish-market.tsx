@@ -864,7 +864,7 @@ function StorageView({
               disabled={upBusy === "boost"}
               className="px-5 py-3 rounded-xl bg-gradient-to-b from-rose-300 to-rose-500 border-2 border-rose-200 shadow-lg text-rose-950 font-extrabold active:scale-95 disabled:opacity-50"
             >
-              💎 {accelCost}
+              {accelCost === 0 ? "إكمال" : `💎 ${accelCost}`}
             </button>
           </>
         ) : (
