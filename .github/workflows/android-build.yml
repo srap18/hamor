@@ -49,9 +49,23 @@ jobs:
           # توليد أيقونات وسبلاش لجميع كثافات الشاشة تلقائياً
           # (يقرأ من assets/icon-only.png و assets/splash.png و assets/splash-dark.png)
           bun add -D @capacitor/assets
-          bunx capacitor-assets generate --android || echo "assets generation skipped"
+          bunx capacitor-assets generate \
+            --android \
+            --assetPath assets \
+            --iconBackgroundColor '#000000' \
+            --iconBackgroundColorDark '#000000' \
+            --splashBackgroundColor '#000000' \
+            --splashBackgroundColorDark '#000000'
 
           bunx cap sync android
+
+          # تحقق أن الأيقونات وُلّدت فعلاً داخل mipmap (نفشل مبكراً لو ماوصلت)
+          echo "== mipmap contents =="
+          ls -la android/app/src/main/res/mipmap-* || true
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
+            || (echo "ERROR: ic_launcher.png missing in mipmap-xxxhdpi" && exit 1)
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png \
+            || (echo "ERROR: ic_launcher_foreground.png missing" && exit 1)
 
           # موارد ثابتة (ألوان + ثيم)
           mkdir -p android/app/src/main/res/values
