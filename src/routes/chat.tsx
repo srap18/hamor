@@ -1497,6 +1497,8 @@ function NoTribePanel({ userId }: { userId: string }) {
     if (e2) { setErr(e2.message); setBusy(false); return; }
     const { error: e3 } = await setMyTribe(tribe.id);
     if (e3) { setErr(e3.message); setBusy(false); return; }
+    // Clear any pending join requests so other tribes can't pull the owner in later
+    await supabase.from("tribe_join_requests").delete().eq("user_id", userId).eq("status", "pending");
     setBusy(false);
     window.location.reload();
   };
@@ -1504,10 +1506,13 @@ function NoTribePanel({ userId }: { userId: string }) {
   const requestJoin = async (tribeId: string) => {
     if (!userId) return;
     setBusy(true); setErr(null);
+    // Remove any prior row (rejected/pending) for this tribe+user to avoid unique constraint
+    await supabase.from("tribe_join_requests").delete().eq("tribe_id", tribeId).eq("user_id", userId);
     const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: userId, status: "pending" });
     if (error) setErr(error.message);
     setBusy(false); loadTribes();
   };
+
 
   const joinOpen = async (tribeId: string) => {
     if (!userId) return;
