@@ -47,20 +47,11 @@ jobs:
           mkdir -p android/app/src/main/assets
 
           # توليد أيقونات وسبلاش لجميع كثافات الشاشة تلقائياً
-          # (يقرأ من assets/icon-only.png و assets/splash.png و assets/splash-dark.png)
+          # (الأداة ستبحث عن الصور تلقائياً في مجلد assets)
           bun add -D @capacitor/assets
-          bunx capacitor-assets generate \
-            --android \
-            --assetPath assets \
-            --icon icon-only.png \
-            --splash splash.png \
-            --splashDark splash-dark.png \
-            --iconBackgroundColor '#000000' \
-            --iconBackgroundColorDark '#000000' \
-            --splashBackgroundColor '#000000' \
-            --splashBackgroundColorDark '#000000'
+          bunx capacitor-assets generate --android
 
-          # خطوة إجبارية لضمان وجود الأيقونة في المسار الرئيسي
+          # خطوة إجبارية لضمان وجود الأيقونة في المسار الرئيسي الذي يقرأه الأندرويد
           mkdir -p android/app/src/main/res/mipmap-xxxhdpi
           cp assets/icon-only.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
