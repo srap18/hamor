@@ -1052,8 +1052,9 @@ function Index() {
       .from("ships_owned")
       .select("id,user_id,stealing_ends_at,template_id,stealing_target_ship_id")
       .eq("stealing_target_user_id", uid)
+      .neq("user_id", uid)
       .not("stealing_target_user_id", "is", null);
-    const list = (ships ?? []) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; stealing_target_ship_id: string | null }[];
+    const list = (ships ?? []).filter((s: any) => s.user_id !== uid) as { id: string; user_id: string; stealing_ends_at: string | null; template_id: number | null; stealing_target_ship_id: string | null }[];
     if (list.length === 0) { setRaids([]); return; }
     const ids = Array.from(new Set(list.map((s) => s.user_id)));
     const { data: profs } = await supabase

@@ -154,7 +154,7 @@ export function AdBombOverlay({
   // unmuted audio, the next user gesture unlocks sound — without remounting
   // the <video> element.
   useEffect(() => {
-    if (!isActive || phase !== "video") return;
+    if (!isActive) return;
     const v = videoRef.current;
     if (!v) return;
 
@@ -202,7 +202,7 @@ export function AdBombOverlay({
       unmuteCleanupRef.current?.();
       unmuteCleanupRef.current = null;
     };
-  }, [isActive, phase, bomb?.id]);
+  }, [isActive, bomb?.id]);
 
   if (!isActive || !bomb) return null;
 
@@ -229,9 +229,30 @@ export function AdBombOverlay({
 
   return (
     <>
-      {phase === "explosion" ? (
-        /* Realistic 3D explosion — image-based fireball + flash */
-        <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
+      {/* Video is ALWAYS mounted while the bomb is active so it starts playing
+          immediately and never gets unmounted/remounted when the explosion FX
+          appears on top. Previously the explosion phase unmounted the <video>
+          element for 700ms, causing the video to fail to (re)start on mobile
+          browsers — user would hear the audio but never see the frames. */}
+      <div className="fixed inset-0 z-30 pointer-events-none">
+        <video
+          ref={videoRef}
+          key={bomb.id}
+          src={video.src}
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ opacity: 0.55 }}
+        />
+        <div className="absolute inset-0 bg-fuchsia-900/10" />
+      </div>
+
+      {phase === "explosion" && (
+        /* Realistic 3D explosion — sits ABOVE the video briefly */
+        <div className="fixed inset-0 z-[31] pointer-events-none overflow-hidden">
           <div
             className="absolute inset-0 animate-flash-bang"
             style={{
@@ -253,25 +274,8 @@ export function AdBombOverlay({
             }}
           />
         </div>
-      ) : (
-
-        /* Semi-transparent looping video — harbor stays partly visible behind it */
-        <div className="fixed inset-0 z-30 pointer-events-none">
-          <video
-            ref={videoRef}
-            key={bomb.id}
-            src={video.src}
-            autoPlay
-            loop
-            muted={isMuted}
-            playsInline
-            preload="auto"
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ opacity: 0.55 }}
-          />
-          <div className="absolute inset-0 bg-fuchsia-900/10" />
-        </div>
       )}
+
 
       {/* Countdown + remove button (owner) — moved down so the top header stays clear */}
       <div className="fixed top-32 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">

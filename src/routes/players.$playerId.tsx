@@ -142,11 +142,19 @@ function PlayerPage() {
   const openShip = async (s: Ship) => {
     setSelectedShip(s); setMode("menu");
     if (!me) return;
-    const [{ data: ms }, { data: iv }] = await Promise.all([
+    // Refresh the tapped ship's fresh state IN PARALLEL with my own ships/inv,
+    // so a stale destroyed_at from realtime lag doesn't briefly disable "attack".
+    const [{ data: ms }, { data: iv }, { data: freshTarget }] = await Promise.all([
       supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id,in_storage").eq("user_id", me).eq("in_storage", false),
       supabase.from("inventory").select("item_id,item_type,quantity,meta").eq("user_id", me),
+      supabase.from("ships_owned").select("id,template_id,catalog_code,at_sea,acquired_at,hp,max_hp,destroyed_at,repair_ends_at,stealing_ends_at,stealing_target_user_id,in_storage").eq("id", s.id).maybeSingle(),
     ]);
     setMyShips((ms as Ship[]) || []);
+    if (freshTarget) {
+      const fresh = freshTarget as Ship;
+      setSelectedShip((cur) => (cur && cur.id === fresh.id ? { ...cur, ...fresh } : cur));
+      setShips((arr) => arr.map((x) => (x.id === fresh.id ? { ...x, ...fresh } : x)));
+    }
     // Aggregate qty per (item_id,item_type). For crew rows, EXCLUDE rows already
     // assigned to a ship — those can't be re-sent and would otherwise make the UI
     // show "you have X" while the RPC says "no such crew" (e.g. guide bug).
