@@ -85,27 +85,34 @@ export function DraggableRepairBgButton({
     try { localStorage.setItem(storageKey, JSON.stringify(p)); } catch {}
   }
 
+  const startPt = useRef({ x: 0, y: 0 });
   function onPointerDown(e: React.PointerEvent) {
     if (!pos || !bounds || !wrapRef.current) return;
     const r = wrapRef.current.getBoundingClientRect();
     dragging.current = true;
     moved.current = false;
+    startPt.current = { x: e.clientX, y: e.clientY };
     offset.current = { x: e.clientX - r.left - pos.x, y: e.clientY - r.top - pos.y };
     (e.target as Element).setPointerCapture?.(e.pointerId);
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!dragging.current || !bounds || !wrapRef.current) return;
+    // Real drag only if user moved > 12px from the initial tap point
+    // (small finger jitter on tap must NOT count as a drag, otherwise
+    // the click handler swallows the tap and the button feels dead).
+    const dx = e.clientX - startPt.current.x;
+    const dy = e.clientY - startPt.current.y;
+    if (Math.hypot(dx, dy) < 12) return;
+    moved.current = true;
     const r = wrapRef.current.getBoundingClientRect();
     const nx = e.clientX - r.left - offset.current.x;
     const ny = e.clientY - r.top - offset.current.y;
-    const c = clamp(nx, ny, bounds);
-    if (Math.abs(nx - (pos?.x ?? 0)) + Math.abs(ny - (pos?.y ?? 0)) > 4) moved.current = true;
-    setPos(c);
+    setPos(clamp(nx, ny, bounds));
   }
   function onPointerUp() {
     if (!dragging.current) return;
     dragging.current = false;
-    if (pos) savePos(pos);
+    if (pos && moved.current) savePos(pos);
   }
 
   return (
