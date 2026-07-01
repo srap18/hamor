@@ -576,6 +576,45 @@ export const STORE_PACKS: StorePack[] = [
     reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 17 }] },
   },
 
+  // ───── Mega Weapon Offers ────────────────────────────────
+  {
+    id: "offer_nuke_mega_200",
+    category: "offers",
+    label: "☢️ عرض ميجا: 200 قنبلة ذرية",
+    emoji: "☢️",
+    priceUSD: 79.99,
+    tag: "خصم 35%",
+    popular: true,
+    description: "200 قنبلة نووية 💥 — دمار شامل لسنوات! توفير ~35% عن السعر الفردي",
+    images: [nukeImg],
+    reward: { items: [{ itemType: "weapon", itemId: "nuke", qty: 200 }] },
+  },
+  {
+    id: "offer_ad_bomb_mega_200",
+    category: "offers",
+    label: "📺 عرض ميجا: 200 قنبلة إعلانية",
+    emoji: "📺",
+    priceUSD: 99.99,
+    tag: "خصم 40%",
+    popular: true,
+    description: "200 قنبلة إعلانية 📺 — ترسانة إعلانات لا تنتهي! توفير ~40%",
+    images: [adBombImg],
+    reward: { items: [{ itemType: "weapon", itemId: "ad_bomb", qty: 200 }] },
+  },
+  {
+    id: "offer_shield_15d_bonus",
+    category: "offers",
+    label: "🛡️ درع 15 يوم + 2000 جوهرة",
+    emoji: "🛡️",
+    priceUSD: 14.99,
+    tag: "خصم 30%",
+    popular: true,
+    description: "حماية كاملة 15 يوم 🛡️ + 2,000 💎 هدية — أفضل قيمة للدرع الطويل",
+    reward: { shieldDays: 15, gems: 2_000 },
+  },
+
+
+
   // ───── Crews ──────────────────────────────────────────────
   {
     id: "cr_starter",
