@@ -604,13 +604,14 @@ export const STORE_PACKS: StorePack[] = [
   {
     id: "offer_shield_15d_bonus",
     category: "offers",
-    label: "🛡️ درع 15 يوم + 2000 جوهرة",
+    label: "🛡️ 15 درع يوم واحد + 2000 جوهرة",
     emoji: "🛡️",
     priceUSD: 14.99,
     tag: "خصم 30%",
     popular: true,
-    description: "حماية كاملة 15 يوم 🛡️ + 2,000 💎 هدية — أفضل قيمة للدرع الطويل",
+    description: "🛡️ 15× درع يوم واحد (يوصل مخزنك كـ 15 قطعة منفصلة — فعّل كل قطعة لما تحتاجها، حماية 24 ساعة لكل قطعة) + 2,000 💎 هدية. ⚠️ لا يتفعّل تلقائياً.",
     reward: { shieldDays: 15, gems: 2_000 },
+
   },
   {
     id: "offer_anti_all_10",
