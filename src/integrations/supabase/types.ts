@@ -5154,6 +5154,7 @@ export type Database = {
       }
       dragon_stage_for_dp: { Args: { _dp: number }; Returns: number }
       drop_my_protection: { Args: never; Returns: undefined }
+      effective_market_level: { Args: { _user_id: string }; Returns: number }
       effective_vip_level: { Args: { _user: string }; Returns: number }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
@@ -5733,6 +5734,15 @@ export type Database = {
           _title?: string
         }
         Returns: undefined
+      }
+      pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
+      pvp_requirement_error: {
+        Args: { _actor_label?: string; _user_id: string }
+        Returns: string
+      }
+      pvp_ship_level: {
+        Args: { _catalog_code: string; _template_id: number }
+        Returns: number
       }
       qa_award: {
         Args: { _coins: number; _gems: number; _user: string; _xp: number }
