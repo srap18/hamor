@@ -35,22 +35,17 @@ jobs:
           
           chmod +x android/gradlew
 
-      - name: Decode Keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/hamor-upload-key.keystore
-
-      - name: Build Signed Release
-        env:
-          SIGNING_RELEASE_PASSWORD: ${{ secrets.SIGNING_RELEASE_PASSWORD }}
+      # تم حذف خطوة Decode Keystore لأننا لا نريد التعامل مع ملفات التوقيع هنا
+      
+      - name: Build Unsigned Release
         run: |
           cd android
-          ./gradlew clean assembleRelease \
-            -Pandroid.injected.signing.store.file=$(pwd)/app/hamor-upload-key.keystore \
-            -Pandroid.injected.signing.store.password=$SIGNING_RELEASE_PASSWORD \
-            -Pandroid.injected.signing.key.alias=hamor-key-alias \
-            -Pandroid.injected.signing.key.password=$SIGNING_RELEASE_PASSWORD
+          # نستخدم assembleRelease فقط، سيقوم Gradle بإنتاج ملف APK غير موقع تلقائياً
+          # بعد التعديلات التي قمنا بها في ملف build.gradle
+          ./gradlew clean assembleRelease
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          name: android-release-unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
