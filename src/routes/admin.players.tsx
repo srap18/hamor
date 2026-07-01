@@ -361,15 +361,29 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   useEffect(() => { loadLinked(); }, [loadLinked]);
 
   const reloadInventory = useCallback(async () => {
-    const { data, error } = await (supabase as any).rpc("admin_get_player_inventory", { _player: player.id });
-    if (error) { toast.error("فشل تحميل المخزن: " + error.message); return; }
-    setInvRows(((data ?? []) as InvRow[]));
+    const [invRes, deqRes] = await Promise.all([
+      (supabase as any).rpc("admin_get_player_inventory", { _player: player.id }),
+      (supabase as any).rpc("admin_get_player_dragon_equipment", { _player: player.id }),
+    ]);
+    if (invRes.error) { toast.error("فشل تحميل المخزن: " + invRes.error.message); return; }
+    const invRowsData = ((invRes.data ?? []) as InvRow[]);
+    const deqRows: InvRow[] = ((deqRes.data ?? []) as any[]).map((d) => ({
+      id: d.id,
+      item_type: `dragon_${d.slot}`,
+      item_id: d.rarity,
+      quantity: 1,
+      meta: { equipped: d.equipped, smelted: d.smelted, name: d.name, __dragon: true },
+      acquired_at: d.acquired_at,
+    }));
+    setInvRows([...invRowsData, ...deqRows]);
     setInvQtyEdits({});
   }, [player.id]);
 
   useEffect(() => { reloadInventory(); }, [reloadInventory]);
 
   const saveInvRow = async (rowId: string) => {
+    const row = invRows.find((r) => r.id === rowId);
+    if (row?.meta?.__dragon) { toast.error("عتاد التنين لا يدعم تعديل الكمية — استخدم الحذف"); return; }
     const raw = invQtyEdits[rowId];
     if (raw === undefined) return;
     const q = Math.max(0, Number(raw) || 0);
@@ -381,7 +395,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
   const deleteInvRow = async (rowId: string, label: string) => {
     if (!confirm(`حذف "${label}" من المخزن؟`)) return;
-    const { error } = await (supabase as any).rpc("admin_set_inventory_quantity", { _row_id: rowId, _quantity: 0 });
+    const row = invRows.find((r) => r.id === rowId);
+    const rpcName = row?.meta?.__dragon ? "admin_delete_dragon_equipment" : "admin_set_inventory_quantity";
+    const args = row?.meta?.__dragon ? { _row_id: rowId } : { _row_id: rowId, _quantity: 0 };
+    const { error } = await (supabase as any).rpc(rpcName, args);
     if (error) { toast.error("خطأ: " + error.message); return; }
     toast.success("تم الحذف");
     await reloadInventory();
