@@ -4859,6 +4859,7 @@ export type Database = {
           repair_ends_at: string
         }[]
       }
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       arena_attack_request: { Args: never; Returns: Json }
       arena_attack_status: { Args: never; Returns: Json }
       arena_award_pearls: { Args: never; Returns: Json }
@@ -5810,6 +5811,7 @@ export type Database = {
         Args: { _details: Json; _kind: string }
         Returns: undefined
       }
+      request_join_tribe: { Args: { _tribe_id: string }; Returns: Json }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       revoke_paddle_purchase: {
         Args: {
