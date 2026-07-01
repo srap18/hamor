@@ -1065,6 +1065,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               {invRows.filter(r => invFilter === "all" || r.item_type === invFilter).map((r) => {
                 const editVal = invQtyEdits[r.id] ?? String(r.quantity);
                 const assigned = r.meta?.assigned_ship_id ? ` • مرتبط بسفينة` : "";
+                const isDragon = Boolean(r.meta?.__dragon);
+                const equipped = isDragon && r.meta?.equipped ? " • مُجهّز" : "";
                 return (
                   <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
@@ -1073,18 +1075,24 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                         {getItemNameAr(r.item_type, r.item_id)}
                       </div>
                       <div className="text-[10px] text-slate-500 font-mono truncate" dir="ltr">
-                        {r.item_id} • {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}
+                        {r.item_id} • {new Date(r.acquired_at).toLocaleDateString("ar")}{assigned}{equipped}
                       </div>
                     </div>
-                    <input
-                      type="number"
-                      min={0}
-                      value={editVal}
-                      onChange={(e) => setInvQtyEdits((s) => ({ ...s, [r.id]: e.target.value }))}
-                      className="w-16 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-center"
-                    />
-                    <button onClick={() => saveInvRow(r.id)}
-                      className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
+                    {isDragon ? (
+                      <span className="w-16 text-center text-xs text-slate-400">×1</span>
+                    ) : (
+                      <input
+                        type="number"
+                        min={0}
+                        value={editVal}
+                        onChange={(e) => setInvQtyEdits((s) => ({ ...s, [r.id]: e.target.value }))}
+                        className="w-16 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-center"
+                      />
+                    )}
+                    {!isDragon && (
+                      <button onClick={() => saveInvRow(r.id)}
+                        className="px-2 py-1 rounded bg-blue-600/40 hover:bg-blue-600/60 text-blue-100 text-[11px] font-bold">حفظ</button>
+                    )}
                     <button onClick={() => deleteInvRow(r.id, getItemNameAr(r.item_type, r.item_id))}
                       className="px-2 py-1 rounded bg-rose-600/40 hover:bg-rose-600/60 text-rose-100 text-[11px] font-bold">🗑️</button>
                   </div>
