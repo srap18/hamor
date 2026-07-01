@@ -290,10 +290,11 @@ export function RechargePanel() {
                         </span>
                       ) : null}
                       {r.shieldDays ? (
-                        <span className="text-[10px] font-extrabold text-sky-200 bg-sky-900/50 border border-sky-400/40 px-1.5 py-0.5 rounded">
-                          🛡️ {r.shieldDays} أيام
+                        <span className="text-[10px] font-extrabold text-sky-200 bg-sky-900/50 border border-sky-400/40 px-1.5 py-0.5 rounded" title="يوصل مخزنك كقطع درع منفصلة — تفعّلها يدوياً">
+                          🛡️ {r.shieldDays}× درع يوم (للمخزن — تفعيل يدوي)
                         </span>
                       ) : null}
+
                       {r.vipDays ? (
                         <span className="text-[10px] font-extrabold text-violet-200 bg-violet-900/50 border border-violet-400/40 px-1.5 py-0.5 rounded">
                           👑 VIP {r.vipDays}ي
