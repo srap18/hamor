@@ -16,7 +16,6 @@ const PEER_KEY = (uid: string, peer: string) => `dm-last-seen:${uid}:${peer}`;
 export function getPeerLastSeen(uid: string, peer: string): string {
   if (typeof localStorage === "undefined") return new Date().toISOString();
   const peerVal = localStorage.getItem(PEER_KEY(uid, peer));
-  if (peerVal) return peerVal;
   let global = localStorage.getItem(GLOBAL_KEY(uid));
   if (!global) {
     global = new Date().toISOString();
