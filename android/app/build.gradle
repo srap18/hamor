@@ -12,6 +12,9 @@ android {
         versionName "2.0.0"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // التعديل هنا: التأكيد على استخدام أيقونات mipmap بدلاً من أي افتراضيات أخرى
+        manifestPlaceholders = [icon: "@mipmap/ic_launcher", roundIcon: "@mipmap/ic_launcher_round"]
     }
 
     // لا يوجد إعداد توقيع — سيتم إنتاج app-release-unsigned.apk
