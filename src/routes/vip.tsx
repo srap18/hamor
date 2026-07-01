@@ -143,6 +143,7 @@ function VipPage() {
                 <div className="mt-2">
                   <span className="text-3xl font-black text-white">{formatSarFromUsd(t.monthlyPriceUsd)}</span>
                   <span className="text-sm text-slate-400">/شهر</span>
+                  <span className="block text-[11px] text-slate-400 mt-0.5">شامل الضريبة</span>
                 </div>
               </div>
 

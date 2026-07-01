@@ -591,6 +591,7 @@ function VipPanel() {
             <div className="text-right shrink-0">
               <div className="text-xl font-black text-white">{formatSarFromUsd(t.monthlyPriceUsd)}</div>
               <div className="text-[10px] text-slate-300">/شهر</div>
+              <div className="text-[9px] text-slate-400">شامل الضريبة</div>
             </div>
           </Link>
         ))}
