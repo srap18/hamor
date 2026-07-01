@@ -103,7 +103,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     description: "إطار صورة + لوحة اسم + فقاعة شات + بطاقة بروفايل (العنقاء 🔥) + 575 💎",
     reward: {
-      gems: 575
+      gems: 575,
       items: [
         { itemType: "frame",         itemId: "af_phoenix", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_phoenix", qty: 1 },
@@ -122,7 +122,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     description: "كل إطارات الأسد الأسطورية (صورة + اسم + فقاعة + بطاقة) + 1,725 💎",
     reward: {
-      gems: 1_725
+      gems: 1_725,
       items: [
         { itemType: "frame",         itemId: "af_leo", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_leo", qty: 1 },
@@ -140,7 +140,7 @@ export const STORE_PACKS: StorePack[] = [
     tag: "حصري",
     description: "كل إطارات العقرب 🦂 والحوت 🐟 الخيالية (8 إطارات) + 3,450 💎 — قيمة هائلة",
     reward: {
-      gems: 3_450
+      gems: 3_450,
       items: [
         { itemType: "frame",         itemId: "af_scorpio", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_scorpio", qty: 1 },
@@ -166,7 +166,7 @@ export const STORE_PACKS: StorePack[] = [
     tag: "حصري",
     description: "3 سفن العنقاء الأسطورية + 1,150 💎 — عرض محدود",
     images: [shipPhoenixImg, gemIcon],
-    reward: { gems: 1_150 phoenixShips: 3 },
+    reward: { gems: 1_150, phoenixShips: 3 },
   },
 
   // ───── Bundles ────────────────────────────────────────────
@@ -179,7 +179,7 @@ export const STORE_PACKS: StorePack[] = [
     oneTime: true,
     tag: "لمرة واحدة فقط",
     description: "805 💎 + 23,000 🪙 + حماية 3 أيام 🛡️ — قيمة 56 ر.س",
-    reward: { gems: 805 coins: 23_000 shieldDays: 3 },
+    reward: { gems: 805, coins: 23_000, shieldDays: 3 },
   },
   {
     id: "bd_weekend",
@@ -189,7 +189,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 4.99,
     tag: "خصم 40%",
     description: "1,725 💎 + 57,500 🪙 + درع يومين 🛡️",
-    reward: { gems: 1_725 coins: 57_500 shieldDays: 2 },
+    reward: { gems: 1_725, coins: 57_500, shieldDays: 2 },
   },
   {
     id: "bd_lootbox5",
@@ -198,7 +198,7 @@ export const STORE_PACKS: StorePack[] = [
     emoji: "📦",
     priceUSD: 14.99,
     description: "1,725 💎 + 172,500 🪙",
-    reward: { gems: 1_725 coins: 172_500 },
+    reward: { gems: 1_725, coins: 172_500 },
   },
   {
     id: "bd_pirate_chest",
@@ -209,7 +209,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     tag: "الأكثر طلباً",
     description: "3,450 💎 + 345,000 🪙 + درع 5 أيام 🛡️",
-    reward: { gems: 3_450 coins: 345_000 shieldDays: 5 },
+    reward: { gems: 3_450, coins: 345_000, shieldDays: 5 },
   },
   {
     id: "bd_mega",
@@ -219,7 +219,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 39.99,
     tag: "أفضل قيمة",
     description: "5,750 💎 + 575,000 🪙",
-    reward: { gems: 5_750 coins: 575_000 },
+    reward: { gems: 5_750, coins: 575_000 },
   },
   {
     id: "bd_emperor",
@@ -229,7 +229,7 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 74.99,
     tag: "حصري",
     description: "13,800 💎 + 1,150,000 🪙",
-    reward: { gems: 13_800 coins: 1_150_000 },
+    reward: { gems: 13_800, coins: 1_150_000 },
   },
 
 
