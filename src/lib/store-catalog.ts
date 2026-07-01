@@ -103,7 +103,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     description: "إطار صورة + لوحة اسم + فقاعة شات + بطاقة بروفايل (العنقاء 🔥) + 575 💎",
     reward: {
-      gems: 575
+      gems: 575,
       items: [
         { itemType: "frame",         itemId: "af_phoenix", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_phoenix", qty: 1 },
@@ -122,7 +122,7 @@ export const STORE_PACKS: StorePack[] = [
     popular: true,
     description: "كل إطارات الأسد الأسطورية (صورة + اسم + فقاعة + بطاقة) + 1,725 💎",
     reward: {
-      gems: 1_725
+      gems: 1_725,
       items: [
         { itemType: "frame",         itemId: "af_leo", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_leo", qty: 1 },
@@ -140,7 +140,7 @@ export const STORE_PACKS: StorePack[] = [
     tag: "حصري",
     description: "كل إطارات العقرب 🦂 والحوت 🐟 الخيالية (8 إطارات) + 3,450 💎 — قيمة هائلة",
     reward: {
-      gems: 3_450
+      gems: 3_450,
       items: [
         { itemType: "frame",         itemId: "af_scorpio", qty: 1 },
         { itemType: "name_frame",    itemId: "nf_scorpio", qty: 1 },
