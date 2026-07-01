@@ -1,4 +1,3 @@
-
 apply plugin: 'com.android.application'
 
 android {
@@ -15,20 +14,24 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // تم تعطيل التوقيع التلقائي هنا لضمان خروج ملف غير موقع (Unsigned)
     signingConfigs {
+        /*
         release {
             storeFile file("hamor-upload-key.keystore")
             storePassword System.getenv("SIGNING_RELEASE_PASSWORD")
             keyAlias "hamor-key-alias"
             keyPassword System.getenv("SIGNING_RELEASE_PASSWORD")
         }
+        */
     }
 
     buildTypes {
         release {
             minifyEnabled false
             shrinkResources false
-            signingConfig signingConfigs.release
+            // نربطها بـ null لضمان عدم البحث عن ملف التوقيع أثناء البناء
+            signingConfig null 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
@@ -40,7 +43,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     
-    // هذه المكتبات هي التي كانت تسبب خطأ عدم العثور على الموارد (Resources)
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.multidex:multidex:2.0.1'
