@@ -37,7 +37,7 @@ jobs:
               جاري تحميل اللعبة...
               <script>location.replace('https://www.molok-alqarasna.com/');</script>
             </body>
-          </html> 
+          </html>
           EOF
 
       - name: Setup Android & Sync
@@ -53,6 +53,11 @@ jobs:
 
           # تنظيف أيقونات أندرويد الافتراضية القديمة لضمان عدم تداخلها
           find android/app/src/main/res/ -name "ic_launcher*.png" -type f -delete
+          
+          # تنظيف شامل لمنع أخطاء Aapt2 الناتجة عن ملفات الـ XML والـ Vector
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          find android/app/src/main/res/ -name "*.xml" -type f -exec grep -l "vector" {} + -delete
+          find android/app/src/main/res/ -name "ic_launcher*.xml" -type f -delete
 
           # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها
           cp assets/icon-only.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png || true
