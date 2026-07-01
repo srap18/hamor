@@ -37,7 +37,7 @@ jobs:
               جاري تحميل اللعبة...
               <script>location.replace('https://www.molok-alqarasna.com/');</script>
             </body>
-          </html>
+          </html> 
           EOF
 
       - name: Setup Android & Sync
