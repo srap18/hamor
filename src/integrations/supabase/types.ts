@@ -4507,6 +4507,7 @@ export type Database = {
         Args: { _pts: number; _user: string }
         Returns: undefined
       }
+      add_xp: { Args: { _uid: string; _xp: number }; Returns: undefined }
       admin_adjust_tribe_points:
         | { Args: { _delta: number; _tribe_id: string }; Returns: Json }
         | {
