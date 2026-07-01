@@ -105,10 +105,10 @@ export async function initializePaddle() {
  */
 const PRICE_ID_OVERRIDES: Record<string, string> = {
   offer_nuke_mega_200: "pri_01kwem50yhvy488prrt60900a3",
-  // offer_ad_bomb_mega_200: "pri_...",
-  // offer_shield_15d_bonus: "pri_...",
-  // offer_anti_all_10: "pri_...",
-  // offer_disabler_all_10: "pri_...",
+  offer_ad_bomb_mega_200: "pri_01kwemesq1pntz33g3a7r49rk7",
+  offer_shield_15d_bonus: "pri_01kwemh0ttbj52z8gajfb55d93",
+  offer_anti_all_10: "pri_01kwemmhs85mgkew22ry8gnzbw",
+  offer_disabler_all_10: "pri_01kwemqsy9rky91k00ss8mtgse",
 };
 
 export async function getPaddlePriceId(priceId: string): Promise<string> {
