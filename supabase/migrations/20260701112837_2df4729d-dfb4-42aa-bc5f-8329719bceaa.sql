@@ -1,0 +1,1 @@
+UPDATE public.client_item_prices SET price_gems = 130 WHERE item_type = 'crew' AND item_id = 'fixer_4';
