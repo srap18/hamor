@@ -98,7 +98,23 @@ export async function initializePaddle() {
   });
 }
 
+/**
+ * Client-side override map: offer external_id → Paddle price id (pri_...).
+ * Paddle لا يسمح بتعديل import_meta.external_id عبر API، لذلك نربط يدوياً.
+ * أضف أي عرض جديد هنا بعد إنشائه في Paddle.
+ */
+const PRICE_ID_OVERRIDES: Record<string, string> = {
+  offer_nuke_mega_200: "pri_01kwem50yhvy488prrt60900a3",
+  // offer_ad_bomb_mega_200: "pri_...",
+  // offer_shield_15d_bonus: "pri_...",
+  // offer_anti_all_10: "pri_...",
+  // offer_disabler_all_10: "pri_...",
+};
+
 export async function getPaddlePriceId(priceId: string): Promise<string> {
+  if (priceId.startsWith("pri_")) return priceId;
+  const override = PRICE_ID_OVERRIDES[priceId];
+  if (override) return override;
   return resolvePaddlePrice({ data: { priceId, environment: getPaddleEnvironment() } });
 }
 
