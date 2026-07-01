@@ -244,10 +244,18 @@ export function AdBombOverlay({
           muted={isMuted}
           playsInline
           preload="auto"
+          onEnded={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            try {
+              v.currentTime = 0;
+              void v.play().catch(() => {});
+            } catch { /* noop */ }
+          }}
           className="absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: 0.55 }}
+          style={{ opacity: 0.78 }}
         />
-        <div className="absolute inset-0 bg-fuchsia-900/10" />
+        <div className="absolute inset-0 bg-fuchsia-900/5" />
       </div>
 
       {phase === "explosion" && (
