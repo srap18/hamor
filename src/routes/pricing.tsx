@@ -102,6 +102,7 @@ function PricingPage() {
                       <div className="text-amber-300 font-extrabold whitespace-nowrap">
                         {formatSarFromUsd(p.priceUSD)}
                         {p.subscription && <span className="text-xs text-amber-100/60">/شهر</span>}
+                        <span className="block text-[10px] text-amber-100/50 font-normal">شامل الضريبة</span>
                       </div>
                     </div>
                     {p.description && (
