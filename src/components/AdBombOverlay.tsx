@@ -202,7 +202,7 @@ export function AdBombOverlay({
       unmuteCleanupRef.current?.();
       unmuteCleanupRef.current = null;
     };
-  }, [isActive, phase, bomb?.id]);
+  }, [isActive, bomb?.id]);
 
   if (!isActive || !bomb) return null;
 
