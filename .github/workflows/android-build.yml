@@ -6,46 +6,91 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
+
       - uses: oven-sh/setup-bun@v1
-      - run: bun install && bun run build
+
+      - name: Install dependencies
+        run: bun install
+
+      # نُنشئ dist/ احتياطي بـ index.html بسيط يُعيد التوجيه للموقع.
+      # التطبيق الفعلي يُحمَّل من server.url في capacitor.config.ts،
+      # لكن Capacitor sync يتطلب أن يكون webDir موجوداً وفيه ملف.
+      - name: Prepare webDir fallback
+        run: |
+          mkdir -p dist
+          cat > dist/index.html <<'EOF'
+          <!doctype html>
+          <html lang="ar" dir="rtl">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+              <title>ملوك القراصنة</title>
+              <meta http-equiv="refresh" content="0;url=https://www.molok-alqarasna.com/" />
+            </head>
+            <body style="background:#000;color:#fff;font-family:system-ui;text-align:center;padding:40px">
+              جاري تحميل اللعبة...
+              <script>location.replace('https://www.molok-alqarasna.com/');</script>
+            </body>
+          </html>
+          EOF
 
       - name: Setup Android & Sync
         run: |
           rm -rf android
           bunx cap add android
           mkdir -p android/app/src/main/assets
-          
-          # تثبيت الأصول وتوليدها
+
+          # توليد أيقونات وسبلاش لجميع كثافات الشاشة تلقائياً
+          # (يقرأ من assets/icon-only.png و assets/splash.png و assets/splash-dark.png)
           bun add -D @capacitor/assets
-          bunx capacitor-assets generate
-          
+          bunx capacitor-assets generate --android || echo "assets generation skipped"
+
           bunx cap sync android
-          
-          # إعداد الموارد (Resources)
+
+          # موارد ثابتة (ألوان + ثيم)
           mkdir -p android/app/src/main/res/values
-          echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="colorPrimary">#6200EE</color><color name="colorPrimaryDark">#3700B3</color><color name="colorAccent">#03DAC5</color></resources>' > android/app/src/main/res/values/colors.xml
-          echo '<?xml version="1.0" encoding="utf-8"?><resources><style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar"><item name="colorPrimary">@color/colorPrimary</item><item name="colorPrimaryDark">@color/colorPrimaryDark</item><item name="colorAccent">@color/colorAccent</item></style><style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar"><item name="windowActionBar">false</item><item name="windowNoTitle">true</item></style><style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen"><item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item></style></resources>' > android/app/src/main/res/values/styles.xml
-          
+          cat > android/app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <color name="colorPrimary">#6200EE</color>
+            <color name="colorPrimaryDark">#3700B3</color>
+            <color name="colorAccent">#03DAC5</color>
+          </resources>
+          EOF
+          cat > android/app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+              <item name="colorPrimary">@color/colorPrimary</item>
+              <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+              <item name="colorAccent">@color/colorAccent</item>
+            </style>
+            <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+              <item name="windowActionBar">false</item>
+              <item name="windowNoTitle">true</item>
+            </style>
+            <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+              <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+            </style>
+          </resources>
+          EOF
+
           chmod +x android/gradlew
 
-      # تم حذف خطوة Decode Keystore لأننا لا نريد التعامل مع ملفات التوقيع هنا
-      
-      - name: Build Unsigned Release
+      - name: Build Unsigned Release APK
         run: |
           cd android
-          # نستخدم assembleRelease فقط، سيقوم Gradle بإنتاج ملف APK غير موقع تلقائياً
-          # بعد التعديلات التي قمنا بها في ملف build.gradle
-          ./gradlew clean assembleRelease
+          ./gradlew clean assembleRelease --no-daemon --stacktrace
 
-      - name: Upload Build Artifacts
+      - name: Upload Unsigned APK
         uses: actions/upload-artifact@v4
         with:
           name: android-release-unsigned
           path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
