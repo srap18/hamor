@@ -88,13 +88,41 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
     if (loading) return;
     if (!(await rateLimit("redeem", 1500))) { toast.warning("تمهّل قليلاً قبل المحاولة مجدداً"); return; }
     setLoading(true);
+
+    // Ensure we have a valid session — expired JWT is the most common cause
+    // of a mysterious "generic error" on this dialog.
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        setLoading(false);
+        toast.error("يجب تسجيل الدخول");
+        return;
+      }
+    } catch { /* noop */ }
+
     const { data, error } = await supabase.rpc("redeem_code", { p_code: c });
 
     setLoading(false);
     if (error) {
-      const msg = (error.message || "").toLowerCase();
-      const matched = Object.keys(ERR_MSG).find((k) => msg.includes(k));
-      toast.error(matched ? ERR_MSG[matched] : `تعذر استبدال الكود: ${error.message || ""}`);
+      console.error("[redeem_code] error:", error);
+      const parts = [
+        error.message,
+        (error as { details?: string }).details,
+        (error as { hint?: string }).hint,
+        (error as { code?: string }).code,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const matched = Object.keys(ERR_MSG).find((k) => parts.includes(k));
+      if (matched) {
+        toast.error(ERR_MSG[matched]);
+      } else {
+        // Avoid appending the raw error text — it can trip the toast
+        // sanitizer (JWT / supabase / file paths) and become a useless
+        // "generic error" for the user.
+        toast.error("تعذّر استبدال الكود — تحقق من الكود وحاول مرة ثانية");
+      }
       return;
     }
     const r = data as unknown as RedeemResult;
