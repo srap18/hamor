@@ -73,7 +73,7 @@ function ShipyardPage() {
 
   const selectedShip = SHIPS.find((ship) => ship.code === selectedCode) ?? SHIPS[0];
   const marketLevel = market?.level ?? 1;
-  const acceleratingCost = Math.max(1, Math.ceil(secondsLeft / 60));
+  const acceleratingCost = secondsLeft <= 10 ? 0 : Math.max(1, Math.ceil(secondsLeft / 60));
   const activeShips = useMemo(() => owned.filter((s) => !s.in_storage), [owned]);
   const storedShips = useMemo(() => owned.filter((s) => s.in_storage), [owned]);
   const ownedCount = useMemo(
@@ -183,7 +183,7 @@ function ShipyardPage() {
   };
 
   const finishWithGems = async () => {
-    if (!user || !profile || !market?.upgrading_to || secondsLeft <= 0) return;
+    if (!user || !profile || !market?.upgrading_to) return;
     const ok = await confirmDialog({
       title: "إنهاء الترقية فورًا",
       message: "هل تريد إنهاء الترقية الآن باستخدام الجواهر؟",
@@ -335,7 +335,7 @@ function ShipyardPage() {
                   </div>
                   <button onClick={finishWithGems} disabled={busy === "boost"} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-accent-foreground disabled:opacity-50">
                     <img src={iconGems} alt="أيقونة الجواهر" className="h-5 w-5" width={512} height={512} loading="lazy" />
-                    {busy === "boost" ? "جارٍ التسريع..." : `إنهاء الآن (${acceleratingCost})`}
+                    {busy === "boost" ? "جارٍ التسريع..." : acceleratingCost === 0 ? "إكمال الترقية الآن" : `إنهاء الآن (${acceleratingCost})`}
                   </button>
                   <div className="text-[11px] text-muted-foreground">المعادلة المستخدمة: ceil(seconds_remaining / 60)</div>
                 </div>

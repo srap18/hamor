@@ -194,6 +194,8 @@ function ChatPage() {
       if (ids.length) {
         const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         setDmFriends((ps || []) as Prof[]);
+      } else {
+        setDmFriends([]);
       }
     })();
   }, [user]);
@@ -1506,10 +1508,11 @@ function NoTribePanel({ userId }: { userId: string }) {
   const requestJoin = async (tribeId: string) => {
     if (!userId) return;
     setBusy(true); setErr(null);
-    // Remove any prior row (rejected/pending) for this tribe+user to avoid unique constraint
-    await supabase.from("tribe_join_requests").delete().eq("tribe_id", tribeId).eq("user_id", userId);
-    const { error } = await supabase.from("tribe_join_requests").insert({ tribe_id: tribeId, user_id: userId, status: "pending" });
+    const { data, error } = await supabase.rpc("request_join_tribe" as never, { _tribe_id: tribeId } as never);
+    const status = (data as any)?.status;
     if (error) setErr(error.message);
+    else if (status === "already_in_tribe") setErr("أنت موجود في قبيلة بالفعل");
+    else if (status === "open_tribe") setErr("هذه القبيلة مفتوحة — اضغط انضمام");
     setBusy(false); loadTribes();
   };
 

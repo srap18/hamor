@@ -404,7 +404,7 @@ function FishMarket() {
   };
 
   const finishFishUpgrade = async () => {
-    if (!user || !upgradingTo || secondsLeft <= 0) return;
+    if (!user || !upgradingTo) return;
     const ok = await confirmDialog({
       title: "إنهاء الترقية فورًا",
       message: "هل تريد إنهاء الترقية الآن باستخدام الجواهر؟",
@@ -420,7 +420,7 @@ function FishMarket() {
     showUpToast("تم إنهاء الترقية");
   };
 
-  const accelCost = Math.max(1, Math.ceil(secondsLeft / 60));
+  const accelCost = secondsLeft <= 10 ? 0 : Math.max(1, Math.ceil(secondsLeft / 60));
 
 
 

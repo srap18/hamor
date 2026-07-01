@@ -25,13 +25,18 @@ function FriendsPage() {
   const reload = async () => {
     if (!user) return;
     const fiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
-    const [{ data: on }, { data: f }, { data: bl }] = await Promise.all([
-      supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).gte("online_at", fiveMin).neq("id", user.id).limit(20),
+    const [{ data: f }, { data: bl }] = await Promise.all([
       supabase.from("friends").select("*").or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
       (supabase as any).from("user_blocks").select("blocked_id").eq("blocker_id", user.id),
     ]);
-    setOnline((on || []) as P[]);
     const all = (f || []) as F[];
+    const friendIds = all
+      .filter(x => x.status === "accepted")
+      .map(x => x.requester_id === user.id ? x.addressee_id : x.requester_id);
+    const { data: on } = friendIds.length
+      ? await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).in("id", friendIds).gte("online_at", fiveMin).limit(20)
+      : { data: [] as P[] };
+    setOnline((on || []) as P[]);
     const ids = new Set<string>();
     all.forEach(x => { ids.add(x.requester_id); ids.add(x.addressee_id); });
     ids.delete(user.id);

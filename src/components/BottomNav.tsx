@@ -105,15 +105,18 @@ export function BottomNav({ active }: { active?: string }) {
   useEffect(() => {
     if (!user) return;
     const loadNotifs = async () => {
-      const [{ data: notifications }, { data: boxes }] = await Promise.all([
+      const [{ data: notifications }, { data: reads }, { data: boxes }] = await Promise.all([
         supabase
           .from("notifications")
           .select("id")
           .or(`recipient_id.eq.${user.id},recipient_id.is.null`)
           .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
+        supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
         supabase.from("lootbox_owned").select("id").eq("user_id", user.id).eq("opened", false),
       ]);
-      setUnread((notifications?.length ?? 0) + (boxes?.length ?? 0));
+      const readIds = new Set((reads || []).map((r: any) => r.notification_id));
+      const unreadNotifications = (notifications || []).filter((n: any) => !readIds.has(n.id)).length;
+      setUnread(unreadNotifications + (boxes?.length ?? 0));
     };
 
     const loadDm = async () => {
