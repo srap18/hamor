@@ -51,6 +51,9 @@ jobs:
           bun add -D @capacitor/assets
           bunx capacitor-assets generate --android
 
+          # تنظيف أيقونات أندرويد الافتراضية القديمة لضمان عدم تداخلها
+          find android/app/src/main/res/ -name "ic_launcher*.png" -type f -delete
+
           # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها
           cp assets/icon-only.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png || true
           cp assets/icon-only.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png || true
