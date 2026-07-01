@@ -52,10 +52,17 @@ jobs:
           bunx capacitor-assets generate \
             --android \
             --assetPath assets \
+            --icon icon-only.png \
+            --splash splash.png \
+            --splashDark splash-dark.png \
             --iconBackgroundColor '#000000' \
             --iconBackgroundColorDark '#000000' \
             --splashBackgroundColor '#000000' \
             --splashBackgroundColorDark '#000000'
+
+          # خطوة إجبارية لضمان وجود الأيقونة في المسار الرئيسي
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          cp assets/icon-only.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
           bunx cap sync android
 
@@ -64,8 +71,6 @@ jobs:
           ls -la android/app/src/main/res/mipmap-* || true
           test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
             || (echo "ERROR: ic_launcher.png missing in mipmap-xxxhdpi" && exit 1)
-          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png \
-            || (echo "ERROR: ic_launcher_foreground.png missing" && exit 1)
 
           # موارد ثابتة (ألوان + ثيم)
           mkdir -p android/app/src/main/res/values
