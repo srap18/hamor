@@ -97,53 +97,63 @@ jobs:
 
           chmod +x android/gradlew
 
-      - name: Build Unsigned Release APK
+      - name: Build Unsigned Release APK and AAB
         run: |
           cd android
-          ./gradlew clean assembleRelease --no-daemon --stacktrace
+          ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
-      - name: Generate keystore and sign APK
-        run: |
-          set -e
-          KEYSTORE=$RUNNER_TEMP/release.jks
-          STORE_PASS="hamor2026"
-          KEY_ALIAS="hamor"
-          KEY_PASS="hamor2026"
+      # تم تعطيل التوقيع لكي تقوم بتوقيعه يدوياً بنفسك كما طلبت، مع الحفاظ على كل السطور والتعليقات:
+      #- name: Generate keystore and sign APK
+      #  run: |
+      #    set -e
+      #    KEYSTORE=$RUNNER_TEMP/release.jks
+      #    STORE_PASS="hamor2026"
+      #    KEY_ALIAS="hamor"
+      #    KEY_PASS="hamor2026"
+      #
+      #    # نولّد keystore ثابت الباراميترات (نفس الـ alias/كلمة السر)
+      #    # حتى تقدر تستخدمه لاحقاً لتحديث اللعبة بنفس التوقيع.
+      #    keytool -genkeypair -v \
+      #      -keystore "$KEYSTORE" \
+      #      -alias "$KEY_ALIAS" \
+      #      -keyalg RSA -keysize 2048 -validity 10000 \
+      #      -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
+      #      -dname "CN=Hamor Game, O=Hamor, C=SA"
+      #
+      #    UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
+      #    SIGNED=android/app/build/outputs/apk/release/app-release-signed.apk
+      #
+      #    # zipalign ثم توقيع بـ apksigner (v1+v2+v3)
+      #    BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -n1)
+      #    "$BUILD_TOOLS/zipalign" -v -p 4 "$UNSIGNED" "$SIGNED.aligned"
+      #    "$BUILD_TOOLS/apksigner" sign \
+      #      --ks "$KEYSTORE" \
+      #      --ks-key-alias "$KEY_ALIAS" \
+      #      --ks-pass pass:"$STORE_PASS" \
+      #      --key-pass pass:"$KEY_PASS" \
+      #      --out "$SIGNED" \
+      #      "$SIGNED.aligned"
+      #    "$BUILD_TOOLS/apksigner" verify "$SIGNED"
+      #
+      #    cp "$KEYSTORE" android/app/build/outputs/apk/release/release.jks
+      #    echo "STORE_PASS=$STORE_PASS  KEY_ALIAS=$KEY_ALIAS  KEY_PASS=$KEY_PASS" \
+      #      > android/app/build/outputs/apk/release/KEYSTORE_INFO.txt
+      #
+      # - name: Upload Signed APK
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-release-signed
+      #     path: |
+      #       android/app/build/outputs/apk/release/app-release-signed.apk
+      #       android/app/build/outputs/apk/release/release.jks
+      #       android/app/build/outputs/apk/release/KEYSTORE_INFO.txt
+      #     if-no-files-found: error
 
-          # نولّد keystore ثابت الباراميترات (نفس الـ alias/كلمة السر)
-          # حتى تقدر تستخدمه لاحقاً لتحديث اللعبة بنفس التوقيع.
-          keytool -genkeypair -v \
-            -keystore "$KEYSTORE" \
-            -alias "$KEY_ALIAS" \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
-            -dname "CN=Hamor Game, O=Hamor, C=SA"
-
-          UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
-          SIGNED=android/app/build/outputs/apk/release/app-release-signed.apk
-
-          # zipalign ثم توقيع بـ apksigner (v1+v2+v3)
-          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -n1)
-          "$BUILD_TOOLS/zipalign" -v -p 4 "$UNSIGNED" "$SIGNED.aligned"
-          "$BUILD_TOOLS/apksigner" sign \
-            --ks "$KEYSTORE" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --ks-pass pass:"$STORE_PASS" \
-            --key-pass pass:"$KEY_PASS" \
-            --out "$SIGNED" \
-            "$SIGNED.aligned"
-          "$BUILD_TOOLS/apksigner" verify "$SIGNED"
-
-          cp "$KEYSTORE" android/app/build/outputs/apk/release/release.jks
-          echo "STORE_PASS=$STORE_PASS  KEY_ALIAS=$KEY_ALIAS  KEY_PASS=$KEY_PASS" \
-            > android/app/build/outputs/apk/release/KEYSTORE_INFO.txt
-
-      - name: Upload Signed APK
+      - name: Upload Unsigned Outputs
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-signed
+          name: android-release-unsigned
           path: |
-            android/app/build/outputs/apk/release/app-release-signed.apk
-            android/app/build/outputs/apk/release/release.jks
-            android/app/build/outputs/apk/release/KEYSTORE_INFO.txt
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
