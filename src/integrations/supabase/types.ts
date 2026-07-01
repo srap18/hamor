@@ -4514,6 +4514,10 @@ export type Database = {
           }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
+      admin_delete_dragon_equipment: {
+        Args: { _row_id: string }
+        Returns: undefined
+      }
       admin_delete_tribe: { Args: { _tribe_id: string }; Returns: undefined }
       admin_find_codes: {
         Args: { _q: string }
@@ -4553,6 +4557,18 @@ export type Database = {
         Returns: {
           elite_vip_expires_at: string
           elite_vip_level: number
+        }[]
+      }
+      admin_get_player_dragon_equipment: {
+        Args: { _player: string }
+        Returns: {
+          acquired_at: string
+          equipped: boolean
+          id: string
+          name: string
+          rarity: string
+          slot: string
+          smelted: boolean
         }[]
       }
       admin_get_player_email: { Args: { _uid: string }; Returns: string }
