@@ -612,6 +612,43 @@ export const STORE_PACKS: StorePack[] = [
     description: "حماية كاملة 15 يوم 🛡️ + 2,000 💎 هدية — أفضل قيمة للدرع الطويل",
     reward: { shieldDays: 15, gems: 2_000 },
   },
+  {
+    id: "offer_anti_all_10",
+    category: "offers",
+    label: "🛡️ حزمة المضادات الكاملة (10 من كل نوع)",
+    emoji: "🛡️",
+    priceUSD: 12.99,
+    tag: "خصم 30%",
+    popular: true,
+    description: "10 مضاد صواريخ + 10 مضاد ذري + 10 مضاد إعلانية — حماية شاملة بخصم 30%",
+    reward: {
+      items: [
+        { itemType: "anti", itemId: "anti_rocket",  qty: 10 },
+        { itemType: "anti", itemId: "anti_nuke",    qty: 10 },
+        { itemType: "anti", itemId: "anti_ad_bomb", qty: 10 },
+      ],
+    },
+  },
+  {
+    id: "offer_disabler_all_10",
+    category: "offers",
+    label: "⚡ حزمة صواريخ التعطيل (10 من كل نوع)",
+    emoji: "⚡",
+    priceUSD: 29.99,
+    tag: "خصم 35%",
+    popular: true,
+    description: "10 صاروخ تعطيل مضاد الصواريخ + 10 تعطيل مضاد ذري + 10 تعطيل مضاد إعلانية — الترسانة الهجومية الكاملة",
+    reward: {
+      items: [
+        { itemType: "disabler", itemId: "disabler_rocket",  qty: 10 },
+        { itemType: "disabler", itemId: "disabler_nuke",    qty: 10 },
+        { itemType: "disabler", itemId: "disabler_ad_bomb", qty: 10 },
+      ],
+    },
+  },
+
+
+
 
 
 
