@@ -11,7 +11,23 @@ import { BACKGROUNDS } from "@/lib/backgrounds";
 import { ALL_FRAMES } from "@/lib/frames";
 import { getShipByCode } from "@/lib/ships";
 
-const ITEM_NAME_AR: Record<string, string> = {};
+const ITEM_NAME_AR: Record<string, string> = {
+  // Shields
+  shield_1h: "درع ساعة",
+  shield_4h: "درع 4 ساعات",
+  shield_1d: "درع يوم",
+  shield_2d: "درع يومين",
+  shield_7d: "درع أسبوع",
+  shield_30d: "درع شهر",
+  // Anti defenses
+  anti_rocket: "مضاد صواريخ",
+  anti_nuke: "مضاد قنبلة ذرية",
+  anti_ad_bomb: "مضاد قنبلة إعلانية",
+  // Disablers
+  disabler_rocket: "صاروخ تعطيل مضاد الصواريخ",
+  disabler_nuke: "صاروخ تعطيل مضاد الذري",
+  disabler_ad_bomb: "صاروخ تعطيل مضاد الإعلانية",
+};
 CREWS.forEach((c) => { ITEM_NAME_AR[c.id] = c.name; });
 WEAPONS.forEach((w) => { ITEM_NAME_AR[w.id] = w.name; });
 BACKGROUNDS.forEach((b) => { ITEM_NAME_AR[b.id] = b.name; });
@@ -31,6 +47,20 @@ const TYPE_LABEL_AR: Record<string, string> = {
   shield: "درع",
   ship: "سفينة",
   fish: "سمكة",
+  anti: "مضاد",
+  disabler: "معطّل",
+  dragon_weapon: "سلاح تنين",
+  dragon_armor: "درع تنين",
+  dragon_talisman: "تميمة تنين",
+};
+
+const DRAGON_RARITY_AR: Record<string, string> = {
+  common: "عادي",
+  rare: "نادر",
+  epic: "ملحمي",
+  legendary: "أسطوري",
+  divine: "خرافي",
+  fatak: "فتّاك",
 };
 
 function getItemNameAr(itemType: string, itemId: string): string {
@@ -38,8 +68,12 @@ function getItemNameAr(itemType: string, itemId: string): string {
   if (itemType === "ship") {
     try { return getShipByCode(itemId).name ?? itemId; } catch { /* ignore */ }
   }
+  if (itemType === "dragon_weapon" || itemType === "dragon_armor" || itemType === "dragon_talisman") {
+    return DRAGON_RARITY_AR[itemId] ?? itemId;
+  }
   return itemId;
 }
+
 
 
 
