@@ -1717,38 +1717,32 @@ function Index() {
 
 
 
-      {/* Incoming raids — pirates stealing from me */}
-      {raids.length > 0 && (
-        <div className="absolute top-20 left-2 right-2 z-30 flex flex-col gap-2 pointer-events-none">
-          {raids.map((r) => {
+      {/* Incoming raids — pirates stealing from me (compact, see-through) */}
+      {raids.filter((r) => !!r.attacker_name).length > 0 && (
+        <div className="absolute top-24 left-2 right-2 z-30 flex flex-col gap-1 pointer-events-none items-center">
+          {raids.filter((r) => !!r.attacker_name).map((r) => {
             const secsLeft = Math.max(0, Math.ceil((new Date(r.ends_at).getTime() - now) / 1000));
             return (
               <div key={r.ship_id}
-                className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/95 border-2 border-rose-500/70 shadow-lg animate-pulse">
-                <span className="text-2xl">🏴‍☠️</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-rose-100 text-xs font-bold truncate">
-                    {r.attacker_emoji} {r.attacker_name} يسرق منك!
-                  </div>
-                  <div className="text-rose-300/80 text-[10px]">
-                    ينتهي خلال {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
-                  </div>
+                className="pointer-events-auto inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-rose-950/55 backdrop-blur-sm border border-rose-400/40 shadow max-w-[92%]">
+                <span className="text-sm leading-none">🏴‍☠️</span>
+                <div className="text-rose-100 text-[10px] font-bold truncate leading-tight">
+                  {r.attacker_emoji} {r.attacker_name} يسرق منك · {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
                 </div>
                 <button
                   onClick={() => catchThief(r.ship_id)}
-                  className="px-3 py-1.5 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 text-xs font-extrabold active:scale-95"
-                >🚔 قبض</button>
+                  className="px-1.5 py-0.5 rounded-md bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 text-[10px] font-extrabold active:scale-95 leading-none"
+                >🚔</button>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Outgoing steals — my ships currently raiding other players' harbors.
-          Very prominent banner so the player can jump back to the target harbor easily. */}
-      {outgoingSteals.length > 0 && (
-        <div className="absolute top-16 left-2 right-2 z-40 flex flex-col gap-2 pointer-events-none">
-          {outgoingSteals.map((s) => {
+      {/* Outgoing steals — compact see-through pill so it doesn't block the view. */}
+      {outgoingSteals.filter((s) => !!s.stealingTargetUserId).length > 0 && (
+        <div className="absolute top-24 left-2 right-2 z-40 flex flex-col gap-1 pointer-events-none items-center">
+          {outgoingSteals.filter((s) => !!s.stealingTargetUserId).map((s) => {
             const tgt = stealTargetNames[s.stealingTargetUserId!] || { name: "لاعب", emoji: "🧑‍✈️" };
             const secsLeft = Math.max(0, Math.ceil((new Date(s.stealingEndsAt!).getTime() - now) / 1000));
             const ready = secsLeft <= 0;
@@ -1758,23 +1752,17 @@ function Index() {
                 to="/p/$id"
                 params={{ id: s.stealingTargetUserId! }}
                 onClick={() => sound.play("click")}
-                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl active:scale-95 border-2 ${
+                className={`pointer-events-auto inline-flex items-center gap-1.5 px-2 py-1 rounded-full backdrop-blur-sm border shadow active:scale-95 max-w-[92%] ${
                   ready
-                    ? "bg-gradient-to-r from-emerald-700 to-emerald-900 border-emerald-300 animate-pulse"
-                    : "bg-gradient-to-r from-amber-700 to-rose-900 border-amber-300"
+                    ? "bg-emerald-900/55 border-emerald-300/50 animate-pulse"
+                    : "bg-amber-900/45 border-amber-300/45"
                 }`}
-                style={{ boxShadow: "0 0 24px rgba(251,191,36,0.45)" }}
               >
-                <span className="text-3xl animate-bounce">🏴‍☠️</span>
-                <div className="flex-1 min-w-0 text-right">
-                  <div className="text-amber-50 text-sm font-extrabold truncate">
-                    {ready ? "🎉 سفينتك رجعت بالغنيمة!" : `سفينتك تسرق من ${tgt.emoji} ${tgt.name}`}
-                  </div>
-                  <div className="text-amber-100/90 text-[11px] font-bold">
-                    {ready ? "اضغط لاستلام الغنيمة" : `اضغط للذهاب لمحيطه · ${Math.floor(secsLeft / 60)}:${String(secsLeft % 60).padStart(2, "0")}`}
-                  </div>
+                <span className="text-sm leading-none">🏴‍☠️</span>
+                <div className="text-amber-50 text-[10px] font-bold truncate leading-tight">
+                  {ready ? "🎉 رجعت الغنيمة — استلم" : `تسرق من ${tgt.emoji} ${tgt.name} · ${Math.floor(secsLeft / 60)}:${String(secsLeft % 60).padStart(2, "0")}`}
                 </div>
-                <span className="text-amber-100 text-2xl font-black">‹</span>
+                <span className="text-amber-100 text-xs font-black leading-none">‹</span>
               </Link>
             );
           })}
