@@ -66,6 +66,25 @@ jobs:
 
           bunx cap sync android
 
+          # ضمان وجود الموارد الأساسية (strings.xml و file_paths.xml) بعد الـ Sync
+          mkdir -p android/app/src/main/res/values
+          mkdir -p android/app/src/main/res/xml
+          
+          cat > android/app/src/main/res/values/strings.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Hamor</string>
+              <string name="title_activity_main">MainActivity</string>
+          </resources>
+          EOF
+
+          cat > android/app/src/main/res/xml/file_paths.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths>
+              <external-path name="files" path="." />
+          </paths>
+          EOF
+
           # تحقق أن الأيقونات وُلّدت فعلاً داخل mipmap (نفشل مبكراً لو ماوصلت)
           echo "== mipmap contents =="
           ls -la android/app/src/main/res/mipmap-* || true
@@ -73,7 +92,6 @@ jobs:
             || (echo "ERROR: ic_launcher.png missing in mipmap-xxxhdpi" && exit 1)
 
           # موارد ثابتة (ألوان + ثيم)
-          mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/colors.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
