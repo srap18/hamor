@@ -931,7 +931,7 @@ function PlayerPage() {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
         <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
-          <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
+          <BackButton className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</BackButton>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
           <div className="w-24 h-24 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-5xl overflow-hidden border-4 border-amber-400/60 shadow-2xl">
