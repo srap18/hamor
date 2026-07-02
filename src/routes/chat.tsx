@@ -377,7 +377,7 @@ function ChatPage() {
   const moderateText = useServerFn(moderateChatText);
   const send = useCallback(async (override?: string) => {
     if (!user) return;
-    const raw = override ?? text;
+    const raw = override ?? "";
     const body = raw.trim().slice(0, 500);
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
