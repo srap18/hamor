@@ -21,6 +21,17 @@ type Earning = {
   created_at: string;
 };
 
+type LeaderRow = {
+  inviter_id: string;
+  display_name: string;
+  username: string | null;
+  avatar_url: string | null;
+  avatar_emoji: string | null;
+  invites_count: number;
+  gems_earned: number;
+  rank: number;
+};
+
 function InvitePage() {
   const nav = useNavigate();
   const [code, setCode] = useState<string>("");
@@ -28,12 +39,17 @@ function InvitePage() {
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [invitedCount, setInvitedCount] = useState(0);
   const [totalGems, setTotalGems] = useState(0);
+  const [weeklyInvites, setWeeklyInvites] = useState(0);
+  const [cleanInvites, setCleanInvites] = useState(0);
+  const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { nav({ to: "/login" }); return; }
+      setMyUserId(user.id);
       const { data: prof } = await supabase
         .from("profiles")
         .select("referral_code")
@@ -41,15 +57,23 @@ function InvitePage() {
         .maybeSingle();
       setCode((prof as any)?.referral_code || "");
 
-      const { data: earn } = await (supabase as any)
-        .from("referral_earnings")
-        .select("id, invitee_id, amount_cents, gems_awarded, created_at")
-        .eq("inviter_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
+      const [{ data: earn }, { data: stats }, { data: lb }] = await Promise.all([
+        (supabase as any)
+          .from("referral_earnings")
+          .select("id, invitee_id, amount_cents, gems_awarded, created_at")
+          .eq("inviter_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        (supabase as any).rpc("get_my_referral_stats"),
+        (supabase as any).rpc("get_referral_leaderboard_weekly", { p_limit: 10 }),
+      ]);
+
       const list: Earning[] = (earn as Earning[]) || [];
       setEarnings(list);
-      setTotalGems(list.reduce((s, e) => s + (e.gems_awarded || 0), 0));
+      setTotalGems((stats as any)?.total_gems || list.reduce((s, e) => s + (e.gems_awarded || 0), 0));
+      setWeeklyInvites((stats as any)?.weekly_invites || 0);
+      setCleanInvites((stats as any)?.clean_invites || 0);
+      setLeaderboard((lb as LeaderRow[]) || []);
 
       const { count } = await supabase
         .from("profiles")
