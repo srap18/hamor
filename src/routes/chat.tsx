@@ -696,7 +696,7 @@ function ChatPage() {
                               </div>
                             )}
                             {m.audio_url ? (
-                              <audio controls src={m.audio_url} className="max-w-[200px] h-8" />
+                              <VoiceMessage src={m.audio_url} durationMs={m.audio_duration_ms || 0} mine={mine} />
                             ) : (
                               <div className="text-sm break-words">{m.body}</div>
                             )}
