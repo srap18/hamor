@@ -2742,6 +2742,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_blocked_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          matched_value: string | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          matched_value?: string | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          matched_value?: string | null
+          reason?: string
+        }
+        Relationships: []
+      }
       referral_earnings: {
         Row: {
           amount_cents: number
@@ -2750,6 +2777,8 @@ export type Database = {
           id: string
           invitee_id: string
           inviter_id: string
+          kind: string
+          note: string | null
           txn_id: string
         }
         Insert: {
@@ -2759,6 +2788,8 @@ export type Database = {
           id?: string
           invitee_id: string
           inviter_id: string
+          kind?: string
+          note?: string | null
           txn_id: string
         }
         Update: {
@@ -2768,6 +2799,8 @@ export type Database = {
           id?: string
           invitee_id?: string
           inviter_id?: string
+          kind?: string
+          note?: string | null
           txn_id?: string
         }
         Relationships: []
@@ -4593,6 +4626,20 @@ export type Database = {
           quantity: number
         }[]
       }
+      admin_get_referrals_overview: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_url: string
+          blocked_invites: number
+          clean_invites: number
+          display_name: string
+          gems_earned: number
+          inviter_id: string
+          last_invite_at: string
+          username: string
+        }[]
+      }
       admin_grant_code_to_online: {
         Args: { _code: string; _within_minutes: number }
         Returns: {
@@ -4613,6 +4660,10 @@ export type Database = {
       admin_grant_lootbox: {
         Args: { _player: string; _type_id: string }
         Returns: string
+      }
+      admin_grant_referral_gift: {
+        Args: { p_gems: number; p_note?: string; p_user_id: string }
+        Returns: Json
       }
       admin_hard_ban: {
         Args: { _admin?: string; _reason?: string; _uid: string }
@@ -5353,6 +5404,7 @@ export type Database = {
           vip_subs_claimed: number
         }[]
       }
+      get_my_referral_stats: { Args: never; Returns: Json }
       get_my_ships: {
         Args: never
         Returns: {
@@ -5509,6 +5561,34 @@ export type Database = {
           tribe_id: string
           username: string
           xp: number
+        }[]
+      }
+      get_referral_leaderboard_alltime: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          display_name: string
+          gems_earned: number
+          inviter_id: string
+          invites_count: number
+          rank: number
+          username: string
+        }[]
+      }
+      get_referral_leaderboard_weekly: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_frame: string
+          avatar_url: string
+          display_name: string
+          gems_earned: number
+          inviter_id: string
+          invites_count: number
+          rank: number
+          username: string
         }[]
       }
       get_server_time: {
