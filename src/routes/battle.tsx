@@ -315,7 +315,7 @@ function BattlePage() {
       }}/>
 
       {/* Top HUD: 2 fighter cards + VS */}
-      <div className="absolute top-0 inset-x-0 z-30 px-2 pt-2">
+      <div className="absolute top-4 inset-x-0 z-30 px-2 pt-3">
         <div className="max-w-md mx-auto flex items-center gap-2">
           <Link to="/" className="w-9 h-9 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-white text-lg shrink-0">✕</Link>
           {/* Me card */}
