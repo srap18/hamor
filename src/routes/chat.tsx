@@ -432,7 +432,7 @@ function ChatPage() {
     };
     if (profile) setProfMap(s => s.has(user.id) ? s : new Map(s).set(user.id, profile as any));
     setMsgs(s => [...s, optimistic]);
-    if (!override) setText("");
+    // composer clears its own draft locally when it calls onSend
     setReplyTo(null);
 
     (supabase as any).rpc("send_chat_message_safe", {
