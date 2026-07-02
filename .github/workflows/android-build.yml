@@ -124,8 +124,8 @@ jobs:
       - name: Build Unsigned Release APK and AAB
         run: |
           cd android
-          # تحديث رقم الإصدار تلقائياً إلى 1000 (غير هذا الرقم في المرات القادمة لـ 1001، 1002...)
-          sed -i 's/versionCode [0-9]*/versionCode 1000/' app/build.gradle
+          # تحديث رقم الإصدار تلقائياً إلى 1001
+          sed -i 's/versionCode [0-9]*/versionCode 1001/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
       # تم تعطيل التوقيع لكي تقوم بتوقيعه يدوياً بنفسك كما طلبت، مع الحفاظ على كل السطور والتعليقات:
