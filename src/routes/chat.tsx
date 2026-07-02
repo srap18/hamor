@@ -1600,11 +1600,23 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
-  text: string; setText: (v: string) => void; onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
+function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
+  restoreDraftRef: React.MutableRefObject<(body: string) => void>;
+  onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
   replyTo?: { id: string; body: string; name: string } | null; onClearReply?: () => void;
 }) {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    restoreDraftRef.current = (body: string) => setText(t => t ? t : body);
+    return () => { restoreDraftRef.current = () => {}; };
+  }, [restoreDraftRef]);
+  const submit = () => {
+    const body = text.trim();
+    if (!body) return;
+    setText("");
+    onSend(body);
+  };
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
