@@ -143,12 +143,13 @@ function ProfilePage() {
     flash("تم تحديث الصورة");
   };
 
-  const save = async () => {
+  const [savingName, setSavingName] = useState(false);
+
+  const saveName = async () => {
     if (!userId) return;
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
     if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
-    // Block decorations / symbols / emojis client-side (Arabic + English letters/digits + space/_/-)
     if (!/^[\u0600-\u06FFA-Za-z0-9 _-]+$/.test(trimmed)) {
       flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
       return;
@@ -157,27 +158,47 @@ function ProfilePage() {
       flash("الاسم لازم يحتوي على حرف واحد على الأقل");
       return;
     }
-    setSaving(true);
-    // Religious-name policy
+    setSavingName(true);
     try {
       const { data: bad } = await (supabase as any).rpc("is_disallowed_religious_name", { p_name: trimmed });
       if (bad === true) {
-        setSaving(false);
+        setSavingName(false);
         flash("هذا الاسم غير مسموح. أمثلة مسموحة: بسم الله، سبحان الله، حسبي الله، لا إله إلا الله.");
         return;
       }
     } catch (e) { console.warn("[name policy check failed]", e); }
-    // Check name uniqueness (Arabic + English, case-insensitive)
     try {
       const { data: taken } = await (supabase as any).rpc("is_display_name_taken", { p_name: trimmed, p_except: userId });
       if (taken === true) {
-        setSaving(false);
+        setSavingName(false);
         flash("هذا الاسم محجوز");
         return;
       }
     } catch (e) { console.warn("[name uniqueness check failed]", e); }
     const { data: updated, error } = await supabase.from("profiles").update({
       display_name: trimmed,
+    } as any).eq("id", userId).select("id");
+    setSavingName(false);
+    if (error) {
+      const m = String(error.message || "");
+      console.error("[name save]", error);
+      if (m.includes("display_name_taken")) flash("هذا الاسم محجوز");
+      else if (m.includes("display_name_invalid_chars")) flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
+      else if (m.includes("display_name_must_have_letter")) flash("الاسم لازم يحتوي على حرف واحد");
+      else if (m.includes("display_name_disallowed_religious")) flash("هذا الاسم الديني غير مسموح");
+      else if (m.includes("too long")) flash("الاسم أطول من 15 حرف");
+      else if (m.includes("too short")) flash("الاسم قصير جداً");
+      else flash(`فشل حفظ الاسم: ${m}`);
+      return;
+    }
+    if (!updated || updated.length === 0) { flash("لم يتم تحديث الاسم"); return; }
+    flash("تم حفظ الاسم ✓");
+  };
+
+  const save = async () => {
+    if (!userId) return;
+    setSaving(true);
+    const { data: updated, error } = await supabase.from("profiles").update({
       bio: bio.slice(0, 200),
       avatar_emoji: avatarEmoji,
       avatar_frame: avatarFrame,
@@ -187,18 +208,11 @@ function ProfilePage() {
     } as any).eq("id", userId).select("id");
     setSaving(false);
     if (error) {
-      const m = String(error.message || "");
       console.error("[profile save]", error);
-      if (m.includes("display_name_taken")) flash("هذا الاسم محجوز");
-      else if (m.includes("display_name_invalid_chars")) flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
-      else if (m.includes("display_name_must_have_letter")) flash("الاسم لازم يحتوي على حرف واحد");
-      else if (m.includes("display_name_disallowed_religious")) flash("هذا الاسم الديني غير مسموح");
-      else if (m.includes("too long")) flash("الاسم أطول من 15 حرف");
-      else if (m.includes("too short")) flash("الاسم قصير جداً");
-      else flash(`فشل الحفظ: ${m}`);
+      flash(`فشل الحفظ: ${error.message}`);
       return;
     }
-    if (!updated || updated.length === 0) { console.warn("[profile save] no rows updated", { userId }); flash("لم يتم تحديث الملف"); return; }
+    if (!updated || updated.length === 0) { flash("لم يتم تحديث الملف"); return; }
     flash("تم الحفظ ✓");
   };
 
