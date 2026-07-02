@@ -206,17 +206,103 @@ function InvitePage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="rounded-xl bg-stone-900/80 border border-amber-700/40 p-3 text-center">
-            <div className="text-2xl">👥</div>
-            <div className="text-2xl font-black text-amber-300">{invitedCount}</div>
-            <div className="text-[11px] text-amber-100/70">صديق مدعو</div>
+            <div className="text-xl">👥</div>
+            <div className="text-xl font-black text-amber-300">{invitedCount}</div>
+            <div className="text-[10px] text-amber-100/70">مدعو</div>
+          </div>
+          <div className="rounded-xl bg-stone-900/80 border border-sky-700/40 p-3 text-center">
+            <div className="text-xl">📅</div>
+            <div className="text-xl font-black text-sky-300">{weeklyInvites}</div>
+            <div className="text-[10px] text-sky-100/70">هذا الأسبوع</div>
           </div>
           <div className="rounded-xl bg-stone-900/80 border border-emerald-700/40 p-3 text-center">
-            <div className="text-2xl">💎</div>
-            <div className="text-2xl font-black text-emerald-300">{totalGems.toLocaleString()}</div>
-            <div className="text-[11px] text-emerald-100/70">إجمالي الجواهر المربوحة</div>
+            <div className="text-xl">💎</div>
+            <div className="text-xl font-black text-emerald-300">{totalGems.toLocaleString()}</div>
+            <div className="text-[10px] text-emerald-100/70">جواهر</div>
           </div>
+        </div>
+
+        {/* Weekly Leaderboard */}
+        <div className="rounded-2xl bg-gradient-to-b from-amber-900/40 to-stone-950/90 border-2 border-amber-600/40 p-4 mb-4 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-base font-black text-amber-300 flex items-center gap-1.5">
+              🏆 صدارة الدعوات الأسبوعية
+            </div>
+            <div className="text-[10px] text-amber-100/60">تُحدّث كل أسبوع</div>
+          </div>
+          {leaderboard.length === 0 ? (
+            <div className="text-center text-xs text-stone-400 py-4">
+              كن أول من يتصدّر هذا الأسبوع! 🥇
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {leaderboard.map((r) => {
+                const isMe = r.inviter_id === myUserId;
+                const medal = r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : `#${r.rank}`;
+                return (
+                  <div
+                    key={r.inviter_id}
+                    className={`flex items-center gap-2 rounded-lg px-2.5 py-2 border ${
+                      isMe
+                        ? "bg-amber-500/20 border-amber-400"
+                        : r.rank <= 3
+                        ? "bg-stone-900/80 border-amber-700/40"
+                        : "bg-stone-900/50 border-stone-800"
+                    }`}
+                  >
+                    <div className={`w-8 text-center text-sm font-black ${r.rank <= 3 ? "text-amber-300" : "text-stone-400"}`}>
+                      {medal}
+                    </div>
+                    {r.avatar_url ? (
+                      <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center text-sm">
+                        {r.avatar_emoji || "🧑‍✈️"}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white truncate">
+                        {r.display_name} {isMe && <span className="text-amber-300 text-[10px]">(أنت)</span>}
+                      </div>
+                      <div className="text-[10px] text-stone-400">@{r.username || "—"}</div>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <div className="text-sm font-black text-emerald-300">{r.invites_count} 👥</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div className="mt-3 text-center text-[10px] text-amber-100/60">
+            💡 الإدارة تمنح جوائز فورية للمتصدرين — ادعُ أكثر وتصدّر القائمة
+          </div>
+        </div>
+
+
+        {/* Earnings list */}
+        <div className="rounded-xl bg-stone-950/70 border border-stone-700 p-3">
+          <div className="text-sm font-bold text-amber-300 mb-2">📜 سجل المكافآت</div>
+          {earnings.length === 0 ? (
+            <div className="text-center text-xs text-stone-400 py-6">
+              لا يوجد مكافآت بعد — ابدأ بمشاركة كودك مع أصدقائك!
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {earnings.map((e) => (
+                <div key={e.id} className="flex items-center justify-between bg-stone-900/60 rounded-lg px-3 py-2 border border-stone-800">
+                  <div className="text-xs text-stone-300">
+                    {e.amount_cents > 0 ? `شحن $${(e.amount_cents / 100).toFixed(2)}` : "دعوة صديق"}
+                  </div>
+                  <div className="text-sm font-bold text-emerald-300">
+                    +{e.gems_awarded.toLocaleString()} 💎
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
 
