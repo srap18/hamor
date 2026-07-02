@@ -337,10 +337,13 @@ export function LuckyBoxGlobalBanner() {
         (payload) => {
           const n = payload.new as { id: string; title: string; body: string; kind: string };
           if (n.kind !== "lucky_rare" && n.kind !== "lucky_legendary") return;
-          setItems((prev) => [...prev, n].slice(-3));
+          // Skip empty payloads (no title AND no body) — otherwise we render blank dark bars on screen.
+          if (!n.title?.trim() && !n.body?.trim()) return;
+          // Only show the latest one at a time to avoid stacked/duplicate banners.
+          setItems([n]);
           window.setTimeout(() => {
             setItems((prev) => prev.filter((x) => x.id !== n.id));
-          }, 10000);
+          }, 6000);
         },
       )
       .subscribe();
