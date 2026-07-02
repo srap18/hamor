@@ -47,6 +47,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/tribe-events", label: "فعاليات القبائل", icon: "🎣" },
   { to: "/admin/weekly-xp", label: "مسابقة XP الأسبوعية", icon: "⭐" },
   { to: "/admin/community", label: "القبائل والغرف", icon: "🏴‍☠️" },
+  { to: "/admin/referrals", label: "الدعوات", icon: "🎁" },
   
   { to: "/admin/audit", label: "سجل العمليات", icon: "📋" },
 ];
