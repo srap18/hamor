@@ -90,7 +90,10 @@ function ChatPage() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
   const [profMap, setProfMap] = useState<Map<string, Prof>>(new Map());
-  const [text, setText] = useState("");
+  // NOTE: composer text lives inside <ChatComposer/> to avoid re-rendering the
+  // entire chat (and re-diffing hundreds of messages) on every keystroke.
+  const restoreDraftRef = useRef<(body: string) => void>(() => {});
+
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
   const [dmWith, setDmWith] = useState<string | null>(null);
   const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
@@ -375,7 +378,7 @@ function ChatPage() {
   const moderateText = useServerFn(moderateChatText);
   const send = useCallback(async (override?: string) => {
     if (!user) return;
-    const raw = override ?? text;
+    const raw = override ?? "";
     const body = raw.trim().slice(0, 500);
     if (!body) return;
     if (tab === "tribe" && !profile?.tribe_id) return;
@@ -430,7 +433,7 @@ function ChatPage() {
     };
     if (profile) setProfMap(s => s.has(user.id) ? s : new Map(s).set(user.id, profile as any));
     setMsgs(s => [...s, optimistic]);
-    if (!override) setText("");
+    // composer clears its own draft locally when it calls onSend
     setReplyTo(null);
 
     (supabase as any).rpc("send_chat_message_safe", {
@@ -446,7 +449,7 @@ function ChatPage() {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice("تعذر الإرسال: " + (error.message || ""));
-        setText(t => t ? t : body);
+        restoreDraftRef.current(body);
         return;
       }
       // Swap the temp id with the real inserted id so the realtime INSERT dedupes
@@ -483,11 +486,11 @@ function ChatPage() {
         const cur = (data?.current_level as number | undefined) ?? marketLevel ?? 1;
         showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${cur})`);
         setMarketLevel(cur);
-        setText(t => t ? t : body);
+        restoreDraftRef.current(body);
         return;
       }
     });
-  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
+  }, [user, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
 
 
 
@@ -740,8 +743,7 @@ function ChatPage() {
           </div>
         ) : (
           <ChatComposer
-            text={text}
-            setText={setText}
+            restoreDraftRef={restoreDraftRef}
             onSend={send}
             sending={sending}
             disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
@@ -1598,11 +1600,23 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
-  text: string; setText: (v: string) => void; onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
+function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
+  restoreDraftRef: React.MutableRefObject<(body: string) => void>;
+  onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
   replyTo?: { id: string; body: string; name: string } | null; onClearReply?: () => void;
 }) {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    restoreDraftRef.current = (body: string) => setText(t => t ? t : body);
+    return () => { restoreDraftRef.current = () => {}; };
+  }, [restoreDraftRef]);
+  const submit = () => {
+    const body = text.trim();
+    if (!body) return;
+    setText("");
+    onSend(body);
+  };
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -1696,7 +1710,7 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   useEffect(() => () => stopTimer(), []);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px))" }}>
+    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px))" }}>
       {replyTo && (
         <div className="flex items-stretch gap-2 rounded-xl border-r-4 border-amber-400 bg-stone-900/95 px-2 py-1.5 shadow-lg">
           <div className="flex-1 min-w-0">
