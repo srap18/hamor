@@ -1710,7 +1710,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
   useEffect(() => () => stopTimer(), []);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSend(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px))" }}>
+    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px))" }}>
       {replyTo && (
         <div className="flex items-stretch gap-2 rounded-xl border-r-4 border-amber-400 bg-stone-900/95 px-2 py-1.5 shadow-lg">
           <div className="flex-1 min-w-0">
