@@ -3589,7 +3589,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               onKeyDown={(e) => e.key === "Enter" && runSearch()}
               placeholder="اسم القبطان..."
               className="flex-1 px-3 py-2 rounded-lg bg-secondary/80 border border-accent/40 text-sm text-accent" />
-            <button onClick={runSearch}
+            <button onClick={() => runSearch()}
               className="px-4 rounded-lg bg-accent text-secondary font-bold text-sm">بحث</button>
           </div>
         )}
@@ -3694,7 +3694,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                             avatarEmoji: r.avatar_emoji,
                             value: <>{r.score.toLocaleString()}</>,
                             isMe: r.user_id === meId,
-                            onClick: r.user_id === meId ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: r.user_id } }); },
+                            onClick: r.user_id === meId ? undefined : () => openPlayerFromLeaderboard(r.user_id),
                           })) : [];
                           const rest = showPodium ? board.slice(3) : board;
                           const startIdx = showPodium ? 3 : 0;
@@ -3801,7 +3801,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 subtitle: `إجمالي ${p.total_fish.toLocaleString()}`,
                 value: <>🐟 {p.unique_fish} نوع</>,
                 isMe: meId === p.id,
-                onClick: meId === p.id ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: p.id } }); },
+                onClick: meId === p.id ? undefined : () => openPlayerFromLeaderboard(p.id),
               }));
               const rest = fishRows.slice(3);
               return (
@@ -3838,7 +3838,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
                 <Link key={p.id} to="/p/$id" params={{ id: p.id }}
-                  onClick={() => { sound.play("click"); onClose(); }}
+                  onClick={beforePlayerLink}
                   className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
                 </Link>
@@ -3859,7 +3859,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 subtitle: `المستوى ${p.level}`,
                 value: <>🏪 مستوى {p.market_level}</>,
                 isMe: meId === p.id,
-                onClick: meId === p.id ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: p.id } }); },
+                onClick: meId === p.id ? undefined : () => openPlayerFromLeaderboard(p.id),
               }));
               const rest = shipRows.slice(3);
               return (
@@ -3896,7 +3896,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
               ) : (
                 <Link key={p.id} to="/p/$id" params={{ id: p.id }}
-                  onClick={() => { sound.play("click"); onClose(); }}
+                  onClick={beforePlayerLink}
                   className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                   {Inner}
                 </Link>
@@ -3919,7 +3919,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               subtitle: `المستوى ${p.level}`,
               value: <>{valueIcon} {valueFor(p).toLocaleString()}</>,
               isMe: meId === p.id,
-              onClick: meId === p.id ? undefined : () => { sound.play("click"); onClose(); navigate({ to: "/p/$id", params: { id: p.id } }); },
+              onClick: meId === p.id ? undefined : () => openPlayerFromLeaderboard(p.id),
             })) : [];
             const rest = showPodium ? rows.slice(3) : rows;
             const startIdx = showPodium ? 3 : 0;
@@ -3986,7 +3986,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg ${meRow}`}>{Inner}</div>
             ) : (
               <Link key={p.id} to="/p/$id" params={{ id: p.id }}
-                onClick={() => { sound.play("click"); onClose(); }}
+                onClick={beforePlayerLink}
                 className={`flex items-center gap-2 p-2 rounded-lg active:scale-[0.98] ${baseRow}`}>
                 {Inner}
               </Link>
@@ -4000,13 +4000,13 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
           onClick={onClose}>إغلاق</button>
       </div>
-      {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} />}
+      {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} onBeforePlayerOpen={beforePlayerLink} />}
       {prizesModal && <PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} />}
     </div>
   );
 }
 
-function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () => void }) {
+function TribeDetailModal({ tribeId, onClose, onBeforePlayerOpen }: { tribeId: string; onClose: () => void; onBeforePlayerOpen?: () => void }) {
   const [info, setInfo] = useState<{ name: string; emblem: string; banner: string; description: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string } | null>(null);
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; xp: number }>>([]);
   const [loading, setLoading] = useState(true);
@@ -4169,7 +4169,7 @@ function TribeDetailModal({ tribeId, onClose }: { tribeId: string; onClose: () =
                   <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40 border border-accent/20 opacity-80">{row}</div>
                 ) : (
                   <Link key={m.user_id} to="/p/$id" params={{ id: m.user_id }}
-                    onClick={() => { sound.play("click"); onClose(); }}
+                    onClick={onBeforePlayerOpen ?? (() => { sound.play("click"); onClose(); })}
                     className="flex items-center gap-2 p-2 rounded-lg bg-secondary/60 border border-accent/30 active:scale-[0.98]">
                     {row}
                   </Link>
