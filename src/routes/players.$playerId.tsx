@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
@@ -930,7 +931,7 @@ function PlayerPage() {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
         <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
-          <Link to="/" className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
+          <BackButton className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</BackButton>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
           <div className="w-24 h-24 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-5xl overflow-hidden border-4 border-amber-400/60 shadow-2xl">
@@ -1176,7 +1177,7 @@ function PlayerPage() {
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
-        <Link to="/" onClick={() => sound.play("click")} className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</Link>
+        <BackButton className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center" aria-label="رجوع">↩</BackButton>
         <div className={`flex-1 glass-hud rounded-xl px-3 py-2 flex items-center gap-2 border border-amber-400/50 ${frameById(p?.profile_frame)?.kind === "profile" ? frameById(p?.profile_frame)?.profileClass : ""} ${frameById(p?.profile_frame)?.animClass ?? ""}`}>
           <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
             <div className="w-10 h-10 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden">
