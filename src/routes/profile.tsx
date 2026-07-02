@@ -314,6 +314,10 @@ function ProfilePage() {
             placeholder="اكتب اسمك"
           />
           <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف</div>
+          <button onClick={saveName} disabled={savingName}
+            className="w-full mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white font-bold text-sm active:scale-95 disabled:opacity-50 shadow">
+            {savingName ? "جاري حفظ الاسم..." : "💾 حفظ الاسم"}
+          </button>
         </section>
 
         {/* Username */}
