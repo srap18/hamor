@@ -74,7 +74,19 @@ function SignupPage() {
         const dev = (typeof localStorage !== "undefined"
           ? (localStorage.getItem("oc_device_id") || localStorage.getItem("hamor_device_id"))
           : null) || null;
-        await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
+        const { data: r } = await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
+        if (r && (r as any).ok === false) {
+          const reason = (r as any).reason;
+          const msg =
+            reason === "same_device" || reason === "device_already_used" ? "لا تُحسب الدعوة: نفس الجهاز" :
+            reason === "same_ip" || reason === "same_subnet" ? "لا تُحسب الدعوة: نفس الشبكة" :
+            reason === "linked_account" ? "لا تُحسب الدعوة: حسابات مرتبطة" :
+            reason === "self_referral" ? "لا يمكن استخدام كودك الشخصي" :
+            reason === "already_referred" ? "تم استخدام كود دعوة سابقاً" :
+            reason === "code_not_found" ? "كود دعوة غير موجود" :
+            reason === "device_required" ? "تعذّر التحقق من الجهاز" : null;
+          if (msg) setErr(msg);
+        }
         localStorage.removeItem("pending_referral_code");
       } catch {}
     }
