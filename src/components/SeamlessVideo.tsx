@@ -89,10 +89,7 @@ export function SeamlessVideo({
       autoPlay
       loop
       muted
-      defaultMuted
       playsInline
-      // @ts-expect-error legacy iOS/Android attribute
-      webkit-playsinline=""
       preload="auto"
       disablePictureInPicture
       disableRemotePlayback
