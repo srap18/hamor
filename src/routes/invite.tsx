@@ -305,32 +305,8 @@ function InvitePage() {
           )}
         </div>
 
-
-        {/* Earnings list */}
-        <div className="rounded-xl bg-stone-950/70 border border-stone-700 p-3">
-          <div className="text-sm font-bold text-amber-300 mb-2">📜 سجل المكافآت</div>
-          {earnings.length === 0 ? (
-            <div className="text-center text-xs text-stone-400 py-6">
-              لا يوجد مكافآت بعد — ابدأ بمشاركة كودك مع أصدقائك!
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {earnings.map((e) => (
-                <div key={e.id} className="flex items-center justify-between bg-stone-900/60 rounded-lg px-3 py-2 border border-stone-800">
-                  <div className="text-xs text-stone-300">
-                    شحن ${(e.amount_cents / 100).toFixed(2)}
-                  </div>
-                  <div className="text-sm font-bold text-emerald-300">
-                    +{e.gems_awarded.toLocaleString()} 💎
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         <div className="mt-4 text-center text-[11px] text-stone-400">
-          المكافأة تُحسب تلقائياً بعد كل عملية شحن ناجحة لصديقك.
+          🔒 النظام يفحص عنوان الإنترنت والجهاز — الدعوات من نفس الجهاز لا تُحسب.
           <br/>الهدية من اللعبة — لا ينقص شيء من شراء صديقك.
         </div>
       </div>
