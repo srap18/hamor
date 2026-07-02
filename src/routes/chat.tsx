@@ -449,7 +449,7 @@ function ChatPage() {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice("تعذر الإرسال: " + (error.message || ""));
-        setText(t => t ? t : body);
+        restoreDraftRef.current(body);
         return;
       }
       // Swap the temp id with the real inserted id so the realtime INSERT dedupes
