@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { hasPlayerReturnSource, isPlayerRoutePath } from "@/lib/navigation-source";
 
 /**
  * Smart back button: returns to previous page in browser history.
@@ -18,6 +19,10 @@ export function BackButton({
 }) {
   const router = useRouter();
   const onClick = () => {
+    if (typeof window !== "undefined" && isPlayerRoutePath(window.location.pathname) && hasPlayerReturnSource()) {
+      router.navigate({ to: "/", replace: true });
+      return;
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       window.history.back();
     } else {

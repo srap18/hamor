@@ -49,6 +49,7 @@ import birdImg from "@/assets/bird-realistic.png";
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
+import { consumePlayerReturnSource, savePlayerReturnSource } from "@/lib/navigation-source";
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
@@ -287,6 +288,14 @@ function shipSellPrice(level: number) {
 // Set to true when the last golden fisher tick reported the storehouse
 // is full so the deposit can't make progress.
 const gfMarketFullRef = { current: false };
+
+const LEADERBOARD_TABS = ["comp", "xp", "gems", "coins", "fish", "ships", "tribes", "search"] as const;
+type LeaderboardTab = typeof LEADERBOARD_TABS[number];
+type LeaderboardRestore = { tab: LeaderboardTab; q?: string; tribeQ?: string };
+
+function isLeaderboardTab(value: unknown): value is LeaderboardTab {
+  return typeof value === "string" && (LEADERBOARD_TABS as readonly string[]).includes(value);
+}
 
 
 
@@ -758,7 +767,16 @@ function Index() {
   const [upgradeSubResult, setUpgradeSubResult] = useState<{ success: boolean; stars: number; chance: number } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
+  const [leaderboardRestore, setLeaderboardRestore] = useState<LeaderboardRestore | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const source = consumePlayerReturnSource();
+    if (source?.kind === "leaderboard" && isLeaderboardTab(source.tab)) {
+      setLeaderboardRestore({ tab: source.tab, q: source.q ?? "", tribeQ: source.tribeQ ?? "" });
+      setBoostOpen(true);
+    }
+  }, []);
 
   // Start ambient music on first user gesture (autoplay policy)
   useEffect(() => {
@@ -3128,7 +3146,7 @@ function Index() {
                 onClick={() => {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
-                  else if (it.action === "boost") setBoostOpen(true);
+                  else if (it.action === "boost") { setLeaderboardRestore(null); setBoostOpen(true); }
                 }}
                 className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
               >
@@ -3144,7 +3162,7 @@ function Index() {
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
       {/* Leaderboard / players modal */}
-      {boostOpen && <LeaderboardModal onClose={() => setBoostOpen(false)} />}
+      {boostOpen && <LeaderboardModal initialRestore={leaderboardRestore} onClose={() => { setBoostOpen(false); setLeaderboardRestore(null); }} />}
 
       {/* Toast */}
       {toast && (
@@ -3305,9 +3323,9 @@ function compTimeLeft(iso: string) {
   return `${m}د`;
 }
 
-function LeaderboardModal({ onClose }: { onClose: () => void }) {
+function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; initialRestore?: LeaderboardRestore | null }) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"comp" | "xp" | "gems" | "coins" | "fish" | "ships" | "tribes" | "search">("comp");
+  const [tab, setTab] = useState<LeaderboardTab>(initialRestore?.tab ?? "comp");
   const [comps, setComps] = useState<CompLb[]>([]);
   const [tribeEvents, setTribeEvents] = useState<Array<{ id: string; title: string; banner_emoji: string; starts_at: string; ends_at: string }>>([]);
   const [compBoards, setCompBoards] = useState<Record<string, CompLbRow[]>>({});
@@ -3315,14 +3333,15 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   const [fishRows, setFishRows] = useState<Array<LbProfile & { unique_fish: number; total_fish: number }>>([]);
   const [shipRows, setShipRows] = useState<Array<LbProfile & { market_level: number }>>([]);
   const [tribes, setTribes] = useState<TribeLb[]>([]);
-  const [q, setQ] = useState("");
-  const [tribeQ, setTribeQ] = useState("");
+  const [q, setQ] = useState(initialRestore?.q ?? "");
+  const [tribeQ, setTribeQ] = useState(initialRestore?.tribeQ ?? "");
   const [loading, setLoading] = useState(false);
   const [refreshSeq, setRefreshSeq] = useState(0);
   const [openTribeId, setOpenTribeId] = useState<string | null>(null);
   const [prizesModal, setPrizesModal] = useState<{ title: string; tiers: PrizeTier[] } | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
   const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
+  const restoredSearchRef = useRef(false);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
   useEffect(() => {
     (async () => {
@@ -3485,16 +3504,40 @@ function LeaderboardModal({ onClose }: { onClose: () => void }) {
   }, [loading, refreshSeq]);
 
 
-  const runSearch = async () => {
-    if (!q.trim()) return;
+  const rememberPlayerSource = () => {
+    savePlayerReturnSource({ kind: "leaderboard", tab, q, tribeQ });
+  };
+
+  const openPlayerFromLeaderboard = (id: string) => {
+    sound.play("click");
+    rememberPlayerSource();
+    onClose();
+    navigate({ to: "/p/$id", params: { id } });
+  };
+
+  const beforePlayerLink = () => {
+    sound.play("click");
+    rememberPlayerSource();
+    onClose();
+  };
+
+  const runSearch = async (term = q) => {
+    const query = term.trim();
+    if (!query) return;
     setLoading(true);
     const { data } = await supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .ilike("display_name", `%${q.trim()}%`).limit(200);
+      .ilike("display_name", `%${query}%`).limit(200);
     const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
     setRows(filtered);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (restoredSearchRef.current || initialRestore?.tab !== "search" || tab !== "search" || !q.trim()) return;
+    restoredSearchRef.current = true;
+    void runSearch(q);
+  }, [initialRestore?.tab, q, tab, staffIds]);
 
 
   const TABS = [
