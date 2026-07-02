@@ -57,12 +57,13 @@ jobs:
           # تنظيف المجلدات التي تسبب تعارضاً مع الأيقونات الجديدة
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
 
-          # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها
-          cp assets/icon-only.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png || true
-          cp assets/icon-only.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png || true
-          cp assets/icon-only.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png || true
-          cp assets/icon-only.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png || true
-          cp assets/icon-only.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png || true
+          # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها (بما فيها النوع Round)
+          for folder in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+             if [ -d "android/app/src/main/res/mipmap-$folder" ]; then
+                cp assets/icon-only.png "android/app/src/main/res/mipmap-$folder/ic_launcher.png"
+                cp assets/icon-only.png "android/app/src/main/res/mipmap-$folder/ic_launcher_round.png"
+             fi
+          done
 
           bunx cap sync android
 
