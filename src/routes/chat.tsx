@@ -1737,71 +1737,8 @@ function ChatComposer({ text, setText, onSend, sending, disabled, userId, onAudi
   );
 }
 
-function SwipeableRow({ children, onReply }: { children: React.ReactNode; onReply: () => void }) {
-  const [dx, setDx] = useState(0);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const active = useRef(false);
-  const locked = useRef<null | "h" | "v">(null);
-  const triggered = useRef(false);
-  const THRESHOLD = 60;
-  const MAX = 90;
-  const SLOP = 12; // px before deciding direction
-
-  const onStart = (x: number, y: number) => {
-    startX.current = x;
-    startY.current = y;
-    active.current = true;
-    locked.current = null;
-    triggered.current = false;
-  };
-  const onMove = (x: number, y: number) => {
-    if (!active.current) return;
-    const deltaX = x - startX.current;
-    const deltaY = y - startY.current;
-    if (locked.current === null) {
-      if (Math.abs(deltaX) < SLOP && Math.abs(deltaY) < SLOP) return;
-      // Vertical wins ties so vertical scrolling stays smooth
-      locked.current = deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4 ? "h" : "v";
-      if (locked.current === "v") { active.current = false; setDx(0); return; }
-    }
-    if (locked.current !== "h") return;
-    if (deltaX <= 0) { setDx(0); return; }
-    const clamped = Math.min(MAX, Math.max(0, deltaX - SLOP));
-    setDx(clamped);
-    if (!triggered.current && clamped >= THRESHOLD) {
-      triggered.current = true;
-      try { (navigator as any).vibrate?.(20); } catch {}
-      onReply();
-    }
-  };
-  const onEnd = () => {
-    active.current = false;
-    locked.current = null;
-    setDx(0);
-  };
-
-  const showHint = dx > 8;
-  return (
-    <div
-      className="relative touch-pan-y select-none overflow-x-hidden"
-      onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
-      onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY)}
-      onTouchEnd={onEnd}
-      onTouchCancel={onEnd}
-    >
-      {showHint && (
-        <div
-          className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-amber-300 text-lg font-black"
-          style={{ opacity: Math.min(1, dx / THRESHOLD) }}
-        >
-          ↩︎
-        </div>
-      )}
-      <div style={{ transform: `translateX(${dx}px)`, transition: dx === 0 ? "transform 180ms ease" : "none" }}>
-        {children}
-      </div>
-    </div>
-  );
+function SwipeableRow({ children }: { children: React.ReactNode; onReply?: () => void }) {
+  // Touch gesture disabled per user request — messages should not move on touch.
+  return <div className="relative">{children}</div>;
 }
 
