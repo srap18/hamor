@@ -1756,3 +1756,112 @@ function SwipeableRow({ children }: { children: React.ReactNode; onReply?: () =>
   return <div className="relative">{children}</div>;
 }
 
+// ===================== Voice Message Player =====================
+// Custom player: reliable across iOS Safari & Android Chrome (webm/opus + mp4/aac),
+// uses playsInline, shows explicit error, and pauses any other playing voice message.
+let __activeVoiceAudio: HTMLAudioElement | null = null;
+
+function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: number; mine: boolean }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0); // 0..1
+  const [current, setCurrent] = useState(0);
+  const [dur, setDur] = useState(durationMs > 0 ? durationMs / 1000 : 0);
+
+  // Guess MIME type from URL extension to help Safari pick the right decoder
+  const inferredType = (() => {
+    const s = src.toLowerCase();
+    if (s.includes(".webm")) return "audio/webm";
+    if (s.includes(".m4a") || s.includes(".mp4")) return "audio/mp4";
+    if (s.includes(".mp3")) return "audio/mpeg";
+    if (s.includes(".ogg")) return "audio/ogg";
+    return undefined;
+  })();
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    const onTime = () => {
+      setCurrent(a.currentTime);
+      if (a.duration && isFinite(a.duration)) setProgress(a.currentTime / a.duration);
+    };
+    const onMeta = () => { if (a.duration && isFinite(a.duration)) setDur(a.duration); };
+    const onEnd = () => { setPlaying(false); setProgress(0); setCurrent(0); try { a.currentTime = 0; } catch {} };
+    const onErr = () => { setLoading(false); setPlaying(false); setError("تعذر تشغيل التسجيل"); };
+    const onPlay = () => { setPlaying(true); setLoading(false); };
+    const onPause = () => setPlaying(false);
+    a.addEventListener("timeupdate", onTime);
+    a.addEventListener("loadedmetadata", onMeta);
+    a.addEventListener("ended", onEnd);
+    a.addEventListener("error", onErr);
+    a.addEventListener("play", onPlay);
+    a.addEventListener("pause", onPause);
+    return () => {
+      a.removeEventListener("timeupdate", onTime);
+      a.removeEventListener("loadedmetadata", onMeta);
+      a.removeEventListener("ended", onEnd);
+      a.removeEventListener("error", onErr);
+      a.removeEventListener("play", onPlay);
+      a.removeEventListener("pause", onPause);
+    };
+  }, []);
+
+  const toggle = async () => {
+    const a = audioRef.current;
+    if (!a) return;
+    setError(null);
+    if (playing) { a.pause(); return; }
+    // Pause any other playing voice message first
+    if (__activeVoiceAudio && __activeVoiceAudio !== a) {
+      try { __activeVoiceAudio.pause(); } catch {}
+    }
+    __activeVoiceAudio = a;
+    setLoading(true);
+    try {
+      // Ensure it's loaded (Safari sometimes needs an explicit load after user gesture)
+      if (a.readyState < 2) { try { a.load(); } catch {} }
+      await a.play();
+    } catch (e: any) {
+      setLoading(false);
+      setError(e?.message ? `تعذر التشغيل: ${e.message}` : "تعذر تشغيل التسجيل");
+    }
+  };
+
+  const fmt = (s: number) => {
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  const totalLabel = fmt(playing || current > 0 ? current : (dur || 0));
+
+  return (
+    <div className={`flex items-center gap-2 rounded-lg px-2 py-1.5 min-w-[180px] max-w-[220px] ${mine ? "bg-amber-950/30" : "bg-stone-900/40"}`}>
+      <audio ref={audioRef} src={src} preload="metadata" playsInline crossOrigin="anonymous">
+        {inferredType && <source src={src} type={inferredType} />}
+      </audio>
+      <button
+        type="button"
+        onClick={toggle}
+        className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-95 ${playing ? "bg-red-600" : "bg-emerald-600"}`}
+        aria-label={playing ? "إيقاف" : "تشغيل"}
+      >
+        {loading ? "…" : playing ? "⏸" : "▶"}
+      </button>
+      <div className="flex-1 min-w-0">
+        <div className="h-1.5 rounded-full bg-stone-700/70 overflow-hidden">
+          <div className="h-full bg-amber-400" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </div>
+        <div className="flex items-center justify-between mt-0.5">
+          <span className="text-[10px] text-stone-300">🎤</span>
+          <span className="text-[10px] text-stone-300 tabular-nums">{totalLabel}</span>
+        </div>
+        {error && <div className="text-[10px] text-red-300 mt-0.5 truncate">{error}</div>}
+      </div>
+    </div>
+  );
+}
+
