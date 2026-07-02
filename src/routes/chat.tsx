@@ -90,7 +90,9 @@ function ChatPage() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [msgsKey, setMsgsKey] = useState("");
   const [profMap, setProfMap] = useState<Map<string, Prof>>(new Map());
-  const [text, setText] = useState("");
+  // NOTE: composer text lives inside <ChatComposer/> to avoid re-rendering the
+  // entire chat (and re-diffing hundreds of messages) on every keystroke.
+
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
   const [dmWith, setDmWith] = useState<string | null>(null);
   const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
