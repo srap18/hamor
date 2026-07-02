@@ -130,13 +130,33 @@ function InvitePage() {
         <div className="rounded-2xl bg-gradient-to-b from-emerald-900/80 to-stone-950/90 border-2 border-emerald-600/50 p-5 mb-4 shadow-xl">
           <div className="text-center mb-3">
             <div className="text-4xl mb-1">🎉</div>
-            <div className="text-lg font-extrabold text-emerald-300">ادعُ صديق = اربح 30% جواهر</div>
+            <div className="text-lg font-extrabold text-amber-300">500 💎 فوراً لكل صديق جديد</div>
             <div className="text-xs text-emerald-100/80 mt-1">
-              كل ما صديقك يشحن، تجيك <span className="text-amber-300 font-bold">30%</span> جواهر هدية من اللعبة 🎁
+              كل صديق يسجّل بكودك = <span className="text-amber-300 font-bold">500 جوهرة</span> تدخل حسابك مباشرة
               <br/>
-              <span className="text-emerald-100/60">بدون أي خصم على شراء صديقك — هديتك مدفوعة من اللعبة</span>
+              + عند وصولك <span className="text-amber-300 font-bold">10 دعوات</span> → <span className="text-amber-300 font-bold">2000 جوهرة</span> إضافية 🏆
+              <br/>
+              + <span className="text-emerald-300 font-bold">30% جواهر</span> من كل شحن يسوّيه صديقك
             </div>
           </div>
+
+          {/* Milestone progress */}
+          <div className="bg-stone-950/70 rounded-xl border border-amber-500/40 p-3 mb-3">
+            <div className="flex items-center justify-between text-[11px] mb-1.5">
+              <span className="text-amber-200 font-bold">🏆 إنجاز 10 دعوات</span>
+              <span className="text-amber-300 font-black">{Math.min(cleanInvites, 10)}/10</span>
+            </div>
+            <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-l from-amber-400 to-orange-500 transition-all"
+                style={{ width: `${Math.min((cleanInvites / 10) * 100, 100)}%` }}
+              />
+            </div>
+            <div className="text-[10px] text-amber-100/60 text-center mt-1">
+              {cleanInvites >= 10 ? "✅ تم! المكافأة صرفت في حسابك" : `متبقي ${10 - cleanInvites} دعوة لجائزة 2000 💎`}
+            </div>
+          </div>
+
 
           {/* PRIMARY: Link box - the easiest way to invite */}
           {link && (
