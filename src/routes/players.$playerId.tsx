@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { BackButton } from "@/components/BackButton";
 import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
