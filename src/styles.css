@@ -1016,3 +1016,25 @@ html.native-app body > * {
   padding-top: max(var(--tw-padding-top, 0.75rem), env(safe-area-inset-top, 0px));
   padding-bottom: max(var(--tw-padding-bottom, 0.75rem), env(safe-area-inset-bottom, 0px));
 }
+
+/* Force portrait experience on phones/small tablets in the browser.
+   Native apps lock orientation at the OS level; this handles PWA / web. */
+@media (orientation: landscape) and (max-height: 600px) {
+  body::before {
+    content: "🔁  الرجاء تدوير جهازك عمودياً للاستمرار";
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #f8fafc;
+    background: #0a1929;
+    direction: rtl;
+  }
+  #root, #app, main { visibility: hidden !important; }
+}
