@@ -143,7 +143,10 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
     if (error || !data.user?.email_confirmed_at) { setErr("لم يتم تأكيد الرابط بعد"); return; }
     if (refCode) {
       try {
-        await (supabase as any).rpc("apply_referral_code", { p_code: refCode });
+        const dev = (typeof localStorage !== "undefined"
+          ? (localStorage.getItem("oc_device_id") || localStorage.getItem("hamor_device_id"))
+          : null) || null;
+        await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
         localStorage.removeItem("pending_referral_code");
       } catch {}
     }
