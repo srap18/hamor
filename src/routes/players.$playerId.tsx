@@ -1187,7 +1187,24 @@ function PlayerPage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className={`inline-flex max-w-full px-2 py-0.5 text-sm font-bold truncate ${frameById(p?.name_frame)?.kind === "name" ? frameById(p?.name_frame)?.nameClass : "text-amber-200"} ${frameById(p?.name_frame)?.animClass ?? ""}`}>{p?.display_name ?? "…"}</div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <div className={`inline-flex max-w-full px-2 py-0.5 text-sm font-bold truncate ${frameById(p?.name_frame)?.kind === "name" ? frameById(p?.name_frame)?.nameClass : "text-amber-200"} ${frameById(p?.name_frame)?.animClass ?? ""}`}>{p?.display_name ?? "…"}</div>
+              {(() => {
+                const untilMs = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
+                const remain = untilMs - serverNowMs();
+                if (remain <= 0) return null;
+                const s = Math.floor(remain / 1000);
+                const d = Math.floor(s / 86400);
+                const h = Math.floor((s % 86400) / 3600);
+                const m = Math.floor((s % 3600) / 60);
+                const label = d > 0 ? `${d}ي ${h}س` : h > 0 ? `${h}س ${m}د` : `${m}د`;
+                return (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 border-emerald-300 bg-gradient-to-b from-emerald-700 to-emerald-900 shadow text-[10px] font-black text-emerald-50">
+                    🛡️ <span className="tabular-nums">{label}</span>
+                  </span>
+                );
+              })()}
+            </div>
             <div className="text-[10px] text-amber-300/70">المستوى {p?.level ?? "—"} · ⚓ {ships.length} سفن</div>
           </div>
         </div>
