@@ -743,8 +743,7 @@ function ChatPage() {
           </div>
         ) : (
           <ChatComposer
-            text={text}
-            setText={setText}
+            restoreDraftRef={restoreDraftRef}
             onSend={send}
             sending={sending}
             disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
