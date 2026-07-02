@@ -54,11 +54,8 @@ jobs:
           # تنظيف أيقونات أندرويد الافتراضية القديمة لضمان عدم تداخلها
           find android/app/src/main/res/ -name "ic_launcher*.png" -type f -delete
           
-          # تنظيف شامل لمنع أخطاء Aapt2 الناتجة عن ملفات الـ XML والـ Vector
+          # تنظيف المجلدات التي تسبب تعارضاً مع الأيقونات الجديدة
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
-          # نستخدم || true لضمان عدم توقف الـ Build إذا لم يجد ملفات
-          find android/app/src/main/res/ -name "*.xml" -type f -exec grep -l "vector" {} + -delete || true
-          find android/app/src/main/res/ -name "ic_launcher*.xml" -type f -delete || true
 
           # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها
           cp assets/icon-only.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png || true
@@ -162,6 +159,6 @@ jobs:
         with:
           name: android-release-unsigned
           path: |
-            android/app/src/main/outputs/apk/release/app-release-unsigned.apk
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
             android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
