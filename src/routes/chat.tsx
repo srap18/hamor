@@ -486,11 +486,11 @@ function ChatPage() {
         const cur = (data?.current_level as number | undefined) ?? marketLevel ?? 1;
         showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${cur})`);
         setMarketLevel(cur);
-        setText(t => t ? t : body);
+        restoreDraftRef.current(body);
         return;
       }
     });
-  }, [user, text, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
+  }, [user, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
 
 
 
