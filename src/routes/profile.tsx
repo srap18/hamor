@@ -293,10 +293,10 @@ function ProfilePage() {
           </div>
         </section>
 
-        {/* Save button below preview card */}
+        {/* Save button below preview card — saves frames, avatar and bio (NOT the name) */}
         <button onClick={save} disabled={saving}
           className="w-full px-4 py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white font-bold text-base active:scale-95 disabled:opacity-50 shadow-lg">
-          {saving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
+          {saving ? "جاري الحفظ..." : "💾 حفظ الإطارات والصورة"}
         </button>
 
         {/* Level + Skills */}
