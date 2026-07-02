@@ -4885,7 +4885,9 @@ export type Database = {
       admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
       allocate_skill_point: { Args: { _stat: string }; Returns: Json }
-      apply_referral_code: { Args: { p_code: string }; Returns: Json }
+      apply_referral_code:
+        | { Args: { p_code: string }; Returns: Json }
+        | { Args: { p_code: string; p_device_id?: string }; Returns: Json }
       apply_ship_damage: {
         Args: {
           _damage: number
