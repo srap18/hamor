@@ -395,8 +395,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{
             left: "30%",
             bottom: "21%",
-            width: showEgg ? "26%" : `${38 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
-            height: showEgg ? "30%" : `${42 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
+            width: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
+            height: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
             transform: "translateX(-50%)",
             zIndex: 2,
             pointerEvents: "auto",
