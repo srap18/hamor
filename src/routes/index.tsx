@@ -4387,8 +4387,13 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const shipW = 22 * ship.scale;
   const dockLeft = ship.dockLeft;
   const seaSide = ship.seaSide ?? "right";
-  const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
-  const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
+  const defaultSeaEdge = seaSide === "right" ? (96 - shipW) : 2;
+  const seaLeftTarget = ship.seaLeft ?? defaultSeaEdge;
+  const computedLeft = dockLeft + ship.sail * (seaLeftTarget - dockLeft);
+  // Interpolate vertical position too when the admin has set a distinct sea top.
+  const dockTopNum = parseFloat(String(ship.top).replace("%", "")) || 0;
+  const seaTopTarget = ship.seaTop ?? dockTopNum;
+  const renderedTop = `${dockTopNum + ship.sail * (seaTopTarget - dockTopNum)}%`;
 
   const _seaSideForFacing = ship.seaSide ?? "right";
   const facing: 1 | -1 = ship.fishing
