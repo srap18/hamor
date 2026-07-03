@@ -467,7 +467,7 @@ function InventoryPage() {
                       )}
                     </div>
                     <div className="text-[10px] font-bold text-center mt-1 truncate">{f.name}</div>
-                    <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{f.price.toLocaleString()} <CoinIcon size={10} /></div>
+                    <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{Math.round(priceMap[f.id] ?? f.price).toLocaleString()} <CoinIcon size={10} /></div>
                     <div className="text-center text-xs font-bold mt-1">
                       {discovered ? <span className="text-sky-300">×{n}</span> : <span className="text-rose-300/80 text-[10px]">غير مكتشفة</span>}
                     </div>
