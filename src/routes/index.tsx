@@ -375,7 +375,9 @@ function Index() {
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
-    try { await (supabase as any).rpc("finalize_ship_repairs"); } catch { /* best-effort repair tick */ }
+    // Fire finalize in the background so destroyed/repair status renders immediately
+    // from the current DB row instead of waiting for the RPC round-trip.
+    (supabase as any).rpc("finalize_ship_repairs").catch(() => { /* best-effort repair tick */ });
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
