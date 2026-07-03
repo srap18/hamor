@@ -4505,7 +4505,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       className="absolute z-10 pointer-events-none"
       style={{
         left: `${dockLeft}%`,
-        top: ship.top,
+        top: renderedTop,
         width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
         transform: targetTransform,
         willChange: "transform",
