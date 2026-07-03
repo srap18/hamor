@@ -1,35 +1,41 @@
-// Auto-detect low-power devices and enable a "lite" render mode to reduce heat.
-// Sets `data-perf-lite="1"` on <html> when detected. Components can read
-// `isPerfLite()` to skip heavy background videos, particles, and blurs.
+// Auto-detect low-power devices and expose flags to reduce heat & battery drain.
+// Sets `html.low-perf` when in reduced mode so CSS can strip heavy animations.
 
-let cached: boolean | null = null;
-
-export function isPerfLite(): boolean {
-  if (cached !== null) return cached;
-  if (typeof window === "undefined") return false;
+function detect(): { lite: boolean; lowBw: boolean } {
+  if (typeof window === "undefined") return { lite: false, lowBw: false };
   try {
     const nav: any = navigator;
-    const saveData = !!nav?.connection?.saveData;
+    const conn = nav?.connection || {};
+    const saveData = !!conn.saveData;
+    const slow = ["slow-2g", "2g", "3g"].includes(String(conn.effectiveType || ""));
     const lowMem = typeof nav?.deviceMemory === "number" && nav.deviceMemory <= 3;
     const lowCores = typeof nav?.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
-    const userForced = localStorage.getItem("perf:lite") === "1";
-    cached = userForced || saveData || reduced || (lowMem && lowCores);
+    const forced = (() => { try { return localStorage.getItem("perf:lite") === "1"; } catch { return false; } })();
+    const isIOS = /iP(hone|ad|od)/.test(nav.platform || "") || (nav.userAgent?.includes("Mac") && "ontouchend" in document);
+    return {
+      lite: forced || saveData || reduced || (lowMem && lowCores) || isIOS,
+      lowBw: saveData || slow,
+    };
   } catch {
-    cached = false;
+    return { lite: false, lowBw: false };
   }
-  if (cached) {
-    try { document.documentElement.setAttribute("data-perf-lite", "1"); } catch { /* noop */ }
-  }
-  return cached;
 }
 
-// Force perf lite manually (settings toggle).
+const detected = detect();
+
+export const isLowPerfMode: boolean = detected.lite;
+export const isHeavyFxDisabled: boolean = detected.lite;
+export const isLowBandwidth: boolean = detected.lowBw;
+
+if (typeof document !== "undefined" && detected.lite) {
+  try { document.documentElement.classList.add("low-perf"); } catch { /* noop */ }
+}
+
 export function setPerfLite(on: boolean) {
   try {
     localStorage.setItem("perf:lite", on ? "1" : "0");
-    cached = on;
-    if (on) document.documentElement.setAttribute("data-perf-lite", "1");
-    else document.documentElement.removeAttribute("data-perf-lite");
+    if (on) document.documentElement.classList.add("low-perf");
+    else document.documentElement.classList.remove("low-perf");
   } catch { /* noop */ }
 }
