@@ -4261,7 +4261,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   // Lifelike travel: long, slow, gentle ease — driven by Web Animations API
   // so React re-renders during the trip cannot restart or stutter the tween.
-  const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 3000 : 3600;
+  const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 2400 : 2800;
   const [animating, setAnimating] = useState(false);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const currentTransformRef = useRef<string>("translate3d(0%, 0, 0)");
