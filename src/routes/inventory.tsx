@@ -309,6 +309,13 @@ function InventoryPage() {
             if (error) {
               const m = error.message || "";
               if (m.includes("not_enough")) toast.error("لا تملك هذا الدرع");
+              else if (m.includes("shield_type_cooldown")) {
+                const secs = parseInt(m.split("shield_type_cooldown:")[1] || "0", 10) || 0;
+                const days = Math.ceil(secs / 86400);
+                const hours = Math.ceil(secs / 3600);
+                const label = secs >= 86400 ? `${days} يوم` : `${hours} ساعة`;
+                toast.error(`⏳ هذا النوع من الدروع تم تفعيله، انتظر ${label} قبل تفعيله مرة ثانية`);
+              }
               else if (m.includes("shield_cooldown")) {
                 const secs = parseInt(m.split("shield_cooldown:")[1] || "120", 10) || 120;
                 toast.error(`⏳ انتظر ${secs} ثانية قبل تفعيل درع جديد`);
