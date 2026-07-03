@@ -2234,6 +2234,11 @@ function Index() {
         />
       )}
 
+      {/* Admin floating toolbar to open/close the ship-slot editor */}
+      <ShipSlotEditorToolbar />
+
+
+
 
       {/* Incoming raider ships — render attacker pirate ships sailing in our harbor */}
       {raids.map((r, i) => {
