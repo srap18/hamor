@@ -64,22 +64,8 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
   useEffect(() => { if (open) reload(); }, [open, reload]);
 
-  // Auto-activate stored ships if active fleet has empty slots (force 3 at sea when possible)
-  useEffect(() => {
-    if (!open || loading || busyId) return;
-    const activeShips = ships.filter(s => !s.in_storage);
-    const storedShips = ships.filter(s => s.in_storage);
-    if (activeShips.length < MAX_ACTIVE && storedShips.length > 0) {
-      const next = storedShips[0];
-      (async () => {
-        setBusyId(next.id);
-        await callRpc("ship_from_storage", { p_ship_id: next.id });
-        await reload();
-        setBusyId(null);
-        showNotice("⚓ تم إخراج السفينة تلقائياً");
-      })();
-    }
-  }, [open, loading, busyId, ships, reload]);
+  // NOTE: No auto-activate. The player chooses whether to keep ships in storage
+  // (previously an effect forced 3-at-sea and made "move to storage" impossible).
 
   if (!open) return null;
 
