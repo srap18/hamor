@@ -615,6 +615,27 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     }
   };
 
+  const banAccountForDays = async () => {
+    const days = Number(banDays);
+    if (!Number.isFinite(days) || days <= 0) {
+      toast.error("أدخل عدد أيام صحيح أكبر من صفر");
+      return;
+    }
+    const hours = Math.round(days * 24);
+    if (!confirm(`حظر حساب ${player.display_name} لمدة ${days} يوم؟\n(هذا الحساب فقط — لا يحظر الجهاز ولا البريد ولا الحسابات المرتبطة)`)) return;
+    setBanningAccount(true);
+    try {
+      const { adminBlockLogin } = await import("@/lib/admin-users.functions");
+      await adminBlockLogin({ data: { userId: player.id, hours, reason: banReason || `حظر الحساب لمدة ${days} يوم` } });
+      toast.success(`تم حظر الحساب لمدة ${days} يوم`);
+      setBanReason("");
+    } catch (e: any) {
+      toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    } finally {
+      setBanningAccount(false);
+    }
+  };
+
   const permanentBan = async () => {
     const reason = prompt("سبب الحظر النهائي:", "غش أو استغلال قلتش") ?? "";
     if (!confirm(`حظر ${player.display_name} نهائياً؟\n(هذا الحساب فقط — لا يمنع إنشاء حساب ثاني)`)) return;
