@@ -42,6 +42,6 @@ export const CREWS: Crew[] = [
   { id: "fixer_2", name: "مصلح متوسط",      emoji: "🛠️", image: fixer2Img, price: 700000,  currency: "coins", bonus: "يصلح فوراً 5,000 من دم أي سفينة",      rarity: "rare" },
   { id: "fixer_3", name: "مصلح كبير",       emoji: "⚒️", image: fixer3Img, price: 3500000, currency: "coins", bonus: "يصلح فوراً 70,000 من دم أي سفينة",     rarity: "epic" },
   { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 130,     currency: "gems",  bonus: "يعبّي كل سفنك الـ3 فلل فوراً", rarity: "legendary" },
-  { id: "golden_fisher", name: "الصياد الذهبي", emoji: "🏅", image: goldenFisherImg, price: 2000, currency: "gems", bonus: "يصيد تلقائياً على كل سفنك حتى وأنت أوف لاين + حصانة كاملة من الهجوم والسرقة 24 ساعة.", rarity: "legendary" },
+  { id: "golden_fisher", name: "الصياد الذهبي", emoji: "🏅", image: goldenFisherImg, price: 1500, currency: "gems", bonus: "يصيد تلقائياً على كل سفنك حتى وأنت أوف لاين لمدة 24 ساعة.", rarity: "legendary" },
   { id: "market_expert", name: "خبير الأسواق", emoji: "📈", image: marketExpertAsset.url, price: 1000, currency: "gems", bonus: "عند التفعيل (3 ساعات): يبيع كل سمكة بأعلى سعر محدد لها بغض النظر عن سعر السوق الحالي.", rarity: "legendary" },
 ];
