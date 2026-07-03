@@ -510,6 +510,8 @@ function PlayerPage() {
       flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
       return;
     }
+    // Anti-cheat: 8s cooldown after any repair action before the next attack.
+    if (!checkAttackAfterRepair(flash)) { sound.play("error"); return; }
     if (!(await confirmDropArmorIfActive())) return;
     // Server-side rate limit (also logs spam to cheat_flags)
     if (!(await rateLimit("attack", 800))) {
