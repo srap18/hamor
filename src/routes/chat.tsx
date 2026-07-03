@@ -557,6 +557,21 @@ function ChatPage() {
         setMarketLevel(cur);
         restoreDraftRef.current(body);
         return;
+      if (status === "awaiting_acceptance" || status === "rejected_cooldown" || status === "blocked") {
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        showNotice("⏳ " + (data?.message || "لا يمكن الإرسال حالياً"));
+        restoreDraftRef.current(body);
+        reloadThreads();
+        return;
+      }
+      if (status === "request_sent") {
+        showNotice("📨 تم إرسال طلب المحادثة — بانتظار قبول الطرف الآخر");
+        reloadThreads();
+        return;
+      }
+      if (status === "accepted_and_sent") {
+        reloadThreads();
+        return;
       }
     });
   }, [user, tab, profile, dmWith, showNotice, replyTo, canChat, marketLevel, moderateText]);
