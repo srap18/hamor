@@ -5240,6 +5240,7 @@ export type Database = {
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
+      cleanup_old_notifications_batch: { Args: never; Returns: number }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
       collect_fishing_reward:
         | {
