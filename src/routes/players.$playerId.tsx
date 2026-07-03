@@ -1194,14 +1194,9 @@ function PlayerPage() {
                 const untilMs = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
                 const remain = untilMs - serverNowMs();
                 if (remain <= 0) return null;
-                const s = Math.floor(remain / 1000);
-                const d = Math.floor(s / 86400);
-                const h = Math.floor((s % 86400) / 3600);
-                const m = Math.floor((s % 3600) / 60);
-                const label = d > 0 ? `${d}ي ${h}س` : h > 0 ? `${h}س ${m}د` : `${m}د`;
                 return (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 border-emerald-300 bg-gradient-to-b from-emerald-700 to-emerald-900 shadow text-[10px] font-black text-emerald-50">
-                    🛡️ <span className="tabular-nums">{label}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-2 border-emerald-300 bg-gradient-to-b from-emerald-700 to-emerald-900 shadow text-[10px] font-black text-emerald-50" title="محمي بالدرع">
+                    🛡️
                   </span>
                 );
               })()}
