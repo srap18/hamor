@@ -881,6 +881,15 @@ function ChatPage() {
                       >
                         ↩︎
                       </button>
+                      {!mine && (
+                        <ReportMessageButton
+                          reportedUserId={m.sender_id}
+                          kind="chat"
+                          messageBody={previewBody || ""}
+                          sourceId={m.id}
+                          compact
+                        />
+                      )}
                     </div>
                   </SwipeableRow>
                 );
