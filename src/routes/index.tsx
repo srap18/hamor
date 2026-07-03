@@ -607,17 +607,23 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    const nextRepairEnd = ships
+    const activeRepairEnds = ships
       .map((s) => (s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0))
       .filter((t) => Number.isFinite(t) && t > serverNowMs())
-      .sort((a, b) => a - b)[0];
+      .sort((a, b) => a - b);
+    const nextRepairEnd = activeRepairEnds[0];
     if (!nextRepairEnd) return;
-    const delay = Math.min(Math.max(500, nextRepairEnd - serverNowMs() + 500), 60_000);
-    const timer = window.setTimeout(async () => {
+    const syncRepairs = async () => {
       try { await (supabase as any).rpc("finalize_ship_repairs"); } catch { /* best-effort repair tick */ }
       syncFleetFromDb();
-    }, delay);
-    return () => window.clearTimeout(timer);
+    };
+    const delay = Math.min(Math.max(500, nextRepairEnd - serverNowMs() + 500), 60_000);
+    const timer = window.setTimeout(syncRepairs, delay);
+    const interval = window.setInterval(syncRepairs, 60_000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+    };
   }, [ships.map((s) => s.repairEndsAt ?? "").join("|")]);
   const { user } = useAuth();
   const { profile } = useProfile();
