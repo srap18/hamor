@@ -94,6 +94,25 @@ function InventoryPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const loadPrices = async () => {
+      const { data } = await (supabase as any)
+        .from("fish_market_prices")
+        .select("fish_id, current_price");
+      const m: Record<string, number> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number }>) {
+        m[row.fish_id] = Number(row.current_price) || 0;
+      }
+      setPriceMap(m);
+    };
+    loadPrices();
+    const ch = supabase
+      .channel("inv_fish_prices")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fish_market_prices" }, () => loadPrices())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
   const isUsableStack = (r: InvRow) => !r.meta?.assigned_ship_id;
   const qty = (type: string, id: string) => inv.filter(r => r.item_type === type && r.item_id === id && isUsableStack(r)).reduce((sum, r) => sum + (r.quantity ?? 0), 0);
   const fishQty = (id: string) => fishRows.find(r => r.fish_id === id)?.quantity ?? 0;
