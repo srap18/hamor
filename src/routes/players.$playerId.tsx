@@ -772,6 +772,7 @@ function PlayerPage() {
   const stealWithShip = async (myShipId: string) => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
     if (!selectedShip) { flash("اختر سفينة الخصم أولاً"); return; }
+    if (!checkAttackAfterRepair(flash)) { sound.play("error"); return; }
     if (!(await confirmDropArmorIfActive())) return;
     const targetShipId = selectedShip.id;
     setBusy(true); sound.play("click");
