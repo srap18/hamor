@@ -63,32 +63,53 @@ export function MobileFrame({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Toggle .force-portrait based on real screen orientation, not CSS
-  // media queries (which flip to landscape when the on-screen keyboard
-  // shrinks window height below width on Android).
+  // Toggle .force-portrait based on real screen orientation combined with
+  // the current window shape. Requiring both means as soon as the user
+  // rotates back to portrait, the overlay disappears — even if the OS
+  // orientation event is unreliable on their browser.
   useEffect(() => {
+    if (sessionStorage.getItem("dismiss-rotate-warning") === "1") {
+      document.documentElement.classList.remove("force-portrait");
+      return;
+    }
+
     const update = () => {
       const so = (window.screen as any)?.orientation;
       const type: string | undefined = so?.type;
-      let isLandscape = false;
+      let screenLandscape = false;
       if (type) {
-        isLandscape = type.startsWith("landscape");
+        screenLandscape = type.startsWith("landscape");
       } else if (typeof window.orientation === "number") {
-        isLandscape = Math.abs(window.orientation as number) === 90;
+        screenLandscape = Math.abs(window.orientation as number) === 90;
       } else {
-        // Last resort: compare screen dims (physical), not window dims.
         const s = window.screen;
-        isLandscape = !!s && s.width > s.height && Math.min(s.width, s.height) < 900;
+        screenLandscape = !!s && s.width > s.height && Math.min(s.width, s.height) < 900;
       }
+      const windowLandscape = window.innerWidth > window.innerHeight;
+      const isSmall = Math.min(window.innerWidth, window.innerHeight) < 820;
+      const isLandscape = screenLandscape && windowLandscape && isSmall;
       document.documentElement.classList.toggle("force-portrait", isLandscape);
     };
+
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.("[data-dismiss-rotate]")) {
+        sessionStorage.setItem("dismiss-rotate-warning", "1");
+        document.documentElement.classList.remove("force-portrait");
+      }
+    };
+
     update();
     const so = (window.screen as any)?.orientation;
     so?.addEventListener?.("change", update);
     window.addEventListener("orientationchange", update);
+    window.addEventListener("resize", update);
+    document.addEventListener("click", onClick);
     return () => {
       so?.removeEventListener?.("change", update);
       window.removeEventListener("orientationchange", update);
+      window.removeEventListener("resize", update);
+      document.removeEventListener("click", onClick);
     };
   }, []);
 
@@ -99,6 +120,12 @@ export function MobileFrame({ children }: { children: ReactNode }) {
           <div className="mobile-frame-notch" aria-hidden />
           <div className="mobile-frame-screen">{children}</div>
         </div>
+      </div>
+      <div className="rotate-overlay" aria-hidden>
+        <div>🔁 الرجاء تدوير جهازك عمودياً للاستمرار</div>
+        <button type="button" className="rotate-overlay-btn" data-dismiss-rotate>
+          متابعة على أي حال
+        </button>
       </div>
     </div>
   );
