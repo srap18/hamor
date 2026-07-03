@@ -4254,6 +4254,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaIsRight = seaSide === "right";
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
+  const atSea = ship.sail > 0.85 && !destroyed;
+
 
   // Lifelike travel: long, slow, gentle ease — driven by Web Animations API
   // so React re-renders during the trip cannot restart or stutter the tween.
