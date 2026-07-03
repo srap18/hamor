@@ -137,7 +137,7 @@ export function ShipSlotEditorToolbar() {
       <button
         type="button"
         onClick={() => setEnabled(true)}
-        className="fixed z-[85] bottom-24 right-2 px-3 py-1.5 rounded-full bg-stone-900/90 border-2 border-amber-400/70 text-amber-100 text-[11px] font-extrabold shadow-xl active:scale-95"
+        className="fixed z-[85] top-40 right-2 px-3 py-1.5 rounded-full bg-stone-900/90 border-2 border-amber-400/70 text-amber-100 text-[11px] font-extrabold shadow-xl active:scale-95"
         title="تحرير مواقع السفن"
       >
         🛠️ مواقع السفن
@@ -146,7 +146,7 @@ export function ShipSlotEditorToolbar() {
   }
 
   return (
-    <div className="fixed z-[85] bottom-24 right-2 flex flex-col gap-1.5 items-stretch bg-stone-900/95 border-2 border-amber-400/70 rounded-xl p-2 shadow-2xl">
+    <div className="fixed z-[85] top-40 right-2 flex flex-col gap-1.5 items-stretch bg-stone-900/95 border-2 border-amber-400/70 rounded-xl p-2 shadow-2xl">
       <div className="text-[10px] font-black text-amber-200 text-center">تحرير مواقع السفن</div>
       <div className="flex gap-1">
         <button
