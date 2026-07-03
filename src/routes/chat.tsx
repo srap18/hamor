@@ -911,7 +911,7 @@ function ChatPage() {
             restoreDraftRef={restoreDraftRef}
             onSend={send}
             sending={sending}
-            disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith)}
+            disabled={(tab === "tribe" && !profile?.tribe_id) || (tab === "dm" && !dmWith) || awaitingOtherAcceptance || iBlockedCurrent || currentBlockedMe}
             userId={user?.id || ""}
             onAudioSent={(m) => setMsgs(s => s.some(x => x.id === m.id) ? s : [...s, m])}
             channel={tab as "public" | "tribe" | "dm"}
