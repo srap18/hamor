@@ -216,15 +216,10 @@ function ensureProfileBootstrap(userId: string) {
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
         const next = payload.new as Profile;
-        // Merge non-currency fields immediately so frame/avatar/name changes
-        // feel instant, but defer currency values to the fresh refetch below.
+        // Merge all fields immediately for instant feedback; fetchProfileNow
+        // will reconcile against the authoritative server value right after.
         if (profileCache && profileCache.id === userId) {
-          const merged = { ...profileCache } as any;
-          for (const k of Object.keys(next) as Array<keyof Profile>) {
-            if ((VOLATILE_KEYS as readonly string[]).includes(k as string)) continue;
-            (merged as any)[k] = (next as any)[k];
-          }
-          profileCache = merged as Profile;
+          profileCache = { ...profileCache, ...next } as Profile;
           notifyProfile();
         }
         fetchProfileNow(userId);
