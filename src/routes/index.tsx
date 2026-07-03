@@ -4215,6 +4215,46 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
 
+  const pct = (ship.progress / ship.max) * 100;
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode, ship.hp);
+  const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
+  const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
+  const ready = pct >= 100;
+  const tilt = direction * 2.5;
+
+  const shipW = 22 * ship.scale;
+  const dockLeft = ship.dockLeft;
+  const seaSide = ship.seaSide ?? "right";
+  const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
+  const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
+
+  const _seaSideForFacing = ship.seaSide ?? "right";
+  const facing: 1 | -1 = ship.fishing
+    ? (_seaSideForFacing === "right" ? 1 : -1)
+    : (_seaSideForFacing === "right" ? -1 : 1);
+
+  // Pivot-in-place: when bow direction changes, hold position while the flip
+  // animation plays, then release so the ship slides smoothly to its new spot.
+  const TURN_MS = 700;
+  const facingRef = useRef(facing);
+  const turnEndRef = useRef(0);
+  const heldLeftRef = useRef(computedLeft);
+  if (facingRef.current !== facing) {
+    facingRef.current = facing;
+    turnEndRef.current = serverNowMs() + TURN_MS;
+    heldLeftRef.current = computedLeft;
+  }
+  const now = serverNowMs();
+  const turning = now < turnEndRef.current;
+  const leftOffset = turning ? heldLeftRef.current : computedLeft;
+
+  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt, ship.hp, ship.maxHp);
+  const docked = ship.sail < 0.05;
+  const nativeRight = shipBowFacesRight(ship.level);
+  const seaIsRight = seaSide === "right";
+  const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
+  const flipX = (desiredRight !== nativeRight) ? -1 : 1;
+
   // Lifelike travel: long, slow, gentle ease — driven by Web Animations API
   // so React re-renders during the trip cannot restart or stutter the tween.
   const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 3000 : 3600;
