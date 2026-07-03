@@ -1022,12 +1022,13 @@ html.native-app body > * {
    We toggle .force-portrait from JS using screen.orientation to avoid
    false positives when the on-screen keyboard shrinks window height
    below width (which would otherwise trigger CSS `orientation: landscape`). */
-html.force-portrait body::before {
-  content: "🔁  الرجاء تدوير جهازك عمودياً للاستمرار";
+html.force-portrait .rotate-overlay {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
   display: flex;
+  flex-direction: column;
+  gap: 18px;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -1038,6 +1039,17 @@ html.force-portrait body::before {
   background: #0a1929;
   direction: rtl;
 }
-html.force-portrait #root,
-html.force-portrait #app,
+html:not(.force-portrait) .rotate-overlay { display: none; }
+html.force-portrait #root > *:not(.rotate-overlay),
+html.force-portrait #app > *:not(.rotate-overlay),
 html.force-portrait main { visibility: hidden !important; }
+.rotate-overlay-btn {
+  background: #1e40af;
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
