@@ -26,6 +26,7 @@ import { installServerClock, syncServerTime } from "@/lib/server-time";
 import { SoftProtection } from "@/components/SoftProtection";
 import { I18nProvider } from "@/lib/i18n";
 import { NetworkRecovery } from "@/components/NetworkRecovery";
+import { OfflineOverlay } from "@/components/OfflineOverlay";
 import { installNativeShell } from "@/lib/native-shell";
 import { installToastSanitizer } from "@/lib/sanitize-toast";
 
@@ -504,6 +505,7 @@ function RootComponent() {
           <SelfAntiBlockBurst />
 
           <NetworkRecovery />
+          <OfflineOverlay />
           <EliteVipLoginOverlay />
 
           <Outlet />

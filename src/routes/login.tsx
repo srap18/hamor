@@ -2,7 +2,7 @@ import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { LegalFooter } from "@/components/LegalFooter";
 import { MfaChallenge, mfaStepUpRequired } from "@/components/MfaChallenge";
 
@@ -87,12 +87,14 @@ function LoginPage() {
 
   const google = async () => {
     setErr(null);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) setErr(result.error.message ?? "فشل تسجيل الدخول");
-    if (!result.redirected && !result.error) {
-      if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-      nav({ to: "/" });
+    const { signInWithGoogleSmart } = await import("@/lib/native-google-auth");
+    const result = await signInWithGoogleSmart(window.location.origin);
+    if (!result.ok) {
+      if (result.error) setErr(result.error);
+      return;
     }
+    if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
+    nav({ to: "/" });
   };
 
 
