@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { ReportMessageButton } from "@/components/ReportMessageButton";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 type SignMsg = {
@@ -151,7 +152,12 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style
                   {new Date(cur.created_at).toLocaleString("ar", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                 </span>
                 <span>{safeIdx + 1}/{total}</span>
-                <span className="opacity-0">.</span>
+                <ReportMessageButton
+                  reportedUserId={cur.attacker_id}
+                  kind="destroyer"
+                  messageBody={cur.message}
+                  sourceId={cur.id}
+                />
               </div>
             </div>
           </div>

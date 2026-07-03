@@ -59,6 +59,7 @@ import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
@@ -327,6 +328,11 @@ const AdminSanctionsRoute = AdminSanctionsRouteImport.update({
   path: '/sanctions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReferralsRoute = AdminReferralsRouteImport.update({
   id: '/referrals',
   path: '/referrals',
@@ -468,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
@@ -606,6 +614,7 @@ export interface FileRoutesById {
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
@@ -677,6 +686,7 @@ export interface FileRouteTypes {
     | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/referrals'
+    | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
@@ -745,6 +755,7 @@ export interface FileRouteTypes {
     | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/referrals'
+    | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
@@ -814,6 +825,7 @@ export interface FileRouteTypes {
     | '/admin/lucky-box'
     | '/admin/players'
     | '/admin/referrals'
+    | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/tickets'
     | '/admin/tribe-events'
@@ -1236,6 +1248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSanctionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/referrals': {
       id: '/admin/referrals'
       path: '/referrals'
@@ -1371,6 +1390,7 @@ interface AdminRouteChildren {
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReferralsRoute: typeof AdminReferralsRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminTribeEventsRoute: typeof AdminTribeEventsRoute
@@ -1391,6 +1411,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReferralsRoute: AdminReferralsRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminTribeEventsRoute: AdminTribeEventsRoute,

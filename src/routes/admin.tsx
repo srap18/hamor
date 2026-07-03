@@ -37,6 +37,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/players", label: "اللاعبون", icon: "👥" },
   { to: "/admin/sanctions", label: "العقوبات", icon: "🚫" },
   { to: "/admin/tickets", label: "تذاكر الدعم", icon: "🛟" },
+  { to: "/admin/reports", label: "بلاغات الرسائل", icon: "🚩" },
   { to: "/admin/broadcasts", label: "الإشعارات", icon: "📢" },
   { to: "/admin/content", label: "محتوى اللعبة", icon: "🎮" },
   { to: "/admin/fish", label: "أسعار السمك", icon: "🐟" },

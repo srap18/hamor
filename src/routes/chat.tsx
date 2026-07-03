@@ -8,6 +8,7 @@ import { useAuth, useProfile } from "@/hooks/use-auth";
 import { QuickReplies } from "@/components/QuickReplies";
 import { frameById } from "@/lib/frames";
 import { EliteVipBadge, eliteVipNameClass } from "@/components/EliteVipBadge";
+import { ReportMessageButton } from "@/components/ReportMessageButton";
 
 
 import { ForumTopics } from "@/components/ForumTopics";
@@ -881,6 +882,15 @@ function ChatPage() {
                       >
                         ↩︎
                       </button>
+                      {!mine && (
+                        <ReportMessageButton
+                          reportedUserId={m.sender_id}
+                          kind="chat"
+                          messageBody={previewBody || ""}
+                          sourceId={m.id}
+                          compact
+                        />
+                      )}
                     </div>
                   </SwipeableRow>
                 );
