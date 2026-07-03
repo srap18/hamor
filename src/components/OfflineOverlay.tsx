@@ -41,7 +41,7 @@ export function OfflineOverlay() {
     }
   };
 
-  if (!offline) return null;
+  if (!mounted || !offline) return null;
 
   return (
     <div
