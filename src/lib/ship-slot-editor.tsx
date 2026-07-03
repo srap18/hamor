@@ -2,27 +2,63 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
+import { BACKGROUNDS } from "@/lib/backgrounds";
 
 const SHIP_EDITOR_EMAIL = "ccx1357@gmail.com";
+const GLOBAL_LAYOUT_BG_ID = "__global__";
+const LAYOUT_CACHE_KEY = "ship_slot_layout_cache_v1";
 
 export type SlotPos = { top: number; left: number; scale: number };
 export type SlotOverride = { dock?: SlotPos; sea?: SlotPos };
 export type OverrideMap = Record<string, Record<number, SlotOverride>>;
 
 /* ─── module-level store ─── */
-let cache: OverrideMap = {};
-let loaded = false;
+function readStoredCache(): OverrideMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(LAYOUT_CACHE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function persistCache(next: OverrideMap) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAYOUT_CACHE_KEY, JSON.stringify(next));
+  } catch {
+    /* noop */
+  }
+}
+
+let cache: OverrideMap = readStoredCache();
+let loaded = Object.keys(cache).length > 0;
+let fetchedOnce = false;
 let loading = false;
 const subs = new Set<() => void>();
 const notify = () => subs.forEach((fn) => { try { fn(); } catch { /* noop */ } });
+const subscribe = (fn: () => void) => { subs.add(fn); return () => { subs.delete(fn); }; };
+
+function layoutTargetsFor(bgId: string) {
+  return Array.from(new Set([GLOBAL_LAYOUT_BG_ID, bgId, ...BACKGROUNDS.map((bg) => bg.id)]));
+}
 
 async function loadAll() {
   if (loading) return;
   loading = true;
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("ship_slot_layout" as any)
     .select("bg_id,slot_index,mode,top_pct,left_pct,scale");
   loading = false;
+  fetchedOnce = true;
+  if (error) {
+    loaded = true;
+    notify();
+    return;
+  }
   loaded = true;
   const map: OverrideMap = {};
   for (const r of (data ?? []) as any[]) {
@@ -34,6 +70,7 @@ async function loadAll() {
     };
   }
   cache = map;
+  persistCache(map);
   notify();
 }
 
@@ -55,16 +92,24 @@ function ensureChannel() {
 export function useShipSlotOverrides(bgId: string) {
   useEffect(() => {
     ensureChannel();
-    if (!loaded) loadAll();
+    if (!fetchedOnce) loadAll();
   }, []);
   const snap = useSyncExternalStore(
-    (fn) => { subs.add(fn); return () => { subs.delete(fn); }; },
-    () => cache[bgId] || EMPTY,
+    subscribe,
+    () => cache[bgId] || cache[GLOBAL_LAYOUT_BG_ID] || EMPTY,
     () => EMPTY,
   );
   return snap;
 }
 const EMPTY: Record<number, SlotOverride> = {};
+
+export function useShipSlotLayoutReady() {
+  useEffect(() => {
+    ensureChannel();
+    if (!fetchedOnce) loadAll();
+  }, []);
+  return useSyncExternalStore(subscribe, () => loaded, () => true);
+}
 
 /* ─── edit-mode state (admin) ─── */
 let editEnabled = false;
@@ -98,34 +143,42 @@ export function useShipSlotEditor() {
 export async function saveSlot(bgId: string, slotIndex: number, mode: "dock" | "sea", pos: SlotPos) {
   // optimistic update
   const next = { ...cache };
-  next[bgId] = { ...(next[bgId] || {}) };
-  next[bgId][slotIndex] = { ...(next[bgId][slotIndex] || {}), [mode]: pos };
+  const targets = layoutTargetsFor(bgId);
+  for (const targetBgId of targets) {
+    next[targetBgId] = { ...(next[targetBgId] || {}) };
+    next[targetBgId][slotIndex] = { ...(next[targetBgId][slotIndex] || {}), [mode]: pos };
+  }
   cache = next;
+  persistCache(next);
   notify();
-  await supabase.from("ship_slot_layout" as any).upsert({
-    bg_id: bgId,
+  await supabase.from("ship_slot_layout" as any).upsert(targets.map((targetBgId) => ({
+    bg_id: targetBgId,
     slot_index: slotIndex,
     mode,
     top_pct: pos.top,
     left_pct: pos.left,
     scale: pos.scale,
     updated_at: new Date().toISOString(),
-  });
+  })));
 }
 
 export async function resetSlot(bgId: string, slotIndex: number, mode: "dock" | "sea") {
   const next = { ...cache };
-  if (next[bgId]?.[slotIndex]) {
-    const cur = { ...next[bgId][slotIndex] };
-    delete (cur as any)[mode];
-    next[bgId] = { ...next[bgId], [slotIndex]: cur };
-    cache = next;
-    notify();
+  const targets = layoutTargetsFor(bgId);
+  for (const targetBgId of targets) {
+    if (next[targetBgId]?.[slotIndex]) {
+      const cur = { ...next[targetBgId][slotIndex] };
+      delete (cur as any)[mode];
+      next[targetBgId] = { ...next[targetBgId], [slotIndex]: cur };
+    }
   }
+  cache = next;
+  persistCache(next);
+  notify();
   await supabase
     .from("ship_slot_layout" as any)
     .delete()
-    .eq("bg_id", bgId)
+    .in("bg_id", targets)
     .eq("slot_index", slotIndex)
     .eq("mode", mode);
 }
