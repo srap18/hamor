@@ -84,10 +84,6 @@ export function useAuth() {
 
 /* ─────────────── Global profile singleton ─────────────── */
 const PROFILE_LS_KEY = "lov_profile_cache_v1";
-// Fields that change frequently and MUST NOT be served from localStorage on reload —
-// stale values here make the player think they lost coins/gems/xp after a refresh.
-// They are persisted as 0 and only filled in after the live DB fetch returns.
-const VOLATILE_KEYS = ["coins", "gems", "rubies", "xp", "level", "weekly_xp"] as const;
 let profileCache: Profile | null = null;
 let profileLoadingFlag = false;
 let profileChannelUserId: string | null = null;
@@ -99,18 +95,12 @@ let profileFreshVersion = 0;
 const profileSubs = new Set<() => void>();
 const notifyProfile = () => profileSubs.forEach((fn) => { try { fn(); } catch {} });
 
-function stripVolatile(p: Profile): Profile {
-  const out = { ...p } as any;
-  for (const k of VOLATILE_KEYS) out[k] = 0;
-  return out as Profile;
-}
-
 function persistProfile(p: Profile | null) {
   if (typeof window === "undefined") return;
   try {
-    // Persist only stable fields (name, avatar, frames…). Currencies are
-    // intentionally zeroed so a hard refresh never shows yesterday's balance.
-    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(stripVolatile(p)));
+    // Persist the full profile including currencies so a hard refresh shows
+    // the last known coins/gems/xp instantly (server refetch reconciles right after).
+    if (p) window.localStorage.setItem(PROFILE_LS_KEY, JSON.stringify(p));
     else window.localStorage.removeItem(PROFILE_LS_KEY);
   } catch {}
 }
@@ -122,20 +112,20 @@ function loadPersistedProfile(userId: string): Profile | null {
     if (!raw) return null;
     const p = JSON.parse(raw) as Profile;
     if (!p || p.id !== userId) return null;
-    // Defensive: even if an older client wrote currency values into the cache,
-    // strip them before showing anything to the user.
-    return stripVolatile(p);
+    return p;
   } catch { return null; }
 }
 
 function primeProfileForUser(userId: string) {
   if (!profileCache || profileCache.id !== userId) {
     const persisted = loadPersistedProfile(userId);
-    if (persisted) profileCache = persisted;
+    if (persisted) {
+      profileCache = persisted;
+      // Treat cached profile as "ready" so UI shows instantly; server fetch reconciles.
+      profileFreshVersion = Math.max(profileFreshVersion, 1);
+    }
   }
-  // Always show loading until the fresh server fetch returns — the persisted
-  // copy has no currency values, so we cannot display 0 as if it were real.
-  profileLoadingFlag = true;
+  profileLoadingFlag = !profileCache;
   notifyProfile();
   fetchProfileNow(userId);
 }
@@ -147,11 +137,7 @@ async function fetchProfileNow(userId: string, attempt = 0) {
     .eq("id", userId)
     .maybeSingle();
   if (error || !data) {
-    // Never give up — a failed fetch would otherwise leave the UI showing
-    // the zeroed persisted cache as if the player lost all their coins/gems.
-    // Keep loading=true and retry with exponential backoff (capped at 10s).
-    profileLoadingFlag = true;
-    notifyProfile();
+    // Keep whatever cached values we have visible; retry silently.
     const delay = Math.min(700 * (attempt + 1), 10_000);
     globalThis.setTimeout(() => fetchProfileNow(userId, attempt + 1), delay);
     return;
@@ -170,8 +156,12 @@ function ensureProfileBootstrap(userId: string) {
   if (profileChannelUserId === userId) {
     if (!profileCache || profileCache.id !== userId) {
       const persisted = loadPersistedProfile(userId);
-      if (persisted) profileCache = persisted;
-      else profileLoadingFlag = true;
+      if (persisted) {
+        profileCache = persisted;
+        profileFreshVersion = Math.max(profileFreshVersion, 1);
+      } else {
+        profileLoadingFlag = true;
+      }
       notifyProfile();
       fetchProfileNow(userId);
     }
@@ -183,20 +173,20 @@ function ensureProfileBootstrap(userId: string) {
     // realtime channels are auto-cleaned when we swap; not strictly removing
   }
   profileChannelUserId = userId;
-  // Rehydrate from localStorage instantly so name/avatar appear without a network round-trip.
-  // Currency fields are stripped from the persisted copy (see stripVolatile) so the UI
-  // never displays a stale coin/gem balance after a refresh.
+  // Rehydrate from localStorage instantly so the full profile (name, avatar,
+  // coins, gems, xp…) appears without waiting on the network. Server refetch
+  // reconciles authoritatively right after.
   if (!profileCache || profileCache.id !== userId) {
     const persisted = loadPersistedProfile(userId);
     if (persisted) {
       profileCache = persisted;
+      profileFreshVersion = Math.max(profileFreshVersion, 1);
     }
   }
-  // Until the fresh fetch completes, treat the profile as loading so currency
-  // widgets can show a skeleton instead of the zeroed cache.
-  profileLoadingFlag = true;
+  profileLoadingFlag = !profileCache;
   notifyProfile();
   fetchProfileNow(userId);
+
 
 
   // Ping online_at every 30 seconds, plus one initial; refresh on visibility/focus.
@@ -226,15 +216,10 @@ function ensureProfileBootstrap(userId: string) {
       { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` },
       (payload) => {
         const next = payload.new as Profile;
-        // Merge non-currency fields immediately so frame/avatar/name changes
-        // feel instant, but defer currency values to the fresh refetch below.
+        // Merge all fields immediately for instant feedback; fetchProfileNow
+        // will reconcile against the authoritative server value right after.
         if (profileCache && profileCache.id === userId) {
-          const merged = { ...profileCache } as any;
-          for (const k of Object.keys(next) as Array<keyof Profile>) {
-            if ((VOLATILE_KEYS as readonly string[]).includes(k as string)) continue;
-            (merged as any)[k] = (next as any)[k];
-          }
-          profileCache = merged as Profile;
+          profileCache = { ...profileCache, ...next } as Profile;
           notifyProfile();
         }
         fetchProfileNow(userId);
@@ -258,9 +243,8 @@ export function useProfile() {
     if (user?.id) ensureProfileBootstrap(user.id);
   }, [user?.id]);
 
-  // Keep loading=true until we've applied at least one fresh server payload —
-  // otherwise the zeroed persisted cache would display 0 coins/gems as if real.
-  const loading = !!user && (profileLoadingFlag || profileFreshVersion === 0);
+  // Show cached values instantly; only report loading if we truly have nothing yet.
+  const loading = !!user && profileLoadingFlag && !profileCache;
   return {
     profile: user ? profileCache : null,
     loading: user ? loading : authLoading,

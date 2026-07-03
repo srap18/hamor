@@ -770,7 +770,11 @@ function Index() {
     };
   }, [user]);
 
-  const [fish, setFish] = useState(0);
+  const [fish, setFish] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    const v = Number(window.localStorage.getItem("ocean.fishCount") || "0");
+    return Number.isFinite(v) ? v : 0;
+  });
   // Discovered fish species count (union of fish_caught history + current ship stock)
   useEffect(() => {
     if (!user) return;
@@ -790,6 +794,7 @@ function Index() {
         if (q && q > 0) ids.add(r.fish_id);
       });
       setFish(ids.size);
+      try { window.localStorage.setItem("ocean.fishCount", String(ids.size)); } catch {}
     };
     load();
     const onChanged = () => load();
