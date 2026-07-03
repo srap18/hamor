@@ -573,7 +573,15 @@ function PlayerPage() {
     const targets: Ship[] = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip!];
 
     // Dragon attack bonus
-    const boostedDamage = applyDragonAttack(w.damage, myDragonLvl);
+    // Rocket damage is balanced against ship energy card (storage = max_hp):
+    //   small(800) vs L1–3 (≤600), medium(4000) vs L4–8 (≤3500),
+    //   large(18000) vs L9–13 (≤16000). Actual applied damage is decided by
+    //   the server (apply_ship_damage_v2) — this local value is only for
+    //   the visual toast and the attack log, so we cap it at the target's
+    //   max_hp to stop any inflated-damage exploit from leaking into stats.
+    const rawBoosted = applyDragonAttack(w.damage, myDragonLvl);
+    const maxTargetHp = Math.max(...targets.map((t) => t.max_hp ?? t.hp ?? 0), 1);
+    const boostedDamage = w.aoe ? rawBoosted : Math.min(rawBoosted, maxTargetHp);
 
     const firstTarget = targets[0];
     const skipFishing = false;
