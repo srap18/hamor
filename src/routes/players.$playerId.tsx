@@ -21,6 +21,7 @@ import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { recordAttackWithRetry } from "@/lib/record-attack";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAttackAfterRepair } from "@/lib/anti-cheat-cooldown";
 import { toast as sonnerToast } from "sonner";
 
 
