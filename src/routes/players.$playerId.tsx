@@ -511,6 +511,15 @@ function PlayerPage() {
       flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
       return;
     }
+    // Require all 3 ships to be actively fishing (at_sea) before allowing any attack.
+    {
+      const activeShips = myShips.filter((s) => !s.in_storage && !s.destroyed_at);
+      if (activeShips.length < 3 || activeShips.some((s) => !s.at_sea)) {
+        sound.play("error");
+        flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم");
+        return;
+      }
+    }
     // Anti-cheat: 8s cooldown after any repair action before the next attack.
     if (!checkAttackAfterRepair(flash)) { sound.play("error"); return; }
     if (!(await confirmDropArmorIfActive())) return;
