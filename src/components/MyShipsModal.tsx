@@ -186,10 +186,10 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
                       </button>
                     ) : (
                       <button
-                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= MAX_ACTIVE}
+                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= 1}
                         onClick={() => moveToStorage(ship.id)}
                         className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-200 text-[11px] font-black active:scale-95 disabled:opacity-40"
-                        title={active.length <= MAX_ACTIVE ? "لا يمكن إنقاص الأسطول — استخدم التبديل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
+                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
                       >
                         📦 للمخزن
                       </button>
