@@ -305,6 +305,14 @@ export function AdBombOverlay({
               إزالة 💎100
             </button>
           )}
+          {!!meId && meId !== bomb.attacker_id && (
+            <ReportMessageButton
+              reportedUserId={bomb.attacker_id}
+              kind="ad_bomb"
+              messageBody={`قنبلة إعلانية من ${attackerName || "لاعب"} على ${targetName || "لاعب"} (${bomb.video_key})`}
+              sourceId={bomb.id}
+            />
+          )}
         </div>
       </div>
 
