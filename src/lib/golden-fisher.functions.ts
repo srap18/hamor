@@ -35,3 +35,23 @@ export const removeGoldenFisher = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return data as { ok: boolean };
   });
+
+export const pauseGoldenFisher = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data, error } = await (supabase as any).rpc("pause_golden_fisher");
+    if (error) throw new Error(error.message);
+    return data as { ok: boolean; paused: boolean; until: string };
+  });
+
+export const resumeGoldenFisher = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data, error } = await (supabase as any).rpc("resume_golden_fisher");
+    if (error) throw new Error(error.message);
+    return data as { ok: boolean; paused: boolean; until: string };
+  });

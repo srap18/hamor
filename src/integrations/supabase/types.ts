@@ -2482,6 +2482,7 @@ export type Database = {
           gems: number
           golden_fisher_last_activated_at: string | null
           golden_fisher_no_shield: boolean
+          golden_fisher_paused: boolean
           golden_fisher_until: string | null
           id: string
           last_destroyer_at: string | null
@@ -2546,6 +2547,7 @@ export type Database = {
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_no_shield?: boolean
+          golden_fisher_paused?: boolean
           golden_fisher_until?: string | null
           id: string
           last_destroyer_at?: string | null
@@ -2610,6 +2612,7 @@ export type Database = {
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_no_shield?: boolean
+          golden_fisher_paused?: boolean
           golden_fisher_until?: string | null
           id?: string
           last_destroyer_at?: string | null
@@ -5839,6 +5842,7 @@ export type Database = {
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
       open_lucky_box: { Args: never; Returns: Json }
+      pause_golden_fisher: { Args: never; Returns: Json }
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
@@ -5934,6 +5938,7 @@ export type Database = {
       }
       request_join_tribe: { Args: { _tribe_id: string }; Returns: Json }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
+      resume_golden_fisher: { Args: never; Returns: Json }
       revoke_paddle_purchase: {
         Args: {
           _block_account?: boolean
