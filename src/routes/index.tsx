@@ -4266,11 +4266,20 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const shellRef = useRef<HTMLDivElement | null>(null);
   const currentTransformRef = useRef<string>("translate3d(0%, 0, 0)");
   const runningAnimRef = useRef<Animation | null>(null);
+  const didInitTransformRef = useRef(false);
 
   const sailOffsetPct = leftOffset - dockLeft;
   const shipWidthPct = 22 * ship.scale;
   const translateSelfPct = shipWidthPct > 0 ? (sailOffsetPct / shipWidthPct) * 100 : 0;
   const targetTransform = `translate3d(${translateSelfPct}%, 0, 0)`;
+
+  // On first mount, snap to the ship's real position (e.g. already at sea after
+  // a refresh). Only animate subsequent transitions so we don't replay the
+  // "just departed" trip every time the page reloads.
+  if (!didInitTransformRef.current) {
+    didInitTransformRef.current = true;
+    currentTransformRef.current = targetTransform;
+  }
 
   useEffect(() => {
     const el = shellRef.current;
@@ -4304,6 +4313,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       // Do not cancel on unmount-mid-trip; let it settle.
     };
   }, [targetTransform, SAIL_TRAVEL_MS]);
+
 
   const moving = animating;
 
