@@ -359,27 +359,35 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
         <button
           type="button"
           onClick={(e) => {
-            // Visitor (inspect) mode: always open — no alpha hit-test, that was
-            // making the dragon need 10+ taps to register.
-            if (!interactive) {
-              handleTap();
-              return;
-            }
-            // Owner mode: only accept taps on the dragon's opaque pixels so the
-            // empty area around it doesn't navigate to /dragon.
+            // Only accept taps on the dragon's opaque pixels so the empty area
+            // around it (which covers a big chunk of the shore) doesn't trigger.
             const btn = e.currentTarget as HTMLElement;
             const canvas = btn.querySelector("canvas") as HTMLCanvasElement | null;
             if (canvas && canvas.width > 0 && canvas.height > 0) {
               const rect = canvas.getBoundingClientRect();
-              const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-              const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
-              if (x >= 0 && y >= 0 && x < canvas.width && y < canvas.height) {
-                try {
-                  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-                  const alpha = ctx?.getImageData(Math.floor(x), Math.floor(y), 1, 1).data[3] ?? 255;
-                  if (alpha < 32) return;
-                } catch {}
+              // The canvas uses object-fit: contain, so the visible pixels are
+              // letterboxed inside the element. Map click coords into the
+              // intrinsic pixel space accounting for that centering.
+              const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+              const contentW = canvas.width * scale;
+              const contentH = canvas.height * scale;
+              const offsetX = (rect.width - contentW) / 2;
+              const offsetY = (rect.height - contentH) / 2;
+              const localX = e.clientX - rect.left - offsetX;
+              const localY = e.clientY - rect.top - offsetY;
+              if (localX < 0 || localY < 0 || localX >= contentW || localY >= contentH) return;
+              const x = localX / scale;
+              const y = localY / scale;
+              try {
+                const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                const alpha = ctx?.getImageData(Math.floor(x), Math.floor(y), 1, 1).data[3] ?? 0;
+                if (alpha < 64) return;
+              } catch {
+                return;
               }
+            } else {
+              // Canvas not ready yet — ignore the tap rather than opening on empty space.
+              return;
             }
             handleTap();
           }}
