@@ -1933,17 +1933,48 @@ function Index() {
                 return (
                   <div
                     className="relative rounded-full ps-2 pe-1 py-0.5 inline-flex items-center gap-1 shrink-0"
-                    title="🏅 الصياد الذهبي مفعّل على محيطك"
+                    title={(profile as any)?.golden_fisher_paused ? "⏸️ الصياد الذهبي متوقف مؤقتاً — العدّاد يستمر" : "🏅 الصياد الذهبي مفعّل على محيطك"}
                     style={{
-                      background: "linear-gradient(180deg, #fff4c2 0%, #f1be52 55%, #8a5a14 100%)",
-                      border: "2px solid #ffe6a1",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 12px rgba(241,190,82,0.75), 0 2px 4px rgba(0,0,0,0.5)",
+                      background: (profile as any)?.golden_fisher_paused
+                        ? "linear-gradient(180deg, #e6e6e6 0%, #a3a3a3 55%, #4a4a4a 100%)"
+                        : "linear-gradient(180deg, #fff4c2 0%, #f1be52 55%, #8a5a14 100%)",
+                      border: (profile as any)?.golden_fisher_paused ? "2px solid #d4d4d4" : "2px solid #ffe6a1",
+                      boxShadow: (profile as any)?.golden_fisher_paused
+                        ? "inset 0 1px 0 rgba(255,255,255,0.6), 0 0 8px rgba(120,120,120,0.6), 0 2px 4px rgba(0,0,0,0.5)"
+                        : "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 12px rgba(241,190,82,0.75), 0 2px 4px rgba(0,0,0,0.5)",
                     }}
                   >
-                    <span className="text-sm leading-none" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>🎣</span>
+                    <span className="text-sm leading-none" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>
+                      {(profile as any)?.golden_fisher_paused ? "⏸️" : "🎣"}
+                    </span>
                     <span className="text-[11px] font-black tabular-nums leading-none" style={{ color: "#3a1f0a", textShadow: "0 1px 0 rgba(255,255,255,0.5)" }}>
                       {timeText}
                     </span>
+                    <button
+                      type="button"
+                      aria-label={(profile as any)?.golden_fisher_paused ? "استئناف الصياد الذهبي" : "إيقاف مؤقت للصياد الذهبي"}
+                      title={(profile as any)?.golden_fisher_paused ? "استئناف الصيد" : "إيقاف مؤقت (لتبديل السفن) — العدّاد يستمر"}
+                      onClick={async () => {
+                        try {
+                          if ((profile as any)?.golden_fisher_paused) {
+                            await resumeGoldenFisher({ data: {} });
+                            setToast("▶️ تم استئناف الصياد الذهبي");
+                          } else {
+                            await pauseGoldenFisher({ data: {} });
+                            setToast("⏸️ تم إيقاف الصياد مؤقتاً — يمكنك الآن تبديل السفن. العدّاد يستمر");
+                          }
+                          await refreshProfile?.();
+                        } catch {
+                          setToast("تعذّر تغيير حالة الصياد الذهبي");
+                        }
+                      }}
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black leading-none active:scale-90"
+                      style={{
+                        background: "#0a2a3a",
+                        color: "#bff3ff",
+                        border: "1px solid #bff3ff",
+                      }}
+                    >{(profile as any)?.golden_fisher_paused ? "▶" : "⏸"}</button>
                     <button
                       type="button"
                       aria-label="إزالة الصياد الذهبي"
