@@ -53,5 +53,5 @@ export const resumeGoldenFisher = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data, error } = await (supabase as any).rpc("resume_golden_fisher");
     if (error) throw new Error(error.message);
-    return data as { ok: boolean; paused: boolean; until: string; tick?: unknown };
+    return data as { ok: boolean; paused: boolean; until: string };
   });
