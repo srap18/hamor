@@ -2,7 +2,7 @@ import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { LegalFooter } from "@/components/LegalFooter";
 import { MfaChallenge, mfaStepUpRequired } from "@/components/MfaChallenge";
 
