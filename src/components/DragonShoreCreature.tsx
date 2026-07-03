@@ -385,10 +385,9 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
               } catch {
                 return;
               }
-            } else {
-              // Canvas not ready yet — ignore the tap rather than opening on empty space.
-              return;
             }
+            // If no canvas (egg / video keyer disabled), accept the tap — the
+            // button box below is already sized tightly around the sprite.
             handleTap();
           }}
           aria-label={canHatch ? "اضغط لفقس التنين" : stageMode === "egg" ? "بيضة التنين" : "تنيني"}
@@ -396,8 +395,8 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           style={{
             left: "30%",
             bottom: "21%",
-            width: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
-            height: showEgg ? "48%" : `${66 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
+            width: showEgg ? "26%" : `${38 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
+            height: showEgg ? "30%" : `${42 * Math.pow(1.05, Math.max(0, stage - 3))}%`,
             transform: "translateX(-50%)",
             zIndex: 2,
             pointerEvents: "auto",
