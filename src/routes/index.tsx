@@ -4215,31 +4215,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
 
-  // A single long, eased CSS transition per trip = smooth, lifelike travel
-  // (no per-frame stepping, no restarting mid-way).
-  const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 1800 : 2200;
-  const [animating, setAnimating] = useState(false);
-  useEffect(() => {
-    if (Math.abs(ship.sail - prevSail) > 0.001) {
-      setAnimating(true);
-      const t = setTimeout(() => setAnimating(false), SAIL_TRAVEL_MS + 120);
-      return () => clearTimeout(t);
-    }
-  }, [ship.sail, prevSail, SAIL_TRAVEL_MS]);
-  const moving = animating;
-
-  // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
-  const _seaSideForFacing = ship.seaSide ?? "right";
-  const facing: 1 | -1 = ship.fishing
-    ? (_seaSideForFacing === "right" ? 1 : -1)
-    : (_seaSideForFacing === "right" ? -1 : 1);
-
   const pct = (ship.progress / ship.max) * 100;
   const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode, ship.hp);
   const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
   const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
   const ready = pct >= 100;
-  const docked = ship.sail < 0.05 && !moving;
   const tilt = direction * 2.5;
 
   const shipW = 22 * ship.scale;
@@ -4247,6 +4227,11 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const seaSide = ship.seaSide ?? "right";
   const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
   const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
+
+  const _seaSideForFacing = ship.seaSide ?? "right";
+  const facing: 1 | -1 = ship.fishing
+    ? (_seaSideForFacing === "right" ? 1 : -1)
+    : (_seaSideForFacing === "right" ? -1 : 1);
 
   // Pivot-in-place: when bow direction changes, hold position while the flip
   // animation plays, then release so the ship slides smoothly to its new spot.
@@ -4264,33 +4249,74 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const leftOffset = turning ? heldLeftRef.current : computedLeft;
 
   const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt, ship.hp, ship.maxHp);
-  const atSea = ship.sail > 0.85 && !destroyed;
-  const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
+  const docked = ship.sail < 0.05;
   const nativeRight = shipBowFacesRight(ship.level);
   const seaIsRight = seaSide === "right";
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
-  const bankRoll = 0;
-  const bankPitch = 0;
-  const turnLift = 0;
-  const turnSway = 0;
+  const atSea = ship.sail > 0.85 && !destroyed;
+  const isFishing = ship.fishing && atSea && !ready && !destroyed;
+
+
+
+  // Lifelike travel: long, slow, gentle ease — driven by Web Animations API
+  // so React re-renders during the trip cannot restart or stutter the tween.
+  const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 3000 : 3600;
+  const [animating, setAnimating] = useState(false);
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const currentTransformRef = useRef<string>("translate3d(0%, 0, 0)");
+  const runningAnimRef = useRef<Animation | null>(null);
 
   const sailOffsetPct = leftOffset - dockLeft;
   const shipWidthPct = 22 * ship.scale;
   const translateSelfPct = shipWidthPct > 0 ? (sailOffsetPct / shipWidthPct) * 100 : 0;
+  const targetTransform = `translate3d(${translateSelfPct}%, 0, 0)`;
+
+  useEffect(() => {
+    const el = shellRef.current;
+    if (!el) return;
+    if (targetTransform === currentTransformRef.current) return;
+    const from = currentTransformRef.current;
+    const to = targetTransform;
+    currentTransformRef.current = to;
+
+    // Cancel any in-flight trip and start fresh from where we visually are.
+    try { runningAnimRef.current?.cancel(); } catch { /* noop */ }
+    setAnimating(true);
+    const anim = el.animate(
+      [{ transform: from }, { transform: to }],
+      {
+        duration: SAIL_TRAVEL_MS,
+        // Sinusoidal ease-in-out — accelerates and decelerates like a real vessel.
+        easing: "cubic-bezier(0.45, 0.05, 0.55, 0.95)",
+        fill: "forwards",
+      },
+    );
+    runningAnimRef.current = anim;
+    anim.onfinish = () => {
+      setAnimating(false);
+      runningAnimRef.current = null;
+    };
+    anim.oncancel = () => {
+      runningAnimRef.current = null;
+    };
+    return () => {
+      // Do not cancel on unmount-mid-trip; let it settle.
+    };
+  }, [targetTransform, SAIL_TRAVEL_MS]);
+
+  const moving = animating;
 
   return (
     <div
+      ref={shellRef}
       data-ship-dbid={ship.dbId || undefined}
       className="absolute z-10 pointer-events-none"
       style={{
         left: `${dockLeft}%`,
         top: ship.top,
         width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
-        perspective: "800px",
-        transformStyle: "preserve-3d",
-        transform: `translate3d(${translateSelfPct}%, 0, 0)`,
-        transition: `transform ${SAIL_TRAVEL_MS}ms cubic-bezier(0.37, 0, 0.35, 1)`,
+        transform: targetTransform,
         willChange: "transform",
         backfaceVisibility: "hidden",
       }}
