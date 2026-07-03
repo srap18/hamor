@@ -1836,7 +1836,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
         const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: mime, upsert: false });
         if (upErr) { setUploading(false); alert("فشل رفع التسجيل: " + upErr.message); return; }
         const { data: pub } = supabase.storage.from("chat-audio").getPublicUrl(path);
-        const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: Math.min(duration, MAX_REC_SECONDS * 1000) };
+        const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: Math.round(Math.min(duration, MAX_REC_SECONDS * 1000)) };
         if (channel === "tribe") row.tribe_id = tribeId;
         if (channel === "dm") row.recipient_id = dmWith;
         const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
