@@ -7,7 +7,7 @@ import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
-import { activateGoldenFisher, tickGoldenFisher, removeGoldenFisher } from "@/lib/golden-fisher.functions";
+import { activateGoldenFisher, tickGoldenFisher, removeGoldenFisher, pauseGoldenFisher, resumeGoldenFisher } from "@/lib/golden-fisher.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
   sellShip,
