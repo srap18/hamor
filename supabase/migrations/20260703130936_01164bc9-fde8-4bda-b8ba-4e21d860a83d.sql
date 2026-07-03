@@ -1,0 +1,1 @@
+GRANT SELECT (golden_fisher_paused) ON public.profiles TO authenticated, anon;
