@@ -2759,6 +2759,7 @@ function Index() {
                 sound.play("error");
                 if (/crew_requires_market_level_10/i.test(msg)) setToast("🚫 يجب رفع سوق السفن إلى المستوى 10 لاستخدام الطواقم");
                 else if (/no_market_expert/i.test(msg)) setToast("ما عندك خبير أسواق في المخزن");
+                else if (/market_expert_already_active/i.test(msg)) setToast("📈 خبير الأسواق مفعّل بالفعل — انتظر انتهاء الوقت قبل التفعيل مرة أخرى");
                 else setToast(`❌ تعذر تفعيل خبير الأسواق: ${msg}`);
                 return;
               }
