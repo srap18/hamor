@@ -4255,6 +4255,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
   const flipX = (desiredRight !== nativeRight) ? -1 : 1;
   const atSea = ship.sail > 0.85 && !destroyed;
+  const isFishing = ship.fishing && atSea && !ready && !destroyed;
+
 
 
   // Lifelike travel: long, slow, gentle ease — driven by Web Animations API
