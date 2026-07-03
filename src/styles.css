@@ -1018,23 +1018,26 @@ html.native-app body > * {
 }
 
 /* Force portrait experience on phones/small tablets in the browser.
-   Native apps lock orientation at the OS level; this handles PWA / web. */
-@media (orientation: landscape) and (max-height: 600px) {
-  body::before {
-    content: "🔁  الرجاء تدوير جهازك عمودياً للاستمرار";
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 24px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #f8fafc;
-    background: #0a1929;
-    direction: rtl;
-  }
-  #root, #app, main { visibility: hidden !important; }
+   Native apps lock orientation at the OS level; this handles PWA / web.
+   We toggle .force-portrait from JS using screen.orientation to avoid
+   false positives when the on-screen keyboard shrinks window height
+   below width (which would otherwise trigger CSS `orientation: landscape`). */
+html.force-portrait body::before {
+  content: "🔁  الرجاء تدوير جهازك عمودياً للاستمرار";
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  background: #0a1929;
+  direction: rtl;
 }
+html.force-portrait #root,
+html.force-portrait #app,
+html.force-portrait main { visibility: hidden !important; }
