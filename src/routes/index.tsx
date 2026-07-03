@@ -1687,16 +1687,27 @@ function Index() {
         ? `${caught.name} ×${fishGained}`
         : `سمكة ×${fishGained}`,
     });
-    setCatchResult({
-      img: caught?.img,
-      emoji: caught?.emoji ?? "🐟",
-      name: caught?.name ?? "سمكة",
-      count: fishGained,
-      shipId: s.id,
-      shipLevel: s.level,
-      baseCount: baseFish,
-      luckBonus,
+    // Preserve the predicted count that was shown instantly — do NOT change
+    // the visible number when the server responds. The server already caps by
+    // client_progress so the two values match under normal conditions; if the
+    // market cap made the server return fewer fish we still honor what the
+    // player saw. Only refresh the fish name/image (in case of random pool).
+    setCatchResult((prev) => {
+      const displayedCount = prev?.count ?? fishGained;
+      const displayedBase = prev?.baseCount ?? baseFish;
+      const displayedBonus = prev?.luckBonus ?? luckBonus;
+      return {
+        img: caught?.img ?? prev?.img,
+        emoji: caught?.emoji ?? prev?.emoji ?? "🐟",
+        name: caught?.name ?? prev?.name ?? "سمكة",
+        count: displayedCount,
+        shipId: s.id,
+        shipLevel: s.level,
+        baseCount: displayedBase,
+        luckBonus: displayedBonus,
+      };
     });
+
 
     setTimeout(() => setPop(null), 1400);
   };
