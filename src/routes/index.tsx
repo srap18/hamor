@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
 import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, getUpgradeSubImage, UPGRADE_SUB_STAR_CAPACITY, UPGRADE_SUB_SUCCESS_PCT, UPGRADE_SUB_COST } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
@@ -2667,6 +2668,7 @@ function Index() {
                 console.error("[repair_ship_with_crew]", error);
                 throw new Error(friendly);
               }
+              markRepairDone();
               return Array.isArray(data) ? data[0] : data;
             };
 

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
+import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
@@ -235,6 +236,7 @@ function BossPage() {
     const { error } = await rpc("repair_ship_instant", { _ship_id: selectedShip.id, _gems_cost: repairGemCost });
     setRepairing(false);
     if (error) return alert(error.message);
+    markRepairDone();
     setShipHp(shipMaxHp);
     setShipDestroyed(false);
     setShips((arr) => arr.map((s) => s.id === selectedShip.id ? { ...s, hp: shipMaxHp, destroyed_at: null } : s));

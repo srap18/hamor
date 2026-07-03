@@ -21,6 +21,7 @@ import { AD_VIDEOS } from "@/lib/ad-videos";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { recordAttackWithRetry } from "@/lib/record-attack";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAttackAfterRepair } from "@/lib/anti-cheat-cooldown";
 import { toast as sonnerToast } from "sonner";
 
 
@@ -510,6 +511,8 @@ function PlayerPage() {
       flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
       return;
     }
+    // Anti-cheat: 8s cooldown after any repair action before the next attack.
+    if (!checkAttackAfterRepair(flash)) { sound.play("error"); return; }
     if (!(await confirmDropArmorIfActive())) return;
     // Server-side rate limit (also logs spam to cheat_flags)
     if (!(await rateLimit("attack", 800))) {
@@ -769,6 +772,7 @@ function PlayerPage() {
   const stealWithShip = async (myShipId: string) => {
     if (!me) { flash("سجّل دخول أولاً"); return; }
     if (!selectedShip) { flash("اختر سفينة الخصم أولاً"); return; }
+    if (!checkAttackAfterRepair(flash)) { sound.play("error"); return; }
     if (!(await confirmDropArmorIfActive())) return;
     const targetShipId = selectedShip.id;
     setBusy(true); sound.play("click");
