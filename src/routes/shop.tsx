@@ -105,9 +105,6 @@ const PROTECTION: Item[] = [
   { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
   { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
   { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
-  { id: "disabler_rocket",  name: "صاروخ تعطيل مضاد الصواريخ", emoji: "⚡", price: 100, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد الصواريخ لديه 10 دقائق", rarity: "rare" },
-  { id: "disabler_nuke",    name: "صاروخ تعطيل مضاد الذري",    emoji: "⚡", price: 300, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد القنبلة الذرية لديه 10 دقائق", rarity: "epic" },
-  { id: "disabler_ad_bomb", name: "صاروخ تعطيل مضاد الإعلانية", emoji: "⚡", price: 500, currency: "gem", desc: "أطلقه على لاعب فيتعطّل مضاد القنبلة الإعلانية لديه 10 دقائق", rarity: "legendary" },
 ];
 
 
