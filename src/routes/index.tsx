@@ -4289,8 +4289,21 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
     const to = targetTransform;
     currentTransformRef.current = to;
 
+    // If this transition represents a trip that already began before now
+    // (e.g. page refresh while ship was already fishing / returning), snap to
+    // the final position instead of replaying the departure animation.
+    const tripAlreadyInProgress =
+      ship.fishing && !!ship.startedAt && (serverNowMs() - ship.startedAt) > SAIL_TRAVEL_MS;
+
     // Cancel any in-flight trip and start fresh from where we visually are.
     try { runningAnimRef.current?.cancel(); } catch { /* noop */ }
+
+    if (tripAlreadyInProgress) {
+      el.style.transform = to;
+      setAnimating(false);
+      return;
+    }
+
     setAnimating(true);
     const anim = el.animate(
       [{ transform: from }, { transform: to }],
@@ -4312,7 +4325,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
     return () => {
       // Do not cancel on unmount-mid-trip; let it settle.
     };
-  }, [targetTransform, SAIL_TRAVEL_MS]);
+  }, [targetTransform, SAIL_TRAVEL_MS, ship.fishing, ship.startedAt]);
+
 
 
   const moving = animating;
