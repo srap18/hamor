@@ -1,5 +1,6 @@
 import { initializePaddle, getPaddlePriceId } from "./paddle";
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp, isAndroidApp, isIosApp } from "@/lib/platform";
 
 /**
  * Open Paddle checkout for a given price external_id (pack id for store packs
