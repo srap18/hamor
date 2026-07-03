@@ -132,6 +132,10 @@ interface Ship {
   stars?: number;
   maxStars?: number;
   sailorAtStart?: boolean; // true if sailor crew was assigned when this trip began
+  // Optional per-slot overrides for the "at sea" landing position (admin editor).
+  seaLeft?: number;
+  seaTop?: number;
+  seaScale?: number;
 
 }
 
