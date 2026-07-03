@@ -4278,17 +4278,29 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const turnLift = 0;
   const turnSway = 0;
 
+  // GPU-friendly movement: keep `left` static at dockLeft% and animate a
+  // compositor-only transform. This avoids per-frame layout that made the
+  // ship stutter when going out / coming back from sea on mid-range devices.
+  const sailOffsetPct = leftOffset - dockLeft; // percent of parent width
+  const shipWidthPct = 22 * ship.scale;         // matches width style below
+  // translateX with `%` is a percentage of the element's own width, so
+  // convert parent-% delta into self-% delta.
+  const translateSelfPct = shipWidthPct > 0 ? (sailOffsetPct / shipWidthPct) * 100 : 0;
+
   return (
     <div
       data-ship-dbid={ship.dbId || undefined}
       className="absolute z-10 pointer-events-none"
       style={{
-        left: `${leftOffset}%`,
+        left: `${dockLeft}%`,
         top: ship.top,
         width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
         perspective: "800px",
         transformStyle: "preserve-3d",
-          transition: isHeavyFxDisabled ? "left 0.35s linear" : "left 0.5s ease-in-out",
+        transform: `translate3d(${translateSelfPct}%, 0, 0)`,
+        transition: isHeavyFxDisabled ? "transform 0.35s linear" : "transform 0.5s ease-in-out",
+        willChange: "transform",
+        backfaceVisibility: "hidden",
       }}
     >
       {/* Lightweight per-ship timer (fishing time-left, or repair countdown). */}
