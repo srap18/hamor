@@ -58,9 +58,9 @@ export type SceneBg = {
 // seaEdge landing positions (seaEdge = 96 - 22*scale), so the three ships
 // spread horizontally at sea instead of piling on the same pixel.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 44, left: 46, scale: 0.85 },
-  { top: 56, left: 50, scale: 1.15 },
-  { top: 70, left: 48, scale: 1.4 },
+  { top: 48, left: 48, scale: 1 },
+  { top: 62, left: 48, scale: 1 },
+  { top: 76, left: 48, scale: 1 },
 ] as const;
 
 
