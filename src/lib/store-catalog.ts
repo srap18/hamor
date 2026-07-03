@@ -618,23 +618,6 @@ export const STORE_PACKS: StorePack[] = [
       ],
     },
   },
-  {
-    id: "offer_disabler_all_10",
-    category: "offers",
-    label: "⚡ حزمة صواريخ التعطيل (10 من كل نوع)",
-    emoji: "⚡",
-    priceUSD: 29.99,
-    tag: "خصم 35%",
-    popular: true,
-    description: "10 صاروخ تعطيل مضاد الصواريخ + 10 تعطيل مضاد ذري + 10 تعطيل مضاد إعلانية — الترسانة الهجومية الكاملة",
-    reward: {
-      items: [
-        { itemType: "disabler", itemId: "disabler_rocket",  qty: 10 },
-        { itemType: "disabler", itemId: "disabler_nuke",    qty: 10 },
-        { itemType: "disabler", itemId: "disabler_ad_bomb", qty: 10 },
-      ],
-    },
-  },
 
 
 
