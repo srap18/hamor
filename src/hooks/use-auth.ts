@@ -146,20 +146,23 @@ async function fetchProfileNow(userId: string, attempt = 0) {
     .select(PROFILE_PUBLIC_COLUMNS)
     .eq("id", userId)
     .maybeSingle();
-  if ((error || !data) && attempt < 2) {
+  if (error || !data) {
+    // Never give up — a failed fetch would otherwise leave the UI showing
+    // the zeroed persisted cache as if the player lost all their coins/gems.
+    // Keep loading=true and retry with exponential backoff (capped at 10s).
     profileLoadingFlag = true;
     notifyProfile();
-    globalThis.setTimeout(() => fetchProfileNow(userId, attempt + 1), 700 * (attempt + 1));
+    const delay = Math.min(700 * (attempt + 1), 10_000);
+    globalThis.setTimeout(() => fetchProfileNow(userId, attempt + 1), delay);
     return;
   }
   profileLoadingFlag = false;
-  if (data) {
-    profileCache = data as Profile;
-    profileFreshVersion += 1;
-    persistProfile(profileCache);
-  }
+  profileCache = data as Profile;
+  profileFreshVersion += 1;
+  persistProfile(profileCache);
   notifyProfile();
 }
+
 
 
 
