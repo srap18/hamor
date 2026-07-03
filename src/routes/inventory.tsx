@@ -31,6 +31,7 @@ function InventoryPage() {
   const [inv, setInv] = useState<InvRow[]>([]);
   const [fishRows, setFishRows] = useState<FishRow[]>([]);
   const [ships, setShips] = useState<OwnedShip[]>([]);
+  const [priceMap, setPriceMap] = useState<Record<string, number>>({});
   const [goldenFisherUntil, setGoldenFisherUntil] = useState<string | null>(null);
   const [marketExpertUntil, setMarketExpertUntil] = useState<string | null>(null);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
@@ -91,6 +92,25 @@ function InventoryPage() {
       window.removeEventListener("fish-stock-changed", onChanged);
       window.removeEventListener("focus", onFocus);
     };
+  }, []);
+
+  useEffect(() => {
+    const loadPrices = async () => {
+      const { data } = await (supabase as any)
+        .from("fish_market_prices")
+        .select("fish_id, current_price");
+      const m: Record<string, number> = {};
+      for (const row of (data ?? []) as Array<{ fish_id: string; current_price: number }>) {
+        m[row.fish_id] = Number(row.current_price) || 0;
+      }
+      setPriceMap(m);
+    };
+    loadPrices();
+    const ch = supabase
+      .channel("inv_fish_prices")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fish_market_prices" }, () => loadPrices())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
   }, []);
 
   const isUsableStack = (r: InvRow) => !r.meta?.assigned_ship_id;
@@ -447,7 +467,7 @@ function InventoryPage() {
                       )}
                     </div>
                     <div className="text-[10px] font-bold text-center mt-1 truncate">{f.name}</div>
-                    <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{f.price.toLocaleString()} <CoinIcon size={10} /></div>
+                    <div className="text-[9px] text-amber-300 text-center inline-flex items-center justify-center gap-1 w-full">{Math.round(priceMap[f.id] ?? f.price).toLocaleString()} <CoinIcon size={10} /></div>
                     <div className="text-center text-xs font-bold mt-1">
                       {discovered ? <span className="text-sky-300">×{n}</span> : <span className="text-rose-300/80 text-[10px]">غير مكتشفة</span>}
                     </div>
