@@ -2451,6 +2451,7 @@ export type Database = {
           elite_vip_login_broadcast_enabled: boolean
           gems: number
           golden_fisher_last_activated_at: string | null
+          golden_fisher_no_shield: boolean
           golden_fisher_until: string | null
           id: string
           last_destroyer_at: string | null
@@ -2514,6 +2515,7 @@ export type Database = {
           elite_vip_login_broadcast_enabled?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
+          golden_fisher_no_shield?: boolean
           golden_fisher_until?: string | null
           id: string
           last_destroyer_at?: string | null
@@ -2577,6 +2579,7 @@ export type Database = {
           elite_vip_login_broadcast_enabled?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
+          golden_fisher_no_shield?: boolean
           golden_fisher_until?: string | null
           id?: string
           last_destroyer_at?: string | null
