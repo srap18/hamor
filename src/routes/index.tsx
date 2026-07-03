@@ -2249,7 +2249,8 @@ function Index() {
               )}
               {!onSteal && (() => {
                 const dead = isShipBlocked(s.destroyedAt, s.repairEndsAt, s.hp, s.maxHp);
-                const remSec = dead ? Math.max(0, Math.ceil((new Date(s.repairEndsAt!).getTime() - serverNowMs()) / 1000)) : 0;
+                const endMs = s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0;
+                const remSec = dead && endMs > serverNowMs() ? Math.max(0, Math.ceil((endMs - serverNowMs()) / 1000)) : 0;
                 const h = Math.floor(remSec / 3600);
                 const m = Math.floor((remSec % 3600) / 60);
                 const sec = remSec % 60;
@@ -2259,7 +2260,9 @@ function Index() {
                     <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-stone-900/70 border border-rose-500/50">
                       <div className="text-3xl">💥</div>
                       <div className="text-rose-200 font-bold text-sm">السفينة مدمّرة</div>
-                      <div className="text-rose-300/90 text-xs">⏳ الإصلاح ينتهي خلال {remStr}</div>
+                      <div className="text-rose-300/90 text-xs">
+                        {remSec > 0 ? `⏳ الإصلاح ينتهي خلال ${remStr}` : "⚙️ تحتاج إصلاح بالطاقم"}
+                      </div>
                       <div className="flex gap-3 mt-1">
                         <ActionBtn
                           emoji="👥"
@@ -2270,6 +2273,7 @@ function Index() {
                     </div>
                   );
                 }
+
                 return (
                   <div className="flex gap-3" dir="ltr">
                     <ActionBtn
