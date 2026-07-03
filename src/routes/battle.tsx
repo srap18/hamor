@@ -314,10 +314,23 @@ function BattlePage() {
         background: "radial-gradient(ellipse at 50% 30%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.5) 100%)"
       }}/>
 
+      {/* Always-visible escape buttons — render even before `me` loads so the
+          player is never stuck if attempts run out or the arena gate fails. */}
+      <div className="absolute z-50 flex flex-col gap-2"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: "12px" }}>
+        <Link to="/" aria-label="خروج للمحيط"
+          className="w-11 h-11 rounded-full bg-black/70 border-2 border-white/40 flex items-center justify-center text-white text-lg font-black shadow-lg active:scale-95">
+          ✕
+        </Link>
+        <Link to="/arena" aria-label="رجوع للأرينا"
+          className="w-11 h-11 rounded-full bg-amber-600/80 border-2 border-amber-200/60 flex items-center justify-center text-white text-base shadow-lg active:scale-95" title="الأرينا">
+          🏟️
+        </Link>
+      </div>
+
       {/* Top HUD: 2 fighter cards + VS */}
-      <div className="absolute top-4 inset-x-0 z-30 px-2 pt-3">
+      <div className="absolute top-4 inset-x-0 z-30 px-2 pt-3" style={{ paddingRight: "68px" }}>
         <div className="max-w-md mx-auto flex items-center gap-2">
-          <Link to="/" className="w-9 h-9 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-white text-lg shrink-0">✕</Link>
           {/* Me card */}
           <FighterCard f={me} pct={myPct} side="me" />
           <div className="text-white text-2xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] px-1">VS</div>
