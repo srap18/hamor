@@ -2374,47 +2374,6 @@ function Index() {
       })()}
 
       {/* Guide fish picker */}
-                    )}
-                    <ActionBtn
-                      emoji="👥"
-                      label="طاقم"
-                      onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
-                    />
-                    {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
-                      <ActionBtn
-                        emoji="⭐"
-                        label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
-                        onClick={() => { setMenuShipId(null); setUpgradeSubShipId(s.id); }}
-                      />
-                    )}
-                    <ActionBtn
-                      emoji="💰"
-                      label="بيع"
-                      onClick={() => {
-                        setMenuShipId(null);
-                        if (ships.length <= MIN_FLEET) {
-                          showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                          return;
-                        }
-                        {
-                          const maxHp = s.maxHp ?? 100;
-                          if ((s.hp ?? 0) < maxHp || s.destroyedAt || s.repairEndsAt) {
-                            showToast("لا يمكن بيع السفينة قبل إصلاحها بالكامل");
-                            return;
-                          }
-                        }
-                        setModal({ kind: "sell", shipId: s.id });
-                      }}
-                    />
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Guide fish picker */}
       {fishPickerShipId !== null && (() => {
         const s = ships.find((x) => x.id === fishPickerShipId);
         if (!s) return null;
