@@ -152,7 +152,12 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style
                   {new Date(cur.created_at).toLocaleString("ar", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                 </span>
                 <span>{safeIdx + 1}/{total}</span>
-                <span className="opacity-0">.</span>
+                <ReportMessageButton
+                  reportedUserId={cur.attacker_id}
+                  kind="destroyer"
+                  messageBody={cur.message}
+                  sourceId={cur.id}
+                />
               </div>
             </div>
           </div>
