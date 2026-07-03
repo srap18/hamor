@@ -36,6 +36,7 @@ import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import {
   useShipSlotOverrides,
+  useShipSlotLayoutReady,
   useShipSlotEditor,
   ShipSlotEditorOverlay,
   ShipSlotEditorToolbar,
@@ -1125,6 +1126,7 @@ function Index() {
   }, []);
   const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
   const slotOverrides = useShipSlotOverrides(scene.id);
+  const shipSlotLayoutReady = useShipSlotLayoutReady();
   const editor = useShipSlotEditor();
 
   // Incoming raids: ships from other players currently stealing from me
@@ -2159,7 +2161,7 @@ function Index() {
       {/* SHIPS — auto-placed inside the current background's open-water region.
           Each scene declares waterTop / waterLeft / waterRight so ships always
           sit on water and never overlap shore, docks, rocks or buildings. */}
-      {ships.filter((s) => !s.stealingTargetUserId).map((s, i) => {
+      {shipSlotLayoutReady && ships.filter((s) => !s.stealingTargetUserId).map((s, i) => {
         const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
         const wTop = scene.waterTop ?? 45;
         const wLeft = scene.waterLeft ?? 30;
