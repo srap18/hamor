@@ -911,6 +911,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dm_threads: {
+        Row: {
+          first_message_at: string
+          last_request_at: string
+          requester_id: string
+          responded_at: string | null
+          status: string
+          user_high: string
+          user_low: string
+        }
+        Insert: {
+          first_message_at?: string
+          last_request_at?: string
+          requester_id: string
+          responded_at?: string | null
+          status?: string
+          user_high: string
+          user_low: string
+        }
+        Update: {
+          first_message_at?: string
+          last_request_at?: string
+          requester_id?: string
+          responded_at?: string | null
+          status?: string
+          user_high?: string
+          user_low?: string
+        }
+        Relationships: []
+      }
       dragon_boss_pearl_claims: {
         Row: {
           boss_id: string
@@ -5197,6 +5227,11 @@ export type Database = {
         Returns: Json
       }
       distribute_weekly_xp_prizes: { Args: never; Returns: Json }
+      dm_accept_request: { Args: { _other: string }; Returns: Json }
+      dm_block: { Args: { _other: string }; Returns: Json }
+      dm_cancel_request: { Args: { _other: string }; Returns: Json }
+      dm_reject_request: { Args: { _other: string }; Returns: Json }
+      dm_unblock: { Args: { _other: string }; Returns: Json }
       donate_to_tribe: {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json

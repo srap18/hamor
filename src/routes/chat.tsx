@@ -31,6 +31,8 @@ export const Route = createFileRoute("/chat")({
 type Channel = "public" | "tribe" | "dm" | "topics";
 type Msg = { id: string; channel: string; sender_id: string; recipient_id: string | null; tribe_id: string | null; body: string; created_at: string; audio_url?: string | null; audio_duration_ms?: number | null; reply_to_id?: string | null; reply_to_body?: string | null; reply_to_name?: string | null };
 type Prof = { id: string; display_name: string; avatar_emoji: string; level?: number; coins?: number; avatar_url?: string | null; avatar_frame?: string | null; name_frame?: string | null; bubble_frame?: string | null; profile_frame?: string | null; vip_level?: number | null; vip_expires_at?: string | null; elite_vip_level?: number | null };
+type DmThreadStatus = "pending" | "accepted" | "rejected";
+type DmThread = { other: Prof; status: DmThreadStatus; requester_id: string; responded_at: string | null; last_request_at: string };
 
 function getActiveEliteVip(p?: Prof | null): number {
   // elite_vip_expires_at is no longer exposed to clients (privacy).
@@ -97,6 +99,7 @@ function ChatPage() {
   const [dmFriends, setDmFriends] = useState<Prof[]>([]);
   const [dmWith, setDmWith] = useState<string | null>(null);
   const [dmMap, setDmMap] = useState<Map<string, DmEntry>>(new Map());
+  const [dmThreads, setDmThreads] = useState<DmThread[]>([]);
   const [dmTotal, setDmTotal] = useState(0);
   const [showManage, setShowManage] = useState(false);
   
@@ -188,20 +191,86 @@ function ChatPage() {
 
   useEffect(() => { reloadBlocks(); }, [reloadBlocks]);
 
+  const reloadThreads = useCallback(async () => {
+    if (!user) { setDmFriends([]); setDmThreads([]); return; }
+    // Load all DM threads I'm part of (RLS enforces user_low/high match auth.uid())
+    const { data: t } = await (supabase as any).from("dm_threads").select("*")
+      .or(`user_low.eq.${user.id},user_high.eq.${user.id}`);
+    const list = ((t || []) as any[]);
+    const otherIds = Array.from(new Set(list.map(r => r.user_low === user.id ? r.user_high : r.user_low)));
+    // Union with accepted friends so friends without a thread yet still appear (backwards-compat)
+    const { data: f } = await supabase.from("friends").select("requester_id,addressee_id").eq("status", "accepted")
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+    const friendIds = ((f || []) as any[]).map(x => x.requester_id === user.id ? x.addressee_id : x.requester_id);
+    const allIds = Array.from(new Set([...otherIds, ...friendIds]));
+    let profs: Prof[] = [];
+    if (allIds.length) {
+      const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", allIds);
+      profs = (ps || []) as Prof[];
+    }
+    const pmap = new Map(profs.map(p => [p.id, p]));
+    const threads: DmThread[] = list.map(r => {
+      const otherId = r.user_low === user.id ? r.user_high : r.user_low;
+      const other = pmap.get(otherId) || ({ id: otherId, display_name: "مستخدم", avatar_emoji: "👤" } as Prof);
+      return { other, status: r.status as DmThreadStatus, requester_id: r.requester_id, responded_at: r.responded_at, last_request_at: r.last_request_at };
+    });
+    setDmThreads(threads);
+    setDmFriends(profs);
+  }, [user]);
+
+  useEffect(() => { reloadThreads(); }, [reloadThreads]);
+
+  // Live-refresh threads when new dm_threads rows appear/change
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      const { data: f } = await supabase.from("friends").select("*").eq("status", "accepted")
-        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
-      const ids = (f || []).map((x: any) => x.requester_id === user.id ? x.addressee_id : x.requester_id);
-      if (ids.length) {
-        const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,coins,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
-        setDmFriends((ps || []) as Prof[]);
-      } else {
-        setDmFriends([]);
-      }
-    })();
-  }, [user]);
+    const ch = supabase.channel(`dm-threads:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "dm_threads" }, () => reloadThreads())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, reloadThreads]);
+
+  const acceptDmRequest = useCallback(async (otherId: string) => {
+    const { error } = await (supabase as any).rpc("dm_accept_request", { _other: otherId });
+    if (error) { showNotice("تعذر القبول: " + error.message); return; }
+    showNotice("✓ تم قبول المحادثة");
+    reloadThreads();
+  }, [reloadThreads]);
+
+  const rejectDmRequest = useCallback(async (otherId: string) => {
+    const ok = await confirmDialog({ title: "رفض المحادثة", message: "سيتم رفض الطلب ومسح الرسالة التمهيدية.", confirmText: "رفض", cancelText: "إلغاء" });
+    if (!ok) return;
+    const { error } = await (supabase as any).rpc("dm_reject_request", { _other: otherId });
+    if (error) { showNotice("تعذر الرفض: " + error.message); return; }
+    showNotice("✗ تم رفض الطلب");
+    if (dmWith === otherId) setDmWith(null);
+    reloadThreads();
+  }, [reloadThreads, dmWith]);
+
+  const cancelDmRequest = useCallback(async (otherId: string) => {
+    const { error } = await (supabase as any).rpc("dm_cancel_request", { _other: otherId });
+    if (error) { showNotice("تعذر الإلغاء: " + error.message); return; }
+    showNotice("تم إلغاء الطلب");
+    if (dmWith === otherId) setDmWith(null);
+    reloadThreads();
+  }, [reloadThreads, dmWith]);
+
+  const blockDmUser = useCallback(async (otherId: string) => {
+    const ok = await confirmDialog({ title: "حظر اللاعب", message: "لن يقدر يرسل لك رسائل أو طلبات محادثة.", confirmText: "حظر", cancelText: "إلغاء" });
+    if (!ok) return;
+    const { error } = await (supabase as any).rpc("dm_block", { _other: otherId });
+    if (error) { showNotice("تعذر الحظر: " + error.message); return; }
+    showNotice("🚫 تم الحظر");
+    reloadBlocks();
+    if (dmWith === otherId) setDmWith(null);
+  }, [reloadBlocks, dmWith]);
+
+  const unblockDmUser = useCallback(async (otherId: string) => {
+    const { error } = await (supabase as any).rpc("dm_unblock", { _other: otherId });
+    if (error) { showNotice("تعذر فك الحظر: " + error.message); return; }
+    showNotice("✓ تم فك الحظر");
+    reloadBlocks();
+  }, [reloadBlocks]);
+
 
   // Live DM unread map (per-friend counts + total). Refresh on every incoming DM.
   useEffect(() => {
@@ -494,7 +563,17 @@ function ChatPage() {
 
 
 
-  const dmFriendInfo = dmWith ? dmFriends.find(f => f.id === dmWith) : null;
+  const currentThread = dmWith ? dmThreads.find(t => t.other.id === dmWith) : null;
+  const dmFriendInfo = dmWith ? (currentThread?.other || dmFriends.find(f => f.id === dmWith) || null) : null;
+  const iBlockedCurrent = dmWith ? blockedIds.has(dmWith) : false;
+  const currentBlockedMe = dmWith ? blockedBy.has(dmWith) : false;
+  const iAmRequester = !!(currentThread && user && currentThread.requester_id === user.id);
+  const awaitingMyAcceptance = !!(currentThread && currentThread.status === "pending" && !iAmRequester);
+  const awaitingOtherAcceptance = !!(currentThread && currentThread.status === "pending" && iAmRequester);
+  const incomingRequests = dmThreads.filter(t => t.status === "pending" && t.requester_id !== user?.id);
+  const acceptedThreads = dmThreads.filter(t => t.status === "accepted");
+  const outgoingRequests = dmThreads.filter(t => t.status === "pending" && t.requester_id === user?.id);
+
 
   return (
     <div className="fixed inset-x-0 top-0 overflow-hidden text-white" dir="rtl" style={{ height: "var(--app-height, 100dvh)", background: soloTribe
@@ -549,25 +628,70 @@ function ChatPage() {
               <span className="text-xl">✉️</span>
               <div className="text-sm font-extrabold text-amber-200 tracking-wide">المحادثات الخاصة</div>
               <div className="flex-1 h-px bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200">{dmFriends.length}</span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200">{acceptedThreads.length}</span>
             </div>
-            {dmFriends.length === 0 && (
-              <div className="text-center py-10">
-                <div className="text-4xl mb-2 opacity-60">💌</div>
-                <div className="text-amber-100/70 text-sm font-bold">لا يوجد أصدقاء بعد</div>
-                <div className="text-amber-100/40 text-xs mt-1">اذهب إلى صفحه الأصدقاء لإضافة قبطان</div>
-                <Link to="/friends" className="inline-block mt-3 px-4 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 text-amber-950 font-black text-sm shadow-lg active:scale-95">
-                  👥 صفحه الأصدقاء
-                </Link>
+
+            {incomingRequests.length > 0 && (
+              <div className="mb-4">
+                <div className="text-[11px] font-black text-emerald-300 mb-1.5 px-1 flex items-center gap-1">
+                  📨 طلبات محادثة جديدة
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-400/40">{incomingRequests.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {incomingRequests.map(t => (
+                    <div key={t.other.id} className="flex items-center gap-2 p-2.5 rounded-xl border-2 border-emerald-400/50 bg-gradient-to-l from-emerald-950/50 via-stone-900/80 to-stone-900/60">
+                      <Avatar p={t.other} size={40} />
+                      <button type="button" onClick={() => setDmWith(t.other.id)} className="flex-1 min-w-0 text-right active:scale-[0.98]">
+                        <div className="text-sm font-extrabold text-amber-100 truncate">{t.other.display_name}</div>
+                        <div className="text-[10px] text-emerald-300/90">يريد فتح محادثة معك</div>
+                      </button>
+                      <button onClick={() => acceptDmRequest(t.other.id)} className="px-2.5 py-1.5 rounded-lg bg-emerald-600 border border-emerald-300 text-white text-xs font-black active:scale-95 shadow">✓ قبول</button>
+                      <button onClick={() => rejectDmRequest(t.other.id)} className="px-2.5 py-1.5 rounded-lg bg-red-700 border border-red-300 text-white text-xs font-black active:scale-95 shadow">✗ رفض</button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
+            {outgoingRequests.length > 0 && (
+              <div className="mb-4">
+                <div className="text-[11px] font-black text-amber-300/80 mb-1.5 px-1 flex items-center gap-1">
+                  ⏳ طلبات مرسلة (بانتظار القبول)
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40">{outgoingRequests.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {outgoingRequests.map(t => (
+                    <div key={t.other.id} className="flex items-center gap-2 p-2.5 rounded-xl border-2 border-amber-700/40 bg-stone-900/70">
+                      <Avatar p={t.other} size={40} />
+                      <button type="button" onClick={() => setDmWith(t.other.id)} className="flex-1 min-w-0 text-right">
+                        <div className="text-sm font-extrabold text-amber-100 truncate">{t.other.display_name}</div>
+                        <div className="text-[10px] text-amber-300/70">بانتظار قبول الطرف الآخر</div>
+                      </button>
+                      <button onClick={() => cancelDmRequest(t.other.id)} className="px-2.5 py-1.5 rounded-lg bg-stone-700 border border-stone-500 text-white text-xs font-black active:scale-95">إلغاء</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {acceptedThreads.length === 0 && incomingRequests.length === 0 && outgoingRequests.length === 0 && (
+              <div className="text-center py-10">
+                <div className="text-4xl mb-2 opacity-60">💌</div>
+                <div className="text-amber-100/70 text-sm font-bold">لا توجد محادثات بعد</div>
+                <div className="text-amber-100/40 text-xs mt-1">يمكنك بدء محادثة من صفحة أي لاعب — أول رسالة تكون طلب محادثة</div>
+              </div>
+            )}
+            {acceptedThreads.length > 0 && (
+              <div className="text-[11px] font-black text-amber-300/80 mb-1.5 px-1">💬 المحادثات</div>
+            )}
             <div className="space-y-2">
-              {[...dmFriends].sort((a, b) => {
-                const ea = dmMap.get(a.id); const eb = dmMap.get(b.id);
+              {[...acceptedThreads].sort((a, b) => {
+                const ea = dmMap.get(a.other.id); const eb = dmMap.get(b.other.id);
                 if ((eb?.count ?? 0) !== (ea?.count ?? 0)) return (eb?.count ?? 0) - (ea?.count ?? 0);
-                const ta = ea?.lastAt ?? ""; const tb = eb?.lastAt ?? "";
-                return tb.localeCompare(ta);
-              }).map(f => {
+                const ta = ea?.lastAt ?? a.last_request_at; const tb = eb?.lastAt ?? b.last_request_at;
+                return (tb || "").localeCompare(ta || "");
+              }).map(t => {
+                const f = t.other;
                 const entry = dmMap.get(f.id);
                 const unread = entry?.count ?? 0;
                 return (
@@ -623,15 +747,40 @@ function ChatPage() {
                 <button onClick={() => setDmWith(null)} className="w-8 h-8 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-300 text-sm active:scale-95 flex items-center justify-center">←</button>
                 <div className="relative">
                   <Avatar p={dmFriendInfo} size={36} />
-                  <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-stone-900 shadow" />
+                  <span className={`absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full border-2 border-stone-900 shadow ${iBlockedCurrent || currentBlockedMe ? "bg-red-500" : awaitingMyAcceptance || awaitingOtherAcceptance ? "bg-amber-400" : "bg-emerald-400"}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-extrabold text-amber-100 truncate drop-shadow">{dmFriendInfo.display_name}</div>
-                  <div className="text-[10px] text-emerald-300/90 font-bold">● محادثة خاصة</div>
+                  <div className="text-[10px] font-bold">
+                    {iBlockedCurrent ? <span className="text-red-300">🚫 محظور من قِبلك</span>
+                      : currentBlockedMe ? <span className="text-red-300">🚫 حظرك</span>
+                      : awaitingMyAcceptance ? <span className="text-emerald-300">📨 طلب محادثة</span>
+                      : awaitingOtherAcceptance ? <span className="text-amber-300">⏳ بانتظار القبول</span>
+                      : <span className="text-emerald-300/90">● محادثة خاصة</span>}
+                  </div>
                 </div>
+                {iBlockedCurrent ? (
+                  <button onClick={() => unblockDmUser(dmWith!)} className="px-2.5 py-1.5 rounded-lg bg-stone-700 border border-stone-400 text-xs font-black text-white shadow active:scale-95">فك الحظر</button>
+                ) : (
+                  <button onClick={() => blockDmUser(dmWith!)} className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-red-400/60 text-xs font-black text-red-300 shadow active:scale-95" aria-label="حظر">🚫</button>
+                )}
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-red-500 to-red-800 border border-red-300/60 text-xs font-black text-white shadow active:scale-95">⚔️ حرب</button>
               </div>
             )}
+            {tab === "dm" && dmWith && awaitingMyAcceptance && (
+              <div className="p-2.5 border-b border-emerald-400/40 bg-emerald-950/40 flex items-center gap-2">
+                <div className="flex-1 text-xs text-emerald-100 font-bold">📨 هذا اللاعب أرسل لك طلب محادثة</div>
+                <button onClick={() => acceptDmRequest(dmWith!)} className="px-3 py-1.5 rounded-lg bg-emerald-600 border border-emerald-300 text-white text-xs font-black active:scale-95">✓ قبول</button>
+                <button onClick={() => rejectDmRequest(dmWith!)} className="px-3 py-1.5 rounded-lg bg-red-700 border border-red-300 text-white text-xs font-black active:scale-95">✗ رفض</button>
+              </div>
+            )}
+            {tab === "dm" && dmWith && awaitingOtherAcceptance && (
+              <div className="p-2.5 border-b border-amber-700/40 bg-stone-900/70 flex items-center gap-2">
+                <div className="flex-1 text-xs text-amber-100/90 font-bold">⏳ بانتظار قبول الطرف الآخر — لا يمكن إرسال رسائل إضافية</div>
+                <button onClick={() => cancelDmRequest(dmWith!)} className="px-3 py-1.5 rounded-lg bg-stone-700 border border-stone-500 text-white text-xs font-black active:scale-95">إلغاء الطلب</button>
+              </div>
+            )}
+
             <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
               {(pinned || isAdmin) && (
                 <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-1 px-3 py-2 bg-gradient-to-b from-amber-900/95 to-amber-950/95 border-b-2 border-amber-400/70 shadow-lg backdrop-blur">
