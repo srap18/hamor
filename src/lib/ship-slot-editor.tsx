@@ -74,6 +74,8 @@ const notifyEdit = () => editSubs.forEach((fn) => { try { fn(); } catch { /* noo
 
 export function useShipSlotEditor() {
   const { isAdmin } = useIsAdmin();
+  const { user } = useAuth();
+  const allowed = isAdmin && (user?.email ?? "").toLowerCase() === SHIP_EDITOR_EMAIL;
   const enabled = useSyncExternalStore(
     (fn) => { editSubs.add(fn); return () => { editSubs.delete(fn); }; },
     () => editEnabled,
@@ -85,7 +87,7 @@ export function useShipSlotEditor() {
     () => "dock" as const,
   );
   return {
-    isAdmin,
+    isAdmin: allowed,
     enabled,
     mode,
     setEnabled: (v: boolean) => { editEnabled = v; notifyEdit(); },
