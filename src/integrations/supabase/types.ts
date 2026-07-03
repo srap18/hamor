@@ -3103,6 +3103,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ship_slot_layout: {
+        Row: {
+          bg_id: string
+          left_pct: number
+          mode: string
+          scale: number
+          slot_index: number
+          top_pct: number
+          updated_at: string
+        }
+        Insert: {
+          bg_id: string
+          left_pct: number
+          mode: string
+          scale?: number
+          slot_index: number
+          top_pct: number
+          updated_at?: string
+        }
+        Update: {
+          bg_id?: string
+          left_pct?: number
+          mode?: string
+          scale?: number
+          slot_index?: number
+          top_pct?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ships_owned: {
         Row: {
           acquired_at: string
