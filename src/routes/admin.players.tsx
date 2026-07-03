@@ -1170,6 +1170,35 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
             <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
           </div>
+          <div className="rounded-lg border border-orange-900/50 bg-orange-950/20 p-2 space-y-2">
+            <div className="text-xs font-semibold text-orange-200">🔒 حظر الحساب فقط (لمدة محددة)</div>
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                min={1}
+                value={banDays}
+                onChange={(e) => setBanDays(e.target.value)}
+                className="w-20 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-100 text-sm"
+                placeholder="أيام"
+              />
+              <span className="text-xs text-slate-400">يوم</span>
+              <input
+                type="text"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                className="flex-1 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-100 text-sm"
+                placeholder="السبب (اختياري)"
+              />
+            </div>
+            <button
+              onClick={banAccountForDays}
+              disabled={banningAccount}
+              className="w-full px-3 py-2 rounded-lg bg-orange-600/60 hover:bg-orange-600/80 disabled:opacity-50 text-white text-sm font-bold"
+            >
+              {banningAccount ? "…جاري الحظر" : "🔒 حظر الحساب فقط"}
+            </button>
+            <div className="text-[10px] text-slate-500">هذا الحساب فقط — لا يحظر الجهاز ولا البريد ولا الحسابات المرتبطة.</div>
+          </div>
           <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي (هذا الحساب فقط)</button>
           <button onClick={hardBan} className="w-full px-3 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-extrabold">🛡️ حظر قوي شامل — يمنع حساب ثاني وتغيير الاتصال</button>
           <button onClick={reconcilePayments} className="w-full px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold">💰 استرجاع مشتريات Paddle المعلقة</button>
