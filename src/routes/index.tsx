@@ -4382,15 +4382,15 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       {/* Crew characters standing on the ship deck */}
       {crews.length > 0 && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 flex items-end justify-center gap-1"
-          style={{ top: "18%", width: "110%", height: "26%" }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-10 flex items-end justify-center gap-0.5"
+          style={{ top: "22%", width: "80%", height: "20%" }}
         >
           {crews.map((c, i) => (
             <div
               key={c.id}
               className={`relative ${isHeavyFxDisabled ? "" : "animate-crew-bob"}`}
               style={{
-                width: "28%",
+                width: "20%",
                 animationDelay: `${i * 0.25}s`,
                 filter: "drop-shadow(0 3px 4px rgba(0,0,0,0.6))",
               }}
