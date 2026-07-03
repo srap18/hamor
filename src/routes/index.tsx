@@ -860,6 +860,10 @@ function Index() {
   }, [profile]);
   const lastGfTickRef = useRef<number>(0);
   const gfTickInFlightRef = useRef(false);
+  // Timestamp of the most recent tick that actually advanced fishing_started_at.
+  // Used to release the ratio clamp when the tick stalls (RPC failure, permission
+  // denied, throttle) so ships don't freeze at 99% forever.
+  const lastGfAdvanceAtRef = useRef<number>(0);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
