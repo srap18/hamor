@@ -4227,7 +4227,69 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
     }
   }, [ship.sail, prevSail, SAIL_TRAVEL_MS]);
   const moving = animating;
-...
+
+  // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
+  const _seaSideForFacing = ship.seaSide ?? "right";
+  const facing: 1 | -1 = ship.fishing
+    ? (_seaSideForFacing === "right" ? 1 : -1)
+    : (_seaSideForFacing === "right" ? -1 : 1);
+
+  const pct = (ship.progress / ship.max) * 100;
+  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode, ship.hp);
+  const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
+  const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
+  const ready = pct >= 100;
+  const docked = ship.sail < 0.05 && !moving;
+  const tilt = direction * 2.5;
+
+  const shipW = 22 * ship.scale;
+  const dockLeft = ship.dockLeft;
+  const seaSide = ship.seaSide ?? "right";
+  const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
+  const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
+
+  // Pivot-in-place: when bow direction changes, hold position while the flip
+  // animation plays, then release so the ship slides smoothly to its new spot.
+  const TURN_MS = 700;
+  const facingRef = useRef(facing);
+  const turnEndRef = useRef(0);
+  const heldLeftRef = useRef(computedLeft);
+  if (facingRef.current !== facing) {
+    facingRef.current = facing;
+    turnEndRef.current = serverNowMs() + TURN_MS;
+    heldLeftRef.current = computedLeft;
+  }
+  const now = serverNowMs();
+  const turning = now < turnEndRef.current;
+  const leftOffset = turning ? heldLeftRef.current : computedLeft;
+
+  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt, ship.hp, ship.maxHp);
+  const atSea = ship.sail > 0.85 && !destroyed;
+  const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
+  const nativeRight = shipBowFacesRight(ship.level);
+  const seaIsRight = seaSide === "right";
+  const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
+  const flipX = (desiredRight !== nativeRight) ? -1 : 1;
+  const bankRoll = 0;
+  const bankPitch = 0;
+  const turnLift = 0;
+  const turnSway = 0;
+
+  const sailOffsetPct = leftOffset - dockLeft;
+  const shipWidthPct = 22 * ship.scale;
+  const translateSelfPct = shipWidthPct > 0 ? (sailOffsetPct / shipWidthPct) * 100 : 0;
+
+  return (
+    <div
+      data-ship-dbid={ship.dbId || undefined}
+      className="absolute z-10 pointer-events-none"
+      style={{
+        left: `${dockLeft}%`,
+        top: ship.top,
+        width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
+        perspective: "800px",
+        transformStyle: "preserve-3d",
+        transform: `translate3d(${translateSelfPct}%, 0, 0)`,
         transition: `transform ${SAIL_TRAVEL_MS}ms cubic-bezier(0.37, 0, 0.35, 1)`,
         willChange: "transform",
         backfaceVisibility: "hidden",
