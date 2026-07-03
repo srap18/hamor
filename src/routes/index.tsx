@@ -2667,6 +2667,7 @@ function Index() {
                 console.error("[repair_ship_with_crew]", error);
                 throw new Error(friendly);
               }
+              markRepairDone();
               return Array.isArray(data) ? data[0] : data;
             };
 
