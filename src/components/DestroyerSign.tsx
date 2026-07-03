@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { ReportMessageButton } from "@/components/ReportMessageButton";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
 
 type SignMsg = {
