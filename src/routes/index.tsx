@@ -1119,6 +1119,8 @@ function Index() {
     return () => window.removeEventListener("focus", onFocus);
   }, []);
   const scene = getSceneVisual(bgId, (profile as any)?.bg_burned_until);
+  const slotOverrides = useShipSlotOverrides(scene.id);
+  const editor = useShipSlotEditor();
 
   // Incoming raids: ships from other players currently stealing from me
   type Raid = { ship_id: string; attacker_id: string; attacker_name: string; attacker_emoji: string; ends_at: string; template_id: number; target_ship_id: string | null };
