@@ -121,6 +121,12 @@ export function MobileFrame({ children }: { children: ReactNode }) {
           <div className="mobile-frame-screen">{children}</div>
         </div>
       </div>
+      <div className="rotate-overlay" aria-hidden>
+        <div>🔁 الرجاء تدوير جهازك عمودياً للاستمرار</div>
+        <button type="button" className="rotate-overlay-btn" data-dismiss-rotate>
+          متابعة على أي حال
+        </button>
+      </div>
     </div>
   );
 }
