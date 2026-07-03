@@ -243,9 +243,8 @@ export function useProfile() {
     if (user?.id) ensureProfileBootstrap(user.id);
   }, [user?.id]);
 
-  // Keep loading=true until we've applied at least one fresh server payload —
-  // otherwise the zeroed persisted cache would display 0 coins/gems as if real.
-  const loading = !!user && (profileLoadingFlag || profileFreshVersion === 0);
+  // Show cached values instantly; only report loading if we truly have nothing yet.
+  const loading = !!user && profileLoadingFlag && !profileCache;
   return {
     profile: user ? profileCache : null,
     loading: user ? loading : authLoading,
