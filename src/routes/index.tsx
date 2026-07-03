@@ -166,6 +166,23 @@ function isShipBlocked(
   return repairProgress(destroyedAt, repairEndsAt) < FISH_REPAIR_MIN;
 }
 
+function repairRemainingSeconds(repairEndsAt?: string | null): number {
+  if (!repairEndsAt) return 0;
+  const endMs = new Date(repairEndsAt).getTime();
+  if (!Number.isFinite(endMs)) return 0;
+  return Math.max(0, Math.ceil((endMs - serverNowMs()) / 1000));
+}
+
+function formatRepairTime(totalSeconds: number): string {
+  const safe = Math.max(0, Math.ceil(totalSeconds));
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = safe % 60;
+  if (h > 0) return `${h}س ${m}د ${s}ث`;
+  if (m > 0) return `${m}د ${s}ث`;
+  return `${s}ث`;
+}
+
 
 
 // Fixed visual slots — each ship in the fleet gets a distinct (top, dockLeft, scale)
@@ -358,6 +375,7 @@ function Index() {
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
+    try { await (supabase as any).rpc("finalize_ship_repairs"); } catch { /* best-effort repair tick */ }
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
@@ -587,6 +605,26 @@ function Index() {
       if (ch) supabase.removeChannel(ch);
     };
   }, []);
+
+  useEffect(() => {
+    const activeRepairEnds = ships
+      .map((s) => (s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0))
+      .filter((t) => Number.isFinite(t) && t > serverNowMs())
+      .sort((a, b) => a - b);
+    const nextRepairEnd = activeRepairEnds[0];
+    if (!nextRepairEnd) return;
+    const syncRepairs = async () => {
+      try { await (supabase as any).rpc("finalize_ship_repairs"); } catch { /* best-effort repair tick */ }
+      syncFleetFromDb();
+    };
+    const delay = Math.min(Math.max(500, nextRepairEnd - serverNowMs() + 500), 60_000);
+    const timer = window.setTimeout(syncRepairs, delay);
+    const interval = window.setInterval(syncRepairs, 60_000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+    };
+  }, [ships.map((s) => s.repairEndsAt ?? "").join("|")]);
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
@@ -2249,12 +2287,8 @@ function Index() {
               )}
               {!onSteal && (() => {
                 const dead = isShipBlocked(s.destroyedAt, s.repairEndsAt, s.hp, s.maxHp);
-                const endMs = s.repairEndsAt ? new Date(s.repairEndsAt).getTime() : 0;
-                const remSec = dead && endMs > serverNowMs() ? Math.max(0, Math.ceil((endMs - serverNowMs()) / 1000)) : 0;
-                const h = Math.floor(remSec / 3600);
-                const m = Math.floor((remSec % 3600) / 60);
-                const sec = remSec % 60;
-                const remStr = h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}د ${sec}ث` : `${sec}ث`;
+                const remSec = repairRemainingSeconds(s.repairEndsAt);
+                const remStr = formatRepairTime(remSec);
                 if (dead) {
                   return (
                     <div className="flex flex-col items-center gap-2 px-3 py-2 rounded-xl bg-stone-900/70 border border-rose-500/50">
@@ -2275,61 +2309,68 @@ function Index() {
                 }
 
                 return (
-                  <div className="flex gap-3" dir="ltr">
-                    <ActionBtn
-                      emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
-                      label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
-                      onClick={(e: React.MouseEvent) => {
-                        setMenuShipId(null);
-                        if (!ready && s.progress <= 0 && !s.fishing && getCrewBonuses(s).guide) {
-                          setFishPickerShipId(s.id);
-                          return;
-                        }
-                        collect(s.id, e);
-                      }}
-                    />
-                    {s.fishing && getCrewBonuses(s).guide && (
+                  <div className="flex flex-col items-center gap-2">
+                    {remSec > 0 && (
+                      <div className="px-3 py-1.5 rounded-xl bg-emerald-950/65 border border-emerald-400/50 text-emerald-100 text-[11px] font-bold tabular-nums text-center">
+                        🔧 الإصلاح الذاتي ينتهي خلال {remStr}
+                      </div>
+                    )}
+                    <div className="flex gap-3" dir="ltr">
                       <ActionBtn
-                        emoji="🧭"
-                        label="غيّر النوع"
-                        onClick={() => {
+                        emoji={ready ? "🪣" : s.progress > 0 || s.fishing ? "🪣" : "🎣"}
+                        label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
+                        onClick={(e: React.MouseEvent) => {
                           setMenuShipId(null);
-                          setFishPickerChangeOnly(true);
-                          setFishPickerShipId(s.id);
-                        }}
-                      />
-                    )}
-                    <ActionBtn
-                      emoji="👥"
-                      label="طاقم"
-                      onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
-                    />
-                    {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
-                      <ActionBtn
-                        emoji="⭐"
-                        label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
-                        onClick={() => { setMenuShipId(null); setUpgradeSubShipId(s.id); }}
-                      />
-                    )}
-                    <ActionBtn
-                      emoji="💰"
-                      label="بيع"
-                      onClick={() => {
-                        setMenuShipId(null);
-                        if (ships.length <= MIN_FLEET) {
-                          showToast("لا يمكن بيع آخر سفينة في الأسطول");
-                          return;
-                        }
-                        {
-                          const maxHp = s.maxHp ?? 100;
-                          if ((s.hp ?? 0) < maxHp || s.destroyedAt || s.repairEndsAt) {
-                            showToast("لا يمكن بيع السفينة قبل إصلاحها بالكامل");
+                          if (!ready && s.progress <= 0 && !s.fishing && getCrewBonuses(s).guide) {
+                            setFishPickerShipId(s.id);
                             return;
                           }
-                        }
-                        setModal({ kind: "sell", shipId: s.id });
-                      }}
-                    />
+                          collect(s.id, e);
+                        }}
+                      />
+                      {s.fishing && getCrewBonuses(s).guide && (
+                        <ActionBtn
+                          emoji="🧭"
+                          label="غيّر النوع"
+                          onClick={() => {
+                            setMenuShipId(null);
+                            setFishPickerChangeOnly(true);
+                            setFishPickerShipId(s.id);
+                          }}
+                        />
+                      )}
+                      <ActionBtn
+                        emoji="👥"
+                        label="طاقم"
+                        onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
+                      />
+                      {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
+                        <ActionBtn
+                          emoji="⭐"
+                          label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
+                          onClick={() => { setMenuShipId(null); setUpgradeSubShipId(s.id); }}
+                        />
+                      )}
+                      <ActionBtn
+                        emoji="💰"
+                        label="بيع"
+                        onClick={() => {
+                          setMenuShipId(null);
+                          if (ships.length <= MIN_FLEET) {
+                            showToast("لا يمكن بيع آخر سفينة في الأسطول");
+                            return;
+                          }
+                          {
+                            const maxHp = s.maxHp ?? 100;
+                            if ((s.hp ?? 0) < maxHp || s.destroyedAt || s.repairEndsAt) {
+                              showToast("لا يمكن بيع السفينة قبل إصلاحها بالكامل");
+                              return;
+                            }
+                          }
+                          setModal({ kind: "sell", shipId: s.id });
+                        }}
+                      />
+                    </div>
                   </div>
                 );
               })()}
@@ -4385,14 +4426,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       {/* Lightweight per-ship timer (fishing time-left, or repair countdown). */}
       {(() => {
         let label = "";
-        if (destroyed && ship.repairEndsAt) {
-          const rem = Math.max(0, Math.ceil((new Date(ship.repairEndsAt).getTime() - serverNowMs()) / 1000));
-          if (rem > 0) {
-            const h = Math.floor(rem / 3600);
-            const m = Math.floor((rem % 3600) / 60);
-            const s = rem % 60;
-            label = `🔧 ${h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}ث`}`;
-          }
+        const repairRem = repairRemainingSeconds(ship.repairEndsAt);
+        if (repairRem > 0) {
+          label = `🔧 ${formatRepairTime(repairRem)}`;
         } else if (ship.fishing && !ready) {
           // `timeLeft` is in "effective trip seconds". With a sailor active the
           // trip progresses at 2x, so real wall-clock remaining = timeLeft / 2.
