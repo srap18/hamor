@@ -2005,9 +2005,8 @@ function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: numb
 
   return (
     <div className={`flex items-center gap-2 rounded-lg px-2 py-1.5 min-w-[180px] max-w-[220px] ${mine ? "bg-amber-950/30" : "bg-stone-900/40"}`}>
-      <audio ref={audioRef} src={src} preload="metadata" playsInline crossOrigin="anonymous">
-        {inferredType && <source src={src} type={inferredType} />}
-      </audio>
+      <audio ref={audioRef} src={src} preload="auto" playsInline />
+
       <button
         type="button"
         onClick={toggle}
