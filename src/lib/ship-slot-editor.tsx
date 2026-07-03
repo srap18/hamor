@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { useAuth } from "@/hooks/use-auth";
+
+const SHIP_EDITOR_EMAIL = "ccx1357@gmail.com";
 
 export type SlotPos = { top: number; left: number; scale: number };
 export type SlotOverride = { dock?: SlotPos; sea?: SlotPos };
