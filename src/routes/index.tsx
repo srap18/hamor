@@ -34,6 +34,12 @@ import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 
 import { ShieldBadge } from "@/components/ShieldBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
+import {
+  useShipSlotOverrides,
+  useShipSlotEditor,
+  ShipSlotEditorOverlay,
+  ShipSlotEditorToolbar,
+} from "@/lib/ship-slot-editor";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
 import cloudImg from "@/assets/cloud-realistic.png";
