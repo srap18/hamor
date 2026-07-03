@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { useAuth } from "@/hooks/use-auth";
+
+const SHIP_EDITOR_EMAIL = "ccx1357@gmail.com";
 
 export type SlotPos = { top: number; left: number; scale: number };
 export type SlotOverride = { dock?: SlotPos; sea?: SlotPos };
@@ -71,6 +74,8 @@ const notifyEdit = () => editSubs.forEach((fn) => { try { fn(); } catch { /* noo
 
 export function useShipSlotEditor() {
   const { isAdmin } = useIsAdmin();
+  const { user } = useAuth();
+  const allowed = isAdmin && (user?.email ?? "").toLowerCase() === SHIP_EDITOR_EMAIL;
   const enabled = useSyncExternalStore(
     (fn) => { editSubs.add(fn); return () => { editSubs.delete(fn); }; },
     () => editEnabled,
@@ -82,7 +87,7 @@ export function useShipSlotEditor() {
     () => "dock" as const,
   );
   return {
-    isAdmin,
+    isAdmin: allowed,
     enabled,
     mode,
     setEnabled: (v: boolean) => { editEnabled = v; notifyEdit(); },
