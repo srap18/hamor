@@ -7,12 +7,13 @@ import { syncServerTime } from "@/lib/server-time";
  * required to keep Google Play from flagging the app for poor offline UX.
  */
 export function OfflineOverlay() {
-  const [offline, setOffline] = useState<boolean>(
-    typeof navigator !== "undefined" ? !navigator.onLine : false,
-  );
+  const [offline, setOffline] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false);
   const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setOffline(!navigator.onLine);
     const on = () => setOffline(false);
     const off = () => setOffline(true);
     window.addEventListener("online", on);
