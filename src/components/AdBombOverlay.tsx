@@ -5,6 +5,7 @@ import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import nukeReal from "@/assets/fx/nuke-real.png";
+import { ReportMessageButton } from "@/components/ReportMessageButton";
 
 
 type AdBomb = {
