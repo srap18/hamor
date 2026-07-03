@@ -345,6 +345,9 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [deleteBanEmail, setDeleteBanEmail] = useState(true);
   const [deleteReason, setDeleteReason] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [banDays, setBanDays] = useState<string>("1");
+  const [banReason, setBanReason] = useState<string>("");
+  const [banningAccount, setBanningAccount] = useState(false);
 
   const loadLinked = useCallback(async () => {
     setLinkedLoading(true);
