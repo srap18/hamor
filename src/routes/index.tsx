@@ -209,7 +209,8 @@ function loadFleet(): Ship[] {
     const raw = window.localStorage.getItem(FLEET_KEY);
     if (!raw) return INITIAL_SHIPS;
     const slots = JSON.parse(raw) as FleetSlot[];
-    if (!Array.isArray(slots) || slots.length === 0) return INITIAL_SHIPS;
+    if (!Array.isArray(slots)) return INITIAL_SHIPS;
+    if (slots.length === 0) return []; // user owns no ships — empty harbor
     if (slots.some((s) => s.level >= 31 && !s.catalogCode)) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
@@ -377,7 +378,9 @@ function Index() {
     if (!uid) return;
     // Fire finalize in the background so destroyed/repair status renders immediately
     // from the current DB row instead of waiting for the RPC round-trip.
-    (supabase as any).rpc("finalize_ship_repairs").catch(() => { /* best-effort repair tick */ });
+    // NOTE: supabase.rpc() returns a thenable builder (not a real Promise), so
+    // `.catch` is undefined — wrap with Promise.resolve() before catching.
+    Promise.resolve((supabase as any).rpc("finalize_ship_repairs")).catch(() => { /* best-effort repair tick */ });
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
@@ -387,8 +390,11 @@ function Index() {
     const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null }[];
 
     setShips((curr) => {
-      // If the user has zero ships in DB, keep whatever is on screen (starter scene).
-      if (owned.length === 0) return curr;
+      // If the user has zero ships in DB, clear the harbor — a placeholder
+      // starter ship must NOT remain visible when the player owns no ships.
+      if (owned.length === 0) {
+        return curr.filter((s) => s.dbId && false); // → []
+      }
 
       // Keep existing DB-backed ships that are still owned; drop stale + placeholders.
       const ownedIds = new Set(owned.map((o) => o.id));
