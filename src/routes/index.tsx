@@ -4420,14 +4420,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       {/* Lightweight per-ship timer (fishing time-left, or repair countdown). */}
       {(() => {
         let label = "";
-        if (destroyed && ship.repairEndsAt) {
-          const rem = Math.max(0, Math.ceil((new Date(ship.repairEndsAt).getTime() - serverNowMs()) / 1000));
-          if (rem > 0) {
-            const h = Math.floor(rem / 3600);
-            const m = Math.floor((rem % 3600) / 60);
-            const s = rem % 60;
-            label = `🔧 ${h > 0 ? `${h}س ${m}د` : m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}ث`}`;
-          }
+        const repairRem = repairRemainingSeconds(ship.repairEndsAt);
+        if (repairRem > 0) {
+          label = `🔧 ${formatRepairTime(repairRem)}`;
         } else if (ship.fishing && !ready) {
           // `timeLeft` is in "effective trip seconds". With a sailor active the
           // trip progresses at 2x, so real wall-clock remaining = timeLeft / 2.
