@@ -64,22 +64,8 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
   useEffect(() => { if (open) reload(); }, [open, reload]);
 
-  // Auto-activate stored ships if active fleet has empty slots (force 3 at sea when possible)
-  useEffect(() => {
-    if (!open || loading || busyId) return;
-    const activeShips = ships.filter(s => !s.in_storage);
-    const storedShips = ships.filter(s => s.in_storage);
-    if (activeShips.length < MAX_ACTIVE && storedShips.length > 0) {
-      const next = storedShips[0];
-      (async () => {
-        setBusyId(next.id);
-        await callRpc("ship_from_storage", { p_ship_id: next.id });
-        await reload();
-        setBusyId(null);
-        showNotice("⚓ تم إخراج السفينة تلقائياً");
-      })();
-    }
-  }, [open, loading, busyId, ships, reload]);
+  // NOTE: No auto-activate. The player chooses whether to keep ships in storage
+  // (previously an effect forced 3-at-sea and made "move to storage" impossible).
 
   if (!open) return null;
 
@@ -200,10 +186,10 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
                       </button>
                     ) : (
                       <button
-                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= MAX_ACTIVE}
+                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= 1}
                         onClick={() => moveToStorage(ship.id)}
                         className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-200 text-[11px] font-black active:scale-95 disabled:opacity-40"
-                        title={active.length <= MAX_ACTIVE ? "لا يمكن إنقاص الأسطول — استخدم التبديل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
+                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
                       >
                         📦 للمخزن
                       </button>
