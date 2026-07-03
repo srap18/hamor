@@ -1204,10 +1204,11 @@ function Index() {
     let raf = 0;
     let timeout: ReturnType<typeof setTimeout> | null = null;
     let last = 0;
-    // Lite Mode / weak devices: keep ship sailing smooth enough to not look
-    // stuck, but update passive fishing timers much less often.
-    const MOVE_FRAME_MS = isHeavyFxDisabled ? 66 : 33;
-    const PROGRESS_FRAME_MS = isHeavyFxDisabled ? 500 : 33;
+    // Ship travel is now CSS-transition driven: React only flips the target
+    // endpoint (dock/sea), avoiding many tiny state updates that looked choppy
+    // on phones. Progress still ticks, but at a calm UI cadence.
+    const MOVE_FRAME_MS = 100;
+    const PROGRESS_FRAME_MS = isHeavyFxDisabled ? 750 : 500;
     const IDLE_MS = isHeavyFxDisabled ? 250 : 500;
     const EPS = 0.001;
 
@@ -1232,11 +1233,9 @@ function Index() {
       setShips((curr) => {
         const next = curr.map((s) => {
           const target = s.fishing ? 1 : 0;
-          const smoothing = 1 - Math.exp(-dt / 220);
-          const sailDelta = (target - s.sail) * smoothing;
-          const sailMoving = Math.abs(sailDelta) > EPS;
+          const sailMoving = Math.abs(target - s.sail) > EPS;
           if (sailMoving) sailBusy = true;
-          const sail = sailMoving ? s.sail + sailDelta : target;
+          const sail = sailMoving ? target : s.sail;
 
 
           if (!s.fishing || !s.startedAt) {
