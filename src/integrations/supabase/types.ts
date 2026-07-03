@@ -2121,6 +2121,51 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reports: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message_body: string
+          reason: string | null
+          reported_user_id: string
+          reporter_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message_body?: string
+          reason?: string | null
+          reported_user_id: string
+          reporter_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message_body?: string
+          reason?: string | null
+          reported_user_id?: string
+          reporter_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           audio_duration_ms: number | null
@@ -2501,6 +2546,7 @@ export type Database = {
           referral_code: string | null
           referral_locked_at: string | null
           referred_by: string | null
+          reports_disabled: boolean
           rubies: number
           selected_bg_id: string
           shield_cooldown_until: string | null
@@ -2566,6 +2612,7 @@ export type Database = {
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
+          reports_disabled?: boolean
           rubies?: number
           selected_bg_id?: string
           shield_cooldown_until?: string | null
@@ -2631,6 +2678,7 @@ export type Database = {
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
+          reports_disabled?: boolean
           rubies?: number
           selected_bg_id?: string
           shield_cooldown_until?: string | null
