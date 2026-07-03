@@ -140,10 +140,15 @@ export function RechargePanel() {
     [sub],
   );
 
-  // On native apps we still show the Shopify storefront — checkout opens
-  // in the in-app browser via @capacitor/browser.
-  void isNativeApp;
-  void NativePurchaseBlock;
+  // Native apps (Android / iOS) — MUST use Google Play Billing / Apple IAP.
+  // Paddle is forbidden by store policies for digital goods on native.
+  if (isNativeApp()) {
+    return (
+      <div className="text-white" dir="rtl">
+        <NativePurchaseBlock />
+      </div>
+    );
+  }
 
 
   return (

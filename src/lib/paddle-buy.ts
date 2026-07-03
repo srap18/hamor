@@ -1,5 +1,6 @@
 import { initializePaddle, getPaddlePriceId } from "./paddle";
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp, isAndroidApp, isIosApp } from "@/lib/platform";
 
 /**
  * Open Paddle checkout for a given price external_id (pack id for store packs
@@ -8,6 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
  * with `_ptxn` on success; webhook + claim function grant the rewards.
  */
 export async function buyPackWithPaddle(externalPriceId: string): Promise<void> {
+  // Defensive guard: Paddle is web-only. Native apps MUST use IAP.
+  if (isNativeApp()) {
+    const store = isAndroidApp() ? "Google Play" : isIosApp() ? "App Store" : "المتجر";
+    throw new Error(`الدفع داخل التطبيق يتم عبر ${store} فقط.`);
+  }
   await initializePaddle();
   const { data: u } = await supabase.auth.getUser();
   const userId = u.user?.id;
