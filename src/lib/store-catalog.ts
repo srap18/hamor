@@ -401,18 +401,6 @@ export const STORE_PACKS: StorePack[] = [
     description: "حماية كاملة لمدة 3 أيام — قيمة ممتازة",
     reward: { shieldDays: 3 },
   },
-  {
-    id: "shield_week",
-    category: "shield",
-    label: "🛡️ درع أسبوع كامل",
-    emoji: "🛡️",
-    priceUSD: 5.99,
-    weeklyLimit: 2,
-    popular: true,
-    tag: "أفضل قيمة",
-    description: "أسبوع كامل من الحماية القوية — وفّر 30%",
-    reward: { shieldDays: 7 },
-  },
 
   // ───── Weapons ────────────────────────────────────────────
   {
