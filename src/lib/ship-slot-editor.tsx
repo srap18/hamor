@@ -6,7 +6,7 @@ import { BACKGROUNDS } from "@/lib/backgrounds";
 
 const SHIP_EDITOR_EMAIL = "ccx1357@gmail.com";
 const GLOBAL_LAYOUT_BG_ID = "__global__";
-const LAYOUT_CACHE_KEY = "ship_slot_layout_cache_v1";
+const LAYOUT_CACHE_KEY = "ship_slot_layout_cache_v2";
 
 export type SlotPos = { top: number; left: number; scale: number };
 export type SlotOverride = { dock?: SlotPos; sea?: SlotPos };
@@ -86,6 +86,13 @@ function ensureChannel() {
       () => { loadAll(); },
     )
     .subscribe();
+}
+
+// Kick off fetch + realtime subscription as soon as the module loads on the
+// client so ship positions are ready before the first paint of the shore.
+if (typeof window !== "undefined") {
+  ensureChannel();
+  loadAll();
 }
 
 /** Read overrides for a specific background. */
