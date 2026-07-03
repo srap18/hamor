@@ -53,10 +53,14 @@ export type SceneBg = {
 // Stacked vertically along the shore — same horizontal position, evenly
 // spaced top-to-bottom, identical scale. Matches the reference layout
 // where docked ships form a clean vertical column at the marina.
+// Three slots with distinct top + scale so ships never stack on top of each
+// other when they all sail out to sea. Different scales produce different
+// seaEdge landing positions (seaEdge = 96 - 22*scale), so the three ships
+// spread horizontally at sea instead of piling on the same pixel.
 const UNIFIED_SHIP_SLOTS = [
-  { top: 48, left: 48, scale: 0.9 },
-  { top: 54, left: 48, scale: 1.4 },
-  { top: 66, left: 48, scale: 1.4 },
+  { top: 44, left: 46, scale: 0.85 },
+  { top: 56, left: 50, scale: 1.15 },
+  { top: 70, left: 48, scale: 1.4 },
 ] as const;
 
 
