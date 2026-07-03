@@ -2862,6 +2862,24 @@ export type Database = {
         }
         Relationships: []
       }
+      shield_type_activations: {
+        Row: {
+          item_id: string
+          last_activated_at: string
+          user_id: string
+        }
+        Insert: {
+          item_id: string
+          last_activated_at?: string
+          user_id: string
+        }
+        Update: {
+          item_id?: string
+          last_activated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ship_catalog: {
         Row: {
           active: boolean
