@@ -28,6 +28,22 @@ export function EliteVipLoginOverlay() {
   }, [user, loading]);
 
   useEffect(() => {
+    let cancelled = false;
+    // Backfill: show any broadcast from the last 60 seconds that we missed
+    // because we weren't subscribed yet (page just loaded / navigated).
+    (async () => {
+      const { data } = await supabase
+        .from("elite_vip_login_broadcasts")
+        .select("*")
+        .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+        .order("created_at", { ascending: true });
+      if (cancelled || !data) return;
+      const rows = (data as LoginBroadcast[]).filter(
+        (r) => !user || r.user_id !== user.id,
+      );
+      if (rows.length) setQueue((q) => [...q, ...rows]);
+    })();
+
     const channel = supabase
       .channel("elite-vip-login-broadcasts")
       .on(
@@ -36,11 +52,12 @@ export function EliteVipLoginOverlay() {
         (payload) => {
           const row = payload.new as LoginBroadcast;
           if (user && row.user_id === user.id) return;
-          setQueue((q) => [...q, row]);
+          setQueue((q) => (q.some((r) => r.id === row.id) ? q : [...q, row]));
         },
       )
       .subscribe();
     return () => {
+      cancelled = true;
       supabase.removeChannel(channel);
     };
   }, [user]);
