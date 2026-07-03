@@ -860,6 +860,10 @@ function Index() {
   }, [profile]);
   const lastGfTickRef = useRef<number>(0);
   const gfTickInFlightRef = useRef(false);
+  // Timestamp of the most recent tick that actually advanced fishing_started_at.
+  // Used to release the ratio clamp when the tick stalls (RPC failure, permission
+  // denied, throttle) so ships don't freeze at 99% forever.
+  const lastGfAdvanceAtRef = useRef<number>(0);
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
@@ -1302,8 +1306,14 @@ function Index() {
             // server tick re-ages the timer. When the market is full the tick
             // can never advance the timer, so DON'T clamp — let the ship show
             // as "✅ ready" so the player can sell + collect manually.
-              if (gfActive && !gfMarketFullRef.current) {
+            // Also release the clamp if the tick hasn't successfully advanced
+            // in the last 5 seconds (RPC failure / permission denied / stalled
+            // network) — otherwise the ship freezes at 188,100/190,000 forever.
+            const tickIsFresh = (now - lastGfAdvanceAtRef.current) < 5000;
+            if (gfActive && !gfMarketFullRef.current && tickIsFresh) {
               ratio = 0.99;
+            }
+            if (gfActive && !gfMarketFullRef.current) {
               if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 200) {
                 lastGfTickRef.current = now;
                 gfTickInFlightRef.current = true;
@@ -1312,6 +1322,13 @@ function Index() {
                     const wasFull = gfMarketFullRef.current;
                     const isFull = !!res?.market_full;
                     gfMarketFullRef.current = isFull;
+                    // Mark advance timestamp only when the tick actually
+                    // succeeded (ok === true and not market_full) so the clamp
+                    // can hold. On any other outcome, leave the timestamp
+                    // stale so the clamp releases.
+                    if (res && res.ok === true && !isFull) {
+                      lastGfAdvanceAtRef.current = Date.now();
+                    }
                     if (isFull && !wasFull) {
                       setToast("📦 سوق السمك ممتلئ! الصياد الذهبي توقف — فرّغ السوق ليبدأ الصيد من جديد");
                       setTimeout(() => setToast(null), 3500);
