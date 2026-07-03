@@ -2155,14 +2155,25 @@ function Index() {
         // Keep ships sitting low on the water surface (not floating high above it).
         const ts = [0.55, 0.75, 0.4];
         const vRange = Math.max(10, 60 - (wTop + 10));
-        const top = `${fixedSlot?.top ?? wTop + 10 + ts[i] * vRange}%`;
-
-        const scale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42; // far ship smaller, near ship bigger
-        // Dock on the LEFT half of the water band so each ship always has
-        // room to sail rightward when fishing (and visibly return to dock when recalled).
+        const defaultTop = fixedSlot?.top ?? wTop + 10 + ts[i] * vRange;
+        const defaultScale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42;
         const hOffsets = [0.05, 0.3, 0.6];
-        const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
+        const defaultLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
 
+        // Admin overrides (per background + slot + mode).
+        const ov = slotOverrides[i] || {};
+        const dockPos = ov.dock;
+        const seaPos = ov.sea;
+        const topNum = dockPos?.top ?? defaultTop;
+        const scale = dockPos?.scale ?? defaultScale;
+        const dockLeft = dockPos?.left ?? defaultLeft;
+
+        // Editor preview: force sail=0 in dock mode, sail=1 in sea mode so the
+        // admin sees exactly where the ship will sit before publishing.
+        let previewSail: number | undefined;
+        if (editor.isAdmin && editor.enabled) {
+          previewSail = editor.mode === "sea" ? 1 : 0;
+        }
 
         const shipCrews = crewRows
           .filter((r) => isCrewActiveOnShip(r.meta, s, now))
@@ -2172,13 +2183,49 @@ function Index() {
         return (
           <ShipSlot
             key={s.id}
-            ship={{ ...s, top, scale, dockLeft, seaSide: scene.seaSide }}
+            ship={{
+              ...s,
+              top: `${topNum}%`,
+              scale,
+              dockLeft,
+              seaSide: scene.seaSide,
+              seaLeft: seaPos?.left,
+              seaTop: seaPos?.top,
+              seaScale: seaPos?.scale,
+              sail: previewSail ?? s.sail,
+            }}
             crews={shipCrews}
             onTap={() => setMenuShipId(s.id)}
             active={menuShipId === s.id}
           />
         );
       })}
+
+      {/* Admin overlay: draggable pucks for editing per-slot positions */}
+      {editor.isAdmin && editor.enabled && (
+        <ShipSlotEditorOverlay
+          bgId={scene.id}
+          slots={[0, 1, 2].map((i) => {
+            const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
+            const wTop = scene.waterTop ?? 45;
+            const wLeft = scene.waterLeft ?? 30;
+            const wRight = scene.waterRight ?? 75;
+            const wWidth = Math.max(15, wRight - wLeft);
+            const ts = [0.55, 0.75, 0.4];
+            const vRange = Math.max(10, 60 - (wTop + 10));
+            const defTop = fixedSlot?.top ?? wTop + 10 + ts[i] * vRange;
+            const defScale = fixedSlot?.scale ?? 0.95 + ts[i] * 0.42;
+            const hOffsets = [0.05, 0.3, 0.6];
+            const defLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
+            const ov = slotOverrides[i] || {};
+            const cur = editor.mode === "dock"
+              ? (ov.dock ?? { top: defTop, left: defLeft, scale: defScale })
+              : (ov.sea ?? { top: defTop, left: (scene.seaSide === "right" ? (96 - 22 * defScale) : 2), scale: defScale });
+            return { index: i, pos: cur };
+          })}
+        />
+      )}
+
 
       {/* Incoming raider ships — render attacker pirate ships sailing in our harbor */}
       {raids.map((r, i) => {
