@@ -63,6 +63,35 @@ export function MobileFrame({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Toggle .force-portrait based on real screen orientation, not CSS
+  // media queries (which flip to landscape when the on-screen keyboard
+  // shrinks window height below width on Android).
+  useEffect(() => {
+    const update = () => {
+      const so = (window.screen as any)?.orientation;
+      const type: string | undefined = so?.type;
+      let isLandscape = false;
+      if (type) {
+        isLandscape = type.startsWith("landscape");
+      } else if (typeof window.orientation === "number") {
+        isLandscape = Math.abs(window.orientation as number) === 90;
+      } else {
+        // Last resort: compare screen dims (physical), not window dims.
+        const s = window.screen;
+        isLandscape = !!s && s.width > s.height && Math.min(s.width, s.height) < 900;
+      }
+      document.documentElement.classList.toggle("force-portrait", isLandscape);
+    };
+    update();
+    const so = (window.screen as any)?.orientation;
+    so?.addEventListener?.("change", update);
+    window.addEventListener("orientationchange", update);
+    return () => {
+      so?.removeEventListener?.("change", update);
+      window.removeEventListener("orientationchange", update);
+    };
+  }, []);
+
   return (
     <div className="mobile-frame-root">
       <div className="mobile-frame-stage">
