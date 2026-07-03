@@ -4208,96 +4208,27 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
   // Track per-frame sail delta to derive direction & motion intensity
   const delta = ship.sail - prevSailRef.current;
+  const prevSail = prevSailRef.current;
   prevSailRef.current = ship.sail;
   velocityRef.current = velocityRef.current * 0.8 + delta * 0.2;
   const v = velocityRef.current;
-  const moving = Math.abs(v) > 0.0005;
   const direction = v > 0 ? 1 : v < 0 ? -1 : 0;
   if (direction !== 0) lastDirRef.current = direction;
-  // Bow facing: +1 = pointing RIGHT, -1 = pointing LEFT (used for wake trail).
-  // Fishing → bow points toward the sea edge of the scene; docked → toward shore.
-  const _seaSideForFacing = ship.seaSide ?? "right";
-  const facing: 1 | -1 = ship.fishing
-    ? (_seaSideForFacing === "right" ? 1 : -1)
-    : (_seaSideForFacing === "right" ? -1 : 1);
 
-
-  const pct = (ship.progress / ship.max) * 100;
-  // Note: لا نضاعف السعة في الشريط حتى لا يبدو وقت الصيد كأنه يزيد مع طاقم الحظ.
-  // مضاعفة السمك تطبَّق من السيرفر عند الجمع وتظهر كـ "luckBonus" في النافذة.
-  const capacity = catchAmountForLevel(ship.level, ship.maxHp, ship.catalogCode, ship.hp);
-  const ratio = Math.min(1, ship.max > 0 ? ship.progress / ship.max : 0);
-  const caughtNow = Math.min(capacity, Math.round(capacity * ratio));
-  const ready = pct >= 100;
-  // (idle bobbing is CSS-driven; no per-frame time needed here)
-  // Stop all motion when the ship is fully docked (sail ~ 0) and not moving.
-  const docked = ship.sail < 0.05 && !moving;
-  // Bobbing / sway / rocking are handled by a pure-CSS keyframe (`animate-ship-bob`)
-  // so we don't re-render every frame for sine-wave motion. The only JS-driven
-  // tilt is the direction lean while turning, which changes rarely.
-  const tilt = direction * 2.5;
-
-  const shipW = 22 * ship.scale;
-  const dockLeft = ship.dockLeft;
-  // Sea direction: read from scene. When fishing, ship sails AWAY from shore
-  // toward the open sea edge of the viewport.
-  const seaSide = ship.seaSide ?? "right";
-  const seaEdge = seaSide === "right" ? (96 - shipW) : 2;
-  const computedLeft = dockLeft + ship.sail * (seaEdge - dockLeft);
-
-  // Pivot-in-place: when bow direction changes, hold position while the flip
-  // animation plays, then release so the ship slides smoothly to its new spot.
-  const TURN_MS = 700;
-  const facingRef = useRef(facing);
-  const turnEndRef = useRef(0);
-  const heldLeftRef = useRef(computedLeft);
-  if (facingRef.current !== facing) {
-    facingRef.current = facing;
-    turnEndRef.current = serverNowMs() + TURN_MS;
-    heldLeftRef.current = computedLeft;
-  }
-  const now = serverNowMs();
-  const turning = now < turnEndRef.current;
-  const leftOffset = turning ? heldLeftRef.current : computedLeft;
-
-  const destroyed = isShipBlocked(ship.destroyedAt, ship.repairEndsAt, ship.hp, ship.maxHp);
-  const atSea = ship.sail > 0.85 && !destroyed;
-  const isFishing = ship.fishing && atSea && !moving && !ready && !destroyed;
-  // Ship art is drawn facing LEFT natively (with per-level overrides for art
-  // that ships bow-right). Normalize so every ship shows the same on-screen
-  // direction: bow toward SEA when fishing, bow toward SHORE when docked.
-  const nativeRight = shipBowFacesRight(ship.level);
-  // Desired on-screen bow direction depends on which side is the sea.
-  // fishing → bow toward sea; docked → bow toward shore.
-  const seaIsRight = seaSide === "right";
-  const desiredRight = ship.fishing ? seaIsRight : !seaIsRight;
-  const flipX = (desiredRight !== nativeRight) ? -1 : 1;
-  const bankRoll = 0;
-  const bankPitch = 0;
-  const turnLift = 0;
-  const turnSway = 0;
-
-  // GPU-friendly movement: keep `left` static at dockLeft% and animate a
-  // compositor-only transform. This avoids per-frame layout that made the
-  // ship stutter when going out / coming back from sea on mid-range devices.
-  const sailOffsetPct = leftOffset - dockLeft; // percent of parent width
-  const shipWidthPct = 22 * ship.scale;         // matches width style below
-  // translateX with `%` is a percentage of the element's own width, so
-  // convert parent-% delta into self-% delta.
-  const translateSelfPct = shipWidthPct > 0 ? (sailOffsetPct / shipWidthPct) * 100 : 0;
-
-  return (
-    <div
-      data-ship-dbid={ship.dbId || undefined}
-      className="absolute z-10 pointer-events-none"
-      style={{
-        left: `${dockLeft}%`,
-        top: ship.top,
-        width: `min(${22 * ship.scale}%, ${140 * ship.scale}px)`,
-        perspective: "800px",
-        transformStyle: "preserve-3d",
-        transform: `translate3d(${translateSelfPct}%, 0, 0)`,
-        transition: isHeavyFxDisabled ? "transform 0.35s linear" : "transform 0.5s ease-in-out",
+  // A single long, eased CSS transition per trip = smooth, lifelike travel
+  // (no per-frame stepping, no restarting mid-way).
+  const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 1800 : 2200;
+  const [animating, setAnimating] = useState(false);
+  useEffect(() => {
+    if (Math.abs(ship.sail - prevSail) > 0.001) {
+      setAnimating(true);
+      const t = setTimeout(() => setAnimating(false), SAIL_TRAVEL_MS + 120);
+      return () => clearTimeout(t);
+    }
+  }, [ship.sail, prevSail, SAIL_TRAVEL_MS]);
+  const moving = animating;
+...
+        transition: `transform ${SAIL_TRAVEL_MS}ms cubic-bezier(0.37, 0, 0.35, 1)`,
         willChange: "transform",
         backfaceVisibility: "hidden",
       }}
