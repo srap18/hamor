@@ -67,17 +67,18 @@ export function GlobalNotificationListener() {
       try { sound.play("click"); } catch { /* noop */ }
     };
 
+    // Server-side filter: this listener only shows toasts for the recipient,
+    // so subscribe only to that user's notifications (broadcasts are handled
+    // by GlobalBanner). Cuts Realtime WAL fan-out from every notification to
+    // just this user's inserts.
     const channel = supabase
       .channel(`global-notifs:${user.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
+        { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
         (payload) => {
           const n = payload.new as Notif;
           if (!n) return;
-          // Only show to the recipient (don't toast global broadcasts here -
-          // GlobalBanner handles those).
-          if (n.recipient_id !== user.id) return;
           showToast(n);
         },
       )
