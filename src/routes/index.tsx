@@ -210,6 +210,23 @@ const INITIAL_SHIPS: Ship[] = [
 
 const FLEET_KEY = "harbor_fleet_v2";
 const MAX_FLEET = 3;
+
+// Throttled wrapper for the finalize_ship_repairs RPC.
+// The realtime subscription on ships_owned/fish_stock used to trigger this
+// RPC dozens of times per minute per player (once per fish caught, per stock
+// tick, etc.), which dominated DB time without changing any game outcome —
+// the RPC is idempotent and only does work when a repair timer has elapsed.
+// We cap it at once per 30s per user, with an escape hatch (`force=true`)
+// for the on-timer path that runs exactly when a repair is due.
+const __lastFinalizeAt: Record<string, number> = {};
+export function maybeFinalizeShipRepairs(uid: string, force = false) {
+  const now = Date.now();
+  const last = __lastFinalizeAt[uid] || 0;
+  if (!force && now - last < 30_000) return;
+  __lastFinalizeAt[uid] = now;
+  Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid }))
+    .catch(() => { /* best-effort repair tick */ });
+}
 const MIN_FLEET = 1;
 
 type FleetSlot = { id: number; dbId?: string; catalogCode?: string | null; level: number; max: number; timeLeft: number; duration?: number; progress?: number; fishing?: boolean; sail?: number; startedAt?: number; maxHp?: number; stars?: number; maxStars?: number; sailorAtStart?: boolean };
@@ -389,9 +406,10 @@ function Index() {
     if (!uid) return;
     // Fire finalize in the background so destroyed/repair status renders immediately
     // from the current DB row instead of waiting for the RPC round-trip.
-    // NOTE: supabase.rpc() returns a thenable builder (not a real Promise), so
-    // `.catch` is undefined — wrap with Promise.resolve() before catching.
-    Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid })).catch(() => { /* best-effort repair tick */ });
+    // Throttled to at most once per 30s per user — this call used to fire on
+    // every ships_owned/fish_stock realtime event (dozens per minute during
+    // fishing), which dominated DB time without changing outcomes.
+    maybeFinalizeShipRepairs(uid);
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
@@ -636,7 +654,9 @@ function Index() {
       try {
         const { data: u } = await supabase.auth.getUser();
         const uid = u.user?.id;
-        if (uid) await (supabase as any).rpc("finalize_ship_repairs", { _user: uid });
+        // Force: this path only runs when a repair timer is actually due, so
+        // the throttle in maybeFinalizeShipRepairs must not skip it.
+        if (uid) maybeFinalizeShipRepairs(uid, true);
       } catch { /* best-effort repair tick */ }
       syncFleetFromDb();
     };

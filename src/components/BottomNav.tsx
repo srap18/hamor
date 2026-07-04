@@ -138,9 +138,13 @@ export function BottomNav({ active }: { active?: string }) {
     loadNotifs();
     loadDm();
 
+    // Split notifications INSERT into personal + broadcast with server-side
+    // filters so Realtime doesn't fan every insert (all players' notifications)
+    // out to every connected client just to trigger a badge refetch.
     const ch = supabase
       .channel(`bottom-nav:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, loadNotifs)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, loadNotifs)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, loadNotifs)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
       .subscribe();
 
