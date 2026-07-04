@@ -2874,9 +2874,13 @@ function Index() {
                   return;
                 }
                 // Optimistic UI: close modal + fill all ships immediately
-                setShips((arr) => arr.map((x) => x.dbId
-                  ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
-                  : x));
+                setShips((arr) => arr.map((x) => {
+                  if (!x.dbId) return x;
+                  const wasBlocked = !!(x.destroyedAt || x.repairEndsAt);
+                  return wasBlocked
+                    ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                    : { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null };
+                }));
                 setModal(null);
                 try {
                   const result = await repairOnServer(s, itemId);
