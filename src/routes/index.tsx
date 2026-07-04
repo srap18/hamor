@@ -656,8 +656,9 @@ function Index() {
         const { data: u } = await supabase.auth.getUser();
         const uid = u.user?.id;
         // Force: this path only runs when a repair timer is actually due, so
-        // the throttle in maybeFinalizeShipRepairs must not skip it.
-        if (uid) maybeFinalizeShipRepairs(uid, true);
+        // the throttle in maybeFinalizeShipRepairs must not skip it. Await the
+        // RPC so the subsequent fleet sync sees repair_ends_at cleared.
+        if (uid) await maybeFinalizeShipRepairs(uid, true);
       } catch { /* best-effort repair tick */ }
       syncFleetFromDb();
     };
