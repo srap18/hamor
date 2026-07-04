@@ -1120,9 +1120,10 @@ function PlayerPage() {
         if (tIdx >= 0) {
           void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
-          const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
-          const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const targetScale = fixedSlot?.scale ?? 1;
+          const ovT = slotOverrides[tIdx] || {};
+          const tTop = ovT.dock?.top ?? fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
+          const dockLeft = ovT.dock?.left ?? fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
+          const targetScale = ovT.dock?.scale ?? fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
           const tShipW = 22 * targetScale;
           raiderScale = targetScale;
           // Keep the raider attached to the target ship, but clamp it inside the visible water band.
