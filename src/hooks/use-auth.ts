@@ -252,9 +252,10 @@ export function useProfile() {
 }
 
 /** Trigger a one-shot refetch of the current user's profile (use after writes). */
-export function refreshProfile() {
-  if (profileChannelUserId) fetchProfileNow(profileChannelUserId);
+export function refreshProfile(): Promise<void> {
+  const p = profileChannelUserId ? fetchProfileNow(profileChannelUserId) : Promise.resolve();
   if (typeof window !== "undefined") window.dispatchEvent(new Event("profile:refresh"));
+  return p as Promise<void>;
 }
 
 /**
