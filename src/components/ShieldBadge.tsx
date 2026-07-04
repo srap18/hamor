@@ -35,13 +35,16 @@ export function ShieldBadge() {
     try {
       const { error } = await (supabase as any).rpc("drop_my_protection");
       if (error) throw error;
+      // Await the refetch so the badge disappears immediately (protection_until = NULL)
+      // instead of waiting for the realtime UPDATE to arrive.
+      await refreshProfile();
       toast.success("🗑️ تم إزالة الدرع");
-      refreshProfile();
     } catch {
       toast.error("تعذّر إزالة الدرع");
     } finally {
       setBusy(false);
     }
+
 
   };
 
