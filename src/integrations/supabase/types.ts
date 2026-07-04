@@ -6211,6 +6211,16 @@ export type Database = {
         Args: { _stars: number }
         Returns: number
       }
+      submit_message_report: {
+        Args: {
+          _kind: string
+          _message_body?: string
+          _reason?: string
+          _reported_user_id: string
+          _source_id?: string
+        }
+        Returns: string
+      }
       swap_ship_with_storage: {
         Args: { p_active_id: string; p_storage_id: string }
         Returns: Json
