@@ -6,6 +6,7 @@ import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
+import { useShipSlotOverrides, useShipSlotLayoutReady } from "@/lib/ship-slot-editor";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
@@ -981,10 +982,13 @@ function PlayerPage() {
   const wRight = scene.waterRight ?? 75;
   const wWidth = Math.max(15, wRight - wLeft);
   // Mirror the owner's harbor layout exactly (src/routes/index.tsx)
-  const ts = [0.25, 0.5, 0.15];
-  const vRange = Math.max(10, 60 - (wTop + 4));
+  const ts = [0.55, 0.75, 0.4];
+  const vRange = Math.max(10, 60 - (wTop + 10));
   const hOffsets = [0.05, 0.3, 0.6];
   const seaSide = scene.seaSide ?? "right";
+  const slotOverrides = useShipSlotOverrides(scene.id);
+  const shipSlotLayoutReady = useShipSlotLayoutReady();
+
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
@@ -1075,26 +1079,32 @@ function PlayerPage() {
           لا توجد سفن لهذا اللاعب
         </div>
       )}
-      {ships.map((s, i) => {
+      {shipSlotLayoutReady && ships.map((s, i) => {
         const img = s.catalog_code ? getShipByCode(s.catalog_code).image : getShipByMarketLevel(s.template_id || 1).image;
         const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
-        const top = `${fixedSlot?.top ?? wTop + 4 + ts[i % ts.length] * vRange}%`;
-        const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
-        const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
-        const shipW = 22 * scale;
-        void shipW;
+        const defaultTop = fixedSlot?.top ?? wTop + 10 + ts[i % ts.length] * vRange;
+        const defaultScale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
+        const defaultLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
+        const ov = slotOverrides[i] || {};
+        const dockPos = ov.dock;
+        const seaPos = ov.sea;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        // Always render at the base slot position (same layout as owner's home view)
-        // so ships never clip off-screen on mobile when "at sea".
-        const left = `${dockLeft}%`;
-        void seaSide;
+        const atSea = s.at_sea && !destroyed;
+        // Match owner's home view exactly: use sea override when at sea, dock override otherwise.
+        const pos = atSea ? (seaPos ?? dockPos) : dockPos;
+        const topNum = pos?.top ?? defaultTop;
+        const scale = pos?.scale ?? defaultScale;
+        const leftNum = pos?.left ?? defaultLeft;
+        const top = `${topNum}%`;
+        const left = `${leftNum}%`;
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        return <VisitorShip key={s.id} img={img} top={top} left={left} scale={scale} atSea={atSea} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
+
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
       {raiders.map((r, i) => {
@@ -1110,9 +1120,10 @@ function PlayerPage() {
         if (tIdx >= 0) {
           void ships[tIdx];
           const fixedSlot = scene.shipSlots?.[tIdx % (scene.shipSlots?.length || 1)];
-          const tTop = fixedSlot?.top ?? wTop + 4 + ts[tIdx % ts.length] * vRange;
-          const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
-          const targetScale = fixedSlot?.scale ?? 1;
+          const ovT = slotOverrides[tIdx] || {};
+          const tTop = ovT.dock?.top ?? fixedSlot?.top ?? wTop + 10 + ts[tIdx % ts.length] * vRange;
+          const dockLeft = ovT.dock?.left ?? fixedSlot?.left ?? wLeft + hOffsets[tIdx % hOffsets.length] * wWidth;
+          const targetScale = ovT.dock?.scale ?? fixedSlot?.scale ?? 0.95 + ts[tIdx % ts.length] * 0.42;
           const tShipW = 22 * targetScale;
           raiderScale = targetScale;
           // Keep the raider attached to the target ship, but clamp it inside the visible water band.
