@@ -174,12 +174,13 @@ function ShipyardPage() {
     });
     if (!ok) return;
     setBusy("upgrade");
-    const { error } = await marketStartUpgrade();
-    setBusy(null);
-    if (error) { showToast(error.message || "تعذر بدء الترقية"); return; }
-    await loadData();
-    showToast("بدأت ترقية السوق");
-    refreshProfile();
+    try {
+      const { error } = await marketStartUpgrade();
+      if (error) { showToast(error.message || "تعذر بدء الترقية"); return; }
+      await loadData();
+      showToast("بدأت ترقية السوق");
+      refreshProfile();
+    } finally { setBusy(null); }
   };
 
   const finishWithGems = async () => {
