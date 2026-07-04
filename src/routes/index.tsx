@@ -1580,7 +1580,9 @@ function Index() {
     });
     if (error) {
       delete collectingRef.current[s.dbId];
-      setCatchResult(null);
+      // Do NOT clear catchResult here — keep the optimistic popup visible
+      // so the player always sees a result. Specific branches below replace it.
+
 
       const msg = String(error.message || "");
 
