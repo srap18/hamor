@@ -219,12 +219,13 @@ const MAX_FLEET = 3;
 // We cap it at once per 30s per user, with an escape hatch (`force=true`)
 // for the on-timer path that runs exactly when a repair is due.
 const __lastFinalizeAt: Record<string, number> = {};
-export function maybeFinalizeShipRepairs(uid: string, force = false) {
+export function maybeFinalizeShipRepairs(uid: string, force = false): Promise<void> {
   const now = Date.now();
   const last = __lastFinalizeAt[uid] || 0;
-  if (!force && now - last < 30_000) return;
+  if (!force && now - last < 30_000) return Promise.resolve();
   __lastFinalizeAt[uid] = now;
-  Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid }))
+  return Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid }))
+    .then(() => undefined)
     .catch(() => { /* best-effort repair tick */ });
 }
 const MIN_FLEET = 1;
@@ -655,8 +656,9 @@ function Index() {
         const { data: u } = await supabase.auth.getUser();
         const uid = u.user?.id;
         // Force: this path only runs when a repair timer is actually due, so
-        // the throttle in maybeFinalizeShipRepairs must not skip it.
-        if (uid) maybeFinalizeShipRepairs(uid, true);
+        // the throttle in maybeFinalizeShipRepairs must not skip it. Await the
+        // RPC so the subsequent fleet sync sees repair_ends_at cleared.
+        if (uid) await maybeFinalizeShipRepairs(uid, true);
       } catch { /* best-effort repair tick */ }
       syncFleetFromDb();
     };
@@ -2113,8 +2115,10 @@ function Index() {
                         if (!window.confirm("هل تريد إزالة الصياد الذهبي؟ سيتم إيقافه فوراً.")) return;
                         try {
                           await removeGoldenFisher({ data: {} });
+                          // Reload both profile (golden_fisher_until) AND crews (inventory row)
+                          // so the badge disappears immediately without a manual refresh.
+                          await Promise.all([refreshProfile?.(), reloadCrews()]);
                           setToast("🗑️ تم إزالة الصياد الذهبي");
-                          await refreshProfile?.();
                         } catch {
                           setToast("تعذر إزالة الصياد الذهبي");
                         }
