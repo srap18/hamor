@@ -161,8 +161,16 @@ function ChatPage() {
   // Load my ship-market level — required to write in chat
   useEffect(() => {
     if (!user) { setMarketLevel(null); return; }
+    try {
+      const cached = window.localStorage.getItem(`chat:market-level:${user.id}`);
+      if (cached) setMarketLevel(Math.max(1, Number(cached) || 1));
+    } catch {}
     supabase.from("user_market").select("level").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => setMarketLevel(((data as any)?.level as number | undefined) ?? 1));
+      .then(({ data }) => {
+        const next = ((data as any)?.level as number | undefined) ?? 1;
+        setMarketLevel(next);
+        try { window.localStorage.setItem(`chat:market-level:${user.id}`, String(next)); } catch {}
+      });
   }, [user]);
 
   // Pinned admin message — live

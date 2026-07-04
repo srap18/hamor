@@ -46,13 +46,12 @@ export function ReportMessageButton({
       toast.error("ما تقدر تبلّغ على نفسك");
       return;
     }
-    const { error } = await (supabase as any).from("message_reports").insert({
-      reporter_id: u.user.id,
-      reported_user_id: reportedUserId,
-      kind,
-      source_id: sourceId ?? null,
-      message_body: (messageBody || "").slice(0, 2000),
-      reason: reason.trim().slice(0, 400) || null,
+    const { error } = await (supabase as any).rpc("submit_message_report", {
+      _reported_user_id: reportedUserId,
+      _kind: kind,
+      _source_id: sourceId ?? null,
+      _message_body: (messageBody || "").slice(0, 2000),
+      _reason: reason.trim().slice(0, 400) || null,
     });
     setSending(false);
     if (error) {
