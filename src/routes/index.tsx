@@ -1723,6 +1723,10 @@ function Index() {
 
 
     setTimeout(() => setPop(null), 1400);
+    } finally {
+      window.clearTimeout(_lockTimeout);
+      delete collectingRef.current[_lockKey];
+    }
   };
 
   return (
