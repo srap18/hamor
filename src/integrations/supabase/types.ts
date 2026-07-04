@@ -4661,6 +4661,7 @@ export type Database = {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
       }
+      _ship_repair_seconds: { Args: { _template_id: number }; Returns: number }
       _try_anti_block: {
         Args: { _anti_id: string; _defender: string; _pct: number }
         Returns: boolean
