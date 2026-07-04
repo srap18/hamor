@@ -2910,12 +2910,15 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                // Optimistic update
+                // Optimistic update — preserve fishing state unless ship was destroyed/blocked
+                const wasBlocked = !!(s.destroyedAt || s.repairEndsAt);
                 const optimisticHp = Math.min(maxHp, curHp + amount);
                 setShips((arr) => arr.map((x) => x.id === s.id
-                  ? (optimisticHp >= maxHp
+                  ? (optimisticHp >= maxHp && wasBlocked
                       ? { ...x, hp: optimisticHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
-                      : { ...x, hp: optimisticHp })
+                      : (optimisticHp >= maxHp
+                          ? { ...x, hp: optimisticHp, destroyedAt: null, repairEndsAt: null }
+                          : { ...x, hp: optimisticHp }))
                   : x));
                 setModal(null);
                 try {
@@ -2923,9 +2926,11 @@ function Index() {
                   const newHp = Number(result?.new_hp ?? optimisticHp);
                   const healed = Math.max(0, newHp - curHp);
                   setShips((arr) => arr.map((x) => x.id === s.id
-                    ? (newHp >= maxHp
+                    ? (newHp >= maxHp && wasBlocked
                         ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
-                        : { ...x, hp: newHp, repairEndsAt: result?.repair_ends_at ?? null })
+                        : (newHp >= maxHp
+                            ? { ...x, hp: newHp, destroyedAt: null, repairEndsAt: null }
+                            : { ...x, hp: newHp, repairEndsAt: result?.repair_ends_at ?? null }))
                     : x));
                   setToast(`⚒️ تم إصلاح +${healed.toLocaleString()} دم`);
                   sound.play("success");
