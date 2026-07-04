@@ -503,6 +503,7 @@ function RootComponent() {
           <LastAttackTicker />
           <GlobalNotificationListener />
           <SelfAntiBlockBurst />
+          <AttackerAntiBlockBurst />
 
           <NetworkRecovery />
           <OfflineOverlay />
