@@ -5363,7 +5363,9 @@ export type Database = {
       finalize_due_competitions: { Args: never; Returns: undefined }
       finalize_fish_market_upgrades: { Args: never; Returns: undefined }
       finalize_market_upgrades: { Args: never; Returns: undefined }
-      finalize_ship_repairs: { Args: never; Returns: undefined }
+      finalize_ship_repairs:
+        | { Args: never; Returns: undefined }
+        | { Args: { _user: string }; Returns: undefined }
       fire_disabler: {
         Args: { _disabler_id: string; _target_id: string }
         Returns: Json

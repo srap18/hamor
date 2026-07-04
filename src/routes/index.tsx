@@ -391,7 +391,7 @@ function Index() {
     // from the current DB row instead of waiting for the RPC round-trip.
     // NOTE: supabase.rpc() returns a thenable builder (not a real Promise), so
     // `.catch` is undefined — wrap with Promise.resolve() before catching.
-    Promise.resolve((supabase as any).rpc("finalize_ship_repairs")).catch(() => { /* best-effort repair tick */ });
+    Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid })).catch(() => { /* best-effort repair tick */ });
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
@@ -633,7 +633,11 @@ function Index() {
     const nextRepairEnd = activeRepairEnds[0];
     if (!nextRepairEnd) return;
     const syncRepairs = async () => {
-      try { await (supabase as any).rpc("finalize_ship_repairs"); } catch { /* best-effort repair tick */ }
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        const uid = u.user?.id;
+        if (uid) await (supabase as any).rpc("finalize_ship_repairs", { _user: uid });
+      } catch { /* best-effort repair tick */ }
       syncFleetFromDb();
     };
     const delay = Math.min(Math.max(500, nextRepairEnd - serverNowMs() + 500), 60_000);
