@@ -470,28 +470,16 @@ function PlayerPage() {
     else { setFriendStatus("pending"); sound.play("success"); flash("تم إرسال طلب الصداقة ✓"); }
   };
 
-  // Any offensive action (attack/steal) removes the attacker's shield —
-  // both regular protection AND golden fisher — and it does NOT come back.
-  // Asks for confirmation before dropping.
+  // Any offensive action (attack/steal) requires shield to be OFF first.
+  // We refuse instead of prompting to drop — the user must remove their
+  // shield manually from the home screen before attacking.
   const confirmDropArmorIfActive = async (): Promise<boolean> => {
     if (!me) return true;
     const until = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
     if (until <= serverNowMs()) return true;
-    const ok = window.confirm(
-      "⚠️ تحذير: درعك مفعّل (يشمل الصياد الذهبي).\nالهجوم سيُزيل درعك بالكامل ولن يعود تلقائياً.\nهل تريد المتابعة؟"
-    );
-    if (!ok) return false;
-    // Optimistically clear locally so UI updates immediately.
-    setMyProtectionUntil(null);
-    const { error } = await (supabase as any).rpc("drop_my_protection");
-    if (error) {
-      // Restore on failure so the badge reflects reality.
-      setMyProtectionUntil(new Date(until).toISOString());
-      flash("تعذّر إزالة الدرع");
-      return false;
-    }
-    flash("🛡️ تم إزالة درعك بالكامل بسبب الهجوم");
-    return true;
+    sound.play("error");
+    flash("🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل الهجوم");
+    return false;
   };
 
 
