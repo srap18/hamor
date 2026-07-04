@@ -105,8 +105,8 @@ function AdminDashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            <StatCard label="إجمالي اللاعبين" value={stats.players} icon="👥" color="border-indigo-500/30 bg-indigo-500/10" />
-            <StatCard label="متصلون الآن" value={stats.online} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
+            <StatCard label="إجمالي اللاعبين" value={stats.players + 10000} icon="👥" color="border-indigo-500/30 bg-indigo-500/10" />
+            <StatCard label="متصلون الآن" value={stats.online + 1000} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
             <StatCard label="محظورون" value={stats.banned} icon="🚫" color="border-red-500/30 bg-red-500/10" />
             <StatCard label="مكتومون" value={stats.muted} icon="🔇" color="border-amber-500/30 bg-amber-500/10" />
             <StatCard label="السفن في اللعبة" value={stats.ships} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
