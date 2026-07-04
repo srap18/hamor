@@ -4665,6 +4665,17 @@ export type Database = {
         Args: { _anti_id: string; _defender: string; _pct: number }
         Returns: boolean
       }
+      _upsert_anti_block_notif: {
+        Args: {
+          _anti_id: string
+          _kind: string
+          _peer_id: string
+          _peer_name: string
+          _recipient: string
+          _weapon_label: string
+        }
+        Returns: undefined
+      }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       activate_golden_fisher: { Args: never; Returns: Json }
       activate_market_expert: { Args: never; Returns: Json }
