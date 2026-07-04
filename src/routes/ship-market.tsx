@@ -174,12 +174,13 @@ function ShipyardPage() {
     });
     if (!ok) return;
     setBusy("upgrade");
-    const { error } = await marketStartUpgrade();
-    setBusy(null);
-    if (error) { showToast(error.message || "تعذر بدء الترقية"); return; }
-    await loadData();
-    showToast("بدأت ترقية السوق");
-    refreshProfile();
+    try {
+      const { error } = await marketStartUpgrade();
+      if (error) { showToast(error.message || "تعذر بدء الترقية"); return; }
+      await loadData();
+      showToast("بدأت ترقية السوق");
+      refreshProfile();
+    } finally { setBusy(null); }
   };
 
   const finishWithGems = async () => {
@@ -191,12 +192,13 @@ function ShipyardPage() {
     });
     if (!ok) return;
     setBusy("boost");
-    const { error } = await marketFinishUpgradeWithGems();
-    setBusy(null);
-    if (error) { showToast(error.message || "فشل التسريع"); return; }
-    await loadData();
-    showToast(`تم إنهاء الترقية`);
-    refreshProfile();
+    try {
+      const { error } = await marketFinishUpgradeWithGems();
+      if (error) { showToast(error.message || "فشل التسريع"); return; }
+      await loadData();
+      showToast(`تم إنهاء الترقية`);
+      refreshProfile();
+    } finally { setBusy(null); }
   };
 
   const buyShip = async (ship: ShipDef) => {

@@ -1518,6 +1518,15 @@ function Index() {
     // Guard against double-tap that would race the RPC and produce "not_fishing".
     if (collectingRef.current[s.dbId]) return;
     collectingRef.current[s.dbId] = true;
+    // Safety net: never let the lock stick — force-release after 15s so the
+    // ship never becomes permanently un-tappable if the RPC or a rejection
+    // escapes the try/finally below (e.g. unhandled navigation).
+    const _lockKey = s.dbId;
+    const _lockTimeout = window.setTimeout(() => {
+      delete collectingRef.current[_lockKey];
+    }, 15000);
+
+    try {
 
     // Optimistic: dock the ship instantly so stopping/collecting feels immediate.
     setSeaOverride(s.dbId, false);
@@ -1532,18 +1541,22 @@ function Index() {
     const _luckMult = _crewNow.hasLuck ? 2 : 1;
     const _predFishId = (_crewNow.guide && requestedFishId) ? requestedFishId : null;
     const _predFish = _predFishId ? FISH[_predFishId] : null;
-    const _predBase = Math.max(1, Math.min(s.max, Math.round(s.progress)));
+    // Use actual rounded progress — don't force-min to 1, otherwise stopping a
+    // ship that barely sailed shows "1 fish" while the server returns 0.
+    const _predBase = Math.max(0, Math.min(s.max, Math.round(s.progress)));
     const _predCount = _predBase * _luckMult;
-    setCatchResult({
-      img: _predFish?.img,
-      emoji: _predFish?.emoji ?? "🎣",
-      name: _predFish?.name ?? "سمكة",
-      count: _predCount,
-      shipId: s.id,
-      shipLevel: s.level,
-      baseCount: _predBase,
-      luckBonus: _predCount - _predBase,
-    });
+    if (_predCount > 0) {
+      setCatchResult({
+        img: _predFish?.img,
+        emoji: _predFish?.emoji ?? "🎣",
+        name: _predFish?.name ?? "سمكة",
+        count: _predCount,
+        shipId: s.id,
+        shipLevel: s.level,
+        baseCount: _predBase,
+        luckBonus: _predCount - _predBase,
+      });
+    }
 
 
     // Fire clock sync in background (do not block the reward RPC).
@@ -1567,7 +1580,9 @@ function Index() {
     });
     if (error) {
       delete collectingRef.current[s.dbId];
-      setCatchResult(null);
+      // Do NOT clear catchResult here — keep the optimistic popup visible
+      // so the player always sees a result. Specific branches below replace it.
+
 
       const msg = String(error.message || "");
 
@@ -1710,6 +1725,10 @@ function Index() {
 
 
     setTimeout(() => setPop(null), 1400);
+    } finally {
+      window.clearTimeout(_lockTimeout);
+      delete collectingRef.current[_lockKey];
+    }
   };
 
   return (
