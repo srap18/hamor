@@ -12,9 +12,8 @@ function detect(): { lite: boolean; lowBw: boolean } {
     const lowCores = typeof nav?.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4;
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
     const forced = (() => { try { return localStorage.getItem("perf:lite") === "1"; } catch { return false; } })();
-    const isIOS = /iP(hone|ad|od)/.test(nav.platform || "") || (nav.userAgent?.includes("Mac") && "ontouchend" in document);
     return {
-      lite: forced || saveData || reduced || (lowMem && lowCores) || isIOS,
+      lite: forced || saveData || reduced || (lowMem && lowCores),
       lowBw: saveData || slow,
     };
   } catch {
