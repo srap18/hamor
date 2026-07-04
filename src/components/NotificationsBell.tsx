@@ -86,6 +86,7 @@ export function NotificationsBell() {
         .limit(80),
       supabase.from("notifications").select("*")
         .is("recipient_id", null)
+        .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
         .order("created_at", { ascending: false })
         .limit(20),
       supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),

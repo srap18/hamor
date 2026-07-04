@@ -105,17 +105,24 @@ export function BottomNav({ active }: { active?: string }) {
   useEffect(() => {
     if (!user) return;
     const loadNotifs = async () => {
-      const [{ data: notifications }, { data: reads }, { data: boxes }] = await Promise.all([
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const [{ data: personalNotifs }, { data: broadcastNotifs }, { data: reads }, { data: boxes }] = await Promise.all([
         supabase
           .from("notifications")
           .select("id")
-          .or(`recipient_id.eq.${user.id},recipient_id.is.null`)
-          .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()),
+          .eq("recipient_id", user.id)
+          .gte("created_at", sevenDaysAgo),
+        supabase
+          .from("notifications")
+          .select("id")
+          .is("recipient_id", null)
+          .gte("created_at", sevenDaysAgo),
         supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
         supabase.from("lootbox_owned").select("id").eq("user_id", user.id).eq("opened", false),
       ]);
       const readIds = new Set((reads || []).map((r: any) => r.notification_id));
-      const unreadNotifications = (notifications || []).filter((n: any) => !readIds.has(n.id)).length;
+      const notifications = [...(personalNotifs || []), ...(broadcastNotifs || [])];
+      const unreadNotifications = notifications.filter((n: any) => !readIds.has(n.id)).length;
       setUnread(unreadNotifications + (boxes?.length ?? 0));
     };
 
