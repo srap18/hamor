@@ -1079,26 +1079,32 @@ function PlayerPage() {
           لا توجد سفن لهذا اللاعب
         </div>
       )}
-      {ships.map((s, i) => {
+      {shipSlotLayoutReady && ships.map((s, i) => {
         const img = s.catalog_code ? getShipByCode(s.catalog_code).image : getShipByMarketLevel(s.template_id || 1).image;
         const fixedSlot = scene.shipSlots?.[i % (scene.shipSlots?.length || 1)];
-        const top = `${fixedSlot?.top ?? wTop + 4 + ts[i % ts.length] * vRange}%`;
-        const scale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
-        const dockLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
-        const shipW = 22 * scale;
-        void shipW;
+        const defaultTop = fixedSlot?.top ?? wTop + 10 + ts[i % ts.length] * vRange;
+        const defaultScale = fixedSlot?.scale ?? 0.95 + ts[i % ts.length] * 0.42;
+        const defaultLeft = fixedSlot?.left ?? wLeft + hOffsets[i % hOffsets.length] * wWidth;
+        const ov = slotOverrides[i] || {};
+        const dockPos = ov.dock;
+        const seaPos = ov.sea;
         const destroyed = !!s.destroyed_at || (s.hp ?? 1) <= 0;
-        // Always render at the base slot position (same layout as owner's home view)
-        // so ships never clip off-screen on mobile when "at sea".
-        const left = `${dockLeft}%`;
-        void seaSide;
+        const atSea = s.at_sea && !destroyed;
+        // Match owner's home view exactly: use sea override when at sea, dock override otherwise.
+        const pos = atSea ? (seaPos ?? dockPos) : dockPos;
+        const topNum = pos?.top ?? defaultTop;
+        const scale = pos?.scale ?? defaultScale;
+        const leftNum = pos?.left ?? defaultLeft;
+        const top = `${topNum}%`;
+        const left = `${leftNum}%`;
         const shipCrews = playerCrews
           .filter((c) => c.ship_id === s.id)
           .map((c) => CREWS.find((x) => x.id === c.item_id))
           .filter((c): c is (typeof CREWS)[number] => !!c && c.id !== "trader");
 
-        return <VisitorShip key={s.id} img={img} top={top} left={`${left}`.includes("%") ? left : `${left}%`} scale={scale} atSea={s.at_sea && !destroyed} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
+        return <VisitorShip key={s.id} img={img} top={top} left={left} scale={scale} atSea={atSea} idx={i} hp={s.hp ?? 100} maxHp={s.max_hp ?? 100} destroyed={destroyed} repairEndsAt={s.repair_ends_at ?? null} crews={shipCrews} seaSide={seaSide} onRepaired={() => setShips((arr) => arr.map((x) => x.id === s.id ? { ...x, hp: x.max_hp ?? 100, destroyed_at: null, repair_ends_at: null, at_sea: false } : x))} onTap={() => openShip(s)} buttonRef={(el) => { shipRefs.current[s.id] = el; }} />;
       })}
+
 
       {/* Raiding ships — pirates currently stealing from this player. Positioned just right of target ship. */}
       {raiders.map((r, i) => {
