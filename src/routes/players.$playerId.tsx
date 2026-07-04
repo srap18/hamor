@@ -1426,13 +1426,17 @@ function PlayerPage() {
               const targetProtected = !targetMarketUnlocked;
               const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
               const targetShielded = targetShieldedUntil > serverNowMs();
-              const blockReason = targetShielded
-                ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
-                : !myPvpReady
-                  ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
-                  : targetProtected
-                    ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
-                    : null;
+              const myShieldUntilMs = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
+              const myShieldActive = myShieldUntilMs > serverNowMs();
+              const blockReason = myShieldActive
+                ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل الهجوم"
+                : targetShielded
+                  ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
+                  : !myPvpReady
+                    ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
+                    : targetProtected
+                      ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
+                      : null;
               const attackDisabled = busy || targetDead || !!blockReason;
               const stealDisabled = busy || !targetFishing || !!blockReason;
 
