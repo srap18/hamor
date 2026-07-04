@@ -6,6 +6,7 @@ import { CREWS } from "@/lib/crews";
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
+import { useShipSlotOverrides, useShipSlotLayoutReady } from "@/lib/ship-slot-editor";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
 import { sound } from "@/lib/sound";
