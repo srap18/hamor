@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
+import { adminBlockLogin } from "@/lib/admin-users.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/sanctions")({
