@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
+import { adminBlockLogin } from "@/lib/admin-users.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/sanctions")({
@@ -54,23 +56,32 @@ function AdminSanctions() {
 
   useEffect(() => { load(); }, [load]);
 
+  const unblockFn = useServerFn(adminBlockLogin);
+
   const lift = async (r: Row) => {
     if (!confirm(`إلغاء ${r.kind === "ban" ? "الحظر" : "الكتم"} عن ${r.player_name}؟`)) return;
-    const { data, error } = await supabase.rpc("admin_lift_sanction", { p_kind: r.kind, p_id: r.id });
-    if (error) {
-      toast.error(`فشل الإلغاء: ${error.message}`);
-      return;
-    }
-    const affected = (data as any)?.affected ?? 0;
-    if (!affected) {
-      toast.error("لم يتم العثور على عقوبة نشطة لرفعها");
+    try {
+      if (r.kind === "ban") {
+        // Full unblock: clears bans + banned_emails + banned_devices + banned_ips + auth ban_duration
+        await unblockFn({ data: { userId: r.user_id, unblock: true } });
+      } else {
+        const { data, error } = await supabase.rpc("admin_lift_sanction", { p_kind: r.kind, p_id: r.id });
+        if (error) throw error;
+        const affected = (data as any)?.affected ?? 0;
+        if (!affected) {
+          toast.error("لم يتم العثور على عقوبة نشطة لرفعها");
+          load();
+          return;
+        }
+      }
+      await logAudit(r.kind === "ban" ? "unban_user" : "unmute_user", r.user_id, { name: r.player_name, via: "sanctions_page" });
+      toast.success("تم الإلغاء");
       load();
-      return;
+    } catch (e: any) {
+      toast.error(`فشل الإلغاء: ${e?.message ?? e}`);
     }
-    await logAudit(r.kind === "ban" ? "unban_user" : "unmute_user", r.user_id, { name: r.player_name, via: "sanctions_page" });
-    toast.success("تم الإلغاء");
-    load();
   };
+
 
   const filtered = filter === "all" ? rows : rows.filter((r) => r.kind === filter);
 
