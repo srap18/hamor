@@ -219,12 +219,13 @@ const MAX_FLEET = 3;
 // We cap it at once per 30s per user, with an escape hatch (`force=true`)
 // for the on-timer path that runs exactly when a repair is due.
 const __lastFinalizeAt: Record<string, number> = {};
-export function maybeFinalizeShipRepairs(uid: string, force = false) {
+export function maybeFinalizeShipRepairs(uid: string, force = false): Promise<void> {
   const now = Date.now();
   const last = __lastFinalizeAt[uid] || 0;
-  if (!force && now - last < 30_000) return;
+  if (!force && now - last < 30_000) return Promise.resolve();
   __lastFinalizeAt[uid] = now;
-  Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid }))
+  return Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid }))
+    .then(() => undefined)
     .catch(() => { /* best-effort repair tick */ });
 }
 const MIN_FLEET = 1;
