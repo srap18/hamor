@@ -102,20 +102,25 @@ export function NotificationsBell() {
   useEffect(() => {
     if (!user) return;
     load();
+    const onInsert = (payload: any) => {
+      const n = payload.new as Notif;
+      if (n.kind === "nuke") return;
+      if (n.recipient_id === null || n.recipient_id === user.id) {
+        setItems(s => {
+          if (s.some(x => x.id === n.id)) return s;
+          return [n, ...s].slice(0, 30);
+        });
+        if (n.created_by) loadActors([n]);
+        sound.play("click");
+      }
+    };
+    // Split into two server-filtered subscriptions so Realtime only forwards
+    // rows meant for this user (personal or broadcast) instead of every
+    // notification insert in the game. Same behavior, tiny fraction of WAL.
     const ch = supabase
       .channel(`notifs:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (payload) => {
-        const n = payload.new as Notif;
-        if (n.kind === "nuke") return;
-        if (n.recipient_id === null || n.recipient_id === user.id) {
-          setItems(s => {
-            if (s.some(x => x.id === n.id)) return s;
-            return [n, ...s].slice(0, 30);
-          });
-          if (n.created_by) loadActors([n]);
-          sound.play("click");
-        }
-      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, onInsert)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, onInsert)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") load();
       });
