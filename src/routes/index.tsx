@@ -2115,8 +2115,10 @@ function Index() {
                         if (!window.confirm("هل تريد إزالة الصياد الذهبي؟ سيتم إيقافه فوراً.")) return;
                         try {
                           await removeGoldenFisher({ data: {} });
+                          // Reload both profile (golden_fisher_until) AND crews (inventory row)
+                          // so the badge disappears immediately without a manual refresh.
+                          await Promise.all([refreshProfile?.(), reloadCrews()]);
                           setToast("🗑️ تم إزالة الصياد الذهبي");
-                          await refreshProfile?.();
                         } catch {
                           setToast("تعذر إزالة الصياد الذهبي");
                         }
