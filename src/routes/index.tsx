@@ -221,7 +221,7 @@ function loadFleet(): Ship[] {
     if (!raw) return INITIAL_SHIPS;
     const slots = JSON.parse(raw) as FleetSlot[];
     if (!Array.isArray(slots)) return INITIAL_SHIPS;
-    if (slots.length === 0) return []; // user owns no ships — empty harbor
+    if (slots.length === 0) return INITIAL_SHIPS; // avoid empty-ocean flash until DB sync confirms fleet
     if (slots.some((s) => s.level >= 31 && !s.catalogCode)) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
