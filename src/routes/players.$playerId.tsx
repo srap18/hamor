@@ -982,10 +982,13 @@ function PlayerPage() {
   const wRight = scene.waterRight ?? 75;
   const wWidth = Math.max(15, wRight - wLeft);
   // Mirror the owner's harbor layout exactly (src/routes/index.tsx)
-  const ts = [0.25, 0.5, 0.15];
-  const vRange = Math.max(10, 60 - (wTop + 4));
+  const ts = [0.55, 0.75, 0.4];
+  const vRange = Math.max(10, 60 - (wTop + 10));
   const hOffsets = [0.05, 0.3, 0.6];
   const seaSide = scene.seaSide ?? "right";
+  const slotOverrides = useShipSlotOverrides(scene.id);
+  const shipSlotLayoutReady = useShipSlotLayoutReady();
+
 
   return (
     <div className={`fixed inset-0 overflow-hidden bg-[#0d2236] ${shake}`} dir="rtl">
