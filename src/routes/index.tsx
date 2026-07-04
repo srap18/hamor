@@ -389,9 +389,10 @@ function Index() {
     if (!uid) return;
     // Fire finalize in the background so destroyed/repair status renders immediately
     // from the current DB row instead of waiting for the RPC round-trip.
-    // NOTE: supabase.rpc() returns a thenable builder (not a real Promise), so
-    // `.catch` is undefined — wrap with Promise.resolve() before catching.
-    Promise.resolve((supabase as any).rpc("finalize_ship_repairs", { _user: uid })).catch(() => { /* best-effort repair tick */ });
+    // Throttled to at most once per 30s per user — this call used to fire on
+    // every ships_owned/fish_stock realtime event (dozens per minute during
+    // fishing), which dominated DB time without changing outcomes.
+    maybeFinalizeShipRepairs(uid);
     const { data } = await supabase
       .from("ships_owned")
       .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
