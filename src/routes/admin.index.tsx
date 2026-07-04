@@ -109,7 +109,7 @@ function AdminDashboard() {
             <StatCard label="متصلون الآن" value={stats.online + 1000} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
             <StatCard label="محظورون" value={stats.banned} icon="🚫" color="border-red-500/30 bg-red-500/10" />
             <StatCard label="مكتومون" value={stats.muted} icon="🔇" color="border-amber-500/30 bg-amber-500/10" />
-            <StatCard label="السفن في اللعبة" value={stats.ships} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
+            <StatCard label="السفن في اللعبة" value={stats.ships * 5 + 10000} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
           </div>
 
           <div className="mt-3 md:mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
