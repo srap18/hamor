@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 import { ReportMessageButton } from "@/components/ReportMessageButton";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
+import { useSignPos, saveSignPos, type SignPos } from "@/lib/sign-slot-editor";
+import { useShipSlotEditor } from "@/lib/ship-slot-editor";
 
 type SignMsg = {
   id: string;
@@ -20,7 +22,9 @@ type Props = {
   destroyerAvatar?: string | null;
   /** Latest destroyer's emoji fallback. */
   destroyerEmoji?: string | null;
-  /** Position of the sign within the parent (absolute). Defaults match the visitor harbor. */
+  /** Current background id — used to store per-background sign position. */
+  bgId?: string;
+  /** Position of the sign within the parent (absolute). Overrides the stored per-bg position. */
   style?: React.CSSProperties;
 };
 
@@ -29,10 +33,16 @@ type Props = {
  * Used both on the visitor's profile view and on the owner's own home so they
  * can read the same taunts left on their ocean.
  */
-export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style }: Props) {
+export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, bgId, style }: Props) {
   const [messages, setMessages] = useState<SignMsg[]>([]);
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
+  const pos = useSignPos(bgId);
+  const { isAdmin, enabled: editEnabled } = useShipSlotEditor();
+  const canEdit = isAdmin && editEnabled && !!bgId;
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef<{ startX: number; startY: number; baseLeft: number; baseTop: number; parentW: number; parentH: number; pos: SignPos; moved: boolean } | null>(null);
+  const [, force] = useState(0);
 
   useEffect(() => {
     if (!playerId) return;
