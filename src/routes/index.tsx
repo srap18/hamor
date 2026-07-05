@@ -1822,6 +1822,7 @@ function Index() {
       {profile?.id && (
         <DestroyerSign
           playerId={profile.id}
+          bgId={scene.id}
           destroyerEmoji={(profile as { avatar_emoji?: string } | null)?.avatar_emoji ?? null}
         />
       )}

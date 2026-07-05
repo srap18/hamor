@@ -3295,6 +3295,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sign_slot_layout: {
+        Row: {
+          bg_id: string
+          left_pct: number
+          top_pct: number
+          updated_at: string
+          width_pct: number
+        }
+        Insert: {
+          bg_id: string
+          left_pct?: number
+          top_pct?: number
+          updated_at?: string
+          width_pct?: number
+        }
+        Update: {
+          bg_id?: string
+          left_pct?: number
+          top_pct?: number
+          updated_at?: string
+          width_pct?: number
+        }
+        Relationships: []
+      }
       site_layout: {
         Row: {
           key: string

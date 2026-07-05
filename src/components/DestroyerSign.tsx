@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 import { ReportMessageButton } from "@/components/ReportMessageButton";
 import woodenSignAsset from "@/assets/wooden-sign-v2.png.asset.json";
+import { useSignPos, saveSignPos, type SignPos } from "@/lib/sign-slot-editor";
+import { useShipSlotEditor } from "@/lib/ship-slot-editor";
 
 type SignMsg = {
   id: string;
@@ -20,7 +22,9 @@ type Props = {
   destroyerAvatar?: string | null;
   /** Latest destroyer's emoji fallback. */
   destroyerEmoji?: string | null;
-  /** Position of the sign within the parent (absolute). Defaults match the visitor harbor. */
+  /** Current background id — used to store per-background sign position. */
+  bgId?: string;
+  /** Position of the sign within the parent (absolute). Overrides the stored per-bg position. */
   style?: React.CSSProperties;
 };
 
@@ -29,10 +33,16 @@ type Props = {
  * Used both on the visitor's profile view and on the owner's own home so they
  * can read the same taunts left on their ocean.
  */
-export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style }: Props) {
+export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, bgId, style }: Props) {
   const [messages, setMessages] = useState<SignMsg[]>([]);
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
+  const pos = useSignPos(bgId);
+  const { isAdmin, enabled: editEnabled } = useShipSlotEditor();
+  const canEdit = isAdmin && editEnabled && !!bgId;
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef<{ startX: number; startY: number; baseLeft: number; baseTop: number; parentW: number; parentH: number; pos: SignPos; moved: boolean } | null>(null);
+  const [, force] = useState(0);
 
   useEffect(() => {
     if (!playerId) return;
@@ -66,21 +76,82 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style
     return () => { cancelled = true; void supabase.removeChannel(ch); };
   }, [playerId]);
 
-  if (messages.length === 0) return null;
+  if (messages.length === 0 && !canEdit) return null;
 
   const cur = messages[Math.min(idx, messages.length - 1)];
   const total = messages.length;
-  const safeIdx = Math.min(idx, total - 1);
+  const safeIdx = Math.min(idx, Math.max(0, total - 1));
   const canPrev = safeIdx < total - 1;
   const canNext = safeIdx > 0;
+
+  const livePos = dragRef.current?.pos ?? pos;
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!canEdit || !bgId) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    const parent = target.parentElement;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      baseLeft: livePos.left,
+      baseTop: livePos.top,
+      parentW: rect.width,
+      parentH: rect.height,
+      pos: { ...livePos },
+      moved: false,
+    };
+    target.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = ((e.clientX - d.startX) / d.parentW) * 100;
+    const dy = ((e.clientY - d.startY) / d.parentH) * 100;
+    if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true;
+    d.pos = {
+      ...d.pos,
+      left: Math.max(0, Math.min(100, d.baseLeft + dx)),
+      top: Math.max(0, Math.min(100, d.baseTop + dy)),
+    };
+    force((x) => x + 1);
+  };
+  const onPointerUp = async () => {
+    const d = dragRef.current;
+    if (!d) return;
+    const moved = d.moved;
+    const finalPos = d.pos;
+    dragRef.current = null;
+    force((x) => x + 1);
+    if (moved && bgId) await saveSignPos(bgId, finalPos);
+  };
 
   return (
     <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => { sound.play("click"); setIdx(0); setOpen(true); }}
-        className="absolute z-30 active:scale-95 transition-transform"
-        style={{ top: "62%", left: "30%", width: "9%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))", ...style }}
+        onClick={() => {
+          if (canEdit) return;
+          if (messages.length === 0) return;
+          sound.play("click"); setIdx(0); setOpen(true);
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className={`absolute z-30 transition-transform ${canEdit ? "cursor-grab active:cursor-grabbing ring-4 ring-amber-300/80 rounded-lg" : "active:scale-95"}`}
+        style={{
+          top: `${livePos.top}%`,
+          left: `${livePos.left}%`,
+          width: `${livePos.width}%`,
+          filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))",
+          touchAction: canEdit ? "none" : undefined,
+          ...style,
+        }}
         aria-label="رسائل المفجّرين"
       >
         <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
@@ -102,6 +173,8 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, style
           </div>
         </div>
       </button>
+
+
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setOpen(false)}>
