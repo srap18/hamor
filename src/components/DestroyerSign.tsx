@@ -76,21 +76,82 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, bgId,
     return () => { cancelled = true; void supabase.removeChannel(ch); };
   }, [playerId]);
 
-  if (messages.length === 0) return null;
+  if (messages.length === 0 && !canEdit) return null;
 
   const cur = messages[Math.min(idx, messages.length - 1)];
   const total = messages.length;
-  const safeIdx = Math.min(idx, total - 1);
+  const safeIdx = Math.min(idx, Math.max(0, total - 1));
   const canPrev = safeIdx < total - 1;
   const canNext = safeIdx > 0;
+
+  const livePos = dragRef.current?.pos ?? pos;
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!canEdit || !bgId) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    const parent = target.parentElement;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      baseLeft: livePos.left,
+      baseTop: livePos.top,
+      parentW: rect.width,
+      parentH: rect.height,
+      pos: { ...livePos },
+      moved: false,
+    };
+    target.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = ((e.clientX - d.startX) / d.parentW) * 100;
+    const dy = ((e.clientY - d.startY) / d.parentH) * 100;
+    if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true;
+    d.pos = {
+      ...d.pos,
+      left: Math.max(0, Math.min(100, d.baseLeft + dx)),
+      top: Math.max(0, Math.min(100, d.baseTop + dy)),
+    };
+    force((x) => x + 1);
+  };
+  const onPointerUp = async () => {
+    const d = dragRef.current;
+    if (!d) return;
+    const moved = d.moved;
+    const finalPos = d.pos;
+    dragRef.current = null;
+    force((x) => x + 1);
+    if (moved && bgId) await saveSignPos(bgId, finalPos);
+  };
 
   return (
     <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => { sound.play("click"); setIdx(0); setOpen(true); }}
-        className="absolute z-30 active:scale-95 transition-transform"
-        style={{ top: "62%", left: "30%", width: "9%", filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))", ...style }}
+        onClick={() => {
+          if (canEdit) return;
+          if (messages.length === 0) return;
+          sound.play("click"); setIdx(0); setOpen(true);
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className={`absolute z-30 transition-transform ${canEdit ? "cursor-grab active:cursor-grabbing ring-4 ring-amber-300/80 rounded-lg" : "active:scale-95"}`}
+        style={{
+          top: `${livePos.top}%`,
+          left: `${livePos.left}%`,
+          width: `${livePos.width}%`,
+          filter: "drop-shadow(0 6px 8px rgba(0,0,0,0.7))",
+          touchAction: canEdit ? "none" : undefined,
+          ...style,
+        }}
         aria-label="رسائل المفجّرين"
       >
         <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
@@ -112,6 +173,8 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, bgId,
           </div>
         </div>
       </button>
+
+
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setOpen(false)}>
