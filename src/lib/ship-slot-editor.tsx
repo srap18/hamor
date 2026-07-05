@@ -43,7 +43,9 @@ const notify = () => subs.forEach((fn) => { try { fn(); } catch { /* noop */ } }
 const subscribe = (fn: () => void) => { subs.add(fn); return () => { subs.delete(fn); }; };
 
 function layoutTargetsFor(bgId: string) {
-  return Array.from(new Set([GLOBAL_LAYOUT_BG_ID, bgId, ...BACKGROUNDS.map((bg) => bg.id)]));
+  // Save per-background only, so each scene can have its own ship placement
+  // that is visible to every player who selects that background.
+  return [bgId];
 }
 
 async function loadAll() {
