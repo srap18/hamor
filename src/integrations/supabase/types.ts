@@ -1195,6 +1195,7 @@ export type Database = {
       }
       elite_vip_tier_config: {
         Row: {
+          cashback_pct: number
           combat_bonus_pct: number
           daily_gems: number
           emoji: string
@@ -1207,6 +1208,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cashback_pct?: number
           combat_bonus_pct: number
           daily_gems: number
           emoji: string
@@ -1219,6 +1221,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cashback_pct?: number
           combat_bonus_pct?: number
           daily_gems?: number
           emoji?: string
@@ -5124,6 +5127,10 @@ export type Database = {
       award_dragon_dp: { Args: { p_damage: number }; Returns: Json }
       award_event_xp: {
         Args: { _amount: number; _user: string }
+        Returns: number
+      }
+      award_vip_cashback: {
+        Args: { _gold_spent: number; _source?: string; _uid: string }
         Returns: number
       }
       boss_attack_status: { Args: never; Returns: Json }
