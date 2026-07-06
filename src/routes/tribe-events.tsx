@@ -189,7 +189,12 @@ function TribeEventsPage() {
                   <div className="flex items-center gap-3">
                     <div className="text-4xl drop-shadow">{ev.banner_emoji}</div>
                     <div className="flex-1">
-                      <div className="text-lg md:text-xl font-black text-white drop-shadow">{ev.title}</div>
+                      <div className="text-lg md:text-xl font-black text-white drop-shadow flex items-center gap-2 flex-wrap">
+                        <span>{ev.title}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-black/30 text-[10px] font-bold">
+                          {ev.metric === "gold" ? "💰 جمع ذهب" : "🐟 صيد سمك"}
+                        </span>
+                      </div>
                       <div className="text-xs text-white/80 mt-0.5">⏳ {started ? `يتبقى ${timeLeft(ev.ends_at)}` : `يبدأ خلال ${timeUntil(ev.starts_at)}`}</div>
                     </div>
                     <div className="text-end">
