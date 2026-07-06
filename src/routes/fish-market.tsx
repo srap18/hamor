@@ -484,14 +484,22 @@ function FishMarket() {
   }, [user?.id]);
 
 
-  // Rot helpers: -1% per hour from oldest catch, floor 50%
+  // Rot helpers: -1% per hour from oldest catch, floor 50%.
+  // Freeze pauses the rot clock; after freeze expires rot resumes from where it paused.
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
     const caughtAt = new Date(t).getTime();
-    const freezeStart = freezeActive && marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
-    const ageEnd = freezeStart > 0 ? Math.max(caughtAt, freezeStart) : serverNowMs();
-    const hours = Math.max(0, (ageEnd - caughtAt) / 3_600_000);
+    const now = serverNowMs();
+    const fStart = marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
+    const fUntil = marketState.freeze_until ? new Date(marketState.freeze_until).getTime() : 0;
+    let frozenSec = 0;
+    if (fStart > 0 && fUntil > fStart) {
+      frozenSec = Math.max(0, (Math.min(fUntil, now) - Math.max(fStart, caughtAt)) / 1000);
+    }
+    const offsetSec = Math.max(0, marketState.rot_freeze_offset_seconds || 0);
+    const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - offsetSec - frozenSec);
+    const hours = elapsedSec / 3600;
     return Math.max(0.5, 1 - 0.01 * hours);
   };
 
