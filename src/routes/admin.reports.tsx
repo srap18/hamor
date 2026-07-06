@@ -49,6 +49,23 @@ function AdminReports() {
       return;
     }
     const reports = (data ?? []) as Report[];
+
+    // Fetch audio_url for chat kind reports with source_id
+    const chatIds = reports.filter((r) => r.kind === "chat" && r.source_id).map((r) => r.source_id!);
+    if (chatIds.length) {
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("id,audio_url,audio_duration_ms")
+        .in("id", chatIds);
+      const map = new Map((msgs ?? []).map((m: any) => [m.id, m]));
+      for (const r of reports) {
+        if (r.kind === "chat" && r.source_id) {
+          const m: any = map.get(r.source_id);
+          if (m) { r.audio_url = m.audio_url; r.audio_duration_ms = m.audio_duration_ms; }
+        }
+      }
+    }
+
     setRows(reports);
     const ids = Array.from(new Set(reports.flatMap((r) => [r.reporter_id, r.reported_user_id])));
     if (ids.length) {
