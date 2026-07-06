@@ -514,7 +514,13 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     const loadRoom = async () => {
       const { data } = await supabase
         .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
-      if (!cancelled && data) setActiveRoom(data as unknown as Room);
+      if (cancelled) return;
+      if (data) setActiveRoom(data as unknown as Room);
+      else {
+        setActiveRoom(null);
+        setPlayers([]);
+        loadRooms();
+      }
     };
 
     loadPlayers();
@@ -610,6 +616,35 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
       window.removeEventListener("beforeunload", handler);
     };
   }, [activeRoom, leaveRoom]);
+
+  // Keep active games from getting stuck at 0s or on a missing player.
+  useEffect(() => {
+    if (!activeRoom || activeRoom.status !== "playing") return;
+    const roomId = activeRoom.id;
+    let stopped = false;
+
+    const repairTurn = async () => {
+      try { await supabase.rpc("ludo_cleanup_stale_rooms" as never); } catch { /* ignore */ }
+      if (stopped) return;
+      const { data } = await supabase
+        .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
+      if (stopped) return;
+      if (data) setActiveRoom(data as unknown as Room);
+      else {
+        setActiveRoom(null);
+        setPlayers([]);
+        loadRooms();
+      }
+    };
+
+    const timer = setInterval(() => {
+      const deadline = activeRoom.turn_deadline ? new Date(activeRoom.turn_deadline).getTime() : 0;
+      const currentSeatExists = players.some(p => p.seat === activeRoom.current_turn_seat);
+      if ((deadline > 0 && deadline <= Date.now()) || !currentSeatExists) repairTurn();
+    }, 1000);
+
+    return () => { stopped = true; clearInterval(timer); };
+  }, [activeRoom, players, loadRooms]);
 
   // ---- Lobby view ----
   if (!activeRoom) {
