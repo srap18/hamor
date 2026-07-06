@@ -427,7 +427,7 @@ function AdminTribeEvents() {
                           <span className="text-lg">{t.tribe_banner}</span>
                           <span className="flex-1 font-semibold">{t.tribe_emblem} {t.tribe_name}</span>
                           <span className="text-xs text-slate-400">{t.members_count} عضو</span>
-                          <span className="font-bold text-cyan-300">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                          <span className="font-bold text-cyan-300">{Number(t.total_fish).toLocaleString()} {METRIC_UNIT[r.metric ?? "fish"]}</span>
                           {tier && (
                             <span className="text-[10px] text-emerald-300 whitespace-nowrap">💎 {tier.gems} · ⭐ {tier.tribe_points}</span>
                           )}
