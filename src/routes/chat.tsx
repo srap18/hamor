@@ -911,7 +911,7 @@ function ChatPage() {
         )}
       </div>
 
-      {tab !== "topics" && (
+      {tab !== "topics" && tab !== "games" && (
         myMute ? (
           <div className="absolute left-2 right-2 z-40" style={{ bottom: "calc(12px + var(--keyboard-inset, 0px))" }}>
             <div className="rounded-2xl bg-amber-900/60 border-2 border-amber-500/60 text-amber-100 px-3 py-2 text-xs text-center backdrop-blur shadow-lg">
