@@ -55,7 +55,9 @@ export function ReportMessageButton({
     });
     setSending(false);
     if (error) {
-      if (/reports_disabled|row-level|violat/i.test(error.message)) {
+      if (/already_reported|duplicate|unique/i.test(error.message)) {
+        toast.error("⚠️ سبق إن أرسلت بلاغ على نفس الرسالة، بلاغك قيد المراجعة");
+      } else if (/reports_disabled|row-level|violat/i.test(error.message)) {
         toast.error("تم إيقاف قدرتك على البلاغات من قِبل الإدارة");
       } else {
         toast.error("تعذّر إرسال البلاغ");
