@@ -1253,8 +1253,13 @@ type TribeInfo = { name: string; emblem: string; description: string; banner: st
 const RENAME_COST_GEMS = 100;
 const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
 
+// Matches DB public.tribe_level_from_donations thresholds
+const TRIBE_LEVEL_THRESHOLDS = [0, 50000, 150000, 300000, 500000, 800000, 1200000, 1700000, 2300000, 3000000];
+const TRIBE_MAX_LEVEL = 10;
 function levelGoal(level: number): number {
-  return 10000 * level * level;
+  // total_donations required to reach (level + 1)
+  if (level >= TRIBE_MAX_LEVEL) return TRIBE_LEVEL_THRESHOLDS[TRIBE_MAX_LEVEL - 1];
+  return TRIBE_LEVEL_THRESHOLDS[level] ?? TRIBE_LEVEL_THRESHOLDS[TRIBE_MAX_LEVEL - 1];
 }
 
 function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userId: string; onClose: () => void }) {
@@ -1345,9 +1350,10 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
     await load();
   });
   const leaveTribe = () => {
-    if (!confirm("هل تريد مغادرة القبيلة؟")) return;
+    if (!confirm("هل تريد مغادرة القبيلة؟\nإذا كنت القائد سيتم تحويل القيادة تلقائياً لأقدم عضو، وإن كنت العضو الوحيد ستُحذف القبيلة.")) return;
     wrap(async () => {
-      await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", userId);
+      const { error } = await supabase.rpc("leave_tribe" as never, { _tribe_id: tribeId } as never);
+      if (error) throw error;
       await setMyTribe(null);
       window.location.reload();
     });
@@ -1379,7 +1385,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   });
 
   const goal = info ? levelGoal(info.level) : 1;
-  const progress = info ? Math.min(100, Math.floor((info.treasure_coins / goal) * 100)) : 0;
+  const atMax = info ? info.level >= TRIBE_MAX_LEVEL : false;
+  const progress = info ? (atMax ? 100 : Math.min(100, Math.floor(((info.total_donations || 0) / goal) * 100))) : 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
@@ -1421,7 +1428,11 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                 <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-300" style={{ width: `${progress}%` }} />
               </div>
               <div className="text-[10px] text-amber-300/70 mt-1 text-center inline-flex items-center justify-center gap-1 w-full">
-                {info.treasure_coins.toLocaleString()} / {goal.toLocaleString()} <CoinIcon size={10} /> للمستوى {info.level + 1}
+                {atMax ? (
+                  <>وصلت للمستوى الأقصى ⭐ {TRIBE_MAX_LEVEL}</>
+                ) : (
+                  <>{Math.min(info.total_donations, goal).toLocaleString()} / {goal.toLocaleString()} <CoinIcon size={10} /> للمستوى {info.level + 1}</>
+                )}
               </div>
               <div className="text-xs text-amber-200/90 mt-2 whitespace-pre-wrap break-words">
                 {info.description || "لا يوجد وصف للقبيلة بعد."}
