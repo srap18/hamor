@@ -23,6 +23,7 @@ import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 import { useServerFn } from "@tanstack/react-start";
 import { moderateChatText } from "@/lib/chat-moderation.functions";
+import { LudoPanel } from "@/components/LudoPanel";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "الشات — ملوك القراصنة" }] }),
