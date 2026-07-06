@@ -573,7 +573,10 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (error) { setRolling(false); flash(error.message); }
     else {
       const dice = typeof data === "number" ? data : Number(data);
-      if (Number.isFinite(dice)) setLocalDice(dice);
+      if (Number.isFinite(dice)) {
+        setLocalDice(dice);
+        setTimeout(() => setLocalDice(null), 1800);
+      }
     }
   };
 
