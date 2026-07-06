@@ -1385,7 +1385,8 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   });
 
   const goal = info ? levelGoal(info.level) : 1;
-  const progress = info ? Math.min(100, Math.floor((info.treasure_coins / goal) * 100)) : 0;
+  const atMax = info ? info.level >= TRIBE_MAX_LEVEL : false;
+  const progress = info ? (atMax ? 100 : Math.min(100, Math.floor(((info.total_donations || 0) / goal) * 100))) : 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" dir="rtl">
