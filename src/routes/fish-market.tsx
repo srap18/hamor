@@ -126,6 +126,7 @@ type MarketState = {
   trader_until: string | null;
   freeze_until: string | null;
   freeze_started_at: string | null;
+  rot_freeze_offset_seconds: number;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
 
@@ -161,7 +162,7 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -176,7 +177,7 @@ function FishMarket() {
     const cacheKey = `fish-market:state:${user.id}`;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
+      .select("trader_until, freeze_until, freeze_started_at, rot_freeze_offset_seconds, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
     let nextState: MarketState;
@@ -185,10 +186,11 @@ function FishMarket() {
         trader_until: data.trader_until,
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
+        rot_freeze_offset_seconds: Number(data.rot_freeze_offset_seconds ?? 0),
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
       };
     } else {
-      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} };
+      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} };
     }
     setMarketState(nextState);
     setCached(cacheKey, nextState);
@@ -482,14 +484,22 @@ function FishMarket() {
   }, [user?.id]);
 
 
-  // Rot helpers: -1% per hour from oldest catch, floor 50%
+  // Rot helpers: -1% per hour from oldest catch, floor 50%.
+  // Freeze pauses the rot clock; after freeze expires rot resumes from where it paused.
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
     const caughtAt = new Date(t).getTime();
-    const freezeStart = freezeActive && marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
-    const ageEnd = freezeStart > 0 ? Math.max(caughtAt, freezeStart) : serverNowMs();
-    const hours = Math.max(0, (ageEnd - caughtAt) / 3_600_000);
+    const now = serverNowMs();
+    const fStart = marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
+    const fUntil = marketState.freeze_until ? new Date(marketState.freeze_until).getTime() : 0;
+    let frozenSec = 0;
+    if (fStart > 0 && fUntil > fStart) {
+      frozenSec = Math.max(0, (Math.min(fUntil, now) - Math.max(fStart, caughtAt)) / 1000);
+    }
+    const offsetSec = Math.max(0, marketState.rot_freeze_offset_seconds || 0);
+    const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - offsetSec - frozenSec);
+    const hours = elapsedSec / 3600;
     return Math.max(0.5, 1 - 0.01 * hours);
   };
 
@@ -1104,16 +1114,16 @@ function SellView({
             ) : (
               <>
                 <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد التعفّن</div>
-                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي.</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي. تقدر تشتري أكثر من مرة والوقت يتراكم فوق التجميد الحالي.</div>
                 <div className="grid grid-cols-3 gap-2">
                   {[{ h: 2, p: 50 }, { h: 9, p: 100 }, { h: 24, p: 150 }].map((o) => (
-                    <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy || freezeActive} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
-                      <div className="text-sm">{o.h}س</div>
+                    <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
+                      <div className="text-sm">{freezeActive ? `+${o.h}س` : `${o.h}س`}</div>
                       <div className="text-[11px]">💎 {o.p}</div>
                     </button>
                   ))}
                 </div>
-                {freezeActive && <div className="text-center text-[11px] text-cyan-200 mt-2">التجميد فعّال — انتظر انتهاءه</div>}
+                {freezeActive && <div className="text-center text-[11px] text-cyan-200 mt-2">التجميد فعّال — الشراء يمدد الوقت الحالي</div>}
               </>
             )}
             {err && <div className="mt-3 text-center text-xs text-rose-300 font-bold">{err}</div>}

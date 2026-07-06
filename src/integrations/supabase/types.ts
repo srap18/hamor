@@ -4307,6 +4307,7 @@ export type Database = {
           freeze_started_at: string | null
           freeze_until: string | null
           frozen_prices: Json
+          rot_freeze_offset_seconds: number
           trader_anchor: string | null
           trader_snapshot: Json
           trader_until: string | null
@@ -4317,6 +4318,7 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          rot_freeze_offset_seconds?: number
           trader_anchor?: string | null
           trader_snapshot?: Json
           trader_until?: string | null
@@ -4327,6 +4329,7 @@ export type Database = {
           freeze_started_at?: string | null
           freeze_until?: string | null
           frozen_prices?: Json
+          rot_freeze_offset_seconds?: number
           trader_anchor?: string | null
           trader_snapshot?: Json
           trader_until?: string | null
