@@ -131,9 +131,57 @@ function LudoBoard({
   );
 
   return (
-    <svg viewBox={`0 0 ${BOARD} ${BOARD}`} className="w-full h-auto select-none" style={{ maxHeight: "60vh" }}>
-      {/* Background */}
-      <rect x={0} y={0} width={BOARD} height={BOARD} fill="#0f172a" />
+    <svg viewBox={`0 0 ${BOARD} ${BOARD}`} className="w-full h-auto select-none" style={{ maxHeight: "60vh", filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.6))" }}>
+      <defs>
+        <radialGradient id="boardBg" cx="50%" cy="50%" r="75%">
+          <stop offset="0%" stopColor="#fffaf0" />
+          <stop offset="70%" stopColor="#fde8c4" />
+          <stop offset="100%" stopColor="#d9b382" />
+        </radialGradient>
+        {(["green", "red", "yellow", "blue"] as const).map(c => (
+          <radialGradient key={`qg-${c}`} id={`q-${c}`} cx="30%" cy="30%" r="90%">
+            <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
+            <stop offset="100%" stopColor={COLOR_HEX[c]} />
+          </radialGradient>
+        ))}
+        {(["green", "red", "yellow", "blue"] as const).map(c => (
+          <radialGradient key={`tg-${c}`} id={`tk-${c}`} cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.95} />
+            <stop offset="25%" stopColor={COLOR_LIGHT[c]} />
+            <stop offset="100%" stopColor={COLOR_HEX[c]} />
+          </radialGradient>
+        ))}
+        <radialGradient id="goldStar" cx="40%" cy="35%" r="70%">
+          <stop offset="0%" stopColor="#fff8b0" />
+          <stop offset="55%" stopColor="#f5c518" />
+          <stop offset="100%" stopColor="#a5720a" />
+        </radialGradient>
+        <linearGradient id="cellGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fffdf5" />
+          <stop offset="100%" stopColor="#f2dfb3" />
+        </linearGradient>
+        {(["green", "red", "yellow", "blue"] as const).map(c => (
+          <linearGradient key={`cg-${c}`} id={`ct-${c}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
+            <stop offset="100%" stopColor={COLOR_HEX[c]} />
+          </linearGradient>
+        ))}
+        <filter id="tokenShadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#000" floodOpacity="0.55" />
+        </filter>
+        <filter id="glowGold" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* Board background */}
+      <rect x={0} y={0} width={BOARD} height={BOARD} rx={14} fill="url(#boardBg)" />
+      <rect x={2} y={2} width={BOARD - 4} height={BOARD - 4} rx={12}
+        fill="none" stroke="#8b5a2b" strokeWidth={1.5} opacity={0.35} />
 
       {/* 4 color quadrants */}
       {(["green", "red", "yellow", "blue"] as const).map(color => {
@@ -143,72 +191,97 @@ function LudoBoard({
         const [x, y] = positions[color];
         return (
           <g key={color}>
-            <rect x={x * CELL} y={y * CELL} width={6 * CELL} height={6 * CELL}
-              fill={COLOR_HEX[color]} opacity={0.85} rx={6} />
+            <rect x={x * CELL + 3} y={y * CELL + 3} width={6 * CELL - 6} height={6 * CELL - 6}
+              fill={`url(#q-${color})`} rx={10}
+              stroke="rgba(0,0,0,0.25)" strokeWidth={1} />
             <rect x={(x + 1) * CELL} y={(y + 1) * CELL} width={4 * CELL} height={4 * CELL}
-              fill="#fef3c7" rx={4} />
+              fill="#fffaf0" rx={6}
+              stroke="rgba(0,0,0,0.15)" strokeWidth={0.8} />
+            {BASE_SLOTS[color].map(([gx, gy], i) => (
+              <circle key={i} cx={gx * CELL} cy={gy * CELL} r={CELL * 0.5}
+                fill="rgba(255,255,255,0.55)" stroke="rgba(0,0,0,0.15)" strokeWidth={0.6} />
+            ))}
           </g>
         );
       })}
 
       {/* Path cells */}
       {PATH.map(([gx, gy], i) => (
-        <rect key={`p-${i}`} x={gx * CELL + 1} y={gy * CELL + 1}
-          width={CELL - 2} height={CELL - 2} fill="#fef3c7" stroke="#78350f" strokeWidth={0.5} />
+        <rect key={`p-${i}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
+          width={CELL - 2.4} height={CELL - 2.4} rx={3}
+          fill="url(#cellGrad)" stroke="#8b5a2b" strokeWidth={0.6} opacity={0.95} />
       ))}
-
-      {/* Safe cells */}
-      {[...SAFE_CELLS].map(i => {
-        const [gx, gy] = PATH[i];
-        return (
-          <text key={`s-${i}`} x={(gx + 0.5) * CELL} y={(gy + 0.7) * CELL}
-            fontSize={CELL * 0.7} textAnchor="middle" fill="#78350f" opacity={0.6}>★</text>
-        );
-      })}
-
-      {/* Home stretches */}
-      {(["green", "red", "yellow", "blue"] as const).map(color =>
-        HOME_STRETCH[color].map(([gx, gy], i) => (
-          <rect key={`hs-${color}-${i}`} x={gx * CELL + 1} y={gy * CELL + 1}
-            width={CELL - 2} height={CELL - 2} fill={COLOR_LIGHT[color]} stroke="#78350f" strokeWidth={0.5} />
-        )),
-      )}
 
       {/* Colored starting cells */}
       {(["green", "red", "yellow", "blue"] as const).map((color, seat) => {
         const cellIdx = seat * 13;
         const [gx, gy] = PATH[cellIdx];
         return (
-          <rect key={`start-${color}`} x={gx * CELL + 1} y={gy * CELL + 1}
-            width={CELL - 2} height={CELL - 2} fill={COLOR_HEX[color]} opacity={0.4} />
+          <rect key={`start-${color}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
+            width={CELL - 2.4} height={CELL - 2.4} rx={3}
+            fill={`url(#q-${color})`} opacity={0.75} />
         );
       })}
 
-      {/* Center triangle */}
-      <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill={COLOR_HEX.red} />
-      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill={COLOR_HEX.blue} />
-      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill={COLOR_HEX.yellow} />
-      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill={COLOR_HEX.green} />
+      {/* Home stretches */}
+      {(["green", "red", "yellow", "blue"] as const).map(color =>
+        HOME_STRETCH[color].map(([gx, gy], i) => (
+          <rect key={`hs-${color}-${i}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
+            width={CELL - 2.4} height={CELL - 2.4} rx={3}
+            fill={`url(#q-${color})`} opacity={0.85}
+            stroke="#8b5a2b" strokeWidth={0.5} />
+        )),
+      )}
 
-      {/* Tokens */}
+      {/* Golden stars on safe cells */}
+      {[...SAFE_CELLS].map(i => {
+        const [gx, gy] = PATH[i];
+        const cx = (gx + 0.5) * CELL;
+        const cy = (gy + 0.5) * CELL;
+        const r = CELL * 0.36;
+        const pts = Array.from({ length: 10 }, (_, k) => {
+          const ang = (Math.PI / 5) * k - Math.PI / 2;
+          const rr = k % 2 === 0 ? r : r * 0.45;
+          return `${cx + Math.cos(ang) * rr},${cy + Math.sin(ang) * rr}`;
+        }).join(" ");
+        return (
+          <polygon key={`s-${i}`} points={pts}
+            fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.6}
+            filter="url(#glowGold)" />
+        );
+      })}
+
+      {/* Center triangles + gold hub */}
+      <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.6} />
+      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.6} />
+      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-yellow)" stroke="#6b4c05" strokeWidth={0.6} />
+      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.6} />
+      <circle cx={7.5 * CELL} cy={7.5 * CELL} r={CELL * 0.32} fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.8} filter="url(#glowGold)" />
+
+      {/* Tokens (glossy discs) */}
       {players.flatMap(p =>
         p.tokens.map((pos, idx) => {
           const { x, y } = tokenCoords(p.color, pos, idx);
           const isMine = p.color === myColor;
           const clickable = isMine && canMoveToken(idx);
+          const r = CELL * 0.4;
           return (
             <g key={`${p.id}-${idx}`}
               onClick={() => clickable && onTokenClick(idx)}
-              style={{ cursor: clickable ? "pointer" : "default" }}>
-              <circle cx={x} cy={y} r={CELL * 0.38}
-                fill={COLOR_HEX[p.color]}
-                stroke={clickable ? "#fef08a" : "#1e293b"}
-                strokeWidth={clickable ? 2.5 : 1.5}
-                style={{
-                  filter: clickable ? "drop-shadow(0 0 4px #facc15)" : undefined,
-                  transition: "transform 0.35s ease, cx 0.35s ease, cy 0.35s ease",
-                }} />
-              <circle cx={x} cy={y} r={CELL * 0.18} fill="#fff" opacity={0.9} />
+              style={{ cursor: clickable ? "pointer" : "default", transition: "transform 0.35s ease" }}
+              filter="url(#tokenShadow)">
+              {clickable && (
+                <circle cx={x} cy={y} r={r + 3} fill="none"
+                  stroke="#facc15" strokeWidth={1.8} opacity={0.9}>
+                  <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
+                </circle>
+              )}
+              <circle cx={x} cy={y + 0.6} r={r} fill="rgba(0,0,0,0.25)" />
+              <circle cx={x} cy={y} r={r} fill={`url(#tk-${p.color})`}
+                stroke={clickable ? "#fde047" : "rgba(0,0,0,0.55)"} strokeWidth={clickable ? 1.4 : 1} />
+              <ellipse cx={x - r * 0.28} cy={y - r * 0.38} rx={r * 0.45} ry={r * 0.22}
+                fill="#ffffff" opacity={0.75} />
+              <circle cx={x} cy={y} r={r * 0.42} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={0.8} />
             </g>
           );
         }),
