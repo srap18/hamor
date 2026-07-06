@@ -78,6 +78,30 @@ const BASE_SLOTS: Record<string, [number, number][]> = {
 
 const SAFE_CELLS = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
 
+const ERR_MSG: Record<string, string> = {
+  dice_pending_move: "لديك نرد لم تُستخدم بعد — حرّك قطعة أولاً",
+  no_dice: "ارمِ النرد أولاً",
+  not_your_turn: "ليس دورك الآن",
+  invalid_move: "حركة غير صالحة",
+  room_full: "الغرفة ممتلئة",
+  already_joined: "أنت في الغرفة بالفعل",
+  not_in_room: "لست في هذه الغرفة",
+  game_not_started: "اللعبة لم تبدأ بعد",
+  game_finished: "انتهت اللعبة",
+  turn_expired: "انتهى وقت الدور",
+};
+function translateErr(m: string): string {
+  const key = (m || "").trim();
+  return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
+}
+
+const ROTATION: Record<string, number> = {
+  yellow: 0,   // bottom-left already
+  blue: 90,    // bottom-right → bottom-left
+  red: 180,    // top-right → bottom-left
+  green: 270,  // top-left → bottom-left
+};
+
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
   if (pos === -1) {
     const [gx, gy] = BASE_SLOTS[color][tokenIdx];
@@ -393,7 +417,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   }, []);
 
   const flash = useCallback((m: string) => {
-    setNotice(m);
+    setNotice(translateErr(m));
     setTimeout(() => setNotice(""), 3000);
   }, []);
 
@@ -406,7 +430,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
       .order("created_at", { ascending: false }).limit(20);
     if (error) {
       // Don't spam UI with transient auth errors during session hydration
-      if (!/unauthor/i.test(error.message)) flash(`❌ ${error.message}`);
+      if (!/unauthor/i.test(error.message)) flash(error.message);
       return;
     }
     setRooms((data as unknown as Room[]) || []);
@@ -475,7 +499,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_quick_match" as never, { _players: players } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     await loadRooms();
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", data as unknown as string).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
@@ -485,7 +509,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_create_room" as never, { _max_players: players } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     await loadRooms();
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", data as unknown as string).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
@@ -495,7 +519,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { error } = await supabase.rpc("ludo_join_room" as never, { _room_id: roomId } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
   };
@@ -505,19 +529,19 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
     const { error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
-    if (error) { setRolling(false); flash(`❌ ${error.message}`); }
+    if (error) { setRolling(false); flash(error.message); }
   };
 
   const moveToken = async (tokenIdx: number) => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_move_token" as never, { _room_id: activeRoom.id, _token_idx: tokenIdx } as never);
-    if (error) flash(`❌ ${error.message}`);
+    if (error) flash(error.message);
   };
 
   const skipTurn = async () => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_skip_turn" as never, { _room_id: activeRoom.id } as never);
-    if (error) flash(`❌ ${error.message}`);
+    if (error) flash(error.message);
   };
 
   // ---- Lobby view ----
@@ -605,28 +629,37 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         </div>
       </div>
 
-      {/* Player cards */}
+      {/* Player cards — put ME first so I always appear on the leading side */}
       <div className={`grid gap-2 mb-2 ${activeRoom.max_players === 2 ? "grid-cols-2" : "grid-cols-2"}`}>
-        {seats.map((p, i) => (
-          <PlayerCard key={i}
-            color={p?.color || (["green", "red", "yellow", "blue"] as const)[i]}
-            prof={p ? profs[p.user_id] : null}
-            active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
-            finished={p?.finished_count}
-            isEmpty={!p}
-          />
-        ))}
+        {(() => {
+          const ordered = [...seats];
+          if (me) {
+            const myIdx = ordered.findIndex(p => p?.user_id === userId);
+            if (myIdx > 0) { const [mine] = ordered.splice(myIdx, 1); ordered.unshift(mine); }
+          }
+          return ordered.map((p, i) => (
+            <PlayerCard key={i}
+              color={p?.color || (["green", "red", "yellow", "blue"] as const)[i]}
+              prof={p ? profs[p.user_id] : null}
+              active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
+              finished={p?.finished_count}
+              isEmpty={!p}
+            />
+          ));
+        })()}
       </div>
 
-      {/* Board */}
+      {/* Board — rotated so my color's home corner appears bottom-left */}
       <div className="rounded-2xl overflow-hidden border-2 border-amber-500/50 mb-2 p-2 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]"
         style={{ background: "linear-gradient(145deg,#3a2412,#1a0f08)" }}>
-        <LudoBoard
-          players={players}
-          myColor={me?.color || null}
-          lastDice={isMyTurn ? activeRoom.last_dice : null}
-          onTokenClick={moveToken}
-        />
+        <div style={{ transform: `rotate(${ROTATION[me?.color || "yellow"] ?? 0}deg)`, transition: "transform 0.5s ease" }}>
+          <LudoBoard
+            players={players}
+            myColor={me?.color || null}
+            lastDice={isMyTurn ? activeRoom.last_dice : null}
+            onTokenClick={moveToken}
+          />
+        </div>
       </div>
 
       {/* Controls */}
