@@ -223,16 +223,8 @@ function AdminReports() {
           {rows.map((r) => {
             const reporter = profs.get(r.reporter_id);
             const reported = profs.get(r.reported_user_id);
-
-      {loading ? (
-        <div className="text-slate-400 text-sm py-8 text-center">جاري التحميل...</div>
-      ) : rows.length === 0 ? (
-        <div className="text-slate-400 text-sm py-8 text-center">لا توجد بلاغات</div>
-      ) : (
-        <div className="space-y-3">
-          {rows.map((r) => {
-            const reporter = profs.get(r.reporter_id);
-            const reported = profs.get(r.reported_user_id);
+            const reporterName = reporter?.display_name?.trim() || `مستخدم ${r.reporter_id.slice(0, 6)}`;
+            const reportedName = reported?.display_name?.trim() || `مستخدم ${r.reported_user_id.slice(0, 6)}`;
             return (
               <div key={r.id} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
