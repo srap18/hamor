@@ -503,6 +503,7 @@ function RootComponent() {
 
           <LastAttackTicker />
           <GlobalNotificationListener />
+          <LuckyBoxGlobalBanner />
           <SelfAntiBlockBurst />
           <AttackerAntiBlockBurst />
 
