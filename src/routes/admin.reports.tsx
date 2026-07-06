@@ -93,12 +93,24 @@ function AdminReports() {
     setRows((prev) => prev.map((r) => r.id === id ? { ...r, status } : r));
   };
 
+  const deleteReportedContent = async (r: Report): Promise<boolean> => {
+    if (!r.source_id) return false;
+    let table: "messages" | "ad_bombs" | "destroyer_messages" | null = null;
+    if (r.kind === "chat") table = "messages";
+    else if (r.kind === "ad_bomb") table = "ad_bombs";
+    else if (r.kind === "destroyer") table = "destroyer_messages";
+    if (!table) return false;
+    const { error } = await supabase.from(table).delete().eq("id", r.source_id);
+    if (error) { toast.error("فشل حذف الرسالة: " + error.message); return false; }
+    return true;
+  };
+
   const deleteChatMessage = async (r: Report) => {
-    if (r.kind !== "chat" || !r.source_id) { toast.error("هذا النوع ما يدعم حذف الرسالة"); return; }
-    if (!confirm("حذف الرسالة من الشات؟")) return;
-    const { error } = await supabase.from("messages").delete().eq("id", r.source_id);
-    if (error) { toast.error("فشل الحذف: " + error.message); return; }
-    await logAudit("delete_message_from_report", r.reported_user_id, { report_id: r.id });
+    if (!r.source_id) { toast.error("لا يوجد مصدر للرسالة"); return; }
+    if (!confirm("حذف الرسالة؟")) return;
+    const ok = await deleteReportedContent(r);
+    if (!ok) return;
+    await logAudit("delete_message_from_report", r.reported_user_id, { report_id: r.id, kind: r.kind });
     toast.success("تم حذف الرسالة");
     await updateStatus(r.id, "resolved", "حذف الرسالة");
   };
@@ -115,17 +127,20 @@ function AdminReports() {
       expires_at,
     });
     if (error) { toast.error("فشل الكتم"); return; }
-    await logAudit("mute_from_report", r.reported_user_id, { hours, report_id: r.id });
-    toast.success(`تم الكتم ${hours >= 87600 ? "دائم" : hours + "س"}`);
-    await updateStatus(r.id, "resolved", `كتم ${hours}س`);
+    // Auto-delete the reported message
+    const deleted = await deleteReportedContent(r);
+    await logAudit("mute_from_report", r.reported_user_id, { hours, report_id: r.id, message_deleted: deleted });
+    toast.success(`تم الكتم ${hours >= 87600 ? "دائم" : hours + "س"}${deleted ? " وحذف الرسالة" : ""}`);
+    await updateStatus(r.id, "resolved", `كتم ${hours}س${deleted ? " + حذف الرسالة" : ""}`);
   };
 
   const banReported = async (r: Report, days: number) => {
     if (!confirm(`حظر ${profs.get(r.reported_user_id)?.display_name || "اللاعب"} لمدة ${days} يوم؟`)) return;
     try {
       await adminBlockLogin({ data: { userId: r.reported_user_id, hours: days * 24, reason: `بلاغ: ${r.reason || r.message_body?.slice(0, 80) || ""}` } });
-      toast.success("تم الحظر");
-      await updateStatus(r.id, "resolved", `حظر ${days} يوم`);
+      const deleted = await deleteReportedContent(r);
+      toast.success(`تم الحظر${deleted ? " وحذف الرسالة" : ""}`);
+      await updateStatus(r.id, "resolved", `حظر ${days} يوم${deleted ? " + حذف الرسالة" : ""}`);
     } catch (e) {
       toast.error("فشل الحظر: " + (e as Error).message);
     }
