@@ -1633,6 +1633,17 @@ function Index() {
       if (s.dbId) {
         setShipAtSea(s.dbId!, false).catch(() => {});
       }
+      // For non-market-full errors, the optimistic predictive popup would lie
+      // to the player (shows fish "caught" while storage stays empty). Replace
+      // it with an explicit failure popup so what the player sees matches
+      // reality: nothing was added to storage.
+      setCatchResult({
+        emoji: "⚠️",
+        name: "لم يُضَف سمك — أعد المحاولة",
+        count: 0,
+        shipId: s.id,
+        shipLevel: s.level,
+      });
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
         // Server already considers the ship docked (stale local state — another
@@ -1649,6 +1660,7 @@ function Index() {
         showToast(`تعذّر استلام الصيد: ${msg || "خطأ غير معروف"}`);
         sound.play("error");
       }
+
       syncFleetFromDb();
       return;
     }
