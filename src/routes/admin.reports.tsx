@@ -167,6 +167,20 @@ function AdminReports() {
     setRows((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const deleteAllReports = async () => {
+    const scope = filter === "pending" ? "بلاغات قيد المراجعة" : "البلاغات كلها";
+    if (!confirm(`⚠️ حذف ${scope} نهائياً؟ (${rows.length} بلاغ)`)) return;
+    if (!confirm("متأكد 100%؟ لا يمكن التراجع")) return;
+    setBusy("__all__");
+    let q = (supabase as any).from("message_reports").delete();
+    q = filter === "pending" ? q.eq("status", "pending") : q.neq("id", "00000000-0000-0000-0000-000000000000");
+    const { error } = await q;
+    setBusy(null);
+    if (error) { toast.error("فشل الحذف: " + error.message); return; }
+    toast.success("✅ تم حذف البلاغات");
+    setRows([]);
+  };
+
   const kindLabel = (k: Report["kind"]) =>
     k === "chat" ? "💬 شات" : k === "ad_bomb" ? "📺 قنبلة إعلانية" : "☢️ رسالة مفجّر";
 
@@ -177,7 +191,7 @@ function AdminReports() {
           <h1 className="text-xl md:text-2xl font-bold">🚩 بلاغات اللاعبين</h1>
           <p className="text-slate-400 text-xs mt-1">{rows.length} بلاغ</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(["pending", "all"] as const).map((k) => (
             <button
               key={k}
@@ -188,6 +202,15 @@ function AdminReports() {
             </button>
           ))}
           <button onClick={load} className="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700">🔄</button>
+          {rows.length > 0 && (
+            <button
+              onClick={deleteAllReports}
+              disabled={busy === "__all__"}
+              className="px-3 py-1.5 rounded-lg text-xs bg-red-700 hover:bg-red-600 text-white font-bold disabled:opacity-50"
+            >
+              🗑️ حذف الكل ({rows.length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -200,6 +223,8 @@ function AdminReports() {
           {rows.map((r) => {
             const reporter = profs.get(r.reporter_id);
             const reported = profs.get(r.reported_user_id);
+            const reporterName = reporter?.display_name?.trim() || `مستخدم ${r.reporter_id.slice(0, 6)}`;
+            const reportedName = reported?.display_name?.trim() || `مستخدم ${r.reported_user_id.slice(0, 6)}`;
             return (
               <div key={r.id} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -218,13 +243,14 @@ function AdminReports() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-2 mb-2 text-xs">
-                  <div className="rounded-lg bg-slate-950/60 border border-slate-700 p-2">
-                    <div className="text-slate-400 mb-1">👤 صاحب البلاغ</div>
-                    <div className="text-slate-100 font-bold flex items-center gap-2">
-                      <span>{reporter?.avatar_emoji || "👤"}</span>
-                      <span>{reporter?.display_name || r.reporter_id.slice(0, 8)}</span>
+                  <div className="rounded-lg bg-blue-950/40 border border-blue-700/50 p-2">
+                    <div className="text-blue-300 mb-1 font-bold">👤 المُبلِّغ (صاحب البلاغ)</div>
+                    <div className="text-white font-extrabold text-sm flex items-center gap-2 flex-wrap">
+                      <span className="text-lg">{reporter?.avatar_emoji || "👤"}</span>
+                      <span className="break-all">{reporterName}</span>
                       {reporter?.reports_disabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-900/60 text-red-200">ممنوع من البلاغ</span>}
                     </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{r.reporter_id.slice(0, 8)}</div>
                     <button
                       onClick={() => toggleReporterBan(r.reporter_id, !reporter?.reports_disabled)}
                       className={`mt-1.5 text-[10px] px-2 py-0.5 rounded ${reporter?.reports_disabled ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-red-800/70 hover:bg-red-700 text-red-100"}`}
@@ -232,12 +258,13 @@ function AdminReports() {
                       {reporter?.reports_disabled ? "✅ السماح بالبلاغ" : "🚫 منعه من البلاغ"}
                     </button>
                   </div>
-                  <div className="rounded-lg bg-slate-950/60 border border-slate-700 p-2">
-                    <div className="text-slate-400 mb-1">🎯 المُبلَّغ عليه</div>
-                    <div className="text-slate-100 font-bold flex items-center gap-2">
-                      <span>{reported?.avatar_emoji || "👤"}</span>
-                      <span>{reported?.display_name || r.reported_user_id.slice(0, 8)}</span>
+                  <div className="rounded-lg bg-rose-950/40 border border-rose-700/50 p-2">
+                    <div className="text-rose-300 mb-1 font-bold">🎯 المُبلَّغ عليه</div>
+                    <div className="text-white font-extrabold text-sm flex items-center gap-2 flex-wrap">
+                      <span className="text-lg">{reported?.avatar_emoji || "👤"}</span>
+                      <span className="break-all">{reportedName}</span>
                     </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{r.reported_user_id.slice(0, 8)}</div>
                   </div>
                 </div>
 
