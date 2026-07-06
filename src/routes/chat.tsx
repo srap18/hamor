@@ -1350,9 +1350,10 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
     await load();
   });
   const leaveTribe = () => {
-    if (!confirm("هل تريد مغادرة القبيلة؟")) return;
+    if (!confirm("هل تريد مغادرة القبيلة؟\nإذا كنت القائد سيتم تحويل القيادة تلقائياً لأقدم عضو، وإن كنت العضو الوحيد ستُحذف القبيلة.")) return;
     wrap(async () => {
-      await supabase.from("tribe_members").delete().eq("tribe_id", tribeId).eq("user_id", userId);
+      const { error } = await supabase.rpc("leave_tribe" as never, { _tribe_id: tribeId } as never);
+      if (error) throw error;
       await setMyTribe(null);
       window.location.reload();
     });
