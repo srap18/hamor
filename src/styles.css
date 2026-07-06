@@ -958,6 +958,55 @@ html { touch-action: manipulation; }
   }
 }
 
+/* ================================================================
+   Elegant pirate-gold toast — GPU-friendly (no backdrop-filter),
+   smooth pop-in, subtle gold border sheen. Sonner class `.oc-toast-elegant`
+   is applied via toastOptions.className in __root.tsx.
+   ================================================================ */
+.oc-toast-elegant {
+  animation: oc-toast-in 260ms cubic-bezier(.22,1,.36,1);
+  will-change: transform, opacity;
+}
+.oc-toast-elegant [data-title] {
+  color: rgb(253 230 138);
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+}
+.oc-toast-elegant [data-description] {
+  color: rgba(253, 230, 138, 0.78);
+  font-weight: 600;
+  font-size: 12px;
+  margin-top: 2px;
+}
+.oc-toast-elegant [data-icon] {
+  color: rgb(251 191 36);
+}
+/* Kind-specific accent stripe on the leading edge (RTL-aware). */
+[dir="rtl"] .oc-toast-elegant { border-right-width: 3px !important; border-right-color: rgba(217, 168, 61, 0.9) !important; }
+[dir="ltr"] .oc-toast-elegant { border-left-width: 3px !important; border-left-color: rgba(217, 168, 61, 0.9) !important; }
+[data-sonner-toast][data-type="error"].oc-toast-elegant {
+  border-right-color: rgba(248, 113, 113, 0.95) !important;
+  border-left-color: rgba(248, 113, 113, 0.95) !important;
+}
+[data-sonner-toast][data-type="success"].oc-toast-elegant {
+  border-right-color: rgba(52, 211, 153, 0.95) !important;
+  border-left-color: rgba(52, 211, 153, 0.95) !important;
+}
+[data-sonner-toast][data-type="warning"].oc-toast-elegant {
+  border-right-color: rgba(251, 191, 36, 0.95) !important;
+  border-left-color: rgba(251, 191, 36, 0.95) !important;
+}
+
+@keyframes oc-toast-in {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Respect reduce-motion */
+@media (prefers-reduced-motion: reduce) {
+  .oc-toast-elegant { animation: none; }
+}
+
 /* Safe-area padding is applied on .mobile-frame-device above (which is the
  * `contain: paint` containing block for fixed children) so both native
  * Capacitor builds AND iOS Safari with notch get correct insets. We only

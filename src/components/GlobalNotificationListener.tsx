@@ -49,12 +49,13 @@ export function GlobalNotificationListener() {
       if (seenRef.current.has(n.id)) return;
       seenRef.current.add(n.id);
       try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
-      // Don't show toast for the user's own actions (created_by === self isn't tracked
-      // here; we rely on recipient_id matching to filter).
+
       const title = `${iconFor(n.kind)} ${n.title}`;
-      const opts: any = { duration: 6000 };
+      // Reuse a single toast id so every new notification REPLACES the
+      // previous one instead of stacking. Sonner updates the same toast
+      // in-place → smooth, elegant, and easy on the GPU.
+      const opts: any = { id: "oc-notif", duration: 3500 };
       if (n.body) opts.description = n.body;
-      // Sonner: use info as default; attack uses warning style.
       if (n.kind === "attack" || n.kind === "nuke") {
         toast.error(title, opts);
       } else if (n.kind === "support" || n.kind === "support_reply" || n.kind === "ship" || n.kind === "friend" || n.kind === "anti_block") {
@@ -67,10 +68,7 @@ export function GlobalNotificationListener() {
       try { sound.play("click"); } catch { /* noop */ }
     };
 
-    // Server-side filter: this listener only shows toasts for the recipient,
-    // so subscribe only to that user's notifications (broadcasts are handled
-    // by GlobalBanner). Cuts Realtime WAL fan-out from every notification to
-    // just this user's inserts.
+    // Realtime = instant. Server-side filter keeps this user's rows only.
     const channel = supabase
       .channel(`global-notifs:${user.id}`)
       .on(
@@ -80,11 +78,12 @@ export function GlobalNotificationListener() {
           const n = payload.new as Notif;
           if (!n) return;
           showToast(n);
+          if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
         },
       )
       .subscribe();
 
-    // Safety net: poll every 20s in case realtime drops a message.
+    // Safety-net poll: only runs if realtime drops (mobile background, network flap).
     const poll = async () => {
       const since = baselineRef.current;
       const { data, error } = await supabase
@@ -100,16 +99,12 @@ export function GlobalNotificationListener() {
         if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
       }
     };
-    // Poll every 20s (matches the comment above) — realtime WebSocket can
-    // drop messages when the tab is backgrounded on mobile. Faster poll = the
-    // victim sees attack/support toasts quicker if realtime missed them.
-    const interval = setInterval(() => { if (!document.hidden) poll(); }, 20000);
-    // Poll once immediately on mount so notifs that arrived before the
-    // realtime channel subscribed aren't lost.
-    void poll();
+    // Poll every 15s in background as a safety net. Realtime is primary and instant.
+    const interval = setInterval(() => { if (!document.hidden) poll(); }, 15000);
     const onVis = () => { if (document.visibilityState === "visible") poll(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
+    void poll();
 
     return () => {
       supabase.removeChannel(channel);
@@ -117,6 +112,7 @@ export function GlobalNotificationListener() {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onVis);
     };
+
   }, [user]);
 
   return null;
