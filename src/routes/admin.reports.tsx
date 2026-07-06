@@ -167,6 +167,20 @@ function AdminReports() {
     setRows((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const deleteAllReports = async () => {
+    const scope = filter === "pending" ? "بلاغات قيد المراجعة" : "البلاغات كلها";
+    if (!confirm(`⚠️ حذف ${scope} نهائياً؟ (${rows.length} بلاغ)`)) return;
+    if (!confirm("متأكد 100%؟ لا يمكن التراجع")) return;
+    setBusy("__all__");
+    let q = (supabase as any).from("message_reports").delete();
+    q = filter === "pending" ? q.eq("status", "pending") : q.neq("id", "00000000-0000-0000-0000-000000000000");
+    const { error } = await q;
+    setBusy(null);
+    if (error) { toast.error("فشل الحذف: " + error.message); return; }
+    toast.success("✅ تم حذف البلاغات");
+    setRows([]);
+  };
+
   const kindLabel = (k: Report["kind"]) =>
     k === "chat" ? "💬 شات" : k === "ad_bomb" ? "📺 قنبلة إعلانية" : "☢️ رسالة مفجّر";
 
