@@ -635,7 +635,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   return (
     <div className={`${fullscreen ? "max-w-2xl mx-auto" : ""} p-2 text-amber-100`}>
       <div className="flex items-center justify-between mb-2">
-        <button onClick={() => { setActiveRoom(null); setPlayers([]); }}
+        <button onClick={async () => { const rid = activeRoom.id; setActiveRoom(null); setPlayers([]); await leaveRoom(rid); loadRooms(); }}
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
