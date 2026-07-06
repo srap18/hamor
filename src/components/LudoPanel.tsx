@@ -393,7 +393,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   }, []);
 
   const flash = useCallback((m: string) => {
-    setNotice(m);
+    setNotice(translateErr(m));
     setTimeout(() => setNotice(""), 3000);
   }, []);
 
