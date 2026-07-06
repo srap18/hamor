@@ -124,7 +124,8 @@ export function NotificationsBell() {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") load();
       });
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 60000);
+    // Poll every 20s so the bell badge updates quickly even if realtime drops.
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 20000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);

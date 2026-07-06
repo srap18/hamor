@@ -100,7 +100,13 @@ export function GlobalNotificationListener() {
         if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
       }
     };
-    const interval = setInterval(() => { if (!document.hidden) poll(); }, 60000);
+    // Poll every 20s (matches the comment above) — realtime WebSocket can
+    // drop messages when the tab is backgrounded on mobile. Faster poll = the
+    // victim sees attack/support toasts quicker if realtime missed them.
+    const interval = setInterval(() => { if (!document.hidden) poll(); }, 20000);
+    // Poll once immediately on mount so notifs that arrived before the
+    // realtime channel subscribed aren't lost.
+    void poll();
     const onVis = () => { if (document.visibilityState === "visible") poll(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
