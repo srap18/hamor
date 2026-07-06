@@ -151,6 +151,19 @@ function hasLegalMove(player: Player | null, dice: number | null): boolean {
   });
 }
 
+function canTokenMove(player: Player | null, tokenIdx: number, dice: number | null): boolean {
+  if (!player || dice == null) return false;
+  const pos = player.tokens[tokenIdx];
+  const startOffset = COLOR_START_OFFSET[player.color] ?? player.seat * 13;
+  if (pos === -1) return dice === 6;
+  if (pos >= 999) return false;
+  if (pos >= 100) return pos + dice <= 105;
+  const rel = ((pos - startOffset + 52) % 52);
+  const distToEntry = 50 - rel;
+  if (dice <= distToEntry) return true;
+  return 100 + (dice - distToEntry - 1) <= 105;
+}
+
 // ============================================================
 // Player card (avatar + frame + name)
 // ============================================================
@@ -218,12 +231,7 @@ function LudoBoard({
 }) {
   const me = players.find(p => p.color === myColor);
   const canMoveToken = useCallback((tokenIdx: number): boolean => {
-    if (!me || lastDice == null) return false;
-    const pos = me.tokens[tokenIdx];
-    if (pos === 999) return false;
-    if (pos === -1) return lastDice === 6;
-    if (pos >= 100) return pos + lastDice <= 105;
-    return true;
+    return canTokenMove(me || null, tokenIdx, lastDice);
   }, [me, lastDice]);
 
   return (
@@ -514,7 +522,13 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     const loadRoom = async () => {
       const { data } = await supabase
         .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
-      if (!cancelled && data) setActiveRoom(data as unknown as Room);
+      if (cancelled) return;
+      if (data) setActiveRoom(data as unknown as Room);
+      else {
+        setActiveRoom(null);
+        setPlayers([]);
+        loadRooms();
+      }
     };
 
     loadPlayers();
@@ -535,6 +549,26 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   const secondsLeft = activeRoom?.turn_deadline
     ? Math.max(0, Math.floor((new Date(activeRoom.turn_deadline).getTime() - now) / 1000))
     : null;
+
+  const refreshActiveRoom = useCallback(async (roomId?: string) => {
+    const rid = roomId || activeRoom?.id;
+    if (!rid) return;
+    const [{ data: room }, { data: psData }] = await Promise.all([
+      supabase.from("ludo_rooms" as never).select("*").eq("id", rid).maybeSingle(),
+      supabase.from("ludo_players" as never).select("*").eq("room_id", rid),
+    ]);
+    if (!room) {
+      setActiveRoom(null);
+      setPlayers([]);
+      loadRooms();
+      return;
+    }
+    setActiveRoom(room as unknown as Room);
+    setPlayers(((psData as unknown as Player[]) || []).map(p => ({
+      ...p,
+      tokens: Array.isArray(p.tokens) ? p.tokens : [-1, -1, -1, -1],
+    })));
+  }, [activeRoom?.id, loadRooms]);
 
   const quickMatch = async (players: 2 | 4) => {
     setBusy(true);
@@ -577,6 +611,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         setLocalDice(dice);
         setTimeout(() => setLocalDice(null), 1800);
       }
+      await refreshActiveRoom(activeRoom.id);
     }
   };
 
@@ -584,14 +619,20 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_move_token" as never, { _room_id: activeRoom.id, _token_idx: tokenIdx } as never);
     if (error) flash(error.message);
-    else setLocalDice(null);
+    else {
+      setLocalDice(null);
+      await refreshActiveRoom(activeRoom.id);
+    }
   };
 
   const skipTurn = async () => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_skip_turn" as never, { _room_id: activeRoom.id } as never);
     if (error) flash(error.message);
-    else setLocalDice(null);
+    else {
+      setLocalDice(null);
+      await refreshActiveRoom(activeRoom.id);
+    }
   };
 
   const leaveRoom = useCallback(async (roomId: string) => {
@@ -610,6 +651,51 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
       window.removeEventListener("beforeunload", handler);
     };
   }, [activeRoom, leaveRoom]);
+
+  // Keep active games from getting stuck at 0s or on a missing player.
+  useEffect(() => {
+    if (!activeRoom || activeRoom.status !== "playing") return;
+    const roomId = activeRoom.id;
+    let stopped = false;
+
+    const repairTurn = async () => {
+      try { await supabase.rpc("ludo_cleanup_stale_rooms" as never); } catch { /* ignore */ }
+      if (stopped) return;
+      const { data } = await supabase
+        .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
+      if (stopped) return;
+      if (data) setActiveRoom(data as unknown as Room);
+      else {
+        setActiveRoom(null);
+        setPlayers([]);
+        loadRooms();
+      }
+    };
+
+    const timer = setInterval(() => {
+      const deadline = activeRoom.turn_deadline ? new Date(activeRoom.turn_deadline).getTime() : 0;
+      const currentSeatExists = players.some(p => p.seat === activeRoom.current_turn_seat);
+      if ((deadline > 0 && deadline <= Date.now()) || !currentSeatExists) repairTurn();
+    }, 1000);
+
+    return () => { stopped = true; clearInterval(timer); };
+  }, [activeRoom, players, loadRooms]);
+
+  // Realtime can be delayed on mobile; poll active rooms lightly so both players stay synced.
+  useEffect(() => {
+    if (!activeRoom) return;
+    const roomId = activeRoom.id;
+    const timer = setInterval(() => { refreshActiveRoom(roomId); }, 2500);
+    return () => clearInterval(timer);
+  }, [activeRoom?.id, refreshActiveRoom]);
+
+  // If a dice result has no legal move, advance the turn automatically.
+  useEffect(() => {
+    if (!activeRoom || !isMyTurn || activeRoom.last_dice == null || hasMoveNow || busy) return;
+    const timer = setTimeout(() => { skipTurn(); }, 650);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRoom?.id, activeRoom?.last_dice, isMyTurn, hasMoveNow, busy]);
 
   // ---- Lobby view ----
   if (!activeRoom) {
@@ -757,9 +843,15 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         </div>
       )}
 
-      {isMyTurn && activeRoom.last_dice != null && (
+      {isMyTurn && activeRoom.last_dice != null && hasMoveNow && (
         <div className="mt-2 text-center text-[11px] text-amber-300 animate-pulse">
           اضغط على أي قطعة متوهجة لتحريكها
+        </div>
+      )}
+
+      {isMyTurn && activeRoom.last_dice != null && !hasMoveNow && (
+        <div className="mt-2 text-center text-[11px] text-amber-300 animate-pulse">
+          لا توجد حركة متاحة — سيتم تخطي الدور تلقائياً
         </div>
       )}
 

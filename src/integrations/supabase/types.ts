@@ -6134,6 +6134,10 @@ export type Database = {
         Args: { _room_id: string; _token_idx: number }
         Returns: Json
       }
+      ludo_next_active_seat: {
+        Args: { _current_seat: number; _max_players: number; _room_id: string }
+        Returns: number
+      }
       ludo_player_has_move:
         | {
             Args: { _dice: number; _seat: number; _tokens: Json }
