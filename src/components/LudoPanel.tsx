@@ -76,6 +76,11 @@ const BASE_SLOTS: Record<string, [number, number][]> = {
   blue:   [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
 };
 
+const SEAT_COLORS: Record<2 | 4, readonly Player["color"][]> = {
+  2: ["green", "blue"],
+  4: ["green", "red", "yellow", "blue"],
+};
+
 const SAFE_CELLS = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
 
 const ERR_MSG: Record<string, string> = {
@@ -89,6 +94,12 @@ const ERR_MSG: Record<string, string> = {
   game_not_started: "اللعبة لم تبدأ بعد",
   game_finished: "انتهت اللعبة",
   turn_expired: "انتهى وقت الدور",
+  roll_first: "ارمِ النرد أولاً",
+  need_six_to_leave: "تحتاج رقم ٦ لإخراج قطعة من البيت",
+  overshoot: "هذه القطعة تتجاوز خط النهاية",
+  token_finished: "هذه القطعة وصلت للنهاية",
+  move_available: "عندك حركة متاحة — حرّك قطعة أولاً",
+  room_not_playing: "الغرفة لم تبدأ اللعب بعد",
 };
 function translateErr(m: string): string {
   const key = (m || "").trim();
@@ -100,6 +111,13 @@ const ROTATION: Record<string, number> = {
   blue: 90,    // bottom-right → bottom-left
   red: 180,    // top-right → bottom-left
   green: 270,  // top-left → bottom-left
+};
+
+const COLOR_START_OFFSET: Record<string, number> = {
+  green: 0,
+  red: 13,
+  yellow: 26,
+  blue: 39,
 };
 
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
@@ -117,6 +135,20 @@ function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number;
   }
   const [gx, gy] = PATH[pos];
   return { x: (gx + 0.5) * CELL, y: (gy + 0.5) * CELL };
+}
+
+function hasLegalMove(player: Player | null, dice: number | null): boolean {
+  if (!player || dice == null) return false;
+  const startOffset = COLOR_START_OFFSET[player.color] ?? player.seat * 13;
+  return player.tokens.some(pos => {
+    if (pos === -1) return dice === 6;
+    if (pos >= 999) return false;
+    if (pos >= 100) return pos + dice <= 105;
+    const rel = ((pos - startOffset + 52) % 52);
+    const distToEntry = 50 - rel;
+    if (dice <= distToEntry) return true;
+    return 100 + (dice - distToEntry - 1) <= 105;
+  });
 }
 
 // ============================================================
@@ -256,8 +288,14 @@ function LudoBoard({
             <rect x={(x + 1) * CELL} y={(y + 1) * CELL} width={4 * CELL} height={4 * CELL}
               fill="#fffaf0" rx={6} stroke="rgba(0,0,0,0.15)" strokeWidth={0.8} />
             {BASE_SLOTS[color].map(([gx, gy], i) => (
-              <circle key={i} cx={gx * CELL} cy={gy * CELL} r={CELL * 0.5}
-                fill="rgba(255,255,255,0.55)" stroke="rgba(0,0,0,0.15)" strokeWidth={0.6} />
+              <g key={i}>
+                <circle cx={gx * CELL} cy={gy * CELL + 0.8} r={CELL * 0.43}
+                  fill="rgba(0,0,0,0.10)" />
+                <circle cx={gx * CELL} cy={gy * CELL} r={CELL * 0.42}
+                  fill="rgba(255,255,255,0.82)" stroke="rgba(75,85,99,0.34)" strokeWidth={1.05} />
+                <circle cx={gx * CELL} cy={gy * CELL} r={CELL * 0.29}
+                  fill="none" stroke={COLOR_HEX[color]} strokeWidth={0.35} opacity={0.22} />
+              </g>
             ))}
           </g>
         );
@@ -407,6 +445,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   const [profs, setProfs] = useState<Record<string, Prof>>({});
   const [busy, setBusy] = useState(false);
   const [rolling, setRolling] = useState(false);
+  const [localDice, setLocalDice] = useState<number | null>(null);
   const [notice, setNotice] = useState<string>("");
   const [now, setNow] = useState(Date.now());
   const [wantPlayers, setWantPlayers] = useState<2 | 4>(2);
@@ -491,6 +530,8 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
 
   const me = useMemo(() => players.find(p => p.user_id === userId) || null, [players, userId]);
   const isMyTurn = activeRoom?.status === "playing" && me?.seat === activeRoom.current_turn_seat;
+  const shownDice = activeRoom?.last_dice ?? localDice;
+  const hasMoveNow = hasLegalMove(me, activeRoom?.last_dice ?? null);
   const secondsLeft = activeRoom?.turn_deadline
     ? Math.max(0, Math.floor((new Date(activeRoom.turn_deadline).getTime() - now) / 1000))
     : null;
@@ -528,20 +569,29 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (!activeRoom) return;
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
-    const { error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
+    const { data, error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
     if (error) { setRolling(false); flash(error.message); }
+    else {
+      const dice = typeof data === "number" ? data : Number(data);
+      if (Number.isFinite(dice)) {
+        setLocalDice(dice);
+        setTimeout(() => setLocalDice(null), 1800);
+      }
+    }
   };
 
   const moveToken = async (tokenIdx: number) => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_move_token" as never, { _room_id: activeRoom.id, _token_idx: tokenIdx } as never);
     if (error) flash(error.message);
+    else setLocalDice(null);
   };
 
   const skipTurn = async () => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_skip_turn" as never, { _room_id: activeRoom.id } as never);
     if (error) flash(error.message);
+    else setLocalDice(null);
   };
 
   const leaveRoom = useCallback(async (roomId: string) => {
@@ -656,7 +706,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
           }
           return ordered.map((p, i) => (
             <PlayerCard key={i}
-              color={p?.color || (["green", "red", "yellow", "blue"] as const)[i]}
+              color={p?.color || SEAT_COLORS[activeRoom.max_players as 2 | 4]?.[i] || "green"}
               prof={p ? profs[p.user_id] : null}
               active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
               finished={p?.finished_count}
@@ -681,25 +731,29 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
 
       {/* Controls */}
       {activeRoom.status === "playing" && (
-        <div className="flex items-center gap-3 justify-center p-3 rounded-2xl bg-gradient-to-b from-stone-900/90 to-stone-950/90 border border-amber-700/40 shadow-inner">
-          <Dice3D value={activeRoom.last_dice} rolling={rolling} />
-          <div className="flex flex-col gap-1.5">
+        <div className="grid grid-cols-[78px_minmax(132px,1fr)_78px] items-center gap-3 p-3 rounded-2xl bg-gradient-to-b from-stone-900/90 to-stone-950/90 border border-amber-700/40 shadow-inner">
+          <div className="min-h-[72px] flex items-center justify-center">
+            {secondsLeft != null && isMyTurn && (
+              <div className={`text-lg font-black tabular-nums ${secondsLeft <= 5 ? "text-red-400 animate-pulse" : "text-amber-300"}`}>
+                {secondsLeft}s ⏱
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5 items-stretch">
             <button onClick={rollDice}
               disabled={!isMyTurn || activeRoom.last_dice != null || busy || rolling}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 text-sm font-black disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-[0_4px_10px_rgba(252,191,73,0.4)] border border-amber-300">
               🎲 ارمِ النرد
             </button>
             <button onClick={skipTurn}
-              disabled={!isMyTurn || activeRoom.last_dice != null || busy}
+              disabled={!isMyTurn || busy || activeRoom.last_dice == null || hasMoveNow}
               className="px-4 py-1 rounded-lg bg-stone-700 text-amber-100 text-[11px] font-bold disabled:opacity-40 active:scale-95">
               تخطي الدور
             </button>
           </div>
-          {secondsLeft != null && isMyTurn && (
-            <div className={`text-lg font-black tabular-nums ${secondsLeft <= 5 ? "text-red-400 animate-pulse" : "text-amber-300"}`}>
-              ⏱ {secondsLeft}s
-            </div>
-          )}
+          <div className="flex items-center justify-center">
+            <Dice3D value={shownDice} rolling={rolling} />
+          </div>
         </div>
       )}
 
