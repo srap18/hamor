@@ -151,6 +151,19 @@ function hasLegalMove(player: Player | null, dice: number | null): boolean {
   });
 }
 
+function canTokenMove(player: Player | null, tokenIdx: number, dice: number | null): boolean {
+  if (!player || dice == null) return false;
+  const pos = player.tokens[tokenIdx];
+  const startOffset = COLOR_START_OFFSET[player.color] ?? player.seat * 13;
+  if (pos === -1) return dice === 6;
+  if (pos >= 999) return false;
+  if (pos >= 100) return pos + dice <= 105;
+  const rel = ((pos - startOffset + 52) % 52);
+  const distToEntry = 50 - rel;
+  if (dice <= distToEntry) return true;
+  return 100 + (dice - distToEntry - 1) <= 105;
+}
+
 // ============================================================
 // Player card (avatar + frame + name)
 // ============================================================
@@ -218,12 +231,7 @@ function LudoBoard({
 }) {
   const me = players.find(p => p.color === myColor);
   const canMoveToken = useCallback((tokenIdx: number): boolean => {
-    if (!me || lastDice == null) return false;
-    const pos = me.tokens[tokenIdx];
-    if (pos === 999) return false;
-    if (pos === -1) return lastDice === 6;
-    if (pos >= 100) return pos + lastDice <= 105;
-    return true;
+    return canTokenMove(me || null, tokenIdx, lastDice);
   }, [me, lastDice]);
 
   return (
@@ -646,6 +654,14 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     return () => { stopped = true; clearInterval(timer); };
   }, [activeRoom, players, loadRooms]);
 
+  // If a dice result has no legal move, advance the turn automatically.
+  useEffect(() => {
+    if (!activeRoom || !isMyTurn || activeRoom.last_dice == null || hasMoveNow || busy) return;
+    const timer = setTimeout(() => { skipTurn(); }, 650);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRoom?.id, activeRoom?.last_dice, isMyTurn, hasMoveNow, busy]);
+
   // ---- Lobby view ----
   if (!activeRoom) {
     return (
@@ -792,9 +808,15 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         </div>
       )}
 
-      {isMyTurn && activeRoom.last_dice != null && (
+      {isMyTurn && activeRoom.last_dice != null && hasMoveNow && (
         <div className="mt-2 text-center text-[11px] text-amber-300 animate-pulse">
           اضغط على أي قطعة متوهجة لتحريكها
+        </div>
+      )}
+
+      {isMyTurn && activeRoom.last_dice != null && !hasMoveNow && (
+        <div className="mt-2 text-center text-[11px] text-amber-300 animate-pulse">
+          لا توجد حركة متاحة — سيتم تخطي الدور تلقائياً
         </div>
       )}
 
