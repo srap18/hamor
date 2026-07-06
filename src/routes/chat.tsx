@@ -645,7 +645,7 @@ function ChatPage() {
       )}
 
 
-      <div className={`absolute left-2 right-2 rounded-2xl border-2 overflow-hidden flex flex-col ${soloTribe ? "bg-gradient-to-b from-stone-950/85 to-stone-950/70 border-amber-500/60 shadow-[0_0_30px_rgba(252,191,73,0.25)]" : "bg-stone-950/70 border-amber-700/60"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl border-2 overflow-hidden flex flex-col ${soloTribe ? "bg-gradient-to-b from-stone-950/85 to-stone-950/70 border-amber-500/60 shadow-[0_0_30px_rgba(252,191,73,0.25)]" : "bg-stone-950/70 border-amber-700/60"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "games" ? (
           <LudoPanel userId={user?.id || ""} />
         ) : tab === "topics" ? (
