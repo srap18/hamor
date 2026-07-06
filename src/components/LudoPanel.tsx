@@ -398,6 +398,8 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   }, []);
 
   const loadRooms = useCallback(async () => {
+    // Cleanup stale/empty rooms before listing
+    await supabase.rpc("ludo_cleanup_stale_rooms" as never).then(() => {}, () => {});
     const { data, error } = await supabase
       .from("ludo_rooms" as never).select("*")
       .in("status", ["waiting", "playing"])
@@ -405,6 +407,12 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (error) { flash(`❌ ${error.message}`); return; }
     setRooms((data as unknown as Room[]) || []);
   }, [flash]);
+
+  // Auto-refresh rooms list every 20s
+  useEffect(() => {
+    const t = setInterval(() => { loadRooms(); }, 20000);
+    return () => clearInterval(t);
+  }, [loadRooms]);
 
   useEffect(() => { loadRooms(); }, [loadRooms]);
 
