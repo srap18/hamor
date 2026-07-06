@@ -294,7 +294,7 @@ function TribeEventsPage() {
                                             className="flex-1 min-w-0 truncate text-xs font-bold text-slate-200 hover:text-cyan-300">
                                         {m.username}
                                       </Link>
-                                      <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} 🐟</span>
+                                      <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                                     </li>
                                   ))}
                                 </ol>
