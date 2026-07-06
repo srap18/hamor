@@ -550,6 +550,26 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     ? Math.max(0, Math.floor((new Date(activeRoom.turn_deadline).getTime() - now) / 1000))
     : null;
 
+  const refreshActiveRoom = useCallback(async (roomId?: string) => {
+    const rid = roomId || activeRoom?.id;
+    if (!rid) return;
+    const [{ data: room }, { data: psData }] = await Promise.all([
+      supabase.from("ludo_rooms" as never).select("*").eq("id", rid).maybeSingle(),
+      supabase.from("ludo_players" as never).select("*").eq("room_id", rid),
+    ]);
+    if (!room) {
+      setActiveRoom(null);
+      setPlayers([]);
+      loadRooms();
+      return;
+    }
+    setActiveRoom(room as unknown as Room);
+    setPlayers(((psData as unknown as Player[]) || []).map(p => ({
+      ...p,
+      tokens: Array.isArray(p.tokens) ? p.tokens : [-1, -1, -1, -1],
+    })));
+  }, [activeRoom?.id, loadRooms]);
+
   const quickMatch = async (players: 2 | 4) => {
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_quick_match" as never, { _players: players } as never);
@@ -591,6 +611,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         setLocalDice(dice);
         setTimeout(() => setLocalDice(null), 1800);
       }
+      await refreshActiveRoom(activeRoom.id);
     }
   };
 
@@ -598,14 +619,20 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_move_token" as never, { _room_id: activeRoom.id, _token_idx: tokenIdx } as never);
     if (error) flash(error.message);
-    else setLocalDice(null);
+    else {
+      setLocalDice(null);
+      await refreshActiveRoom(activeRoom.id);
+    }
   };
 
   const skipTurn = async () => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_skip_turn" as never, { _room_id: activeRoom.id } as never);
     if (error) flash(error.message);
-    else setLocalDice(null);
+    else {
+      setLocalDice(null);
+      await refreshActiveRoom(activeRoom.id);
+    }
   };
 
   const leaveRoom = useCallback(async (roomId: string) => {
