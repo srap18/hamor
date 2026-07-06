@@ -203,10 +203,11 @@ function AdminTribeEvents() {
     const firstGems = cleanTiers.find((t) => t.rank === 1)?.gems ?? 0;
     const firstPts = cleanTiers.find((t) => t.rank === 1)?.tribe_points ?? 0;
     const { error } = await supabase.from("tribe_fish_events" as never).insert({
-      title: title.trim() || "فعالية صيد القبائل",
+      title: title.trim() || (metric === "gold" ? "فعالية جمع الذهب" : "فعالية صيد القبائل"),
       description: desc.trim(),
-      banner_emoji: emoji || "🎣",
+      banner_emoji: emoji || (metric === "gold" ? "💰" : "🎣"),
       banner_theme: theme,
+      metric,
       starts_at: s.toISOString(),
       ends_at: e.toISOString(),
       reward_gems: firstGems,
