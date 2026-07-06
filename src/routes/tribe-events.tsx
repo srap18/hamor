@@ -267,14 +267,14 @@ function TribeEventsPage() {
                           {isOpen && (
                             <div className="mt-1 mb-2 mr-7 rounded-lg border border-slate-700/70 bg-slate-950/70 p-2.5 space-y-1.5">
                               <div className="text-[11px] font-bold text-slate-400 mb-1 flex items-center justify-between">
-                                <span>🎣 أكثر الأعضاء صيداً</span>
-                                <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>
+                                <span>{ev.metric === "gold" ? "💰 أكثر الأعضاء تبرعاً بالذهب" : "🎣 أكثر الأعضاء صيداً"}</span>
+                                {ev.metric !== "gold" && <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>}
                               </div>
                               {membersLoading === key && (
                                 <div className="text-xs text-slate-500 py-2 text-center">جاري التحميل…</div>
                               )}
                               {membersLoading !== key && ms && ms.length === 0 && (
-                                <div className="text-xs text-slate-500 py-2 text-center">لا يوجد عضو صاد سمك بعد.</div>
+                                <div className="text-xs text-slate-500 py-2 text-center">ما فيه أي عضو ساهم بعد.</div>
                               )}
                               {membersLoading !== key && ms && ms.length > 0 && (
                                 <ol className="space-y-1">
