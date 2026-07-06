@@ -21,6 +21,7 @@
 import { isAndroidApp, isIosApp, isNativeApp } from "@/lib/platform";
 import { STORE_PACKS, type StorePack, type PackCategory } from "@/lib/store-catalog";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
+import { toPlayId, fromPlayId } from "@/lib/iap-play-ids";
 
 /** A single purchasable item on the stores. */
 export type IapCatalogItem = {
@@ -116,14 +117,20 @@ export async function fetchIapProducts(
   const plugin = getPlugin();
   if (!plugin) return [];
   try {
-    const res = await plugin.getProducts({ productIdentifiers: [...ids] });
-    return (res.products || []).map((p: any) => ({
-      productId: p.identifier ?? p.productId,
-      title: p.title ?? p.localizedTitle ?? p.productId,
-      description: p.description ?? p.localizedDescription ?? "",
-      price: p.priceString ?? p.localizedPrice ?? String(p.price ?? ""),
-      currency: p.currencyCode ?? p.priceCurrencyCode,
-    }));
+    // Translate internal ids → Google Play / App Store ids before the call.
+    const playIds = [...ids].map(toPlayId);
+    const res = await plugin.getProducts({ productIdentifiers: playIds });
+    return (res.products || []).map((p: any) => {
+      const rawId = p.identifier ?? p.productId;
+      return {
+        // Translate store id → internal id so the rest of the app is unchanged.
+        productId: fromPlayId(rawId),
+        title: p.title ?? p.localizedTitle ?? rawId,
+        description: p.description ?? p.localizedDescription ?? "",
+        price: p.priceString ?? p.localizedPrice ?? String(p.price ?? ""),
+        currency: p.currencyCode ?? p.priceCurrencyCode,
+      };
+    });
   } catch (e) {
     console.warn("[iap] fetchIapProducts failed", e);
     return [];
@@ -141,9 +148,11 @@ export async function purchaseIap(productId: string): Promise<IapPurchase | null
   const plugin = getPlugin();
   if (!plugin) return null;
   try {
-    const res = await plugin.purchase({ productIdentifier: productId });
+    const playId = toPlayId(productId);
+    const res = await plugin.purchase({ productIdentifier: playId });
     const tx = res.transaction || {};
     return {
+      // Always report the internal id back to callers.
       productId,
       transactionId: tx.transactionId ?? tx.orderId ?? "",
       receipt:
@@ -166,12 +175,15 @@ export async function restoreIapPurchases(): Promise<IapPurchase[]> {
   try {
     const res = await plugin.restorePurchases();
     const platform: "android" | "ios" = isIosApp() ? "ios" : "android";
-    return (res.transactions || []).map((tx: any) => ({
-      productId: tx.productIdentifier ?? tx.productId ?? "",
-      transactionId: tx.transactionId ?? tx.orderId ?? "",
-      receipt: tx.receipt ?? tx.purchaseToken ?? tx.transactionReceipt ?? JSON.stringify(tx),
-      platform,
-    }));
+    return (res.transactions || []).map((tx: any) => {
+      const rawId = tx.productIdentifier ?? tx.productId ?? "";
+      return {
+        productId: fromPlayId(rawId),
+        transactionId: tx.transactionId ?? tx.orderId ?? "",
+        receipt: tx.receipt ?? tx.purchaseToken ?? tx.transactionReceipt ?? JSON.stringify(tx),
+        platform,
+      };
+    });
   } catch (e) {
     console.warn("[iap] restore failed", e);
     return [];
