@@ -261,7 +261,7 @@ function TribeEventsPage() {
                               {mine && <span className="ms-1 text-[10px] text-cyan-300">(قبيلتك)</span>}
                             </span>
                             <span className="text-[11px] text-slate-400 shrink-0">{t.members_count} عضو</span>
-                            <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                            <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                             <span className={`shrink-0 text-slate-400 text-[10px] transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
                           </button>
                           {isOpen && (
