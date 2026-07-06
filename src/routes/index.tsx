@@ -1816,9 +1816,10 @@ function Index() {
       {/* Animated shore dragon — sits where the old fountain was, on every background */}
       <DragonShoreCreature />
 
-      {/* Show any active ad-bomb globally so attacker + all players see the video,
-          not just the targeted victim on their own home. */}
-      <AdBombOverlay global onFlash={showToast} />
+      {/* Only show ad-bombs that target the current player's own ocean.
+          Previously we passed `global`, which caused an attacker to see the
+          bomb they placed on someone else replay on their own home page. */}
+      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
 
       {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
       {profile?.id && (
