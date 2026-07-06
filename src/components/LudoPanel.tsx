@@ -316,6 +316,16 @@ export function LudoPanel({ userId }: { userId: string }) {
     ? Math.max(0, Math.floor((new Date(activeRoom.turn_deadline).getTime() - now) / 1000))
     : null;
 
+  const quickMatch = async () => {
+    setBusy(true);
+    const { data, error } = await supabase.rpc("ludo_quick_match" as never);
+    setBusy(false);
+    if (error) return flash(`❌ ${error.message}`);
+    await loadRooms();
+    const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", data as unknown as string).maybeSingle();
+    if (r) setActiveRoom(r as unknown as Room);
+  };
+
   const createRoom = async () => {
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_create_room" as never, { _max_players: 2 } as never);
