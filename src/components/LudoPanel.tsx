@@ -629,28 +629,37 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         </div>
       </div>
 
-      {/* Player cards */}
+      {/* Player cards — put ME first so I always appear on the leading side */}
       <div className={`grid gap-2 mb-2 ${activeRoom.max_players === 2 ? "grid-cols-2" : "grid-cols-2"}`}>
-        {seats.map((p, i) => (
-          <PlayerCard key={i}
-            color={p?.color || (["green", "red", "yellow", "blue"] as const)[i]}
-            prof={p ? profs[p.user_id] : null}
-            active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
-            finished={p?.finished_count}
-            isEmpty={!p}
-          />
-        ))}
+        {(() => {
+          const ordered = [...seats];
+          if (me) {
+            const myIdx = ordered.findIndex(p => p?.user_id === userId);
+            if (myIdx > 0) { const [mine] = ordered.splice(myIdx, 1); ordered.unshift(mine); }
+          }
+          return ordered.map((p, i) => (
+            <PlayerCard key={i}
+              color={p?.color || (["green", "red", "yellow", "blue"] as const)[i]}
+              prof={p ? profs[p.user_id] : null}
+              active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
+              finished={p?.finished_count}
+              isEmpty={!p}
+            />
+          ));
+        })()}
       </div>
 
-      {/* Board */}
+      {/* Board — rotated so my color's home corner appears bottom-left */}
       <div className="rounded-2xl overflow-hidden border-2 border-amber-500/50 mb-2 p-2 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]"
         style={{ background: "linear-gradient(145deg,#3a2412,#1a0f08)" }}>
-        <LudoBoard
-          players={players}
-          myColor={me?.color || null}
-          lastDice={isMyTurn ? activeRoom.last_dice : null}
-          onTokenClick={moveToken}
-        />
+        <div style={{ transform: `rotate(${ROTATION[me?.color || "yellow"] ?? 0}deg)`, transition: "transform 0.5s ease" }}>
+          <LudoBoard
+            players={players}
+            myColor={me?.color || null}
+            lastDice={isMyTurn ? activeRoom.last_dice : null}
+            onTokenClick={moveToken}
+          />
+        </div>
       </div>
 
       {/* Controls */}
