@@ -36,18 +36,36 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
 }
 
 
-// Inflate real DB stats so the admin overview reflects a "live" million-player
-// game with realistic weighting between metrics. Display-only.
-const PLAYERS_FLOOR = 1_000_000;
-const ONLINE_RATIO = 0.032;
-const SHIPS_PER_PLAYER = 4.7;
-const COINS_PER_PLAYER = 42_500;
-const GEMS_PER_PLAYER = 180;
-const XP_PER_PLAYER = 9_800;
-const TX_PER_PLAYER = 18;
+// Inflate real DB stats so the admin overview reflects a "live" game with
+// realistic weighting between metrics. Display-only.
+const PLAYERS_BASE = 1_284_000;            // starting point (not a round million)
+const PLAYERS_GROWTH_PER_DAY = 1_850;      // slow organic growth
+const ONLINE_RATIO = 0.032;                // ~3.2% of players online
+const SHIPS_PER_PLAYER = 4.73;
+const COINS_PER_PLAYER = 41_820;
+const GEMS_PER_PLAYER = 176;
+const XP_PER_PLAYER = 9_640;
+const TX_PER_PLAYER = 17;
+
+// Deterministic seeded jitter — same value across a given time bucket so the
+// numbers don't jump around wildly on every refresh, but still look organic.
+function seededJitter(seed: number, spread: number) {
+  // xorshift-ish hash → [-spread, +spread]
+  let x = Math.imul(seed ^ 0x9e3779b1, 0x85ebca6b) >>> 0;
+  x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35) >>> 0; x ^= x >>> 16;
+  return ((x / 0xffffffff) * 2 - 1) * spread;
+}
+
+function computePlayers() {
+  const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+  const grown = PLAYERS_BASE + daysSinceEpoch * PLAYERS_GROWTH_PER_DAY;
+  // ±0.4% daily variance so it never lands on a round number
+  const jitter = seededJitter(daysSinceEpoch, 0.004);
+  return Math.round(grown * (1 + jitter));
+}
 
 function inflate(real: Stats) {
-  const players = Math.max(PLAYERS_FLOOR, real.players * 55);
+  const players = Math.max(computePlayers(), real.players * 55);
   const online = Math.max(Math.round(players * ONLINE_RATIO), real.online * 25);
   const ships = Math.max(Math.round(players * SHIPS_PER_PLAYER), real.ships * 6);
   return {
@@ -62,6 +80,7 @@ function inflate(real: Stats) {
     txCount: Math.max(Math.round(players * TX_PER_PLAYER), real.txCount),
   };
 }
+
 
 function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
