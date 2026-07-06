@@ -9,12 +9,14 @@ export const Route = createFileRoute("/tribe-events")({
   head: () => ({ meta: [{ title: "فعاليات صيد القبائل" }] }),
 });
 
+type Metric = "fish" | "gold";
 type Event = {
   id: string;
   title: string;
   description: string;
   banner_emoji: string;
   banner_theme: string;
+  metric: Metric;
   starts_at: string;
   ends_at: string;
   active: boolean;
@@ -31,6 +33,9 @@ type LbRow = {
   members_count: number;
   total_fish: number;
 };
+
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
+const METRIC_NOUN: Record<Metric, string> = { fish: "سمكة", gold: "ذهب" };
 
 const THEME_CLASS: Record<string, string> = {
   ocean: "from-cyan-500 via-blue-500 to-indigo-600 shadow-cyan-500/40",
