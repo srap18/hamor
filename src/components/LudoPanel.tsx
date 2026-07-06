@@ -398,13 +398,17 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   }, []);
 
   const loadRooms = useCallback(async () => {
-    // Cleanup stale/empty rooms before listing
-    await supabase.rpc("ludo_cleanup_stale_rooms" as never).then(() => {}, () => {});
+    // Cleanup stale/empty rooms silently (never surface errors to UI)
+    try { await supabase.rpc("ludo_cleanup_stale_rooms" as never); } catch { /* ignore */ }
     const { data, error } = await supabase
       .from("ludo_rooms" as never).select("*")
       .in("status", ["waiting", "playing"])
       .order("created_at", { ascending: false }).limit(20);
-    if (error) { flash(`❌ ${error.message}`); return; }
+    if (error) {
+      // Don't spam UI with transient auth errors during session hydration
+      if (!/unauthor/i.test(error.message)) flash(`❌ ${error.message}`);
+      return;
+    }
     setRooms((data as unknown as Room[]) || []);
   }, [flash]);
 
