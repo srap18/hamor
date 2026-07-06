@@ -544,6 +544,23 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (error) flash(error.message);
   };
 
+  const leaveRoom = useCallback(async (roomId: string) => {
+    try { await supabase.rpc("ludo_leave_room" as never, { _room_id: roomId } as never); } catch { /* ignore */ }
+  }, []);
+
+  // Auto-leave when the user closes the tab / goes to background / navigates away
+  useEffect(() => {
+    if (!activeRoom) return;
+    const roomId = activeRoom.id;
+    const handler = () => { leaveRoom(roomId); };
+    window.addEventListener("pagehide", handler);
+    window.addEventListener("beforeunload", handler);
+    return () => {
+      window.removeEventListener("pagehide", handler);
+      window.removeEventListener("beforeunload", handler);
+    };
+  }, [activeRoom, leaveRoom]);
+
   // ---- Lobby view ----
   if (!activeRoom) {
     return (
