@@ -5942,6 +5942,7 @@ export type Database = {
         Returns: string
       }
       launch_nuke: { Args: { _target_id: string }; Returns: string }
+      leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
       mark_me_offline: { Args: never; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
