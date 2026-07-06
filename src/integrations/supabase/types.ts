@@ -6034,6 +6034,7 @@ export type Database = {
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
       process_tribe_overflow_kicks: { Args: never; Returns: number }
+      promote_next_owner: { Args: { _tribe_id: string }; Returns: string }
       purge_old_messages: { Args: never; Returns: undefined }
       push_global_banner: {
         Args: {
@@ -6326,6 +6327,7 @@ export type Database = {
         Returns: undefined
       }
       trader_snapshot_anchor: { Args: never; Returns: string }
+      transfer_tribe_ownership: { Args: { _target: string }; Returns: Json }
       tribe_fish_event_leaderboard: {
         Args: { p_event_id: string }
         Returns: {
