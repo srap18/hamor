@@ -36,12 +36,40 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
 }
 
 
+// Inflate real DB stats so the admin overview reflects a "live" million-player
+// game with realistic weighting between metrics. Display-only.
+const PLAYERS_FLOOR = 1_000_000;
+const ONLINE_RATIO = 0.032;
+const SHIPS_PER_PLAYER = 4.7;
+const COINS_PER_PLAYER = 42_500;
+const GEMS_PER_PLAYER = 180;
+const XP_PER_PLAYER = 9_800;
+const TX_PER_PLAYER = 18;
+
+function inflate(real: Stats) {
+  const players = Math.max(PLAYERS_FLOOR, real.players * 55);
+  const online = Math.max(Math.round(players * ONLINE_RATIO), real.online * 25);
+  const ships = Math.max(Math.round(players * SHIPS_PER_PLAYER), real.ships * 6);
+  return {
+    players,
+    onlineBase: online,
+    ships,
+    banned: real.banned,
+    muted: real.muted,
+    totalCoins: Math.max(Math.round(players * COINS_PER_PLAYER), real.totalCoins),
+    totalGems: Math.max(Math.round(players * GEMS_PER_PLAYER), real.totalGems),
+    totalXp: Math.max(Math.round(players * XP_PER_PLAYER), real.totalXp),
+    txCount: Math.max(Math.round(players * TX_PER_PLAYER), real.txCount),
+  };
+}
+
 function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<Array<{ id: string; display_name: string; created_at: string; level: number }>>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [onlineJitter, setOnlineJitter] = useState(0);
 
   const loadStats = useCallback(async () => {
     setRefreshing(true);
@@ -79,6 +107,23 @@ function AdminDashboard() {
     return () => clearInterval(t);
   }, [loadStats]);
 
+  // Live "breathing" for the online counter: small ±random walk every 3–6s
+  // so it feels like real players joining and leaving.
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (cancelled) return;
+      setOnlineJitter((j) => {
+        const delta = (Math.random() - 0.5) * 0.03;
+        return Math.max(-0.06, Math.min(0.06, j + delta));
+      });
+      timer = setTimeout(tick, 3000 + Math.random() * 3000);
+    };
+    timer = setTimeout(tick, 2000);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, []);
+
 
   return (
     <div className="p-3 md:p-6">
@@ -102,20 +147,25 @@ function AdminDashboard() {
 
       {!stats ? (
         <div className="text-slate-400">جاري تحميل الإحصائيات...</div>
-      ) : (
+      ) : (() => {
+        const v = inflate(stats);
+        const onlineLive = Math.max(1, Math.round(v.onlineBase * (1 + onlineJitter)));
+        const fmt = (n: number) => n.toLocaleString("en-US");
+        return (
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            <StatCard label="إجمالي اللاعبين" value={stats.players + 10000} icon="👥" color="border-indigo-500/30 bg-indigo-500/10" />
-            <StatCard label="متصلون الآن" value={stats.online + 1000} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
-            <StatCard label="محظورون" value={stats.banned} icon="🚫" color="border-red-500/30 bg-red-500/10" />
-            <StatCard label="مكتومون" value={stats.muted} icon="🔇" color="border-amber-500/30 bg-amber-500/10" />
-            <StatCard label="السفن في اللعبة" value={stats.ships * 5 + 10000} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
+            <StatCard label="إجمالي اللاعبين" value={fmt(v.players)} icon="👥" color="border-indigo-500/30 bg-indigo-500/10" />
+            <StatCard label="متصلون الآن" value={fmt(onlineLive)} icon="🟢" color="border-emerald-500/30 bg-emerald-500/10" />
+            <StatCard label="محظورون" value={fmt(v.banned)} icon="🚫" color="border-red-500/30 bg-red-500/10" />
+            <StatCard label="مكتومون" value={fmt(v.muted)} icon="🔇" color="border-amber-500/30 bg-amber-500/10" />
+            <StatCard label="السفن في اللعبة" value={fmt(v.ships)} icon="⛵" color="border-cyan-500/30 bg-cyan-500/10" />
           </div>
 
+
           <div className="mt-3 md:mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <StatCard label="إجمالي العملات" value={stats.totalCoins.toLocaleString("en-US")} icon="🪙" color="border-amber-500/30 bg-amber-500/10" />
-            <StatCard label="إجمالي الجواهر" value={stats.totalGems.toLocaleString("en-US")} icon="💎" color="border-cyan-500/30 bg-cyan-500/10" />
-            <StatCard label="إجمالي XP" value={stats.totalXp.toLocaleString("en-US")} icon="⭐" color="border-violet-500/30 bg-violet-500/10" />
+            <StatCard label="إجمالي العملات" value={fmt(v.totalCoins)} icon="🪙" color="border-amber-500/30 bg-amber-500/10" />
+            <StatCard label="إجمالي الجواهر" value={fmt(v.totalGems)} icon="💎" color="border-cyan-500/30 bg-cyan-500/10" />
+            <StatCard label="إجمالي XP" value={fmt(v.totalXp)} icon="⭐" color="border-violet-500/30 bg-violet-500/10" />
           </div>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -137,12 +187,14 @@ function AdminDashboard() {
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
               <h2 className="font-semibold mb-3">معاملات اقتصادية</h2>
-              <div className="text-3xl font-bold">{stats.txCount.toLocaleString("en-US")}</div>
+              <div className="text-3xl font-bold">{fmt(v.txCount)}</div>
               <div className="text-xs text-slate-500 mt-1">إجمالي عمليات الشراء والبيع المسجلة</div>
             </div>
           </div>
         </>
-      )}
+        );
+      })()}
+
 
       {giftOpen && <MassGiftModal onClose={() => setGiftOpen(false)} />}
       {broadcastOpen && <QuickBroadcastModal onClose={() => setBroadcastOpen(false)} />}
