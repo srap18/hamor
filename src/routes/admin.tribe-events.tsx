@@ -328,6 +328,23 @@ function AdminTribeEvents() {
           </label>
         </div>
 
+        <div>
+          <div className="text-xs text-slate-400 mb-1">نوع الفعالية</div>
+          <div className="flex gap-2">
+            {(["fish","gold"] as Metric[]).map(m => (
+              <button key={m} type="button" onClick={()=>setMetric(m)}
+                className={`flex-1 px-3 py-2 rounded-lg border text-sm font-bold ${metric===m ? "bg-cyan-600 border-cyan-400 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
+                {METRIC_LABEL[m]}
+              </button>
+            ))}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">
+            {metric === "gold"
+              ? "يُحسب مجموع الذهب اللي تبرّع فيه كل عضو لقبيلته خلال مدة الفعالية."
+              : "يُحسب مجموع السمك اللي اصطاده أعضاء القبيلة خلال مدة الفعالية."}
+          </div>
+        </div>
+
         <TierEditor value={tiers} onChange={setTiers} />
         <div className="text-[11px] text-slate-400">إجمالي: 💎 {totalGems.toLocaleString()} جوهرة · ⭐ {totalPoints.toLocaleString()} نقطة قبيلة · {tiers.length} مرتبة</div>
 
