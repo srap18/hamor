@@ -39,7 +39,7 @@ export type SecurityBlock =
 /**
  * Enforces:
  *  - One active session per account (kicks older sessions)
- *  - One account per device (admins exempt — enforced server-side)
+ *  - One active tab/window per account (BFCache-safe heartbeat)
  */
 export function useSecurityEnforcement(): SecurityBlock | null {
   const { user } = useAuth();
@@ -48,23 +48,114 @@ export function useSecurityEnforcement(): SecurityBlock | null {
   useEffect(() => {
     if (!user) { setBlock(null); return; }
     let cancelled = false;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
     const localToken = getOrCreateSessionToken();
 
-    // ===== Duplicate-tab guard DISABLED =====
-    // Caused false positives on mobile Safari (BFCache keeps old BroadcastChannel alive
-    // after refresh / app switch), locking users out of the game.
+    // ===== Single-tab-per-account guard =====
+    // BFCache-safe: uses localStorage heartbeat with a short freshness window
+    // and re-checks on pageshow/visibilitychange. Never signs the user out —
+    // shows an overlay with "use this window" so the user can always recover.
+    const HB_KEY = `oc_tab_owner_${user.id}`;
+    const TAKEOVER_KEY = `oc_tab_takeover_${user.id}`;
+    const HB_INTERVAL = 1500;
+    const HB_STALE_MS = 4000;
 
+    let tabId: string;
+    try {
+      tabId = sessionStorage.getItem("oc_tab_id") || "";
+      if (!tabId) {
+        tabId = crypto.randomUUID() + "-" + Math.random().toString(36).slice(2, 8);
+        sessionStorage.setItem("oc_tab_id", tabId);
+      }
+    } catch {
+      tabId = crypto.randomUUID();
+    }
 
+    let hbTimer: number | null = null;
+    let checkTimer: number | null = null;
+    let isDuplicate = false;
 
+    const readOwner = (): { tabId: string; ts: number } | null => {
+      try {
+        const raw = localStorage.getItem(HB_KEY);
+        if (!raw) return null;
+        const j = JSON.parse(raw);
+        if (!j?.tabId || typeof j.ts !== "number") return null;
+        return j;
+      } catch { return null; }
+    };
+    const writeOwner = () => {
+      try { localStorage.setItem(HB_KEY, JSON.stringify({ tabId, ts: Date.now() })); } catch {}
+    };
+    const clearOwnerIfMine = () => {
+      const o = readOwner();
+      if (o && o.tabId === tabId) {
+        try { localStorage.removeItem(HB_KEY); } catch {}
+      }
+    };
 
+    const claimOrCheck = () => {
+      if (cancelled) return;
+      const owner = readOwner();
+      const now = Date.now();
+      if (!owner || owner.tabId === tabId || (now - owner.ts) > HB_STALE_MS) {
+        writeOwner();
+        if (isDuplicate) {
+          isDuplicate = false;
+          setBlock(null);
+        }
+      } else {
+        if (!isDuplicate) {
+          isDuplicate = true;
+          setBlock({ kind: "duplicate_tab", message: "لا يمكن فتح اللعبة في أكثر من نافذة على نفس الحساب. أغلق النوافذ الأخرى، أو اضغط \"استخدم هذه النافذة\" لنقل الجلسة إلى هنا." });
+        }
+      }
+    };
 
+    const onStorage = (e: StorageEvent) => {
+      if (cancelled) return;
+      if (e.key === TAKEOVER_KEY && e.newValue) {
+        try {
+          const j = JSON.parse(e.newValue);
+          if (j?.tabId && j.tabId !== tabId) {
+            isDuplicate = true;
+            setBlock({ kind: "duplicate_tab", message: "تم فتح اللعبة في نافذة أخرى. هذه النافذة معطّلة." });
+            if (hbTimer) { window.clearInterval(hbTimer); hbTimer = null; }
+          }
+        } catch {}
+      } else if (e.key === HB_KEY) {
+        claimOrCheck();
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") claimOrCheck();
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) claimOrCheck();
+    };
+    const onBeforeUnload = () => { clearOwnerIfMine(); };
+
+    claimOrCheck();
+    hbTimer = window.setInterval(() => { if (!isDuplicate) writeOwner(); }, HB_INTERVAL);
+    checkTimer = window.setInterval(claimOrCheck, HB_INTERVAL);
+
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("beforeunload", onBeforeUnload);
+    window.addEventListener("pagehide", onBeforeUnload);
+
+    (window as any).__ocTakeoverTab = () => {
+      try {
+        localStorage.setItem(TAKEOVER_KEY, JSON.stringify({ tabId, ts: Date.now() }));
+        writeOwner();
+        isDuplicate = false;
+        setBlock(null);
+        if (!hbTimer) hbTimer = window.setInterval(() => writeOwner(), HB_INTERVAL);
+      } catch {}
+    };
 
     (async () => {
-      // Device binding disabled — multi-account per device is allowed
-
-
-      // 2) Claim active session (kicks any other session)
       const { error: sessErr } = await (supabase as any).rpc("claim_session", { _token: localToken });
       if (cancelled) return;
       if (sessErr) {
@@ -72,35 +163,22 @@ export function useSecurityEnforcement(): SecurityBlock | null {
         if (msg.includes("banned")) {
           setBlock({ kind: "kicked", message: "هذا الحساب محظور نهائياً من الدخول" });
         }
-        // Ignore other claim errors — don't block the user
-        return;
       }
-
-      // 3) Session-integrity auto-kick is DISABLED.
-      //    The periodic verify_session_integrity check was causing legitimate
-      //    users to be signed out shortly after logging in whenever:
-      //      - they opened the app on a second tab/device (token mismatch),
-      //      - the mobile WebView auto-updated its User-Agent,
-      //      - or a slight UA prefix change happened mid-session.
-      //    The previous code called `supabase.auth.signOut()` on any false
-      //    result, which surfaced as the bug "I log in and immediately get
-      //    logged out". We keep claim_session above for tracking, but no
-      //    longer forcibly end the session here.
     })();
-
-
-
 
     return () => {
       cancelled = true;
-
-      if (channel) {
-        try { (channel as any).__cleanup?.(); } catch {}
-        supabase.removeChannel(channel);
-      }
+      if (hbTimer) window.clearInterval(hbTimer);
+      if (checkTimer) window.clearInterval(checkTimer);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      window.removeEventListener("pagehide", onBeforeUnload);
+      clearOwnerIfMine();
+      try { delete (window as any).__ocTakeoverTab; } catch {}
     };
   }, [user?.id]);
 
   return block;
 }
-
