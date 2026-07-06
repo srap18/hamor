@@ -1633,6 +1633,17 @@ function Index() {
       if (s.dbId) {
         setShipAtSea(s.dbId!, false).catch(() => {});
       }
+      // For non-market-full errors, the optimistic predictive popup would lie
+      // to the player (shows fish "caught" while storage stays empty). Replace
+      // it with an explicit failure popup so what the player sees matches
+      // reality: nothing was added to storage.
+      setCatchResult({
+        emoji: "⚠️",
+        name: "لم يُضَف سمك — أعد المحاولة",
+        count: 0,
+        shipId: s.id,
+        shipLevel: s.level,
+      });
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
         // Server already considers the ship docked (stale local state — another
@@ -1649,6 +1660,7 @@ function Index() {
         showToast(`تعذّر استلام الصيد: ${msg || "خطأ غير معروف"}`);
         sound.play("error");
       }
+
       syncFleetFromDb();
       return;
     }
@@ -1728,26 +1740,21 @@ function Index() {
         ? `${caught.name} ×${fishGained}`
         : `سمكة ×${fishGained}`,
     });
-    // Preserve the predicted count that was shown instantly — do NOT change
-    // the visible number when the server responds. The server already caps by
-    // client_progress so the two values match under normal conditions; if the
-    // market cap made the server return fewer fish we still honor what the
-    // player saw. Only refresh the fish name/image (in case of random pool).
-    setCatchResult((prev) => {
-      const displayedCount = prev?.count ?? fishGained;
-      const displayedBase = prev?.baseCount ?? baseFish;
-      const displayedBonus = prev?.luckBonus ?? luckBonus;
-      return {
-        img: caught?.img ?? prev?.img,
-        emoji: caught?.emoji ?? prev?.emoji ?? "🐟",
-        name: caught?.name ?? prev?.name ?? "سمكة",
-        count: displayedCount,
-        shipId: s.id,
-        shipLevel: s.level,
-        baseCount: displayedBase,
-        luckBonus: displayedBonus,
-      };
+    // Honesty: display the ACTUAL server-returned amount (fishGained). Previously
+    // we preserved the predictive count, which caused "popup shows X fish but
+    // storage is empty" — if the server capped by market_remaining or a race
+    // reduced the amount, the player never saw the true number.
+    setCatchResult({
+      img: caught?.img,
+      emoji: caught?.emoji ?? "🐟",
+      name: caught?.name ?? "سمكة",
+      count: fishGained,
+      shipId: s.id,
+      shipLevel: s.level,
+      baseCount: baseFish,
+      luckBonus: luckBonus,
     });
+
 
 
     setTimeout(() => setPop(null), 1400);
