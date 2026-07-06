@@ -1599,9 +1599,11 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                       <button disabled={busy} onClick={() => promote(m)} className="px-2 py-1 rounded bg-sky-600 text-xs font-bold">
                         {m.role === "moderator" ? "تنزيل" : "مشرف"}
                       </button>
+                      <button disabled={busy} onClick={() => transferOwnership(m)} className="px-2 py-1 rounded bg-amber-600 text-xs font-bold" title="تنازل عن القيادة">👑 تنازل</button>
                       <button disabled={busy} onClick={() => kick(m)} className="px-2 py-1 rounded bg-red-700 text-xs font-bold">طرد</button>
                     </>
                   )}
+
                   {isOfficer && !isOwner && m.user_id !== userId && m.role === "member" && (
                     <button disabled={busy} onClick={() => kick(m)} className="px-2 py-1 rounded bg-red-700 text-xs font-bold">طرد</button>
                   )}
