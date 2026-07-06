@@ -243,13 +243,14 @@ function AdminReports() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-2 mb-2 text-xs">
-                  <div className="rounded-lg bg-slate-950/60 border border-slate-700 p-2">
-                    <div className="text-slate-400 mb-1">👤 صاحب البلاغ</div>
-                    <div className="text-slate-100 font-bold flex items-center gap-2">
-                      <span>{reporter?.avatar_emoji || "👤"}</span>
-                      <span>{reporter?.display_name || r.reporter_id.slice(0, 8)}</span>
+                  <div className="rounded-lg bg-blue-950/40 border border-blue-700/50 p-2">
+                    <div className="text-blue-300 mb-1 font-bold">👤 المُبلِّغ (صاحب البلاغ)</div>
+                    <div className="text-white font-extrabold text-sm flex items-center gap-2 flex-wrap">
+                      <span className="text-lg">{reporter?.avatar_emoji || "👤"}</span>
+                      <span className="break-all">{reporterName}</span>
                       {reporter?.reports_disabled && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-900/60 text-red-200">ممنوع من البلاغ</span>}
                     </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{r.reporter_id.slice(0, 8)}</div>
                     <button
                       onClick={() => toggleReporterBan(r.reporter_id, !reporter?.reports_disabled)}
                       className={`mt-1.5 text-[10px] px-2 py-0.5 rounded ${reporter?.reports_disabled ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-red-800/70 hover:bg-red-700 text-red-100"}`}
@@ -257,12 +258,13 @@ function AdminReports() {
                       {reporter?.reports_disabled ? "✅ السماح بالبلاغ" : "🚫 منعه من البلاغ"}
                     </button>
                   </div>
-                  <div className="rounded-lg bg-slate-950/60 border border-slate-700 p-2">
-                    <div className="text-slate-400 mb-1">🎯 المُبلَّغ عليه</div>
-                    <div className="text-slate-100 font-bold flex items-center gap-2">
-                      <span>{reported?.avatar_emoji || "👤"}</span>
-                      <span>{reported?.display_name || r.reported_user_id.slice(0, 8)}</span>
+                  <div className="rounded-lg bg-rose-950/40 border border-rose-700/50 p-2">
+                    <div className="text-rose-300 mb-1 font-bold">🎯 المُبلَّغ عليه</div>
+                    <div className="text-white font-extrabold text-sm flex items-center gap-2 flex-wrap">
+                      <span className="text-lg">{reported?.avatar_emoji || "👤"}</span>
+                      <span className="break-all">{reportedName}</span>
                     </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{r.reported_user_id.slice(0, 8)}</div>
                   </div>
                 </div>
 
