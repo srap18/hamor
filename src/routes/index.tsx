@@ -1816,7 +1816,9 @@ function Index() {
       {/* Animated shore dragon — sits where the old fountain was, on every background */}
       <DragonShoreCreature />
 
-      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+      {/* Show any active ad-bomb globally so attacker + all players see the video,
+          not just the targeted victim on their own home. */}
+      <AdBombOverlay global onFlash={showToast} />
 
       {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
       {profile?.id && (
