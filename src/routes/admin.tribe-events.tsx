@@ -393,8 +393,9 @@ function AdminTribeEvents() {
             <div key={r.id} className="rounded-2xl border border-slate-700 bg-slate-900/70 p-3 md:p-4 space-y-3">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
-                  <div className="text-lg font-bold">
-                    <span className="me-2">{r.banner_emoji}</span>{r.title}
+                  <div className="text-lg font-bold flex items-center gap-2 flex-wrap">
+                    <span>{r.banner_emoji}</span><span>{r.title}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200">{METRIC_LABEL[r.metric ?? "fish"]}</span>
                   </div>
                   <div className="text-xs text-slate-400 mt-1 whitespace-pre-line">{r.description}</div>
                   <div className="text-[11px] text-slate-500 mt-2">
