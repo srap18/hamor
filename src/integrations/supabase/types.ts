@@ -2124,6 +2124,142 @@ export type Database = {
         }
         Relationships: []
       }
+      ludo_moves: {
+        Row: {
+          action: string
+          created_at: string
+          dice: number | null
+          from_pos: number | null
+          id: number
+          player_id: string
+          room_id: string
+          seat: number
+          to_pos: number | null
+          token_idx: number | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          dice?: number | null
+          from_pos?: number | null
+          id?: number
+          player_id: string
+          room_id: string
+          seat: number
+          to_pos?: number | null
+          token_idx?: number | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          dice?: number | null
+          from_pos?: number | null
+          id?: number
+          player_id?: string
+          room_id?: string
+          seat?: number
+          to_pos?: number | null
+          token_idx?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ludo_moves_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "ludo_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ludo_players: {
+        Row: {
+          color: string
+          finished_count: number
+          id: string
+          joined_at: string
+          room_id: string
+          seat: number
+          tokens: Json
+          user_id: string
+        }
+        Insert: {
+          color: string
+          finished_count?: number
+          id?: string
+          joined_at?: string
+          room_id: string
+          seat: number
+          tokens?: Json
+          user_id: string
+        }
+        Update: {
+          color?: string
+          finished_count?: number
+          id?: string
+          joined_at?: string
+          room_id?: string
+          seat?: number
+          tokens?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ludo_players_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "ludo_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ludo_rooms: {
+        Row: {
+          created_at: string
+          current_turn_seat: number
+          finished_at: string | null
+          host_id: string
+          id: string
+          last_dice: number | null
+          last_roll_at: string | null
+          max_players: number
+          started_at: string | null
+          status: string
+          turn_deadline: string | null
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_turn_seat?: number
+          finished_at?: string | null
+          host_id: string
+          id?: string
+          last_dice?: number | null
+          last_roll_at?: string | null
+          max_players?: number
+          started_at?: string | null
+          status?: string
+          turn_deadline?: string | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_turn_seat?: number
+          finished_at?: string | null
+          host_id?: string
+          id?: string
+          last_dice?: number | null
+          last_roll_at?: string | null
+          max_players?: number
+          started_at?: string | null
+          status?: string
+          turn_deadline?: string | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           created_at: string
@@ -5986,6 +6122,14 @@ export type Database = {
       launch_nuke: { Args: { _target_id: string }; Returns: string }
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
+      ludo_create_room: { Args: { _max_players?: number }; Returns: string }
+      ludo_join_room: { Args: { _room_id: string }; Returns: undefined }
+      ludo_move_token: {
+        Args: { _room_id: string; _token_idx: number }
+        Returns: Json
+      }
+      ludo_roll_dice: { Args: { _room_id: string }; Returns: number }
+      ludo_skip_turn: { Args: { _room_id: string }; Returns: undefined }
       mark_me_offline: { Args: never; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {
