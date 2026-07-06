@@ -6123,6 +6123,7 @@ export type Database = {
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
       ludo_cleanup_stale_rooms: { Args: never; Returns: undefined }
+      ludo_color_start_offset: { Args: { _color: string }; Returns: number }
       ludo_create_room: { Args: { _max_players?: number }; Returns: string }
       ludo_is_in_room: {
         Args: { _room: string; _uid: string }
@@ -6133,10 +6134,20 @@ export type Database = {
         Args: { _room_id: string; _token_idx: number }
         Returns: Json
       }
-      ludo_player_has_move: {
-        Args: { _dice: number; _seat: number; _tokens: Json }
-        Returns: boolean
-      }
+      ludo_player_has_move:
+        | {
+            Args: { _dice: number; _seat: number; _tokens: Json }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _color?: string
+              _dice: number
+              _seat: number
+              _tokens: Json
+            }
+            Returns: boolean
+          }
       ludo_quick_match: { Args: { _players?: number }; Returns: string }
       ludo_roll_dice: { Args: { _room_id: string }; Returns: number }
       ludo_skip_turn: { Args: { _room_id: string }; Returns: undefined }
