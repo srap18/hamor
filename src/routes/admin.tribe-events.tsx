@@ -9,12 +9,14 @@ export const Route = createFileRoute("/admin/tribe-events")({
 });
 
 type Tier = { rank: number; gems: number; tribe_points: number };
+type Metric = "fish" | "gold";
 type Row = {
   id: string;
   title: string;
   description: string;
   banner_emoji: string;
   banner_theme: string;
+  metric: Metric;
   starts_at: string;
   ends_at: string;
   active: boolean;
@@ -25,6 +27,8 @@ type Row = {
   prizes_distributed_at: string | null;
   created_at: string;
 };
+const METRIC_LABEL: Record<Metric, string> = { fish: "🐟 صيد سمك", gold: "💰 جمع ذهب" };
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
 
 type LbRow = {
   tribe_id: string;
@@ -149,6 +153,7 @@ function AdminTribeEvents() {
   const [desc, setDesc] = useState("القبيلة الأكثر صيداً تفوز بجوائز توزع على أعضائها بالتساوي.");
   const [emoji, setEmoji] = useState("🎣");
   const [theme, setTheme] = useState("ocean");
+  const [metric, setMetric] = useState<Metric>("fish");
   const [startsAt, setStartsAt] = useState(toLocalInput(now.toISOString()));
   const [endsAt, setEndsAt] = useState(toLocalInput(inWeek.toISOString()));
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS);
@@ -198,10 +203,11 @@ function AdminTribeEvents() {
     const firstGems = cleanTiers.find((t) => t.rank === 1)?.gems ?? 0;
     const firstPts = cleanTiers.find((t) => t.rank === 1)?.tribe_points ?? 0;
     const { error } = await supabase.from("tribe_fish_events" as never).insert({
-      title: title.trim() || "فعالية صيد القبائل",
+      title: title.trim() || (metric === "gold" ? "فعالية جمع الذهب" : "فعالية صيد القبائل"),
       description: desc.trim(),
-      banner_emoji: emoji || "🎣",
+      banner_emoji: emoji || (metric === "gold" ? "💰" : "🎣"),
       banner_theme: theme,
+      metric,
       starts_at: s.toISOString(),
       ends_at: e.toISOString(),
       reward_gems: firstGems,
@@ -322,6 +328,23 @@ function AdminTribeEvents() {
           </label>
         </div>
 
+        <div>
+          <div className="text-xs text-slate-400 mb-1">نوع الفعالية</div>
+          <div className="flex gap-2">
+            {(["fish","gold"] as Metric[]).map(m => (
+              <button key={m} type="button" onClick={()=>setMetric(m)}
+                className={`flex-1 px-3 py-2 rounded-lg border text-sm font-bold ${metric===m ? "bg-cyan-600 border-cyan-400 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
+                {METRIC_LABEL[m]}
+              </button>
+            ))}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-1">
+            {metric === "gold"
+              ? "يُحسب مجموع الذهب اللي تبرّع فيه كل عضو لقبيلته خلال مدة الفعالية."
+              : "يُحسب مجموع السمك اللي اصطاده أعضاء القبيلة خلال مدة الفعالية."}
+          </div>
+        </div>
+
         <TierEditor value={tiers} onChange={setTiers} />
         <div className="text-[11px] text-slate-400">إجمالي: 💎 {totalGems.toLocaleString()} جوهرة · ⭐ {totalPoints.toLocaleString()} نقطة قبيلة · {tiers.length} مرتبة</div>
 
@@ -370,8 +393,9 @@ function AdminTribeEvents() {
             <div key={r.id} className="rounded-2xl border border-slate-700 bg-slate-900/70 p-3 md:p-4 space-y-3">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
-                  <div className="text-lg font-bold">
-                    <span className="me-2">{r.banner_emoji}</span>{r.title}
+                  <div className="text-lg font-bold flex items-center gap-2 flex-wrap">
+                    <span>{r.banner_emoji}</span><span>{r.title}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200">{METRIC_LABEL[r.metric ?? "fish"]}</span>
                   </div>
                   <div className="text-xs text-slate-400 mt-1 whitespace-pre-line">{r.description}</div>
                   <div className="text-[11px] text-slate-500 mt-2">
@@ -403,7 +427,7 @@ function AdminTribeEvents() {
                           <span className="text-lg">{t.tribe_banner}</span>
                           <span className="flex-1 font-semibold">{t.tribe_emblem} {t.tribe_name}</span>
                           <span className="text-xs text-slate-400">{t.members_count} عضو</span>
-                          <span className="font-bold text-cyan-300">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                          <span className="font-bold text-cyan-300">{Number(t.total_fish).toLocaleString()} {METRIC_UNIT[r.metric ?? "fish"]}</span>
                           {tier && (
                             <span className="text-[10px] text-emerald-300 whitespace-nowrap">💎 {tier.gems} · ⭐ {tier.tribe_points}</span>
                           )}

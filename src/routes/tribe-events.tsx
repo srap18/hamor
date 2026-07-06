@@ -9,12 +9,14 @@ export const Route = createFileRoute("/tribe-events")({
   head: () => ({ meta: [{ title: "فعاليات صيد القبائل" }] }),
 });
 
+type Metric = "fish" | "gold";
 type Event = {
   id: string;
   title: string;
   description: string;
   banner_emoji: string;
   banner_theme: string;
+  metric: Metric;
   starts_at: string;
   ends_at: string;
   active: boolean;
@@ -31,6 +33,9 @@ type LbRow = {
   members_count: number;
   total_fish: number;
 };
+
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
+const METRIC_NOUN: Record<Metric, string> = { fish: "سمكة", gold: "ذهب" };
 
 const THEME_CLASS: Record<string, string> = {
   ocean: "from-cyan-500 via-blue-500 to-indigo-600 shadow-cyan-500/40",
@@ -150,11 +155,11 @@ function TribeEventsPage() {
       <div className="max-w-3xl mx-auto p-3 md:p-5 space-y-5">
         <div className="flex items-center gap-2">
           <BackButton className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700">← رجوع</BackButton>
-          <h1 className="text-xl md:text-2xl font-black text-cyan-200">🎣 فعاليات صيد القبائل</h1>
+          <h1 className="text-xl md:text-2xl font-black text-cyan-200">🏆 فعاليات القبائل</h1>
         </div>
 
         <div className="rounded-xl border border-cyan-500/30 bg-slate-900/60 p-3 text-sm text-slate-300 leading-relaxed">
-          كل سمكة يصطادها أعضاء قبيلتك خلال مدة الفعالية تُحسب لرصيد القبيلة.
+          كل نشاط يقوم به أعضاء قبيلتك (صيد سمك أو تبرّع بالذهب حسب نوع الفعالية) خلال مدتها يُحسب لرصيد القبيلة.
           القبيلة الأولى تربح <span className="text-emerald-300 font-bold">💎 جواهر</span> تتوزع بالتساوي على جميع أعضائها.
         </div>
 
@@ -184,7 +189,12 @@ function TribeEventsPage() {
                   <div className="flex items-center gap-3">
                     <div className="text-4xl drop-shadow">{ev.banner_emoji}</div>
                     <div className="flex-1">
-                      <div className="text-lg md:text-xl font-black text-white drop-shadow">{ev.title}</div>
+                      <div className="text-lg md:text-xl font-black text-white drop-shadow flex items-center gap-2 flex-wrap">
+                        <span>{ev.title}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-black/30 text-[10px] font-bold">
+                          {ev.metric === "gold" ? "💰 جمع ذهب" : "🐟 صيد سمك"}
+                        </span>
+                      </div>
                       <div className="text-xs text-white/80 mt-0.5">⏳ {started ? `يتبقى ${timeLeft(ev.ends_at)}` : `يبدأ خلال ${timeUntil(ev.starts_at)}`}</div>
                     </div>
                     <div className="text-end">
@@ -207,10 +217,10 @@ function TribeEventsPage() {
                       <span className="text-cyan-300 font-bold">
                         {myRank === 0 ? "🥇 في المركز الأول" : myRank === 1 ? "🥈 في المركز الثاني" : myRank === 2 ? "🥉 في المركز الثالث" : `في المركز #${myRank+1}`}
                         {" · "}
-                        <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} 🐟</span>
+                        <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                       </span>
                     ) : (
-                      <span className="text-slate-500">لم تصطد قبيلتك أي سمكة بعد</span>
+                      <span className="text-slate-500">قبيلتك ما جمعت أي {METRIC_NOUN[ev.metric ?? "fish"]} بعد</span>
                     )
                   ) : (
                     <span className="text-amber-300 font-bold">تبدأ الفعالية قريباً</span>
@@ -256,20 +266,20 @@ function TribeEventsPage() {
                               {mine && <span className="ms-1 text-[10px] text-cyan-300">(قبيلتك)</span>}
                             </span>
                             <span className="text-[11px] text-slate-400 shrink-0">{t.members_count} عضو</span>
-                            <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} 🐟</span>
+                            <span className="font-black text-cyan-300 shrink-0">{Number(t.total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                             <span className={`shrink-0 text-slate-400 text-[10px] transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
                           </button>
                           {isOpen && (
                             <div className="mt-1 mb-2 mr-7 rounded-lg border border-slate-700/70 bg-slate-950/70 p-2.5 space-y-1.5">
                               <div className="text-[11px] font-bold text-slate-400 mb-1 flex items-center justify-between">
-                                <span>🎣 أكثر الأعضاء صيداً</span>
-                                <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>
+                                <span>{ev.metric === "gold" ? "💰 أكثر الأعضاء تبرعاً بالذهب" : "🎣 أكثر الأعضاء صيداً"}</span>
+                                {ev.metric !== "gold" && <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>}
                               </div>
                               {membersLoading === key && (
                                 <div className="text-xs text-slate-500 py-2 text-center">جاري التحميل…</div>
                               )}
                               {membersLoading !== key && ms && ms.length === 0 && (
-                                <div className="text-xs text-slate-500 py-2 text-center">لا يوجد عضو صاد سمك بعد.</div>
+                                <div className="text-xs text-slate-500 py-2 text-center">ما فيه أي عضو ساهم بعد.</div>
                               )}
                               {membersLoading !== key && ms && ms.length > 0 && (
                                 <ol className="space-y-1">
@@ -289,7 +299,7 @@ function TribeEventsPage() {
                                             className="flex-1 min-w-0 truncate text-xs font-bold text-slate-200 hover:text-cyan-300">
                                         {m.username}
                                       </Link>
-                                      <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} 🐟</span>
+                                      <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                                     </li>
                                   ))}
                                 </ol>

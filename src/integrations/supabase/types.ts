@@ -3797,6 +3797,7 @@ export type Database = {
           description: string
           ends_at: string
           id: string
+          metric: string
           prize_tiers: Json
           prizes_distributed_at: string | null
           reward_gems: number
@@ -3814,6 +3815,7 @@ export type Database = {
           description?: string
           ends_at: string
           id?: string
+          metric?: string
           prize_tiers?: Json
           prizes_distributed_at?: string | null
           reward_gems?: number
@@ -3831,6 +3833,7 @@ export type Database = {
           description?: string
           ends_at?: string
           id?: string
+          metric?: string
           prize_tiers?: Json
           prizes_distributed_at?: string | null
           reward_gems?: number
