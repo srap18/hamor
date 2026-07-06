@@ -212,10 +212,10 @@ function TribeEventsPage() {
                       <span className="text-cyan-300 font-bold">
                         {myRank === 0 ? "🥇 في المركز الأول" : myRank === 1 ? "🥈 في المركز الثاني" : myRank === 2 ? "🥉 في المركز الثالث" : `في المركز #${myRank+1}`}
                         {" · "}
-                        <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} 🐟</span>
+                        <span className="text-emerald-300">{Number(lb[myRank].total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                       </span>
                     ) : (
-                      <span className="text-slate-500">لم تصطد قبيلتك أي سمكة بعد</span>
+                      <span className="text-slate-500">قبيلتك ما جمعت أي {METRIC_NOUN[ev.metric ?? "fish"]} بعد</span>
                     )
                   ) : (
                     <span className="text-amber-300 font-bold">تبدأ الفعالية قريباً</span>
