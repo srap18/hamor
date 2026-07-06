@@ -572,7 +572,14 @@ function PlayerPage() {
 
     // Single-target weapons (non-nuke)
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
-    const targets: Ship[] = w.aoe ? (aliveShips.length ? aliveShips : ships) : [selectedShip!];
+    // Server requires target ship to be at sea. If the tapped ship is docked,
+    // auto-fallback to any at-sea alive ship so rockets fire like the nuke does.
+    let singleTarget: Ship | null = selectedShip!;
+    if (!w.aoe && singleTarget && !singleTarget.at_sea) {
+      const atSea = aliveShips.find((s) => s.at_sea);
+      if (atSea) singleTarget = atSea;
+    }
+    const targets: Ship[] = w.aoe ? (aliveShips.length ? aliveShips : ships) : [singleTarget!];
 
     // Dragon attack bonus
     // Rocket damage is balanced against ship energy card (storage = max_hp):
