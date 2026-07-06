@@ -30,6 +30,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PaymentSuccessRouteImport } from './routes/payment-success'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MyVipRouteImport } from './routes/my-vip'
+import { Route as LudoRouteImport } from './routes/ludo'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -181,6 +182,11 @@ const NewsRoute = NewsRouteImport.update({
 const MyVipRoute = MyVipRouteImport.update({
   id: '/my-vip',
   path: '/my-vip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LudoRoute = LudoRouteImport.update({
+  id: '/ludo',
+  path: '/ludo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -441,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/ludo': typeof LudoRoute
   '/my-vip': typeof MyVipRoute
   '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/ludo': typeof LudoRoute
   '/my-vip': typeof MyVipRoute
   '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
@@ -581,6 +589,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
+  '/ludo': typeof LudoRoute
   '/my-vip': typeof MyVipRoute
   '/news': typeof NewsRoute
   '/payment-success': typeof PaymentSuccessRoute
@@ -653,6 +662,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/ludo'
     | '/my-vip'
     | '/news'
     | '/payment-success'
@@ -722,6 +732,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/ludo'
     | '/my-vip'
     | '/news'
     | '/payment-success'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/invite'
     | '/login'
+    | '/ludo'
     | '/my-vip'
     | '/news'
     | '/payment-success'
@@ -863,6 +875,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
+  LudoRoute: typeof LudoRoute
   MyVipRoute: typeof MyVipRoute
   NewsRoute: typeof NewsRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
@@ -1043,6 +1056,13 @@ declare module '@tanstack/react-router' {
       path: '/my-vip'
       fullPath: '/my-vip'
       preLoaderRoute: typeof MyVipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ludo': {
+      id: '/ludo'
+      path: '/ludo'
+      fullPath: '/ludo'
+      preLoaderRoute: typeof LudoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1451,6 +1471,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
+  LudoRoute: LudoRoute,
   MyVipRoute: MyVipRoute,
   NewsRoute: NewsRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,

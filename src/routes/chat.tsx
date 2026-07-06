@@ -647,7 +647,22 @@ function ChatPage() {
 
       <div className={`absolute left-2 right-2 rounded-2xl border-2 overflow-hidden flex flex-col ${soloTribe ? "bg-gradient-to-b from-stone-950/85 to-stone-950/70 border-amber-500/60 shadow-[0_0_30px_rgba(252,191,73,0.25)]" : "bg-stone-950/70 border-amber-700/60"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "games" ? (
-          <LudoPanel userId={user?.id || ""} />
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="max-w-md mx-auto text-center pt-6">
+              <div className="text-6xl mb-3">🎲</div>
+              <div className="text-xl font-black text-amber-200 mb-1">لعبة لودو</div>
+              <div className="text-xs text-amber-300/70 mb-5">نسخة تجريبية — أدمن فقط</div>
+              <button
+                onClick={() => window.location.assign("/ludo")}
+                className="w-full py-4 rounded-2xl bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-700 text-white font-black text-base shadow-[0_8px_24px_rgba(16,185,129,0.5),inset_0_1px_0_rgba(255,255,255,0.4)] border-2 border-emerald-300 active:scale-[0.98] flex items-center justify-center gap-2">
+                <span className="text-2xl">🚀</span>
+                <span>افتح اللعبة (ملء الشاشة)</span>
+              </button>
+              <div className="mt-4 text-[11px] text-amber-300/60 leading-relaxed">
+                اللعبة تفتح في شاشة مستقلة لتجربة أفضل. يمكن اللعب 2 لاعب أو 4 لاعبين.
+              </div>
+            </div>
+          </div>
         ) : tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
