@@ -78,6 +78,30 @@ const BASE_SLOTS: Record<string, [number, number][]> = {
 
 const SAFE_CELLS = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
 
+const ERR_MSG: Record<string, string> = {
+  dice_pending_move: "لديك نرد لم تُستخدم بعد — حرّك قطعة أولاً",
+  no_dice: "ارمِ النرد أولاً",
+  not_your_turn: "ليس دورك الآن",
+  invalid_move: "حركة غير صالحة",
+  room_full: "الغرفة ممتلئة",
+  already_joined: "أنت في الغرفة بالفعل",
+  not_in_room: "لست في هذه الغرفة",
+  game_not_started: "اللعبة لم تبدأ بعد",
+  game_finished: "انتهت اللعبة",
+  turn_expired: "انتهى وقت الدور",
+};
+function translateErr(m: string): string {
+  const key = (m || "").trim();
+  return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
+}
+
+const ROTATION: Record<string, number> = {
+  yellow: 0,   // bottom-left already
+  blue: 90,    // bottom-right → bottom-left
+  red: 180,    // top-right → bottom-left
+  green: 270,  // top-left → bottom-left
+};
+
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
   if (pos === -1) {
     const [gx, gy] = BASE_SLOTS[color][tokenIdx];
