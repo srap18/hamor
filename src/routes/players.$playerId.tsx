@@ -529,14 +529,16 @@ function PlayerPage() {
       if (nukeErr) {
         const m = String(nukeErr.message || "");
         setBusy(false);
-        if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
-        if (m.includes("attacker has destroyed ship")) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
-        if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
-        if (m.includes("attacker needs fishing ship")) { sound.play("error"); flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
-        if (m.includes("no nuke")) { sound.play("error"); flash("☢️ ما عندك قنبلة نووية"); return; }
-        if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوقه أقل من المستوى 6"); return; }
-        if (m.includes("protected") || m.includes("staff account")) { sound.play("error"); flash("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
-        sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
+        sound.play("error");
+        const showErr = (msg: string) => { flash(msg); sonnerToast.error(msg, { duration: 4000 }); };
+        if (m.includes("attacker market level under 6")) { showErr("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
+        if (m.includes("attacker has destroyed ship")) { showErr("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+        if (m.includes("attacker needs pvp fleet")) { showErr("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
+        if (m.includes("attacker needs fishing ship")) { showErr("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
+        if (m.includes("no nuke")) { showErr("☢️ ما عندك قنبلة نووية"); return; }
+        if (m.includes("market level under 6")) { showErr("🛡️ اللاعب محمي — سوقه أقل من المستوى 6"); return; }
+        if (m.includes("protected") || m.includes("staff account")) { showErr("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        showErr(`تعذّر الإطلاق: ${m.slice(0, 80)}`); return;
       }
       // Consume the nuke locally (server already consumed it).
       setInv((arr) => arr
@@ -545,7 +547,9 @@ function PlayerPage() {
       // BLOCKED by anti-nuke: server returned NULL. No destruction, no banner, no broadcast.
       if (nukeRes === null || nukeRes === undefined) {
         sound.play("error");
-        flash(`🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الذرية!`);
+        const blockMsg = `🛡️ مضاد ${p?.display_name || "الخصم"} صدّ قنبلتك الذرية!`;
+        flash(blockMsg);
+        sonnerToast.error(blockMsg, { duration: 5000 });
         setBusy(false);
         return;
       }
