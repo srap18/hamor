@@ -516,21 +516,35 @@ function RootComponent() {
           <Toaster
             position="top-center"
             theme="dark"
+            // Only ONE toast on screen — new toast replaces the previous one
+            // (no stacking, no GPU strain from multiple animated blurs).
+            visibleToasts={1}
+            duration={3500}
             offset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             toastOptions={{
+              // Luxury dark-gold pirate look — solid gradient (no heavy blur),
+              // thin gold border, subtle glow. Zero backdrop-filter = cool GPU.
+              unstyled: false,
               style: {
-                background: "rgba(15, 23, 42, 0.45)",
-                color: "rgb(248 250 252)",
-                border: "1px solid rgba(148, 163, 184, 0.35)",
-                backdropFilter: "blur(14px) saturate(140%)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+                background:
+                  "linear-gradient(135deg, rgba(20,12,4,0.96) 0%, rgba(38,22,6,0.96) 55%, rgba(20,12,4,0.96) 100%)",
+                color: "rgb(253 230 138)",
+                border: "1px solid rgba(217, 168, 61, 0.55)",
+                boxShadow:
+                  "0 6px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.4), inset 0 1px 0 rgba(253,224,138,0.15)",
+                borderRadius: "14px",
+                padding: "10px 14px",
+                fontWeight: 700,
+                fontSize: "13px",
+                letterSpacing: "0.01em",
                 zIndex: 99999,
               },
+              className: "oc-toast-elegant",
             }}
-
             style={{ zIndex: 99999 }}
           />
+
 
         </MobileFrame>
         {splashMounted && (
