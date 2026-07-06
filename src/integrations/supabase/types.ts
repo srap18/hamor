@@ -6128,6 +6128,7 @@ export type Database = {
         Args: { _room_id: string; _token_idx: number }
         Returns: Json
       }
+      ludo_quick_match: { Args: never; Returns: string }
       ludo_roll_dice: { Args: { _room_id: string }; Returns: number }
       ludo_skip_turn: { Args: { _room_id: string }; Returns: undefined }
       mark_me_offline: { Args: never; Returns: undefined }
