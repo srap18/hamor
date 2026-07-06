@@ -137,12 +137,20 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         </h1>
         <p className="text-amber-200/80 max-w-md">{securityBlock.message}</p>
         {isDup ? (
-          <button
-            onClick={() => { try { window.close(); } catch {} setTimeout(() => location.reload(), 200); }}
-            className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-amber-50 font-bold"
-          >
-            إغلاق هذه النافذة
-          </button>
+          <div className="flex flex-col gap-2 w-full max-w-xs">
+            <button
+              onClick={() => { try { (window as any).__ocTakeoverTab?.(); } catch {} }}
+              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+            >
+              ✅ استخدم هذه النافذة
+            </button>
+            <button
+              onClick={() => { try { window.close(); } catch {} setTimeout(() => location.reload(), 200); }}
+              className="px-4 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-200 text-sm"
+            >
+              إغلاق هذه النافذة
+            </button>
+          </div>
         ) : (
           <button
             onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}
