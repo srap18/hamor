@@ -191,7 +191,7 @@ function AdminReports() {
           <h1 className="text-xl md:text-2xl font-bold">🚩 بلاغات اللاعبين</h1>
           <p className="text-slate-400 text-xs mt-1">{rows.length} بلاغ</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(["pending", "all"] as const).map((k) => (
             <button
               key={k}
@@ -202,8 +202,27 @@ function AdminReports() {
             </button>
           ))}
           <button onClick={load} className="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700">🔄</button>
+          {rows.length > 0 && (
+            <button
+              onClick={deleteAllReports}
+              disabled={busy === "__all__"}
+              className="px-3 py-1.5 rounded-lg text-xs bg-red-700 hover:bg-red-600 text-white font-bold disabled:opacity-50"
+            >
+              🗑️ حذف الكل ({rows.length})
+            </button>
+          )}
         </div>
       </div>
+
+      {loading ? (
+        <div className="text-slate-400 text-sm py-8 text-center">جاري التحميل...</div>
+      ) : rows.length === 0 ? (
+        <div className="text-slate-400 text-sm py-8 text-center">لا توجد بلاغات</div>
+      ) : (
+        <div className="space-y-3">
+          {rows.map((r) => {
+            const reporter = profs.get(r.reporter_id);
+            const reported = profs.get(r.reported_user_id);
 
       {loading ? (
         <div className="text-slate-400 text-sm py-8 text-center">جاري التحميل...</div>
