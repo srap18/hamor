@@ -430,7 +430,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
       .order("created_at", { ascending: false }).limit(20);
     if (error) {
       // Don't spam UI with transient auth errors during session hydration
-      if (!/unauthor/i.test(error.message)) flash(`❌ ${error.message}`);
+      if (!/unauthor/i.test(error.message)) flash(error.message);
       return;
     }
     setRooms((data as unknown as Room[]) || []);
@@ -499,7 +499,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_quick_match" as never, { _players: players } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     await loadRooms();
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", data as unknown as string).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
@@ -509,7 +509,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { data, error } = await supabase.rpc("ludo_create_room" as never, { _max_players: players } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     await loadRooms();
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", data as unknown as string).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
@@ -519,7 +519,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setBusy(true);
     const { error } = await supabase.rpc("ludo_join_room" as never, { _room_id: roomId } as never);
     setBusy(false);
-    if (error) return flash(`❌ ${error.message}`);
+    if (error) return flash(error.message);
     const { data: r } = await supabase.from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
     if (r) setActiveRoom(r as unknown as Room);
   };
@@ -529,19 +529,19 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
     const { error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
-    if (error) { setRolling(false); flash(`❌ ${error.message}`); }
+    if (error) { setRolling(false); flash(error.message); }
   };
 
   const moveToken = async (tokenIdx: number) => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_move_token" as never, { _room_id: activeRoom.id, _token_idx: tokenIdx } as never);
-    if (error) flash(`❌ ${error.message}`);
+    if (error) flash(error.message);
   };
 
   const skipTurn = async () => {
     if (!activeRoom) return;
     const { error } = await supabase.rpc("ludo_skip_turn" as never, { _room_id: activeRoom.id } as never);
-    if (error) flash(`❌ ${error.message}`);
+    if (error) flash(error.message);
   };
 
   // ---- Lobby view ----
