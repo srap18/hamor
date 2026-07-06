@@ -126,6 +126,7 @@ type MarketState = {
   trader_until: string | null;
   freeze_until: string | null;
   freeze_started_at: string | null;
+  rot_freeze_offset_seconds: number;
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
 
