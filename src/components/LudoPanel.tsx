@@ -398,12 +398,13 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   }, []);
 
   const loadRooms = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ludo_rooms" as never).select("*")
       .in("status", ["waiting", "playing"])
       .order("created_at", { ascending: false }).limit(20);
+    if (error) { flash(`❌ ${error.message}`); return; }
     setRooms((data as unknown as Room[]) || []);
-  }, []);
+  }, [flash]);
 
   useEffect(() => { loadRooms(); }, [loadRooms]);
 
