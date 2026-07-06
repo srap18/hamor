@@ -38,36 +38,39 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
 
 // Inflate real DB stats so the admin overview reflects a "live" game with
 // realistic weighting between metrics. Display-only.
-const PLAYERS_BASE = 1_284_000;            // starting point (not a round million)
-const PLAYERS_GROWTH_PER_DAY = 1_850;      // slow organic growth
-const ONLINE_RATIO = 0.032;                // ~3.2% of players online
+const PLAYERS_BASE = 2_180_000;              // starting point (not a round number)
+const LAUNCH_EPOCH_MS = Date.UTC(2026, 0, 1); // day 0 for growth counter
+const ONLINE_RATIO = 0.032;                   // ~3.2% of players online
 const SHIPS_PER_PLAYER = 4.73;
 const COINS_PER_PLAYER = 41_820;
 const GEMS_PER_PLAYER = 176;
 const XP_PER_PLAYER = 9_640;
 const TX_PER_PLAYER = 17;
 
-// Deterministic seeded jitter — same value across a given time bucket so the
-// numbers don't jump around wildly on every refresh, but still look organic.
-function seededJitter(seed: number, spread: number) {
-  // xorshift-ish hash → [-spread, +spread]
-  let x = Math.imul(seed ^ 0x9e3779b1, 0x85ebca6b) >>> 0;
+// Deterministic per-day hash → integer in [0, n)
+function dayHash(day: number, n: number) {
+  let x = Math.imul(day ^ 0x9e3779b1, 0x85ebca6b) >>> 0;
   x ^= x >>> 13; x = Math.imul(x, 0xc2b2ae35) >>> 0; x ^= x >>> 16;
-  return ((x / 0xffffffff) * 2 - 1) * spread;
+  return x % n;
 }
 
+// Monotonic player count: every day adds a positive delta in [500, 1200],
+// so it only ever grows and never lands on a round number.
 function computePlayers() {
-  const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
-  const grown = PLAYERS_BASE + daysSinceEpoch * PLAYERS_GROWTH_PER_DAY;
-  // ±0.4% daily variance so it never lands on a round number
-  const jitter = seededJitter(daysSinceEpoch, 0.004);
-  return Math.round(grown * (1 + jitter));
+  const days = Math.max(0, Math.floor((Date.now() - LAUNCH_EPOCH_MS) / 86_400_000));
+  let total = PLAYERS_BASE + dayHash(0, 4000); // fixed non-round offset
+  for (let i = 1; i <= days; i++) {
+    total += 500 + dayHash(i, 700); // +500..+1199 per day
+  }
+  return total;
 }
 
 function inflate(real: Stats) {
-  const players = Math.max(computePlayers(), real.players * 55);
-  const online = Math.max(Math.round(players * ONLINE_RATIO), real.online * 25);
-  const ships = Math.max(Math.round(players * SHIPS_PER_PLAYER), real.ships * 6);
+  // Never drop below the real values, but do NOT scale them up — real growth
+  // just raises the floor if it ever exceeds the synthetic curve.
+  const players = Math.max(computePlayers(), real.players);
+  const online = Math.max(Math.round(players * ONLINE_RATIO), real.online);
+  const ships = Math.max(Math.round(players * SHIPS_PER_PLAYER), real.ships);
   return {
     players,
     onlineBase: online,
@@ -80,6 +83,7 @@ function inflate(real: Stats) {
     txCount: Math.max(Math.round(players * TX_PER_PLAYER), real.txCount),
   };
 }
+
 
 
 function AdminDashboard() {
