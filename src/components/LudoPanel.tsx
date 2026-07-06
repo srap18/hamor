@@ -736,7 +736,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
               🎲 ارمِ النرد
             </button>
             <button onClick={skipTurn}
-              disabled={!isMyTurn || busy || hasMoveNow}
+              disabled={!isMyTurn || busy || activeRoom.last_dice == null || hasMoveNow}
               className="px-4 py-1 rounded-lg bg-stone-700 text-amber-100 text-[11px] font-bold disabled:opacity-40 active:scale-95">
               تخطي الدور
             </button>
