@@ -3787,6 +3787,41 @@ export type Database = {
           },
         ]
       }
+      tribe_fish_event_gold: {
+        Row: {
+          amount: number
+          created_at: string
+          event_id: string
+          id: string
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          event_id: string
+          id?: string
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          event_id?: string
+          id?: string
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_fish_event_gold_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "tribe_fish_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tribe_fish_events: {
         Row: {
           active: boolean
@@ -4689,6 +4724,10 @@ export type Database = {
         Returns: undefined
       }
       _prep_pvp_checks: { Args: { _uid: string }; Returns: undefined }
+      _record_fish_sale_gold: {
+        Args: { _amount: number; _uid: string }
+        Returns: undefined
+      }
       _require_market_level: { Args: { _min: number }; Returns: undefined }
       _ship_repair_ratio: {
         Args: { _destroyed_at: string; _repair_ends_at: string }
