@@ -1633,17 +1633,13 @@ function Index() {
       if (s.dbId) {
         setShipAtSea(s.dbId!, false).catch(() => {});
       }
-      // For non-market-full errors, the optimistic predictive popup would lie
-      // to the player (shows fish "caught" while storage stays empty). Replace
-      // it with an explicit failure popup so what the player sees matches
-      // reality: nothing was added to storage.
-      setCatchResult({
-        emoji: "⚠️",
-        name: "لم يُضَف سمك — أعد المحاولة",
-        count: 0,
-        shipId: s.id,
-        shipLevel: s.level,
-      });
+      // Keep the optimistic predictive popup — the RPC frequently commits
+      // server-side even when the response never reaches us (network drop,
+      // timeout, tab throttle) OR the cycle was already collected by the
+      // golden fisher tick which also inserts into fish_stock. Replacing the
+      // popup with "no fish added" would lie in those common cases. Fleet
+      // sync + realtime on fish_stock reveal the truth within ~1s.
+
       if (msg.includes("ship_destroyed")) showToast("السفينة مدمّرة — انتظر الإصلاح");
       else if (msg.includes("not_fishing")) {
         // Server already considers the ship docked (stale local state — another
