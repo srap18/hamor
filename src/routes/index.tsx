@@ -23,7 +23,7 @@ import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-ca
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 import { DailyLoginModal } from "@/components/DailyLoginModal";
-import { LuckyBoxButton, LuckyBoxGlobalBanner } from "@/components/LuckyBox";
+import { LuckyBoxButton } from "@/components/LuckyBox";
 
 import { sound } from "@/lib/sound";
 import { SettingsModal } from "@/components/SettingsModal";
@@ -2208,7 +2208,6 @@ function Index() {
       <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
 
       {marketLevel >= 6 && <LuckyBoxButton onChanged={() => refreshProfile()} />}
-      <LuckyBoxGlobalBanner />
 
 
 

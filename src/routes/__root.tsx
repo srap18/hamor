@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalBanner } from "@/components/GlobalBanner";
 import { LastAttackTicker } from "@/components/LastAttackTicker";
 import { GlobalNotificationListener } from "@/components/GlobalNotificationListener";
+import { LuckyBoxGlobalBanner } from "@/components/LuckyBox";
 import { SelfAntiBlockBurst, AttackerAntiBlockBurst } from "@/components/AntiBlockBurst";
 
 import { GiftPopup } from "@/components/GiftPopup";
@@ -502,6 +503,7 @@ function RootComponent() {
 
           <LastAttackTicker />
           <GlobalNotificationListener />
+          <LuckyBoxGlobalBanner />
           <SelfAntiBlockBurst />
           <AttackerAntiBlockBurst />
 
