@@ -155,11 +155,11 @@ function TribeEventsPage() {
       <div className="max-w-3xl mx-auto p-3 md:p-5 space-y-5">
         <div className="flex items-center gap-2">
           <BackButton className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm border border-slate-700">← رجوع</BackButton>
-          <h1 className="text-xl md:text-2xl font-black text-cyan-200">🎣 فعاليات صيد القبائل</h1>
+          <h1 className="text-xl md:text-2xl font-black text-cyan-200">🏆 فعاليات القبائل</h1>
         </div>
 
         <div className="rounded-xl border border-cyan-500/30 bg-slate-900/60 p-3 text-sm text-slate-300 leading-relaxed">
-          كل سمكة يصطادها أعضاء قبيلتك خلال مدة الفعالية تُحسب لرصيد القبيلة.
+          كل نشاط يقوم به أعضاء قبيلتك (صيد سمك أو تبرّع بالذهب حسب نوع الفعالية) خلال مدتها يُحسب لرصيد القبيلة.
           القبيلة الأولى تربح <span className="text-emerald-300 font-bold">💎 جواهر</span> تتوزع بالتساوي على جميع أعضائها.
         </div>
 
