@@ -1253,8 +1253,13 @@ type TribeInfo = { name: string; emblem: string; description: string; banner: st
 const RENAME_COST_GEMS = 100;
 const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
 
+// Matches DB public.tribe_level_from_donations thresholds
+const TRIBE_LEVEL_THRESHOLDS = [0, 50000, 150000, 300000, 500000, 800000, 1200000, 1700000, 2300000, 3000000];
+const TRIBE_MAX_LEVEL = 10;
 function levelGoal(level: number): number {
-  return 10000 * level * level;
+  // total_donations required to reach (level + 1)
+  if (level >= TRIBE_MAX_LEVEL) return TRIBE_LEVEL_THRESHOLDS[TRIBE_MAX_LEVEL - 1];
+  return TRIBE_LEVEL_THRESHOLDS[level] ?? TRIBE_LEVEL_THRESHOLDS[TRIBE_MAX_LEVEL - 1];
 }
 
 function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userId: string; onClose: () => void }) {
