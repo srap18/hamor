@@ -311,10 +311,48 @@ function InventoryPage() {
               if (m.includes("not_enough")) toast.error("لا تملك هذا الدرع");
               else if (m.includes("shield_type_cooldown")) {
                 const secs = parseInt(m.split("shield_type_cooldown:")[1] || "0", 10) || 0;
-                const days = Math.ceil(secs / 86400);
-                const hours = Math.ceil(secs / 3600);
-                const label = secs >= 86400 ? `${days} يوم` : `${hours} ساعة`;
-                toast.error(`⏳ هذا النوع من الدروع تم تفعيله، انتظر ${label} قبل تفعيله مرة ثانية`);
+                const days = Math.max(1, Math.ceil(secs / 86400));
+                const cost = days * 100;
+                const ok = window.confirm(
+                  `⏳ هذا النوع من الدروع في فترة انتظار (${days} يوم متبقي).\n\n` +
+                  `هل تريد تخطي الانتظار مقابل ${cost} 💎 جوهرة وتفعيله الآن؟`
+                );
+                if (!ok) return;
+                const { data: skipData, error: skipErr } = await supabase.rpc(
+                  "skip_shield_type_cooldown" as never,
+                  { _item_id: id } as never
+                );
+                if (skipErr) {
+                  const sm = skipErr.message || "";
+                  if (sm.includes("not_enough_gems")) {
+                    toast.error(`💎 تحتاج ${cost} جوهرة لتخطي الانتظار`);
+                  } else {
+                    toast.error("فشل تخطي الانتظار");
+                  }
+                  return;
+                }
+                // Cooldown cleared — activate now
+                const paid = (skipData as { cost?: number } | null)?.cost ?? cost;
+                toast.success(`✅ تم دفع ${paid} 💎 وتخطي الانتظار`);
+                const { error: err2 } = await supabase.rpc(
+                  "use_shield_from_inventory" as never,
+                  { _item_id: id } as never
+                );
+                if (err2) {
+                  const m2 = err2.message || "";
+                  if (m2.includes("not_enough")) toast.error("لا تملك هذا الدرع");
+                  else if (m2.includes("shield_cooldown")) {
+                    const secs2 = parseInt(m2.split("shield_cooldown:")[1] || "120", 10) || 120;
+                    toast.error(`⏳ انتظر ${secs2} ثانية قبل تفعيل درع جديد`);
+                  } else {
+                    toast.error("فشل تفعيل الدرع");
+                  }
+                  await load();
+                  return;
+                }
+                await load();
+                toast.success("🛡️ تم تفعيل الدرع!");
+                return;
               }
               else if (m.includes("shield_cooldown")) {
                 const secs = parseInt(m.split("shield_cooldown:")[1] || "120", 10) || 120;
