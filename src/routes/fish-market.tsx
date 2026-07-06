@@ -1114,16 +1114,16 @@ function SellView({
             ) : (
               <>
                 <div className="text-center text-cyan-200 text-lg font-extrabold mb-1">🧊 طاقم تجميد التعفّن</div>
-                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي.</div>
+                <div className="text-center text-xs text-slate-200 mb-3">يوقف نقص جودة السمك بسبب التعفّن للمدة المختارة، والسعر يبقى يتغير طبيعي. تقدر تشتري أكثر من مرة والوقت يتراكم فوق التجميد الحالي.</div>
                 <div className="grid grid-cols-3 gap-2">
                   {[{ h: 2, p: 50 }, { h: 9, p: 100 }, { h: 24, p: 150 }].map((o) => (
-                    <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy || freezeActive} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
-                      <div className="text-sm">{o.h}س</div>
+                    <button key={o.h} onClick={() => buyFreeze(o.h)} disabled={busy} className="py-3 rounded-xl bg-gradient-to-b from-cyan-300 to-cyan-500 border-2 border-cyan-200 text-cyan-950 font-extrabold disabled:opacity-50">
+                      <div className="text-sm">{freezeActive ? `+${o.h}س` : `${o.h}س`}</div>
                       <div className="text-[11px]">💎 {o.p}</div>
                     </button>
                   ))}
                 </div>
-                {freezeActive && <div className="text-center text-[11px] text-cyan-200 mt-2">التجميد فعّال — انتظر انتهاءه</div>}
+                {freezeActive && <div className="text-center text-[11px] text-cyan-200 mt-2">التجميد فعّال — الشراء يمدد الوقت الحالي</div>}
               </>
             )}
             {err && <div className="mt-3 text-center text-xs text-rose-300 font-bold">{err}</div>}
