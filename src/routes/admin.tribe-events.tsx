@@ -9,12 +9,14 @@ export const Route = createFileRoute("/admin/tribe-events")({
 });
 
 type Tier = { rank: number; gems: number; tribe_points: number };
+type Metric = "fish" | "gold";
 type Row = {
   id: string;
   title: string;
   description: string;
   banner_emoji: string;
   banner_theme: string;
+  metric: Metric;
   starts_at: string;
   ends_at: string;
   active: boolean;
@@ -25,6 +27,8 @@ type Row = {
   prizes_distributed_at: string | null;
   created_at: string;
 };
+const METRIC_LABEL: Record<Metric, string> = { fish: "🐟 صيد سمك", gold: "💰 جمع ذهب" };
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
 
 type LbRow = {
   tribe_id: string;
