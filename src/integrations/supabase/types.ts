@@ -6124,6 +6124,10 @@ export type Database = {
       level_from_xp: { Args: { _xp: number }; Returns: number }
       ludo_cleanup_stale_rooms: { Args: never; Returns: number }
       ludo_create_room: { Args: { _max_players?: number }; Returns: string }
+      ludo_is_in_room: {
+        Args: { _room: string; _uid: string }
+        Returns: boolean
+      }
       ludo_join_room: { Args: { _room_id: string }; Returns: undefined }
       ludo_move_token: {
         Args: { _room_id: string; _token_idx: number }
