@@ -175,12 +175,15 @@ export async function restoreIapPurchases(): Promise<IapPurchase[]> {
   try {
     const res = await plugin.restorePurchases();
     const platform: "android" | "ios" = isIosApp() ? "ios" : "android";
-    return (res.transactions || []).map((tx: any) => ({
-      productId: tx.productIdentifier ?? tx.productId ?? "",
-      transactionId: tx.transactionId ?? tx.orderId ?? "",
-      receipt: tx.receipt ?? tx.purchaseToken ?? tx.transactionReceipt ?? JSON.stringify(tx),
-      platform,
-    }));
+    return (res.transactions || []).map((tx: any) => {
+      const rawId = tx.productIdentifier ?? tx.productId ?? "";
+      return {
+        productId: fromPlayId(rawId),
+        transactionId: tx.transactionId ?? tx.orderId ?? "",
+        receipt: tx.receipt ?? tx.purchaseToken ?? tx.transactionReceipt ?? JSON.stringify(tx),
+        platform,
+      };
+    });
   } catch (e) {
     console.warn("[iap] restore failed", e);
     return [];
