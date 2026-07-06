@@ -364,9 +364,13 @@ export function LudoPanel({ userId }: { userId: string }) {
           <div className="text-sm font-extrabold text-amber-200">لعبة لودو (نسخة تجريبية — أدمن فقط)</div>
         </div>
 
+        <button onClick={quickMatch} disabled={busy}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-black shadow-lg mb-2 disabled:opacity-50 flex items-center justify-center gap-2">
+          <span className="text-lg">🎯</span> العب — بحث عشوائي عن لاعب
+        </button>
         <button onClick={createRoom} disabled={busy}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 font-black shadow-lg mb-4 disabled:opacity-50">
-          + غرفة جديدة (2 لاعبين)
+          className="w-full py-2 rounded-xl bg-stone-800 border border-amber-700/40 text-amber-200 font-bold shadow mb-4 disabled:opacity-50 text-sm">
+          + إنشاء غرفة خاصة
         </button>
 
         <div className="text-xs font-bold text-amber-300/80 mb-2">الغرف المتاحة</div>
