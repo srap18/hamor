@@ -597,6 +597,11 @@ function PlayerPage() {
       if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); setBusy(false); return; }
       if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع — لا يمكن الهجوم"); setBusy(false); return; }
       if (m.includes("already destroyed")) { sound.play("error"); flash("💥 هذه السفينة مدمّرة بالفعل — اختر سفينة أخرى"); setBusy(false); return; }
+      if (m.includes("ship not at sea")) { sound.play("error"); flash("⚓ سفينة الخصم راسية — لا يمكن الهجوم إلا على سفينة في البحر"); setBusy(false); return; }
+      if (m.includes("ship in storage")) { sound.play("error"); flash("📦 سفينة الخصم في المخزن — لا يمكن الهجوم عليها"); setBusy(false); return; }
+      if (m.includes("ship not found")) { sound.play("error"); flash("❓ لم يتم العثور على السفينة — حدّث الصفحة"); setBusy(false); return; }
+      if (m.includes("cannot attack own ship")) { sound.play("error"); flash("🚫 لا يمكنك مهاجمة سفنك"); setBusy(false); return; }
+      if (m.includes("not authenticated")) { sound.play("error"); flash("🔒 انتهت الجلسة — سجّل الدخول مرة أخرى"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
 
