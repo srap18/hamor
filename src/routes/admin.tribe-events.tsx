@@ -153,6 +153,7 @@ function AdminTribeEvents() {
   const [desc, setDesc] = useState("القبيلة الأكثر صيداً تفوز بجوائز توزع على أعضائها بالتساوي.");
   const [emoji, setEmoji] = useState("🎣");
   const [theme, setTheme] = useState("ocean");
+  const [metric, setMetric] = useState<Metric>("fish");
   const [startsAt, setStartsAt] = useState(toLocalInput(now.toISOString()));
   const [endsAt, setEndsAt] = useState(toLocalInput(inWeek.toISOString()));
   const [tiers, setTiers] = useState<Tier[]>(DEFAULT_TIERS);
