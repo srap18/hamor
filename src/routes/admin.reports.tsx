@@ -21,6 +21,8 @@ type Report = {
   status: "pending" | "resolved" | "dismissed";
   created_at: string;
   resolved_at: string | null;
+  audio_url?: string | null;
+  audio_duration_ms?: number | null;
 };
 
 type Prof = { id: string; display_name: string | null; avatar_emoji: string | null; reports_disabled?: boolean };
