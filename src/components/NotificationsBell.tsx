@@ -124,8 +124,8 @@ export function NotificationsBell() {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") load();
       });
-    // Poll every 20s so the bell badge updates quickly even if realtime drops.
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 20000);
+    // Safety-net poll every 15s. Realtime (above) is primary and instant.
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 15000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
