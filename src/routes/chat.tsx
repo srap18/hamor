@@ -1349,6 +1349,25 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
     await supabase.from("tribe_members").update({ role: newRole }).eq("tribe_id", tribeId).eq("user_id", m.user_id);
     await load();
   });
+  const transferOwnership = (m: Member) => {
+    if (!confirm(`هل أنت متأكد من التنازل عن القيادة إلى ${m.display_name}؟\nستصبح عضواً عادياً ولن تستطيع الرجوع إلا إذا تنازل لك القائد الجديد.`)) return;
+    wrap(async () => {
+      const { data, error } = await supabase.rpc("transfer_tribe_ownership" as never, { _target: m.user_id } as never);
+      if (error) throw error;
+      const res = data as { ok?: boolean; code?: string } | null;
+      if (res && res.ok === false) {
+        const map: Record<string, string> = {
+          auth_required: "يجب تسجيل الدخول",
+          invalid_target: "اختيار غير صالح",
+          not_owner: "أنت لست قائد القبيلة",
+          target_not_member: "هذا اللاعب ليس عضواً في قبيلتك",
+        };
+        throw new Error(map[res.code || ""] || "تعذّر التنازل عن القيادة");
+      }
+      await load();
+    });
+  };
+
   const leaveTribe = () => {
     if (!confirm("هل تريد مغادرة القبيلة؟\nإذا كنت القائد سيتم تحويل القيادة تلقائياً لأقدم عضو، وإن كنت العضو الوحيد ستُحذف القبيلة.")) return;
     wrap(async () => {
