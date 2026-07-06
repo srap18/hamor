@@ -681,6 +681,14 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     return () => { stopped = true; clearInterval(timer); };
   }, [activeRoom, players, loadRooms]);
 
+  // Realtime can be delayed on mobile; poll active rooms lightly so both players stay synced.
+  useEffect(() => {
+    if (!activeRoom) return;
+    const roomId = activeRoom.id;
+    const timer = setInterval(() => { refreshActiveRoom(roomId); }, 2500);
+    return () => clearInterval(timer);
+  }, [activeRoom?.id, refreshActiveRoom]);
+
   // If a dice result has no legal move, advance the turn automatically.
   useEffect(() => {
     if (!activeRoom || !isMyTurn || activeRoom.last_dice == null || hasMoveNow || busy) return;
