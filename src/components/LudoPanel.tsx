@@ -544,6 +544,23 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     if (error) flash(error.message);
   };
 
+  const leaveRoom = useCallback(async (roomId: string) => {
+    try { await supabase.rpc("ludo_leave_room" as never, { _room_id: roomId } as never); } catch { /* ignore */ }
+  }, []);
+
+  // Auto-leave when the user closes the tab / goes to background / navigates away
+  useEffect(() => {
+    if (!activeRoom) return;
+    const roomId = activeRoom.id;
+    const handler = () => { leaveRoom(roomId); };
+    window.addEventListener("pagehide", handler);
+    window.addEventListener("beforeunload", handler);
+    return () => {
+      window.removeEventListener("pagehide", handler);
+      window.removeEventListener("beforeunload", handler);
+    };
+  }, [activeRoom, leaveRoom]);
+
   // ---- Lobby view ----
   if (!activeRoom) {
     return (
@@ -618,7 +635,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   return (
     <div className={`${fullscreen ? "max-w-2xl mx-auto" : ""} p-2 text-amber-100`}>
       <div className="flex items-center justify-between mb-2">
-        <button onClick={() => { setActiveRoom(null); setPlayers([]); }}
+        <button onClick={async () => { const rid = activeRoom.id; setActiveRoom(null); setPlayers([]); await leaveRoom(rid); loadRooms(); }}
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
