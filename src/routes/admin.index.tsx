@@ -163,9 +163,9 @@ function AdminDashboard() {
 
 
           <div className="mt-3 md:mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <StatCard label="إجمالي العملات" value={stats.totalCoins.toLocaleString("en-US")} icon="🪙" color="border-amber-500/30 bg-amber-500/10" />
-            <StatCard label="إجمالي الجواهر" value={stats.totalGems.toLocaleString("en-US")} icon="💎" color="border-cyan-500/30 bg-cyan-500/10" />
-            <StatCard label="إجمالي XP" value={stats.totalXp.toLocaleString("en-US")} icon="⭐" color="border-violet-500/30 bg-violet-500/10" />
+            <StatCard label="إجمالي العملات" value={fmt(v.totalCoins)} icon="🪙" color="border-amber-500/30 bg-amber-500/10" />
+            <StatCard label="إجمالي الجواهر" value={fmt(v.totalGems)} icon="💎" color="border-cyan-500/30 bg-cyan-500/10" />
+            <StatCard label="إجمالي XP" value={fmt(v.totalXp)} icon="⭐" color="border-violet-500/30 bg-violet-500/10" />
           </div>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,12 +187,14 @@ function AdminDashboard() {
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
               <h2 className="font-semibold mb-3">معاملات اقتصادية</h2>
-              <div className="text-3xl font-bold">{stats.txCount.toLocaleString("en-US")}</div>
+              <div className="text-3xl font-bold">{fmt(v.txCount)}</div>
               <div className="text-xs text-slate-500 mt-1">إجمالي عمليات الشراء والبيع المسجلة</div>
             </div>
           </div>
         </>
-      )}
+        );
+      })()}
+
 
       {giftOpen && <MassGiftModal onClose={() => setGiftOpen(false)} />}
       {broadcastOpen && <QuickBroadcastModal onClose={() => setBroadcastOpen(false)} />}
