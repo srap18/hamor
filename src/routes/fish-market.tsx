@@ -162,7 +162,7 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -177,7 +177,7 @@ function FishMarket() {
     const cacheKey = `fish-market:state:${user.id}`;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, freeze_started_at, frozen_prices")
+      .select("trader_until, freeze_until, freeze_started_at, rot_freeze_offset_seconds, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
     let nextState: MarketState;
@@ -186,10 +186,11 @@ function FishMarket() {
         trader_until: data.trader_until,
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
+        rot_freeze_offset_seconds: Number(data.rot_freeze_offset_seconds ?? 0),
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
       };
     } else {
-      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, frozen_prices: {} };
+      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} };
     }
     setMarketState(nextState);
     setCached(cacheKey, nextState);
