@@ -6212,6 +6212,7 @@ export type Database = {
         Args: { _device_id: string; _email: string }
         Returns: string
       }
+      skip_shield_type_cooldown: { Args: { _item_id: string }; Returns: Json }
       smelt_dragon_items: {
         Args: { p_a_id: string; p_b_id: string }
         Returns: Json
