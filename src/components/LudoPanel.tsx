@@ -113,6 +113,13 @@ const ROTATION: Record<string, number> = {
   green: 270,  // top-left → bottom-left
 };
 
+const COLOR_START_OFFSET: Record<string, number> = {
+  green: 0,
+  red: 13,
+  yellow: 26,
+  blue: 39,
+};
+
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
   if (pos === -1) {
     const [gx, gy] = BASE_SLOTS[color][tokenIdx];
@@ -132,7 +139,7 @@ function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number;
 
 function hasLegalMove(player: Player | null, dice: number | null): boolean {
   if (!player || dice == null) return false;
-  const startOffset = player.seat * 13;
+  const startOffset = COLOR_START_OFFSET[player.color] ?? player.seat * 13;
   return player.tokens.some(pos => {
     if (pos === -1) return dice === 6;
     if (pos >= 999) return false;
