@@ -3599,6 +3599,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     const hasCachedData =
       (tab === "comp" && (comps.length > 0 || tribeEvents.length > 0)) ||
       (tab === "tribes" && tribes.length > 0) ||
+      (tab === "tribe_donations" && tribes.length > 0) ||
       (tab === "fish" && fishRows.length > 0) ||
       (tab === "ships" && shipRows.length > 0) ||
       (["xp", "gems", "coins"].includes(tab) && rows.length > 0);
