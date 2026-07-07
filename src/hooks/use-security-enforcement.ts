@@ -166,12 +166,43 @@ export function useSecurityEnforcement(): SecurityBlock | null {
       }
     })();
 
+    // ===== Single-session enforcement =====
+    // Poll active_session_id; if another device claimed the account,
+    // sign out immediately with a friendly overlay.
+    let kicked = false;
+    const checkActiveSession = async () => {
+      if (cancelled || kicked) return;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("active_session_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (cancelled || error || !data) return;
+        const remote = (data as any).active_session_id as string | null;
+        if (remote && remote !== localToken) {
+          kicked = true;
+          setBlock({
+            kind: "kicked",
+            message: "تم تسجيل الدخول إلى حسابك من جهاز آخر. تم إنهاء الجلسة على هذا الجهاز.",
+          });
+          try { await supabase.auth.signOut(); } catch {}
+        }
+      } catch {}
+    };
+    checkActiveSession();
+    const sessionCheckTimer = window.setInterval(checkActiveSession, 15000);
+    const onFocusCheck = () => { if (document.visibilityState === "visible") checkActiveSession(); };
+    document.addEventListener("visibilitychange", onFocusCheck);
+
     return () => {
       cancelled = true;
       if (hbTimer) window.clearInterval(hbTimer);
       if (checkTimer) window.clearInterval(checkTimer);
+      window.clearInterval(sessionCheckTimer);
       window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("visibilitychange", onFocusCheck);
       window.removeEventListener("pageshow", onPageShow);
       window.removeEventListener("beforeunload", onBeforeUnload);
       window.removeEventListener("pagehide", onBeforeUnload);
