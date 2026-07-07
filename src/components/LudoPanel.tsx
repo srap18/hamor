@@ -359,31 +359,16 @@ function LudoBoard({
       <circle cx={7.5 * CELL} cy={7.5 * CELL} r={CELL * 0.32} fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.8} filter="url(#glowGold)" />
 
       {players.flatMap(p =>
-        p.tokens.map((pos, idx) => {
-          const { x, y } = tokenCoords(p.color, pos, idx);
-          const isMine = p.color === myColor;
-          const clickable = isMine && canMoveToken(idx);
-          const r = CELL * 0.4;
-          return (
-            <g key={`${p.id}-${idx}`}
-              onClick={() => clickable && onTokenClick(idx)}
-              style={{ cursor: clickable ? "pointer" : "default", transition: "transform 0.35s ease" }}
-              filter="url(#tokenShadow)">
-              {clickable && (
-                <circle cx={x} cy={y} r={r + 3} fill="none"
-                  stroke="#facc15" strokeWidth={1.8} opacity={0.9}>
-                  <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
-                </circle>
-              )}
-              <circle cx={x} cy={y + 0.6} r={r} fill="rgba(0,0,0,0.25)" />
-              <circle cx={x} cy={y} r={r} fill={`url(#tk-${p.color})`}
-                stroke={clickable ? "#fde047" : "rgba(0,0,0,0.55)"} strokeWidth={clickable ? 1.4 : 1} />
-              <ellipse cx={x - r * 0.28} cy={y - r * 0.38} rx={r * 0.45} ry={r * 0.22}
-                fill="#ffffff" opacity={0.75} />
-              <circle cx={x} cy={y} r={r * 0.42} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={0.8} />
-            </g>
-          );
-        }),
+        p.tokens.map((pos, idx) => (
+          <AnimatedToken
+            key={`${p.id}-${idx}`}
+            color={p.color}
+            tokenIdx={idx}
+            pos={pos}
+            clickable={p.color === myColor && canMoveToken(idx)}
+            onClick={() => onTokenClick(idx)}
+          />
+        )),
       )}
     </svg>
   );
