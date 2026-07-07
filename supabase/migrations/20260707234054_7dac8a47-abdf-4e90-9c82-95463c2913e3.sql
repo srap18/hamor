@@ -1,0 +1,1 @@
+GRANT SELECT (reports_disabled) ON public.profiles TO authenticated;
