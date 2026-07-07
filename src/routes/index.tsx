@@ -337,7 +337,7 @@ function shipSellPrice(level: number) {
 // is full so the deposit can't make progress.
 const gfMarketFullRef = { current: false };
 
-const LEADERBOARD_TABS = ["comp", "xp", "gems", "coins", "fish", "ships", "tribes", "search"] as const;
+const LEADERBOARD_TABS = ["comp", "xp", "gems", "coins", "fish", "ships", "tribes", "tribe_donations", "search"] as const;
 type LeaderboardTab = typeof LEADERBOARD_TABS[number];
 type LeaderboardRestore = { tab: LeaderboardTab; q?: string; tribeQ?: string };
 
