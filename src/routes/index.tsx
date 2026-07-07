@@ -3985,7 +3985,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                       : rank === 3
                       ? { bg: "bg-gradient-to-l from-orange-700/35 via-amber-800/25 to-stone-900/60 border-orange-400/60", num: "text-orange-200", glow: "drop-shadow-[0_0_6px_rgba(251,146,60,0.5)]" }
                       : { bg: "bg-stone-900/70 border-stone-700/70", num: "text-amber-300/90", glow: "" };
-                  const score = (t.donation_score ?? t.power).toLocaleString();
+                  const score = (Number(t.power) || Number(t.attack_score) || 0).toLocaleString();
                   return (
                     <button
                       key={t.id}
