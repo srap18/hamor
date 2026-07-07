@@ -941,6 +941,27 @@ export type Database = {
         }
         Relationships: []
       }
+      dragon_arena_daily: {
+        Row: {
+          day: string
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          day?: string
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          day?: string
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: []
+      }
       dragon_boss_pearl_claims: {
         Row: {
           boss_id: string
@@ -5682,7 +5703,9 @@ export type Database = {
         Args: { _amount: number; _tribe_id: string }
         Returns: Json
       }
+      dragon_attack_bonus_pct: { Args: { _level: number }; Returns: number }
       dragon_defense_bonus: { Args: { _user_id: string }; Returns: number }
+      dragon_defense_bonus_pct: { Args: { _level: number }; Returns: number }
       dragon_is_hatched: { Args: { _user: string }; Returns: boolean }
       dragon_overall_level: { Args: { _user_id: string }; Returns: number }
       dragon_pearl_upgrade: { Args: never; Returns: Json }
