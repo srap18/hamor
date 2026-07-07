@@ -337,7 +337,7 @@ function shipSellPrice(level: number) {
 // is full so the deposit can't make progress.
 const gfMarketFullRef = { current: false };
 
-const LEADERBOARD_TABS = ["comp", "xp", "gems", "coins", "fish", "ships", "tribes", "search"] as const;
+const LEADERBOARD_TABS = ["comp", "xp", "gems", "coins", "fish", "ships", "tribes", "tribe_donations", "search"] as const;
 type LeaderboardTab = typeof LEADERBOARD_TABS[number];
 type LeaderboardRestore = { tab: LeaderboardTab; q?: string; tribeQ?: string };
 
@@ -3599,6 +3599,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     const hasCachedData =
       (tab === "comp" && (comps.length > 0 || tribeEvents.length > 0)) ||
       (tab === "tribes" && tribes.length > 0) ||
+      (tab === "tribe_donations" && tribes.length > 0) ||
       (tab === "fish" && fishRows.length > 0) ||
       (tab === "ships" && shipRows.length > 0) ||
       (["xp", "gems", "coins"].includes(tab) && rows.length > 0);
@@ -3626,9 +3627,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       })();
       return () => { cancelled = true; };
     }
-    if (tab === "tribes") {
+    if (tab === "tribes" || tab === "tribe_donations") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        const mode = tab === "tribe_donations" ? "donations" : "damage";
+        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _mode: mode, _limit: 100 });
         if (cancelled) return;
         const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
           id: t.tribe_id,
@@ -3712,7 +3714,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
       tab === "fish" ? ["fish_caught", "profiles"] :
-      tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
+      tab === "tribes" || tab === "tribe_donations" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
       tab === "ships" ? ["ships_owned", "profiles"] :
       tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
       [];
@@ -3789,6 +3791,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     { id: "fish" as const, e: "🐟", l: "صيد" },
     { id: "ships" as const, e: "🏪", l: "سوق" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
+    { id: "tribe_donations" as const, e: <CoinIcon size={18} />, l: "تبرع" },
     { id: "search" as const, e: "🔍", l: "بحث" },
   ];
 
@@ -3810,7 +3813,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <div className="grid grid-cols-8 gap-1 mb-3">
+        <div className="grid grid-cols-9 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
               onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
@@ -3835,7 +3838,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
           </div>
         )}
 
-        {tab === "tribes" && (
+        {(tab === "tribes" || tab === "tribe_donations") && (
           <input value={tribeQ} onChange={(e) => setTribeQ(e.target.value)}
             placeholder="ابحث باسم القبيلة..."
             className="w-full mb-2 px-3 py-2 rounded-lg bg-secondary/80 border border-accent/40 text-sm text-accent" />
@@ -3968,7 +3971,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 })}
               </div>
             )
-          ) : tab === "tribes" ? (
+          ) : tab === "tribes" || tab === "tribe_donations" ? (
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
             ) : (
@@ -3985,7 +3988,8 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                       : rank === 3
                       ? { bg: "bg-gradient-to-l from-orange-700/35 via-amber-800/25 to-stone-900/60 border-orange-400/60", num: "text-orange-200", glow: "drop-shadow-[0_0_6px_rgba(251,146,60,0.5)]" }
                       : { bg: "bg-stone-900/70 border-stone-700/70", num: "text-amber-300/90", glow: "" };
-                  const score = (Number(t.power) || Number(t.attack_score) || 0).toLocaleString();
+                  const isDonationTab = tab === "tribe_donations";
+                  const score = (isDonationTab ? Number(t.donation_score) : Number(t.power) || Number(t.attack_score) || 0).toLocaleString();
                   return (
                     <button
                       key={t.id}
@@ -4022,7 +4026,11 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                       {/* Trophy score */}
                       <div className="relative flex items-center gap-1 shrink-0 pl-1">
                         <span className="text-[15px] font-black text-amber-200 tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">{score}</span>
-                        <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏆</span>
+                        {isDonationTab ? (
+                          <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"><CoinIcon size={18} /></span>
+                        ) : (
+                          <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏆</span>
+                        )}
                       </div>
                     </button>
                   );
