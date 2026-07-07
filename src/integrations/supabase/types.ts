@@ -2484,6 +2484,84 @@ export type Database = {
         }
         Relationships: []
       }
+      play_products: {
+        Row: {
+          created_at: string
+          default_currency: string
+          description_ar: string
+          description_en: string
+          id: string
+          price_micros: number
+          product_type: string
+          rewards: Json
+          sku: string
+          status: string
+          sync_error: string | null
+          sync_status: string
+          synced_at: string | null
+          title_ar: string
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_currency?: string
+          description_ar?: string
+          description_en?: string
+          id?: string
+          price_micros: number
+          product_type?: string
+          rewards?: Json
+          sku: string
+          status?: string
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          title_ar: string
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_currency?: string
+          description_ar?: string
+          description_en?: string
+          id?: string
+          price_micros?: number
+          product_type?: string
+          rewards?: Json
+          sku?: string
+          status?: string
+          sync_error?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      play_sync_config: {
+        Row: {
+          apikey: string
+          id: number
+          updated_at: string
+          webhook_url: string
+        }
+        Insert: {
+          apikey: string
+          id?: number
+          updated_at?: string
+          webhook_url: string
+        }
+        Update: {
+          apikey?: string
+          id?: number
+          updated_at?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       player_daughter: {
         Row: {
           created_at: string
