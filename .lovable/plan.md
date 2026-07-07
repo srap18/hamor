@@ -1,93 +1,105 @@
-# أتمتة Google Play Billing عبر Publisher API
 
-## نظرة عامة
-ربط قاعدة بياناتك بـ Google Play Console بحيث أي إضافة/تعديل لمنتج داخل Supabase يُنعكس تلقائياً على Play Store عبر `androidpublisher.v3` API.
+# إعادة تصميم نظام التنين
 
-## 1. جدول المنتجات في Supabase
+**مبدأ أساسي:** لن يتم حذف أي بيانات لاعب. كل التقدم الحالي (DP، شكل التنين، اللؤلؤ، pearl_level، المعدات، انتصارات/خسائر PvP) يُحفظ كما هو. التعديل يعيد فقط **حساب المعامِلات** (نسب الهجوم/الدفاع، تكلفة الترقية، حدود المستوى).
 
-جدول جديد `play_products` يكون **مصدر الحقيقة الوحيد** (Single Source of Truth). سبب إنشاء جدول منفصل: `STORE_PACKS` الحالي كود ثابت في `src/lib/store-catalog.ts`، ولا يمكن تعديله من لوحة إدارة، ولا مزامنته حياً.
+---
 
-الحقول الأساسية:
-- `sku` (فريد، مثل `gold_pack_500`) — مطابق لـ Play SKU.
-- `title_ar` / `title_en` — العنوان المعروض.
-- `description_ar` / `description_en`.
-- `price_micros` (bigint) — السعر بالميكرو (1 دولار = 1,000,000).
-- `default_currency` (مثل `USD`).
-- `product_type`: `inapp` أو `subs`.
-- `status`: `active` / `inactive`.
-- `synced_at`, `sync_status` (`pending`/`ok`/`error`), `sync_error`.
-- `rewards` (jsonb) — المكافآت داخل اللعبة (ذهب/جواهر/دروع).
+## 1) قواعد النظام الجديد
 
-RLS: قراءة عامة (anon) للحقول العرضية فقط عبر view، كتابة للأدمن فقط.
+| البند | القيمة |
+|---|---|
+| الحد الأقصى للمستوى | **150** (كما هو) |
+| مصدر اللؤلؤ الوحيد | فوز الحلبة + قتل الوحوش (البوس) |
+| معارك الحلبة يوميًا | **5** بحد أقصى — كل انتصار = 1 لؤلؤة |
+| إجمالي اللؤلؤ للوصول إلى 150 | **1350 لؤلؤة** |
+| مدة الوصول (بأفضل الحالات) | ~9 أشهر (5×30 = 150 لؤلؤة/شهر) |
+| بونص الهجوم عند 150 | **+500%** (×6.00) |
+| بونص الدفاع عند 150 | **+250%** (×3.50) |
+| سقف بونص الأسلحة | +200% هجوم و +200% دفاع |
+| السقف الكلي للاعب | +700% هجوم و +450% دفاع |
 
-## 2. مسار المزامنة التلقائية
+### تكلفة الترقية (لؤلؤ لكل مستوى)
 
-```text
-INSERT/UPDATE على play_products
-        │
-        ▼
-Postgres Trigger → pg_net.http_post
-        │
-        ▼
-POST /api/public/hooks/play-sync (server route)
-   - يتحقق من apikey (Supabase anon)
-   - يقرأ الصف المُعدَّل
-   - يستدعي Google Play API
-        │
-        ▼
-تحديث play_products.sync_status
-```
+| المدى | التكلفة/مستوى | إجمالي جزئي |
+|---|---|---|
+| 1 → 30 | 3 | 90 |
+| 31 → 60 | 6 | 180 |
+| 61 → 90 | 9 | 270 |
+| 91 → 120 | 12 | 360 |
+| 121 → 150 | 15 | 450 |
+| **المجموع** | | **1350** |
 
-## 3. Google Play API — التنفيذ
+### منحنى القوة (تدريجي، تسارع في المستويات العليا)
 
-**المكتبة:** `googleapis` (رسمية من Google، MIT License).
+صيغة أُسّية مضبوطة لتُطابق نقاط المرجع:
+- `attack_bonus(L) = 5.0 × (L/150)^1.85` (كنسبة، حيث 5.0 = 500%)
+- `defense_bonus(L) = 2.5 × (L/150)^1.85`
 
-**Server Route:** `src/routes/api/public/hooks/play-sync.ts`
-- يقرأ `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` من env.
-- ينشئ `GoogleAuth` بصلاحية `androidpublisher`.
-- لكل منتج:
-  - `inapp` → `androidpublisher.inappproducts.patch` (مع `autoConvertMissingPrices: true`).
-  - `subs` → `androidpublisher.monetization.subscriptions.patch`.
-- `status: inactive` → `inappproducts.delete` أو `subscriptions.archive`.
-- يسجّل النتيجة في `play_products.sync_status`.
+نقاط تحقّق تقريبية:
 
-**Server Function للأدمن:** `syncAllPlayProducts` — يعيد مزامنة كل المنتجات دفعة واحدة (زر طوارئ في لوحة الأدمن).
+| المستوى | +هجوم | +دفاع |
+|---|---|---|
+| 1 | ~0% | ~0% |
+| 30 | ~40% | ~20% |
+| 60 | ~100% | ~50% |
+| 90 | ~200% | ~100% |
+| 120 | ~330% | ~165% |
+| 150 | **500%** | **250%** |
 
-## 4. لوحة إدارة (بسيطة)
+### تطور الشكل
+- المستوى 1–49: الشكل الأول (البيضة/الصغير الحالي)
+- المستوى 50: تحوّل أول
+- المستوى 100: تحوّل ثانٍ
+- المستوى 150: الشكل الأسطوري النهائي
 
-صفحة جديدة `src/routes/admin.play-products.tsx`:
-- جدول بكل المنتجات مع `sync_status` ملوّن.
-- أزرار: إضافة، تعديل، حذف، "مزامنة الآن".
-- عمود يعرض آخر رسالة خطأ من Play API.
+سنعيد استخدام صور المراحل الحالية (dragon-stage-1 … 15) مع تعيين:
+- Stage 1 = صور 1–5
+- Stage 2 = صور 6–10 (تظهر عند L50)
+- Stage 3 = صور 11–14 (تظهر عند L100)
+- Stage Final = صورة 15 (تظهر عند L150)
 
-## 5. إرشادات المستخدم (خطوة بخطوة)
+---
 
-سأزودك بدليل مفصّل بالعربي:
-1. فتح Google Cloud Console → إنشاء Service Account.
-2. إضافة صلاحية `Service Account User`.
-3. تنزيل JSON key.
-4. في Play Console → Users & permissions → دعوة إيميل الـ Service Account مع صلاحية `Manage store presence` + `Manage orders and subscriptions`.
-5. تفعيل `Google Play Android Developer API` في Cloud Console.
-6. لصق JSON بالكامل في `add_secret` باسم `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`.
-7. إضافة `GOOGLE_PLAY_PACKAGE_NAME` = `com.hamor.game`.
+## 2) الملفات التي ستتغيّر
 
-## التفاصيل التقنية
+### كود الواجهة (Frontend/Shared)
+- `src/lib/dragon.ts` — إعادة كتابة كاملة:
+  - `pearlUpgradeCost(level)` بالمنحنى الجديد (3/6/9/12/15).
+  - `attackBonusPct(level)`, `defenseBonusPct(level)` — الدوال الجديدة.
+  - `applyDragonAttack`, `applyDragonDefense` — استخدام النسب الجديدة (بدل `dragonMultiplier` الحالية التي تُرجع 1).
+  - `effectiveLevel` تبقى (max بين pearl_level و DP-derived) لعدم الإضرار باللاعبين ذوي DP العالي.
+  - جدول `dragonTierTable()` يعرض النسب الجديدة.
+  - تعديل `DRAGON_STAGES` للتوافق مع نقاط التحوّل 50/100/150.
 
-**الملفات الجديدة/المعدّلة:**
-- `supabase/migrations/*_play_products.sql` — جدول + RLS + trigger.
-- `src/routes/api/public/hooks/play-sync.ts` — webhook receiver.
-- `src/lib/play-sync.functions.ts` — server functions للأدمن.
-- `src/routes/admin.play-products.tsx` — UI الإدارة.
-- `bun add googleapis` — تثبيت المكتبة.
+### قاعدة البيانات (Supabase)
+migration وحيدة، **آمنة تمامًا** — لا تحذف صفوفًا ولا أعمدة:
+- تحديث دالة `pearl_upgrade_cost(int)` (إن وُجدت) بالمنحنى الجديد.
+- تحديث/إنشاء `dragon_attack_bonus(int)` و `dragon_defense_bonus(int)` كدوال SQL immutable.
+- تحديث RPC الحلبة/البوس التي تمنح اللؤلؤ لضمان: **الحلبة = 1 لؤلؤة/فوز، بحد 5 يوميًا**.
+- تحديث أي RPC تحسب ضرر/دفاع التنين لاستخدام الدوال الجديدة.
+- **لا** تعديل على `dragons`, `profiles`, `dragon_equipment`, أو أي جدول لاعبين. `pearl_level` و `pearls` تبقى بقيمها.
 
-**Secrets مطلوبة (سأطلبها منك بعد الموافقة على الخطة):**
-- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` (JSON كامل).
-- `GOOGLE_PLAY_PACKAGE_NAME` = `com.hamor.game`.
+### واجهات العرض
+- `src/routes/dragon.tsx` (وأي مكوّن يعرض نسب البونص/تكلفة الترقية) — يقرأ من `dragon.ts` تلقائيًا؛ سنتحقق ونحدّث النصوص عند الحاجة.
 
-**ملاحظات مهمة:**
-- Play API لا يدعم إضافة منتج جديد بـ `POST insert` بشكل حقيقي — يستخدم `patch` مع `PATCH` semantics التي تنشئ إذا لم يوجد.
-- الأسعار متعددة العملات تُحوَّل تلقائياً بـ `autoConvertMissingPrices`.
-- المنتجات الجديدة تحتاج ~2-4 ساعات لتظهر في تطبيق العميل بعد النشر.
-- الحذف من Play يعطّل المنتج فوراً للمستخدمين الجدد لكن لا يُلغي الاشتراكات الحالية.
+---
 
-هل أبدأ التنفيذ؟
+## 3) ضمانات عدم الإضرار
+
+1. **لا `DROP` ولا `DELETE`** في أي migration.
+2. `pearl_level` الحالي للاعبين يبقى — يكسبون فقط بونص أعلى فورًا وفق المنحنى الجديد (تحسين لصالحهم، ليس ضدهم).
+3. المستوى المؤثر يبقى `max(pearl_level, dp_level)` — من رفع تنينه سابقًا عبر DP لن يخسر شيئًا.
+4. رصيد `pearls` الحالي يبقى؛ فقط تكلفة **الترقيات القادمة** تتبع الجدول الجديد.
+5. الأسلحة والمعدات (`dragon_equipment`) لا تُمسّ في هذه المرحلة — سقف +200%/+200% سيُطبَّق في RPC الحساب فقط (clamp).
+
+---
+
+## 4) الترتيب التنفيذي
+
+1. Migration SQL (دوال التكلفة/البونص + clamp سقف الأسلحة + قيود لؤلؤ الحلبة).
+2. تحديث `src/lib/dragon.ts`.
+3. تحديث نصوص/جداول العرض في `src/routes/dragon.tsx` إن لزم.
+4. اختبار سريع: قراءة `pearl_upgrade_cost(1..150)` والتحقق أن المجموع = 1350.
+
+بعد موافقتك أبدأ بالـ migration أولاً (تحتاج موافقتك المنفصلة عليها).
