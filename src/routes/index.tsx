@@ -3838,7 +3838,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
           </div>
         )}
 
-        {tab === "tribes" && (
+        {(tab === "tribes" || tab === "tribe_donations") && (
           <input value={tribeQ} onChange={(e) => setTribeQ(e.target.value)}
             placeholder="ابحث باسم القبيلة..."
             className="w-full mb-2 px-3 py-2 rounded-lg bg-secondary/80 border border-accent/40 text-sm text-accent" />
