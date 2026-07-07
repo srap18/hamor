@@ -31,18 +31,26 @@ export type Dragon = {
   pearl_level?: number;
 };
 
-/** Cost of pearls required to upgrade FROM the given level to level+1. Null = max. */
+/**
+ * Cost of pearls required to upgrade FROM the given level to level+1. Null = max.
+ * New balanced curve (matches server `dragon_pearl_upgrade_cost`):
+ *   L 1–29   → 3   pearls
+ *   L 30–59  → 6
+ *   L 60–89  → 9
+ *   L 90–119 → 12
+ *   L 120–149→ 15
+ * Total 1→150 ≈ 1347 pearls (~9 months at 5 arena wins/day).
+ */
 export function pearlUpgradeCost(fromLevel: number): number | null {
   const n = fromLevel;
   if (n == null || n < 1 || n >= 150) return null;
-  if (n <= 9) return 15;
-  if (n <= 20) return 15 + (n - 9) * 50;
-  if (n <= 40) return 565 + (n - 20) * 200;
-  if (n <= 60) return 4565 + (n - 40) * 400;
-  if (n <= 100) return 12565 + (n - 60) * 600;
-  if (n <= 149) return 36565 + (n - 100) * 650;
-  return null;
+  if (n <= 29)  return 3;
+  if (n <= 59)  return 6;
+  if (n <= 89)  return 9;
+  if (n <= 119) return 12;
+  return 15;
 }
+
 
 /** Effective dragon level — max of pearl level and the DP-derived level. */
 export function effectiveLevel(d: Dragon): number {
