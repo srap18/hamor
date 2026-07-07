@@ -79,6 +79,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksPlaySyncRouteImport } from './routes/api/public/hooks/play-sync'
+import { Route as ApiPublicHooksPlayRtdnRouteImport } from './routes/api/public/hooks/play-rtdn'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 
 const VipRoute = VipRouteImport.update({
@@ -433,6 +434,11 @@ const ApiPublicHooksPlaySyncRoute = ApiPublicHooksPlaySyncRouteImport.update({
   path: '/api/public/hooks/play-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPlayRtdnRoute = ApiPublicHooksPlayRtdnRouteImport.update({
+  id: '/api/public/hooks/play-rtdn',
+  path: '/api/public/hooks/play-rtdn',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksGoldenFisherTickRoute =
   ApiPublicHooksGoldenFisherTickRouteImport.update({
     id: '/api/public/hooks/golden-fisher-tick',
@@ -507,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -579,6 +586,7 @@ export interface FileRoutesByTo {
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -653,6 +661,7 @@ export interface FileRoutesById {
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -728,6 +737,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -800,6 +810,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -873,6 +884,7 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -927,6 +939,7 @@ export interface RootRouteChildren {
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
+  ApiPublicHooksPlayRtdnRoute: typeof ApiPublicHooksPlayRtdnRoute
   ApiPublicHooksPlaySyncRoute: typeof ApiPublicHooksPlaySyncRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -1426,6 +1439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPlaySyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/play-rtdn': {
+      id: '/api/public/hooks/play-rtdn'
+      path: '/api/public/hooks/play-rtdn'
+      fullPath: '/api/public/hooks/play-rtdn'
+      preLoaderRoute: typeof ApiPublicHooksPlayRtdnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/golden-fisher-tick': {
       id: '/api/public/hooks/golden-fisher-tick'
       path: '/api/public/hooks/golden-fisher-tick'
@@ -1540,6 +1560,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
+  ApiPublicHooksPlayRtdnRoute: ApiPublicHooksPlayRtdnRoute,
   ApiPublicHooksPlaySyncRoute: ApiPublicHooksPlaySyncRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

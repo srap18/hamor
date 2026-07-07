@@ -45,6 +45,48 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing) return { ok: true, alreadyGranted: true, productId: data.productId };
 
+    // 2) Server-side receipt verification with the store.
+    //    Android: Google Play Developer API. iOS: TODO (App Store Server API).
+    if (data.platform === "android") {
+      const { toPlayId } = await import("@/lib/iap-play-ids");
+      const {
+        verifyPlayProduct,
+        verifyPlaySubscription,
+        acknowledgePlayProduct,
+        acknowledgePlaySubscription,
+      } = await import("@/lib/play-verify.server");
+      const playSku = toPlayId(data.productId);
+      const isSubscription = !!eliteTier || !!pack?.subscription;
+      try {
+        if (isSubscription) {
+          const sub = await verifyPlaySubscription(playSku, data.receipt);
+          // paymentState: 1 = received, 2 = free trial. 0 = pending, don't grant.
+          if (sub.paymentState !== 1 && sub.paymentState !== 2) {
+            throw new Error(`subscription not paid (state=${sub.paymentState})`);
+          }
+          const expiry = Number(sub.expiryTimeMillis ?? 0);
+          if (expiry && expiry < Date.now()) {
+            throw new Error("subscription already expired");
+          }
+          if (sub.acknowledgementState === 0) {
+            await acknowledgePlaySubscription(playSku, data.receipt);
+          }
+        } else {
+          const prod = await verifyPlayProduct(playSku, data.receipt);
+          // purchaseState: 0 = purchased. 1 = canceled, 2 = pending.
+          if (prod.purchaseState !== 0) {
+            throw new Error(`product not purchased (state=${prod.purchaseState})`);
+          }
+          if (prod.acknowledgementState === 0) {
+            await acknowledgePlayProduct(playSku, data.receipt);
+          }
+        }
+      } catch (e: any) {
+        console.error("[iap-verify] Google Play verification failed", e?.message ?? e);
+        throw new Error(`google play verification failed: ${e?.message ?? "unknown"}`);
+      }
+    }
+
     const env = data.platform === "ios" ? "apple_iap" : "google_play";
 
     // 2) Elite VIP subscription path.
