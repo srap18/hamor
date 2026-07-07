@@ -3791,6 +3791,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     { id: "fish" as const, e: "🐟", l: "صيد" },
     { id: "ships" as const, e: "🏪", l: "سوق" },
     { id: "tribes" as const, e: "🏴‍☠️", l: "قبائل" },
+    { id: "tribe_donations" as const, e: <CoinIcon size={18} />, l: "تبرع" },
     { id: "search" as const, e: "🔍", l: "بحث" },
   ];
 
