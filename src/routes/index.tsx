@@ -3971,7 +3971,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 })}
               </div>
             )
-          ) : tab === "tribes" ? (
+          ) : tab === "tribes" || tab === "tribe_donations" ? (
             tribesFiltered.length === 0 ? (
               <div className="text-center text-accent/60 py-6 text-sm">لا توجد قبائل</div>
             ) : (
