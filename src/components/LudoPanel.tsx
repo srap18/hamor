@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { frameById } from "@/lib/frames";
 
@@ -72,12 +72,12 @@ const HOME_STRETCH: Record<string, [number, number][]> = {
 const BASE_SLOTS: Record<string, [number, number][]> = {
   green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],
   red:    [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],
-  yellow: [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
-  blue:   [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
+  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
+  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
 };
 
 const SEAT_COLORS: Record<2 | 4, readonly Player["color"][]> = {
-  2: ["green", "blue"],
+  2: ["green", "yellow"],
   4: ["green", "red", "yellow", "blue"],
 };
 
@@ -106,18 +106,19 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
+// Rotate board so each player sees their own base at bottom-left.
 const ROTATION: Record<string, number> = {
-  yellow: 0,   // bottom-left already
-  blue: 90,    // bottom-right → bottom-left
+  blue: 0,     // bottom-left already
+  yellow: 90,  // bottom-right → bottom-left
   red: 180,    // top-right → bottom-left
   green: 270,  // top-left → bottom-left
 };
 
 const COLOR_START_OFFSET: Record<string, number> = {
   green: 0,
-  red: 13,
+  blue: 13,
   yellow: 26,
-  blue: 39,
+  red: 39,
 };
 
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
@@ -162,6 +163,115 @@ function canTokenMove(player: Player | null, tokenIdx: number, dice: number | nu
   const distToEntry = 50 - rel;
   if (dice <= distToEntry) return true;
   return 100 + (dice - distToEntry - 1) <= 105;
+}
+
+// Compute the list of intermediate positions between two token states so
+// the piece visibly hops one cell at a time instead of teleporting.
+function pathBetween(color: string, from: number, to: number): number[] {
+  if (from === to) return [];
+  const steps: number[] = [];
+  const start = COLOR_START_OFFSET[color] ?? 0;
+  const homeEntryPrev = (start + 50) % 52; // last main-track cell before home stretch
+
+  // Reset back home (captured) or reached finish center — snap.
+  if (to === -1 || to === 999) return [to];
+
+  // Leaving the base to the start cell.
+  if (from === -1) {
+    steps.push(start);
+    if (to !== start) {
+      if (to >= 100) {
+        for (let h = 100; h <= to; h++) steps.push(h);
+      } else if (to !== start) {
+        let cur = start;
+        while (cur !== to) { cur = (cur + 1) % 52; steps.push(cur); }
+      }
+    }
+    return steps;
+  }
+
+  // Along the main loop.
+  if (from >= 0 && from < 52 && to >= 0 && to < 52) {
+    let cur = from;
+    while (cur !== to) { cur = (cur + 1) % 52; steps.push(cur); }
+    return steps;
+  }
+
+  // Main loop → home stretch: walk to entry then step into stretch.
+  if (from >= 0 && from < 52 && to >= 100) {
+    let cur = from;
+    while (cur !== homeEntryPrev) { cur = (cur + 1) % 52; steps.push(cur); }
+    for (let h = 100; h <= to; h++) steps.push(h);
+    return steps;
+  }
+
+  // Within the home stretch.
+  if (from >= 100 && to >= 100) {
+    for (let h = from + 1; h <= to; h++) steps.push(h);
+    return steps;
+  }
+
+  return [to];
+}
+
+function AnimatedToken({
+  color, tokenIdx, pos, clickable, onClick,
+}: {
+  color: string; tokenIdx: number; pos: number;
+  clickable: boolean; onClick: () => void;
+}) {
+  const [displayPos, setDisplayPos] = useState(pos);
+  const [hopping, setHopping] = useState(false);
+  const prevRef = useRef(pos);
+
+  useEffect(() => {
+    if (pos === prevRef.current) return;
+    const steps = pathBetween(color, prevRef.current, pos);
+    prevRef.current = pos;
+    if (steps.length === 0) { setDisplayPos(pos); return; }
+    let i = 0;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const stepMs = 150;
+    const walk = () => {
+      if (cancelled) return;
+      if (i >= steps.length) { setHopping(false); return; }
+      setDisplayPos(steps[i]);
+      setHopping(true);
+      i += 1;
+      timer = setTimeout(walk, stepMs);
+    };
+    walk();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); setHopping(false); };
+  }, [pos, color]);
+
+  const { x, y } = tokenCoords(color, displayPos, tokenIdx);
+  const r = CELL * 0.4;
+
+  return (
+    <g
+      onClick={() => clickable && onClick()}
+      style={{
+        cursor: clickable ? "pointer" : "default",
+        transform: `translate(${x}px, ${y}px)${hopping ? " translateY(-3px)" : ""}`,
+        transition: "transform 140ms cubic-bezier(0.4, 0.0, 0.2, 1)",
+      }}
+      filter="url(#tokenShadow)"
+    >
+      {clickable && (
+        <circle cx={0} cy={0} r={r + 3} fill="none"
+          stroke="#facc15" strokeWidth={1.8} opacity={0.9}>
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
+        </circle>
+      )}
+      <circle cx={0} cy={0.6} r={r} fill="rgba(0,0,0,0.25)" />
+      <circle cx={0} cy={0} r={r} fill={`url(#tk-${color})`}
+        stroke={clickable ? "#fde047" : "rgba(0,0,0,0.55)"} strokeWidth={clickable ? 1.4 : 1} />
+      <ellipse cx={-r * 0.28} cy={-r * 0.38} rx={r * 0.45} ry={r * 0.22}
+        fill="#ffffff" opacity={0.75} />
+      <circle cx={0} cy={0} r={r * 0.42} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={0.8} />
+    </g>
+  );
 }
 
 // ============================================================
@@ -284,9 +394,9 @@ function LudoBoard({
       <rect x={2} y={2} width={BOARD - 4} height={BOARD - 4} rx={12}
         fill="none" stroke="#8b5a2b" strokeWidth={1.5} opacity={0.35} />
 
-      {(["green", "red", "yellow", "blue"] as const).map(color => {
+      {(["green", "red", "blue", "yellow"] as const).map(color => {
         const positions: Record<string, [number, number]> = {
-          green: [0, 0], red: [9, 0], yellow: [0, 9], blue: [9, 9],
+          green: [0, 0], red: [9, 0], blue: [0, 9], yellow: [9, 9],
         };
         const [x, y] = positions[color];
         return (
@@ -315,8 +425,8 @@ function LudoBoard({
           fill="url(#cellGrad)" stroke="#8b5a2b" strokeWidth={0.6} opacity={0.95} />
       ))}
 
-      {(["green", "red", "yellow", "blue"] as const).map((color, seat) => {
-        const cellIdx = seat * 13;
+      {(["green", "red", "yellow", "blue"] as const).map(color => {
+        const cellIdx = COLOR_START_OFFSET[color];
         const [gx, gy] = PATH[cellIdx];
         return (
           <rect key={`start-${color}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
@@ -358,31 +468,16 @@ function LudoBoard({
       <circle cx={7.5 * CELL} cy={7.5 * CELL} r={CELL * 0.32} fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.8} filter="url(#glowGold)" />
 
       {players.flatMap(p =>
-        p.tokens.map((pos, idx) => {
-          const { x, y } = tokenCoords(p.color, pos, idx);
-          const isMine = p.color === myColor;
-          const clickable = isMine && canMoveToken(idx);
-          const r = CELL * 0.4;
-          return (
-            <g key={`${p.id}-${idx}`}
-              onClick={() => clickable && onTokenClick(idx)}
-              style={{ cursor: clickable ? "pointer" : "default", transition: "transform 0.35s ease" }}
-              filter="url(#tokenShadow)">
-              {clickable && (
-                <circle cx={x} cy={y} r={r + 3} fill="none"
-                  stroke="#facc15" strokeWidth={1.8} opacity={0.9}>
-                  <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
-                </circle>
-              )}
-              <circle cx={x} cy={y + 0.6} r={r} fill="rgba(0,0,0,0.25)" />
-              <circle cx={x} cy={y} r={r} fill={`url(#tk-${p.color})`}
-                stroke={clickable ? "#fde047" : "rgba(0,0,0,0.55)"} strokeWidth={clickable ? 1.4 : 1} />
-              <ellipse cx={x - r * 0.28} cy={y - r * 0.38} rx={r * 0.45} ry={r * 0.22}
-                fill="#ffffff" opacity={0.75} />
-              <circle cx={x} cy={y} r={r * 0.42} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={0.8} />
-            </g>
-          );
-        }),
+        p.tokens.map((pos, idx) => (
+          <AnimatedToken
+            key={`${p.id}-${idx}`}
+            color={p.color}
+            tokenIdx={idx}
+            pos={pos}
+            clickable={p.color === myColor && canMoveToken(idx)}
+            onClick={() => onTokenClick(idx)}
+          />
+        )),
       )}
     </svg>
   );
