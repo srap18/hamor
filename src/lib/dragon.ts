@@ -128,55 +128,86 @@ export function overallLevel(d: Dragon): number {
 // ──────────────────────────────────────────────────────────────────────────
 // Dragon combat bonuses (apply to weapon damage & ship defense)
 //
-// Compound growth: each level adds 4% on top of the previous total.
-//   multiplier(level) = 1.04 ^ (level - 1)
-//   level 1   → ×1.00
-//   level 2   → ×1.04
-//   level 50  → ×7.11
-//   level 100 → ×50.5
-//   level 150 → ×358.6
-// Same multiplier applies to attack and defense.
+// Long-term curve — matches server `dragon_attack_bonus_pct` / `dragon_defense_bonus_pct`:
+//   attackPct(L)  = 500 × (L/150)^1.85     → cap +500% at level 150
+//   defensePct(L) = 250 × (L/150)^1.85     → cap +250% at level 150
+// Progression is gradual and accelerates in the late game.
+//   L 30  → ~40% / ~20%
+//   L 60  → ~100% / ~50%
+//   L 90  → ~200% / ~100%
+//   L 120 → ~330% / ~165%
+//   L 150 → +500% / +250%
 // ──────────────────────────────────────────────────────────────────────────
 
-export const DRAGON_GROWTH_RATE = 0.04; // +4% per level (compound)
+export const DRAGON_ATTACK_CAP_PCT = 500;   // +500% at level 150
+export const DRAGON_DEFENSE_CAP_PCT = 250;  // +250% at level 150
+export const DRAGON_CURVE_EXPONENT = 1.85;
+
+/** Bonus % (0..500) added on top of base attack at the given dragon level. */
+export function dragonAttackBonusPct(level: number): number {
+  const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level || 0)));
+  if (lvl <= 0) return 0;
+  if (lvl >= MAX_LEVEL) return DRAGON_ATTACK_CAP_PCT;
+  return Math.floor(DRAGON_ATTACK_CAP_PCT * Math.pow(lvl / MAX_LEVEL, DRAGON_CURVE_EXPONENT));
+}
+
+/** Bonus % (0..250) added on top of base defense at the given dragon level. */
+export function dragonDefenseBonusPct(level: number): number {
+  const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level || 0)));
+  if (lvl <= 0) return 0;
+  if (lvl >= MAX_LEVEL) return DRAGON_DEFENSE_CAP_PCT;
+  return Math.floor(DRAGON_DEFENSE_CAP_PCT * Math.pow(lvl / MAX_LEVEL, DRAGON_CURVE_EXPONENT));
+}
+
+/** Attack multiplier (1 + bonus%). Level 150 → ×6.00. */
+export function dragonAttackMultiplier(level: number): number {
+  return 1 + dragonAttackBonusPct(level) / 100;
+}
+/** Defense multiplier (1 + bonus%). Level 150 → ×3.50. */
+export function dragonDefenseMultiplier(level: number): number {
+  return 1 + dragonDefenseBonusPct(level) / 100;
+}
+
+/** @deprecated kept for backwards compatibility. Use dragonAttackMultiplier. */
+export function dragonMultiplier(level: number): number {
+  return dragonAttackMultiplier(level);
+}
 
 export type DragonBonus = {
-  tier: number;       // 1..30 (purely cosmetic banding of 5 levels each)
-  kind: "mult";
-  value: number;      // multiplier to apply to base value
-  label: string;      // e.g. "×7.11"
+  tier: number;       // 1..30 (cosmetic banding of 5 levels each)
+  kind: "pct";
+  attackPct: number;  // +% attack
+  defensePct: number; // +% defense
+  label: string;      // e.g. "+40% / +20%"
 };
-
-export function dragonMultiplier(_level: number): number {
-  // Dragon level does NOT scale ship attack/defense directly.
-  // Instead it boosts anti-counter block percentages on the server.
-  return 1;
-}
 
 export function dragonBonusForLevel(level: number): DragonBonus {
   const lvl = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
   const tier = lvl === 0 ? 0 : Math.ceil(lvl / 5); // 0..30
-  const mult = dragonMultiplier(lvl);
-  return { tier, kind: "mult", value: mult, label: `×${mult.toFixed(2)}` };
+  const atk = dragonAttackBonusPct(lvl);
+  const def = dragonDefenseBonusPct(lvl);
+  return { tier, kind: "pct", attackPct: atk, defensePct: def, label: `+${atk}% / +${def}%` };
 }
 
 /** Apply the dragon attack bonus to a base weapon damage. */
 export function applyDragonAttack(baseDamage: number, level: number): number {
-  return Math.max(0, Math.round(baseDamage * dragonMultiplier(level)));
+  return Math.max(0, Math.round(baseDamage * dragonAttackMultiplier(level)));
 }
 
 /** Apply the dragon defense bonus to a base defense / HP value. */
 export function applyDragonDefense(baseDefense: number, level: number): number {
-  return Math.max(0, Math.round(baseDefense * dragonMultiplier(level)));
+  return Math.max(0, Math.round(baseDefense * dragonDefenseMultiplier(level)));
 }
 
-/** Tier table for UI (30 rows × 5 levels). Shows multiplier at the top level of each band. */
+/** Tier table for UI (30 rows × 5 levels). Shows +% at the top level of each band. */
 export function dragonTierTable(): Array<{
   tier: number;
   fromLevel: number;
   toLevel: number;
-  kind: "mult";
-  value: number;
+  kind: "pct";
+  attackPct: number;
+  defensePct: number;
+  value: number;      // backwards-compat: attack multiplier
   label: string;
 }> {
   const rows = [];
@@ -184,16 +215,20 @@ export function dragonTierTable(): Array<{
   for (let t = 1; t <= totalTiers; t++) {
     const fromLevel = (t - 1) * 5 + 1;
     const toLevel = Math.min(MAX_LEVEL, t * 5);
-    const mult = dragonMultiplier(toLevel);
+    const atk = dragonAttackBonusPct(toLevel);
+    const def = dragonDefenseBonusPct(toLevel);
     rows.push({
       tier: t,
       fromLevel,
       toLevel,
-      kind: "mult" as const,
-      value: mult,
-      label: `×${mult.toFixed(2)}`,
+      kind: "pct" as const,
+      attackPct: atk,
+      defensePct: def,
+      value: 1 + atk / 100,
+      label: `+${atk}% هجوم / +${def}% دفاع`,
     });
   }
   return rows;
 }
+
 
