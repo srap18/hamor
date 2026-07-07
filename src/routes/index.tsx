@@ -3813,7 +3813,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
         onClick={(e) => e.stopPropagation()} dir="rtl">
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <div className="grid grid-cols-8 gap-1 mb-3">
+        <div className="grid grid-cols-9 gap-1 mb-3">
           {TABS.map(t => (
             <button key={t.id}
               onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
