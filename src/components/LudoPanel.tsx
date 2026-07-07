@@ -285,9 +285,9 @@ function LudoBoard({
       <rect x={2} y={2} width={BOARD - 4} height={BOARD - 4} rx={12}
         fill="none" stroke="#8b5a2b" strokeWidth={1.5} opacity={0.35} />
 
-      {(["green", "red", "yellow", "blue"] as const).map(color => {
+      {(["green", "red", "blue", "yellow"] as const).map(color => {
         const positions: Record<string, [number, number]> = {
-          green: [0, 0], red: [9, 0], yellow: [0, 9], blue: [9, 9],
+          green: [0, 0], red: [9, 0], blue: [0, 9], yellow: [9, 9],
         };
         const [x, y] = positions[color];
         return (
@@ -316,8 +316,8 @@ function LudoBoard({
           fill="url(#cellGrad)" stroke="#8b5a2b" strokeWidth={0.6} opacity={0.95} />
       ))}
 
-      {(["green", "red", "yellow", "blue"] as const).map((color, seat) => {
-        const cellIdx = seat * 13;
+      {(["green", "red", "yellow", "blue"] as const).map(color => {
+        const cellIdx = COLOR_START_OFFSET[color];
         const [gx, gy] = PATH[cellIdx];
         return (
           <rect key={`start-${color}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
