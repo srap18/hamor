@@ -4910,6 +4910,7 @@ export type Database = {
         }
         Returns: number
       }
+      _enforce_combat_cooldown: { Args: never; Returns: undefined }
       _enforce_rate_limit: {
         Args: { _action: string; _min_ms: number }
         Returns: undefined
@@ -4943,6 +4944,7 @@ export type Database = {
         Returns: undefined
       }
       _require_market_level: { Args: { _min: number }; Returns: undefined }
+      _require_ship_at_sea: { Args: { _uid: string }; Returns: undefined }
       _ship_repair_ratio: {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
