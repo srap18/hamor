@@ -63,6 +63,7 @@ import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
+import { Route as AdminPlayProductsRouteImport } from './routes/admin.play-products'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
@@ -350,6 +351,11 @@ const AdminPlayersRoute = AdminPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPlayProductsRoute = AdminPlayProductsRouteImport.update({
+  id: '/play-products',
+  path: '/play-products',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLuckyBoxRoute = AdminLuckyBoxRouteImport.update({
   id: '/lucky-box',
   path: '/lucky-box',
@@ -485,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
+  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -556,6 +563,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
+  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -629,6 +637,7 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
+  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -703,6 +712,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
+    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -774,6 +784,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
+    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -846,6 +857,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
+    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -1302,6 +1314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlayersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/play-products': {
+      id: '/admin/play-products'
+      path: '/play-products'
+      fullPath: '/admin/play-products'
+      preLoaderRoute: typeof AdminPlayProductsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/lucky-box': {
       id: '/admin/lucky-box'
       path: '/lucky-box'
@@ -1428,6 +1447,7 @@ interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
   AdminFishRoute: typeof AdminFishRoute
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
+  AdminPlayProductsRoute: typeof AdminPlayProductsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReferralsRoute: typeof AdminReferralsRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -1449,6 +1469,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
   AdminFishRoute: AdminFishRoute,
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
+  AdminPlayProductsRoute: AdminPlayProductsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReferralsRoute: AdminReferralsRoute,
   AdminReportsRoute: AdminReportsRoute,
