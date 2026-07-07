@@ -3714,7 +3714,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     document.addEventListener("visibilitychange", onVisible);
     const watchedTables =
       tab === "fish" ? ["fish_caught", "profiles"] :
-      tab === "tribes" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
+      tab === "tribes" || tab === "tribe_donations" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
       tab === "ships" ? ["ships_owned", "profiles"] :
       tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
       [];
