@@ -72,12 +72,12 @@ const HOME_STRETCH: Record<string, [number, number][]> = {
 const BASE_SLOTS: Record<string, [number, number][]> = {
   green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],
   red:    [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],
-  yellow: [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
-  blue:   [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
+  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
+  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
 };
 
 const SEAT_COLORS: Record<2 | 4, readonly Player["color"][]> = {
-  2: ["green", "blue"],
+  2: ["green", "yellow"],
   4: ["green", "red", "yellow", "blue"],
 };
 
@@ -106,18 +106,19 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
+// Rotate board so each player sees their own base at bottom-left.
 const ROTATION: Record<string, number> = {
-  yellow: 0,   // bottom-left already
-  blue: 90,    // bottom-right → bottom-left
+  blue: 0,     // bottom-left already
+  yellow: 90,  // bottom-right → bottom-left
   red: 180,    // top-right → bottom-left
   green: 270,  // top-left → bottom-left
 };
 
 const COLOR_START_OFFSET: Record<string, number> = {
   green: 0,
-  red: 13,
+  blue: 13,
   yellow: 26,
-  blue: 39,
+  red: 39,
 };
 
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
