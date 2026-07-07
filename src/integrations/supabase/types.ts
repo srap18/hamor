@@ -2838,6 +2838,7 @@ export type Database = {
           skill_speed: number
           skill_str: number
           steal_blocked_until: string | null
+          total_damage_dealt: number
           tribe_gems: number
           tribe_id: string | null
           username: string
@@ -2904,6 +2905,7 @@ export type Database = {
           skill_speed?: number
           skill_str?: number
           steal_blocked_until?: string | null
+          total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
           username: string
@@ -2970,6 +2972,7 @@ export type Database = {
           skill_speed?: number
           skill_str?: number
           steal_blocked_until?: string | null
+          total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
           username?: string
