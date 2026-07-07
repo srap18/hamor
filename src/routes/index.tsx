@@ -1365,7 +1365,10 @@ function Index() {
               ratio = 0.99;
             }
             if (gfActive && !gfMarketFullRef.current) {
-              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 200) {
+              // Throttle to ~once per 1.5s. The old 200ms cadence made every
+              // ready-ship frame fire an RPC + full fleet re-sync, which
+              // stacked into a heavy loop that visibly slowed the game.
+              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 1500) {
                 lastGfTickRef.current = now;
                 gfTickInFlightRef.current = true;
                 tickGoldenFisher({ data: {} })
@@ -1373,10 +1376,6 @@ function Index() {
                     const wasFull = gfMarketFullRef.current;
                     const isFull = !!res?.market_full;
                     gfMarketFullRef.current = isFull;
-                    // Mark advance timestamp only when the tick actually
-                    // succeeded (ok === true and not market_full) so the clamp
-                    // can hold. On any other outcome, leave the timestamp
-                    // stale so the clamp releases.
                     if (res && res.ok === true && !isFull) {
                       lastGfAdvanceAtRef.current = Date.now();
                     }
@@ -1385,9 +1384,11 @@ function Index() {
                       setTimeout(() => setToast(null), 3500);
                       try { sound.play("error"); } catch {}
                     }
-                    // Always re-sync so the UI picks up the new fishing_started_at
-                    // even when the server processed cycles silently.
-                    syncFleetFromDb();
+                    // Only re-sync from DB when the server actually advanced
+                    // fishing timers or launched ships — otherwise this fires
+                    // several times per second for nothing and lags the UI.
+                    const shipsTouched = Number(res?.ships ?? 0) > 0 || Number(res?.launched ?? 0) > 0 || Number(res?.cycles ?? 0) > 0;
+                    if (shipsTouched) syncFleetFromDb();
                   })
                   .catch(() => {})
                   .finally(() => { gfTickInFlightRef.current = false; });
