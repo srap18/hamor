@@ -63,7 +63,6 @@ import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
-import { Route as AdminPlayProductsRouteImport } from './routes/admin.play-products'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
@@ -78,7 +77,6 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
-import { Route as ApiPublicHooksPlaySyncRouteImport } from './routes/api/public/hooks/play-sync'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 
 const VipRoute = VipRouteImport.update({
@@ -351,11 +349,6 @@ const AdminPlayersRoute = AdminPlayersRouteImport.update({
   path: '/players',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminPlayProductsRoute = AdminPlayProductsRouteImport.update({
-  id: '/play-products',
-  path: '/play-products',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminLuckyBoxRoute = AdminLuckyBoxRouteImport.update({
   id: '/lucky-box',
   path: '/lucky-box',
@@ -428,11 +421,6 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksPlaySyncRoute = ApiPublicHooksPlaySyncRouteImport.update({
-  id: '/api/public/hooks/play-sync',
-  path: '/api/public/hooks/play-sync',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicHooksGoldenFisherTickRoute =
   ApiPublicHooksGoldenFisherTickRouteImport.update({
     id: '/api/public/hooks/golden-fisher-tick',
@@ -491,7 +479,6 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
-  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -507,7 +494,6 @@ export interface FileRoutesByFullPath {
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
-  '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -563,7 +549,6 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
-  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -579,7 +564,6 @@ export interface FileRoutesByTo {
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
-  '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -637,7 +621,6 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
-  '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -653,7 +636,6 @@ export interface FileRoutesById {
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
-  '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -712,7 +694,6 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
-    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -728,7 +709,6 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
-    | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -784,7 +764,6 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
-    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -800,7 +779,6 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin'
     | '/api/public/hooks/golden-fisher-tick'
-    | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -857,7 +835,6 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/fish'
     | '/admin/lucky-box'
-    | '/admin/play-products'
     | '/admin/players'
     | '/admin/referrals'
     | '/admin/reports'
@@ -873,7 +850,6 @@ export interface FileRouteTypes {
     | '/u/$username'
     | '/admin/'
     | '/api/public/hooks/golden-fisher-tick'
-    | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -927,7 +903,6 @@ export interface RootRouteChildren {
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
-  ApiPublicHooksPlaySyncRoute: typeof ApiPublicHooksPlaySyncRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1314,13 +1289,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPlayersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/play-products': {
-      id: '/admin/play-products'
-      path: '/play-products'
-      fullPath: '/admin/play-products'
-      preLoaderRoute: typeof AdminPlayProductsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/lucky-box': {
       id: '/admin/lucky-box'
       path: '/lucky-box'
@@ -1419,13 +1387,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/play-sync': {
-      id: '/api/public/hooks/play-sync'
-      path: '/api/public/hooks/play-sync'
-      fullPath: '/api/public/hooks/play-sync'
-      preLoaderRoute: typeof ApiPublicHooksPlaySyncRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/golden-fisher-tick': {
       id: '/api/public/hooks/golden-fisher-tick'
       path: '/api/public/hooks/golden-fisher-tick'
@@ -1447,7 +1408,6 @@ interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
   AdminFishRoute: typeof AdminFishRoute
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
-  AdminPlayProductsRoute: typeof AdminPlayProductsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
   AdminReferralsRoute: typeof AdminReferralsRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -1469,7 +1429,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
   AdminFishRoute: AdminFishRoute,
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
-  AdminPlayProductsRoute: AdminPlayProductsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
   AdminReferralsRoute: AdminReferralsRoute,
   AdminReportsRoute: AdminReportsRoute,
@@ -1540,7 +1499,6 @@ const rootRouteChildren: RootRouteChildren = {
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
-  ApiPublicHooksPlaySyncRoute: ApiPublicHooksPlaySyncRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
