@@ -2541,6 +2541,48 @@ export type Database = {
         }
         Relationships: []
       }
+      play_rtdn_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          message_id: string
+          notification_type: string | null
+          processed: boolean
+          processed_at: string | null
+          purchase_token: string | null
+          raw: Json
+          sku: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          message_id: string
+          notification_type?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          purchase_token?: string | null
+          raw: Json
+          sku?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          message_id?: string
+          notification_type?: string | null
+          processed?: boolean
+          processed_at?: string | null
+          purchase_token?: string | null
+          raw?: Json
+          sku?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: []
+      }
       play_sync_config: {
         Row: {
           apikey: string
