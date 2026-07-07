@@ -3627,9 +3627,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       })();
       return () => { cancelled = true; };
     }
-    if (tab === "tribes") {
+    if (tab === "tribes" || tab === "tribe_donations") {
       (async () => {
-        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _limit: 100 });
+        const mode = tab === "tribe_donations" ? "donations" : "damage";
+        const { data } = await (supabase as any).rpc("get_tribe_effort_leaderboard", { _mode: mode, _limit: 100 });
         if (cancelled) return;
         const list: TribeLb[] = ((data ?? []) as any[]).map((t) => ({
           id: t.tribe_id,
