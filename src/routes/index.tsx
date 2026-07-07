@@ -4026,7 +4026,11 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                       {/* Trophy score */}
                       <div className="relative flex items-center gap-1 shrink-0 pl-1">
                         <span className="text-[15px] font-black text-amber-200 tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">{score}</span>
-                        <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏆</span>
+                        {isDonationTab ? (
+                          <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"><CoinIcon size={18} /></span>
+                        ) : (
+                          <span className="text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">🏆</span>
+                        )}
                       </div>
                     </button>
                   );
