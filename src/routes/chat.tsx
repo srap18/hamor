@@ -1703,18 +1703,19 @@ function NoTribePanel({ userId }: { userId: string }) {
       memberByTribe.set(m.tribe_id, arr);
     });
     const allUserIds = Array.from(new Set((mems || []).map((m: any) => m.user_id)));
-    const levelMap = new Map<string, number>();
+    const damageMap = new Map<string, number>();
     if (allUserIds.length > 0) {
-      const { data: profs } = await supabase.from("profiles").select("id,level,xp").in("id", allUserIds);
+      const { data: profs } = await supabase.from("profiles").select("id,total_damage_dealt").in("id", allUserIds);
       (profs || []).forEach((p: any) => {
-        levelMap.set(p.id, (p.level || 1) * 100 + Math.floor((p.xp || 0) / 10));
+        damageMap.set(p.id, Number(p.total_damage_dealt || 0));
       });
     }
     const rows: TribeRow[] = ts.map((t: any) => {
       const uids = memberByTribe.get(t.id) || [];
-      const power = uids.reduce((sum, uid) => sum + (levelMap.get(uid) || 0), 0);
+      // Tribe strength (شراسة) = sum of damage dealt by all members on their enemies.
+      const power = uids.reduce((sum, uid) => sum + (damageMap.get(uid) || 0), 0);
       return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power, join_mode: t.join_mode || "request" };
-    }).sort((a, b) => (b.power + b.members * 50) - (a.power + a.members * 50));
+    }).sort((a, b) => b.power - a.power);
     setTribes(rows);
 
     const { data: reqs } = await supabase.from("tribe_join_requests").select("tribe_id").eq("user_id", userId).eq("status", "pending");
