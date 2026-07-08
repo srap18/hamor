@@ -2235,6 +2235,7 @@ export type Database = {
       }
       ludo_rooms: {
         Row: {
+          consecutive_sixes: number
           created_at: string
           current_turn_seat: number
           finished_at: string | null
@@ -2250,6 +2251,7 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
+          consecutive_sixes?: number
           created_at?: string
           current_turn_seat?: number
           finished_at?: string | null
@@ -2265,6 +2267,7 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
+          consecutive_sixes?: number
           created_at?: string
           current_turn_seat?: number
           finished_at?: string | null
