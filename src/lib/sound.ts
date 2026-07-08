@@ -329,8 +329,100 @@ class SoundEngine {
       g.gain.setValueAtTime(0.18, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
       o.connect(g).connect(M); o.start(t); o.stop(t + 0.22);
+    } else if (kind === "dice") {
+      // Rattling dice — burst of short filtered noise ticks + final thud
+      for (let k = 0; k < 7; k++) {
+        const start = t + k * 0.055;
+        const sz = (c.sampleRate * 0.04) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / sz);
+        const n = c.createBufferSource(); n.buffer = b;
+        const bp = c.createBiquadFilter(); bp.type = "bandpass";
+        bp.frequency.value = 1600 + Math.random() * 1400; bp.Q.value = 4;
+        const g = c.createGain(); g.gain.setValueAtTime(0.28, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.06);
+        n.connect(bp).connect(g).connect(M); n.start(start);
+      }
+      // Final thud
+      const tf = t + 0.45;
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(180, tf);
+      o.frequency.exponentialRampToValueAtTime(60, tf + 0.18);
+      g.gain.setValueAtTime(0.4, tf);
+      g.gain.exponentialRampToValueAtTime(0.001, tf + 0.22);
+      o.connect(g).connect(M); o.start(tf); o.stop(tf + 0.25);
+    } else if (kind === "hop") {
+      // Short blip for each token step
+      const o = c.createOscillator(); const g = c.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(520, t);
+      o.frequency.exponentialRampToValueAtTime(780, t + 0.06);
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.linearRampToValueAtTime(0.12, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      o.connect(g).connect(M); o.start(t); o.stop(t + 0.1);
+    } else if (kind === "capture") {
+      // "Hit + zap" for capturing an enemy piece
+      // 1) Sharp low thud
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(220, t);
+        o.frequency.exponentialRampToValueAtTime(55, t + 0.18);
+        g.gain.setValueAtTime(0.5, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        o.connect(g).connect(M); o.start(t); o.stop(t + 0.24);
+      }
+      // 2) Descending sweep (whoosh back home)
+      {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(900, t + 0.05);
+        o.frequency.exponentialRampToValueAtTime(120, t + 0.5);
+        g.gain.setValueAtTime(0.22, t + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+        const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1500;
+        o.connect(lp).connect(g).connect(M); o.start(t + 0.05); o.stop(t + 0.55);
+      }
+      // 3) Noise burst
+      {
+        const sz = (c.sampleRate * 0.15) | 0;
+        const b = c.createBuffer(1, sz, c.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / sz);
+        const n = c.createBufferSource(); n.buffer = b;
+        const bp = c.createBiquadFilter(); bp.type = "bandpass";
+        bp.frequency.value = 2200; bp.Q.value = 2;
+        const g = c.createGain(); g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        n.connect(bp).connect(g).connect(M); n.start(t);
+      }
+    } else if (kind === "home") {
+      // Triumphant chime — 5-note arpeggio + shimmer
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+        const o = c.createOscillator(); const g = c.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        const s = t + i * 0.09;
+        g.gain.setValueAtTime(0, s);
+        g.gain.linearRampToValueAtTime(0.22, s + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, s + 0.4);
+        o.connect(g).connect(M); o.start(s); o.stop(s + 0.42);
+      });
+      // Sparkle noise tail
+      const sz = (c.sampleRate * 0.5) | 0;
+      const b = c.createBuffer(1, sz, c.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sz, 2);
+      const n = c.createBufferSource(); n.buffer = b;
+      const hp = c.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 3500;
+      const g = c.createGain(); g.gain.setValueAtTime(0.12, t + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+      n.connect(hp).connect(g).connect(M); n.start(t + 0.3);
     }
   }
 }
+
 
 export const sound = new SoundEngine();
