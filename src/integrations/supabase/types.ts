@@ -6270,15 +6270,19 @@ export type Database = {
       launch_nuke: { Args: { _target_id: string }; Returns: string }
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
+      ludo_active_room_for: { Args: { _uid: string }; Returns: string }
+      ludo_bot_play: { Args: { _room_id: string }; Returns: undefined }
       ludo_cleanup_stale: { Args: never; Returns: undefined }
       ludo_cleanup_stale_rooms: { Args: never; Returns: undefined }
       ludo_color_start_offset: { Args: { _color: string }; Returns: number }
       ludo_create_room: { Args: { _max_players?: number }; Returns: string }
+      ludo_forfeit: { Args: { _room_id: string }; Returns: undefined }
       ludo_is_in_room: {
         Args: { _room: string; _uid: string }
         Returns: boolean
       }
       ludo_join_room: { Args: { _room_id: string }; Returns: undefined }
+      ludo_leave_room: { Args: { _room_id: string }; Returns: undefined }
       ludo_move_token: {
         Args: { _room_id: string; _token_idx: number }
         Returns: Json
