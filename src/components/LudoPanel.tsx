@@ -432,7 +432,8 @@ function LudoBoard({
         return (
           <rect key={`start-${color}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
             width={CELL - 2.4} height={CELL - 2.4} rx={3}
-            fill={`url(#q-${color})`} opacity={0.75} />
+            fill={`url(#q-${color})`} opacity={0.95}
+            stroke={COLOR_HEX[color]} strokeWidth={1.2} />
         );
       })}
 
@@ -445,7 +446,8 @@ function LudoBoard({
         )),
       )}
 
-      {[...SAFE_CELLS].map(i => {
+      {/* Gold stars only on generic safe cells (not the colored start cells) */}
+      {[...SAFE_CELLS].filter(i => !Object.values(COLOR_START_OFFSET).includes(i)).map(i => {
         const [gx, gy] = PATH[i];
         const cx = (gx + 0.5) * CELL;
         const cy = (gy + 0.5) * CELL;
@@ -459,6 +461,43 @@ function LudoBoard({
           <polygon key={`s-${i}`} points={pts}
             fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.6}
             filter="url(#glowGold)" />
+        );
+      })}
+
+      {/* Colored star + arrow from each base to that color's exit cell */}
+      {(["green", "red", "yellow", "blue"] as const).map(color => {
+        const baseCenters: Record<string, [number, number]> = {
+          green: [2.5, 2.5], red: [11.5, 2.5], yellow: [11.5, 11.5], blue: [2.5, 11.5],
+        };
+        const [bx, by] = baseCenters[color];
+        const cellIdx = COLOR_START_OFFSET[color];
+        const [gx, gy] = PATH[cellIdx];
+        const cx = (gx + 0.5) * CELL;
+        const cy = (gy + 0.5) * CELL;
+        const bcx = bx * CELL;
+        const bcy = by * CELL;
+        const r = CELL * 0.34;
+        const pts = Array.from({ length: 10 }, (_, k) => {
+          const ang = (Math.PI / 5) * k - Math.PI / 2;
+          const rr = k % 2 === 0 ? r : r * 0.45;
+          return `${cx + Math.cos(ang) * rr},${cy + Math.sin(ang) * rr}`;
+        }).join(" ");
+        const dx = cx - bcx, dy = cy - bcy;
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len;
+        const x1 = bcx + ux * CELL * 1.7;
+        const y1 = bcy + uy * CELL * 1.7;
+        const x2 = cx - ux * CELL * 0.5;
+        const y2 = cy - uy * CELL * 0.5;
+        return (
+          <g key={`start-mark-${color}`}>
+            <line x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={COLOR_HEX[color]} strokeWidth={2.2} strokeLinecap="round"
+              opacity={0.9} strokeDasharray="2.5 2" />
+            <polygon points={pts}
+              fill={COLOR_HEX[color]} stroke="#1a1a1a" strokeWidth={0.7}
+              opacity={0.98} />
+          </g>
         );
       })}
 
