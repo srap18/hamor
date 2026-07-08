@@ -77,12 +77,14 @@ const HOME_STRETCH: Record<string, [number, number][]> = {
   red:    [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BL base → BOTTOM arm middle col, going up
 };
 
-// Bases placed adjacent to each color's exit tile (unchanged from previous fix).
+// Bases: slot centers must sit symmetrically inside the 4-cell inner white
+// square of each base. Inner white spans grid cells 1..5 (center 3) for TL,
+// 10..14 (center 12) for BR bases, etc. Slots are at ±1 from that center.
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
-  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
-  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
-  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
+  green:  [[2, 2],   [4, 2],   [2, 4],   [4, 4]],   // TL, center (3,3)
+  blue:   [[11, 2],  [13, 2],  [11, 4],  [13, 4]],  // TR, center (12,3)
+  yellow: [[11, 11], [13, 11], [11, 13], [13, 13]], // BR, center (12,12)
+  red:    [[2, 11],  [4, 11],  [2, 13],  [4, 13]],  // BL, center (3,12)
 };
 
 // Must match server seat→color assignment in ludo_join_room().
@@ -599,56 +601,160 @@ function LudoBoard({
 }
 
 // ============================================================
-// Fancy animated 3D dice
+// Fancy animated 3D dice — real CSS cube with 6 faces
 // ============================================================
+const DICE_SIZE = 64;
+const DICE_HALF = DICE_SIZE / 2;
+
+// Dot layouts for each face (in a 3x3 grid, values 0..2)
+const DICE_FACES: Record<number, [number, number][]> = {
+  1: [[1, 1]],
+  2: [[0, 0], [2, 2]],
+  3: [[0, 0], [1, 1], [2, 2]],
+  4: [[0, 0], [2, 0], [0, 2], [2, 2]],
+  5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]],
+  6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]],
+};
+
+// Rotation to bring each face toward the viewer (opposite faces sum to 7).
+const FACE_REST: Record<number, string> = {
+  1: "rotateX(-15deg) rotateY(20deg)",
+  2: "rotateX(-15deg) rotateY(-70deg)",
+  3: "rotateX(75deg) rotateY(20deg)",
+  4: "rotateX(-105deg) rotateY(20deg)",
+  5: "rotateX(-15deg) rotateY(110deg)",
+  6: "rotateX(-15deg) rotateY(200deg)",
+};
+
+// Position each face on the cube.
+const FACE_TRANSFORMS: { face: number; transform: string }[] = [
+  { face: 1, transform: `translateZ(${DICE_HALF}px)` },                        // front
+  { face: 6, transform: `rotateY(180deg) translateZ(${DICE_HALF}px)` },        // back
+  { face: 2, transform: `rotateY(90deg) translateZ(${DICE_HALF}px)` },         // right
+  { face: 5, transform: `rotateY(-90deg) translateZ(${DICE_HALF}px)` },        // left
+  { face: 3, transform: `rotateX(90deg) translateZ(${DICE_HALF}px)` },         // top
+  { face: 4, transform: `rotateX(-90deg) translateZ(${DICE_HALF}px)` },        // bottom
+];
+
+function DiceFace({ value }: { value: number }) {
+  return (
+    <div
+      className="absolute inset-0 rounded-xl"
+      style={{
+        background: "linear-gradient(145deg,#ffffff 0%,#f4f4f5 55%,#d4d4d8 100%)",
+        border: "2px solid #a1a1aa",
+        boxShadow: "inset 0 2px 4px rgba(255,255,255,0.95), inset 0 -3px 6px rgba(0,0,0,0.18)",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gridTemplateRows: "1fr 1fr 1fr",
+        padding: 6,
+        backfaceVisibility: "hidden",
+      }}
+    >
+      {Array.from({ length: 9 }).map((_, i) => {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
+        const on = DICE_FACES[value].some(([c, r]) => c === col && r === row);
+        return (
+          <div key={i} className="flex items-center justify-center">
+            {on && (
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle at 30% 30%, #52525b, #09090b 75%)",
+                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.85), 0 1px 1px rgba(255,255,255,0.5)",
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Dice3D({ value, rolling }: { value: number | null; rolling: boolean }) {
-  const [tick, setTick] = useState(0);
+  // Accumulate rotation while rolling so the cube keeps tumbling smoothly.
+  const [spin, setSpin] = useState({ x: -15, y: 20 });
+  const startRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (!rolling) return;
-    const iv = setInterval(() => setTick(t => t + 1), 80);
-    return () => clearInterval(iv);
+    if (!rolling) {
+      startRef.current = null;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      return;
+    }
+    startRef.current = performance.now();
+    const tick = (now: number) => {
+      const t = (now - (startRef.current ?? now)) / 1000;
+      setSpin({ x: -15 + t * 720, y: 20 + t * 900 });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [rolling]);
 
-  const displayed = rolling ? ((tick % 6) + 1) : (value ?? 1);
-  const dots: Record<number, [number, number][]> = {
-    1: [[0.5, 0.5]],
-    2: [[0.25, 0.25], [0.75, 0.75]],
-    3: [[0.25, 0.25], [0.5, 0.5], [0.75, 0.75]],
-    4: [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]],
-    5: [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]],
-    6: [[0.25, 0.2], [0.75, 0.2], [0.25, 0.5], [0.75, 0.5], [0.25, 0.8], [0.75, 0.8]],
-  };
+  const displayed = value ?? 1;
+  const restTransform = FACE_REST[displayed] ?? FACE_REST[1];
+  const transform = rolling
+    ? `rotateX(${spin.x}deg) rotateY(${spin.y}deg)`
+    : restTransform;
 
   return (
-    <div className="relative" style={{ perspective: "300px", width: 72, height: 72 }}>
+    <div
+      className="relative"
+      style={{
+        perspective: "500px",
+        width: DICE_SIZE,
+        height: DICE_SIZE,
+        filter: rolling
+          ? "drop-shadow(0 0 14px rgba(252,191,73,0.85)) drop-shadow(0 8px 12px rgba(0,0,0,0.55))"
+          : "drop-shadow(0 6px 10px rgba(0,0,0,0.45))",
+      }}
+    >
       <div
-        className="absolute inset-0 rounded-2xl"
         style={{
-          background: "linear-gradient(145deg,#ffffff 0%,#f5f5f5 45%,#d4d4d4 100%)",
-          border: "2px solid #a8a29e",
-          boxShadow: rolling
-            ? "0 0 24px rgba(252,191,73,0.85), 0 8px 16px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -3px 6px rgba(0,0,0,0.15)"
-            : "0 6px 14px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -3px 6px rgba(0,0,0,0.15)",
-          transform: rolling
-            ? `rotateX(${tick * 73}deg) rotateY(${tick * 91}deg) rotateZ(${tick * 47}deg)`
-            : "rotateX(-8deg) rotateY(8deg)",
+          position: "absolute",
+          inset: 0,
           transformStyle: "preserve-3d",
-          transition: rolling ? "transform 0.08s linear, box-shadow 0.2s" : "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s",
+          transform,
+          transition: rolling
+            ? "none"
+            : "transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
       >
-        {dots[displayed].map(([x, y], i) => (
-          <div key={i}
-            className="absolute rounded-full"
+        {FACE_TRANSFORMS.map(({ face, transform: t }) => (
+          <div
+            key={face}
             style={{
-              width: 10, height: 10,
-              left: `calc(${x * 100}% - 5px)`,
-              top: `calc(${y * 100}% - 5px)`,
-              background: "radial-gradient(circle at 30% 30%, #4a4a4a, #0a0a0a 70%)",
-              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.4)",
+              position: "absolute",
+              inset: 0,
+              transform: t,
+              transformStyle: "preserve-3d",
             }}
-          />
+          >
+            <DiceFace value={face} />
+          </div>
         ))}
       </div>
+      {/* Ground shadow */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{
+          bottom: -8,
+          width: DICE_SIZE * 0.9,
+          height: 8,
+          borderRadius: "50%",
+          background: "radial-gradient(ellipse, rgba(0,0,0,0.5), transparent 70%)",
+          transform: rolling ? "scale(0.85)" : "scale(1)",
+          transition: "transform 0.3s",
+        }}
+      />
     </div>
   );
 }
@@ -910,6 +1016,22 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     const timer = setInterval(tick, 1500);
     return () => { stopped = true; clearInterval(timer); };
   }, [activeRoom, players, loadRooms]);
+
+  // Broadcast dice roll animation to ALL players: whenever last_dice
+  // transitions null → number (any player rolled), play the tumbling
+  // animation locally too so everyone sees the roll live.
+  const prevDiceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const d = activeRoom?.last_dice ?? null;
+    const prev = prevDiceRef.current;
+    prevDiceRef.current = d;
+    if (d != null && prev == null && !rolling) {
+      sound.play("dice");
+      setRolling(true);
+      const t = setTimeout(() => setRolling(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [activeRoom?.last_dice, rolling]);
 
   // Realtime can be delayed on mobile; poll active rooms lightly so both players stay synced.
   useEffect(() => {
