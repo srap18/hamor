@@ -921,6 +921,31 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeRoom?.id]);
 
+  // Realtime chat channel (broadcast, ephemeral — no DB writes)
+  useEffect(() => {
+    if (!activeRoom) { chatChanRef.current = null; return; }
+    const roomId = activeRoom.id;
+    const ch = supabase.channel(`ludo-chat-${roomId}`, { config: { broadcast: { self: true } } });
+    ch.on("broadcast", { event: "msg" }, (payload) => {
+      const p = payload.payload as { uid?: string; text?: string } | undefined;
+      if (!p?.uid || !p?.text) return;
+      showBubble(p.uid, String(p.text).slice(0, 120));
+    }).subscribe();
+    chatChanRef.current = ch;
+    return () => {
+      chatChanRef.current = null;
+      supabase.removeChannel(ch);
+    };
+  }, [activeRoom?.id, showBubble]);
+
+  const sendChat = useCallback((raw: string) => {
+    const text = raw.trim();
+    if (!text || !chatChanRef.current) return;
+    chatChanRef.current.send({ type: "broadcast", event: "msg", payload: { uid: userId, text: text.slice(0, 120) } });
+    setChatDraft("");
+    setEmojiOpen(false);
+  }, [userId]);
+
   const me = useMemo(() => players.find(p => p.user_id === userId) || null, [players, userId]);
   const isMyTurn = activeRoom?.status === "playing" && me?.seat === activeRoom.current_turn_seat;
   const shownDice = activeRoom?.last_dice ?? localDice;
