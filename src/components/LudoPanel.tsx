@@ -524,12 +524,12 @@ function LudoBoard({
       })}
 
       {/* Four bases with colored squares + inner white rounded rect + slot circles */}
-      {(["blue", "red", "yellow", "green"] as const).map(color => {
+      {(["green", "blue", "red", "yellow"] as const).map(color => {
         const positions: Record<string, [number, number]> = {
-          blue:   [0, 0],
-          red:    [9, 0],
-          yellow: [0, 9],
-          green:  [9, 9],
+          green:  [0, 0],  // TL — matches BASE_SLOTS.green
+          blue:   [9, 0],  // TR — matches BASE_SLOTS.blue
+          red:    [0, 9],  // BL — matches BASE_SLOTS.red
+          yellow: [9, 9],  // BR — matches BASE_SLOTS.yellow
         };
         const [x, y] = positions[color];
         return (
