@@ -113,19 +113,20 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
-// Rotate board so each player sees their own base at bottom-left (blue's corner).
+// Rotate board so each player sees their own base at bottom-left (red's corner in raw layout).
 const ROTATION: Record<string, number> = {
-  blue: 0,      // BL already
+  red: 0,       // BL already
   yellow: 90,   // BR → BL
-  green: 180,   // TR → BL
-  red: 270,     // TL → BL
+  blue: 180,    // TR → BL
+  green: 270,   // TL → BL
 };
 
+// Match server seat→color (seat * 13). SEAT_COLORS[4] = green, red, yellow, blue.
 const COLOR_START_OFFSET: Record<string, number> = {
-  red: 0,       // PATH[0]  = (6,1)  → adjacent to TL (red)
-  blue: 13,     // PATH[13] = (1,8)  → adjacent to BL (blue)
-  yellow: 26,   // PATH[26] = (8,13) → adjacent to BR (yellow)
-  green: 39,    // PATH[39] = (13,6) → adjacent to TR (green)
+  green: 0,     // seat 0 → PATH[0]  = (6,1)  → top arm, adjacent to TL (green)
+  red: 13,     // seat 1 → PATH[13] = (1,8)  → left arm, adjacent to BL (red)
+  yellow: 26,  // seat 2 → PATH[26] = (8,13) → bottom arm, adjacent to BR (yellow)
+  blue: 39,    // seat 3 → PATH[39] = (13,6) → right arm, adjacent to TR (blue)
 };
 
 
