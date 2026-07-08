@@ -16,7 +16,12 @@ type SfxKind =
   | "splash"
   | "success"
   | "whoosh"
-  | "error";
+  | "error"
+  | "dice"
+  | "hop"
+  | "capture"
+  | "home";
+
 
 // Realistic explosion / nuke samples — preloaded as HTMLAudio for low-latency
 // playback. We clone the element on each play() so overlapping booms still work.
