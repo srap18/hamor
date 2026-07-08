@@ -564,7 +564,6 @@ function LudoBoard({
         fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
       <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
         fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.7} />
-        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
 
       {/* Center star */}
       {(() => {
