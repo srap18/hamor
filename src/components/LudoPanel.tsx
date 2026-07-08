@@ -662,13 +662,14 @@ const DICE_FACES: Record<number, [number, number][]> = {
 };
 
 // Rotation to bring each face toward the viewer (opposite faces sum to 7).
+// Small (-8°, +8°) tilt keeps a 3D feel while the number stays clearly readable.
 const FACE_REST: Record<number, string> = {
-  1: "rotateX(-15deg) rotateY(20deg)",
-  2: "rotateX(-15deg) rotateY(-70deg)",
-  3: "rotateX(75deg) rotateY(20deg)",
-  4: "rotateX(-105deg) rotateY(20deg)",
-  5: "rotateX(-15deg) rotateY(110deg)",
-  6: "rotateX(-15deg) rotateY(200deg)",
+  1: "rotateX(-8deg) rotateY(8deg)",
+  2: "rotateX(-8deg) rotateY(-82deg)",
+  3: "rotateX(-98deg) rotateY(8deg)",
+  4: "rotateX(82deg) rotateY(8deg)",
+  5: "rotateX(-8deg) rotateY(98deg)",
+  6: "rotateX(-8deg) rotateY(188deg)",
 };
 
 // Position each face on the cube.
@@ -1231,9 +1232,24 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
-        <div className="text-xs font-black text-amber-300">
+        <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
           {activeRoom.status === "waiting" && `بانتظار ${activeRoom.max_players - players.length} لاعبين...`}
-          {activeRoom.status === "playing" && (isMyTurn ? "🎯 دورك الآن" : `دور ${seats.find(s => s?.seat === activeRoom.current_turn_seat)?.color || "?"}`)}
+          {activeRoom.status === "playing" && (() => {
+            const turnSeat = seats.find(s => s?.seat === activeRoom.current_turn_seat);
+            const turnName = turnSeat ? (profs[turnSeat.user_id]?.display_name || "لاعب") : "?";
+            const turnColor = turnSeat?.color || "?";
+            const colorHex: Record<string, string> = { red: "#ef4444", green: "#22c55e", blue: "#3b82f6", yellow: "#eab308" };
+            return (
+              <>
+                <span>{isMyTurn ? "🎯 دورك" : "دور"}</span>
+                <span
+                  className="inline-block w-3 h-3 rounded-full border border-white/40"
+                  style={{ background: colorHex[turnColor] || "#999", boxShadow: `0 0 6px ${colorHex[turnColor] || "#999"}` }}
+                />
+                <span className="text-amber-100">{turnName}</span>
+              </>
+            );
+          })()}
           {activeRoom.status === "finished" && `🏆 الفائز: ${winner?.color || "?"}`}
         </div>
       </div>
