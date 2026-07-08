@@ -498,22 +498,7 @@ function LudoBoard({
         return <polygon key={`arr-${k}`} points={pts} fill="#4b3a1e" opacity={0.55} />;
       })}
 
-      {/* Small stars on generic safe cells (non-start) */}
-      {[...SAFE_CELLS].filter(i => !Object.values(COLOR_START_OFFSET).includes(i)).map(i => {
-        const [gx, gy] = PATH[i];
-        const cx = (gx + 0.5) * CELL;
-        const cy = (gy + 0.5) * CELL;
-        const r = CELL * 0.32;
-        const pts = Array.from({ length: 10 }, (_, k) => {
-          const ang = (Math.PI / 5) * k - Math.PI / 2;
-          const rr = k % 2 === 0 ? r : r * 0.45;
-          return `${cx + Math.cos(ang) * rr},${cy + Math.sin(ang) * rr}`;
-        }).join(" ");
-        return (
-          <polygon key={`s-${i}`} points={pts}
-            fill="#c9c9c9" stroke="#5d5d5d" strokeWidth={0.6} opacity={0.85} />
-        );
-      })}
+      {/* Safe-cell stars removed — only the colored start cell per color remains, to avoid visual confusion with the exit tile */}
 
       {/* Star inside each colored start cell (matching player color) */}
       {(["blue", "red", "green", "yellow"] as const).map(color => {
