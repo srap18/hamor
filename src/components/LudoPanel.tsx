@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { frameById } from "@/lib/frames";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { sound } from "@/lib/sound";
+
 
 // ============================================================
 // LUDO — Admin-only prototype (2 or 4 players)
@@ -228,24 +230,47 @@ function AnimatedToken({
 
   useEffect(() => {
     if (pos === prevRef.current) return;
-    const steps = pathBetween(color, prevRef.current, pos);
+    const prev = prevRef.current;
+    const steps = pathBetween(color, prev, pos);
     prevRef.current = pos;
-    if (steps.length === 0) { setDisplayPos(pos); return; }
+
+    // Instant transitions (no walk): capture (sent home) or teleport
+    if (steps.length === 0) {
+      setDisplayPos(pos);
+      if (pos === -1 && prev !== -1) sound.play("capture");
+      if (pos === 999 && prev !== 999) sound.play("home");
+      return;
+    }
+    // Reset back to base (captured mid-move)
+    if (pos === -1 && prev !== -1) {
+      sound.play("capture");
+      setDisplayPos(pos);
+      return;
+    }
+
     let i = 0;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const stepMs = 150;
     const walk = () => {
       if (cancelled) return;
-      if (i >= steps.length) { setHopping(false); return; }
-      setDisplayPos(steps[i]);
+      if (i >= steps.length) {
+        setHopping(false);
+        if (pos === 999) sound.play("home");
+        return;
+      }
+      const stepTo = steps[i];
+      setDisplayPos(stepTo);
       setHopping(true);
+      // Play a light hop for each intermediate step (skip when reaching home center)
+      if (stepTo !== 999 && stepTo !== -1) sound.play("hop");
       i += 1;
       timer = setTimeout(walk, stepMs);
     };
     walk();
     return () => { cancelled = true; if (timer) clearTimeout(timer); setHopping(false); };
   }, [pos, color]);
+
 
   const { x, y } = tokenCoords(color, displayPos, tokenIdx);
   const r = CELL * 0.4;
@@ -792,8 +817,11 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
 
   const rollDice = async () => {
     if (!activeRoom) return;
+    sound.resume();
+    sound.play("dice");
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
+
     const { data, error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
     if (error) { setRolling(false); flash(error.message); }
     else {
