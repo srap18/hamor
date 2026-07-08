@@ -124,12 +124,12 @@ const ROTATION: Record<string, number> = {
   green: 270,   // TL → BL
 };
 
-// Match server seat→color (seat * 13). SEAT_COLORS[4] = green, red, yellow, blue.
+// Server contract (ludo_color_start_offset): each color's PATH index for exit tile.
 const COLOR_START_OFFSET: Record<string, number> = {
-  green: 0,     // seat 0 → PATH[0]  = (6,1)  → top arm, adjacent to TL (green)
-  red: 13,     // seat 1 → PATH[13] = (1,8)  → left arm, adjacent to BL (red)
-  yellow: 26,  // seat 2 → PATH[26] = (8,13) → bottom arm, adjacent to BR (yellow)
-  blue: 39,    // seat 3 → PATH[39] = (13,6) → right arm, adjacent to TR (blue)
+  blue: 0,      // PATH[0]  = (8,1)   → top arm RIGHT col   (adjacent to TR base)
+  yellow: 13,   // PATH[13] = (13,8)  → right arm BOTTOM row (adjacent to BR base)
+  red: 26,      // PATH[26] = (6,13)  → bottom arm LEFT col  (adjacent to BL base)
+  green: 39,    // PATH[39] = (1,6)   → left arm TOP row    (adjacent to TL base)
 };
 
 
