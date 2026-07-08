@@ -112,19 +112,19 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
-// Rotate board so each player sees their own base at bottom-left (red's position).
+// Rotate board so each player sees their own base at bottom-left (blue's corner).
 const ROTATION: Record<string, number> = {
-  red: 0,       // BL already
+  blue: 0,      // BL already
   yellow: 90,   // BR → BL
-  blue: 180,    // TR → BL
-  green: 270,   // TL → BL
+  green: 180,   // TR → BL
+  red: 270,     // TL → BL
 };
 
 const COLOR_START_OFFSET: Record<string, number> = {
-  green: 0,     // PATH[0]  = (6,1)  → TL adjacent
-  red: 13,      // PATH[13] = (1,8)  → BL adjacent
-  yellow: 26,   // PATH[26] = (8,13) → BR adjacent
-  blue: 39,     // PATH[39] = (13,6) → TR adjacent
+  red: 0,       // PATH[0]  = (6,1)  → adjacent to TL (red)
+  blue: 13,     // PATH[13] = (1,8)  → adjacent to BL (blue)
+  yellow: 26,   // PATH[26] = (8,13) → adjacent to BR (yellow)
+  green: 39,    // PATH[39] = (13,6) → adjacent to TR (green)
 };
 
 
