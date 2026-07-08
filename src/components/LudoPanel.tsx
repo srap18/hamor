@@ -1232,9 +1232,24 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
-        <div className="text-xs font-black text-amber-300">
+        <div className="text-xs font-black text-amber-300 flex items-center gap-1.5">
           {activeRoom.status === "waiting" && `بانتظار ${activeRoom.max_players - players.length} لاعبين...`}
-          {activeRoom.status === "playing" && (isMyTurn ? "🎯 دورك الآن" : `دور ${seats.find(s => s?.seat === activeRoom.current_turn_seat)?.color || "?"}`)}
+          {activeRoom.status === "playing" && (() => {
+            const turnSeat = seats.find(s => s?.seat === activeRoom.current_turn_seat);
+            const turnName = turnSeat ? (profs[turnSeat.user_id]?.display_name || "لاعب") : "?";
+            const turnColor = turnSeat?.color || "?";
+            const colorHex: Record<string, string> = { red: "#ef4444", green: "#22c55e", blue: "#3b82f6", yellow: "#eab308" };
+            return (
+              <>
+                <span>{isMyTurn ? "🎯 دورك" : "دور"}</span>
+                <span
+                  className="inline-block w-3 h-3 rounded-full border border-white/40"
+                  style={{ background: colorHex[turnColor] || "#999", boxShadow: `0 0 6px ${colorHex[turnColor] || "#999"}` }}
+                />
+                <span className="text-amber-100">{turnName}</span>
+              </>
+            );
+          })()}
           {activeRoom.status === "finished" && `🏆 الفائز: ${winner?.color || "?"}`}
         </div>
       </div>
