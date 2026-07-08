@@ -65,23 +65,27 @@ const PATH: [number, number][] = [
   [7, 0], [6, 0],
 ];
 
+// Home stretch = the 5 colored cells leading each color into the center.
+// Must match the color's start cell direction on PATH.
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  blue:   [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
-  red:    [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]],
-  green:  [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
-  yellow: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
+  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],   // start (6,1) top-arm → down col 7
+  red:    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],   // start (1,8) left-arm → right row 7
+  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // start (8,13) bottom-arm → up col 7
+  blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // start (13,6) right-arm → left row 7
 };
 
+// Base positions must sit in the corner adjacent to that color's start cell.
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  blue:   [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],
-  red:    [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],
-  yellow: [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
-  green:  [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
+  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],       // TL
+  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],   // BL
+  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
+  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],   // TR
 };
 
+// Must match server seat→color assignment in ludo_join_room().
 const SEAT_COLORS: Record<2 | 4, readonly Player["color"][]> = {
-  2: ["blue", "green"],
-  4: ["blue", "red", "green", "yellow"],
+  2: ["green", "yellow"],
+  4: ["green", "red", "yellow", "blue"],
 };
 
 const SAFE_CELLS = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
