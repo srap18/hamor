@@ -6270,6 +6270,7 @@ export type Database = {
       launch_nuke: { Args: { _target_id: string }; Returns: string }
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
+      ludo_cleanup_stale: { Args: never; Returns: undefined }
       ludo_cleanup_stale_rooms: { Args: never; Returns: undefined }
       ludo_color_start_offset: { Args: { _color: string }; Returns: number }
       ludo_create_room: { Args: { _max_players?: number }; Returns: string }
