@@ -1253,6 +1253,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
               active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
               finished={p?.finished_count}
               isEmpty={!p}
+              bubble={p ? bubbles[p.user_id] || null : null}
             />
           ));
         })()}
