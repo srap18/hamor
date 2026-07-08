@@ -330,9 +330,10 @@ function AnimatedToken({
 // Player card (avatar + frame + name)
 // ============================================================
 function PlayerCard({
-  color, prof, active, finished, isEmpty,
+  color, prof, active, finished, isEmpty, bubble,
 }: {
   color?: string; prof?: Prof | null; active?: boolean; finished?: number; isEmpty?: boolean;
+  bubble?: { text: string; id: number } | null;
 }) {
   const frame = frameById(prof?.avatar_frame);
   const ringCls = frame?.kind === "avatar" ? frame.ring || "" : "";
@@ -347,8 +348,52 @@ function PlayerCard({
     );
   }
 
+  const bubbleText = bubble?.text || "";
+  const isEmojiOnly = !!bubbleText && /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\uFE0F|\u200D|\s)+$/u.test(bubbleText);
+
   return (
-    <div className={`flex-1 min-w-0 p-1.5 rounded-xl border-2 ${active ? "border-amber-400 bg-gradient-to-b from-amber-500/25 to-amber-900/10 shadow-[0_0_14px_rgba(252,191,73,0.4)]" : "border-stone-700 bg-stone-900/70"}`}>
+    <div className={`relative flex-1 min-w-0 p-1.5 rounded-xl border-2 ${active ? "border-amber-400 bg-gradient-to-b from-amber-500/25 to-amber-900/10 shadow-[0_0_14px_rgba(252,191,73,0.4)]" : "border-stone-700 bg-stone-900/70"}`}>
+      {bubble && (
+        <div
+          key={bubble.id}
+          className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+          style={{
+            bottom: "calc(100% + 6px)",
+            perspective: "600px",
+            animation: "ludoBubbleIn 380ms cubic-bezier(0.34,1.56,0.64,1) both, ludoBubbleOut 400ms ease-in 3400ms both",
+          }}
+        >
+          <div
+            className="relative max-w-[180px] px-3 py-1.5 rounded-2xl border font-black text-center whitespace-pre-wrap break-words"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: "rotateX(8deg)",
+              background: "linear-gradient(145deg,#fffef2,#f5d982 55%,#c88a20)",
+              borderColor: "#7a4a12",
+              color: "#3a1e04",
+              fontSize: isEmojiOnly ? 30 : 12,
+              lineHeight: isEmojiOnly ? "1" : "1.35",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.55), 0 2px 0 #7a4a12, inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -2px 0 rgba(120,60,10,0.35)",
+              textShadow: isEmojiOnly ? "none" : "0 1px 0 rgba(255,255,255,0.5)",
+              animation: isEmojiOnly ? "ludoEmojiPop 900ms ease-out both" : undefined,
+            }}
+          >
+            {bubbleText}
+            <div
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{
+                bottom: -7,
+                width: 14, height: 14,
+                background: "linear-gradient(145deg,#f5d982,#c88a20)",
+                borderRight: "1px solid #7a4a12",
+                borderBottom: "1px solid #7a4a12",
+                transform: "rotate(45deg)",
+                boxShadow: "2px 2px 4px rgba(0,0,0,0.35)",
+              }}
+            />
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-1.5">
         <div className="relative shrink-0 w-11 h-11 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle,${COLOR_HEX[color || "green"]}55,transparent 65%)` }} />
@@ -773,6 +818,24 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   const [notice, setNotice] = useState<string>("");
   const [now, setNow] = useState(Date.now());
   const [wantPlayers, setWantPlayers] = useState<2 | 4>(2);
+  const [bubbles, setBubbles] = useState<Record<string, { text: string; id: number }>>({});
+  const [chatDraft, setChatDraft] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const chatChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const bubbleTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const showBubble = useCallback((uid: string, text: string) => {
+    const id = Date.now() + Math.random();
+    setBubbles(prev => ({ ...prev, [uid]: { text, id } }));
+    if (bubbleTimers.current[uid]) clearTimeout(bubbleTimers.current[uid]);
+    bubbleTimers.current[uid] = setTimeout(() => {
+      setBubbles(prev => {
+        const n = { ...prev };
+        delete n[uid];
+        return n;
+      });
+    }, 3900);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -857,6 +920,31 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     return () => { cancelled = true; supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeRoom?.id]);
+
+  // Realtime chat channel (broadcast, ephemeral — no DB writes)
+  useEffect(() => {
+    if (!activeRoom) { chatChanRef.current = null; return; }
+    const roomId = activeRoom.id;
+    const ch = supabase.channel(`ludo-chat-${roomId}`, { config: { broadcast: { self: true } } });
+    ch.on("broadcast", { event: "msg" }, (payload) => {
+      const p = payload.payload as { uid?: string; text?: string } | undefined;
+      if (!p?.uid || !p?.text) return;
+      showBubble(p.uid, String(p.text).slice(0, 120));
+    }).subscribe();
+    chatChanRef.current = ch;
+    return () => {
+      chatChanRef.current = null;
+      supabase.removeChannel(ch);
+    };
+  }, [activeRoom?.id, showBubble]);
+
+  const sendChat = useCallback((raw: string) => {
+    const text = raw.trim();
+    if (!text || !chatChanRef.current) return;
+    chatChanRef.current.send({ type: "broadcast", event: "msg", payload: { uid: userId, text: text.slice(0, 120) } });
+    setChatDraft("");
+    setEmojiOpen(false);
+  }, [userId]);
 
   const me = useMemo(() => players.find(p => p.user_id === userId) || null, [players, userId]);
   const isMyTurn = activeRoom?.status === "playing" && me?.seat === activeRoom.current_turn_seat;
@@ -1165,6 +1253,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
               active={activeRoom.status === "playing" && activeRoom.current_turn_seat === (p?.seat ?? -1)}
               finished={p?.finished_count}
               isEmpty={!p}
+              bubble={p ? bubbles[p.user_id] || null : null}
             />
           ));
         })()}
@@ -1220,6 +1309,44 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
       {isMyTurn && activeRoom.last_dice != null && !hasMoveNow && (
         <div className="mt-2 text-center text-[11px] text-amber-300 animate-pulse">
           لا توجد حركة متاحة — سيتم تخطي الدور تلقائياً
+        </div>
+      )}
+
+      {/* Chat bar — realtime speech bubbles above player cards */}
+      {activeRoom.status !== "waiting" && me && (
+        <div className="mt-3 rounded-2xl bg-gradient-to-b from-stone-900/90 to-stone-950/95 border border-amber-700/40 shadow-inner p-2">
+          {emojiOpen && (
+            <div className="mb-2 grid grid-cols-8 gap-1 p-2 rounded-xl bg-stone-950/80 border border-amber-700/30 max-h-40 overflow-y-auto">
+              {["😂","🤣","😅","😎","😍","🤩","🥳","😜","😏","🤔","😱","😭","😡","🥶","🤯","🥱",
+                "👍","👎","👏","🙌","💪","🤝","🙏","✌️","🤞","👌","🫡","👋","💯","🔥","⚡","✨",
+                "❤️","🧡","💛","💚","💙","💜","🖤","💔","🎉","🎊","🏆","🥇","👑","💎","🎯","🎲",
+                "🐍","🐉","🦁","🦈","🐢","🐇","⚔️","🛡️","🏹","💣","☠️","🌟","🌈","🍀","☕","🍕"
+              ].map((e, i) => (
+                <button key={i} onClick={() => { sound.play("click"); sendChat(e); }}
+                  className="flex items-center justify-center h-9 rounded-lg bg-stone-800 hover:bg-amber-900/40 active:scale-90 text-2xl">
+                  {e}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => { sound.play("click"); setEmojiOpen(o => !o); }}
+              className={`h-9 w-10 rounded-lg text-lg font-black border active:scale-95 ${emojiOpen ? "bg-amber-500 text-amber-950 border-amber-300" : "bg-stone-800 text-amber-200 border-amber-700/50"}`}
+              title="إيموجي">
+              😀
+            </button>
+            <input
+              value={chatDraft}
+              onChange={(e) => setChatDraft(e.target.value.slice(0, 120))}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); sendChat(chatDraft); } }}
+              placeholder="اكتب رسالة سريعة..."
+              className="flex-1 min-w-0 h-9 px-3 rounded-lg bg-stone-800 border border-amber-700/40 text-xs text-amber-100 placeholder:text-amber-200/40 focus:outline-none focus:border-amber-400"
+            />
+            <button onClick={() => sendChat(chatDraft)} disabled={!chatDraft.trim()}
+              className="h-9 px-3 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 text-xs font-black disabled:opacity-40 active:scale-95 border border-amber-300">
+              إرسال
+            </button>
+          </div>
         </div>
       )}
 
