@@ -822,6 +822,7 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
 
+    const prevSeat = activeRoom.current_turn_seat;
     const { data, error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
     if (error) { setRolling(false); flash(error.message); }
     else {
@@ -831,6 +832,18 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         setTimeout(() => setLocalDice(null), 1800);
       }
       await refreshActiveRoom(activeRoom.id);
+      // Detect the "three consecutive sixes" forfeit and notify the player.
+      if (dice === 6) {
+        const { data: fresh } = await supabase
+          .from("ludo_rooms" as never)
+          .select("current_turn_seat,last_dice")
+          .eq("id", activeRoom.id)
+          .maybeSingle();
+        const f = fresh as unknown as { current_turn_seat: number; last_dice: number | null } | null;
+        if (f && f.last_dice === null && f.current_turn_seat !== prevSeat) {
+          flash("🎲 ثلاث ستّات متتالية — خسرت الدور!");
+        }
+      }
     }
   };
 
