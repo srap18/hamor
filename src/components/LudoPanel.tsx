@@ -330,9 +330,10 @@ function AnimatedToken({
 // Player card (avatar + frame + name)
 // ============================================================
 function PlayerCard({
-  color, prof, active, finished, isEmpty,
+  color, prof, active, finished, isEmpty, bubble,
 }: {
   color?: string; prof?: Prof | null; active?: boolean; finished?: number; isEmpty?: boolean;
+  bubble?: { text: string; id: number } | null;
 }) {
   const frame = frameById(prof?.avatar_frame);
   const ringCls = frame?.kind === "avatar" ? frame.ring || "" : "";
@@ -347,8 +348,52 @@ function PlayerCard({
     );
   }
 
+  const bubbleText = bubble?.text || "";
+  const isEmojiOnly = !!bubbleText && /^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\uFE0F|\u200D|\s)+$/u.test(bubbleText);
+
   return (
-    <div className={`flex-1 min-w-0 p-1.5 rounded-xl border-2 ${active ? "border-amber-400 bg-gradient-to-b from-amber-500/25 to-amber-900/10 shadow-[0_0_14px_rgba(252,191,73,0.4)]" : "border-stone-700 bg-stone-900/70"}`}>
+    <div className={`relative flex-1 min-w-0 p-1.5 rounded-xl border-2 ${active ? "border-amber-400 bg-gradient-to-b from-amber-500/25 to-amber-900/10 shadow-[0_0_14px_rgba(252,191,73,0.4)]" : "border-stone-700 bg-stone-900/70"}`}>
+      {bubble && (
+        <div
+          key={bubble.id}
+          className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+          style={{
+            bottom: "calc(100% + 6px)",
+            perspective: "600px",
+            animation: "ludoBubbleIn 380ms cubic-bezier(0.34,1.56,0.64,1) both, ludoBubbleOut 400ms ease-in 3400ms both",
+          }}
+        >
+          <div
+            className="relative max-w-[180px] px-3 py-1.5 rounded-2xl border font-black text-center whitespace-pre-wrap break-words"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: "rotateX(8deg)",
+              background: "linear-gradient(145deg,#fffef2,#f5d982 55%,#c88a20)",
+              borderColor: "#7a4a12",
+              color: "#3a1e04",
+              fontSize: isEmojiOnly ? 30 : 12,
+              lineHeight: isEmojiOnly ? "1" : "1.35",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.55), 0 2px 0 #7a4a12, inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -2px 0 rgba(120,60,10,0.35)",
+              textShadow: isEmojiOnly ? "none" : "0 1px 0 rgba(255,255,255,0.5)",
+              animation: isEmojiOnly ? "ludoEmojiPop 900ms ease-out both" : undefined,
+            }}
+          >
+            {bubbleText}
+            <div
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{
+                bottom: -7,
+                width: 14, height: 14,
+                background: "linear-gradient(145deg,#f5d982,#c88a20)",
+                borderRight: "1px solid #7a4a12",
+                borderBottom: "1px solid #7a4a12",
+                transform: "rotate(45deg)",
+                boxShadow: "2px 2px 4px rgba(0,0,0,0.35)",
+              }}
+            />
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-1.5">
         <div className="relative shrink-0 w-11 h-11 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle,${COLOR_HEX[color || "green"]}55,transparent 65%)` }} />
