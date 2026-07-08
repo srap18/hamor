@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { frameById } from "@/lib/frames";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { sound } from "@/lib/sound";
+
 
 // ============================================================
 // LUDO — Admin-only prototype (2 or 4 players)
