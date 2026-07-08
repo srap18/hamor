@@ -1017,6 +1017,22 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
     return () => { stopped = true; clearInterval(timer); };
   }, [activeRoom, players, loadRooms]);
 
+  // Broadcast dice roll animation to ALL players: whenever last_dice
+  // transitions null → number (any player rolled), play the tumbling
+  // animation locally too so everyone sees the roll live.
+  const prevDiceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const d = activeRoom?.last_dice ?? null;
+    const prev = prevDiceRef.current;
+    prevDiceRef.current = d;
+    if (d != null && prev == null && !rolling) {
+      sound.play("dice");
+      setRolling(true);
+      const t = setTimeout(() => setRolling(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [activeRoom?.last_dice, rolling]);
+
   // Realtime can be delayed on mobile; poll active rooms lightly so both players stay synced.
   useEffect(() => {
     if (!activeRoom) return;
