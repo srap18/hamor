@@ -362,24 +362,29 @@ function LudoBoard({
   }, [me, lastDice]);
 
   return (
-    <svg viewBox={`0 0 ${BOARD} ${BOARD}`} className="w-full h-auto select-none block"
-      style={{ filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.6))" }}>
+    <svg viewBox={`${-CELL * 0.6} ${-CELL * 0.6} ${BOARD + CELL * 1.2} ${BOARD + CELL * 1.2}`}
+      className="w-full h-auto select-none block"
+      style={{ filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.7))" }}>
       <defs>
-        <radialGradient id="boardBg" cx="50%" cy="50%" r="75%">
-          <stop offset="0%" stopColor="#fffaf0" />
-          <stop offset="70%" stopColor="#fde8c4" />
-          <stop offset="100%" stopColor="#d9b382" />
-        </radialGradient>
+        <linearGradient id="woodFrame" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#c69257" />
+          <stop offset="50%" stopColor="#8b5a2b" />
+          <stop offset="100%" stopColor="#5d3a17" />
+        </linearGradient>
+        <linearGradient id="boardBg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fbe9c7" />
+          <stop offset="100%" stopColor="#f0d5a0" />
+        </linearGradient>
         {(["green", "red", "yellow", "blue"] as const).map(c => (
-          <radialGradient key={`qg-${c}`} id={`q-${c}`} cx="30%" cy="30%" r="90%">
+          <linearGradient key={`qg-${c}`} id={`q-${c}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
             <stop offset="100%" stopColor={COLOR_HEX[c]} />
-          </radialGradient>
+          </linearGradient>
         ))}
         {(["green", "red", "yellow", "blue"] as const).map(c => (
-          <radialGradient key={`tg-${c}`} id={`tk-${c}`} cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.95} />
-            <stop offset="25%" stopColor={COLOR_LIGHT[c]} />
+          <radialGradient key={`tg-${c}`} id={`tk-${c}`} cx="35%" cy="30%" r="80%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.98} />
+            <stop offset="30%" stopColor={COLOR_LIGHT[c]} />
             <stop offset="100%" stopColor={COLOR_HEX[c]} />
           </radialGradient>
         ))}
@@ -388,10 +393,6 @@ function LudoBoard({
           <stop offset="55%" stopColor="#f5c518" />
           <stop offset="100%" stopColor="#a5720a" />
         </radialGradient>
-        <linearGradient id="cellGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fffdf5" />
-          <stop offset="100%" stopColor="#f2dfb3" />
-        </linearGradient>
         {(["green", "red", "yellow", "blue"] as const).map(c => (
           <linearGradient key={`cg-${c}`} id={`ct-${c}`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor={COLOR_LIGHT[c]} />
@@ -399,75 +400,85 @@ function LudoBoard({
           </linearGradient>
         ))}
         <filter id="tokenShadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" floodColor="#000" floodOpacity="0.55" />
+          <feDropShadow dx="0" dy="1.4" stdDeviation="1.2" floodColor="#000" floodOpacity="0.55" />
         </filter>
         <filter id="glowGold" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.2" result="blur" />
+          <feGaussianBlur stdDeviation="1.0" result="blur" />
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
-      <rect x={0} y={0} width={BOARD} height={BOARD} rx={14} fill="url(#boardBg)" />
-      <rect x={2} y={2} width={BOARD - 4} height={BOARD - 4} rx={12}
-        fill="none" stroke="#8b5a2b" strokeWidth={1.5} opacity={0.35} />
+      {/* Wooden outer frame */}
+      <rect x={-CELL * 0.55} y={-CELL * 0.55} width={BOARD + CELL * 1.1} height={BOARD + CELL * 1.1}
+        rx={16} fill="url(#woodFrame)" stroke="#3d2410" strokeWidth={1.5} />
+      <rect x={-CELL * 0.15} y={-CELL * 0.15} width={BOARD + CELL * 0.3} height={BOARD + CELL * 0.3}
+        rx={8} fill="none" stroke="#3d2410" strokeWidth={0.8} opacity={0.6} />
 
-      {(["green", "red", "blue", "yellow"] as const).map(color => {
-        const positions: Record<string, [number, number]> = {
-          green: [0, 0], red: [9, 0], blue: [0, 9], yellow: [9, 9],
-        };
-        const [x, y] = positions[color];
+      {/* Board playing surface */}
+      <rect x={0} y={0} width={BOARD} height={BOARD} fill="url(#boardBg)" />
+
+      {/* Full 15x15 white grid for path cells (behind everything else) */}
+      {Array.from({ length: 15 * 15 }).map((_, k) => {
+        const gx = k % 15, gy = Math.floor(k / 15);
+        // Only draw grid on the cross arms (not inside the 4 bases nor center 3x3)
+        const inBase =
+          (gx < 6 && gy < 6) || (gx > 8 && gy < 6) ||
+          (gx < 6 && gy > 8) || (gx > 8 && gy > 8);
+        const inCenter = gx >= 6 && gx <= 8 && gy >= 6 && gy <= 8;
+        if (inBase || inCenter) return null;
         return (
-          <g key={color}>
-            <rect x={x * CELL + 3} y={y * CELL + 3} width={6 * CELL - 6} height={6 * CELL - 6}
-              fill={`url(#q-${color})`} rx={10} stroke="rgba(0,0,0,0.25)" strokeWidth={1} />
-            <rect x={(x + 1) * CELL} y={(y + 1) * CELL} width={4 * CELL} height={4 * CELL}
-              fill="#fffaf0" rx={6} stroke="rgba(0,0,0,0.15)" strokeWidth={0.8} />
-            {BASE_SLOTS[color].map(([gx, gy], i) => (
-              <g key={i}>
-                <circle cx={gx * CELL} cy={gy * CELL + 0.8} r={CELL * 0.43}
-                  fill="rgba(0,0,0,0.10)" />
-                <circle cx={gx * CELL} cy={gy * CELL} r={CELL * 0.42}
-                  fill="rgba(255,255,255,0.82)" stroke="rgba(75,85,99,0.34)" strokeWidth={1.05} />
-                <circle cx={gx * CELL} cy={gy * CELL} r={CELL * 0.29}
-                  fill="none" stroke={COLOR_HEX[color]} strokeWidth={0.35} opacity={0.22} />
-              </g>
-            ))}
-          </g>
+          <rect key={`grid-${k}`} x={gx * CELL} y={gy * CELL} width={CELL} height={CELL}
+            fill="#ffffff" stroke="#2d1b0e" strokeWidth={0.6} />
         );
       })}
 
-      {PATH.map(([gx, gy], i) => (
-        <rect key={`p-${i}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
-          width={CELL - 2.4} height={CELL - 2.4} rx={3}
-          fill="url(#cellGrad)" stroke="#8b5a2b" strokeWidth={0.6} opacity={0.95} />
-      ))}
-
-      {(["green", "red", "yellow", "blue"] as const).map(color => {
-        const cellIdx = COLOR_START_OFFSET[color];
-        const [gx, gy] = PATH[cellIdx];
-        return (
-          <rect key={`start-${color}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
-            width={CELL - 2.4} height={CELL - 2.4} rx={3}
-            fill={`url(#q-${color})`} opacity={0.95}
-            stroke={COLOR_HEX[color]} strokeWidth={1.2} />
-        );
-      })}
-
-      {(["green", "red", "yellow", "blue"] as const).map(color =>
+      {/* Colored home-stretch cells */}
+      {(["blue", "red", "green", "yellow"] as const).map(color =>
         HOME_STRETCH[color].map(([gx, gy], i) => (
-          <rect key={`hs-${color}-${i}`} x={gx * CELL + 1.2} y={gy * CELL + 1.2}
-            width={CELL - 2.4} height={CELL - 2.4} rx={3}
-            fill={`url(#q-${color})`} opacity={0.85}
-            stroke="#8b5a2b" strokeWidth={0.5} />
+          <rect key={`hs-${color}-${i}`} x={gx * CELL} y={gy * CELL}
+            width={CELL} height={CELL}
+            fill={`url(#q-${color})`}
+            stroke="#2d1b0e" strokeWidth={0.6} />
         )),
       )}
 
-      {/* Gold stars only on generic safe cells (not the colored start cells) */}
+      {/* Colored start cells (bigger, matches base color) */}
+      {(["blue", "red", "green", "yellow"] as const).map(color => {
+        const cellIdx = COLOR_START_OFFSET[color];
+        const [gx, gy] = PATH[cellIdx];
+        return (
+          <rect key={`start-${color}`} x={gx * CELL} y={gy * CELL}
+            width={CELL} height={CELL}
+            fill={`url(#q-${color})`}
+            stroke="#2d1b0e" strokeWidth={0.8} />
+        );
+      })}
+
+      {/* Directional arrows on the outer track (small triangles at midpoints) */}
+      {[
+        { at: [3, 6], dir: "down" },   // left arm going down toward BL
+        { at: [6, 11], dir: "right" }, // bottom arm going right toward BR
+        { at: [11, 8], dir: "up" },    // right arm going up toward TR
+        { at: [8, 3], dir: "left" },   // top arm going left toward TL
+      ].map(({ at, dir }, k) => {
+        const [gx, gy] = at as [number, number];
+        const cx = (gx + 0.5) * CELL;
+        const cy = (gy + 0.5) * CELL;
+        const s = CELL * 0.28;
+        let pts = "";
+        if (dir === "down")  pts = `${cx - s},${cy - s * 0.9} ${cx + s},${cy - s * 0.9} ${cx},${cy + s * 0.9}`;
+        if (dir === "up")    pts = `${cx - s},${cy + s * 0.9} ${cx + s},${cy + s * 0.9} ${cx},${cy - s * 0.9}`;
+        if (dir === "right") pts = `${cx - s * 0.9},${cy - s} ${cx - s * 0.9},${cy + s} ${cx + s * 0.9},${cy}`;
+        if (dir === "left")  pts = `${cx + s * 0.9},${cy - s} ${cx + s * 0.9},${cy + s} ${cx - s * 0.9},${cy}`;
+        return <polygon key={`arr-${k}`} points={pts} fill="#4b3a1e" opacity={0.55} />;
+      })}
+
+      {/* Small stars on generic safe cells (non-start) */}
       {[...SAFE_CELLS].filter(i => !Object.values(COLOR_START_OFFSET).includes(i)).map(i => {
         const [gx, gy] = PATH[i];
         const cx = (gx + 0.5) * CELL;
         const cy = (gy + 0.5) * CELL;
-        const r = CELL * 0.36;
+        const r = CELL * 0.32;
         const pts = Array.from({ length: 10 }, (_, k) => {
           const ang = (Math.PI / 5) * k - Math.PI / 2;
           const rr = k % 2 === 0 ? r : r * 0.45;
@@ -475,53 +486,82 @@ function LudoBoard({
         }).join(" ");
         return (
           <polygon key={`s-${i}`} points={pts}
-            fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.6}
-            filter="url(#glowGold)" />
+            fill="#c9c9c9" stroke="#5d5d5d" strokeWidth={0.6} opacity={0.85} />
         );
       })}
 
-      {/* Colored star + arrow from each base to that color's exit cell */}
-      {(["green", "red", "yellow", "blue"] as const).map(color => {
-        const baseCenters: Record<string, [number, number]> = {
-          green: [2.5, 2.5], red: [11.5, 2.5], yellow: [11.5, 11.5], blue: [2.5, 11.5],
-        };
-        const [bx, by] = baseCenters[color];
+      {/* Star inside each colored start cell (matching player color) */}
+      {(["blue", "red", "green", "yellow"] as const).map(color => {
         const cellIdx = COLOR_START_OFFSET[color];
         const [gx, gy] = PATH[cellIdx];
         const cx = (gx + 0.5) * CELL;
         const cy = (gy + 0.5) * CELL;
-        const bcx = bx * CELL;
-        const bcy = by * CELL;
         const r = CELL * 0.34;
         const pts = Array.from({ length: 10 }, (_, k) => {
           const ang = (Math.PI / 5) * k - Math.PI / 2;
           const rr = k % 2 === 0 ? r : r * 0.45;
           return `${cx + Math.cos(ang) * rr},${cy + Math.sin(ang) * rr}`;
         }).join(" ");
-        const dx = cx - bcx, dy = cy - bcy;
-        const len = Math.hypot(dx, dy) || 1;
-        const ux = dx / len, uy = dy / len;
-        const x1 = bcx + ux * CELL * 1.7;
-        const y1 = bcy + uy * CELL * 1.7;
-        const x2 = cx - ux * CELL * 0.5;
-        const y2 = cy - uy * CELL * 0.5;
         return (
-          <g key={`start-mark-${color}`}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={COLOR_HEX[color]} strokeWidth={2.2} strokeLinecap="round"
-              opacity={0.9} strokeDasharray="2.5 2" />
-            <polygon points={pts}
-              fill={COLOR_HEX[color]} stroke="#1a1a1a" strokeWidth={0.7}
-              opacity={0.98} />
+          <polygon key={`ss-${color}`} points={pts}
+            fill="#ffffff" stroke="rgba(0,0,0,0.4)" strokeWidth={0.6} opacity={0.95} />
+        );
+      })}
+
+      {/* Four bases with colored squares + inner white rounded rect + slot circles */}
+      {(["blue", "red", "yellow", "green"] as const).map(color => {
+        const positions: Record<string, [number, number]> = {
+          blue:   [0, 0],
+          red:    [9, 0],
+          yellow: [0, 9],
+          green:  [9, 9],
+        };
+        const [x, y] = positions[color];
+        return (
+          <g key={color}>
+            {/* Outer colored square */}
+            <rect x={x * CELL} y={y * CELL} width={6 * CELL} height={6 * CELL}
+              fill={`url(#q-${color})`} stroke="#2d1b0e" strokeWidth={0.8} />
+            {/* Inner white rounded rectangle */}
+            <rect x={(x + 1) * CELL} y={(y + 1) * CELL} width={4 * CELL} height={4 * CELL}
+              fill="#ffffff" rx={CELL * 0.35}
+              stroke={COLOR_HEX[color]} strokeWidth={1.2} />
+            {/* Token slot rings */}
+            {BASE_SLOTS[color].map(([gx, gy], i) => (
+              <g key={i}>
+                <circle cx={gx * CELL} cy={gy * CELL} r={CELL * 0.44}
+                  fill="none" stroke={COLOR_HEX[color]} strokeWidth={0.9} opacity={0.35} />
+              </g>
+            ))}
           </g>
         );
       })}
 
-      <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.6} />
-      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.6} />
-      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-yellow)" stroke="#6b4c05" strokeWidth={0.6} />
-      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`} fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.6} />
-      <circle cx={7.5 * CELL} cy={7.5 * CELL} r={CELL * 0.32} fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.8} filter="url(#glowGold)" />
+      {/* Center: four triangles pointing to gold star */}
+      <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.7} />
+      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
+      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.7} />
+      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-yellow)" stroke="#6b4c05" strokeWidth={0.7} />
+      {/* Center star */}
+      {(() => {
+        const cx = 7.5 * CELL, cy = 7.5 * CELL;
+        const r = CELL * 0.55;
+        const pts = Array.from({ length: 10 }, (_, k) => {
+          const ang = (Math.PI / 5) * k - Math.PI / 2;
+          const rr = k % 2 === 0 ? r : r * 0.42;
+          return `${cx + Math.cos(ang) * rr},${cy + Math.sin(ang) * rr}`;
+        }).join(" ");
+        return (
+          <polygon points={pts}
+            fill="url(#goldStar)" stroke="#7a4b06" strokeWidth={0.9}
+            filter="url(#glowGold)" />
+        );
+      })()}
+
 
       {players.flatMap(p =>
         p.tokens.map((pos, idx) => (
