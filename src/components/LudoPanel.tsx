@@ -818,6 +818,24 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   const [notice, setNotice] = useState<string>("");
   const [now, setNow] = useState(Date.now());
   const [wantPlayers, setWantPlayers] = useState<2 | 4>(2);
+  const [bubbles, setBubbles] = useState<Record<string, { text: string; id: number }>>({});
+  const [chatDraft, setChatDraft] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const chatChanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const bubbleTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const showBubble = useCallback((uid: string, text: string) => {
+    const id = Date.now() + Math.random();
+    setBubbles(prev => ({ ...prev, [uid]: { text, id } }));
+    if (bubbleTimers.current[uid]) clearTimeout(bubbleTimers.current[uid]);
+    bubbleTimers.current[uid] = setTimeout(() => {
+      setBubbles(prev => {
+        const n = { ...prev };
+        delete n[uid];
+        return n;
+      });
+    }, 3900);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
