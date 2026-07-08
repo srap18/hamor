@@ -817,8 +817,11 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
 
   const rollDice = async () => {
     if (!activeRoom) return;
+    sound.resume();
+    sound.play("dice");
     setRolling(true);
     setTimeout(() => setRolling(false), 900);
+
     const { data, error } = await supabase.rpc("ludo_roll_dice" as never, { _room_id: activeRoom.id } as never);
     if (error) { setRolling(false); flash(error.message); }
     else {
