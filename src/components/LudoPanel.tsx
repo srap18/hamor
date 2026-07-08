@@ -50,31 +50,34 @@ const COLOR_LIGHT: Record<string, string> = {
 const CELL = 22;
 const BOARD = 15 * CELL;
 
+// Outer loop traversed CLOCKWISE. Each color's exit tile sits on the arm-side
+// closer to its own base (blue on top-right col of top arm, yellow on bottom row
+// of right arm, red on left col of bottom arm, green on top row of left arm).
 const PATH: [number, number][] = [
-  [6, 1], [6, 2], [6, 3], [6, 4], [6, 5],
-  [5, 6], [4, 6], [3, 6], [2, 6], [1, 6], [0, 6],
-  [0, 7],
-  [0, 8], [1, 8], [2, 8], [3, 8], [4, 8], [5, 8],
-  [6, 9], [6, 10], [6, 11], [6, 12], [6, 13], [6, 14],
-  [7, 14],
-  [8, 14], [8, 13], [8, 12], [8, 11], [8, 10], [8, 9],
-  [9, 8], [10, 8], [11, 8], [12, 8], [13, 8], [14, 8],
-  [14, 7],
-  [14, 6], [13, 6], [12, 6], [11, 6], [10, 6], [9, 6],
-  [8, 5], [8, 4], [8, 3], [8, 2], [8, 1], [8, 0],
-  [7, 0], [6, 0],
+  [8, 1], [8, 2], [8, 3], [8, 4], [8, 5],              // 0-4  top arm RIGHT col ↓  (blue start = 0)
+  [9, 6], [10, 6], [11, 6], [12, 6], [13, 6], [14, 6], // 5-10 right arm TOP row →
+  [14, 7],                                              // 11
+  [14, 8], [13, 8], [12, 8], [11, 8], [10, 8], [9, 8], // 12-17 right arm BOTTOM row ← (yellow start = 13 → [13,8])
+  [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14], // 18-23 bottom arm RIGHT col ↓
+  [7, 14],                                              // 24
+  [6, 14], [6, 13], [6, 12], [6, 11], [6, 10], [6, 9], // 25-30 bottom arm LEFT col ↑ (red start = 26 → [6,13])
+  [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [0, 8],      // 31-36 left arm BOTTOM row ←
+  [0, 7],                                               // 37
+  [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6],      // 38-43 left arm TOP row → (green start = 39 → [1,6])
+  [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0],      // 44-49 top arm LEFT col ↑
+  [7, 0], [8, 0],                                       // 50-51
 ];
 
 // Home stretch = 5 colored cells leading each color to center, entering from the base's own side.
-// Each color's home stretch sits on the SAME arm as its exit tile (PATH[seat*13]).
+// Each color's home stretch sits on the SAME arm as its exit tile.
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → TOP arm middle col, going down
-  red:    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → LEFT arm middle row, going right
-  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → BOTTOM arm middle col, going up
-  blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → RIGHT arm middle row, going left
+  blue:   [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TR base → TOP arm middle col, going down
+  green:  [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // TL base → LEFT arm middle row, going right
+  yellow: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // BR base → RIGHT arm middle row, going left
+  red:    [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BL base → BOTTOM arm middle col, going up
 };
 
-// Bases placed adjacent to each color's exit tile.
+// Bases placed adjacent to each color's exit tile (unchanged from previous fix).
 const BASE_SLOTS: Record<string, [number, number][]> = {
   green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
   blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
