@@ -552,15 +552,16 @@ function LudoBoard({
         );
       })}
 
-      {/* Center: four triangles pointing to gold star */}
+      {/* Center: four triangles pointing to gold star — each matches its arm's color */}
       <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-        fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.7} />
-      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
-      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
         fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.7} />
-      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.7} />
+      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
         fill="url(#ct-yellow)" stroke="#6b4c05" strokeWidth={0.7} />
+      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
+
       {/* Center star */}
       {(() => {
         const cx = 7.5 * CELL, cy = 7.5 * CELL;
