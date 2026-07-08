@@ -266,12 +266,27 @@ function AnimatedToken({
           <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
         </circle>
       )}
-      <circle cx={0} cy={0.6} r={r} fill="rgba(0,0,0,0.25)" />
+      {/* Shadow */}
+      <ellipse cx={0} cy={r * 0.85} rx={r * 0.85} ry={r * 0.22} fill="rgba(0,0,0,0.35)" />
+      {/* Outer colored disc */}
       <circle cx={0} cy={0} r={r} fill={`url(#tk-${color})`}
-        stroke={clickable ? "#fde047" : "rgba(0,0,0,0.55)"} strokeWidth={clickable ? 1.4 : 1} />
-      <ellipse cx={-r * 0.28} cy={-r * 0.38} rx={r * 0.45} ry={r * 0.22}
-        fill="#ffffff" opacity={0.75} />
-      <circle cx={0} cy={0} r={r * 0.42} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={0.8} />
+        stroke={clickable ? "#fde047" : "rgba(0,0,0,0.6)"} strokeWidth={clickable ? 1.4 : 1.1} />
+      {/* Inner white disc */}
+      <circle cx={0} cy={0} r={r * 0.72} fill="#ffffff" stroke="rgba(0,0,0,0.15)" strokeWidth={0.6} />
+      {/* Star in player's color */}
+      <polygon
+        points={Array.from({ length: 10 }, (_, k) => {
+          const ang = (Math.PI / 5) * k - Math.PI / 2;
+          const rr = k % 2 === 0 ? r * 0.62 : r * 0.28;
+          return `${Math.cos(ang) * rr},${Math.sin(ang) * rr}`;
+        }).join(" ")}
+        fill={COLOR_HEX[color]}
+        stroke="rgba(0,0,0,0.35)" strokeWidth={0.5}
+      />
+      {/* Highlight */}
+      <ellipse cx={-r * 0.32} cy={-r * 0.48} rx={r * 0.32} ry={r * 0.14}
+        fill="#ffffff" opacity={0.55} />
+
     </g>
   );
 }
