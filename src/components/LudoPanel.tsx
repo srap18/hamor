@@ -66,19 +66,20 @@ const PATH: [number, number][] = [
 ];
 
 // Home stretch = 5 colored cells leading each color to center, entering from the base's own side.
+// Each color's home stretch sits on the SAME arm as its exit tile (PATH[seat*13]).
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → down from top
-  green:  [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → left from right
-  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → up from bottom
-  blue:   [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → right from left
+  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → TOP arm middle col, going down
+  red:    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → LEFT arm middle row, going right
+  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → BOTTOM arm middle col, going up
+  blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → RIGHT arm middle row, going left
 };
 
-// Bases: clockwise from TL = red, green, yellow, blue (matches standard Ludo).
+// Bases placed adjacent to each color's exit tile.
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  red:    [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
-  green:  [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
+  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
+  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
   yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
-  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
+  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
 };
 
 // Must match server seat→color assignment in ludo_join_room().
@@ -112,19 +113,20 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
-// Rotate board so each player sees their own base at bottom-left (blue's corner).
+// Rotate board so each player sees their own base at bottom-left (red's corner in raw layout).
 const ROTATION: Record<string, number> = {
-  blue: 0,      // BL already
+  red: 0,       // BL already
   yellow: 90,   // BR → BL
-  green: 180,   // TR → BL
-  red: 270,     // TL → BL
+  blue: 180,    // TR → BL
+  green: 270,   // TL → BL
 };
 
+// Match server seat→color (seat * 13). SEAT_COLORS[4] = green, red, yellow, blue.
 const COLOR_START_OFFSET: Record<string, number> = {
-  red: 0,       // PATH[0]  = (6,1)  → adjacent to TL (red)
-  blue: 13,     // PATH[13] = (1,8)  → adjacent to BL (blue)
-  yellow: 26,   // PATH[26] = (8,13) → adjacent to BR (yellow)
-  green: 39,    // PATH[39] = (13,6) → adjacent to TR (green)
+  green: 0,     // seat 0 → PATH[0]  = (6,1)  → top arm, adjacent to TL (green)
+  red: 13,     // seat 1 → PATH[13] = (1,8)  → left arm, adjacent to BL (red)
+  yellow: 26,  // seat 2 → PATH[26] = (8,13) → bottom arm, adjacent to BR (yellow)
+  blue: 39,    // seat 3 → PATH[39] = (13,6) → right arm, adjacent to TR (blue)
 };
 
 
@@ -522,12 +524,12 @@ function LudoBoard({
       })}
 
       {/* Four bases with colored squares + inner white rounded rect + slot circles */}
-      {(["blue", "red", "yellow", "green"] as const).map(color => {
+      {(["green", "blue", "red", "yellow"] as const).map(color => {
         const positions: Record<string, [number, number]> = {
-          blue:   [0, 0],
-          red:    [9, 0],
-          yellow: [0, 9],
-          green:  [9, 9],
+          green:  [0, 0],  // TL — matches BASE_SLOTS.green
+          blue:   [9, 0],  // TR — matches BASE_SLOTS.blue
+          red:    [0, 9],  // BL — matches BASE_SLOTS.red
+          yellow: [9, 9],  // BR — matches BASE_SLOTS.yellow
         };
         const [x, y] = positions[color];
         return (
@@ -550,15 +552,16 @@ function LudoBoard({
         );
       })}
 
-      {/* Center: four triangles pointing to gold star */}
+      {/* Center: four triangles pointing to gold star — each matches its arm's color */}
       <polygon points={`${6 * CELL},${6 * CELL} ${9 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-        fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.7} />
-      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
-        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
-      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
         fill="url(#ct-green)" stroke="#0f4a1e" strokeWidth={0.7} />
-      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+      <polygon points={`${9 * CELL},${6 * CELL} ${9 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-blue)" stroke="#0f2d5c" strokeWidth={0.7} />
+      <polygon points={`${9 * CELL},${9 * CELL} ${6 * CELL},${9 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
         fill="url(#ct-yellow)" stroke="#6b4c05" strokeWidth={0.7} />
+      <polygon points={`${6 * CELL},${9 * CELL} ${6 * CELL},${6 * CELL} ${7.5 * CELL},${7.5 * CELL}`}
+        fill="url(#ct-red)" stroke="#5c1a1a" strokeWidth={0.7} />
+
       {/* Center star */}
       {(() => {
         const cx = 7.5 * CELL, cy = 7.5 * CELL;
