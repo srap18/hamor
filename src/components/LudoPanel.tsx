@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { frameById } from "@/lib/frames";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 // ============================================================
 // LUDO — Admin-only prototype (2 or 4 players)
@@ -731,48 +732,52 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   };
 
   const leaveRoom = useCallback(async (roomId: string) => {
-    try { await supabase.rpc("ludo_leave_room" as never, { _room_id: roomId } as never); } catch { /* ignore */ }
+    try { await supabase.rpc("ludo_forfeit" as never, { _room_id: roomId } as never); } catch { /* ignore */ }
   }, []);
 
-  // Auto-leave when the user closes the tab / goes to background / navigates away
+  // Auto-resume: if the user is already in an active room (e.g. after refresh
+  // or backgrounding), jump straight back into it instead of showing the lobby.
   useEffect(() => {
-    if (!activeRoom) return;
-    const roomId = activeRoom.id;
-    const handler = () => { leaveRoom(roomId); };
-    window.addEventListener("pagehide", handler);
-    window.addEventListener("beforeunload", handler);
-    return () => {
-      window.removeEventListener("pagehide", handler);
-      window.removeEventListener("beforeunload", handler);
-    };
-  }, [activeRoom, leaveRoom]);
+    if (activeRoom || !userId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: rid } = await supabase.rpc("ludo_active_room_for" as never, { _uid: userId } as never);
+      if (cancelled || !rid) return;
+      const { data: r } = await supabase
+        .from("ludo_rooms" as never).select("*").eq("id", rid as unknown as string).maybeSingle();
+      if (!cancelled && r) setActiveRoom(r as unknown as Room);
+    })();
+    return () => { cancelled = true; };
+  }, [activeRoom, userId]);
 
-  // Keep active games from getting stuck at 0s or on a missing player.
+  // Bot auto-play: when the current seat's turn deadline passes, the bot rolls
+  // and moves for them until they come back. Also refresh local room state
+  // if a stale/missing seat is showing.
   useEffect(() => {
     if (!activeRoom || activeRoom.status !== "playing") return;
     const roomId = activeRoom.id;
     let stopped = false;
 
-    const repairTurn = async () => {
-      try { await supabase.rpc("ludo_cleanup_stale_rooms" as never); } catch { /* ignore */ }
-      if (stopped) return;
-      const { data } = await supabase
-        .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
-      if (stopped) return;
-      if (data) setActiveRoom(data as unknown as Room);
-      else {
-        setActiveRoom(null);
-        setPlayers([]);
-        loadRooms();
+    const tick = async () => {
+      const deadline = activeRoom.turn_deadline ? new Date(activeRoom.turn_deadline).getTime() : 0;
+      const currentSeatExists = players.some(p => p.seat === activeRoom.current_turn_seat);
+      const expired = deadline > 0 && deadline <= Date.now();
+      if (expired || !currentSeatExists) {
+        try { await supabase.rpc("ludo_bot_play" as never, { _room_id: roomId } as never); } catch { /* ignore */ }
+        if (stopped) return;
+        const { data } = await supabase
+          .from("ludo_rooms" as never).select("*").eq("id", roomId).maybeSingle();
+        if (stopped) return;
+        if (data) setActiveRoom(data as unknown as Room);
+        else {
+          setActiveRoom(null);
+          setPlayers([]);
+          loadRooms();
+        }
       }
     };
 
-    const timer = setInterval(() => {
-      const deadline = activeRoom.turn_deadline ? new Date(activeRoom.turn_deadline).getTime() : 0;
-      const currentSeatExists = players.some(p => p.seat === activeRoom.current_turn_seat);
-      if ((deadline > 0 && deadline <= Date.now()) || !currentSeatExists) repairTurn();
-    }, 1000);
-
+    const timer = setInterval(tick, 1500);
     return () => { stopped = true; clearInterval(timer); };
   }, [activeRoom, players, loadRooms]);
 
@@ -866,7 +871,23 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   return (
     <div className={`${fullscreen ? "max-w-2xl mx-auto" : ""} p-2 text-amber-100`}>
       <div className="flex items-center justify-between mb-2">
-        <button onClick={async () => { const rid = activeRoom.id; setActiveRoom(null); setPlayers([]); await leaveRoom(rid); loadRooms(); }}
+        <button onClick={async () => {
+            const isLive = activeRoom.status === "playing" && !activeRoom.winner_id;
+            if (isLive) {
+              const ok = await confirmDialog({
+                title: "الخروج من اللعبة",
+                message: "إذا خرجت الآن سيفوز الخصم وتُغلق الغرفة فوراً.\nهل أنت متأكد؟",
+                confirmText: "نعم، اخرج",
+                cancelText: "متابعة اللعب",
+                danger: true,
+              });
+              if (!ok) return;
+            }
+            const rid = activeRoom.id;
+            setActiveRoom(null); setPlayers([]);
+            await leaveRoom(rid);
+            loadRooms();
+          }}
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
