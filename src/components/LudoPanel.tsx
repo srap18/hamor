@@ -64,22 +64,22 @@ const PATH: [number, number][] = [
 ];
 
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
+  blue:   [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
   red:    [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]],
-  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
-  blue:   [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
+  green:  [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
+  yellow: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
 };
 
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],
+  blue:   [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],
   red:    [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],
-  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
-  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
+  yellow: [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],
+  green:  [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]],
 };
 
 const SEAT_COLORS: Record<2 | 4, readonly Player["color"][]> = {
-  2: ["green", "yellow"],
-  4: ["green", "red", "yellow", "blue"],
+  2: ["blue", "green"],
+  4: ["blue", "red", "green", "yellow"],
 };
 
 const SAFE_CELLS = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
@@ -109,18 +109,19 @@ function translateErr(m: string): string {
 
 // Rotate board so each player sees their own base at bottom-left.
 const ROTATION: Record<string, number> = {
-  blue: 0,     // bottom-left already
-  yellow: 90,  // bottom-right → bottom-left
+  yellow: 0,   // bottom-left already
+  green: 90,   // bottom-right → bottom-left
   red: 180,    // top-right → bottom-left
-  green: 270,  // top-left → bottom-left
+  blue: 270,   // top-left → bottom-left
 };
 
 const COLOR_START_OFFSET: Record<string, number> = {
-  green: 0,
-  blue: 13,
-  yellow: 26,
+  blue: 0,
+  yellow: 13,
+  green: 26,
   red: 39,
 };
+
 
 function tokenCoords(color: string, pos: number, tokenIdx: number): { x: number; y: number } {
   if (pos === -1) {
