@@ -1312,6 +1312,44 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
         </div>
       )}
 
+      {/* Chat bar — realtime speech bubbles above player cards */}
+      {activeRoom.status !== "waiting" && me && (
+        <div className="mt-3 rounded-2xl bg-gradient-to-b from-stone-900/90 to-stone-950/95 border border-amber-700/40 shadow-inner p-2">
+          {emojiOpen && (
+            <div className="mb-2 grid grid-cols-8 gap-1 p-2 rounded-xl bg-stone-950/80 border border-amber-700/30 max-h-40 overflow-y-auto">
+              {["😂","🤣","😅","😎","😍","🤩","🥳","😜","😏","🤔","😱","😭","😡","🥶","🤯","🥱",
+                "👍","👎","👏","🙌","💪","🤝","🙏","✌️","🤞","👌","🫡","👋","💯","🔥","⚡","✨",
+                "❤️","🧡","💛","💚","💙","💜","🖤","💔","🎉","🎊","🏆","🥇","👑","💎","🎯","🎲",
+                "🐍","🐉","🦁","🦈","🐢","🐇","⚔️","🛡️","🏹","💣","☠️","🌟","🌈","🍀","☕","🍕"
+              ].map((e, i) => (
+                <button key={i} onClick={() => { sound.play("click"); sendChat(e); }}
+                  className="flex items-center justify-center h-9 rounded-lg bg-stone-800 hover:bg-amber-900/40 active:scale-90 text-2xl">
+                  {e}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => { sound.play("click"); setEmojiOpen(o => !o); }}
+              className={`h-9 w-10 rounded-lg text-lg font-black border active:scale-95 ${emojiOpen ? "bg-amber-500 text-amber-950 border-amber-300" : "bg-stone-800 text-amber-200 border-amber-700/50"}`}
+              title="إيموجي">
+              😀
+            </button>
+            <input
+              value={chatDraft}
+              onChange={(e) => setChatDraft(e.target.value.slice(0, 120))}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); sendChat(chatDraft); } }}
+              placeholder="اكتب رسالة سريعة..."
+              className="flex-1 min-w-0 h-9 px-3 rounded-lg bg-stone-800 border border-amber-700/40 text-xs text-amber-100 placeholder:text-amber-200/40 focus:outline-none focus:border-amber-400"
+            />
+            <button onClick={() => sendChat(chatDraft)} disabled={!chatDraft.trim()}
+              className="h-9 px-3 rounded-lg bg-gradient-to-b from-amber-400 to-amber-600 text-amber-950 text-xs font-black disabled:opacity-40 active:scale-95 border border-amber-300">
+              إرسال
+            </button>
+          </div>
+        </div>
+      )}
+
       {notice && <div className="mt-2 text-center text-xs text-red-300">{notice}</div>}
     </div>
   );
