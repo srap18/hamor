@@ -66,19 +66,20 @@ const PATH: [number, number][] = [
 ];
 
 // Home stretch = 5 colored cells leading each color to center, entering from the base's own side.
+// Each color's home stretch sits on the SAME arm as its exit tile (PATH[seat*13]).
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → down from top
-  green:  [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → left from right
-  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → up from bottom
-  blue:   [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → right from left
+  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → TOP arm middle col, going down
+  red:    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → LEFT arm middle row, going right
+  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → BOTTOM arm middle col, going up
+  blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → RIGHT arm middle row, going left
 };
 
-// Bases: clockwise from TL = red, green, yellow, blue (matches standard Ludo).
+// Bases placed adjacent to each color's exit tile.
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  red:    [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
-  green:  [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
+  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
+  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
   yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
-  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
+  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
 };
 
 // Must match server seat→color assignment in ludo_join_room().
