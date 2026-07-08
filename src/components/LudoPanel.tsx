@@ -871,7 +871,23 @@ export function LudoPanel({ userId, fullscreen = false }: { userId: string; full
   return (
     <div className={`${fullscreen ? "max-w-2xl mx-auto" : ""} p-2 text-amber-100`}>
       <div className="flex items-center justify-between mb-2">
-        <button onClick={async () => { const rid = activeRoom.id; setActiveRoom(null); setPlayers([]); await leaveRoom(rid); loadRooms(); }}
+        <button onClick={async () => {
+            const isLive = activeRoom.status === "playing" && !activeRoom.winner_id;
+            if (isLive) {
+              const ok = await confirmDialog({
+                title: "الخروج من اللعبة",
+                message: "إذا خرجت الآن سيفوز الخصم وتُغلق الغرفة فوراً.\nهل أنت متأكد؟",
+                confirmText: "نعم، اخرج",
+                cancelText: "متابعة اللعب",
+                danger: true,
+              });
+              if (!ok) return;
+            }
+            const rid = activeRoom.id;
+            setActiveRoom(null); setPlayers([]);
+            await leaveRoom(rid);
+            loadRooms();
+          }}
           className="px-3 py-1.5 rounded-lg bg-stone-800 text-amber-200 text-xs font-bold border border-amber-700/40 active:scale-95">
           ← الغرف
         </button>
