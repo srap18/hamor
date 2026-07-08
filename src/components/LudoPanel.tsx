@@ -77,12 +77,14 @@ const HOME_STRETCH: Record<string, [number, number][]> = {
   red:    [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BL base → BOTTOM arm middle col, going up
 };
 
-// Bases placed adjacent to each color's exit tile (unchanged from previous fix).
+// Bases: slot centers must sit symmetrically inside the 4-cell inner white
+// square of each base. Inner white spans grid cells 1..5 (center 3) for TL,
+// 10..14 (center 12) for BR bases, etc. Slots are at ±1 from that center.
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
-  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
-  yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
-  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
+  green:  [[2, 2],   [4, 2],   [2, 4],   [4, 4]],   // TL, center (3,3)
+  blue:   [[11, 2],  [13, 2],  [11, 4],  [13, 4]],  // TR, center (12,3)
+  yellow: [[11, 11], [13, 11], [11, 13], [13, 13]], // BR, center (12,12)
+  red:    [[2, 11],  [4, 11],  [2, 13],  [4, 13]],  // BL, center (3,12)
 };
 
 // Must match server seat→color assignment in ludo_join_room().
