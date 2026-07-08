@@ -65,21 +65,20 @@ const PATH: [number, number][] = [
   [7, 0], [6, 0],
 ];
 
-// Home stretch = the 5 colored cells leading each color into the center.
-// Must match the color's start cell direction on PATH.
+// Home stretch = 5 colored cells leading each color to center, entering from the base's own side.
 const HOME_STRETCH: Record<string, [number, number][]> = {
-  green:  [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],   // start (6,1) top-arm → down col 7
-  red:    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],   // start (1,8) left-arm → right row 7
-  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // start (8,13) bottom-arm → up col 7
-  blue:   [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // start (13,6) right-arm → left row 7
+  red:    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],     // TL base → down from top
+  green:  [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]], // TR base → left from right
+  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], // BR base → up from bottom
+  blue:   [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],     // BL base → right from left
 };
 
-// Base positions must sit in the corner adjacent to that color's start cell.
+// Bases: clockwise from TL = red, green, yellow, blue (matches standard Ludo).
 const BASE_SLOTS: Record<string, [number, number][]> = {
-  green:  [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],       // TL
-  red:    [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],   // BL
+  red:    [[1.5, 1.5], [3.5, 1.5], [1.5, 3.5], [3.5, 3.5]],         // TL
+  green:  [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],     // TR
   yellow: [[10.5, 10.5], [12.5, 10.5], [10.5, 12.5], [12.5, 12.5]], // BR
-  blue:   [[10.5, 1.5], [12.5, 1.5], [10.5, 3.5], [12.5, 3.5]],   // TR
+  blue:   [[1.5, 10.5], [3.5, 10.5], [1.5, 12.5], [3.5, 12.5]],     // BL
 };
 
 // Must match server seat→color assignment in ludo_join_room().
@@ -113,19 +112,19 @@ function translateErr(m: string): string {
   return ERR_MSG[key] ? `❌ ${ERR_MSG[key]}` : (key.startsWith("❌") ? key : `❌ ${key}`);
 }
 
-// Rotate board so each player sees their own base at bottom-left (red's position).
+// Rotate board so each player sees their own base at bottom-left (blue's corner).
 const ROTATION: Record<string, number> = {
-  red: 0,       // BL already
+  blue: 0,      // BL already
   yellow: 90,   // BR → BL
-  blue: 180,    // TR → BL
-  green: 270,   // TL → BL
+  green: 180,   // TR → BL
+  red: 270,     // TL → BL
 };
 
 const COLOR_START_OFFSET: Record<string, number> = {
-  green: 0,     // PATH[0]  = (6,1)  → TL adjacent
-  red: 13,      // PATH[13] = (1,8)  → BL adjacent
-  yellow: 26,   // PATH[26] = (8,13) → BR adjacent
-  blue: 39,     // PATH[39] = (13,6) → TR adjacent
+  red: 0,       // PATH[0]  = (6,1)  → adjacent to TL (red)
+  blue: 13,     // PATH[13] = (1,8)  → adjacent to BL (blue)
+  yellow: 26,   // PATH[26] = (8,13) → adjacent to BR (yellow)
+  green: 39,    // PATH[39] = (13,6) → adjacent to TR (green)
 };
 
 
