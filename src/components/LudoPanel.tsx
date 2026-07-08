@@ -662,13 +662,14 @@ const DICE_FACES: Record<number, [number, number][]> = {
 };
 
 // Rotation to bring each face toward the viewer (opposite faces sum to 7).
+// Small (-8°, +8°) tilt keeps a 3D feel while the number stays clearly readable.
 const FACE_REST: Record<number, string> = {
-  1: "rotateX(-15deg) rotateY(20deg)",
-  2: "rotateX(-15deg) rotateY(-70deg)",
-  3: "rotateX(75deg) rotateY(20deg)",
-  4: "rotateX(-105deg) rotateY(20deg)",
-  5: "rotateX(-15deg) rotateY(110deg)",
-  6: "rotateX(-15deg) rotateY(200deg)",
+  1: "rotateX(-8deg) rotateY(8deg)",
+  2: "rotateX(-8deg) rotateY(-82deg)",
+  3: "rotateX(-98deg) rotateY(8deg)",
+  4: "rotateX(82deg) rotateY(8deg)",
+  5: "rotateX(-8deg) rotateY(98deg)",
+  6: "rotateX(-8deg) rotateY(188deg)",
 };
 
 // Position each face on the cube.
