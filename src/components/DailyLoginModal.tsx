@@ -96,7 +96,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
   const isNukeSlot = nextDayIndex === 14;
   const gapNow = lastDate ? daysBetween(lastDate, today) : null;
   const nukeAllowed = isNukeSlot
-    ? (!claimedToday && lastDate !== null && gapNow === 1 && streak === 14)
+    ? (!claimedToday && lastDate !== null && gapNow === 1 && (streak % 15) === 14)
     : true;
 
 
