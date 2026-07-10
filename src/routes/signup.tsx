@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalFooter } from "@/components/LegalFooter";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { useDeviceSlotGate } from "@/components/useDeviceSlotGate";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
