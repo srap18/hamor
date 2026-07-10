@@ -2746,8 +2746,8 @@ function Index() {
         if (!s) return null;
         const price = shipSellPrice(s.level);
         return (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => { if (sellArmed) setModal(null); }}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-xs w-full text-center" style={{ pointerEvents: sellArmed ? "auto" : "none" }} onClick={(e) => e.stopPropagation()}>
               <div className="text-4xl mb-2">⚓</div>
               <div className="text-accent font-bold text-base mb-1">بيع السفينة</div>
               <div className="text-xs text-accent/80 mb-3">هل أنت متأكد من بيع هذه السفينة؟</div>
@@ -2758,8 +2758,10 @@ function Index() {
                   onClick={() => setModal(null)}
                 >إلغاء</button>
                 <button
-                  className="flex-1 py-2 rounded-lg bg-gradient-to-b from-red-500 to-red-700 text-white text-xs font-bold active:scale-95"
+                  disabled={!sellArmed}
+                  className="flex-1 py-2 rounded-lg bg-gradient-to-b from-red-500 to-red-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
                   onClick={() => {
+                    if (!sellArmed) return;
                     sound.play("coin");
                     const soldDbId = s.dbId;
                     setShips((curr) => curr.filter((x) => x.id !== s.id));
