@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { LegalFooter } from "@/components/LegalFooter";
 import { MfaChallenge, mfaStepUpRequired } from "@/components/MfaChallenge";
+import { useDeviceSlotGate } from "@/components/useDeviceSlotGate";
 
 
 export const Route = createFileRoute("/login")({
