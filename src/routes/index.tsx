@@ -3834,13 +3834,35 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     : tribes;
 
 
+  const [closing, setClosing] = useState(false);
+  const shieldClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    // Ghost-tap shield: keep an invisible fixed layer alive briefly so the
+    // synthetic click below the modal does NOT fall through to the store /
+    // inventory that becomes visible behind us.
+    window.setTimeout(() => onClose(), 320);
+  }, [closing, onClose]);
+  if (closing) {
+    return (
+      <div
+        className="fixed inset-0 z-[130]"
+        style={{ background: "transparent", touchAction: "none" }}
+        onPointerDownCapture={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onClickCapture={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onTouchStartCapture={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
       style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(0.5rem + var(--keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))" }}
-      onClick={onClose}>
+      onClick={shieldClose}>
       <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 flex flex-col"
         style={{ maxHeight: "calc(var(--app-height, 100dvh) - var(--keyboard-inset, 0px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1rem)" }}
         onClick={(e) => e.stopPropagation()} dir="rtl">
+
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
         <div className="grid grid-cols-9 gap-1 mb-3">
