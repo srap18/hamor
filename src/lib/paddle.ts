@@ -109,6 +109,9 @@ const PRICE_ID_OVERRIDES: Record<string, string> = {
   offer_shield_15d_bonus: "pri_01kwemh0ttbj52z8gajfb55d93",
   offer_anti_all_10: "pri_01kwemmhs85mgkew22ry8gnzbw",
   offer_disabler_all_10: "pri_01kwemqsy9rky91k00ss8mtgse",
+  bd_dragon_t1: "pri_01kx5m93rkzf61mfr5y3ezh4qx",
+  bd_dragon_t2: "pri_01kx5mcty33q8dzgaa6j2mz0p1",
+  bd_dragon_t3: "pri_01kx5mf4vjk68myw5pwzz49zrq",
 };
 
 export async function getPaddlePriceId(priceId: string): Promise<string> {
