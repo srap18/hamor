@@ -257,6 +257,11 @@ export function RechargePanel() {
                         ×{p.reward.phoenixShips}
                       </span>
                     )}
+                    {(p.reward.dragonT1Ships || p.reward.dragonT2Ships || p.reward.dragonT3Ships) ? (
+                      <span className="absolute top-0 right-0 bg-purple-700 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-bl-lg">
+                        ×{p.reward.dragonT1Ships || p.reward.dragonT2Ships || p.reward.dragonT3Ships}
+                      </span>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
@@ -277,6 +282,21 @@ export function RechargePanel() {
                       {r.phoenixShips ? (
                         <span className="text-[10px] font-extrabold text-rose-100 bg-gradient-to-r from-rose-600 to-orange-500 border border-rose-300/50 px-1.5 py-0.5 rounded">
                           🦅 ×{r.phoenixShips} سفينة العنقاء
+                        </span>
+                      ) : null}
+                      {r.dragonT1Ships ? (
+                        <span className="text-[10px] font-extrabold text-white bg-gradient-to-r from-red-700 to-red-500 border border-red-300/50 px-1.5 py-0.5 rounded">
+                          🐉 ×{r.dragonT1Ships} تنين دموي
+                        </span>
+                      ) : null}
+                      {r.dragonT2Ships ? (
+                        <span className="text-[10px] font-extrabold text-slate-900 bg-gradient-to-r from-slate-200 to-slate-400 border border-slate-100/60 px-1.5 py-0.5 rounded">
+                          🐲 ×{r.dragonT2Ships} تنين فضي
+                        </span>
+                      ) : null}
+                      {r.dragonT3Ships ? (
+                        <span className="text-[10px] font-extrabold text-amber-950 bg-gradient-to-r from-amber-300 to-yellow-500 border border-amber-200/70 px-1.5 py-0.5 rounded">
+                          👑 ×{r.dragonT3Ships} تنين ذهبي
                         </span>
                       ) : null}
                       {r.gems ? (

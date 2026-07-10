@@ -38,6 +38,11 @@ import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
 
+// Dragon ships — 3 tiers (red / silver / gold)
+import shipDragonRed from "@/assets/ships/ship-dragon-red.png";
+import shipDragonSilver from "@/assets/ships/ship-dragon-silver.png";
+import shipDragonGold from "@/assets/ships/ship-dragon-gold.png";
+
 // Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
 import subStar1Asset from "@/assets/ships/sub-star-1.png.asset.json";
 import subStar2Asset from "@/assets/ships/sub-star-2.png.asset.json";
@@ -90,6 +95,9 @@ const IMG_BY_LEVEL: Record<number, string> = {
   31: shipPhoenix,
   32: shipSubmarine,
   33: subStar1Asset.url,
+  34: shipDragonRed,
+  35: shipDragonSilver,
+  36: shipDragonGold,
 };
 
 // Some ship PNGs are drawn with bow facing RIGHT instead of the default LEFT.
@@ -152,6 +160,9 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
   32: { ar: "الغواصة الملكية VIP",     rarity: "Mythic",    flavor: "غواصة سوداء فاخرة حصرية لأعضاء VIP 5 فأعلى — تنزل لأعماق المحيط وتصيد تيتان الأعماق النادر. كل عضو VIP 5+ يستلم 3 غواصات. السعة والدمّ يتدرّجان حسب مستوى VIP وقت الاستلام: VIP 5 = 60 ألف، VIP 6 = 118 ألف، VIP 7 = 176 ألف، VIP 8 = 234 ألف، VIP 9 = 292 ألف، VIP 10 = 350 ألف.", storage: 350000, price: 0,           fishingMinutes: 45,   fishPool: ["abyss_titan"] },
   33: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 19500000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
+  34: { ar: "سفينة التنين الدموي",      rarity: "Legendary", flavor: "سفينة تنين حمراء أسطورية — دم 20,000 وسعة 20,000 وصيد كل 20 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 20000, price: 0, fishingMinutes: 20, fishPool: ["black_dragon"] },
+  35: { ar: "سفينة التنين الفضي",       rarity: "Legendary", flavor: "سفينة تنين فضية أسطورية — دم 40,000 وسعة 40,000 وصيد كل 30 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 40000, price: 0, fishingMinutes: 30, fishPool: ["black_dragon"] },
+  36: { ar: "سفينة التنين الذهبي",      rarity: "Mythic",    flavor: "سفينة تنين ذهبية ملكية خرافية — دم 60,000 وسعة 60,000 وصيد كل 40 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 60000, price: 0, fishingMinutes: 40, fishPool: ["black_dragon"] },
 };
 
 function buildShip(level: number): ShipDef {
@@ -219,6 +230,29 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Dragon ships (levels 34/35/36) — Paddle-shop exclusive, catch black_dragon fish.
+  if (level >= 34 && level <= 36) {
+    const codeMap: Record<number, string> = { 34: "dragon-t1", 35: "dragon-t2", 36: "dragon-t3" };
+    const armorMap: Record<number, number> = { 34: 120, 35: 160, 36: 220 };
+    const speedMap: Record<number, number> = { 34: 100, 35: 110, 36: 120 };
+    return {
+      code: codeMap[level],
+      name: d.ar,
+      title: d.ar,
+      image: IMG_BY_LEVEL[level],
+      price: d.price,
+      marketLevel: level,
+      rarity: d.rarity,
+      maxHp: d.storage,
+      armor: armorMap[level],
+      speed: speedMap[level],
+      storage: d.storage,
+      repairSeconds: 14400,
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
@@ -257,8 +291,11 @@ export const SHIPS: ShipDef[] = [
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
+export const DRAGON_T1_SHIP: ShipDef = buildShip(34);
+export const DRAGON_T2_SHIP: ShipDef = buildShip(35);
+export const DRAGON_T3_SHIP: ShipDef = buildShip(36);
 
-const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
+const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP, DRAGON_T1_SHIP, DRAGON_T2_SHIP, DRAGON_T3_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
 
@@ -275,14 +312,18 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
 }
 
 // Map a market level to the ship definition.
-// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
+// 31 = phoenix, 32 = VIP submarine, 33 = upgradeable submarine, 34-36 = dragon ships.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 36) return DRAGON_T3_SHIP;
+  if (level >= 35) return DRAGON_T2_SHIP;
+  if (level >= 34) return DRAGON_T1_SHIP;
   if (level >= 33) return UPGRADE_SUB_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
 }
+
 
 export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
