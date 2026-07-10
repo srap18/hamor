@@ -425,9 +425,12 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     await reloadInventory();
   };
 
+  const [totalPaidUsd, setTotalPaidUsd] = useState<number | null>(null);
+  const [paidBreakdown, setPaidBreakdown] = useState<{ paddle: number; stripe: number; polar: number }>({ paddle: 0, stripe: 0, polar: 0 });
+
   useEffect(() => {
     (async () => {
-      const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }] = await Promise.all([
+      const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }, { data: pad }, { data: stp }, { data: pol }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
         supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name").eq("id", player.id).maybeSingle(),
@@ -435,7 +438,14 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("dragons").select("stage,dp,pearls,pearl_level").eq("user_id", player.id).maybeSingle(),
+        (supabase as any).from("paddle_purchases").select("amount_cents").eq("user_id", player.id).eq("granted", true),
+        (supabase as any).from("stripe_purchases").select("amount_cents").eq("user_id", player.id).eq("granted", true),
+        (supabase as any).from("polar_purchases").select("amount_cents").eq("user_id", player.id).eq("status", "completed"),
       ]);
+      const sum = (rows: any[] | null | undefined) => (rows ?? []).reduce((a, r) => a + Number(r?.amount_cents ?? 0), 0);
+      const p_ = sum(pad as any[]), s_ = sum(stp as any[]), o_ = sum(pol as any[]);
+      setPaidBreakdown({ paddle: p_, stripe: s_, polar: o_ });
+      setTotalPaidUsd((p_ + s_ + o_) / 100);
       setShipMarketLevel(String((um as any)?.level ?? 1));
       setFishMarketLevel(String((ufm as any)?.level ?? 1));
       const dr: any = dragonRow ?? {};
@@ -463,6 +473,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       setFishRows(((fish ?? []) as FishAdminRow[]).map((r) => ({ fish_id: r.fish_id, quantity: r.quantity ?? 0, total_caught: r.total_caught ?? 0 })));
     })();
   }, [player.id]);
+
 
   const saveUsername = async () => {
     const v = usernameVal.trim().toLowerCase();
