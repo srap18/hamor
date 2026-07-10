@@ -38,6 +38,11 @@ import shipPhoenix from "@/assets/ships/ship-phoenix.png";
 import shipSubmarineAsset from "@/assets/ships/ship-vip-submarine.png.asset.json";
 const shipSubmarine = shipSubmarineAsset.url;
 
+// Dragon ships — 3 tiers (red / silver / gold)
+import shipDragonRed from "@/assets/ships/ship-dragon-red.png";
+import shipDragonSilver from "@/assets/ships/ship-dragon-silver.png";
+import shipDragonGold from "@/assets/ships/ship-dragon-gold.png";
+
 // Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
 import subStar1Asset from "@/assets/ships/sub-star-1.png.asset.json";
 import subStar2Asset from "@/assets/ships/sub-star-2.png.asset.json";
