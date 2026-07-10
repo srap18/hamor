@@ -2425,10 +2425,11 @@ function Index() {
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
-            onClick={() => setMenuShipId(null)}
+            onClick={() => { if (menuArmed) setMenuShipId(null); }}
           >
             <div
               className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex flex-col gap-3"
+              style={{ pointerEvents: menuArmed ? "auto" : "none" }}
               onClick={(e) => e.stopPropagation()}
             >
               {onSteal && (
