@@ -13,7 +13,7 @@ function getSupabase(): any {
 }
 
 function rewardFor(packId: string) {
-  return STORE_PACKS.find((p) => p.id === packId)?.reward ?? {};
+  return STORE_PACKS.find((p) => p.id === packId)?.reward;
 }
 
 function getPackIdFromTransaction(data: any): string | undefined {
@@ -61,11 +61,19 @@ function resolveExpiry(data: any): string {
 }
 
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   if (!userId) return console.error("No userId in customData");
   const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
-  const productId = item?.product?.importMeta?.externalId;
+  const priceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id;
+  const productId =
+    item?.product?.importMeta?.externalId ??
+    item?.product?.import_meta?.external_id ??
+    item?.product?.externalId ??
+    item?.product?.external_id;
   if (!priceId || !productId) {
     console.warn("Skipping subscription: missing importMeta.externalId");
     return;
@@ -107,9 +115,13 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     .eq("environment", env);
 
   // Sync elite_vip_level — if status drops to canceled/past_due/paused, revoke.
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
+  const priceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id;
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && userId) {
     const active = data.status === "active" || data.status === "trialing";
@@ -157,7 +169,7 @@ async function recordUnmapped(
         amount_cents: Number(data?.details?.totals?.total ?? 0),
         environment: env,
         email: data?.customer?.email ?? data?.customData?.email ?? null,
-        user_id_hint: data?.customData?.userId ?? null,
+        user_id_hint: data?.customData?.userId ?? data?.custom_data?.userId ?? null,
         pack_id_hint: getPackIdFromTransaction(data) ?? null,
         raw: data,
       },
@@ -169,7 +181,7 @@ async function recordUnmapped(
 }
 
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   if (!userId) {
     await recordUnmapped(data.id, "missing_user_id", env, data);
     // Throw so Paddle retries the webhook — never silently drop a paid txn.
@@ -180,8 +192,13 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     await recordUnmapped(data.id, "missing_pack_id", env, data);
     throw new Error("transaction: missing pack id");
   }
-  // For subscriptions, rewards are granted per renewal cycle too.
+  // Never mark an unknown paid product as granted with an empty reward.
+  // Keep it recoverable and force a retry instead.
   const reward = rewardFor(priceExt);
+  if (!reward) {
+    await recordUnmapped(data.id, `unknown_pack_id:${priceExt}`, env, data);
+    throw new Error(`transaction: unknown pack id ${priceExt}`);
+  }
   const amountCents = Number(data.details?.totals?.total ?? 0);
   const { error } = await getSupabase().rpc("grant_paddle_purchase", {
     _txn_id: data.id,
@@ -321,6 +338,10 @@ async function handleAdjustment(data: any, _env: PaddleEnv) {
   }
 
   const reward = rewardFor((purchase as any).pack_id);
+  if (!reward) {
+    console.error("[adjustment] unknown pack id", (purchase as any).pack_id);
+    throw new Error(`adjustment: unknown pack id ${(purchase as any).pack_id}`);
+  }
   const isElite = /^elite_vip_[1-5]_monthly$/.test((purchase as any).pack_id || "");
 
   const { error } = await supabase.rpc("revoke_paddle_purchase", {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -6,7 +6,8 @@ import {
   getStorePurchaseStatus,
 } from "@/lib/paddle-checkout.functions";
 import { reconcileMyPaddlePurchases } from "@/lib/paddle-reconcile.functions";
-import { getPaddleEnvironment } from "@/lib/paddle";
+import { claimPaddleTransaction } from "@/lib/paddle-claim.functions";
+import { getPaddleEnvironment, onPaddleEvent } from "@/lib/paddle";
 import { refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { buyPackWithPaddle } from "@/lib/paddle-buy";
@@ -46,6 +47,7 @@ export function RechargePanel() {
   const eligibility = useServerFn(checkPackEligibility);
   const getStatus = useServerFn(getStorePurchaseStatus);
   const reconcile = useServerFn(reconcileMyPaddlePurchases);
+  const claimTxn = useServerFn(claimPaddleTransaction);
 
   const [userId, setUserId] = useState<string | null>(null);
   const [, setUserEmail] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export function RechargePanel() {
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
 
-  const runRecovery = async () => {
+  const runRecovery = useCallback(async () => {
     if (recovering) return;
     setRecovering(true);
     setRecoverMsg(null);
@@ -78,7 +80,7 @@ export function RechargePanel() {
     } finally {
       setRecovering(false);
     }
-  };
+  }, [reconcile, recovering]);
 
   const flash = (m: string) => {
     setPop(m);
@@ -117,6 +119,41 @@ export function RechargePanel() {
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [userId, getStatus]);
+
+  // Overlay checkout can finish without navigating to /payment-success.
+  // Claim the verified transaction immediately and only show the reward after
+  // the backend confirms delivery.
+  useEffect(() => onPaddleEvent((event) => {
+    if (event.name !== "checkout.completed") return;
+    const transactionId =
+      event.data?.transaction_id ??
+      event.data?.transactionId ??
+      event.data?.id;
+    if (!transactionId || typeof transactionId !== "string") {
+      runRecovery().catch(() => {});
+      return;
+    }
+    setRecovering(true);
+    setRecoverMsg("⏳ جاري تأكيد الشحنة وإضافتها لحسابك...");
+    claimTxn({
+      data: { transactionId, environment: getPaddleEnvironment() },
+    }).then(async (result) => {
+      if (!result?.granted) {
+        setRecovering(false);
+        await runRecovery();
+        return;
+      }
+      await refreshProfile();
+      const deliveredPack = result.packId ? getPack(result.packId) : null;
+      if (deliveredPack) setReward(deliveredPack);
+      setRecoverMsg("✅ تم تأكيد الشحنة وإضافتها لحسابك.");
+      sound.play("coin");
+    }).catch(async (error) => {
+      console.error("[checkout.completed] claim failed", error);
+      setRecovering(false);
+      await runRecovery();
+    }).finally(() => setRecovering(false));
+  }), [claimTxn, runRecovery]);
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;

@@ -52,7 +52,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       return { granted: false, reason: `status:${status}` };
     }
 
-    const ownerId = txn.custom_data?.userId;
+    const ownerId = txn.custom_data?.userId ?? txn.customData?.userId;
     if (ownerId && ownerId !== userId) throw new Error("transaction owner mismatch");
 
     const item = txn.items?.[0];
@@ -76,7 +76,8 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     if (!packId) throw new Error("missing price external_id");
 
     const pack = STORE_PACKS.find((p) => p.id === packId);
-    const reward = pack?.reward ?? {};
+    if (!pack) throw new Error(`unknown pack id: ${packId}`);
+    const reward = pack.reward;
     const amountCents = Number(txn.details?.totals?.total ?? 0);
 
     const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {
