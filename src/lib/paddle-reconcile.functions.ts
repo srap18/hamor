@@ -124,6 +124,25 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
           continue;
         }
         const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
+
+        // Ships — idempotent per txn; run even when currency was already granted so
+        // partial past failures self-heal on the next reconcile.
+        if (
+          (reward.phoenixShips ?? 0) > 0 ||
+          (reward.dragonT1Ships ?? 0) > 0 ||
+          (reward.dragonT2Ships ?? 0) > 0 ||
+          (reward.dragonT3Ships ?? 0) > 0
+        ) {
+          await supabaseAdmin.rpc("grant_pack_ships" as never, {
+            _txn_id: txn.id,
+            _user: userId,
+            _phoenix: reward.phoenixShips ?? 0,
+            _dragon_t1: reward.dragonT1Ships ?? 0,
+            _dragon_t2: reward.dragonT2Ships ?? 0,
+            _dragon_t3: reward.dragonT3Ships ?? 0,
+          } as never);
+        }
+
         if (alreadyGranted) continue;
 
         if (reward.items?.length) {
@@ -135,29 +154,6 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
               _qty: it.qty,
             });
           }
-        }
-        if (reward.phoenixShips && reward.phoenixShips > 0) {
-          const rows = Array.from({ length: reward.phoenixShips }, () => ({
-            user_id: userId,
-            template_id: 31,
-            hp: 13000,
-            max_hp: 13000,
-            at_sea: false,
-            catalog_code: "ship-lvl-31",
-          }));
-          await supabaseAdmin.from("ships_owned").insert(rows);
-        }
-        const dragonGrantsR: { qty?: number; level: number; hp: number; code: string }[] = [
-          { qty: reward.dragonT1Ships, level: 34, hp: 20000, code: "dragon-t1" },
-          { qty: reward.dragonT2Ships, level: 35, hp: 40000, code: "dragon-t2" },
-          { qty: reward.dragonT3Ships, level: 36, hp: 60000, code: "dragon-t3" },
-        ];
-        for (const g of dragonGrantsR) {
-          if (!g.qty || g.qty <= 0) continue;
-          const rows = Array.from({ length: g.qty }, () => ({
-            user_id: userId, template_id: g.level, hp: g.hp, max_hp: g.hp, at_sea: false, catalog_code: g.code,
-          }));
-          await supabaseAdmin.from("ships_owned").insert(rows);
         }
 
         granted.push(packId);
