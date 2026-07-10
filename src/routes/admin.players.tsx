@@ -843,7 +843,27 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </div>
           <div className="p-4 md:p-6 overflow-y-auto overscroll-contain">
 
+          <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-emerald-900/40 to-green-900/20 border border-emerald-700/50">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-xs text-emerald-300 font-semibold">💵 إجمالي المدفوع</div>
+              <div className="text-lg font-bold text-emerald-200">
+                {totalPaidUsd === null ? "..." : `$${totalPaidUsd.toFixed(2)}`}
+              </div>
+            </div>
+            {totalPaidUsd !== null && totalPaidUsd > 0 && (
+              <div className="text-[10px] text-emerald-400/70 mt-1 flex gap-3 flex-wrap">
+                {paidBreakdown.paddle > 0 && <span>Paddle: ${(paidBreakdown.paddle/100).toFixed(2)}</span>}
+                {paidBreakdown.stripe > 0 && <span>Stripe: ${(paidBreakdown.stripe/100).toFixed(2)}</span>}
+                {paidBreakdown.polar > 0 && <span>Polar: ${(paidBreakdown.polar/100).toFixed(2)}</span>}
+              </div>
+            )}
+            {totalPaidUsd === 0 && (
+              <div className="text-[10px] text-slate-500 mt-1">لم يشحن بعد</div>
+            )}
+          </div>
+
         {/* Account fields */}
+
         <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
           <div className="text-sm font-semibold text-slate-300">👤 بيانات الحساب</div>
           <div>
