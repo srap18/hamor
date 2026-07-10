@@ -161,6 +161,7 @@ function LoginPage() {
         <LegalFooter />
       </div>
       {needsMfa && <MfaChallenge onVerified={() => nav({ to: "/" })} onCancel={() => setNeedsMfa(false)} />}
+      {slotGate.node}
     </div>
   );
 }
