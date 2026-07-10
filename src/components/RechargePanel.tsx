@@ -284,6 +284,21 @@ export function RechargePanel() {
                           🦅 ×{r.phoenixShips} سفينة العنقاء
                         </span>
                       ) : null}
+                      {r.dragonT1Ships ? (
+                        <span className="text-[10px] font-extrabold text-white bg-gradient-to-r from-red-700 to-red-500 border border-red-300/50 px-1.5 py-0.5 rounded">
+                          🐉 ×{r.dragonT1Ships} تنين دموي
+                        </span>
+                      ) : null}
+                      {r.dragonT2Ships ? (
+                        <span className="text-[10px] font-extrabold text-slate-900 bg-gradient-to-r from-slate-200 to-slate-400 border border-slate-100/60 px-1.5 py-0.5 rounded">
+                          🐲 ×{r.dragonT2Ships} تنين فضي
+                        </span>
+                      ) : null}
+                      {r.dragonT3Ships ? (
+                        <span className="text-[10px] font-extrabold text-amber-950 bg-gradient-to-r from-amber-300 to-yellow-500 border border-amber-200/70 px-1.5 py-0.5 rounded">
+                          👑 ×{r.dragonT3Ships} تنين ذهبي
+                        </span>
+                      ) : null}
                       {r.gems ? (
                         <span className="text-[10px] font-extrabold text-cyan-200 bg-cyan-900/50 border border-cyan-400/40 px-1.5 py-0.5 rounded">
                           {r.gems.toLocaleString()} 💎
