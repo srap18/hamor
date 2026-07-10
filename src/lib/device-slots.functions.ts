@@ -95,7 +95,7 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
       _email: data.email,
     });
     if (error) return { action: "allowed", reason: "check_error", canonicalHash, error: error.message };
-    return { ...(res as Record<string, unknown>), canonicalHash };
+    return { ...(res as any), canonicalHash };
   });
 
 export const deviceAssignSlot = createServerFn({ method: "POST" })
@@ -107,7 +107,7 @@ export const deviceAssignSlot = createServerFn({ method: "POST" })
       _user_id: context.userId,
     });
     if (error) return { ok: false, error: error.message };
-    return res as Record<string, unknown>;
+    return res as any;
   });
 
 export const deviceMigrationCandidates = createServerFn({ method: "POST" })
@@ -133,7 +133,7 @@ export const deviceMigrateChoose = createServerFn({ method: "POST" })
       _user_b: data.userB,
     });
     if (error) return { ok: false, error: error.message };
-    return res as Record<string, unknown>;
+    return res as any;
   });
 
 export const deviceSubmitAppeal = createServerFn({ method: "POST" })
@@ -150,7 +150,7 @@ export const deviceSubmitAppeal = createServerFn({ method: "POST" })
       _message: data.message,
     });
     if (error) return { ok: false, error: error.message };
-    return res as Record<string, unknown>;
+    return res as any;
   });
 
 // ---------- Admin ----------
@@ -191,5 +191,5 @@ export const adminResolveDeviceAppeal = createServerFn({ method: "POST" })
     const rpc = data.approve ? "device_admin_approve_appeal" : "device_admin_reject_appeal";
     const { data: res, error } = await context.supabase.rpc(rpc, { _appeal_id: data.appealId });
     if (error) return { ok: false, error: error.message };
-    return res as Record<string, unknown>;
+    return res as any;
   });
