@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalFooter } from "@/components/LegalFooter";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { useDeviceSlotGate } from "@/components/useDeviceSlotGate";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -29,6 +30,7 @@ function SignupPage() {
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const slotGate = useDeviceSlotGate();
 
   // Capture ?ref=CODE from URL or localStorage
   useEffect(() => {
@@ -92,7 +94,13 @@ function SignupPage() {
         localStorage.removeItem("pending_referral_code");
       } catch {}
     }
-    nav({ to: "/" });
+    const uid = data.session?.user.id;
+    if (uid) {
+      const ok = await slotGate.checkAndProceed(uid, data.session?.user.email || null);
+      if (ok) nav({ to: "/" });
+    } else {
+      nav({ to: "/" });
+    }
   };
 
   // Resend kept for VerifyOtpForm; no separate button here anymore.
@@ -139,6 +147,7 @@ function SignupPage() {
         </div>
         <LegalFooter />
       </div>
+      {slotGate.node}
     </div>
   );
 }

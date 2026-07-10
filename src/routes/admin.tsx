@@ -51,6 +51,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/referrals", label: "الدعوات", icon: "🎁" },
   { to: "/admin/play-products", label: "منتجات Play", icon: "🛒" },
 
+  { to: "/admin/device-appeals", label: "طعون الأجهزة", icon: "📱" },
   { to: "/admin/audit", label: "سجل العمليات", icon: "📋" },
 ];
 

@@ -66,6 +66,7 @@ import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminPlayProductsRouteImport } from './routes/admin.play-products'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
+import { Route as AdminDeviceAppealsRouteImport } from './routes/admin.device-appeals'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCompetitionsRouteImport } from './routes/admin.competitions'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
@@ -367,6 +368,11 @@ const AdminFishRoute = AdminFishRouteImport.update({
   path: '/fish',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDeviceAppealsRoute = AdminDeviceAppealsRouteImport.update({
+  id: '/device-appeals',
+  path: '/device-appeals',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminContentRoute = AdminContentRouteImport.update({
   id: '/content',
   path: '/content',
@@ -495,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -568,6 +575,7 @@ export interface FileRoutesByTo {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -643,6 +651,7 @@ export interface FileRoutesById {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/competitions': typeof AdminCompetitionsRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -719,6 +728,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/device-appeals'
     | '/admin/fish'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -792,6 +802,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/device-appeals'
     | '/admin/fish'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/competitions'
     | '/admin/content'
+    | '/admin/device-appeals'
     | '/admin/fish'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -1348,6 +1360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFishRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/device-appeals': {
+      id: '/admin/device-appeals'
+      path: '/device-appeals'
+      fullPath: '/admin/device-appeals'
+      preLoaderRoute: typeof AdminDeviceAppealsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/content': {
       id: '/admin/content'
       path: '/content'
@@ -1465,6 +1484,7 @@ interface AdminRouteChildren {
   AdminCommunityRoute: typeof AdminCommunityRoute
   AdminCompetitionsRoute: typeof AdminCompetitionsRoute
   AdminContentRoute: typeof AdminContentRoute
+  AdminDeviceAppealsRoute: typeof AdminDeviceAppealsRoute
   AdminFishRoute: typeof AdminFishRoute
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
   AdminPlayProductsRoute: typeof AdminPlayProductsRoute
@@ -1487,6 +1507,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommunityRoute: AdminCommunityRoute,
   AdminCompetitionsRoute: AdminCompetitionsRoute,
   AdminContentRoute: AdminContentRoute,
+  AdminDeviceAppealsRoute: AdminDeviceAppealsRoute,
   AdminFishRoute: AdminFishRoute,
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
   AdminPlayProductsRoute: AdminPlayProductsRoute,

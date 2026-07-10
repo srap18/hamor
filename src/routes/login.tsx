@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { LegalFooter } from "@/components/LegalFooter";
 import { MfaChallenge, mfaStepUpRequired } from "@/components/MfaChallenge";
+import { useDeviceSlotGate } from "@/components/useDeviceSlotGate";
 
 
 export const Route = createFileRoute("/login")({
@@ -31,6 +32,7 @@ function LoginPage() {
   const [resendMsg, setResendMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [needsMfa, setNeedsMfa] = useState(false);
+  const slotGate = useDeviceSlotGate();
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -73,7 +75,8 @@ function LoginPage() {
       return;
     }
     if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-    nav({ to: "/" });
+    const ok = await slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null);
+    if (ok) nav({ to: "/" });
   };
 
   const resend = async () => {
@@ -96,7 +99,14 @@ function LoginPage() {
       return;
     }
     if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-    nav({ to: "/" });
+    const { data: sd } = await supabase.auth.getSession();
+    const uid = sd.session?.user.id;
+    if (uid) {
+      const ok = await slotGate.checkAndProceed(uid, sd.session?.user.email || null);
+      if (ok) nav({ to: "/" });
+    } else {
+      nav({ to: "/" });
+    }
   };
 
 
@@ -151,6 +161,7 @@ function LoginPage() {
         <LegalFooter />
       </div>
       {needsMfa && <MfaChallenge onVerified={() => nav({ to: "/" })} onCancel={() => setNeedsMfa(false)} />}
+      {slotGate.node}
     </div>
   );
 }
