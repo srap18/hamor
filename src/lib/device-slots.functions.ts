@@ -114,6 +114,7 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
       _hardware_hash: canonicalHash,
       _user_id: data.userId,
       _email: data.email,
+      _fingerprint_version: FINGERPRINT_VERSION,
     });
     if (error) return { action: "allowed", reason: "check_error", canonicalHash, error: error.message };
     return { ...(res as any), canonicalHash };
