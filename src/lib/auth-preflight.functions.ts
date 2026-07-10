@@ -104,33 +104,37 @@ export const authPreflight = createServerFn({ method: "POST" })
         return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
       }
 
-      // Also check: has any BANNED user ever used this hardware fingerprint?
+      // Also check: has any BANNED user ever used any of these device ids?
       // Catches the case where the admin banned the user before we started
-      // recording hardware ids for that device.
-      if (data.hardwareId) {
-        const { data: linked } = await sb
-          .from("device_accounts")
+      // recording hardware ids, or where the visitor cleared localStorage
+      // but the same physical device is still recognizable by hardware hash.
+      const { data: linked } = await sb
+        .from("device_accounts")
+        .select("user_id, device_id")
+        .in("device_id", ids)
+        .limit(100);
+      const userIds = Array.from(new Set((linked ?? []).map((r: any) => r.user_id).filter(Boolean)));
+      if (userIds.length) {
+        const { data: bans } = await sb
+          .from("bans")
           .select("user_id")
-          .eq("device_id", data.hardwareId)
-          .limit(50);
-        const userIds = Array.from(new Set((linked ?? []).map((r: any) => r.user_id).filter(Boolean)));
-        if (userIds.length) {
-          const { data: bans } = await sb
-            .from("bans")
-            .select("user_id")
-            .in("user_id", userIds as string[])
-            .eq("active", true)
-            .limit(1);
-          if (bans && bans.length > 0) {
-            // Auto-add this fingerprint to banned_devices for faster future lookup.
-            try {
-              await sb.from("banned_devices").upsert(
-                { device_id: data.hardwareId, user_id: (bans[0] as any).user_id, reason: "auto: matched banned user hardware" },
-                { onConflict: "device_id" },
-              );
-            } catch {}
-            return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
-          }
+          .in("user_id", userIds as string[])
+          .eq("active", true)
+          .limit(1);
+        if (bans && bans.length > 0) {
+          const bannedUid = (bans[0] as any).user_id;
+          // Auto-add every id we saw to banned_devices for faster future lookup.
+          try {
+            await sb.from("banned_devices").upsert(
+              ids.map((id) => ({
+                device_id: id,
+                user_id: bannedUid,
+                reason: "auto: matched banned user device",
+              })),
+              { onConflict: "device_id" },
+            );
+          } catch {}
+          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
         }
       }
     }
