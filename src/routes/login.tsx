@@ -75,7 +75,8 @@ function LoginPage() {
       return;
     }
     if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-    nav({ to: "/" });
+    const ok = await slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null);
+    if (ok) nav({ to: "/" });
   };
 
   const resend = async () => {
