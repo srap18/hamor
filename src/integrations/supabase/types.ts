@@ -887,6 +887,66 @@ export type Database = {
         }
         Relationships: []
       }
+      device_appeals: {
+        Row: {
+          created_at: string
+          email: string | null
+          hardware_hash: string
+          id: string
+          message: string
+          next_allowed_at: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          hardware_hash: string
+          id?: string
+          message: string
+          next_allowed_at?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          hardware_hash?: string
+          id?: string
+          message?: string
+          next_allowed_at?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      device_fingerprints: {
+        Row: {
+          first_seen: string
+          hardware_hash: string
+          last_seen: string
+          signals: Json
+        }
+        Insert: {
+          first_seen?: string
+          hardware_hash: string
+          last_seen?: string
+          signals?: Json
+        }
+        Update: {
+          first_seen?: string
+          hardware_hash?: string
+          last_seen?: string
+          signals?: Json
+        }
+        Relationships: []
+      }
       device_history: {
         Row: {
           device_id: string
@@ -907,6 +967,36 @@ export type Database = {
           first_seen?: string
           hits?: number
           last_seen?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      device_slots: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          hardware_hash: string
+          id: string
+          locked_until: string
+          slot_index: number
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          hardware_hash: string
+          id?: string
+          locked_until?: string
+          slot_index: number
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          hardware_hash?: string
+          id?: string
+          locked_until?: string
+          slot_index?: number
           user_id?: string
         }
         Relationships: []
@@ -5695,6 +5785,35 @@ export type Database = {
         Returns: boolean
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      device_admin_approve_appeal: {
+        Args: { _appeal_id: string }
+        Returns: Json
+      }
+      device_admin_reject_appeal: {
+        Args: { _appeal_id: string }
+        Returns: Json
+      }
+      device_assign_slot: {
+        Args: { _hardware_hash: string; _user_id: string }
+        Returns: Json
+      }
+      device_is_privileged: { Args: { _uid: string }; Returns: boolean }
+      device_migrate_choose: {
+        Args: { _hardware_hash: string; _user_a: string; _user_b: string }
+        Returns: Json
+      }
+      device_migration_candidates: {
+        Args: { _hardware_hash: string }
+        Returns: Json
+      }
+      device_slot_check: {
+        Args: { _email?: string; _hardware_hash: string; _user_id?: string }
+        Returns: Json
+      }
+      device_submit_appeal: {
+        Args: { _email: string; _hardware_hash: string; _message: string }
+        Returns: Json
+      }
       distribute_tribe_fish_event_prizes: {
         Args: { p_event_id: string }
         Returns: Json
