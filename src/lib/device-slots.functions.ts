@@ -17,6 +17,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 
+// Fingerprint algorithm version. Bump when signal collection or weighting changes
+// so the server can support old + new devices concurrently and migrate gradually.
+export const FINGERPRINT_VERSION = 1;
+
+
 // Weighted fuzzy match — server-side second pass when exact hash doesn't match.
 // Weights sum ≈ 100. If similarity ≥ 90%, we treat it as the same physical device.
 const WEIGHTS: Record<string, number> = {
@@ -88,7 +93,7 @@ async function resolveDeviceHash(clientHash: string, signals: Record<string, any
     return best.hash;
   }
 
-  await sb.from("device_fingerprints").insert({ hardware_hash: clientHash, signals });
+  await sb.from("device_fingerprints").insert({ hardware_hash: clientHash, signals, fingerprint_version: FINGERPRINT_VERSION });
   return clientHash;
 }
 
@@ -109,6 +114,7 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
       _hardware_hash: canonicalHash,
       _user_id: data.userId,
       _email: data.email,
+      _fingerprint_version: FINGERPRINT_VERSION,
     });
     if (error) return { action: "allowed", reason: "check_error", canonicalHash, error: error.message };
     return { ...(res as any), canonicalHash };
@@ -121,6 +127,7 @@ export const deviceAssignSlot = createServerFn({ method: "POST" })
     const { data: res, error } = await context.supabase.rpc("device_assign_slot", {
       _hardware_hash: data.hardwareHash,
       _user_id: context.userId,
+      _fingerprint_version: FINGERPRINT_VERSION,
     });
     if (error) return { ok: false, error: error.message };
     return res as any;
@@ -147,6 +154,7 @@ export const deviceMigrateChoose = createServerFn({ method: "POST" })
       _hardware_hash: data.hardwareHash,
       _user_a: data.userA,
       _user_b: data.userB,
+      _fingerprint_version: FINGERPRINT_VERSION,
     });
     if (error) return { ok: false, error: error.message };
     return res as any;
@@ -208,4 +216,21 @@ export const adminResolveDeviceAppeal = createServerFn({ method: "POST" })
     const { data: res, error } = await context.supabase.rpc(rpc, { _appeal_id: data.appealId });
     if (error) return { ok: false, error: error.message };
     return res as any;
+  });
+
+export const adminListDeviceAuditLog = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: { hardwareHash?: string | null; limit?: number }) => ({
+    hardwareHash: (i?.hardwareHash ?? "").trim() || null,
+    limit: Math.min(Math.max(i?.limit ?? 100, 1), 500),
+  }))
+  .handler(async ({ data, context }) => {
+    const { data: isPriv } = await context.supabase.rpc("device_is_privileged", { _uid: context.userId });
+    if (!isPriv) return { entries: [], error: "forbidden" };
+    const sb = svc();
+    let q = sb.from("device_slot_audit").select("*").order("created_at", { ascending: false }).limit(data.limit);
+    if (data.hardwareHash) q = q.eq("hardware_hash", data.hardwareHash);
+    const { data: entries, error } = await q;
+    if (error) return { entries: [], error: error.message };
+    return { entries: entries || [] };
   });

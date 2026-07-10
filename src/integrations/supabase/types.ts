@@ -928,18 +928,21 @@ export type Database = {
       }
       device_fingerprints: {
         Row: {
+          fingerprint_version: number
           first_seen: string
           hardware_hash: string
           last_seen: string
           signals: Json
         }
         Insert: {
+          fingerprint_version?: number
           first_seen?: string
           hardware_hash: string
           last_seen?: string
           signals?: Json
         }
         Update: {
+          fingerprint_version?: number
           first_seen?: string
           hardware_hash?: string
           last_seen?: string
@@ -971,10 +974,47 @@ export type Database = {
         }
         Relationships: []
       }
+      device_slot_audit: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          details: Json
+          event_type: string
+          fingerprint_version: number | null
+          hardware_hash: string | null
+          id: string
+          slot_index: number | null
+          user_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: string
+          fingerprint_version?: number | null
+          hardware_hash?: string | null
+          id?: string
+          slot_index?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: string
+          fingerprint_version?: number | null
+          hardware_hash?: string | null
+          id?: string
+          slot_index?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       device_slots: {
         Row: {
           assigned_at: string
           created_at: string
+          fingerprint_version: number
           hardware_hash: string
           id: string
           locked_until: string
@@ -984,6 +1024,7 @@ export type Database = {
         Insert: {
           assigned_at?: string
           created_at?: string
+          fingerprint_version?: number
           hardware_hash: string
           id?: string
           locked_until?: string
@@ -993,6 +1034,7 @@ export type Database = {
         Update: {
           assigned_at?: string
           created_at?: string
+          fingerprint_version?: number
           hardware_hash?: string
           id?: string
           locked_until?: string
@@ -5793,23 +5835,61 @@ export type Database = {
         Args: { _appeal_id: string }
         Returns: Json
       }
-      device_assign_slot: {
-        Args: { _hardware_hash: string; _user_id: string }
-        Returns: Json
+      device_assign_slot:
+        | { Args: { _hardware_hash: string; _user_id: string }; Returns: Json }
+        | {
+            Args: {
+              _fingerprint_version?: number
+              _hardware_hash: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+      device_audit_log: {
+        Args: {
+          _actor: string
+          _details: Json
+          _event: string
+          _hw: string
+          _slot: number
+          _user: string
+          _version: number
+        }
+        Returns: undefined
       }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
-      device_migrate_choose: {
-        Args: { _hardware_hash: string; _user_a: string; _user_b: string }
-        Returns: Json
-      }
+      device_migrate_choose:
+        | {
+            Args: { _hardware_hash: string; _user_a: string; _user_b: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _fingerprint_version?: number
+              _hardware_hash: string
+              _user_a: string
+              _user_b: string
+            }
+            Returns: Json
+          }
       device_migration_candidates: {
         Args: { _hardware_hash: string }
         Returns: Json
       }
-      device_slot_check: {
-        Args: { _email?: string; _hardware_hash: string; _user_id?: string }
-        Returns: Json
-      }
+      device_slot_check:
+        | {
+            Args: { _email?: string; _hardware_hash: string; _user_id?: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _email?: string
+              _fingerprint_version?: number
+              _hardware_hash: string
+              _user_id?: string
+            }
+            Returns: Json
+          }
       device_submit_appeal: {
         Args: { _email: string; _hardware_hash: string; _message: string }
         Returns: Json
