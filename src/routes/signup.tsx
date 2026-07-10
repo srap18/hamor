@@ -94,7 +94,13 @@ function SignupPage() {
         localStorage.removeItem("pending_referral_code");
       } catch {}
     }
-    nav({ to: "/" });
+    const uid = data.session?.user.id;
+    if (uid) {
+      const ok = await slotGate.checkAndProceed(uid, data.session?.user.email || null);
+      if (ok) nav({ to: "/" });
+    } else {
+      nav({ to: "/" });
+    }
   };
 
   // Resend kept for VerifyOtpForm; no separate button here anymore.
