@@ -61,11 +61,19 @@ function resolveExpiry(data: any): string {
 }
 
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   if (!userId) return console.error("No userId in customData");
   const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
-  const productId = item?.product?.importMeta?.externalId;
+  const priceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id;
+  const productId =
+    item?.product?.importMeta?.externalId ??
+    item?.product?.import_meta?.external_id ??
+    item?.product?.externalId ??
+    item?.product?.external_id;
   if (!priceId || !productId) {
     console.warn("Skipping subscription: missing importMeta.externalId");
     return;
@@ -107,9 +115,13 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     .eq("environment", env);
 
   // Sync elite_vip_level — if status drops to canceled/past_due/paused, revoke.
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
+  const priceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id;
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && userId) {
     const active = data.status === "active" || data.status === "trialing";
@@ -157,7 +169,7 @@ async function recordUnmapped(
         amount_cents: Number(data?.details?.totals?.total ?? 0),
         environment: env,
         email: data?.customer?.email ?? data?.customData?.email ?? null,
-        user_id_hint: data?.customData?.userId ?? null,
+        user_id_hint: data?.customData?.userId ?? data?.custom_data?.userId ?? null,
         pack_id_hint: getPackIdFromTransaction(data) ?? null,
         raw: data,
       },
@@ -169,7 +181,7 @@ async function recordUnmapped(
 }
 
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
-  const userId = data.customData?.userId;
+  const userId = data.customData?.userId ?? data.custom_data?.userId;
   if (!userId) {
     await recordUnmapped(data.id, "missing_user_id", env, data);
     // Throw so Paddle retries the webhook — never silently drop a paid txn.

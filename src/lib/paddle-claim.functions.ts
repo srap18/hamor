@@ -52,7 +52,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       return { granted: false, reason: `status:${status}` };
     }
 
-    const ownerId = txn.custom_data?.userId;
+    const ownerId = txn.custom_data?.userId ?? txn.customData?.userId;
     if (ownerId && ownerId !== userId) throw new Error("transaction owner mismatch");
 
     const item = txn.items?.[0];

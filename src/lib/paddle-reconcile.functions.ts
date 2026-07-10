@@ -8,8 +8,13 @@ function getPaddlePackId(txn: any): string | undefined {
   const item = txn.items?.[0];
   return (
     txn.custom_data?.packId ||
+    txn.customData?.packId ||
     item?.price?.import_meta?.external_id ||
-    item?.price?.external_id
+    item?.price?.importMeta?.externalId ||
+    item?.price?.custom_data?.externalId ||
+    item?.price?.customData?.externalId ||
+    item?.price?.external_id ||
+    item?.price?.externalId
   );
 }
 
@@ -67,7 +72,7 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
         if (existing?.granted) continue;
 
         // Only grant if customData userId matches (or is missing → trust email match).
-        const ownerId = txn.custom_data?.userId;
+        const ownerId = txn.custom_data?.userId ?? txn.customData?.userId;
         if (ownerId && ownerId !== userId) {
           skipped.push({ id: txn.id, reason: "owner_mismatch" });
           continue;
@@ -81,7 +86,12 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
           );
           if (pr.ok) {
             const pb = await pr.json();
-            packId = pb?.data?.import_meta?.external_id ?? undefined;
+            packId =
+              pb?.data?.import_meta?.external_id ??
+              pb?.data?.importMeta?.externalId ??
+              pb?.data?.external_id ??
+              pb?.data?.externalId ??
+              undefined;
           }
         }
         if (!packId) {
