@@ -234,3 +234,13 @@ export const adminListDeviceAuditLog = createServerFn({ method: "POST" })
     if (error) return { entries: [], error: error.message };
     return { entries: entries || [] };
   });
+
+export const adminDeviceSlotMetrics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: { days?: number }) => ({ days: Math.min(Math.max(i?.days ?? 7, 1), 90) }))
+  .handler(async ({ data, context }) => {
+    const { data: res, error } = await context.supabase.rpc("device_slot_metrics", { _days: data.days });
+    if (error) return { error: error.message };
+    return res as any;
+  });
+
