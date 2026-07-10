@@ -93,7 +93,7 @@ async function resolveDeviceHash(clientHash: string, signals: Record<string, any
     return best.hash;
   }
 
-  await sb.from("device_fingerprints").insert({ hardware_hash: clientHash, signals });
+  await sb.from("device_fingerprints").insert({ hardware_hash: clientHash, signals, fingerprint_version: FINGERPRINT_VERSION });
   return clientHash;
 }
 
