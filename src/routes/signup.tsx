@@ -147,6 +147,7 @@ function SignupPage() {
         </div>
         <LegalFooter />
       </div>
+      {slotGate.node}
     </div>
   );
 }
