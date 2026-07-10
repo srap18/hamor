@@ -217,3 +217,20 @@ export const adminResolveDeviceAppeal = createServerFn({ method: "POST" })
     if (error) return { ok: false, error: error.message };
     return res as any;
   });
+
+export const adminListDeviceAuditLog = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: { hardwareHash?: string | null; limit?: number }) => ({
+    hardwareHash: (i?.hardwareHash ?? "").trim() || null,
+    limit: Math.min(Math.max(i?.limit ?? 100, 1), 500),
+  }))
+  .handler(async ({ data, context }) => {
+    const { data: isPriv } = await context.supabase.rpc("device_is_privileged", { _uid: context.userId });
+    if (!isPriv) return { entries: [], error: "forbidden" };
+    const sb = svc();
+    let q = sb.from("device_slot_audit").select("*").order("created_at", { ascending: false }).limit(data.limit);
+    if (data.hardwareHash) q = q.eq("hardware_hash", data.hardwareHash);
+    const { data: entries, error } = await q;
+    if (error) return { entries: [], error: error.message };
+    return { entries: entries || [] };
+  });
