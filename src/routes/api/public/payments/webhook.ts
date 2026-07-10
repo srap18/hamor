@@ -251,6 +251,29 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     }
   }
 
+  // Dragon ships bundle (T1/T2/T3)
+  const dragonGrants: { qty?: number; level: number; hp: number; code: string }[] = [
+    { qty: reward.dragonT1Ships, level: 34, hp: 20000, code: "dragon-t1" },
+    { qty: reward.dragonT2Ships, level: 35, hp: 40000, code: "dragon-t2" },
+    { qty: reward.dragonT3Ships, level: 36, hp: 60000, code: "dragon-t3" },
+  ];
+  for (const g of dragonGrants) {
+    if (!g.qty || g.qty <= 0) continue;
+    const rows = Array.from({ length: g.qty }, () => ({
+      user_id: userId,
+      template_id: g.level,
+      hp: g.hp,
+      max_hp: g.hp,
+      at_sea: false,
+      catalog_code: g.code,
+    }));
+    const { error: shipErr } = await getSupabase().from("ships_owned").insert(rows);
+    if (shipErr) {
+      console.error(`dragon ships insert failed (${g.code}):`, shipErr);
+      throw new Error(`dragon ships insert failed: ${shipErr.message}`);
+    }
+  }
+
   // Referral bonus: if buyer was invited, reward inviter with 30% of purchase value in gems.
   // Game-funded — no deduction from buyer.
   if (amountCents > 0) {
