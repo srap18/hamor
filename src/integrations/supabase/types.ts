@@ -3590,6 +3590,7 @@ export type Database = {
           max_stars: number
           preferred_fish_id: string | null
           repair_ends_at: string | null
+          source_txn_id: string | null
           stars: number
           stealing_ends_at: string | null
           stealing_started_at: string | null
@@ -3612,6 +3613,7 @@ export type Database = {
           max_stars?: number
           preferred_fish_id?: string | null
           repair_ends_at?: string | null
+          source_txn_id?: string | null
           stars?: number
           stealing_ends_at?: string | null
           stealing_started_at?: string | null
@@ -3634,6 +3636,7 @@ export type Database = {
           max_stars?: number
           preferred_fish_id?: string | null
           repair_ends_at?: string | null
+          source_txn_id?: string | null
           stars?: number
           stealing_ends_at?: string | null
           stealing_started_at?: string | null
@@ -6183,6 +6186,7 @@ export type Database = {
           max_stars: number
           preferred_fish_id: string | null
           repair_ends_at: string | null
+          source_txn_id: string | null
           stars: number
           stealing_ends_at: string | null
           stealing_started_at: string | null
@@ -6416,6 +6420,17 @@ export type Database = {
           _user: string
         }
         Returns: undefined
+      }
+      grant_pack_ships: {
+        Args: {
+          _dragon_t1: number
+          _dragon_t2: number
+          _dragon_t3: number
+          _phoenix: number
+          _txn_id: string
+          _user: string
+        }
+        Returns: Json
       }
       grant_paddle_purchase: {
         Args: {
