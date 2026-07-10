@@ -75,6 +75,12 @@ import nukeImg from "@/assets/weapons/nuke.png";
 import coinIcon from "@/assets/icons/icon-coins.png";
 import gemIcon from "@/assets/icons/icon-gems.png";
 import phoenixShipImg from "@/assets/ships/ship-phoenix.png";
+import shipDragonRedImg from "@/assets/ships/ship-dragon-red.png";
+import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.png";
+import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.png";
+import { buyPackWithPaddle } from "@/lib/paddle-buy";
+import { formatSarFromUsd as _fmtSar } from "@/lib/currency";
+import { isNativeApp as _isNative } from "@/lib/platform";
 import { showBanner } from "@/components/Banner";
 
 const WEAPON_IMAGES: Record<string, string> = {
