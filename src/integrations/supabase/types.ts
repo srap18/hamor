@@ -1010,6 +1010,30 @@ export type Database = {
         }
         Relationships: []
       }
+      device_slot_rate_limit: {
+        Row: {
+          attempt_count: number
+          blocked_until: string | null
+          hardware_hash: string
+          last_attempt_at: string
+          window_started_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          blocked_until?: string | null
+          hardware_hash: string
+          last_attempt_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          blocked_until?: string | null
+          hardware_hash?: string
+          last_attempt_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       device_slots: {
         Row: {
           assigned_at: string
@@ -5845,6 +5869,14 @@ export type Database = {
             }
             Returns: Json
           }
+        | {
+            Args: {
+              _fingerprint_version?: number
+              _hardware_hash: string
+              _user_id: string
+            }
+            Returns: Json
+          }
       device_audit_log: {
         Args: {
           _actor: string
@@ -5876,6 +5908,10 @@ export type Database = {
         Args: { _hardware_hash: string }
         Returns: Json
       }
+      device_rate_limit_check: {
+        Args: { _hardware_hash: string }
+        Returns: Json
+      }
       device_slot_check:
         | {
             Args: { _email?: string; _hardware_hash: string; _user_id?: string }
@@ -5890,6 +5926,16 @@ export type Database = {
             }
             Returns: Json
           }
+        | {
+            Args: {
+              _email: string
+              _fingerprint_version?: number
+              _hardware_hash: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+      device_slot_metrics: { Args: { _days?: number }; Returns: Json }
       device_submit_appeal: {
         Args: { _email: string; _hardware_hash: string; _message: string }
         Returns: Json
