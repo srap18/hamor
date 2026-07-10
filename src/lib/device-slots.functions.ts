@@ -17,6 +17,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 
+// Fingerprint algorithm version. Bump when signal collection or weighting changes
+// so the server can support old + new devices concurrently and migrate gradually.
+export const FINGERPRINT_VERSION = 1;
+
+
 // Weighted fuzzy match — server-side second pass when exact hash doesn't match.
 // Weights sum ≈ 100. If similarity ≥ 90%, we treat it as the same physical device.
 const WEIGHTS: Record<string, number> = {
