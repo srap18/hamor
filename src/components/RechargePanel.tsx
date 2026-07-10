@@ -257,6 +257,11 @@ export function RechargePanel() {
                         ×{p.reward.phoenixShips}
                       </span>
                     )}
+                    {(p.reward.dragonT1Ships || p.reward.dragonT2Ships || p.reward.dragonT3Ships) ? (
+                      <span className="absolute top-0 right-0 bg-purple-700 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-bl-lg">
+                        ×{p.reward.dragonT1Ships || p.reward.dragonT2Ships || p.reward.dragonT3Ships}
+                      </span>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="text-4xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
