@@ -848,6 +848,33 @@ function Index() {
   };
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
+  // Ghost-tap guard: after a modal/menu opens, ignore any interaction fired
+  // in the first ~300ms. Prevents a fast double-tap on a ship from bleeding
+  // through into the just-opened action menu (which could trigger "sell"),
+  // and prevents the same ghost tap from confirming the sell dialog itself.
+  const [menuArmed, setMenuArmed] = useState(false);
+  const [sellArmed, setSellArmed] = useState(false);
+  useEffect(() => {
+    if (menuShipId === null) { setMenuArmed(false); return; }
+    setMenuArmed(false);
+    const t = window.setTimeout(() => setMenuArmed(true), 280);
+    return () => window.clearTimeout(t);
+  }, [menuShipId]);
+  useEffect(() => {
+    if (modal?.kind !== "sell") { setSellArmed(false); return; }
+    setSellArmed(false);
+    const t = window.setTimeout(() => setSellArmed(true), 400);
+    return () => window.clearTimeout(t);
+  }, [modal]);
+  // Debounce ship-card taps so a rapid double-tap only opens the menu once.
+  const lastShipTapRef = useRef<{ id: number; at: number }>({ id: -1, at: 0 });
+  const openShipMenu = (id: number) => {
+    const now = Date.now();
+    const last = lastShipTapRef.current;
+    if (last.id === id && now - last.at < 450) return;
+    lastShipTapRef.current = { id, at: now };
+    setMenuShipId(id);
+  };
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
   // When true, the picker only updates the guide's preferred fish without launching/collecting.
   const [fishPickerChangeOnly, setFishPickerChangeOnly] = useState(false);
