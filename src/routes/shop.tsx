@@ -414,7 +414,7 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) ? (
+            {(tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) ? (
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
