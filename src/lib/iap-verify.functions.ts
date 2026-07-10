@@ -154,5 +154,20 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       await supabaseAdmin.from("ships_owned").insert(rows as never);
     }
 
+    if (!alreadyGranted) {
+      const dragonGrantsI: { qty?: number; level: number; hp: number; code: string }[] = [
+        { qty: reward.dragonT1Ships, level: 34, hp: 20000, code: "dragon-t1" },
+        { qty: reward.dragonT2Ships, level: 35, hp: 40000, code: "dragon-t2" },
+        { qty: reward.dragonT3Ships, level: 36, hp: 60000, code: "dragon-t3" },
+      ];
+      for (const g of dragonGrantsI) {
+        if (!g.qty || g.qty <= 0) continue;
+        const rows = Array.from({ length: g.qty }, () => ({
+          user_id: userId, template_id: g.level, hp: g.hp, max_hp: g.hp, at_sea: false, catalog_code: g.code,
+        }));
+        await supabaseAdmin.from("ships_owned").insert(rows as never);
+      }
+    }
+
     return { ok: true, alreadyGranted, productId: data.productId };
   });
