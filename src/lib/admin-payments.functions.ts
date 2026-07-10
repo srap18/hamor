@@ -167,6 +167,9 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
             user_id: data.userId, template_id: g.level, hp: g.hp, max_hp: g.hp, at_sea: false, catalog_code: g.code,
           }));
           await supabaseAdmin.from("ships_owned").insert(rows);
+        }
+
+
 
         granted.push(packId);
         grantedCount += 1;
