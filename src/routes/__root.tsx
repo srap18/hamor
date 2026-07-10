@@ -425,7 +425,12 @@ function RootComponent() {
           try {
             const { data } = await supabase.auth.getSession();
             if (!data.session?.user) return;
-            await recordSession({ data: { deviceId: ensureDeviceId() } });
+            let hardwareId = "";
+            try {
+              const { getHardwareFingerprint } = await import("@/lib/device-fingerprint");
+              hardwareId = await getHardwareFingerprint();
+            } catch {}
+            await recordSession({ data: { deviceId: ensureDeviceId(), hardwareId } });
           } catch {}
           finally { inFlight = false; }
         };
