@@ -326,6 +326,10 @@ async function handleAdjustment(data: any, _env: PaddleEnv) {
   }
 
   const reward = rewardFor((purchase as any).pack_id);
+  if (!reward) {
+    console.error("[adjustment] unknown pack id", (purchase as any).pack_id);
+    throw new Error(`adjustment: unknown pack id ${(purchase as any).pack_id}`);
+  }
   const isElite = /^elite_vip_[1-5]_monthly$/.test((purchase as any).pack_id || "");
 
   const { error } = await supabase.rpc("revoke_paddle_purchase", {
