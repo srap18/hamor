@@ -2295,7 +2295,7 @@ function Index() {
               sail: previewSail ?? s.sail,
             }}
             crews={shipCrews}
-            onTap={() => setMenuShipId(s.id)}
+            onTap={() => openShipMenu(s.id)}
             active={menuShipId === s.id}
           />
         );
