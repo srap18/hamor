@@ -291,8 +291,11 @@ export const SHIPS: ShipDef[] = [
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
+export const DRAGON_T1_SHIP: ShipDef = buildShip(34);
+export const DRAGON_T2_SHIP: ShipDef = buildShip(35);
+export const DRAGON_T3_SHIP: ShipDef = buildShip(36);
 
-const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP];
+const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP, DRAGON_T1_SHIP, DRAGON_T2_SHIP, DRAGON_T3_SHIP];
 
 export const STARTER_SHIP = SHIPS[0];
 
@@ -309,14 +312,18 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
 }
 
 // Map a market level to the ship definition.
-// 31 = phoenix shop ship, 32 = VIP submarine, 33 = upgradeable submarine.
+// 31 = phoenix, 32 = VIP submarine, 33 = upgradeable submarine, 34-36 = dragon ships.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 36) return DRAGON_T3_SHIP;
+  if (level >= 35) return DRAGON_T2_SHIP;
+  if (level >= 34) return DRAGON_T1_SHIP;
   if (level >= 33) return UPGRADE_SUB_SHIP;
   if (level >= 32) return SUBMARINE_SHIP;
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
 }
+
 
 export function getShipImage(code: string | null | undefined): string {
   return getShipByCode(code).image;
