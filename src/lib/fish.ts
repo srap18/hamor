@@ -47,6 +47,7 @@ import black_pearl from "@/assets/fish/black_pearl.png";
 import golden_koi from "@/assets/fish/golden_koi.png";
 import phoenix from "@/assets/fish/phoenix.png";
 import abyss_titan from "@/assets/fish/abyss_titan.png";
+import black_dragon from "@/assets/fish/black_dragon.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
