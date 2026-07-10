@@ -63,14 +63,18 @@ function PaymentSuccess() {
           const claimed = await claimTxn({
             data: { transactionId: txnId, environment: env },
           });
-          const pack = claimed?.packId ? getPack(claimed.packId) : null;
-          if (!cancelled) {
-            if (pack) setReward(pack);
-            setStatus("done");
-            refreshProfile();
-            sound.play("coin");
+          // A transaction can exist while Paddle is still finalizing it.
+          // Never tell the player rewards were added until delivery is confirmed.
+          if (claimed?.granted) {
+            const pack = claimed.packId ? getPack(claimed.packId) : null;
+            if (!cancelled) {
+              if (pack) setReward(pack);
+              setStatus("done");
+              await refreshProfile();
+              sound.play("coin");
+            }
+            return;
           }
-          return;
         } catch (e) {
           console.error("[payment-success] instant claim failed", e);
         }
@@ -97,7 +101,7 @@ function PaymentSuccess() {
         await new Promise((res) => setTimeout(res, 5000));
       }
 
-      // 3) Give up waiting — show success screen with manual recovery button.
+      // 3) Give up waiting — keep wording honest and provide manual recovery.
       if (!cancelled) {
         setStatus("done");
         refreshProfile();
@@ -128,9 +132,9 @@ function PaymentSuccess() {
           <>
             <div className="text-7xl mb-3">🎉</div>
             <h1 className="text-2xl font-extrabold mb-2 text-emerald-300 text-glow">
-              تم الدفع بنجاح!
+              اكتمل فحص عملية الدفع
             </h1>
-            <p className="text-sm text-stone-200 mb-5">أُضيفت المكافآت لحسابك. استمتع باللعب!</p>
+            <p className="text-sm text-stone-200 mb-5">إذا لم تظهر المكافأة، اضغط التحقق أدناه لإتمام التسليم.</p>
             <button
               onClick={() => nav({ to: "/" })}
               className="w-full py-3 rounded-xl bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 font-extrabold active:scale-95"

@@ -90,7 +90,11 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
         }
 
         const pack = STORE_PACKS.find((p) => p.id === packId);
-        const reward = pack?.reward ?? {};
+        if (!pack) {
+          skipped.push({ id: txn.id, reason: `unknown_pack_id:${packId}` });
+          continue;
+        }
+        const reward = pack.reward;
         const amountCents = Number(txn.details?.totals?.total ?? 0);
 
         const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {

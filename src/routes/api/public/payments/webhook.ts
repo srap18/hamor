@@ -13,7 +13,7 @@ function getSupabase(): any {
 }
 
 function rewardFor(packId: string) {
-  return STORE_PACKS.find((p) => p.id === packId)?.reward ?? {};
+  return STORE_PACKS.find((p) => p.id === packId)?.reward;
 }
 
 function getPackIdFromTransaction(data: any): string | undefined {
@@ -180,8 +180,13 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     await recordUnmapped(data.id, "missing_pack_id", env, data);
     throw new Error("transaction: missing pack id");
   }
-  // For subscriptions, rewards are granted per renewal cycle too.
+  // Never mark an unknown paid product as granted with an empty reward.
+  // Keep it recoverable and force a retry instead.
   const reward = rewardFor(priceExt);
+  if (!reward) {
+    await recordUnmapped(data.id, `unknown_pack_id:${priceExt}`, env, data);
+    throw new Error(`transaction: unknown pack id ${priceExt}`);
+  }
   const amountCents = Number(data.details?.totals?.total ?? 0);
   const { error } = await getSupabase().rpc("grant_paddle_purchase", {
     _txn_id: data.id,

@@ -76,7 +76,8 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     if (!packId) throw new Error("missing price external_id");
 
     const pack = STORE_PACKS.find((p) => p.id === packId);
-    const reward = pack?.reward ?? {};
+    if (!pack) throw new Error(`unknown pack id: ${packId}`);
+    const reward = pack.reward;
     const amountCents = Number(txn.details?.totals?.total ?? 0);
 
     const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {
