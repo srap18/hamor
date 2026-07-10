@@ -1,5 +1,21 @@
+/**
+ * Device Slot & Fingerprint System — Core Rules
+ *
+ * 1. Two accounts per device maximum (Slots A/B).
+ * 2. No limit on how many devices a single account may use.
+ * 3. Each device keeps its own independent pair of Slots.
+ * 4. New phone/tablet/browser does not affect the account; the new device gets its own 2 slots.
+ * 5. Deleting app or browser data on the same device does not bypass the system if the same hardware fingerprint is recognized.
+ * 6. A third account on a full device is blocked until the 14-day lock expires or an admin resets slots.
+ * 7. Admin accounts are exempt from all device-slot and fingerprint restrictions.
+ * 8. All verification, assignment, migration, and appeal decisions are enforced server-side via RPC.
+ *
+ * See mem://features/device-slot-system for full specification.
+ */
+
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 // Weighted fuzzy match — server-side second pass when exact hash doesn't match.
 // Weights sum ≈ 100. If similarity ≥ 90%, we treat it as the same physical device.
