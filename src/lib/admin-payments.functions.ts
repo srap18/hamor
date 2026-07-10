@@ -156,6 +156,17 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
           }));
           await supabaseAdmin.from("ships_owned").insert(rows);
         }
+        const dragonGrants: { qty?: number; level: number; hp: number; code: string }[] = [
+          { qty: reward.dragonT1Ships, level: 34, hp: 20000, code: "dragon-t1" },
+          { qty: reward.dragonT2Ships, level: 35, hp: 40000, code: "dragon-t2" },
+          { qty: reward.dragonT3Ships, level: 36, hp: 60000, code: "dragon-t3" },
+        ];
+        for (const g of dragonGrants) {
+          if (!g.qty || g.qty <= 0) continue;
+          const rows = Array.from({ length: g.qty }, () => ({
+            user_id: data.userId, template_id: g.level, hp: g.hp, max_hp: g.hp, at_sea: false, catalog_code: g.code,
+          }));
+          await supabaseAdmin.from("ships_owned").insert(rows);
 
         granted.push(packId);
         grantedCount += 1;
