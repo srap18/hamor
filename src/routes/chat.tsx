@@ -116,8 +116,8 @@ function ChatPage() {
   const [pinDraft, setPinDraft] = useState("");
   const [marketLevel, setMarketLevel] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const SHIP_MARKET_MIN = 6;
-  const canChat = isAdmin || (marketLevel !== null && marketLevel >= SHIP_MARKET_MIN);
+  const SHIP_MARKET_MIN = 0;
+  const canChat = true;
 
   // Pause background music while on the chat screen, resume on leave
   useEffect(() => {
