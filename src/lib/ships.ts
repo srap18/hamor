@@ -230,6 +230,29 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Dragon ships (levels 34/35/36) — Paddle-shop exclusive, catch black_dragon fish.
+  if (level >= 34 && level <= 36) {
+    const codeMap: Record<number, string> = { 34: "dragon-t1", 35: "dragon-t2", 36: "dragon-t3" };
+    const armorMap: Record<number, number> = { 34: 120, 35: 160, 36: 220 };
+    const speedMap: Record<number, number> = { 34: 100, 35: 110, 36: 120 };
+    return {
+      code: codeMap[level],
+      name: d.ar,
+      title: d.ar,
+      image: IMG_BY_LEVEL[level],
+      price: d.price,
+      marketLevel: level,
+      rarity: d.rarity,
+      maxHp: d.storage,
+      armor: armorMap[level],
+      speed: speedMap[level],
+      storage: d.storage,
+      repairSeconds: 14400,
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // دم السفينة = سعتها (طاقة السفينة)
   const maxHp = d.storage;
   const armor = 4 + Math.floor((level - 1) * 3.5);
