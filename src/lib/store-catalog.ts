@@ -2,6 +2,9 @@
 // `external_id` — checkout resolves it server-side (never trust client price).
 
 import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
+import shipDragonRedImg from "@/assets/ships/ship-dragon-red.png";
+import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.png";
+import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.png";
 import gemIcon from "@/assets/icon-gem-3d.png";
 import rocketLargeImg from "@/assets/weapons/rocket-large.png";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
