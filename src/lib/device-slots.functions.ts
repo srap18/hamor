@@ -127,6 +127,7 @@ export const deviceAssignSlot = createServerFn({ method: "POST" })
     const { data: res, error } = await context.supabase.rpc("device_assign_slot", {
       _hardware_hash: data.hardwareHash,
       _user_id: context.userId,
+      _fingerprint_version: FINGERPRINT_VERSION,
     });
     if (error) return { ok: false, error: error.message };
     return res as any;
