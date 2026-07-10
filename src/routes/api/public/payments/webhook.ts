@@ -241,53 +241,24 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     }
   }
 
-  // Phoenix ships bundle (e.g. ثلاثية العنقاء)
-  if (reward.phoenixShips && reward.phoenixShips > 0) {
-    // Idempotency: only insert if this txn hasn't already produced phoenix rows for this user.
-    const { count } = await getSupabase()
-      .from("ships_owned")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("template_id", 31);
-    // Best-effort guard: if user already has >= the bundle count of phoenixes from prior grants
-    // it could be legitimate — we still rely on webhook NOT re-firing for same txn (Paddle retries
-    // are guarded by grant_paddle_purchase idempotency above; we only reach here on first grant).
-    void count;
-    const rows = Array.from({ length: reward.phoenixShips }, () => ({
-      user_id: userId,
-      template_id: 31,
-      hp: 13000,
-      max_hp: 13000,
-      at_sea: false,
-      catalog_code: "ship-lvl-31",
-    }));
-    const { error: shipErr } = await getSupabase().from("ships_owned").insert(rows);
+  // Ships (Phoenix + Dragon T1/T2/T3) — idempotent per Paddle txn.
+  if (
+    (reward.phoenixShips ?? 0) > 0 ||
+    (reward.dragonT1Ships ?? 0) > 0 ||
+    (reward.dragonT2Ships ?? 0) > 0 ||
+    (reward.dragonT3Ships ?? 0) > 0
+  ) {
+    const { error: shipErr } = await getSupabase().rpc("grant_pack_ships", {
+      _txn_id: data.id,
+      _user: userId,
+      _phoenix: reward.phoenixShips ?? 0,
+      _dragon_t1: reward.dragonT1Ships ?? 0,
+      _dragon_t2: reward.dragonT2Ships ?? 0,
+      _dragon_t3: reward.dragonT3Ships ?? 0,
+    });
     if (shipErr) {
-      console.error("phoenix ships insert failed:", shipErr);
-      throw new Error(`phoenix ships insert failed: ${shipErr.message}`);
-    }
-  }
-
-  // Dragon ships bundle (T1/T2/T3)
-  const dragonGrants: { qty?: number; level: number; hp: number; code: string }[] = [
-    { qty: reward.dragonT1Ships, level: 34, hp: 20000, code: "dragon-t1" },
-    { qty: reward.dragonT2Ships, level: 35, hp: 40000, code: "dragon-t2" },
-    { qty: reward.dragonT3Ships, level: 36, hp: 60000, code: "dragon-t3" },
-  ];
-  for (const g of dragonGrants) {
-    if (!g.qty || g.qty <= 0) continue;
-    const rows = Array.from({ length: g.qty }, () => ({
-      user_id: userId,
-      template_id: g.level,
-      hp: g.hp,
-      max_hp: g.hp,
-      at_sea: false,
-      catalog_code: g.code,
-    }));
-    const { error: shipErr } = await getSupabase().from("ships_owned").insert(rows);
-    if (shipErr) {
-      console.error(`dragon ships insert failed (${g.code}):`, shipErr);
-      throw new Error(`dragon ships insert failed: ${shipErr.message}`);
+      console.error("grant_pack_ships failed:", shipErr);
+      throw new Error(`grant_pack_ships failed: ${shipErr.message}`);
     }
   }
 
