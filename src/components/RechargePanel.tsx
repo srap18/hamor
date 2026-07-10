@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -61,7 +61,7 @@ export function RechargePanel() {
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
 
-  const runRecovery = async () => {
+  const runRecovery = useCallback(async () => {
     if (recovering) return;
     setRecovering(true);
     setRecoverMsg(null);
@@ -80,7 +80,7 @@ export function RechargePanel() {
     } finally {
       setRecovering(false);
     }
-  };
+  }, [reconcile, recovering]);
 
   const flash = (m: string) => {
     setPop(m);
@@ -139,6 +139,7 @@ export function RechargePanel() {
       data: { transactionId, environment: getPaddleEnvironment() },
     }).then(async (result) => {
       if (!result?.granted) {
+        setRecovering(false);
         await runRecovery();
         return;
       }
@@ -149,9 +150,10 @@ export function RechargePanel() {
       sound.play("coin");
     }).catch(async (error) => {
       console.error("[checkout.completed] claim failed", error);
+      setRecovering(false);
       await runRecovery();
     }).finally(() => setRecovering(false));
-  }), [claimTxn]);
+  }), [claimTxn, runRecovery]);
 
   const purchase = async (pack: StorePack) => {
     if (!userId || busy) return;
