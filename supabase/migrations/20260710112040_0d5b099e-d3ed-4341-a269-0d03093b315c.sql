@@ -1,0 +1,2 @@
+CREATE POLICY "admin_view_all_paddle_purchases" ON public.paddle_purchases FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'moderator'));
+CREATE POLICY "admin_view_all_polar_purchases" ON public.polar_purchases FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'moderator'));
