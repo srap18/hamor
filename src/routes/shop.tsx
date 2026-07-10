@@ -75,6 +75,11 @@ import nukeImg from "@/assets/weapons/nuke.png";
 import coinIcon from "@/assets/icons/icon-coins.png";
 import gemIcon from "@/assets/icons/icon-gems.png";
 import phoenixShipImg from "@/assets/ships/ship-phoenix.png";
+import shipDragonRedImg from "@/assets/ships/ship-dragon-red.png";
+import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.png";
+import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.png";
+import { buyPackWithPaddle } from "@/lib/paddle-buy";
+import { isNativeApp } from "@/lib/platform";
 import { showBanner } from "@/components/Banner";
 
 const WEAPON_IMAGES: Record<string, string> = {
@@ -360,6 +365,8 @@ function Shop() {
             <BackgroundsPanel />
           ) : tab === "vip" ? (
             <VipPanel />
+          ) : tab === "ships" ? (
+            <ShipsPanel flash={flash} gems={gems} userSignedIn={!!user && !!profile} />
           ) : (
             <div className="grid grid-cols-3 gap-2 mt-3 px-2">
               {items.map((it) => (
@@ -377,7 +384,7 @@ function Shop() {
       </div>
 
       {/* Footer: selected item detail + qty + buy (hidden on recharge tab) */}
-      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "vip" && (
+      {selected && tab !== "recharge" && tab !== "backgrounds" && tab !== "vip" && tab !== "ships" && (
         <div className="absolute bottom-12 left-2 right-2 z-20 rounded-xl bg-gradient-to-b from-rose-900/90 to-stone-950/95 border-2 border-rose-700/60 shadow-2xl p-2">
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
@@ -386,7 +393,7 @@ function Shop() {
               ) : (
                 selected.emoji
               )}
-              {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) && (
+              {(tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) && (
                 <span className="absolute -top-1 -left-1 text-[9px] font-bold bg-rose-600 px-1 rounded">X{qty}</span>
               )}
             </div>
@@ -407,7 +414,7 @@ function Shop() {
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
-            {tab !== "ships" && (tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) ? (
+            {(tab !== "protection" || selected.id.startsWith("anti_") || selected.id.startsWith("disabler_")) ? (
               <div className="flex-1 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -593,6 +600,241 @@ function VipPanel() {
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ───────────────── Ships Panel ───────────────── */
+
+type ShipPack = {
+  id: string;
+  name: string;
+  emoji: string;
+  image: string;
+  count: number; // how many ships in this pack (1 or 3)
+  desc: string;
+  fullDesc: string;
+  rarity: "legendary" | "epic" | "mythic";
+  tag?: string;
+  payment:
+    | { kind: "gems"; price: number; rpc: "buy_phoenix_pack_1" | "buy_phoenix_pack_3" }
+    | { kind: "paddle"; priceUsd: number; packId: string };
+};
+
+const SHIP_PACKS: ShipPack[] = [
+  {
+    id: "phoenix-pack-1",
+    name: "سفينة عنقاء واحدة 🐉",
+    emoji: "🐉",
+    image: phoenixShipImg,
+    count: 1,
+    desc: "سفينة عنقاء فردية",
+    fullDesc:
+      "سفينة عنقاء أسطورية • دمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • مدة الصيد 20 دقيقة لكل رحلة • مثالية لتجربة قوة العنقاء قبل شراء الحزمة الكاملة.",
+    rarity: "legendary",
+    payment: { kind: "gems", price: 1500, rpc: "buy_phoenix_pack_1" },
+  },
+  {
+    id: "phoenix-pack-3",
+    name: "حزمة 3 سفن عنقاء 🐉",
+    emoji: "🐉",
+    image: phoenixShipImg,
+    count: 3,
+    desc: "ثلاث سفن عنقاء دفعة واحدة",
+    fullDesc:
+      "ثلاث سفن عنقاء أسطورية دفعة واحدة • كل سفينة بدمّ 13,000 وسعة صيد 13,000 • تصيد عنقاء النار النادرة 🔥 • مدة الصيد 20 دقيقة لكل سفينة • أفضل قيمة للقادة الطموحين — أسطول عنقاء كامل بسعر مخفّض.",
+    rarity: "legendary",
+    tag: "أفضل قيمة",
+    payment: { kind: "gems", price: 3800, rpc: "buy_phoenix_pack_3" },
+  },
+  {
+    id: "bd_dragon_t1",
+    name: "ثلاثية سفن التنين الدموي 🐉",
+    emoji: "🐉",
+    image: shipDragonRedImg,
+    count: 3,
+    desc: "3 سفن تنين حمراء",
+    fullDesc:
+      "3 سفن تنين حمراء دموية 🩸 • دمّ 20,000 وسعة صيد 20,000 لكل سفينة • تصيد التنين الأسود الأسطوري 🐉 • مدة الصيد 20 دقيقة لكل رحلة • قوة نار حارقة تدفع أسطولك لمستوى جديد.",
+    rarity: "epic",
+    tag: "جديد",
+    payment: { kind: "paddle", priceUsd: 100, packId: "bd_dragon_t1" },
+  },
+  {
+    id: "bd_dragon_t2",
+    name: "ثلاثية سفن التنين الفضي 🐲",
+    emoji: "🐲",
+    image: shipDragonSilverImg,
+    count: 3,
+    desc: "3 سفن تنين فضية",
+    fullDesc:
+      "3 سفن تنين فضية لامعة ✨ • دمّ 40,000 وسعة صيد 40,000 لكل سفينة • تصيد التنين الأسود الأسطوري 🐉 • مدة الصيد 30 دقيقة لكل رحلة • قوة نبيلة وأناقة قتالية لا تُقاوم.",
+    rarity: "epic",
+    tag: "أسطوري",
+    payment: { kind: "paddle", priceUsd: 200, packId: "bd_dragon_t2" },
+  },
+  {
+    id: "bd_dragon_t3",
+    name: "ثلاثية سفن التنين الذهبي 👑",
+    emoji: "👑",
+    image: shipDragonGoldImg,
+    count: 3,
+    desc: "3 سفن تنين ذهبية ملكية",
+    fullDesc:
+      "3 سفن تنين ذهبية ملكية 👑 • دمّ 60,000 وسعة صيد 60,000 لكل سفينة • تصيد التنين الأسود الأسطوري 🐉 • مدة الصيد 40 دقيقة لكل رحلة • قمّة الأسطول — قوة لا تُقهر ومكانة ملوكية بين القراصنة.",
+    rarity: "mythic",
+    tag: "خرافي",
+    payment: { kind: "paddle", priceUsd: 300, packId: "bd_dragon_t3" },
+  },
+];
+
+function ShipsPanel({
+  flash,
+  gems,
+  userSignedIn,
+}: {
+  flash: (m: string, ms?: number) => void;
+  gems: number;
+  userSignedIn: boolean;
+}) {
+  const [selected, setSelected] = useState<ShipPack | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const buy = async (pack: ShipPack) => {
+    if (busy) return;
+    if (!userSignedIn) { flash("سجّل الدخول أولاً"); return; }
+    if (pack.payment.kind === "gems") {
+      if (gems < pack.payment.price) { flash("لا تملك جواهر كافية"); return; }
+      if (!window.confirm(`تأكيد شراء ${pack.name} مقابل ${pack.payment.price.toLocaleString()} جوهرة؟`)) return;
+      setBusy(true);
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.rpc as any)(pack.payment.rpc);
+        if (error) { flash("فشل الشراء: " + error.message, 2200); return; }
+        sound.play("coin"); sound.play("success");
+        showBanner({ kind: "purchase", title: pack.name, subtitle: `${pack.payment.price} جوهرة`, emoji: pack.emoji, image: pack.image, count: pack.count });
+        flash(`✓ اشتريت ${pack.name}`, 1800);
+        refreshProfile();
+        setSelected(null);
+      } finally { setBusy(false); }
+    } else {
+      if (isNativeApp()) { flash("سفن التنين متاحة عبر الشحن في تطبيق الويب فقط", 2400); return; }
+      setBusy(true);
+      try { await buyPackWithPaddle(pack.payment.packId); }
+      catch (e) { flash("تعذر فتح الدفع: " + ((e as Error).message || ""), 2400); }
+      finally { setBusy(false); }
+    }
+  };
+
+  return (
+    <div className="mt-3 px-2 space-y-3">
+      {SHIP_PACKS.map((p) => (
+        <button
+          key={p.id}
+          onClick={() => setSelected(p)}
+          className={`w-full text-right rounded-2xl border-2 p-3 flex items-center gap-3 active:scale-[0.98] transition ${
+            p.rarity === "mythic"
+              ? "bg-gradient-to-br from-amber-900/60 to-stone-950/90 border-amber-400/70 shadow-[0_0_18px_rgba(251,191,36,0.35)]"
+              : p.rarity === "epic"
+                ? "bg-gradient-to-br from-purple-900/60 to-stone-950/90 border-fuchsia-400/50"
+                : "bg-gradient-to-br from-violet-900/70 to-stone-950/90 border-violet-300/50"
+          }`}
+        >
+          {/* Image block: shows 3 mini ships for trio, or single */}
+          <div className="relative shrink-0 w-24 h-24 rounded-xl bg-black/40 border border-white/10 overflow-hidden flex items-center justify-center">
+            {p.count === 3 ? (
+              <div className="w-full h-full relative">
+                <img src={p.image} alt="" className="absolute w-14 h-14 object-contain left-0 top-1 opacity-90 drop-shadow" />
+                <img src={p.image} alt="" className="absolute w-14 h-14 object-contain right-0 top-1 opacity-90 drop-shadow" />
+                <img src={p.image} alt={p.name} className="absolute w-16 h-16 object-contain left-1/2 -translate-x-1/2 bottom-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
+              </div>
+            ) : (
+              <img src={p.image} alt={p.name} className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
+            )}
+            <span className="absolute top-1 left-1 text-[10px] font-extrabold bg-black/70 text-amber-200 rounded-md px-1.5 py-0.5">{p.count}×</span>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1 flex-wrap">
+              <div className="text-sm font-extrabold text-amber-100">{p.name}</div>
+              {p.tag && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">{p.tag}</span>
+              )}
+            </div>
+            <div className="text-[11px] text-rose-100/85 leading-relaxed mt-1 whitespace-normal break-words">
+              {p.fullDesc}
+            </div>
+            <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 text-white text-xs font-extrabold">
+              {p.payment.kind === "gems" ? (
+                <>💎 {p.payment.price.toLocaleString()}</>
+              ) : (
+                <>{formatSarFromUsd(p.payment.priceUsd)}</>
+              )}
+            </div>
+          </div>
+        </button>
+      ))}
+
+      {/* Details modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
+          onClick={() => !busy && setSelected(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-stone-900 to-stone-950 shadow-2xl p-4"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            <div className="flex items-start gap-3">
+              <div className="relative shrink-0 w-28 h-28 rounded-xl bg-black/50 border border-white/10 overflow-hidden flex items-center justify-center">
+                {selected.count === 3 ? (
+                  <div className="w-full h-full relative">
+                    <img src={selected.image} alt="" className="absolute w-16 h-16 object-contain left-0 top-1 opacity-90" />
+                    <img src={selected.image} alt="" className="absolute w-16 h-16 object-contain right-0 top-1 opacity-90" />
+                    <img src={selected.image} alt={selected.name} className="absolute w-20 h-20 object-contain left-1/2 -translate-x-1/2 bottom-0" />
+                  </div>
+                ) : (
+                  <img src={selected.image} alt={selected.name} className="w-full h-full object-contain" />
+                )}
+                <span className="absolute top-1 left-1 text-xs font-extrabold bg-black/70 text-amber-200 rounded-md px-1.5 py-0.5">{selected.count}×</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-base font-extrabold text-amber-200">{selected.name}</div>
+                {selected.tag && (
+                  <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">{selected.tag}</span>
+                )}
+                <div className="mt-2 text-[13px] text-rose-100/90 leading-relaxed whitespace-normal break-words">
+                  {selected.fullDesc}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={() => setSelected(null)}
+                disabled={busy}
+                className="px-4 py-2 rounded-lg bg-stone-700 text-white font-bold active:scale-95 disabled:opacity-50"
+              >
+                إلغاء
+              </button>
+              <div className="flex-1" />
+              <div className="text-amber-200 font-extrabold text-sm">
+                {selected.payment.kind === "gems"
+                  ? <>💎 {selected.payment.price.toLocaleString()}</>
+                  : <>{formatSarFromUsd(selected.payment.priceUsd)} <span className="text-[10px] text-amber-100/60">شامل الضريبة</span></>}
+              </div>
+              <button
+                onClick={() => buy(selected)}
+                disabled={busy}
+                className="px-5 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg text-amber-950 font-extrabold active:scale-95 disabled:opacity-60"
+              >
+                {busy ? "..." : "شراء"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
