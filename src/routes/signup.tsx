@@ -30,6 +30,7 @@ function SignupPage() {
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const slotGate = useDeviceSlotGate();
 
   // Capture ?ref=CODE from URL or localStorage
   useEffect(() => {
