@@ -848,6 +848,33 @@ function Index() {
   };
   const [menuShipId, setMenuShipId] = useState<number | null>(null);
   const [modal, setModal] = useState<null | { kind: "sell" | "crew"; shipId: number }>(null);
+  // Ghost-tap guard: after a modal/menu opens, ignore any interaction fired
+  // in the first ~300ms. Prevents a fast double-tap on a ship from bleeding
+  // through into the just-opened action menu (which could trigger "sell"),
+  // and prevents the same ghost tap from confirming the sell dialog itself.
+  const [menuArmed, setMenuArmed] = useState(false);
+  const [sellArmed, setSellArmed] = useState(false);
+  useEffect(() => {
+    if (menuShipId === null) { setMenuArmed(false); return; }
+    setMenuArmed(false);
+    const t = window.setTimeout(() => setMenuArmed(true), 280);
+    return () => window.clearTimeout(t);
+  }, [menuShipId]);
+  useEffect(() => {
+    if (modal?.kind !== "sell") { setSellArmed(false); return; }
+    setSellArmed(false);
+    const t = window.setTimeout(() => setSellArmed(true), 400);
+    return () => window.clearTimeout(t);
+  }, [modal]);
+  // Debounce ship-card taps so a rapid double-tap only opens the menu once.
+  const lastShipTapRef = useRef<{ id: number; at: number }>({ id: -1, at: 0 });
+  const openShipMenu = (id: number) => {
+    const now = Date.now();
+    const last = lastShipTapRef.current;
+    if (last.id === id && now - last.at < 450) return;
+    lastShipTapRef.current = { id, at: now };
+    setMenuShipId(id);
+  };
   const [fishPickerShipId, setFishPickerShipId] = useState<number | null>(null);
   // When true, the picker only updates the guide's preferred fish without launching/collecting.
   const [fishPickerChangeOnly, setFishPickerChangeOnly] = useState(false);
@@ -2268,7 +2295,7 @@ function Index() {
               sail: previewSail ?? s.sail,
             }}
             crews={shipCrews}
-            onTap={() => setMenuShipId(s.id)}
+            onTap={() => openShipMenu(s.id)}
             active={menuShipId === s.id}
           />
         );
@@ -2398,10 +2425,11 @@ function Index() {
         return (
           <div
             className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center"
-            onClick={() => setMenuShipId(null)}
+            onClick={() => { if (menuArmed) setMenuShipId(null); }}
           >
             <div
               className="glass-hud rounded-2xl border-2 border-accent/60 p-4 flex flex-col gap-3"
+              style={{ pointerEvents: menuArmed ? "auto" : "none" }}
               onClick={(e) => e.stopPropagation()}
             >
               {onSteal && (
@@ -2718,8 +2746,8 @@ function Index() {
         if (!s) return null;
         const price = shipSellPrice(s.level);
         return (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => { if (sellArmed) setModal(null); }}>
+            <div className="glass-hud rounded-2xl border-2 border-accent/60 p-5 max-w-xs w-full text-center" style={{ pointerEvents: sellArmed ? "auto" : "none" }} onClick={(e) => e.stopPropagation()}>
               <div className="text-4xl mb-2">⚓</div>
               <div className="text-accent font-bold text-base mb-1">بيع السفينة</div>
               <div className="text-xs text-accent/80 mb-3">هل أنت متأكد من بيع هذه السفينة؟</div>
@@ -2730,8 +2758,10 @@ function Index() {
                   onClick={() => setModal(null)}
                 >إلغاء</button>
                 <button
-                  className="flex-1 py-2 rounded-lg bg-gradient-to-b from-red-500 to-red-700 text-white text-xs font-bold active:scale-95"
+                  disabled={!sellArmed}
+                  className="flex-1 py-2 rounded-lg bg-gradient-to-b from-red-500 to-red-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
                   onClick={() => {
+                    if (!sellArmed) return;
                     sound.play("coin");
                     const soldDbId = s.dbId;
                     setShips((curr) => curr.filter((x) => x.id !== s.id));
