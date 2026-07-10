@@ -61,9 +61,10 @@ function emailDomain(email: string): string | null {
  * specific device fingerprint and the user account, not to the connection.
  */
 export const authPreflight = createServerFn({ method: "POST" })
-  .inputValidator((input: { email?: string | null; deviceId?: string | null }) => ({
+  .inputValidator((input: { email?: string | null; deviceId?: string | null; hardwareId?: string | null }) => ({
     email: (input?.email ?? "").trim().toLowerCase().slice(0, 255) || null,
     deviceId: (input?.deviceId ?? "").trim().slice(0, 160) || null,
+    hardwareId: (input?.hardwareId ?? "").trim().slice(0, 160) || null,
   }))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
@@ -84,15 +85,59 @@ export const authPreflight = createServerFn({ method: "POST" })
       }
     }
 
-    // Email
+    // Email ban
     if (data.email) {
       const { data: row } = await sb.from("banned_emails").select("email").eq("email", data.email).maybeSingle();
       if (row) return { blocked: true, reason: "هذا البريد محظور من إنشاء حساب أو الدخول" };
     }
-    // Device fingerprint
-    if (data.deviceId) {
-      const { data: row } = await sb.from("banned_devices").select("device_id").eq("device_id", data.deviceId).maybeSingle();
-      if (row) return { blocked: true, reason: "هذا الجهاز محظور — لا يمكن إنشاء أو دخول حساب منه" };
+
+    // Device fingerprint ban — check BOTH the legacy random-uuid device id
+    // AND the hardware fingerprint (survives storage clears / new accounts).
+    const ids = [data.deviceId, data.hardwareId].filter((v): v is string => !!v && v.length >= 8);
+    if (ids.length) {
+      const { data: rows } = await sb
+        .from("banned_devices")
+        .select("device_id")
+        .in("device_id", ids)
+        .limit(1);
+      if (rows && rows.length > 0) {
+        return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+      }
+
+      // Also check: has any BANNED user ever used any of these device ids?
+      // Catches the case where the admin banned the user before we started
+      // recording hardware ids, or where the visitor cleared localStorage
+      // but the same physical device is still recognizable by hardware hash.
+      const { data: linked } = await sb
+        .from("device_accounts")
+        .select("user_id, device_id")
+        .in("device_id", ids)
+        .limit(100);
+      const userIds = Array.from(new Set((linked ?? []).map((r: any) => r.user_id).filter(Boolean)));
+      if (userIds.length) {
+        const { data: bans } = await sb
+          .from("bans")
+          .select("user_id")
+          .in("user_id", userIds as string[])
+          .eq("active", true)
+          .limit(1);
+        if (bans && bans.length > 0) {
+          const bannedUid = (bans[0] as any).user_id;
+          // Auto-add every id we saw to banned_devices for faster future lookup.
+          try {
+            await sb.from("banned_devices").upsert(
+              ids.map((id) => ({
+                device_id: id,
+                user_id: bannedUid,
+                reason: "auto: matched banned user device",
+              })),
+              { onConflict: "device_id" },
+            );
+          } catch {}
+          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        }
+      }
     }
+
     return { blocked: false, reason: null };
   });

@@ -49,8 +49,10 @@ function SignupPage() {
     setErr(null); setLoading(true);
     try {
       const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
+      const { getHardwareFingerprint } = await import("@/lib/device-fingerprint");
+      const hardwareId = await getHardwareFingerprint();
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
-      const pre = await authPreflight({ data: { email, deviceId } });
+      const pre = await authPreflight({ data: { email, deviceId, hardwareId } });
       if (pre.blocked) {
         setLoading(false);
         setErr(pre.reason || "ممنوع إنشاء حساب");
