@@ -175,6 +175,42 @@ export const STORE_PACKS: StorePack[] = [
     reward: { gems: 1_150, phoenixShips: 3 },
   },
 
+  // ───── Dragon Ships (Paddle) ─────────────────────────────
+  {
+    id: "bd_dragon_t1",
+    category: "bundle",
+    label: "🐉 ثلاثية سفن التنين الدموي",
+    emoji: "🐉",
+    priceUSD: 100,
+    tag: "جديد",
+    description: "3 سفن تنين حمراء — دم 20,000 وسعة 20,000 لكل سفينة، صيد كل 20 دقيقة، تصيد التنين الأسود الأسطوري 🐉",
+    images: [shipDragonRedImg],
+    reward: { dragonT1Ships: 3 },
+  },
+  {
+    id: "bd_dragon_t2",
+    category: "bundle",
+    label: "🐲 ثلاثية سفن التنين الفضي",
+    emoji: "🐲",
+    priceUSD: 200,
+    tag: "أسطوري",
+    popular: true,
+    description: "3 سفن تنين فضية — دم 40,000 وسعة 40,000 لكل سفينة، صيد كل 30 دقيقة، تصيد التنين الأسود الأسطوري 🐉",
+    images: [shipDragonSilverImg],
+    reward: { dragonT2Ships: 3 },
+  },
+  {
+    id: "bd_dragon_t3",
+    category: "bundle",
+    label: "👑 ثلاثية سفن التنين الذهبي",
+    emoji: "👑",
+    priceUSD: 300,
+    tag: "خرافي",
+    description: "3 سفن تنين ذهبية ملكية — دم 60,000 وسعة 60,000 لكل سفينة، صيد كل 40 دقيقة، تصيد التنين الأسود الأسطوري 🐉",
+    images: [shipDragonGoldImg],
+    reward: { dragonT3Ships: 3 },
+  },
+
   // ───── Bundles ────────────────────────────────────────────
   {
     id: "bd_starter",
