@@ -160,6 +160,9 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   31: { ar: "سفينة العنقاء التنينية",  rarity: "Legendary", flavor: "سفينة العنقاء الحمراء — حصرية للمتجر، تصيد عنقاء النار النادرة فقط. سعة 13 ألف ودمّ 13 ألف.", storage: 13000,  price: 0,           fishingMinutes: 20,   fishPool: ["phoenix"] },
   32: { ar: "الغواصة الملكية VIP",     rarity: "Mythic",    flavor: "غواصة سوداء فاخرة حصرية لأعضاء VIP 5 فأعلى — تنزل لأعماق المحيط وتصيد تيتان الأعماق النادر. كل عضو VIP 5+ يستلم 3 غواصات. السعة والدمّ يتدرّجان حسب مستوى VIP وقت الاستلام: VIP 5 = 60 ألف، VIP 6 = 118 ألف، VIP 7 = 176 ألف، VIP 8 = 234 ألف، VIP 9 = 292 ألف، VIP 10 = 350 ألف.", storage: 350000, price: 0,           fishingMinutes: 45,   fishPool: ["abyss_titan"] },
   33: { ar: "الغواصة القابلة للترقية",  rarity: "Legendary", flavor: "غواصة قابلة للترقية بنظام نجوم. تبدأ بنجمة صفراء (سعة 350 ألف) وتترقى حتى النجمة الحمراء (سعة 1 مليون). كل ترقية بـ 1 مليار ذهب — نسب النجاح: 100/95/90/70%. عند الفشل ترجع لمستوى أدنى. تصيد 3 أنواع أسطورية فقط.", storage: 350000, price: 19500000000, fishingMinutes: 50, fishPool: ["kraken","leviathan","poseidon"] },
+  34: { ar: "سفينة التنين الدموي",      rarity: "Legendary", flavor: "سفينة تنين حمراء أسطورية — دم 20,000 وسعة 20,000 وصيد كل 20 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 20000, price: 0, fishingMinutes: 20, fishPool: ["black_dragon"] },
+  35: { ar: "سفينة التنين الفضي",       rarity: "Legendary", flavor: "سفينة تنين فضية أسطورية — دم 40,000 وسعة 40,000 وصيد كل 30 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 40000, price: 0, fishingMinutes: 30, fishPool: ["black_dragon"] },
+  36: { ar: "سفينة التنين الذهبي",      rarity: "Mythic",    flavor: "سفينة تنين ذهبية ملكية خرافية — دم 60,000 وسعة 60,000 وصيد كل 40 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 60000, price: 0, fishingMinutes: 40, fishPool: ["black_dragon"] },
 };
 
 function buildShip(level: number): ShipDef {
