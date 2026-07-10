@@ -778,14 +778,15 @@ function ShipsPanel({
       {/* Details modal */}
       {selected && (
         <div
-          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
+          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto"
           onClick={() => !busy && setSelected(null)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-stone-900 to-stone-950 shadow-2xl p-4"
+            className="w-full max-w-md my-auto rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-stone-900 to-stone-950 shadow-2xl p-4 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
+
             <div className="flex items-start gap-3">
               <div className="relative shrink-0 w-28 h-28 rounded-xl bg-black/50 border border-white/10 overflow-hidden flex items-center justify-center">
                 {selected.count === 3 ? (
