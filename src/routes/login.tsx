@@ -32,6 +32,7 @@ function LoginPage() {
   const [resendMsg, setResendMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [needsMfa, setNeedsMfa] = useState(false);
+  const slotGate = useDeviceSlotGate();
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
