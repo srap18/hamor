@@ -99,7 +99,14 @@ function LoginPage() {
       return;
     }
     if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-    nav({ to: "/" });
+    const { data: sd } = await supabase.auth.getSession();
+    const uid = sd.session?.user.id;
+    if (uid) {
+      const ok = await slotGate.checkAndProceed(uid, sd.session?.user.email || null);
+      if (ok) nav({ to: "/" });
+    } else {
+      nav({ to: "/" });
+    }
   };
 
 
