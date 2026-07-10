@@ -42,6 +42,9 @@ export type StorePack = {
     shieldDays?: number;
     vipDays?: number;
     phoenixShips?: number;
+    dragonT1Ships?: number;
+    dragonT2Ships?: number;
+    dragonT3Ships?: number;
     items?: PackInventoryItem[];
   };
 };
