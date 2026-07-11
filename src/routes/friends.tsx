@@ -115,6 +115,7 @@ function FriendsPage() {
       already_friends: "أنتم أصدقاء بالفعل",
       invalid_target: "طلب غير صالح",
       blocked: "🚫 لا يمكن إرسال طلب صداقة — يوجد حظر بينكما",
+      requests_closed: "🔒 هذا اللاعب أوقف استقبال طلبات الصداقة",
     };
     if (map[code]) alert(map[code]);
     reload();
