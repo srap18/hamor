@@ -976,10 +976,20 @@ function Index() {
   const getCrewBonuses = (ship: Ship) => {
     const assigned = crewRowsRef.current.filter((r) => isCrewAssignedToShip(r.meta, ship));
     const ids = new Set(assigned.map((r) => r.item_id));
+    // Guide is a "picker" utility: if the user owns any non-expired guide crew
+    // row in inventory, allow fish-type selection on every ship. This matches
+    // the way Golden Fisher works globally and prevents the picker from
+    // disappearing when GF auto-manages ships without a per-ship guide slot.
+    const nowMs = Date.now();
+    const ownsGuide = crewRowsRef.current.some((r) => {
+      if (r.item_id !== "guide") return false;
+      const exp = r.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : Infinity;
+      return exp > nowMs;
+    });
     return {
       sailorMult: ids.has("sailor") ? (1 / 0.5) : 1, // 50% time reduction
       hasSailor: ids.has("sailor"),
-      guide: ids.has("guide"),
+      guide: ids.has("guide") || ownsGuide,
       hasLuck: ids.has("luck"),
     };
   };
