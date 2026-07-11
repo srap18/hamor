@@ -88,12 +88,12 @@ function AdminFishPrices() {
     setRecomputing(false);
   };
 
+  // Show ALL fish under EVERY ship that catches them (no dedup) so admin
+  // can edit prices per-ship context and confirm accuracy visually.
   const shipBlocks = useMemo(() => {
-    const seen = new Set<string>();
     return SHIP_LEVELS.map((lvl) => {
       const ship = getShipByMarketLevel(lvl);
-      const fishIds = (ship.fishPool ?? []).filter((id) => FISH[id] && !seen.has(id));
-      fishIds.forEach((id) => seen.add(id));
+      const fishIds = (ship.fishPool ?? []).filter((id) => FISH[id]);
       return { lvl, ship, fishIds };
     }).filter((b) => b.fishIds.length > 0);
   }, []);
