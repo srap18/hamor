@@ -29,6 +29,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
   const pauseBg = useBgMotionPaused();
   const powerSaver = usePowerSaver();
 
