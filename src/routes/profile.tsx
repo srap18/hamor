@@ -269,7 +269,7 @@ function ProfilePage() {
           <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
             <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
               {/* Avatar sits centered and smaller so the frame's ring surrounds it without covering the picture */}
-              <div className={`relative rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
+              <div className={`relative z-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                 ) : (

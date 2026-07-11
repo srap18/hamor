@@ -66,7 +66,7 @@ export const AVATAR_FRAMES: Frame[] = [
   {
     id: "af_scorpio", name: "إطار العقرب 🦂", kind: "avatar",
     price: 50000, currency: "gem", rarity: "mythic", preview: "♏",
-    imageUrl: scorpioImg, animClass: "frame-anim-pulse",
+    imageUrl: scorpioImg, animClass: "frame-anim-pulse mix-blend-multiply",
   },
   {
     id: "af_pisces", name: "إطار الحوت 🐟", kind: "avatar",
