@@ -49,6 +49,8 @@ function FriendsPage() {
     setFriends(all.filter(x => x.status === "accepted").map(x => ({ ...x, profile: pMap.get(x.requester_id === user.id ? x.addressee_id : x.requester_id)! })).filter(x => x.profile));
     setRequests(all.filter(x => x.status === "pending" && x.addressee_id === user.id).map(x => ({ ...x, profile: pMap.get(x.requester_id)! })).filter(x => x.profile));
     setBlocked(blockedIds.map(id => pMap.get(id)).filter(Boolean) as P[]);
+    const { data: me } = await supabase.from("profiles").select("friend_requests_closed").eq("id", user.id).maybeSingle();
+    setRequestsClosed(!!(me as any)?.friend_requests_closed);
   };
   useEffect(() => {
     if (!user) return;
@@ -60,6 +62,34 @@ function FriendsPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user]);
+
+  const toggleClosed = async () => {
+    if (busy) return;
+    setBusy(true);
+    const next = !requestsClosed;
+    const { error } = await (supabase as any).rpc("set_friend_requests_closed", { p_closed: next });
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    setRequestsClosed(next);
+  };
+  const acceptAll = async () => {
+    if (busy || requests.length === 0) return;
+    if (!confirm(`قبول جميع طلبات الصداقة (${requests.length})؟`)) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("accept_all_friend_requests");
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    reload();
+  };
+  const rejectAll = async () => {
+    if (busy || requests.length === 0) return;
+    if (!confirm(`رفض جميع طلبات الصداقة (${requests.length})؟`)) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("reject_all_friend_requests");
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    reload();
+  };
 
   const unblock = async (uid: string) => {
     if (!user) return;
