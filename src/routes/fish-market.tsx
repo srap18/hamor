@@ -987,9 +987,12 @@ function SellView({
 
   const future = useMemo(() => {
     if (!traderActive) return [] as number[];
-    if (forecast && forecast.length > 0) return forecast.slice(0, FUTURE_HOURS);
-    return forecastPrices(fish, currentPrice, 42, FUTURE_HOURS);
-  }, [traderActive, fish.id, currentPrice, forecast]);
+    const clamp = (v: number) => Math.min(fish.maxPrice, Math.max(fish.minPrice, v));
+    const raw = (forecast && forecast.length > 0)
+      ? forecast.slice(0, FUTURE_HOURS)
+      : forecastPrices(fish, currentPrice, 42, FUTURE_HOURS);
+    return raw.map(clamp);
+  }, [traderActive, fish.id, fish.minPrice, fish.maxPrice, currentPrice, forecast]);
 
   const showFuture = traderActive;
   const allPoints = showFuture ? [...past, ...future] : past;
