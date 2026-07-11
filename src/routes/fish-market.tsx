@@ -660,6 +660,7 @@ function FishMarket() {
           traderPrice={traderPrice}
           rot={rotMult(sel.id)}
           selling={selling}
+          marketExpertActive={marketExpertActive}
           onBack={() => setSelected(null)}
           onSell={sell}
           onPurchased={() => { loadMarketState(); refreshProfile(); }}
