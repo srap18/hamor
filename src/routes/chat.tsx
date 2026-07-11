@@ -281,6 +281,25 @@ function ChatPage() {
     reloadBlocks();
   }, [reloadBlocks]);
 
+  const deleteDmConversation = useCallback(async (otherId: string) => {
+    const ok = await confirmDialog({
+      title: "حذف المحادثة",
+      message: "سيتم حذف جميع الرسائل بينك وبين هذا اللاعب نهائياً (للطرفين). لا يمكن التراجع.",
+      confirmText: "احذف",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await (supabase as any).rpc("delete_dm_conversation", { p_other: otherId });
+    if (error) { showNotice("تعذر الحذف: " + error.message); return; }
+    showNotice("🗑️ تم حذف المحادثة");
+    setMsgs([]);
+    setMsgsKey("");
+    if (dmWith === otherId) setDmWith(null);
+    reloadThreads();
+  }, [dmWith, reloadThreads, showNotice]);
+
+
+
 
   // Live DM unread map (per-friend counts + total). Refresh on every incoming DM.
   useEffect(() => {
