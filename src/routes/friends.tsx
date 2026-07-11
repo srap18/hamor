@@ -21,6 +21,8 @@ function FriendsPage() {
   const [friends, setFriends] = useState<(F & { profile: P })[]>([]);
   const [requests, setRequests] = useState<(F & { profile: P })[]>([]);
   const [blocked, setBlocked] = useState<P[]>([]);
+  const [requestsClosed, setRequestsClosed] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const reload = async () => {
     if (!user) return;
