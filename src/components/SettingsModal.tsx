@@ -29,6 +29,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
   const pauseBg = useBgMotionPaused();
   const powerSaver = usePowerSaver();
 
@@ -102,6 +106,20 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       redirectTo: `${siteUrl()}/auth/confirm?type=recovery&next=/reset-password`,
     });
     flash(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.reset_sent"));
+  };
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (changingPassword) return;
+    if (newPassword.length < 6) { flash(t("settings.password_short")); return; }
+    if (newPassword !== confirmPassword) { flash(t("settings.password_mismatch")); return; }
+    if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) { flash(t("settings.change_failed") + arabicAuthError(error.message)); return; }
+    flash(t("settings.password_changed"));
+    setNewPassword(""); setConfirmPassword(""); setShowPasswordForm(false);
   };
 
   const signOut = async () => {
@@ -331,6 +349,42 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                   {changingEmail ? t("common.sending") : t("settings.confirm_change")}
                 </button>
                 <div className="text-[10px] text-accent/60 text-center">{t("settings.confirm_change_hint")}</div>
+              </form>
+            )}
+            <button
+              onClick={() => setShowPasswordForm((v) => !v)}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-xs font-bold active:scale-95"
+            >
+              {t("settings.change_password")}
+            </button>
+            {showPasswordForm && (
+              <form onSubmit={changePassword} className="space-y-2 p-2 rounded-lg bg-black/30 border border-accent/30">
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  placeholder={t("settings.new_password")}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-2 py-1.5 rounded bg-stone-900 border border-amber-700/40 text-white text-xs"
+                />
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  placeholder={t("settings.confirm_password")}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-2 py-1.5 rounded bg-stone-900 border border-amber-700/40 text-white text-xs"
+                />
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
+                >
+                  {changingPassword ? t("common.sending") : t("settings.save_password")}
+                </button>
+                <div className="text-[10px] text-accent/60 text-center leading-snug">{t("settings.forgot_hint")}</div>
               </form>
             )}
             <button
