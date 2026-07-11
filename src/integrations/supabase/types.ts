@@ -5143,6 +5143,13 @@ export type Database = {
         Args: { _action: string; _min_ms: number }
         Returns: undefined
       }
+      _fish_price_bounds: {
+        Args: { _fish_id: string }
+        Returns: {
+          max_p: number
+          min_p: number
+        }[]
+      }
       _gen_unique_username: { Args: never; Returns: string }
       _grant_ship_with_storage: {
         Args: { _catalog_code: string; _uid: string }
