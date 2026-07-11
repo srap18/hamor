@@ -449,7 +449,18 @@ function PlayerPage() {
     setCancelRaiderId(null);
     sound.play("click");
     const { data, error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
-    if (error) { flash("تعذّر إيقاف السرقة"); return; }
+    if (error) {
+      const msg = String(error.message || "");
+      if (msg.includes("no active steal mission") || msg.includes("ship not found")) {
+        flash("🛑 هذه السرقة انتهت — تم التحديث");
+      } else if (msg.includes("not allowed")) {
+        flash("غير مسموح بإيقاف هذه السرقة");
+      } else {
+        flash(`تعذّر إيقاف السرقة: ${msg || "خطأ غير معروف"}`);
+      }
+      loadRaiders();
+      return;
+    }
     sound.play("success");
     const row = Array.isArray(data) && data[0] ? data[0] : null;
     const n = row?.stolen_count ?? 0;
