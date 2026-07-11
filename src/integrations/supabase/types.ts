@@ -2963,6 +2963,7 @@ export type Database = {
           elite_vip_expires_at: string | null
           elite_vip_level: number
           elite_vip_login_broadcast_enabled: boolean
+          friend_requests_closed: boolean
           gems: number
           golden_fisher_last_activated_at: string | null
           golden_fisher_no_shield: boolean
@@ -3030,6 +3031,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          friend_requests_closed?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_no_shield?: boolean
@@ -3097,6 +3099,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          friend_requests_closed?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
           golden_fisher_no_shield?: boolean
@@ -5200,6 +5203,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      accept_all_friend_requests: { Args: never; Returns: number }
       accept_join_request: { Args: { _request_id: string }; Returns: undefined }
       activate_golden_fisher: { Args: never; Returns: Json }
       activate_market_expert: { Args: never; Returns: Json }
@@ -5857,6 +5861,7 @@ export type Database = {
         Returns: Json
       }
       daughter_gem_cost: { Args: { _from_stage: number }; Returns: number }
+      delete_dm_conversation: { Args: { p_other: string }; Returns: number }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -6689,6 +6694,7 @@ export type Database = {
       redeem_code: { Args: { p_code: string }; Returns: Json }
       refresh_boss_attacks: { Args: never; Returns: Json }
       register_device: { Args: { _device_id: string }; Returns: Json }
+      reject_all_friend_requests: { Args: never; Returns: number }
       remove_ad_bombs: { Args: never; Returns: number }
       remove_golden_fisher: { Args: never; Returns: Json }
       rename_daughter: { Args: { _name: string }; Returns: undefined }
@@ -6829,6 +6835,10 @@ export type Database = {
       }
       set_elite_vip_login_broadcast: {
         Args: { _enabled: boolean }
+        Returns: boolean
+      }
+      set_friend_requests_closed: {
+        Args: { p_closed: boolean }
         Returns: boolean
       }
       set_guide_fish: {

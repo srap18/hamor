@@ -281,6 +281,25 @@ function ChatPage() {
     reloadBlocks();
   }, [reloadBlocks]);
 
+  const deleteDmConversation = useCallback(async (otherId: string) => {
+    const ok = await confirmDialog({
+      title: "حذف المحادثة",
+      message: "سيتم حذف جميع الرسائل بينك وبين هذا اللاعب نهائياً (للطرفين). لا يمكن التراجع.",
+      confirmText: "احذف",
+      danger: true,
+    });
+    if (!ok) return;
+    const { error } = await (supabase as any).rpc("delete_dm_conversation", { p_other: otherId });
+    if (error) { showNotice("تعذر الحذف: " + error.message); return; }
+    showNotice("🗑️ تم حذف المحادثة");
+    setMsgs([]);
+    setMsgsKey("");
+    if (dmWith === otherId) setDmWith(null);
+    reloadThreads();
+  }, [dmWith, reloadThreads]);
+
+
+
 
   // Live DM unread map (per-friend counts + total). Refresh on every incoming DM.
   useEffect(() => {
@@ -807,6 +826,7 @@ function ChatPage() {
                 ) : (
                   <button onClick={() => blockDmUser(dmWith!)} className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-red-400/60 text-xs font-black text-red-300 shadow active:scale-95" aria-label="حظر">🚫</button>
                 )}
+                <button onClick={() => deleteDmConversation(dmWith!)} className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-amber-400/60 text-xs font-black text-amber-200 shadow active:scale-95" aria-label="حذف المحادثة">🗑️</button>
                 <button onClick={() => setWarTarget(dmFriendInfo)} className="px-2.5 py-1.5 rounded-lg bg-gradient-to-b from-red-500 to-red-800 border border-red-300/60 text-xs font-black text-white shadow active:scale-95">⚔️ حرب</button>
               </div>
             )}

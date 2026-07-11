@@ -21,6 +21,8 @@ function FriendsPage() {
   const [friends, setFriends] = useState<(F & { profile: P })[]>([]);
   const [requests, setRequests] = useState<(F & { profile: P })[]>([]);
   const [blocked, setBlocked] = useState<P[]>([]);
+  const [requestsClosed, setRequestsClosed] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const reload = async () => {
     if (!user) return;
@@ -47,6 +49,8 @@ function FriendsPage() {
     setFriends(all.filter(x => x.status === "accepted").map(x => ({ ...x, profile: pMap.get(x.requester_id === user.id ? x.addressee_id : x.requester_id)! })).filter(x => x.profile));
     setRequests(all.filter(x => x.status === "pending" && x.addressee_id === user.id).map(x => ({ ...x, profile: pMap.get(x.requester_id)! })).filter(x => x.profile));
     setBlocked(blockedIds.map(id => pMap.get(id)).filter(Boolean) as P[]);
+    const { data: me } = await supabase.from("profiles").select("friend_requests_closed").eq("id", user.id).maybeSingle();
+    setRequestsClosed(!!(me as any)?.friend_requests_closed);
   };
   useEffect(() => {
     if (!user) return;
@@ -58,6 +62,34 @@ function FriendsPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user]);
+
+  const toggleClosed = async () => {
+    if (busy) return;
+    setBusy(true);
+    const next = !requestsClosed;
+    const { error } = await (supabase as any).rpc("set_friend_requests_closed", { p_closed: next });
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    setRequestsClosed(next);
+  };
+  const acceptAll = async () => {
+    if (busy || requests.length === 0) return;
+    if (!confirm(`قبول جميع طلبات الصداقة (${requests.length})؟`)) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("accept_all_friend_requests");
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    reload();
+  };
+  const rejectAll = async () => {
+    if (busy || requests.length === 0) return;
+    if (!confirm(`رفض جميع طلبات الصداقة (${requests.length})؟`)) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("reject_all_friend_requests");
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    reload();
+  };
 
   const unblock = async (uid: string) => {
     if (!user) return;
@@ -83,6 +115,7 @@ function FriendsPage() {
       already_friends: "أنتم أصدقاء بالفعل",
       invalid_target: "طلب غير صالح",
       blocked: "🚫 لا يمكن إرسال طلب صداقة — يوجد حظر بينكما",
+      requests_closed: "🔒 هذا اللاعب أوقف استقبال طلبات الصداقة",
     };
     if (map[code]) alert(map[code]);
     reload();
@@ -118,9 +151,29 @@ function FriendsPage() {
           )}
         </section>
 
+        <section className="rounded-xl border border-amber-700/40 bg-stone-900/60 p-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-black text-amber-200">🔒 إيقاف طلبات الصداقة</div>
+              <div className="text-[11px] text-amber-100/60">لن يستطيع أحد إرسال طلب صداقة لك.</div>
+            </div>
+            <button
+              onClick={toggleClosed}
+              disabled={busy}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black shadow active:scale-95 ${requestsClosed ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"}`}
+            >
+              {requestsClosed ? "موقوفة — تفعيل" : "مفعّلة — إيقاف"}
+            </button>
+          </div>
+        </section>
+
         {requests.length > 0 && (
           <section>
-            <div className="text-sm font-bold text-amber-300 mb-1">طلبات صداقه</div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="text-sm font-bold text-amber-300 flex-1">طلبات صداقه ({requests.length})</div>
+              <button onClick={acceptAll} disabled={busy} className="text-[11px] bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-black">قبول الكل</button>
+              <button onClick={rejectAll} disabled={busy} className="text-[11px] bg-rose-700 hover:bg-rose-600 px-2 py-1 rounded font-black">رفض الكل</button>
+            </div>
             <div className="space-y-1">
               {requests.map(r => (
                 <Row key={r.id} p={r.profile} action={
