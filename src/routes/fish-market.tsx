@@ -964,15 +964,20 @@ function SellView({
   onPurchased: () => void;
 }) {
   const past = useMemo(() => {
+  // When Market Expert is active, every sale goes through at the fish's max
+  // price. Reflect that in the chart / "from X" reference so the on-screen
+  // math matches the server-earned amount exactly.
+  const displayBase = marketExpertActive ? fish.maxPrice : fish.basePrice;
+  const past = useMemo(() => {
     // Use real recent history from DB so past chart values match what actually happened.
-    const tail = (history ?? []).slice(-PAST_HOURS);
+    const tail = marketExpertActive ? [] : (history ?? []).slice(-PAST_HOURS);
     while (tail.length < PAST_HOURS) {
       // Pad with current price if we don't have enough history yet
-      tail.unshift(fish.basePrice);
+      tail.unshift(displayBase);
     }
-    tail.push(fish.basePrice);
+    tail.push(displayBase);
     return tail;
-  }, [fish.id, fish.basePrice, history]);
+  }, [fish.id, displayBase, marketExpertActive, history]);
   const currentPrice = past[past.length - 1];
   const fallbackEffectivePrice = Math.max(0.0001, currentPrice * rot);
 
