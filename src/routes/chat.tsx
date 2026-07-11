@@ -296,7 +296,7 @@ function ChatPage() {
     setMsgsKey("");
     if (dmWith === otherId) setDmWith(null);
     reloadThreads();
-  }, [dmWith, reloadThreads, showNotice]);
+  }, [dmWith, reloadThreads]);
 
 
 
