@@ -963,7 +963,6 @@ function SellView({
   onSell: (amount: number, ctx: { currentPrice: number; rotMult: number; minPrice: number; maxPrice: number }) => void;
   onPurchased: () => void;
 }) {
-  const past = useMemo(() => {
   // When Market Expert is active, every sale goes through at the fish's max
   // price. Reflect that in the chart / "from X" reference so the on-screen
   // math matches the server-earned amount exactly.
