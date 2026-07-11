@@ -108,6 +108,20 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     flash(error ? t("settings.send_failed") + arabicAuthError(error.message) : t("settings.reset_sent"));
   };
 
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (changingPassword) return;
+    if (newPassword.length < 6) { flash(t("settings.password_short")); return; }
+    if (newPassword !== confirmPassword) { flash(t("settings.password_mismatch")); return; }
+    if (!(await rateLimit("settings", 1500))) { flash(t("common.slow_down")); return; }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) { flash(t("settings.change_failed") + arabicAuthError(error.message)); return; }
+    flash(t("settings.password_changed"));
+    setNewPassword(""); setConfirmPassword(""); setShowPasswordForm(false);
+  };
+
   const signOut = async () => {
     const ok = await confirmDialog({
       title: t("settings.sign_out_confirm_title"),
