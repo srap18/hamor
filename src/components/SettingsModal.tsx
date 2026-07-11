@@ -352,6 +352,42 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               </form>
             )}
             <button
+              onClick={() => setShowPasswordForm((v) => !v)}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-xs font-bold active:scale-95"
+            >
+              {t("settings.change_password")}
+            </button>
+            {showPasswordForm && (
+              <form onSubmit={changePassword} className="space-y-2 p-2 rounded-lg bg-black/30 border border-accent/30">
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  placeholder={t("settings.new_password")}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-2 py-1.5 rounded bg-stone-900 border border-amber-700/40 text-white text-xs"
+                />
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  placeholder={t("settings.confirm_password")}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-2 py-1.5 rounded bg-stone-900 border border-amber-700/40 text-white text-xs"
+                />
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
+                >
+                  {changingPassword ? t("common.sending") : t("settings.save_password")}
+                </button>
+                <div className="text-[10px] text-accent/60 text-center leading-snug">{t("settings.forgot_hint")}</div>
+              </form>
+            )}
+            <button
               onClick={sendReset}
               className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-xs font-bold active:scale-95"
             >
