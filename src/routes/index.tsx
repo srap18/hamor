@@ -1824,7 +1824,7 @@ function Index() {
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
-            className={`absolute inset-0 h-full w-full object-cover select-none ${isHeavyFxDisabled || bgPaused ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
+            className={`absolute inset-0 h-full w-full object-cover select-none ${bgPaused ? "" : "animate-bg-drift"} ${scene.burned ? "animate-bg-burned-pulse" : ""}`}
             style={{
               objectPosition: scene.objectPosition ?? "center center",
               ["--bg-scale" as never]: String(scene.motion?.scale ?? 1.06),
