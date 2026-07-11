@@ -151,9 +151,29 @@ function FriendsPage() {
           )}
         </section>
 
+        <section className="rounded-xl border border-amber-700/40 bg-stone-900/60 p-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-black text-amber-200">🔒 إيقاف طلبات الصداقة</div>
+              <div className="text-[11px] text-amber-100/60">لن يستطيع أحد إرسال طلب صداقة لك.</div>
+            </div>
+            <button
+              onClick={toggleClosed}
+              disabled={busy}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black shadow active:scale-95 ${requestsClosed ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"}`}
+            >
+              {requestsClosed ? "موقوفة — تفعيل" : "مفعّلة — إيقاف"}
+            </button>
+          </div>
+        </section>
+
         {requests.length > 0 && (
           <section>
-            <div className="text-sm font-bold text-amber-300 mb-1">طلبات صداقه</div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="text-sm font-bold text-amber-300 flex-1">طلبات صداقه ({requests.length})</div>
+              <button onClick={acceptAll} disabled={busy} className="text-[11px] bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded font-black">قبول الكل</button>
+              <button onClick={rejectAll} disabled={busy} className="text-[11px] bg-rose-700 hover:bg-rose-600 px-2 py-1 rounded font-black">رفض الكل</button>
+            </div>
             <div className="space-y-1">
               {requests.map(r => (
                 <Row key={r.id} p={r.profile} action={
