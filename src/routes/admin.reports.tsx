@@ -271,14 +271,24 @@ function AdminReports() {
                 <div className="rounded-lg bg-slate-950/60 border border-red-800/40 p-2 mb-2">
                   <div className="text-red-300 text-[11px] font-bold mb-1">📝 نص الرسالة</div>
                   <div className="text-slate-100 text-sm whitespace-pre-wrap break-words">{r.message_body || <span className="text-slate-500">— بدون نص —</span>}</div>
-                  {r.audio_url && (
-                    <div className="mt-2">
-                      <audio controls preload="none" src={r.audio_url} className="w-full h-8" />
-                      {r.audio_duration_ms ? (
-                        <div className="text-[10px] text-slate-500 mt-0.5">مدة التسجيل: {Math.round(r.audio_duration_ms / 1000)}ث</div>
-                      ) : null}
-                    </div>
-                  )}
+                  {r.audio_url && (() => {
+                    const s = r.audio_url.toLowerCase();
+                    const type = s.includes(".webm") ? "audio/webm"
+                      : (s.includes(".m4a") || s.includes(".mp4")) ? "audio/mp4"
+                      : s.includes(".mp3") ? "audio/mpeg"
+                      : s.includes(".ogg") ? "audio/ogg" : undefined;
+                    return (
+                      <div className="mt-2 space-y-1">
+                        <audio controls preload="auto" playsInline crossOrigin="anonymous" className="w-full h-9" style={{ direction: "ltr" }}>
+                          <source src={r.audio_url} {...(type ? { type } : {})} />
+                        </audio>
+                        <a href={r.audio_url} target="_blank" rel="noreferrer" className="text-[10px] text-sky-400 underline">فتح التسجيل في نافذة جديدة</a>
+                        {r.audio_duration_ms ? (
+                          <div className="text-[10px] text-slate-500">مدة التسجيل: {Math.round(r.audio_duration_ms / 1000)}ث</div>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
                   {r.reason && (
                     <div className="mt-1.5 pt-1.5 border-t border-slate-800 text-[11px] text-amber-200">
                       <span className="text-slate-400">سبب البلاغ:</span> {r.reason}
