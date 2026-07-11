@@ -58,17 +58,35 @@ function AdminTicketsPage() {
   const reconcileForTicket = async (t: Ticket) => {
     setReconciling((p) => ({ ...p, [t.id]: true }));
     try {
-      const res = await reconcileFn({ data: { userId: t.user_id, environment: "live" } }) as { ok?: boolean; grantedCount?: number; reason?: string; skipped?: { id: string; reason: string }[] };
-      if (res?.ok === false) {
-        toast.error(`فشل: ${res.reason ?? "غير معروف"}`);
-      } else if ((res?.grantedCount ?? 0) > 0) {
-        toast.success(`✅ تم صرف ${res.grantedCount} عملية للاعب`);
-      } else {
-        const skipReasons = res?.skipped?.map((s) => s.reason).join(", ") ?? "";
-        toast.message("ℹ️ لا توجد عمليات معلقة للصرف", { description: skipReasons || undefined });
+      const res = await reconcileFn({ data: { userId: t.user_id, environment: "live" } }) as {
+        ok?: boolean;
+        grantedCount?: number;
+        reason?: string;
+        granted?: string[];
+        skipped?: { id: string; reason: string }[];
+        email?: string;
+      };
+      const lines: string[] = [];
+      lines.push(`📧 البريد: ${res?.email ?? "(غير معروف)"}`);
+      lines.push(`الحالة: ${res?.ok === false ? `فشل — ${res.reason ?? "غير معروف"}` : "تم الفحص"}`);
+      lines.push(`تم الصرف: ${res?.grantedCount ?? 0}`);
+      if (res?.granted?.length) lines.push(`المنتجات: ${res.granted.join(", ")}`);
+      if (res?.skipped?.length) {
+        lines.push(`تم تخطي (${res.skipped.length}):`);
+        for (const s of res.skipped.slice(0, 8)) lines.push(`  • ${s.id.slice(0, 24)}… — ${s.reason}`);
       }
+      if (!res?.skipped?.length && (res?.grantedCount ?? 0) === 0 && res?.ok !== false) {
+        lines.push("ℹ️ لا توجد عمليات دفع في حساب Paddle بهذا البريد. اطلب من اللاعب رقم العملية أو البريد المستخدم للدفع.");
+      }
+      const msg = lines.join("\n");
+      if ((res?.grantedCount ?? 0) > 0) toast.success(`✅ تم صرف ${res.grantedCount}`);
+      else if (res?.ok === false) toast.error(`فشل: ${res.reason ?? "غير معروف"}`);
+      else toast.message("نتيجة الفحص", { description: msg });
+      alert(msg);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "فشل الصرف");
+      const m = e instanceof Error ? e.message : "فشل الصرف";
+      toast.error(m);
+      alert(`❌ خطأ: ${m}`);
     } finally {
       setReconciling((p) => ({ ...p, [t.id]: false }));
     }
