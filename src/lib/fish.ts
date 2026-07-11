@@ -48,6 +48,8 @@ import golden_koi from "@/assets/fish/golden_koi.png";
 import phoenix from "@/assets/fish/phoenix.png";
 import abyss_titan from "@/assets/fish/abyss_titan.png";
 import black_dragon from "@/assets/fish/black_dragon.png";
+import silver_arowana from "@/assets/fish/silver_arowana.png";
+import coral_phantom from "@/assets/fish/coral_phantom.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
@@ -57,6 +59,7 @@ export const FISH_IMG: Record<string, string> = {
   manta, hammerhead, whale, orca, arowana, goldfish, pearl,
   kraken, leviathan, megalodon, sea_dragon, poseidon, black_pearl, golden_koi,
   phoenix, abyss_titan, black_dragon,
+  silver_arowana, coral_phantom,
 };
 
 export type Fish = {
@@ -138,6 +141,10 @@ const FISH_DEFS: Record<string, FishDef> = {
 
   // ========== EXCLUSIVE — حصرية لسفن التنين (T1/T2/T3) — السعر يُدار من لوحة الأدمن ==========
   black_dragon:{ id: "black_dragon", name: "التنين الأسود", emoji: "🐉", price: 100, tier: 6, rarity: "mythic" },
+
+  // ========== EXCLUSIVE — حصرية للغواصة (المستوى 32) ==========
+  silver_arowana:{ id: "silver_arowana", name: "الأروانا الفضية", emoji: "🐟", price: 30, tier: 6, rarity: "mythic" },
+  coral_phantom: { id: "coral_phantom",  name: "شبح المرجان",     emoji: "🪸", price: 30, tier: 6, rarity: "mythic" },
 };
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
@@ -153,14 +160,17 @@ export const FISH_TOTAL = FISH_LIST.length;
 export function fishForShip(shipLevel: number, shipId: number): string[] {
   if (shipLevel >= 34) return ["black_dragon"];
   if (shipLevel >= 33) return ["kraken", "leviathan", "poseidon"];
-  if (shipLevel >= 32) return ["abyss_titan"];
+  if (shipLevel >= 32) return ["silver_arowana", "coral_phantom"];
   if (shipLevel >= 31) return ["phoenix"];
   const tier = Math.min(6, Math.max(1, Math.ceil(shipLevel / 5))) as 1|2|3|4|5|6;
-  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon");
+  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon" && f.id !== "silver_arowana" && f.id !== "coral_phantom");
   if (pool.length === 0) return [];
   const a = pool[shipId % pool.length].id;
   const b = pool[(shipId + 3) % pool.length].id;
-  return a === b ? [a] : [a, b];
+  const base = a === b ? [a] : [a, b];
+  // Mythic-tier ships (26-30) also have a chance at abyss_titan.
+  if (shipLevel >= 26 && shipLevel <= 30) return [...base, "abyss_titan"];
+  return base;
 }
 
 export const RARITY_COLOR: Record<Fish["rarity"], string> = {
