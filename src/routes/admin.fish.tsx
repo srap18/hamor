@@ -28,7 +28,7 @@ type Row = {
   dirty?: boolean;
 };
 
-const SHIP_LEVELS = Array.from({ length: 32 }, (_, i) => i + 1);
+const SHIP_LEVELS = Array.from({ length: 36 }, (_, i) => i + 1);
 
 function AdminFishPrices() {
   const [rows, setRows] = useState<Record<string, Row>>({});
