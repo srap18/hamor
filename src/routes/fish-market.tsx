@@ -944,7 +944,7 @@ function hourLabel(d: Date) {
 }
 
 function SellView({
-  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rot, selling, onBack, onSell, onPurchased,
+  fish, userId, forecast, history, freezeActive, freezeUntil, traderActive, traderUntil, ownedTraderQty, traderPrice, rot, selling, marketExpertActive, onBack, onSell, onPurchased,
 }: {
   fish: Fish;
   userId: string;
@@ -958,6 +958,7 @@ function SellView({
   traderPrice: number;
   rot: number;
   selling: boolean;
+  marketExpertActive: boolean;
   onBack: () => void;
   onSell: (amount: number, ctx: { currentPrice: number; rotMult: number; minPrice: number; maxPrice: number }) => void;
   onPurchased: () => void;
