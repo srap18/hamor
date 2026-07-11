@@ -267,8 +267,9 @@ function ProfilePage() {
         {/* Live preview — profile card frame wraps the entire card */}
         <section className={equippedProfileFrame?.profileClass ?? ""}>
           <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
-            <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-              <div className={`relative w-16 h-16 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}>
+            <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+              {/* Avatar sits centered and smaller so the frame's ring surrounds it without covering the picture */}
+              <div className={`relative rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -276,7 +277,7 @@ function ProfilePage() {
                 )}
               </div>
               {equippedAvatarFrame?.imageUrl && (
-                <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
+                <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
               )}
             </div>
             <div className="flex-1">
