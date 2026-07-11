@@ -63,7 +63,7 @@ export const UPGRADE_SUB_STAR_CAPACITY: Record<number, number> = {
   1: 350000, 2: 500000, 3: 700000, 4: 850000, 5: 1000000,
 };
 export const UPGRADE_SUB_SUCCESS_PCT: Record<number, number> = {
-  1: 100, 2: 95, 3: 90, 4: 70,
+  1: 60, 2: 50, 3: 40, 4: 25,
 };
 export const UPGRADE_SUB_COST = 1_000_000_000;
 
