@@ -573,14 +573,20 @@ function FishMarket() {
         return;
       }
       applyOptimisticProfileDelta({ coins: +serverEarned });
-      const gross = Math.round(ctx.currentPrice * requestedQty);
+      const baseUnit = Math.round(ctx.currentPrice);
+      // When Market Expert is active, the server sells every fish at the
+      // fish's max price — reflect that in the "gross" so the math on-screen
+      // (gross - rotLoss = net) is always consistent.
+      const effectiveUnit = marketExpertActive ? Math.max(baseUnit, Math.round(ctx.maxPrice)) : baseUnit;
+      const gross = effectiveUnit * requestedQty;
       const rotLoss = Math.max(0, gross - serverEarned);
       const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
       const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
       const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
-      const boostedUnit = requestedQty > 0 ? Math.round(serverEarned / requestedQty) : 0;
-      const boost = marketExpertActive && boostedUnit > Math.round(ctx.currentPrice)
-        ? { basePrice: Math.round(ctx.currentPrice), boostedPrice: boostedUnit, qty: requestedQty }
+      // Always show the expert boost card while the buff is active so the
+      // user sees the price uplift even when the market is already at peak.
+      const boost = marketExpertActive
+        ? { basePrice: baseUnit, boostedPrice: effectiveUnit, qty: requestedQty }
         : null;
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
       await loadFish();
