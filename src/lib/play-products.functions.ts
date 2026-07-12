@@ -207,27 +207,38 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       }
       const { access_token } = (await tokRes.json()) as any;
       checks.tokenObtained = true;
-      // New Monetization API (replaces deprecated inappproducts.list).
-      const listRes = await fetch(
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts`,
+      // The Monetization API has no plain list method for oneTimeProducts.
+      // Use :batchGet with a real SKU from our DB (falls back to token-only success).
+      const { data: skuRows } = await supabaseAdmin
+        .from("play_products")
+        .select("sku")
+        .limit(20);
+      const skus = (skuRows ?? []).map((r: any) => r.sku).filter(Boolean);
+      if (skus.length === 0) {
+        checks.productsInPlay = 0;
+        checks.note = "No SKUs in DB to probe; OAuth + API reachable.";
+        return { ok: true, checks };
+      }
+      const qs = new URLSearchParams();
+      for (const s of skus) qs.append("productIds", s);
+      const batchRes = await fetch(
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts:batchGet?${qs.toString()}`,
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
-      if (!listRes.ok) {
+      if (!batchRes.ok) {
         return {
           ok: false,
-          error: `List products ${listRes.status}: ${(await listRes.text()).slice(0, 800)}`,
+          error: `batchGet ${batchRes.status}: ${(await batchRes.text()).slice(0, 800)}`,
           checks,
         };
       }
-      const body = (await listRes.json()) as any;
-      checks.productsInPlay = Array.isArray(body?.oneTimeProducts)
-        ? body.oneTimeProducts.length
-        : Array.isArray(body?.inappproduct)
-        ? body.inappproduct.length
-        : 0;
+      const body = (await batchRes.json()) as any;
+      checks.productsInPlay = Array.isArray(body?.oneTimeProducts) ? body.oneTimeProducts.length : 0;
+      checks.probedSkus = skus.length;
       return { ok: true, checks };
     } catch (e: any) {
       return { ok: false, error: e?.message ?? String(e), checks };
     }
   });
+
 
