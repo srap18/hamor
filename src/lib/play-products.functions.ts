@@ -17,11 +17,11 @@ async function requireAdmin(context: any) {
 
 const productInput = z.object({
   id: z.string().uuid().optional(),
-  sku: z.string().min(1).max(128).regex(/^[a-z0-9._-]+$/, "sku: lowercase letters/digits/._- only"),
-  title_ar: z.string().min(1).max(120),
-  title_en: z.string().min(1).max(120),
-  description_ar: z.string().max(1000).default(""),
-  description_en: z.string().max(1000).default(""),
+  sku: z.string().min(1).max(128).regex(/^[a-z0-9][a-z0-9._]*$/, "sku: must start with a lowercase letter/number and contain only lowercase letters, numbers, dots, or underscores"),
+  title_ar: z.string().min(1).max(55),
+  title_en: z.string().min(1).max(55),
+  description_ar: z.string().max(200).default(""),
+  description_en: z.string().max(200).default(""),
   price_micros: z.number().int().nonnegative(),
   default_currency: z.string().length(3).default("USD"),
   product_type: z.enum(["inapp", "subs"]).default("inapp"),
@@ -167,7 +167,7 @@ export const syncOnePlayProduct = createServerFn({ method: "POST" })
 
 /**
  * Diagnostic — verify Google Play Publisher API credentials are configured
- * and reachable. Attempts a token exchange + a lightweight in-app product list.
+ * and reachable. Attempts a token exchange + the official one-time product list.
  * Returns granular info so the admin can copy/paste failures.
  */
 export const testPlayConnection = createServerFn({ method: "POST" })
@@ -212,47 +212,57 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       }
       const { access_token } = (await tokRes.json()) as any;
       checks.tokenObtained = true;
-      // The Monetization API has no plain list method for oneTimeProducts.
-      // Use :batchGet with a real SKU from our DB (falls back to token-only success).
+      // Compare the local catalog with Google's Monetization API in batches.
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: skuRows } = await supabaseAdmin
-
         .from("play_products")
         .select("sku")
-        .limit(20);
+        .eq("product_type", "inapp");
       const skus = (skuRows ?? []).map((r: any) => r.sku).filter(Boolean);
-      if (skus.length === 0) {
-        checks.productsInPlay = 0;
-        checks.note = "No SKUs in DB to probe; OAuth + API reachable.";
-        return { ok: true, checks };
+      const playSkus: string[] = [];
+      for (let index = 0; index < skus.length; index += 100) {
+        const batch = skus.slice(index, index + 100);
+        const params = new URLSearchParams();
+        for (const sku of batch) params.append("productIds", sku);
+        const url =
+          `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+          `${encodeURIComponent(checks.package)}/oneTimeProducts:batchGet?${params.toString()}`;
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
+        const responseText = await r.text();
+        if (!r.ok) {
+          return {
+            ok: false,
+            error: `GET ${url}\nHTTP ${r.status}\n${responseText}`,
+            checks,
+          };
+        }
+        const page = JSON.parse(responseText || "{}") as {
+          oneTimeProducts?: { productId?: string }[];
+        };
+        for (const product of page.oneTimeProducts ?? []) {
+          if (product.productId) playSkus.push(product.productId);
+        }
       }
-      // Probe each SKU individually so a missing product doesn't fail the whole call.
-      const found: string[] = [];
-      const missing: string[] = [];
-      const errors: { sku: string; status: number; error: string }[] = [];
-      for (const s of skus) {
-        const r = await fetch(
-          `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts/${encodeURIComponent(s)}`,
-          { headers: { Authorization: `Bearer ${access_token}` } },
-        );
-        if (r.ok) { found.push(s); continue; }
-        const txt = (await r.text()).slice(0, 300);
-        if (r.status === 404 || /not found/i.test(txt)) missing.push(s);
-        else errors.push({ sku: s, status: r.status, error: txt });
-      }
-      checks.probedSkus = skus.length;
-      checks.productsInPlay = found.length;
+
+      const playSet = new Set(playSkus);
+      const found = skus.filter((sku: string) => playSet.has(sku));
+      const missing = skus.filter((sku: string) => !playSet.has(sku));
+      const unmanaged = playSkus.filter((sku) => !skus.includes(sku));
+      checks.localSkus = skus.length;
+      checks.productsInPlay = playSkus.length;
       checks.foundSkus = found;
       checks.missingSkus = missing;
+      checks.unmanagedPlaySkus = unmanaged;
+      checks.createEndpoint =
+        `PATCH https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+        `${encodeURIComponent(checks.package)}/onetimeproducts/{productId}`;
+      if (skus.length === 0) {
+        checks.note = "لا توجد منتجات شراء لمرة واحدة في قاعدة البيانات للمقارنة.";
+      }
       checks.hint = missing.length
-        ? `${missing.length} منتج غير موجود في Play Console — اضغط "مزامنة الكل" لإنشائها.`
+        ? `${missing.length} منتج غير موجود في Google Play — اضغط "مزامنة الكل" لإنشائها عبر المسار الصحيح.`
         : undefined;
-      if (errors.length) checks.errors = errors;
-      return {
-        ok: errors.length === 0,
-        error: errors.length ? `${errors.length} SKU(s) failed with non-404 errors` : undefined,
-        checks,
-      };
+      return { ok: true, checks };
     } catch (e: any) {
       return { ok: false, error: e?.message ?? String(e), checks };
     }
