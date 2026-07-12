@@ -6529,6 +6529,8 @@ export type Database = {
         Returns: boolean
       }
       join_tribe_open: { Args: { _tribe_id: string }; Returns: undefined }
+      jumanji_auto_donate_missing: { Args: never; Returns: Json }
+      jumanji_auto_donate_tick: { Args: never; Returns: Json }
       launch_ad_bomb: {
         Args: { _target_id: string; _video_key: string }
         Returns: string
