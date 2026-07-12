@@ -50,7 +50,7 @@ function StaffPage() {
     const { error } = await supabase.rpc("admin_grant_staff", {
       _email: addEmail.trim(),
       _role: addRole,
-      _paths: addPaths.length ? addPaths : null,
+      _paths: (addPaths.length ? addPaths : null) as unknown as string[],
     });
     if (error) return toast.error(error.message);
     toast.success("تمت الإضافة");

@@ -59,6 +59,7 @@ import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
+import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
@@ -333,6 +334,11 @@ const AdminTicketsRoute = AdminTicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStaffRoute = AdminStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSanctionsRoute = AdminSanctionsRouteImport.update({
   id: '/sanctions',
   path: '/sanctions',
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -583,6 +590,7 @@ export interface FileRoutesByTo {
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -659,6 +667,7 @@ export interface FileRoutesById {
   '/admin/referrals': typeof AdminReferralsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
@@ -736,6 +745,7 @@ export interface FileRouteTypes {
     | '/admin/referrals'
     | '/admin/reports'
     | '/admin/sanctions'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
@@ -810,6 +820,7 @@ export interface FileRouteTypes {
     | '/admin/referrals'
     | '/admin/reports'
     | '/admin/sanctions'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
@@ -885,6 +896,7 @@ export interface FileRouteTypes {
     | '/admin/referrals'
     | '/admin/reports'
     | '/admin/sanctions'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/weekly-xp'
@@ -1311,6 +1323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTicketsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/staff': {
+      id: '/admin/staff'
+      path: '/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AdminStaffRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sanctions': {
       id: '/admin/sanctions'
       path: '/sanctions'
@@ -1492,6 +1511,7 @@ interface AdminRouteChildren {
   AdminReferralsRoute: typeof AdminReferralsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
+  AdminStaffRoute: typeof AdminStaffRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminTribeEventsRoute: typeof AdminTribeEventsRoute
   AdminWeeklyXpRoute: typeof AdminWeeklyXpRoute
@@ -1515,6 +1535,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReferralsRoute: AdminReferralsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
+  AdminStaffRoute: AdminStaffRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminTribeEventsRoute: AdminTribeEventsRoute,
   AdminWeeklyXpRoute: AdminWeeklyXpRoute,
