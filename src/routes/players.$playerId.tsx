@@ -15,7 +15,7 @@ import { ProjectileFx } from "@/components/ProjectileFx";
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
-import { BurnedBgOverlay } from "@/components/BurnedBgOverlay";
+
 import { frameById } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AntiBlockBurst } from "@/components/AntiBlockBurst";
@@ -1044,15 +1044,6 @@ function PlayerPage() {
         )}
         {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
       </div>
-      {/* Cinematic burned overlay — always renders when the scene is burned so
-          the burn effect stays visible even if the burned asset image failed
-          to load (otherwise the background looks nearly black to visitors). */}
-      {scene.burned && (
-        <BurnedBgOverlay
-          burnedUntil={p?.bg_burned_until}
-          ownerName={p?.display_name ?? undefined}
-        />
-      )}
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{ background: "radial-gradient(ellipse at 70% 60%, rgba(255,255,255,0.4) 0%, transparent 50%)" }} />
 

@@ -2960,6 +2960,7 @@ export type Database = {
           coins: number
           created_at: string
           display_name: string
+          display_name_changed_at: string | null
           elite_vip_expires_at: string | null
           elite_vip_level: number
           elite_vip_login_broadcast_enabled: boolean
@@ -3028,6 +3029,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name: string
+          display_name_changed_at?: string | null
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
@@ -3096,6 +3098,7 @@ export type Database = {
           coins?: number
           created_at?: string
           display_name?: string
+          display_name_changed_at?: string | null
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
