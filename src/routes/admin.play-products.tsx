@@ -170,7 +170,25 @@ function AdminPlayProductsPage() {
     <div dir="rtl" className="min-h-screen bg-slate-950 text-slate-100 p-4 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-extrabold text-amber-300">🛒 منتجات Google Play</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const res = await testFn();
+                setDiag(JSON.stringify(res, null, 2));
+                if (res.ok) toast.success(`✓ الاتصال ناجح — ${res.checks?.productsInPlay ?? 0} منتج في Play`);
+                else toast.error("فشل الاتصال — اضغط لعرض التفاصيل");
+              } catch (e: any) {
+                setDiag(String(e?.message ?? e));
+                toast.error("فشل الاتصال");
+              } finally { setBusy(false); }
+            }}
+            disabled={busy}
+            className="px-3 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-bold disabled:opacity-50"
+          >
+            🔌 اختبار الاتصال
+          </button>
           <button
             onClick={syncAll}
             disabled={busy}
@@ -190,6 +208,8 @@ function AdminPlayProductsPage() {
       <div className="text-xs text-slate-400 bg-slate-900 border border-slate-800 rounded-lg p-3 leading-relaxed">
         كل تعديل أو إضافة يُرسل تلقائياً إلى Google Play Console عبر Publisher API.
         قد يحتاج المنتج <b>2-4 ساعات</b> ليظهر في تطبيقات المستخدمين بعد الحفظ.
+        <br />
+        إصدار التطبيق الحالي: <b>versionCode 1003</b> — ارفع نسخة APK/AAB بهذا الرقم في Play Console.
       </div>
 
       {loading ? (
