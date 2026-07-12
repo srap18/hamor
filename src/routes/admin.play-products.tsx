@@ -372,6 +372,34 @@ function AdminPlayProductsPage() {
           </div>
         </div>
       )}
+
+      {(errorDetail || diag) && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 w-full max-w-2xl space-y-3">
+            <h2 className="text-lg font-bold text-amber-300">
+              {errorDetail ? "تفاصيل الخطأ" : "نتيجة اختبار الاتصال"}
+            </h2>
+            <textarea
+              readOnly
+              value={errorDetail ?? diag ?? ""}
+              className="w-full h-80 bg-slate-950 border border-slate-800 rounded p-2 font-mono text-xs text-red-200"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(errorDetail ?? diag ?? "");
+                  toast.success("تم النسخ");
+                }}
+                className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-sm font-bold"
+              >📋 نسخ</button>
+              <button
+                onClick={() => { setErrorDetail(null); setDiag(null); }}
+                className="px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-sm"
+              >إغلاق</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
