@@ -207,6 +207,17 @@ export function RechargePanel() {
         )}
       </div>
 
+      {/* No-refunds policy notice — digital instant delivery */}
+      <div className="mx-2 mt-2 p-2 rounded-xl bg-red-950/40 border border-red-400/50 text-center">
+        <div className="text-[11px] font-extrabold text-red-200 leading-relaxed">
+          ⚠️ جميع المشتريات نهائية — الجواهر رقمية وتُسلَّم فورياً.
+          <br />
+          أي طلب استرداد أو نزاع بنكي = <span className="text-red-100">حظر دائم للحساب وجميع أجهزته</span>.
+        </div>
+      </div>
+
+
+
 
       {/* Sub-tabs */}
       <div className="px-2 pt-2 grid grid-cols-7 gap-1">

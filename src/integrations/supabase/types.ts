@@ -2653,9 +2653,15 @@ export type Database = {
           environment: string
           granted: boolean
           granted_at: string | null
+          granted_coins: number
+          granted_gems: number
+          granted_rubies: number
+          granted_shield_days: number
+          granted_vip_days: number
           id: string
           pack_id: string
           paddle_transaction_id: string
+          refund_banned_at: string | null
           status: string
           user_id: string
         }
@@ -2665,9 +2671,15 @@ export type Database = {
           environment?: string
           granted?: boolean
           granted_at?: string | null
+          granted_coins?: number
+          granted_gems?: number
+          granted_rubies?: number
+          granted_shield_days?: number
+          granted_vip_days?: number
           id?: string
           pack_id: string
           paddle_transaction_id: string
+          refund_banned_at?: string | null
           status?: string
           user_id: string
         }
@@ -2677,9 +2689,15 @@ export type Database = {
           environment?: string
           granted?: boolean
           granted_at?: string | null
+          granted_coins?: number
+          granted_gems?: number
+          granted_rubies?: number
+          granted_shield_days?: number
+          granted_vip_days?: number
           id?: string
           pack_id?: string
           paddle_transaction_id?: string
+          refund_banned_at?: string | null
           status?: string
           user_id?: string
         }
@@ -6731,6 +6749,10 @@ export type Database = {
       }
       redeem_code: { Args: { p_code: string }; Returns: Json }
       refresh_boss_attacks: { Args: never; Returns: Json }
+      refund_ban_user: {
+        Args: { _reason?: string; _txn_id: string }
+        Returns: Json
+      }
       register_device: { Args: { _device_id: string }; Returns: Json }
       reject_all_friend_requests: { Args: never; Returns: number }
       remove_ad_bombs: { Args: never; Returns: number }
