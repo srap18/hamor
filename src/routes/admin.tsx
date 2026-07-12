@@ -65,16 +65,16 @@ function AdminLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const [allowedPaths, setAllowedPaths] = useState<string[] | null>(null);
-  const [permsLoaded, setPermsLoaded] = useState(false);
+  const [isSuper, setIsSuper] = useState(false);
+  const [, setPermsLoaded] = useState(false);
 
   useEffect(() => {
     if (!user) { setPermsLoaded(true); return; }
     let cancelled = false;
     (async () => {
-      // Super admin bypass
-      const { data: isSuper } = await supabase.rpc("is_super_admin", { _uid: user.id });
+      const { data: sup } = await supabase.rpc("is_super_admin", { _uid: user.id });
       if (cancelled) return;
-      if (isSuper) { setAllowedPaths(null); setPermsLoaded(true); return; }
+      if (sup) { setIsSuper(true); setAllowedPaths(null); setPermsLoaded(true); return; }
       const { data } = await supabase
         .from("admin_staff_perms")
         .select("allowed_paths")
@@ -82,7 +82,6 @@ function AdminLayout() {
         .maybeSingle();
       if (cancelled) return;
       const paths = (data as { allowed_paths: string[] | null } | null)?.allowed_paths ?? null;
-      // Also hide the staff page from non-super
       setAllowedPaths(paths);
       setPermsLoaded(true);
     })();
@@ -91,8 +90,8 @@ function AdminLayout() {
 
   const isLimited = !!allowedPaths;
   const visibleNav = isLimited
-    ? NAV.filter((n) => allowedPaths!.includes(n.to))
-    : NAV.filter((n) => n.to !== "/admin/staff" ? true : (user ? true : false));
+    ? NAV.filter((n) => (allowedPaths as string[]).includes(n.to))
+    : NAV.filter((n) => n.to !== "/admin/staff" || isSuper);
 
   useEffect(() => {
     if (!authLoading && !session) nav({ to: "/login" });
