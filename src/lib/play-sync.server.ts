@@ -17,28 +17,34 @@ import { parseServiceAccount, normalizePem, type ServiceAccount } from "./play-s
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
-const PRODUCT_UPDATE_MASK = "listings,purchaseOptions,taxAndComplianceSettings";
+const PRODUCT_UPDATE_MASK = "listings,purchaseOptions";
 const LATENCY_TOLERANT = "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT";
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 5;
+const BATCH_THROTTLE_MS = 1_500;
+
+function isGoogleQuotaError(status: number, body: string): boolean {
+  if (status !== 403 && status !== 429) return false;
+  const normalized = body.toLowerCase();
+  return normalized.includes("quota exceeded")
+    || normalized.includes("rate_limit_exceeded")
+    || normalized.includes("resource_exhausted");
+}
 
 async function fetchGoogleWithQuotaRetry(
   url: string,
   init: RequestInit,
-  maxAttempts = 4,
+  maxAttempts = 5,
 ): Promise<Response> {
   let response: Response | null = null;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     response = await fetch(url, init);
-    if (response.status !== 429 && response.status !== 403) return response;
-
     const responseText = await response.clone().text();
-    const quotaExceeded = responseText.includes("RATE_LIMIT_EXCEEDED") || responseText.includes("Quota exceeded");
-    if (!quotaExceeded || attempt === maxAttempts - 1) return response;
+    if (!isGoogleQuotaError(response.status, responseText) || attempt === maxAttempts - 1) return response;
 
     const retryAfterSeconds = Number(response.headers.get("retry-after"));
     const delayMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-      ? Math.min(retryAfterSeconds * 1000, 15_000)
-      : 1_500 * 2 ** attempt;
+      ? Math.min(retryAfterSeconds * 1000, 30_000)
+      : Math.min(2_000 * 2 ** attempt + Math.floor(Math.random() * 750), 30_000);
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
   return response!;
@@ -295,18 +301,28 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
 
 export type PlaySyncResult = { ok: true } | { ok: false; error: string };
 
+export type BatchPlaySyncResult = {
+  results: Map<string, PlaySyncResult>;
+  quotaBlocked: boolean;
+};
+
 /**
- * Synchronize a catalog in batches. This uses at most one catalog request and
- * one state request per 20 products instead of two API calls per product.
+ * Synchronize a catalog in small batches. Google counts every product edit
+ * inside a batch, so small chunks prevent one quota response from failing the
+ * entire catalog and allow successful chunks to remain committed.
  */
 export async function batchSyncPlayProducts(
   rows: PlayProductRow[],
-): Promise<Map<string, PlaySyncResult>> {
+): Promise<BatchPlaySyncResult> {
   const results = new Map<string, PlaySyncResult>();
+  let quotaBlocked = false;
   const pkg = getPackageName();
   const token = await getAccessToken();
 
   for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    if (offset > 0) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
+    }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
@@ -332,9 +348,13 @@ export async function batchSyncPlayProducts(
     const updateResponseText = await updateResponse.text();
 
     if (!updateResponse.ok) {
+      const quotaExceeded = isGoogleQuotaError(updateResponse.status, updateResponseText);
       const error =
         `POST ${updateUrl}\nHTTP ${updateResponse.status}\n${updateResponseText}` +
-        `\n\nUPDATE MASK: ${PRODUCT_UPDATE_MASK}\nBATCH SIZE: ${chunk.length}`;
+        `\n\nUPDATE MASK: ${PRODUCT_UPDATE_MASK}\nBATCH SIZE: ${chunk.length}` +
+        (quotaExceeded
+          ? "\n\nتم إيقاف بقية المزامنة لحماية الحصة. انتظر إعادة فتح حصة Google ثم اضغط مزامنة الكل مرة واحدة."
+          : "");
       console.error("[play-sync] batch upsert failed", {
         url: updateUrl,
         status: updateResponse.status,
@@ -342,6 +362,16 @@ export async function batchSyncPlayProducts(
         skus: chunk.map((row) => row.sku),
       });
       for (const row of chunk) results.set(row.sku, { ok: false, error });
+      if (quotaExceeded) {
+        quotaBlocked = true;
+        for (const row of rows.slice(offset + chunk.length)) {
+          results.set(row.sku, {
+            ok: false,
+            error: "تم إيقاف المنتج مؤقتًا دون إرسال طلب له لأن حصة تعديلات Google Play ممتلئة. انتظر إعادة فتح الحصة ثم أعد المزامنة.",
+          });
+        }
+        break;
+      }
       continue;
     }
 
@@ -413,9 +443,20 @@ export async function batchSyncPlayProducts(
       skus: stateSkus,
     });
     for (const sku of stateSkus) results.set(sku, { ok: false, error: stateError });
+
+    if (isGoogleQuotaError(stateResponse.status, stateResponseText)) {
+      quotaBlocked = true;
+      for (const row of rows.slice(offset + chunk.length)) {
+        results.set(row.sku, {
+          ok: false,
+          error: "تم إيقاف المنتج مؤقتًا دون إرسال طلب له لأن حصة تعديلات Google Play ممتلئة. انتظر إعادة فتح الحصة ثم أعد المزامنة.",
+        });
+      }
+      break;
+    }
   }
 
-  return results;
+  return { results, quotaBlocked };
 }
 
 /**

@@ -163,8 +163,12 @@ function AdminPlayProductsPage() {
         const detail = (r.errors ?? [])
           .map((e: any) => `━━━ ${e.sku} ━━━\n${e.error}`)
           .join("\n\n");
-        setDiag(`تمت المعالجة: نجح ${r.ok} / فشل ${r.failed} من ${r.total}\n\nأول ${r.errors?.length ?? 0} أخطاء بالتفصيل:\n\n${detail}`);
-        toast.error(`فشل ${r.failed} — التفاصيل في لوحة التشخيص أدناه`);
+        const quotaNotice = r.quotaBlocked
+          ? "حصة تعديلات Google Play ممتلئة حاليًا. أوقف النظام بقية الطلبات تلقائيًا لحمايتها؛ انتظر إعادة فتح الحصة ثم اضغط المزامنة مرة واحدة.\n\n"
+          : "";
+        setDiag(`${quotaNotice}تمت المعالجة: نجح ${r.ok} / فشل ${r.failed} من ${r.total}\n\nأول ${r.errors?.length ?? 0} أخطاء بالتفصيل:\n\n${detail}`);
+        if (r.quotaBlocked) toast.warning("حصة Google Play ممتلئة — أُوقفت بقية الطلبات تلقائيًا");
+        else toast.error(`فشل ${r.failed} — التفاصيل في لوحة التشخيص أدناه`);
       } else {
         toast.success(`تمت المعالجة: نجح ${r.ok} من ${r.total}`);
       }
