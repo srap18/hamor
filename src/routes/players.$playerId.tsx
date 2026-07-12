@@ -1579,6 +1579,15 @@ function PlayerPage() {
                         flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
                         return;
                       }
+                      // نفس شروط بقيّة الأسلحة: 3 سفن فعّالة وكلها في وضع الإبحار.
+                      {
+                        const activeShips = myShips.filter((s) => !s.in_storage && !s.destroyed_at);
+                        if (activeShips.length < 3 || activeShips.some((s) => !s.at_sea)) {
+                          sound.play("error");
+                          flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم");
+                          return;
+                        }
+                      }
                       if (!(await confirmDropArmorIfActive())) return;
                       setBusy(true); sound.play("click");
                       // Close the picker so the explosion will be visible — but DO NOT play FX yet.
