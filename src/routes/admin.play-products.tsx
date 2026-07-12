@@ -159,7 +159,15 @@ function AdminPlayProductsPage() {
     setBusy(true);
     try {
       const r = await syncAllFn();
-      toast.success(`تمت المعالجة: نجح ${r.ok} / فشل ${r.failed} من ${r.total}`);
+      if (r.failed > 0) {
+        const detail = (r.errors ?? [])
+          .map((e: any) => `━━━ ${e.sku} ━━━\n${e.error}`)
+          .join("\n\n");
+        setDiag(`تمت المعالجة: نجح ${r.ok} / فشل ${r.failed} من ${r.total}\n\nأول ${r.errors?.length ?? 0} أخطاء بالتفصيل:\n\n${detail}`);
+        toast.error(`فشل ${r.failed} — التفاصيل في لوحة التشخيص أدناه`);
+      } else {
+        toast.success(`تمت المعالجة: نجح ${r.ok} من ${r.total}`);
+      }
       refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "فشل");

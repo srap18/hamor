@@ -194,7 +194,18 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
 
     if (res.ok) return { ok: true };
     const errBody = await res.text();
-    return { ok: false, error: `upsert ${res.status}: ${errBody.slice(0, 800)}` };
+    // Log full details server-side for debugging.
+    console.error("[play-sync] upsert failed", {
+      sku: row.sku,
+      url,
+      status: res.status,
+      body: errBody,
+      requestBody: body,
+    });
+    return {
+      ok: false,
+      error: `PATCH ${url}\nHTTP ${res.status}\n${errBody.slice(0, 2000)}\n\nREQUEST BODY:\n${JSON.stringify(body, null, 2).slice(0, 2000)}`,
+    };
   } catch (e: any) {
     return { ok: false, error: e?.message ?? String(e) };
   }

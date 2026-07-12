@@ -104,6 +104,7 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     let ok = 0, failed = 0;
+    const errors: { sku: string; error: string }[] = [];
     for (const r of rows ?? []) {
       const result = await syncPlayProduct({
         sku: r.sku,
@@ -121,9 +122,13 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
         sync_error: result.ok ? null : result.error,
         synced_at: new Date().toISOString(),
       }).eq("id", r.id);
-      if (result.ok) ok++; else failed++;
+      if (result.ok) ok++;
+      else {
+        failed++;
+        if (errors.length < 3) errors.push({ sku: r.sku, error: (result as any).error });
+      }
     }
-    return { ok, failed, total: (rows ?? []).length };
+    return { ok, failed, total: (rows ?? []).length, errors };
   });
 
 export const syncOnePlayProduct = createServerFn({ method: "POST" })
