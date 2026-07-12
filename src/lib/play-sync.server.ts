@@ -177,7 +177,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     const body = buildOneTimeProductBody(pkg, row);
 
     const params = new URLSearchParams({
-      updateMask: "*",
+      updateMask: "listings,purchaseOptions,taxAndComplianceSettings",
       allowMissing: "true",
       "regionsVersion.version": "2022/02",
       latencyTolerance: "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE",
