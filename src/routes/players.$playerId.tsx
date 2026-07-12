@@ -511,13 +511,12 @@ function PlayerPage() {
       flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
       return;
     }
-    // نتحقّق فقط أن الأسطول القتالي مكتمل (3 سفن ≥ لفل 6 وغير مدمّرة).
-    // مطابقة سلوك القنبلة الإعلانية — لا يشترط أن تكون كلها في وضع الصيد فعلياً.
+    // شروط الهجوم: 3 سفن مستوى ≥ 6، غير مدمّرة، وكلها في وضع الإبحار.
     {
       const activeShips = myShips.filter((s) => !s.in_storage && !s.destroyed_at);
-      if (activeShips.length < 3) {
+      if (activeShips.length < 3 || activeShips.some((s) => !s.at_sea)) {
         sound.play("error");
-        flash("🚫 تحتاج 3 سفن فعّالة (غير مدمّرة وغير مخزّنة) للهجوم");
+        flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم");
         return;
       }
     }
@@ -1579,6 +1578,15 @@ function PlayerPage() {
                         sound.play("error");
                         flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
                         return;
+                      }
+                      // نفس شروط بقيّة الأسلحة: 3 سفن فعّالة وكلها في وضع الإبحار.
+                      {
+                        const activeShips = myShips.filter((s) => !s.in_storage && !s.destroyed_at);
+                        if (activeShips.length < 3 || activeShips.some((s) => !s.at_sea)) {
+                          sound.play("error");
+                          flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم");
+                          return;
+                        }
                       }
                       if (!(await confirmDropArmorIfActive())) return;
                       setBusy(true); sound.play("click");
