@@ -153,6 +153,16 @@ function ProfilePage() {
     if (!userId) return;
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
+    if (trimmed !== displayNameOriginal.trim() && displayNameChangedAt) {
+      const unlockMs = new Date(displayNameChangedAt).getTime() + 14 * 24 * 3600_000;
+      const remain = unlockMs - Date.now();
+      if (remain > 0) {
+        const d = Math.floor(remain / (24 * 3600_000));
+        const h = Math.floor((remain % (24 * 3600_000)) / 3600_000);
+        flash(`يمكنك تغيير الاسم مرة كل 14 يوم · متبقي ${d > 0 ? `${d}ي ${h}س` : `${h}س`}`);
+        return;
+      }
+    }
     if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
     if (!/^[\u0600-\u06FFA-Za-z0-9 _-]+$/.test(trimmed)) {
       flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
