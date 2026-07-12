@@ -20,6 +20,7 @@ let cachedToken: { token: string; expiresAt: number } | null = null;
 const PRODUCT_UPDATE_MASK = "listings,purchaseOptions";
 const LATENCY_TOLERANT = "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT";
 const BATCH_SIZE = 5;
+const BATCH_THROTTLE_MS = 1_500;
 
 function isGoogleQuotaError(status: number, body: string): boolean {
   if (status !== 403 && status !== 429) return false;
@@ -319,6 +320,9 @@ export async function batchSyncPlayProducts(
   const token = await getAccessToken();
 
   for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    if (offset > 0) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
+    }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
