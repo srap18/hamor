@@ -48,6 +48,7 @@ import harborBgPoster from "@/assets/harbor-bg.jpg";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
+import { BurnedBgOverlay } from "@/components/BurnedBgOverlay";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { DestroyerSign } from "@/components/DestroyerSign";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
