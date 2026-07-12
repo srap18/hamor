@@ -1,7 +1,7 @@
 /**
  * Google Play Publisher API — server-only helpers.
  *
- * Uses the NEW Monetization API (onetimeproducts) — the legacy
+ * Uses the new Monetization API (monetization.onetimeproducts) — the legacy
  * inappproducts endpoints have been deprecated by Google.
  *
  * Uses Web Crypto via `jose` (Workers-compatible; no Node-only deps).
@@ -164,8 +164,9 @@ function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
 }
 
 /**
- * Create or update a managed one-time product via the new Monetization API.
- * PATCH with allowMissing=true acts as an upsert.
+ * Create or update a managed one-time product via monetization.onetimeproducts.
+ * Google's PATCH route is intentionally lowercase `onetimeproducts`, unlike
+ * the camel-cased read/delete/list routes. allowMissing=true makes it an upsert.
  */
 export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
@@ -181,7 +182,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     });
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
+      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
 
     const res = await fetch(url, {
       method: "PATCH",
@@ -204,7 +205,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     });
     return {
       ok: false,
-      error: `PATCH ${url}\nHTTP ${res.status}\n${errBody.slice(0, 2000)}\n\nREQUEST BODY:\n${JSON.stringify(body, null, 2).slice(0, 2000)}`,
+      error: `PATCH ${url}\nHTTP ${res.status}\n${errBody}\n\nREQUEST BODY:\n${JSON.stringify(body, null, 2)}`,
     };
   } catch (e: any) {
     return { ok: false, error: e?.message ?? String(e) };
