@@ -209,7 +209,7 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       checks.tokenObtained = true;
       // New Monetization API (replaces deprecated inappproducts.list).
       const listRes = await fetch(
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/onetimeproducts`,
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts`,
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
       if (!listRes.ok) {

@@ -181,7 +181,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     });
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
+      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
 
     const res = await fetch(url, {
       method: "PATCH",
@@ -209,7 +209,7 @@ export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { 
     const token = await getAccessToken();
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(sku)}`;
+      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
     const res = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
