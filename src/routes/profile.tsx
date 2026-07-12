@@ -46,6 +46,8 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [displayNameOriginal, setDisplayNameOriginal] = useState("");
+  const [displayNameChangedAt, setDisplayNameChangedAt] = useState<string | null>(null);
   const [username, setUsername] = useState("");
   const [usernameChangedAt, setUsernameChangedAt] = useState<string | null>(null);
   const [usernameDraft, setUsernameDraft] = useState("");
@@ -83,6 +85,8 @@ function ProfilePage() {
       ]);
       if (p) {
         setDisplayName(p.display_name ?? "");
+        setDisplayNameOriginal(p.display_name ?? "");
+        setDisplayNameChangedAt((p as any).display_name_changed_at ?? null);
         setUsername((p as any).username ?? "");
         setUsernameDraft((p as any).username ?? "");
         setUsernameChangedAt((p as any).username_changed_at ?? null);
