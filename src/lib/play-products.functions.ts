@@ -181,10 +181,11 @@ export const testPlayConnection = createServerFn({ method: "POST" })
     }
     try {
       const { SignJWT, importPKCS8 } = await import("jose");
-      const sa = JSON.parse(process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON!);
+      const { parseServiceAccount, normalizePem } = await import("./play-service-account.server");
+      const sa = parseServiceAccount(process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON!);
       checks.clientEmail = sa.client_email;
       const now = Math.floor(Date.now() / 1000);
-      const pem = String(sa.private_key).replace(/\\n/g, "\n");
+      const pem = normalizePem(sa.private_key);
       const key = await importPKCS8(pem, "RS256");
       const jwt = await new SignJWT({ scope: "https://www.googleapis.com/auth/androidpublisher" })
         .setProtectedHeader({ alg: "RS256", typ: "JWT" })

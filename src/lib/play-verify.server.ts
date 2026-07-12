@@ -10,21 +10,18 @@
  * Docs: https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.products/get
  *       https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/get
  */
-import { SignJWT, importPKCS8 } from "jose";
 
-type ServiceAccount = { client_email: string; private_key: string; token_uri?: string };
+import { SignJWT, importPKCS8 } from "jose";
+import { parseServiceAccount, normalizePem, type ServiceAccount } from "./play-service-account.server";
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
 function getServiceAccount(): ServiceAccount {
   const raw = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not configured");
-  const sa = JSON.parse(raw);
-  if (!sa.client_email || !sa.private_key) {
-    throw new Error("Invalid service account JSON");
-  }
-  return sa;
+  return parseServiceAccount(raw);
 }
+
 
 export function getPlayPackageName(): string {
   const pkg = process.env.GOOGLE_PLAY_PACKAGE_NAME;
@@ -38,7 +35,7 @@ async function getAccessToken(): Promise<string> {
 
   const sa = getServiceAccount();
   const tokenUri = sa.token_uri || "https://oauth2.googleapis.com/token";
-  const pem = sa.private_key.replace(/\\n/g, "\n");
+  const pem = normalizePem(sa.private_key);
   const key = await importPKCS8(pem, "RS256");
 
   const jwt = await new SignJWT({
