@@ -774,7 +774,12 @@ function PlayerPage() {
     if (msg.length < 20) { flash("الرسالة يجب أن تكون ٢٠ حرف على الأقل"); return; }
     setNukeSending(true);
     const { error } = await (supabase as any).rpc("broadcast_nuke", { _target_id: playerId, _message: msg });
-    if (error) { setNukeSending(false); flash("تعذّر إرسال الرسالة"); return; }
+    if (error) {
+      setNukeSending(false);
+      const m = String(error.message || "");
+      if (m.includes("muted")) { flash("🔇 أنت مكتوم — لا يمكنك إرسال الرسائل"); setNukeMsgOpen(false); closeMenu(); return; }
+      flash("تعذّر إرسال الرسالة"); return;
+    }
 
     // Broadcast real-time alert to all online players via Supabase channel
     try {
