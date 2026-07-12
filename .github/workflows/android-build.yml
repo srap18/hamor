@@ -20,7 +20,7 @@ jobs:
 
       # نُنشئ dist/ احتياطي بـ index.html بسيط يُعيد التوجيه للموقع. 
       # التطبيق الفعلي يُحمَّل من server.url في capacitor.config.ts، 
-      # لكن Capacitor sync يتطلب أن يكون webDir موجوداً وفيه ملف.
+      # لكن Capacitor sync يتطلب أن يكون webDir موجوداً وفيه ملف. 
       - name: Prepare webDir fallback
         run: |
           mkdir -p dist
