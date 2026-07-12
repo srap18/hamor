@@ -64,9 +64,35 @@ function AdminLayout() {
   const nav = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const allowedPaths = user ? LIMITED_MODERATORS[user.id] : undefined;
+  const [allowedPaths, setAllowedPaths] = useState<string[] | null>(null);
+  const [permsLoaded, setPermsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setPermsLoaded(true); return; }
+    let cancelled = false;
+    (async () => {
+      // Super admin bypass
+      const { data: isSuper } = await supabase.rpc("is_super_admin", { _uid: user.id });
+      if (cancelled) return;
+      if (isSuper) { setAllowedPaths(null); setPermsLoaded(true); return; }
+      const { data } = await supabase
+        .from("admin_staff_perms")
+        .select("allowed_paths")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const paths = (data as { allowed_paths: string[] | null } | null)?.allowed_paths ?? null;
+      // Also hide the staff page from non-super
+      setAllowedPaths(paths);
+      setPermsLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   const isLimited = !!allowedPaths;
-  const visibleNav = isLimited ? NAV.filter((n) => allowedPaths!.includes(n.to)) : NAV;
+  const visibleNav = isLimited
+    ? NAV.filter((n) => allowedPaths!.includes(n.to))
+    : NAV.filter((n) => n.to !== "/admin/staff" ? true : (user ? true : false));
 
   useEffect(() => {
     if (!authLoading && !session) nav({ to: "/login" });
@@ -74,8 +100,8 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!isLimited) return;
-    const ok = allowedPaths!.some((p) => pathname === p || pathname.startsWith(p + "/"));
-    if (!ok) nav({ to: allowedPaths![0] as "/admin" });
+    const ok = (allowedPaths as string[]).some((p: string) => pathname === p || pathname.startsWith(p + "/"));
+    if (!ok) nav({ to: (allowedPaths as string[])[0] as "/admin" });
   }, [isLimited, allowedPaths, pathname, nav]);
 
   if (loading || authLoading) {
