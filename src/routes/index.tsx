@@ -2603,12 +2603,16 @@ function Index() {
                       className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black text-accent active:scale-95 ${
                         isCurrent ? "border-amber-300 bg-amber-500/20" : "border-accent/40 bg-secondary/70"
                       }`}
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         setShipGuide(s.id, fishId);
                         // Persist guide preference server-side so the Golden Fisher
-                        // honors it while running offline.
+                        // honors it while running offline. AWAIT before collecting
+                        // to prevent a race where collect_fishing_reward reads the
+                        // stale preferred_fish_id.
                         if (s.dbId) {
-                          void (supabase as any).rpc("set_guide_fish", { _ship_db_id: s.dbId, _fish_id: fishId });
+                          try {
+                            await (supabase as any).rpc("set_guide_fish", { _ship_db_id: s.dbId, _fish_id: fishId });
+                          } catch {}
                         }
                         close();
                         if (!changeOnly) {
