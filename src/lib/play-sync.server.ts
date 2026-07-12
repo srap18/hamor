@@ -35,8 +35,8 @@ async function getAccessToken(): Promise<string> {
   const sa = getServiceAccount();
   const tokenUri = sa.token_uri || "https://oauth2.googleapis.com/token";
 
-  // Normalize PEM: env vars often escape newlines as \n literals.
-  const pem = sa.private_key.replace(/\\n/g, "\n");
+  const pem = normalizePem(sa.private_key);
+
   const key = await importPKCS8(pem, "RS256");
 
   const jwt = await new SignJWT({
