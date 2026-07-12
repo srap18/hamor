@@ -63,12 +63,15 @@ function AdminPlayProductsPage() {
   const deleteFn = useServerFn(deletePlayProduct);
   const syncOneFn = useServerFn(syncOnePlayProduct);
   const syncAllFn = useServerFn(syncAllPlayProducts);
+  const testFn = useServerFn(testPlayConnection);
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Row | null>(null);
   const [rewardsText, setRewardsText] = useState("{}");
   const [busy, setBusy] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [diag, setDiag] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
