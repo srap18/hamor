@@ -8,6 +8,7 @@ import {
   deletePlayProduct,
   syncOnePlayProduct,
   syncAllPlayProducts,
+  testPlayConnection,
 } from "@/lib/play-products.functions";
 
 export const Route = createFileRoute("/admin/play-products")({
