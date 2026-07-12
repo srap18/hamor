@@ -446,6 +446,41 @@ function PlayerPage() {
     return () => window.clearInterval(id);
   }, [raiders.length]);
 
+  // Auto-claim my finished steal missions while viewing the target's harbor
+  // so results come back immediately instead of the raider ship silently vanishing.
+  const autoClaimingRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!me || raiders.length === 0) return;
+    const now = serverNowMs();
+    const mine = raiders.filter((r) => r.user_id === me && r.stealing_ends_at && new Date(r.stealing_ends_at).getTime() <= now);
+    if (mine.length === 0) return;
+    (async () => {
+      for (const r of mine) {
+        if (autoClaimingRef.current.has(r.id)) continue;
+        autoClaimingRef.current.add(r.id);
+        try {
+          const { data, error } = await (supabase as any).rpc("claim_steal_mission", { _attacker_ship_id: r.id, _force: false });
+          if (error) {
+            const msg = String(error.message || "");
+            if (!msg.includes("no active steal mission") && !msg.includes("mission not finished")) {
+              console.warn("[auto-claim] error", msg);
+            }
+          } else {
+            const row = Array.isArray(data) && data[0] ? data[0] : null;
+            const n = row?.stolen_count ?? 0;
+            const v = row?.total_value ?? 0;
+            sound.play("success");
+            if (n > 0) flash(`🏴‍☠️ رجعت السفينة ومعها ${n} سمكة (قيمتها ${v})`);
+            else flash("🏴‍☠️ رجعت السفينة بدون غنيمة");
+          }
+        } catch (e) { console.warn("[auto-claim] threw", e); }
+        finally { autoClaimingRef.current.delete(r.id); }
+      }
+      loadRaiders();
+      reloadShipsRef.current();
+    })();
+  }, [raiders, nowTs, me]);
+
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
