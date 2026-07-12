@@ -17,11 +17,11 @@ async function requireAdmin(context: any) {
 
 const productInput = z.object({
   id: z.string().uuid().optional(),
-  sku: z.string().min(1).max(128).regex(/^[a-z0-9._-]+$/, "sku: lowercase letters/digits/._- only"),
-  title_ar: z.string().min(1).max(120),
-  title_en: z.string().min(1).max(120),
-  description_ar: z.string().max(1000).default(""),
-  description_en: z.string().max(1000).default(""),
+  sku: z.string().min(1).max(128).regex(/^[a-z0-9][a-z0-9._]*$/, "sku: must start with a lowercase letter/number and contain only lowercase letters, numbers, dots, or underscores"),
+  title_ar: z.string().min(1).max(55),
+  title_en: z.string().min(1).max(55),
+  description_ar: z.string().max(200).default(""),
+  description_en: z.string().max(200).default(""),
   price_micros: z.number().int().nonnegative(),
   default_currency: z.string().length(3).default("USD"),
   product_type: z.enum(["inapp", "subs"]).default("inapp"),

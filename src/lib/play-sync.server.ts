@@ -115,11 +115,18 @@ function microsToMoney(micros: number | string, currencyCode: string) {
   };
 }
 
+function truncateText(value: string, maxLength: number): string {
+  return Array.from(value).slice(0, maxLength).join("");
+}
+
 function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
   const currency = (row.default_currency || "USD").toUpperCase();
   const region = CURRENCY_TO_REGION[currency] || "US";
   const price = microsToMoney(row.price_micros, currency);
-  const state = row.status === "active" ? "ACTIVE" : "INACTIVE";
+  const titleEn = truncateText(row.title_en || row.sku, 55);
+  const titleAr = truncateText(row.title_ar || row.title_en || row.sku, 55);
+  const descriptionEn = truncateText(row.description_en || titleEn, 200);
+  const descriptionAr = truncateText(row.description_ar || titleAr, 200);
 
   return {
     packageName: pkg,
@@ -127,22 +134,18 @@ function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
     listings: [
       {
         languageCode: "en-US",
-        title: row.title_en || row.sku,
-        description: row.description_en || row.title_en || row.sku,
+        title: titleEn,
+        description: descriptionEn,
       },
       {
         languageCode: "ar",
-        title: row.title_ar || row.title_en || row.sku,
-        description: row.description_ar || row.title_ar || row.title_en || row.sku,
+        title: titleAr,
+        description: descriptionAr,
       },
     ],
-    taxAndComplianceSettings: {
-      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
-    },
     purchaseOptions: [
       {
         purchaseOptionId: "default",
-        state,
         buyOption: {
           legacyCompatible: true,
           multiQuantityEnabled: false,
@@ -154,9 +157,8 @@ function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
             availability: "AVAILABLE",
           },
         ],
-        newRegionsConfig: {
-          newRegionsPrice: price,
-          availability: "AVAILABLE",
+        taxAndComplianceSettings: {
+          withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
         },
       },
     ],
@@ -193,8 +195,60 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       body: JSON.stringify(body),
     });
 
-    if (res.ok) return { ok: true };
-    const errBody = await res.text();
+    const responseText = await res.text();
+    if (res.ok) {
+      const product = JSON.parse(responseText || "{}") as {
+        purchaseOptions?: { purchaseOptionId?: string; state?: string }[];
+      };
+      const option = product.purchaseOptions?.find((item) => item.purchaseOptionId === "default");
+      const desiredState = row.status === "active" ? "ACTIVE" : "INACTIVE";
+      const currentState = option?.state;
+      const needsActivation = desiredState === "ACTIVE" && currentState !== "ACTIVE";
+      const needsDeactivation = desiredState === "INACTIVE" && currentState === "ACTIVE";
+
+      if (!needsActivation && !needsDeactivation) return { ok: true };
+
+      const stateUrl =
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+        `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(row.sku)}/purchaseOptions:batchUpdateStates`;
+      const stateRequestKey = needsActivation
+        ? "activatePurchaseOptionRequest"
+        : "deactivatePurchaseOptionRequest";
+      const stateBody = {
+        requests: [
+          {
+            [stateRequestKey]: {
+              packageName: pkg,
+              productId: row.sku,
+              purchaseOptionId: "default",
+              latencyTolerance: "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE",
+            },
+          },
+        ],
+      };
+      const stateRes = await fetch(stateUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(stateBody),
+      });
+      const stateResponseText = await stateRes.text();
+      if (stateRes.ok) return { ok: true };
+      console.error("[play-sync] purchase option state update failed", {
+        sku: row.sku,
+        url: stateUrl,
+        status: stateRes.status,
+        body: stateResponseText,
+        requestBody: stateBody,
+      });
+      return {
+        ok: false,
+        error: `PATCH ${url}\nHTTP ${res.status}\n${responseText}\n\nPOST ${stateUrl}\nHTTP ${stateRes.status}\n${stateResponseText}\n\nSTATE REQUEST BODY:\n${JSON.stringify(stateBody, null, 2)}`,
+      };
+    }
+    const errBody = responseText;
     // Log full details server-side for debugging.
     console.error("[play-sync] upsert failed", {
       sku: row.sku,
