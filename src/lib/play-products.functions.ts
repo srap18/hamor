@@ -221,23 +221,33 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         checks.note = "No SKUs in DB to probe; OAuth + API reachable.";
         return { ok: true, checks };
       }
-      const qs = new URLSearchParams();
-      for (const s of skus) qs.append("productIds", s);
-      const batchRes = await fetch(
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts:batchGet?${qs.toString()}`,
-        { headers: { Authorization: `Bearer ${access_token}` } },
-      );
-      if (!batchRes.ok) {
-        return {
-          ok: false,
-          error: `batchGet ${batchRes.status}: ${(await batchRes.text()).slice(0, 800)}`,
-          checks,
-        };
+      // Probe each SKU individually so a missing product doesn't fail the whole call.
+      const found: string[] = [];
+      const missing: string[] = [];
+      const errors: { sku: string; status: number; error: string }[] = [];
+      for (const s of skus) {
+        const r = await fetch(
+          `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts/${encodeURIComponent(s)}`,
+          { headers: { Authorization: `Bearer ${access_token}` } },
+        );
+        if (r.ok) { found.push(s); continue; }
+        const txt = (await r.text()).slice(0, 300);
+        if (r.status === 404 || /not found/i.test(txt)) missing.push(s);
+        else errors.push({ sku: s, status: r.status, error: txt });
       }
-      const body = (await batchRes.json()) as any;
-      checks.productsInPlay = Array.isArray(body?.oneTimeProducts) ? body.oneTimeProducts.length : 0;
       checks.probedSkus = skus.length;
-      return { ok: true, checks };
+      checks.productsInPlay = found.length;
+      checks.foundSkus = found;
+      checks.missingSkus = missing;
+      checks.hint = missing.length
+        ? `${missing.length} منتج غير موجود في Play Console — اضغط "مزامنة الكل" لإنشائها.`
+        : undefined;
+      if (errors.length) checks.errors = errors;
+      return {
+        ok: errors.length === 0,
+        error: errors.length ? `${errors.length} SKU(s) failed with non-404 errors` : undefined,
+        checks,
+      };
     } catch (e: any) {
       return { ok: false, error: e?.message ?? String(e), checks };
     }
