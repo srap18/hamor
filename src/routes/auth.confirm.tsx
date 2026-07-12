@@ -19,9 +19,10 @@ export const Route = createFileRoute("/auth/confirm")({
 
 function AuthConfirmPage() {
   const nav = useNavigate();
-  const [status, setStatus] = useState("جاري تأكيد الرابط...");
+  const [status, setStatus] = useState("اضغط الزر أدناه لتأكيد الرابط");
   const [failed, setFailed] = useState(false);
   const [done, setDone] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [isEmailChange, setIsEmailChange] = useState(false);
   const [currentEmail, setCurrentEmail] = useState<string | null>(null);
 
@@ -36,63 +37,79 @@ function AuthConfirmPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        if (params.code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(params.code);
-          if (error) throw error;
-        } else {
-          const type = params.type as EmailOtpType;
-          if (!params.tokenHash || !allowedTypes.has(type)) throw new Error("invalid_link");
-          const { error } = await supabase.auth.verifyOtp({ token_hash: params.tokenHash, type });
-          if (error) throw error;
-        }
-
-        if (cancelled) return;
-
-        if (params.type === "email_change") {
-          setIsEmailChange(true);
-          // Refresh user to read latest email state
-          try {
-            const { data } = await supabase.auth.getUser();
-            if (!cancelled) setCurrentEmail(data.user?.email ?? null);
-          } catch { /* noop */ }
-          setDone(true);
-          setStatus("تم تأكيد هذا الرابط ✓");
-          return; // do NOT auto-navigate; user may need to also confirm from the other email
-        }
-
-        if (params.type === "recovery") {
-          setStatus("تم التحقق، افتح صفحة تغيير كلمة المرور...");
-          window.setTimeout(() => nav({ to: "/reset-password" }), 700);
-          return;
-        }
-
-        setDone(true);
-        setStatus("تم تأكيد الرابط بنجاح ✓");
-        const next = safeNext(params.next, "/");
-        window.setTimeout(() => nav({ to: next as any }), 1200);
-      } catch {
-        if (cancelled) return;
-        setFailed(true);
-        setStatus("الرابط غير صالح أو انتهت مدته. اطلب رابطاً جديداً.");
+  const runVerify = async () => {
+    if (verifying || done) return;
+    setVerifying(true);
+    setFailed(false);
+    setStatus("جاري تأكيد الرابط...");
+    try {
+      if (params.code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(params.code);
+        if (error) throw error;
+      } else {
+        const type = params.type as EmailOtpType;
+        if (!params.tokenHash || !allowedTypes.has(type)) throw new Error("invalid_link");
+        const { error } = await supabase.auth.verifyOtp({ token_hash: params.tokenHash, type });
+        if (error) throw error;
       }
-    })();
 
-    return () => { cancelled = true; };
-  }, [nav, params]);
+      if (params.type === "email_change") {
+        setIsEmailChange(true);
+        try {
+          const { data } = await supabase.auth.getUser();
+          setCurrentEmail(data.user?.email ?? null);
+        } catch { /* noop */ }
+        setDone(true);
+        setStatus("تم تأكيد هذا الرابط ✓");
+        return;
+      }
+
+      if (params.type === "recovery") {
+        setDone(true);
+        setStatus("تم التحقق، افتح صفحة تغيير كلمة المرور...");
+        window.setTimeout(() => nav({ to: "/reset-password" }), 700);
+        return;
+      }
+
+      setDone(true);
+      setStatus("تم تأكيد الرابط بنجاح ✓");
+      const next = safeNext(params.next, "/");
+      window.setTimeout(() => nav({ to: next as any }), 1200);
+    } catch {
+      setFailed(true);
+      setStatus("الرابط غير صالح أو انتهت مدته. اطلب رابطاً جديداً.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // No auto-verify: link scanners (Gmail/Outlook/etc.) prefetch the URL and
+  // burn the single-use token before the user clicks. Require a human gesture.
+
+  const hasToken = Boolean(params.code || params.tokenHash);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 text-white overflow-y-auto" dir="rtl" style={{
       background: "radial-gradient(ellipse at top, #0c4a6e 0%, #082f49 55%, #020617 100%)",
     }}>
       <div className="w-full max-w-sm rounded-2xl bg-stone-950/80 backdrop-blur border-2 border-amber-700/60 p-6 shadow-2xl text-center space-y-4 my-8">
-        <div className="text-5xl">{failed ? "⚠️" : done ? "✅" : "⚓"}</div>
+        <div className="text-5xl">{failed ? "⚠️" : done ? "✅" : verifying ? "⏳" : "⚓"}</div>
         <h1 className="text-xl font-extrabold text-amber-300">تأكيد الرابط</h1>
         <p className={failed ? "text-rose-300 text-sm" : "text-amber-100/90 text-sm"}>{status}</p>
+
+        {!done && !failed && hasToken && (
+          <button
+            onClick={runVerify}
+            disabled={verifying}
+            className="w-full py-3 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-emerald-950 font-extrabold active:scale-95 disabled:opacity-60"
+          >
+            {verifying ? "جاري التأكيد..." : "متابعة وتأكيد الرابط"}
+          </button>
+        )}
+
+        {!hasToken && !done && (
+          <p className="text-rose-300 text-xs">لا يوجد رمز في الرابط.</p>
+        )}
 
         {isEmailChange && done && (
           <div className="text-right space-y-2 text-amber-100/90 text-[13px] leading-relaxed bg-amber-900/20 border border-amber-700/40 rounded-lg p-3">
