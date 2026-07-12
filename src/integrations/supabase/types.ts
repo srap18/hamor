@@ -146,6 +146,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_staff_perms: {
+        Row: {
+          allowed_paths: string[] | null
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          allowed_paths?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          allowed_paths?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       anti_disabled_state: {
         Row: {
           anti_id: string
@@ -5339,6 +5360,10 @@ export type Database = {
         Args: { p_gems: number; p_note?: string; p_user_id: string }
         Returns: Json
       }
+      admin_grant_staff: {
+        Args: { _email: string; _paths: string[]; _role: string }
+        Returns: string
+      }
       admin_hard_ban: {
         Args: { _admin?: string; _reason?: string; _uid: string }
         Returns: Json
@@ -5354,6 +5379,17 @@ export type Database = {
           avatar_emoji: string
           display_name: string
           redeemed_at: string
+          user_id: string
+        }[]
+      }
+      admin_list_staff: {
+        Args: never
+        Returns: {
+          allowed_paths: string[]
+          display_name: string
+          email: string
+          is_super: boolean
+          roles: string[]
           user_id: string
         }[]
       }
@@ -5452,6 +5488,7 @@ export type Database = {
             Args: { _code_id: string; _reclaim?: boolean; _user_id: string }
             Returns: Json
           }
+      admin_revoke_staff: { Args: { _uid: string }; Returns: undefined }
       admin_search_player_ids_by_email: {
         Args: { _q: string }
         Returns: {
@@ -5542,6 +5579,14 @@ export type Database = {
           _clear_avatar?: boolean
           _target: string
         }
+        Returns: undefined
+      }
+      admin_set_staff_paths: {
+        Args: { _paths: string[]; _uid: string }
+        Returns: undefined
+      }
+      admin_set_staff_role: {
+        Args: { _role: string; _uid: string }
         Returns: undefined
       }
       admin_set_tribe_points: {
@@ -6520,6 +6565,7 @@ export type Database = {
       is_muted: { Args: { _user: string }; Returns: boolean }
       is_privileged_caller: { Args: never; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _uid: string }; Returns: boolean }
       is_tribe_member: {
         Args: { _tribe_id: string; _user_id: string }
         Returns: boolean
