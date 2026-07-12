@@ -1,8 +1,10 @@
 /**
  * Google Play Publisher API — server-only helpers.
  *
- * Uses Web Crypto via `jose` (Workers-compatible; no Node-only deps like
- * `googleapis` which requires `child_process` / native modules).
+ * Uses the NEW Monetization API (onetimeproducts) — the legacy
+ * inappproducts endpoints have been deprecated by Google.
+ *
+ * Uses Web Crypto via `jose` (Workers-compatible; no Node-only deps).
  *
  * Flow:
  *   1. Parse service-account JSON from env.
@@ -21,7 +23,6 @@ function getServiceAccount(): ServiceAccount {
   return parseServiceAccount(raw);
 }
 
-
 function getPackageName(): string {
   const pkg = process.env.GOOGLE_PLAY_PACKAGE_NAME;
   if (!pkg) throw new Error("GOOGLE_PLAY_PACKAGE_NAME not configured");
@@ -34,9 +35,7 @@ async function getAccessToken(): Promise<string> {
 
   const sa = getServiceAccount();
   const tokenUri = sa.token_uri || "https://oauth2.googleapis.com/token";
-
   const pem = normalizePem(sa.private_key);
-
   const key = await importPKCS8(pem, "RS256");
 
   const jwt = await new SignJWT({
@@ -79,41 +78,113 @@ export type PlayProductRow = {
   status: "active" | "inactive";
 };
 
-function buildInAppProductBody(pkg: string, row: PlayProductRow) {
+// Best-effort currency → default region mapping for the required regional
+// pricing entry. `newRegionsConfig` covers everything else.
+const CURRENCY_TO_REGION: Record<string, string> = {
+  USD: "US",
+  SAR: "SA",
+  AED: "AE",
+  KWD: "KW",
+  QAR: "QA",
+  BHD: "BH",
+  OMR: "OM",
+  JOD: "JO",
+  EGP: "EG",
+  EUR: "DE",
+  GBP: "GB",
+  TRY: "TR",
+  INR: "IN",
+  IDR: "ID",
+  BRL: "BR",
+  JPY: "JP",
+  KRW: "KR",
+  CNY: "CN",
+  CAD: "CA",
+  AUD: "AU",
+};
+
+function microsToMoney(micros: number | string, currencyCode: string) {
+  const n = BigInt(String(micros));
+  const units = n / 1_000_000n;
+  const remainder = n % 1_000_000n;
+  const nanos = Number(remainder) * 1000; // micros → nanos
+  return {
+    currencyCode,
+    units: units.toString(),
+    nanos,
+  };
+}
+
+function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
+  const currency = (row.default_currency || "USD").toUpperCase();
+  const region = CURRENCY_TO_REGION[currency] || "US";
+  const price = microsToMoney(row.price_micros, currency);
+  const state = row.status === "active" ? "ACTIVE" : "INACTIVE";
+
   return {
     packageName: pkg,
-    sku: row.sku,
-    status: row.status === "active" ? "active" : "inactive",
-    purchaseType: "managedUser",
-    defaultPrice: {
-      priceMicros: String(row.price_micros),
-      currency: row.default_currency,
+    productId: row.sku,
+    listings: [
+      {
+        languageCode: "en-US",
+        title: row.title_en || row.sku,
+        description: row.description_en || row.title_en || row.sku,
+      },
+      {
+        languageCode: "ar",
+        title: row.title_ar || row.title_en || row.sku,
+        description: row.description_ar || row.title_ar || row.title_en || row.sku,
+      },
+    ],
+    taxAndComplianceSettings: {
+      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
     },
-    listings: {
-      "en-US": { title: row.title_en, description: row.description_en || row.title_en },
-      "ar": { title: row.title_ar, description: row.description_ar || row.title_ar },
-    },
-    defaultLanguage: "en-US",
+    purchaseOptions: [
+      {
+        purchaseOptionId: "default",
+        state,
+        buyOption: {
+          legacyCompatible: true,
+          multiQuantityEnabled: false,
+        },
+        regionalPricingAndAvailabilityConfigs: [
+          {
+            regionCode: region,
+            price,
+            availability: "AVAILABLE",
+          },
+        ],
+        newRegionsConfig: {
+          newRegionsPrice: price,
+          availability: "AVAILABLE",
+        },
+      },
+    ],
   };
 }
 
 /**
- * Create/update a managed in-app product in Play Console.
- * Uses PATCH; falls back to POST insert if the SKU does not yet exist.
+ * Create or update a managed one-time product via the new Monetization API.
+ * PATCH with allowMissing=true acts as an upsert.
  */
 export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
-    const body = buildInAppProductBody(pkg, row);
+    const body = buildOneTimeProductBody(pkg, row);
 
-    const putUrl =
+    const params = new URLSearchParams({
+      updateMask: "*",
+      allowMissing: "true",
+      "regionsVersion.version": "2022/02",
+      latencyTolerance: "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE",
+    });
+    const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/inappproducts/${encodeURIComponent(row.sku)}` +
-      `?autoConvertMissingPrices=true`;
+      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
 
-    const putRes = await fetch(putUrl, {
-      method: "PUT",
+    const res = await fetch(url, {
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -121,35 +192,16 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       body: JSON.stringify(body),
     });
 
-    if (putRes.ok) return { ok: true };
-
-    // If SKU doesn't exist yet, PUT can 404 — insert instead.
-    if (putRes.status === 404) {
-      const insertUrl =
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/inappproducts?autoConvertMissingPrices=true`;
-      const insRes = await fetch(insertUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      if (insRes.ok) return { ok: true };
-      const errBody = await insRes.text();
-      return { ok: false, error: `insert ${insRes.status}: ${errBody.slice(0, 500)}` };
-    }
-
-    const errBody = await putRes.text();
-    return { ok: false, error: `update ${putRes.status}: ${errBody.slice(0, 500)}` };
+    if (res.ok) return { ok: true };
+    const errBody = await res.text();
+    return { ok: false, error: `upsert ${res.status}: ${errBody.slice(0, 800)}` };
   } catch (e: any) {
     return { ok: false, error: e?.message ?? String(e) };
   }
 }
 
 /**
- * Delete a managed in-app product from Play Console.
+ * Delete a managed one-time product from Play Console (new Monetization API).
  */
 export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
@@ -157,7 +209,7 @@ export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { 
     const token = await getAccessToken();
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/inappproducts/${encodeURIComponent(sku)}`;
+      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(sku)}`;
     const res = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
