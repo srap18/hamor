@@ -254,9 +254,13 @@ function AdminPlayProductsPage() {
                       {r.sync_status === "ok" ? "✓ متزامن" : r.sync_status === "error" ? "✗ خطأ" : "⏳ قيد الانتظار"}
                     </div>
                     {r.sync_error && (
-                      <div className="text-xs text-red-300 max-w-xs truncate" title={r.sync_error}>
-                        {r.sync_error}
-                      </div>
+                      <button
+                        onClick={() => setErrorDetail(`SKU: ${r.sku}\n\n${r.sync_error}`)}
+                        className="text-xs text-red-300 underline max-w-xs truncate block text-right"
+                        title="اضغط لعرض الخطأ كاملاً ونسخه"
+                      >
+                        📋 {r.sync_error}
+                      </button>
                     )}
                   </td>
                   <td className="p-2 whitespace-nowrap">
