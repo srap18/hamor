@@ -1847,6 +1847,14 @@ function Index() {
         />
         {scene.burned && <div className="absolute inset-0 pointer-events-none animate-burned-glow" />}
       </div>
+      {/* Cinematic burned overlay (fire/smoke/embers) — visible for both owner
+          and visitors whenever the background is in a burned state. */}
+      {scene.burned && (
+        <BurnedBgOverlay
+          burnedUntil={(profile as { bg_burned_until?: string | null } | null)?.bg_burned_until ?? null}
+          ownerName={null}
+        />
+      )}
 
       <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
         style={{
