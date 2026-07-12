@@ -862,7 +862,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             )}
           </div>
 
+        <GemReportSection userId={player.id} />
+
         {/* Account fields */}
+
 
         <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
           <div className="text-sm font-semibold text-slate-300">👤 بيانات الحساب</div>
