@@ -300,6 +300,11 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
 
 export type PlaySyncResult = { ok: true } | { ok: false; error: string };
 
+export type BatchPlaySyncResult = {
+  results: Map<string, PlaySyncResult>;
+  quotaBlocked: boolean;
+};
+
 /**
  * Synchronize a catalog in small batches. Google counts every product edit
  * inside a batch, so small chunks prevent one quota response from failing the
@@ -307,8 +312,9 @@ export type PlaySyncResult = { ok: true } | { ok: false; error: string };
  */
 export async function batchSyncPlayProducts(
   rows: PlayProductRow[],
-): Promise<Map<string, PlaySyncResult>> {
+): Promise<BatchPlaySyncResult> {
   const results = new Map<string, PlaySyncResult>();
+  let quotaBlocked = false;
   const pkg = getPackageName();
   const token = await getAccessToken();
 
@@ -353,6 +359,7 @@ export async function batchSyncPlayProducts(
       });
       for (const row of chunk) results.set(row.sku, { ok: false, error });
       if (quotaExceeded) {
+        quotaBlocked = true;
         for (const row of rows.slice(offset + chunk.length)) {
           results.set(row.sku, {
             ok: false,
@@ -434,6 +441,7 @@ export async function batchSyncPlayProducts(
     for (const sku of stateSkus) results.set(sku, { ok: false, error: stateError });
 
     if (isGoogleQuotaError(stateResponse.status, stateResponseText)) {
+      quotaBlocked = true;
       for (const row of rows.slice(offset + chunk.length)) {
         results.set(row.sku, {
           ok: false,
@@ -444,7 +452,7 @@ export async function batchSyncPlayProducts(
     }
   }
 
-  return results;
+  return { results, quotaBlocked };
 }
 
 /**

@@ -115,7 +115,8 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
       status: r.status as "active" | "inactive",
     }));
     const inAppProducts = products.filter((product) => product.product_type === "inapp");
-    const batchResults = await batchSyncPlayProducts(inAppProducts);
+    const batchSync = await batchSyncPlayProducts(inAppProducts);
+    const batchResults = batchSync.results;
     let ok = 0, failed = 0;
     const errors: { sku: string; error: string }[] = [];
     for (const r of rows ?? []) {
@@ -140,6 +141,7 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
       errors,
       mode: "batch" as const,
       apiRequestsMaximum: Math.ceil(inAppProducts.length / 5) * 2,
+      quotaBlocked: batchSync.quotaBlocked,
     };
   });
 
