@@ -96,27 +96,32 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { syncPlayProduct } = await import("@/lib/play-sync.server");
+    const { batchSyncPlayProducts } = await import("@/lib/play-sync.server");
 
     const { data: rows, error } = await supabaseAdmin
       .from("play_products")
       .select("id, sku, title_ar, title_en, description_ar, description_en, price_micros, default_currency, product_type, status");
     if (error) throw new Error(error.message);
 
+    const products = (rows ?? []).map((r) => ({
+      sku: r.sku,
+      title_ar: r.title_ar,
+      title_en: r.title_en,
+      description_ar: r.description_ar ?? "",
+      description_en: r.description_en ?? "",
+      price_micros: r.price_micros as any,
+      default_currency: r.default_currency,
+      product_type: r.product_type as "inapp" | "subs",
+      status: r.status as "active" | "inactive",
+    }));
+    const inAppProducts = products.filter((product) => product.product_type === "inapp");
+    const batchResults = await batchSyncPlayProducts(inAppProducts);
     let ok = 0, failed = 0;
     const errors: { sku: string; error: string }[] = [];
     for (const r of rows ?? []) {
-      const result = await syncPlayProduct({
-        sku: r.sku,
-        title_ar: r.title_ar,
-        title_en: r.title_en,
-        description_ar: r.description_ar ?? "",
-        description_en: r.description_en ?? "",
-        price_micros: r.price_micros as any,
-        default_currency: r.default_currency,
-        product_type: r.product_type as any,
-        status: r.status as any,
-      });
+      const result = r.product_type === "subs"
+        ? { ok: false as const, error: "subscriptions sync not implemented yet" }
+        : batchResults.get(r.sku) ?? { ok: false as const, error: "لم تُرجع Google نتيجة لهذا المنتج" };
       await supabaseAdmin.from("play_products").update({
         sync_status: result.ok ? "ok" : "error",
         sync_error: result.ok ? null : result.error,
@@ -128,7 +133,14 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
         if (errors.length < 3) errors.push({ sku: r.sku, error: (result as any).error });
       }
     }
-    return { ok, failed, total: (rows ?? []).length, errors };
+    return {
+      ok,
+      failed,
+      total: (rows ?? []).length,
+      errors,
+      mode: "batch" as const,
+      apiRequestsMaximum: Math.ceil(inAppProducts.length / 20) * 2,
+    };
   });
 
 export const syncOnePlayProduct = createServerFn({ method: "POST" })

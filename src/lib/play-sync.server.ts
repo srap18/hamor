@@ -17,6 +17,33 @@ import { parseServiceAccount, normalizePem, type ServiceAccount } from "./play-s
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
+const PRODUCT_UPDATE_MASK = "listings,purchaseOptions,taxAndComplianceSettings";
+const LATENCY_TOLERANT = "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT";
+const BATCH_SIZE = 20;
+
+async function fetchGoogleWithQuotaRetry(
+  url: string,
+  init: RequestInit,
+  maxAttempts = 4,
+): Promise<Response> {
+  let response: Response | null = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    response = await fetch(url, init);
+    if (response.status !== 429 && response.status !== 403) return response;
+
+    const responseText = await response.clone().text();
+    const quotaExceeded = responseText.includes("RATE_LIMIT_EXCEEDED") || responseText.includes("Quota exceeded");
+    if (!quotaExceeded || attempt === maxAttempts - 1) return response;
+
+    const retryAfterSeconds = Number(response.headers.get("retry-after"));
+    const delayMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+      ? Math.min(retryAfterSeconds * 1000, 15_000)
+      : 1_500 * 2 ** attempt;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return response!;
+}
+
 function getServiceAccount(): ServiceAccount {
   const raw = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not configured");
@@ -177,16 +204,16 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     const body = buildOneTimeProductBody(pkg, row);
 
     const params = new URLSearchParams({
-      updateMask: "listings,purchaseOptions,taxAndComplianceSettings",
+      updateMask: PRODUCT_UPDATE_MASK,
       allowMissing: "true",
       "regionsVersion.version": "2022/02",
-      latencyTolerance: "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE",
+      latencyTolerance: LATENCY_TOLERANT,
     });
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
       `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
 
-    const res = await fetch(url, {
+    const res = await fetchGoogleWithQuotaRetry(url, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -221,12 +248,12 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
               packageName: pkg,
               productId: row.sku,
               purchaseOptionId: "default",
-              latencyTolerance: "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE",
+               latencyTolerance: LATENCY_TOLERANT,
             },
           },
         ],
       };
-      const stateRes = await fetch(stateUrl, {
+       const stateRes = await fetchGoogleWithQuotaRetry(stateUrl, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -264,6 +291,131 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
   } catch (e: any) {
     return { ok: false, error: e?.message ?? String(e) };
   }
+}
+
+export type PlaySyncResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Synchronize a catalog in batches. This uses at most one catalog request and
+ * one state request per 20 products instead of two API calls per product.
+ */
+export async function batchSyncPlayProducts(
+  rows: PlayProductRow[],
+): Promise<Map<string, PlaySyncResult>> {
+  const results = new Map<string, PlaySyncResult>();
+  const pkg = getPackageName();
+  const token = await getAccessToken();
+
+  for (let offset = 0; offset < rows.length; offset += BATCH_SIZE) {
+    const chunk = rows.slice(offset, offset + BATCH_SIZE);
+    const updateUrl =
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+      `${encodeURIComponent(pkg)}/oneTimeProducts:batchUpdate`;
+    const updateBody = {
+      requests: chunk.map((row) => ({
+        oneTimeProduct: buildOneTimeProductBody(pkg, row),
+        updateMask: PRODUCT_UPDATE_MASK,
+        regionsVersion: { version: "2022/02" },
+        allowMissing: true,
+        latencyTolerance: LATENCY_TOLERANT,
+      })),
+    };
+
+    const updateResponse = await fetchGoogleWithQuotaRetry(updateUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateBody),
+    });
+    const updateResponseText = await updateResponse.text();
+
+    if (!updateResponse.ok) {
+      const error =
+        `POST ${updateUrl}\nHTTP ${updateResponse.status}\n${updateResponseText}` +
+        `\n\nUPDATE MASK: ${PRODUCT_UPDATE_MASK}\nBATCH SIZE: ${chunk.length}`;
+      console.error("[play-sync] batch upsert failed", {
+        url: updateUrl,
+        status: updateResponse.status,
+        body: updateResponseText,
+        skus: chunk.map((row) => row.sku),
+      });
+      for (const row of chunk) results.set(row.sku, { ok: false, error });
+      continue;
+    }
+
+    const responseJson = JSON.parse(updateResponseText || "{}") as {
+      oneTimeProducts?: {
+        productId?: string;
+        purchaseOptions?: { purchaseOptionId?: string; state?: string }[];
+      }[];
+    };
+    const returnedBySku = new Map(
+      (responseJson.oneTimeProducts ?? [])
+        .filter((product) => product.productId)
+        .map((product) => [product.productId!, product]),
+    );
+    const stateRequests: Record<string, unknown>[] = [];
+    const stateSkus: string[] = [];
+
+    for (const row of chunk) {
+      const currentState = returnedBySku.get(row.sku)?.purchaseOptions
+        ?.find((option) => option.purchaseOptionId === "default")?.state;
+      const shouldActivate = row.status === "active" && currentState !== "ACTIVE";
+      const shouldDeactivate = row.status === "inactive" && currentState === "ACTIVE";
+      if (!shouldActivate && !shouldDeactivate) {
+        results.set(row.sku, { ok: true });
+        continue;
+      }
+      const requestKey = shouldActivate
+        ? "activatePurchaseOptionRequest"
+        : "deactivatePurchaseOptionRequest";
+      stateRequests.push({
+        [requestKey]: {
+          packageName: pkg,
+          productId: row.sku,
+          purchaseOptionId: "default",
+          latencyTolerance: LATENCY_TOLERANT,
+        },
+      });
+      stateSkus.push(row.sku);
+    }
+
+    if (stateRequests.length === 0) continue;
+
+    const stateUrl =
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+      `${encodeURIComponent(pkg)}/oneTimeProducts/-/purchaseOptions:batchUpdateStates`;
+    const stateBody = { requests: stateRequests };
+    const stateResponse = await fetchGoogleWithQuotaRetry(stateUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(stateBody),
+    });
+    const stateResponseText = await stateResponse.text();
+
+    if (stateResponse.ok) {
+      for (const sku of stateSkus) results.set(sku, { ok: true });
+      continue;
+    }
+
+    const stateError =
+      `POST ${stateUrl}\nHTTP ${stateResponse.status}\n${stateResponseText}` +
+      `\n\nSTATE REQUEST BODY:\n${JSON.stringify(stateBody, null, 2)}`;
+    console.error("[play-sync] batch state update failed", {
+      url: stateUrl,
+      status: stateResponse.status,
+      body: stateResponseText,
+      skus: stateSkus,
+    });
+    for (const sku of stateSkus) results.set(sku, { ok: false, error: stateError });
+  }
+
+  return results;
 }
 
 /**
