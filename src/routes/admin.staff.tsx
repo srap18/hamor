@@ -59,7 +59,7 @@ function StaffPage() {
   };
 
   const savePaths = async (uid: string, paths: string[] | null) => {
-    const { error } = await supabase.rpc("admin_set_staff_paths", { _uid: uid, _paths: paths });
+    const { error } = await supabase.rpc("admin_set_staff_paths", { _uid: uid, _paths: paths as unknown as string[] });
     if (error) return toast.error(error.message);
     toast.success("تم حفظ الصلاحيات");
     void load();
