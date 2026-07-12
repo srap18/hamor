@@ -53,17 +53,10 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
 
   { to: "/admin/device-appeals", label: "طعون الأجهزة", icon: "📱" },
   { to: "/admin/audit", label: "سجل العمليات", icon: "📋" },
+  { to: "/admin/staff", label: "إدارة المشرفين", icon: "👑" },
 ];
 
-// Moderators with limited admin access — only allowed these sections
-const LIMITED_MODERATORS: Record<string, string[]> = {
-  "ce5a35be-41fc-4d66-b47c-ac9ace216b8b": [
-    "/admin/tickets",
-    "/admin/codes",
-    "/admin/players",
-    "/admin/sanctions",
-  ],
-};
+export const ADMIN_NAV_PATHS = NAV.map((n) => ({ to: n.to, label: n.label, icon: n.icon }));
 
 function AdminLayout() {
   const { isAdmin, loading } = useIsAdmin();
