@@ -2529,10 +2529,10 @@ function Index() {
                           collect(s.id, e);
                         }}
                       />
-                      {s.fishing && getCrewBonuses(s).guide && (
+                      {getCrewBonuses(s).guide && (
                         <ActionBtn
                           emoji="🧭"
-                          label="غيّر النوع"
+                          label={s.fishing || s.progress > 0 ? "غيّر النوع" : "اختر النوع"}
                           onClick={() => {
                             setMenuShipId(null);
                             setFishPickerChangeOnly(true);
