@@ -834,7 +834,9 @@ function PlayerPage() {
       else if (msg.includes("destroyed")) flash("💥 السفينة مدمّرة");
       else if (msg.includes("self")) flash("ما تقدر تسرق نفسك");
       else if (msg.includes("attacker ship not found")) flash("ما لقيت سفينتك");
+      else if (msg.includes("already being raided")) flash("🏴‍☠️ هذي السفينة يسرقها قرصان ثاني — اختر سفينة أخرى");
       else if (msg.includes("target ship")) flash("سفينة الخصم غير متاحة");
+
       else flash(`تعذّر بدء السرقة: ${msg.slice(0, 60)}`);
     } else {
       console.log("[steal] success", missionRes);
