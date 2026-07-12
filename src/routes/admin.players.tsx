@@ -1318,3 +1318,171 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   );
 }
 
+type GemEvt = {
+  at: string; delta: number; balance_before: number; balance_after: number;
+  kind: string; label_ar: string; product_label?: string; product_id?: string;
+  amount_usd?: number; detail?: string;
+};
+type GemSum = {
+  total_in: number; total_out: number; net: number;
+  recharge_gems: number; recharge_usd: number; code_gems: number;
+  admin_gems: number; other_in_gems: number; spent_gems: number;
+};
+
+function GemReportSection({ userId }: { userId: string }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<GemEvt[]>([]);
+  const [summary, setSummary] = useState<GemSum | null>(null);
+  const [filter, setFilter] = useState<"all" | "in" | "out" | "recharge" | "admin">("all");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { getPlayerGemReport } = await import("@/lib/admin-gem-report.functions");
+      const res = await getPlayerGemReport({ data: { userId, limit: 500 } });
+      setEvents(res.events as GemEvt[]);
+      setSummary(res.summary as GemSum);
+    } catch (e: any) {
+      toast.error("فشل تحميل التقرير: " + (e?.message ?? ""));
+    }
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { if (open && !summary) load(); }, [open, summary, load]);
+
+  const filtered = events.filter((e) => {
+    if (filter === "all") return true;
+    if (filter === "in") return e.delta > 0;
+    if (filter === "out") return e.delta < 0;
+    if (filter === "recharge") return e.kind.startsWith("recharge_");
+    if (filter === "admin") return e.kind === "admin_gift" || e.kind === "admin_edit";
+    return true;
+  });
+
+  const kindColor = (k: string, delta: number) => {
+    if (k.startsWith("recharge_")) return "bg-emerald-900/40 text-emerald-200 border-emerald-700/40";
+    if (k === "code_redeem") return "bg-amber-900/40 text-amber-200 border-amber-700/40";
+    if (k === "vip_daily" || k === "elite_vip_daily") return "bg-purple-900/40 text-purple-200 border-purple-700/40";
+    if (k === "referral") return "bg-sky-900/40 text-sky-200 border-sky-700/40";
+    if (k === "admin_gift" || k === "admin_edit") return "bg-rose-900/40 text-rose-200 border-rose-700/40";
+    if (delta < 0) return "bg-slate-800/60 text-slate-300 border-slate-700/40";
+    return "bg-slate-800/40 text-slate-300 border-slate-700/40";
+  };
+
+  return (
+    <div className="mb-4 rounded-xl border border-cyan-700/40 bg-gradient-to-r from-cyan-950/40 to-blue-950/30">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between p-3"
+      >
+        <div className="text-sm font-bold text-cyan-200">💎 تقرير الجواهر (كامل)</div>
+        <div className="text-xs text-cyan-300/70">{open ? "▲ إخفاء" : "▼ عرض"}</div>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          {loading && <div className="text-xs text-slate-400 py-2">جاري التحميل...</div>}
+          {summary && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-[11px]">
+                <div className="p-2 rounded-lg bg-emerald-900/30 border border-emerald-700/30">
+                  <div className="text-emerald-300">💵 من الشحن</div>
+                  <div className="font-bold text-emerald-100">{summary.recharge_gems.toLocaleString()} 💎</div>
+                  <div className="text-emerald-400/70">${summary.recharge_usd.toFixed(2)}</div>
+                </div>
+                <div className="p-2 rounded-lg bg-amber-900/30 border border-amber-700/30">
+                  <div className="text-amber-300">🎟️ من الأكواد</div>
+                  <div className="font-bold text-amber-100">{summary.code_gems.toLocaleString()} 💎</div>
+                </div>
+                <div className="p-2 rounded-lg bg-rose-900/30 border border-rose-700/30">
+                  <div className="text-rose-300">🛠️ من الإدارة</div>
+                  <div className="font-bold text-rose-100">{summary.admin_gems.toLocaleString()} 💎</div>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/30">
+                  <div className="text-slate-300">🎁 أخرى داخل اللعبة</div>
+                  <div className="font-bold text-slate-100">{summary.other_in_gems.toLocaleString()} 💎</div>
+                </div>
+                <div className="p-2 rounded-lg bg-green-900/30 border border-green-700/30">
+                  <div className="text-green-300">➕ إجمالي الدخل</div>
+                  <div className="font-bold text-green-100">{summary.total_in.toLocaleString()} 💎</div>
+                </div>
+                <div className="p-2 rounded-lg bg-red-900/30 border border-red-700/30">
+                  <div className="text-red-300">➖ إجمالي الصرف</div>
+                  <div className="font-bold text-red-100">{summary.total_out.toLocaleString()} 💎</div>
+                </div>
+                <div className="p-2 rounded-lg bg-indigo-900/30 border border-indigo-700/30 col-span-2">
+                  <div className="text-indigo-300">📊 الصافي</div>
+                  <div className={`font-bold ${summary.net >= 0 ? "text-emerald-100" : "text-rose-100"}`}>
+                    {summary.net.toLocaleString()} 💎
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1 mb-2">
+                {([
+                  ["all", "الكل"],
+                  ["in", "دخل ➕"],
+                  ["out", "صرف ➖"],
+                  ["recharge", "شحن فقط"],
+                  ["admin", "إدارة فقط"],
+                ] as const).map(([k, l]) => (
+                  <button
+                    key={k}
+                    onClick={() => setFilter(k)}
+                    className={`text-[11px] px-2 py-1 rounded border ${filter === k ? "bg-cyan-700 border-cyan-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300"}`}
+                  >{l}</button>
+                ))}
+                <button
+                  onClick={load}
+                  className="text-[11px] px-2 py-1 rounded border bg-slate-800 border-slate-700 text-slate-300"
+                >🔄 تحديث</button>
+                <span className="text-[11px] text-slate-500 self-center mr-auto">{filtered.length} عملية</span>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950/60">
+                <table className="w-full text-[11px]">
+                  <thead className="sticky top-0 bg-slate-900/95">
+                    <tr className="text-slate-400">
+                      <th className="text-right p-2">الوقت</th>
+                      <th className="text-right p-2">التصنيف</th>
+                      <th className="text-right p-2">المنتج/التفاصيل</th>
+                      <th className="text-left p-2">💎 التغيير</th>
+                      <th className="text-left p-2">الرصيد بعد</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((e, i) => (
+                      <tr key={i} className="border-t border-slate-800/60 align-top">
+                        <td className="p-2 text-slate-400 whitespace-nowrap">{new Date(e.at).toLocaleString("ar")}</td>
+                        <td className="p-2">
+                          <span className={`inline-block px-1.5 py-0.5 rounded border ${kindColor(e.kind, e.delta)}`}>
+                            {e.label_ar}
+                          </span>
+                        </td>
+                        <td className="p-2 text-slate-200">
+                          {e.product_label && <div className="font-semibold">{e.product_label}</div>}
+                          {e.amount_usd != null && <div className="text-emerald-300 text-[10px]">💵 ${e.amount_usd.toFixed(2)}</div>}
+                          {e.product_id && <div className="text-slate-500 font-mono text-[10px]">{e.product_id}</div>}
+                          {e.detail && <div className="text-slate-500 text-[10px] break-all">{e.detail}</div>}
+                        </td>
+                        <td className={`p-2 text-left font-bold ${e.delta > 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                          {e.delta > 0 ? "+" : ""}{e.delta.toLocaleString()}
+                        </td>
+                        <td className="p-2 text-left text-slate-300">{e.balance_after.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                    {filtered.length === 0 && !loading && (
+                      <tr><td colSpan={5} className="p-4 text-center text-slate-500">لا توجد عمليات</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
