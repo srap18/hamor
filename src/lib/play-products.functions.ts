@@ -212,7 +212,7 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       }
       const { access_token } = (await tokRes.json()) as any;
       checks.tokenObtained = true;
-      // Compare the local catalog with Google's official Monetization API list.
+      // Compare the local catalog with Google's Monetization API in batches.
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: skuRows } = await supabaseAdmin
         .from("play_products")
@@ -220,13 +220,13 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         .eq("product_type", "inapp");
       const skus = (skuRows ?? []).map((r: any) => r.sku).filter(Boolean);
       const playSkus: string[] = [];
-      let pageToken: string | undefined;
-      do {
-        const params = new URLSearchParams({ pageSize: "1000" });
-        if (pageToken) params.set("pageToken", pageToken);
+      for (let index = 0; index < skus.length; index += 100) {
+        const batch = skus.slice(index, index + 100);
+        const params = new URLSearchParams();
+        for (const sku of batch) params.append("productIds", sku);
         const url =
           `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-          `${encodeURIComponent(checks.package)}/oneTimeProducts?${params.toString()}`;
+          `${encodeURIComponent(checks.package)}/oneTimeProducts:batchGet?${params.toString()}`;
         const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
         const responseText = await r.text();
         if (!r.ok) {
@@ -238,13 +238,11 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         }
         const page = JSON.parse(responseText || "{}") as {
           oneTimeProducts?: { productId?: string }[];
-          nextPageToken?: string;
         };
         for (const product of page.oneTimeProducts ?? []) {
           if (product.productId) playSkus.push(product.productId);
         }
-        pageToken = page.nextPageToken;
-      } while (pageToken);
+      }
 
       const playSet = new Set(playSkus);
       const found = skus.filter((sku: string) => playSet.has(sku));
