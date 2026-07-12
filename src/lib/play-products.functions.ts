@@ -209,7 +209,9 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       checks.tokenObtained = true;
       // The Monetization API has no plain list method for oneTimeProducts.
       // Use :batchGet with a real SKU from our DB (falls back to token-only success).
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: skuRows } = await supabaseAdmin
+
         .from("play_products")
         .select("sku")
         .limit(20);
