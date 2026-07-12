@@ -190,12 +190,15 @@ function ProfilePage() {
       else if (m.includes("display_name_invalid_chars")) flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
       else if (m.includes("display_name_must_have_letter")) flash("الاسم لازم يحتوي على حرف واحد");
       else if (m.includes("display_name_disallowed_religious")) flash("هذا الاسم الديني غير مسموح");
+      else if (m.includes("display_name_cooldown")) flash("يمكنك تغيير الاسم مرة كل 14 يوم");
       else if (m.includes("too long")) flash("الاسم أطول من 15 حرف");
       else if (m.includes("too short")) flash("الاسم قصير جداً");
       else flash(`فشل حفظ الاسم: ${m}`);
       return;
     }
     if (!updated || updated.length === 0) { flash("لم يتم تحديث الاسم"); return; }
+    setDisplayNameOriginal(trimmed);
+    setDisplayNameChangedAt(new Date().toISOString());
     flash("تم حفظ الاسم ✓");
   };
 
@@ -309,21 +312,39 @@ function ProfilePage() {
 
 
         {/* Name */}
-        <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
-          <label className="text-sm font-bold text-accent">الاسم الظاهر</label>
-          <input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={15}
-            className="w-full px-3 py-2.5 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-base focus:border-accent outline-none"
-            placeholder="اكتب اسمك"
-          />
-          <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف</div>
-          <button onClick={saveName} disabled={savingName}
-            className="w-full mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white font-bold text-sm active:scale-95 disabled:opacity-50 shadow">
-            {savingName ? "جاري حفظ الاسم..." : "💾 حفظ الاسم"}
-          </button>
-        </section>
+        {(() => {
+          const nowMs = Date.now();
+          const lastMs = displayNameChangedAt ? new Date(displayNameChangedAt).getTime() : 0;
+          const unlockMs = lastMs ? lastMs + 14 * 24 * 3600_000 : 0;
+          const lockedMs = Math.max(0, unlockMs - nowMs);
+          const locked = lockedMs > 0;
+          const days = Math.floor(lockedMs / (24 * 3600_000));
+          const hours = Math.floor((lockedMs % (24 * 3600_000)) / 3600_000);
+          const changed = displayName.trim() !== displayNameOriginal.trim();
+          const disabled = savingName || (locked && changed);
+          return (
+            <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
+              <label className="text-sm font-bold text-accent">الاسم الظاهر</label>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={15}
+                className="w-full px-3 py-2.5 rounded-xl bg-secondary/70 border-2 border-border text-foreground text-base focus:border-accent outline-none"
+                placeholder="اكتب اسمك"
+              />
+              <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف · يمكن تغيير الاسم مرة كل 14 يوم</div>
+              {locked && (
+                <div className="text-[11px] font-bold text-amber-400">
+                  ⏳ متبقي {days > 0 ? `${days} يوم و ${hours} ساعة` : `${hours} ساعة`} قبل تغيير الاسم مرة أخرى
+                </div>
+              )}
+              <button onClick={saveName} disabled={disabled}
+                className="w-full mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white font-bold text-sm active:scale-95 disabled:opacity-50 shadow">
+                {savingName ? "جاري حفظ الاسم..." : "💾 حفظ الاسم"}
+              </button>
+            </section>
+          );
+        })()}
 
         {/* Username */}
         <section className="rounded-2xl p-4 glass-hud border border-accent/30 space-y-2">
