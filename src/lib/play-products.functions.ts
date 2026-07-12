@@ -159,3 +159,69 @@ export const syncOnePlayProduct = createServerFn({ method: "POST" })
     }).eq("id", r.id);
     return result;
   });
+
+/**
+ * Diagnostic — verify Google Play Publisher API credentials are configured
+ * and reachable. Attempts a token exchange + a lightweight in-app product list.
+ * Returns granular info so the admin can copy/paste failures.
+ */
+export const testPlayConnection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const checks: Record<string, any> = {};
+    checks.package = process.env.GOOGLE_PLAY_PACKAGE_NAME || null;
+    checks.hasServiceAccount = !!process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON;
+    if (!checks.package || !checks.hasServiceAccount) {
+      return {
+        ok: false,
+        error: `Missing env: ${!checks.package ? "GOOGLE_PLAY_PACKAGE_NAME " : ""}${!checks.hasServiceAccount ? "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" : ""}`.trim(),
+        checks,
+      };
+    }
+    try {
+      const { SignJWT, importPKCS8 } = await import("jose");
+      const sa = JSON.parse(process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON!);
+      checks.clientEmail = sa.client_email;
+      const now = Math.floor(Date.now() / 1000);
+      const pem = String(sa.private_key).replace(/\\n/g, "\n");
+      const key = await importPKCS8(pem, "RS256");
+      const jwt = await new SignJWT({ scope: "https://www.googleapis.com/auth/androidpublisher" })
+        .setProtectedHeader({ alg: "RS256", typ: "JWT" })
+        .setIssuer(sa.client_email)
+        .setAudience(sa.token_uri || "https://oauth2.googleapis.com/token")
+        .setIssuedAt(now)
+        .setExpirationTime(now + 3600)
+        .sign(key);
+      const tokRes = await fetch(sa.token_uri || "https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+          assertion: jwt,
+        }).toString(),
+      });
+      if (!tokRes.ok) {
+        return { ok: false, error: `OAuth ${tokRes.status}: ${(await tokRes.text()).slice(0, 800)}`, checks };
+      }
+      const { access_token } = (await tokRes.json()) as any;
+      checks.tokenObtained = true;
+      const listRes = await fetch(
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/inappproducts`,
+        { headers: { Authorization: `Bearer ${access_token}` } },
+      );
+      if (!listRes.ok) {
+        return {
+          ok: false,
+          error: `List products ${listRes.status}: ${(await listRes.text()).slice(0, 800)}`,
+          checks,
+        };
+      }
+      const body = (await listRes.json()) as any;
+      checks.productsInPlay = Array.isArray(body?.inappproduct) ? body.inappproduct.length : 0;
+      return { ok: true, checks };
+    } catch (e: any) {
+      return { ok: false, error: e?.message ?? String(e), checks };
+    }
+  });
+
