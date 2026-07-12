@@ -139,7 +139,7 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
       total: (rows ?? []).length,
       errors,
       mode: "batch" as const,
-      apiRequestsMaximum: Math.ceil(inAppProducts.length / 20) * 2,
+      apiRequestsMaximum: Math.ceil(inAppProducts.length / 5) * 2,
     };
   });
 
