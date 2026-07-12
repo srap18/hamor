@@ -207,8 +207,9 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       }
       const { access_token } = (await tokRes.json()) as any;
       checks.tokenObtained = true;
+      // New Monetization API (replaces deprecated inappproducts.list).
       const listRes = await fetch(
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/inappproducts`,
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/onetimeproducts`,
         { headers: { Authorization: `Bearer ${access_token}` } },
       );
       if (!listRes.ok) {
@@ -219,7 +220,11 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         };
       }
       const body = (await listRes.json()) as any;
-      checks.productsInPlay = Array.isArray(body?.inappproduct) ? body.inappproduct.length : 0;
+      checks.productsInPlay = Array.isArray(body?.oneTimeProducts)
+        ? body.oneTimeProducts.length
+        : Array.isArray(body?.inappproduct)
+        ? body.inappproduct.length
+        : 0;
       return { ok: true, checks };
     } catch (e: any) {
       return { ok: false, error: e?.message ?? String(e), checks };
