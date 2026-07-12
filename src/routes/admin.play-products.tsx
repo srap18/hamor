@@ -8,6 +8,7 @@ import {
   deletePlayProduct,
   syncOnePlayProduct,
   syncAllPlayProducts,
+  testPlayConnection,
 } from "@/lib/play-products.functions";
 
 export const Route = createFileRoute("/admin/play-products")({
@@ -62,12 +63,15 @@ function AdminPlayProductsPage() {
   const deleteFn = useServerFn(deletePlayProduct);
   const syncOneFn = useServerFn(syncOnePlayProduct);
   const syncAllFn = useServerFn(syncAllPlayProducts);
+  const testFn = useServerFn(testPlayConnection);
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Row | null>(null);
   const [rewardsText, setRewardsText] = useState("{}");
   const [busy, setBusy] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [diag, setDiag] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -166,7 +170,25 @@ function AdminPlayProductsPage() {
     <div dir="rtl" className="min-h-screen bg-slate-950 text-slate-100 p-4 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-extrabold text-amber-300">🛒 منتجات Google Play</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const res = await testFn();
+                setDiag(JSON.stringify(res, null, 2));
+                if (res.ok) toast.success(`✓ الاتصال ناجح — ${res.checks?.productsInPlay ?? 0} منتج في Play`);
+                else toast.error("فشل الاتصال — اضغط لعرض التفاصيل");
+              } catch (e: any) {
+                setDiag(String(e?.message ?? e));
+                toast.error("فشل الاتصال");
+              } finally { setBusy(false); }
+            }}
+            disabled={busy}
+            className="px-3 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-bold disabled:opacity-50"
+          >
+            🔌 اختبار الاتصال
+          </button>
           <button
             onClick={syncAll}
             disabled={busy}
@@ -186,6 +208,8 @@ function AdminPlayProductsPage() {
       <div className="text-xs text-slate-400 bg-slate-900 border border-slate-800 rounded-lg p-3 leading-relaxed">
         كل تعديل أو إضافة يُرسل تلقائياً إلى Google Play Console عبر Publisher API.
         قد يحتاج المنتج <b>2-4 ساعات</b> ليظهر في تطبيقات المستخدمين بعد الحفظ.
+        <br />
+        إصدار التطبيق الحالي: <b>versionCode 1003</b> — ارفع نسخة APK/AAB بهذا الرقم في Play Console.
       </div>
 
       {loading ? (
@@ -230,9 +254,13 @@ function AdminPlayProductsPage() {
                       {r.sync_status === "ok" ? "✓ متزامن" : r.sync_status === "error" ? "✗ خطأ" : "⏳ قيد الانتظار"}
                     </div>
                     {r.sync_error && (
-                      <div className="text-xs text-red-300 max-w-xs truncate" title={r.sync_error}>
-                        {r.sync_error}
-                      </div>
+                      <button
+                        onClick={() => setErrorDetail(`SKU: ${r.sku}\n\n${r.sync_error}`)}
+                        className="text-xs text-red-300 underline max-w-xs truncate block text-right"
+                        title="اضغط لعرض الخطأ كاملاً ونسخه"
+                      >
+                        📋 {r.sync_error}
+                      </button>
                     )}
                   </td>
                   <td className="p-2 whitespace-nowrap">
@@ -340,6 +368,34 @@ function AdminPlayProductsPage() {
                 className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-sm font-bold disabled:opacity-50">
                 {busy ? "..." : "حفظ + مزامنة"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(errorDetail || diag) && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 w-full max-w-2xl space-y-3">
+            <h2 className="text-lg font-bold text-amber-300">
+              {errorDetail ? "تفاصيل الخطأ" : "نتيجة اختبار الاتصال"}
+            </h2>
+            <textarea
+              readOnly
+              value={errorDetail ?? diag ?? ""}
+              className="w-full h-80 bg-slate-950 border border-slate-800 rounded p-2 font-mono text-xs text-red-200"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(errorDetail ?? diag ?? "");
+                  toast.success("تم النسخ");
+                }}
+                className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-sm font-bold"
+              >📋 نسخ</button>
+              <button
+                onClick={() => { setErrorDetail(null); setDiag(null); }}
+                className="px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-sm"
+              >إغلاق</button>
             </div>
           </div>
         </div>

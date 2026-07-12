@@ -8,8 +8,8 @@ android {
         applicationId "com.hamor.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 101
-        versionName "2.0.0"
+        versionCode 1003
+        versionName "2.0.3"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         
