@@ -511,12 +511,13 @@ function PlayerPage() {
       flash("🏴‍☠️ ممنوع الهجوم وأنت تسرق — انتظر رجوع سفينة السرقة أو ألغِها");
       return;
     }
-    // Require all 3 ships to be actively fishing (at_sea) before allowing any attack.
+    // نتحقّق فقط أن الأسطول القتالي مكتمل (3 سفن ≥ لفل 6 وغير مدمّرة).
+    // مطابقة سلوك القنبلة الإعلانية — لا يشترط أن تكون كلها في وضع الصيد فعلياً.
     {
       const activeShips = myShips.filter((s) => !s.in_storage && !s.destroyed_at);
-      if (activeShips.length < 3 || activeShips.some((s) => !s.at_sea)) {
+      if (activeShips.length < 3) {
         sound.play("error");
-        flash("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم");
+        flash("🚫 تحتاج 3 سفن فعّالة (غير مدمّرة وغير مخزّنة) للهجوم");
         return;
       }
     }
