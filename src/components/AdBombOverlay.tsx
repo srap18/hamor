@@ -287,7 +287,7 @@ export function AdBombOverlay({
       )}
 
 
-      {/* Countdown + remove button (owner) — moved down so the top header stays clear */}
+      {/* Countdown banner — moved down so the top header stays clear */}
       <div className="fixed top-32 left-1/2 -translate-x-1/2 z-[45] pointer-events-auto">
         <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-fuchsia-900/90 border border-fuchsia-400/60 backdrop-blur-sm shadow-lg">
           <span className="text-lg animate-pulse">📺</span>
@@ -297,15 +297,6 @@ export function AdBombOverlay({
               متبقي {minsLeft}د {String(secsLeft).padStart(2, "0")}ث
             </div>
           </div>
-          {(isOwner || (!!meId && !!bomb && meId === bomb.target_user_id)) && (
-            <button
-              onClick={handleRemove}
-              disabled={removing}
-              className="ms-1 px-2 py-1 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 text-white text-[10px] font-extrabold active:scale-95 disabled:opacity-50"
-            >
-              إزالة 💎100
-            </button>
-          )}
           {!!meId && meId !== bomb.attacker_id && (
             <ReportMessageButton
               reportedUserId={bomb.attacker_id}
@@ -317,6 +308,22 @@ export function AdBombOverlay({
         </div>
       </div>
 
+      {/* Draggable, collapsible remove button (owner only) */}
+      {(isOwner || (!!meId && !!bomb && meId === bomb.target_user_id)) && (
+        <DraggableActionButton
+          storageKey={`ad-bomb-remove:${bomb.id}`}
+          onClick={handleRemove}
+          label={
+            <>
+              <span className="text-[10px]">إزالة</span>
+              <span className="opacity-90">💎100</span>
+            </>
+          }
+          collapsedIcon={<>🧹</>}
+          title="إزالة القنبلة الإعلانية مقابل 100 جوهرة"
+          variant="fuchsia"
+        />
+      )}
 
     </>
   );
