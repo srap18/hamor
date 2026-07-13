@@ -236,7 +236,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
               {/* STORAGE */}
               <div className="pt-1">
-                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${maxStorage}`} />
+                <SectionTitle icon="📦" label="المخزن" hint={`سعة ${maxStorage} • مستخدم ${stored.length}`} />
 
                 {/* Upgrade capacity */}
                 <div className="mb-2 rounded-xl border-2 border-fuchsia-500/50 bg-gradient-to-b from-fuchsia-950/60 to-stone-900/60 p-2 flex items-center gap-2">
