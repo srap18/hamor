@@ -58,14 +58,45 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const reload = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, in_storage, max_hp, stars")
-      .eq("user_id", user.id)
-      .order("acquired_at", { ascending: true });
-    setShips((data ?? []) as ShipRow[]);
+    const [{ data: shipsData }, { data: profileData }] = await Promise.all([
+      supabase
+        .from("ships_owned")
+        .select("id, template_id, catalog_code, acquired_at, in_storage, max_hp, stars")
+        .eq("user_id", user.id)
+        .order("acquired_at", { ascending: true }),
+      supabase
+        .from("profiles")
+        .select("storage_capacity, gems")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+    setShips((shipsData ?? []) as ShipRow[]);
+    const p: any = profileData;
+    if (p) {
+      setMaxStorage(Number(p.storage_capacity ?? DEFAULT_STORAGE));
+      setGems(Number(p.gems ?? 0));
+    }
     setLoading(false);
   }, [user]);
+
+  const upgradeStorage = async () => {
+    if (upgrading) return;
+    if (maxStorage >= STORAGE_MAX_CAP) { showNotice("وصلت الحد الأقصى للمخزن"); return; }
+    if (gems < STORAGE_UPGRADE_COST) { showNotice("جواهرك لا تكفي (10,000 جوهرة)"); return; }
+    setUpgrading(true);
+    sound.play("click");
+    const { error } = await (supabase as any).rpc("upgrade_ship_storage");
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      if (m.includes("not enough gems")) showNotice("جواهرك لا تكفي");
+      else if (m.includes("max storage")) showNotice("وصلت الحد الأقصى");
+      else showNotice(error.message || "تعذر الترقية");
+    } else {
+      showNotice("✨ تمت ترقية المخزن +1");
+      await reload();
+    }
+    setUpgrading(false);
+  };
 
   useEffect(() => { if (open) reload(); }, [open, reload]);
 
