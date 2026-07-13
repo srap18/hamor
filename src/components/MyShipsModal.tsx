@@ -41,13 +41,14 @@ const ERR_MAP: Record<string, string> = {
 
 export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth();
+  const { profile } = useProfile();
+  const gems = Number((profile as any)?.gems ?? 0);
   const [ships, setShips] = useState<ShipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickSwap, setPickSwap] = useState<string | null>(null); // storage ship id awaiting active pick
   const [notice, setNotice] = useState<string | null>(null);
   const [maxStorage, setMaxStorage] = useState<number>(DEFAULT_STORAGE);
-  const [gems, setGems] = useState<number>(0);
   const [upgrading, setUpgrading] = useState(false);
 
   const showNotice = (m: string) => {
