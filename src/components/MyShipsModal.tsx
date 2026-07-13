@@ -153,7 +153,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
           <div className="text-amber-300 text-[11px] tracking-widest">⚓ أسطولك ⚓</div>
           <h2 className="text-amber-100 text-xl font-black mt-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">سفينتي</h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
-            النشط: {active.length}/{MAX_ACTIVE} • المخزن: {stored.length}/{MAX_STORAGE}
+            النشط: {active.length}/{MAX_ACTIVE} • المخزن: {stored.length}/{maxStorage}
           </div>
         </div>
 
@@ -191,10 +191,10 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
                       </button>
                     ) : (
                       <button
-                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= 1}
+                        disabled={busyId === ship.id || stored.length >= maxStorage || active.length <= 1}
                         onClick={() => moveToStorage(ship.id)}
                         className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-200 text-[11px] font-black active:scale-95 disabled:opacity-40"
-                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
+                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= maxStorage ? "المخزن ممتلئ" : "نقل إلى المخزن")}
                       >
                         📦 للمخزن
                       </button>
@@ -205,7 +205,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
               {/* STORAGE */}
               <div className="pt-1">
-                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${MAX_STORAGE}`} />
+                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${maxStorage}`} />
                 {stored.length === 0 && (
                   <div className="text-center text-amber-300/60 text-xs py-3 rounded-lg bg-stone-900/40 border border-amber-700/30">
                     المخزن فارغ
