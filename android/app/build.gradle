@@ -8,8 +8,8 @@ android {
         applicationId "com.hamor.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1003
-        versionName "2.0.3"
+        versionCode 1004
+        versionName "2.0.4"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         
@@ -43,6 +43,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Google Play Billing — يجبر Google Play Console على تفعيل صلاحية الفوترة
+    // ويجعل زر إضافة المنتجات مفعّلاً عند رفع الـ AAB.
+    implementation 'com.android.billingclient:billing:7.1.1'
 
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')

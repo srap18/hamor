@@ -75,4 +75,63 @@ export function installNativeShell(): void {
   } catch (e) {
     console.warn("[native-shell] back-button wiring failed", e);
   }
+
+  // 4) امنع الروابط الخارجية من فتح المتصفح — افتحها داخل التطبيق عبر
+  //    Capacitor Browser (in-app browser) بدل مغادرة WebView.
+  try {
+    const openInApp = async (url: string) => {
+      try {
+        const plugins = window.Capacitor?.Plugins as Record<string, any> | undefined;
+        const Browser = plugins?.Browser;
+        if (Browser?.open) {
+          await Browser.open({ url, presentationStyle: "popover" });
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    const sameOrigin = (href: string) => {
+      try {
+        const u = new URL(href, window.location.href);
+        return u.origin === window.location.origin;
+      } catch { return true; }
+    };
+
+    document.addEventListener("click", (ev) => {
+      const target = ev.target as HTMLElement | null;
+      const a = target?.closest?.("a") as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute("href");
+      if (!href) return;
+      if (href.startsWith("#") || href.startsWith("javascript:")) return;
+      // Special schemes (tel:, mailto:, whatsapp:, market:) — allow default.
+      if (/^(tel:|mailto:|sms:|market:|intent:)/i.test(href)) return;
+      // Same-origin: let router handle it.
+      if (sameOrigin(href)) return;
+      // External http(s): keep the user inside the app.
+      if (/^https?:\/\//i.test(href)) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        void openInApp(href);
+      }
+    }, true);
+
+    // Intercept window.open for external URLs too.
+    const origOpen = window.open?.bind(window);
+    if (origOpen) {
+      window.open = ((url?: string | URL, target?: string, features?: string) => {
+        try {
+          const href = typeof url === "string" ? url : url?.toString?.() || "";
+          if (href && /^https?:\/\//i.test(href) && !sameOrigin(href)) {
+            void openInApp(href);
+            return null;
+          }
+        } catch {}
+        return origOpen(url as any, target, features);
+      }) as typeof window.open;
+    }
+  } catch (e) {
+    console.warn("[native-shell] link interceptor failed", e);
+  }
 }
