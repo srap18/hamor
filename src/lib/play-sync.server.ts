@@ -236,7 +236,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
-    const body = buildOneTimeProductBody(pkg, row);
+    const existing = await fetchExistingPurchaseOptions(pkg, row.sku, token);
+    const body = buildOneTimeProductBody(pkg, row, existing);
 
     const params = new URLSearchParams({
       updateMask: PRODUCT_UPDATE_MASK,
