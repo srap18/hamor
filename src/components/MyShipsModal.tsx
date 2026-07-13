@@ -27,7 +27,9 @@ const rarityColors: Record<string, string> = {
 };
 
 const MAX_ACTIVE = 3;
-const MAX_STORAGE = 3;
+const DEFAULT_STORAGE = 3;
+const STORAGE_UPGRADE_COST = 10000;
+const STORAGE_MAX_CAP = 20;
 
 const ERR_MAP: Record<string, string> = {
   "ship is at sea": "السفينة في البحر — أرجعها أولاً",
