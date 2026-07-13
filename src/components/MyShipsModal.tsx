@@ -93,7 +93,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
       else showNotice(error.message || "تعذر الترقية");
     } else {
       showNotice("✨ تمت ترقية المخزن +1");
-      await reload();
+      await Promise.all([reload(), refreshProfile()]);
     }
     setUpgrading(false);
   };
