@@ -90,19 +90,11 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     else nextDayIndex = 0; // reset
   }
   const todaysReward = REWARDS[nextDayIndex];
-  // Hard guard: the day-15 nuke is ONLY claimable when the user is about to
-  // complete a true 15-day consecutive streak (streak === 14 and gap === 1).
-  // No shortcuts via resets or partial cycles.
-  const isNukeSlot = nextDayIndex === 14;
-  const gapNow = lastDate ? daysBetween(lastDate, today) : null;
-  const nukeAllowed = isNukeSlot
-    ? (!claimedToday && lastDate !== null && gapNow === 1 && (streak % 15) === 14)
-    : true;
 
 
   const claim = async () => {
     if (!user || busyRef.current || busy || claimedToday) return;
-    if (!nukeAllowed) { setToast("🔒 القنبلة الذرية تتطلب 15 يوم متتالي"); setTimeout(()=>setToast(null), 2400); return; }
+
     busyRef.current = true;
     setBusy(true);
     sound.play("coin");
@@ -208,17 +200,16 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
             </div>
             <button
               onClick={claim}
-              disabled={claimedToday || busy || !nukeAllowed}
+              disabled={claimedToday || busy}
               className={`px-4 py-2 rounded-lg font-black text-sm border-2 ${
                 claimedToday
                   ? "bg-emerald-900/60 border-emerald-500/40 text-emerald-300"
-                  : !nukeAllowed
-                  ? "bg-stone-800 border-stone-600 text-stone-400 opacity-60"
                   : "bg-gradient-to-b from-amber-300 to-amber-600 border-amber-200 text-amber-950 active:scale-95 shadow-lg"
               }`}
             >
-              {claimedToday ? "✓ تم" : !nukeAllowed ? "🔒 مقفل" : "استلم"}
+              {claimedToday ? "✓ تم" : "استلم"}
             </button>
+
           </div>
           <button
             onClick={onClose}
