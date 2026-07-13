@@ -184,7 +184,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
           <div className="text-amber-300 text-[11px] tracking-widest">⚓ أسطولك ⚓</div>
           <h2 className="text-amber-100 text-xl font-black mt-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">سفينتي</h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
-            النشط: {active.length}/{MAX_ACTIVE} • المخزن: {stored.length}/{maxStorage}
+            النشط: {active.length}/{MAX_ACTIVE} • سعة المخزن: <span className="text-emerald-300 font-black">{maxStorage}</span> (مستخدم {stored.length})
           </div>
         </div>
 
@@ -236,7 +236,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
               {/* STORAGE */}
               <div className="pt-1">
-                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${maxStorage}`} />
+                <SectionTitle icon="📦" label="المخزن" hint={`سعة ${maxStorage} • مستخدم ${stored.length}`} />
 
                 {/* Upgrade capacity */}
                 <div className="mb-2 rounded-xl border-2 border-fuchsia-500/50 bg-gradient-to-b from-fuchsia-950/60 to-stone-900/60 p-2 flex items-center gap-2">
