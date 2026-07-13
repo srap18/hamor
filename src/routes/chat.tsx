@@ -1710,8 +1710,11 @@ function NoTribePanel({ userId }: { userId: string }) {
   const [mode, setMode] = useState<"join" | "create">("join");
   const [myRequests, setMyRequests] = useState<Set<string>>(new Set());
 
-  const loadTribes = async () => {
-    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,join_mode").limit(200);
+  const loadTribes = async (search?: string) => {
+    const s = (search ?? "").trim();
+    let query = supabase.from("tribes").select("id,name,emblem,join_mode");
+    if (s) query = query.ilike("name", `%${s}%`);
+    const { data: ts } = await query.limit(500);
     if (!ts) { setTribes([]); return; }
     const ids = ts.map((t) => t.id);
     if (ids.length === 0) { setTribes([]); return; }
@@ -1732,7 +1735,6 @@ function NoTribePanel({ userId }: { userId: string }) {
     }
     const rows: TribeRow[] = ts.map((t: any) => {
       const uids = memberByTribe.get(t.id) || [];
-      // Tribe strength (شراسة) = sum of damage dealt by all members on their enemies.
       const power = uids.reduce((sum, uid) => sum + (damageMap.get(uid) || 0), 0);
       return { id: t.id, name: t.name, emblem: t.emblem, members: uids.length, power, join_mode: t.join_mode || "request" };
     }).sort((a, b) => b.power - a.power);
@@ -1743,8 +1745,14 @@ function NoTribePanel({ userId }: { userId: string }) {
   };
 
   useEffect(() => { loadTribes(); }, []);
+  useEffect(() => {
+    const s = q.trim();
+    const t = setTimeout(() => { loadTribes(s); }, 250);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
-  const filtered = q.trim() ? tribes.filter((t) => t.name.toLowerCase().includes(q.trim().toLowerCase())) : tribes;
+  const filtered = tribes;
 
   const createTribe = async () => {
     if (!userId || !name.trim()) return;
