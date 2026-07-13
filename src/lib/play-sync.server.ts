@@ -183,7 +183,14 @@ function buildOneTimeProductBody(
   const descriptionEn = truncateText(row.description_en || titleEn, 200);
   const descriptionAr = truncateText(row.description_ar || titleAr, 200);
 
-  const defaultOption = {
+  // Auto-conversion only works when the base price is in USD (Google's
+  // NewRegionsConfig expects `usdPrice` in USD). For any other base currency
+  // we skip auto-conversion and just publish in the base region.
+  const usdPriceForAutoConvert =
+    currency === "USD" ? price : microsToMoney(row.price_micros, "USD");
+  const canAutoConvert = currency === "USD";
+
+  const defaultOption: any = {
     purchaseOptionId: "default",
     buyOption: {
       legacyCompatible: true,
@@ -200,13 +207,22 @@ function buildOneTimeProductBody(
       withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
     },
   };
+  if (canAutoConvert) {
+    // Auto-convert base USD price to every other region using Google's
+    // official regional currencies (avoids "Invalid currency for region code
+    // BG. Expected BGN but got EUR" style errors under regionsVersion 2022/02).
+    defaultOption.newRegionsConfig = {
+      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
+      availability: "AVAILABLE",
+      usdPrice: usdPriceForAutoConvert,
+    };
+  }
 
   // Google requires the PATCH body to list ALL existing purchaseOptions
-  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options
-  // verbatim so we don't silently drop them.
-  // Google enforces "at most one buyOption marked legacyCompatible=true".
-  // Since our "default" option owns that flag, strip it from any preserved
-  // sibling options (and their nested buyOption) before re-sending them.
+  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options but
+  // sanitize them: strip all stale regional pricing entries (they may carry
+  // currency/region mismatches Google no longer accepts) and republish them
+  // with just our base region so nothing gets silently dropped.
   const preserved = (existingPurchaseOptions ?? [])
     .filter((opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default")
     .map((opt) => {
@@ -217,8 +233,21 @@ function buildOneTimeProductBody(
       if (cleaned.rentOption) {
         cleaned.rentOption = { ...cleaned.rentOption, legacyCompatible: false };
       }
+      cleaned.regionalPricingAndAvailabilityConfigs = [
+        { regionCode: region, price, availability: "AVAILABLE" },
+      ];
+      if (canAutoConvert) {
+        cleaned.newRegionsConfig = {
+          eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
+          availability: "AVAILABLE",
+          usdPrice: usdPriceForAutoConvert,
+        };
+      } else {
+        delete cleaned.newRegionsConfig;
+      }
       return cleaned;
     });
+
 
   return {
     packageName: pkg,
@@ -238,6 +267,7 @@ function buildOneTimeProductBody(
     purchaseOptions: [defaultOption, ...preserved],
   };
 }
+
 
 /**
  * Create or update a managed one-time product via monetization.onetimeproducts.
