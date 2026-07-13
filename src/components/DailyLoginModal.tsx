@@ -200,17 +200,16 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
             </div>
             <button
               onClick={claim}
-              disabled={claimedToday || busy || !nukeAllowed}
+              disabled={claimedToday || busy}
               className={`px-4 py-2 rounded-lg font-black text-sm border-2 ${
                 claimedToday
                   ? "bg-emerald-900/60 border-emerald-500/40 text-emerald-300"
-                  : !nukeAllowed
-                  ? "bg-stone-800 border-stone-600 text-stone-400 opacity-60"
                   : "bg-gradient-to-b from-amber-300 to-amber-600 border-amber-200 text-amber-950 active:scale-95 shadow-lg"
               }`}
             >
-              {claimedToday ? "✓ تم" : !nukeAllowed ? "🔒 مقفل" : "استلم"}
+              {claimedToday ? "✓ تم" : "استلم"}
             </button>
+
           </div>
           <button
             onClick={onClose}
