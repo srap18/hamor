@@ -75,7 +75,6 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     const p: any = profileData;
     if (p) {
       setMaxStorage(Number(p.storage_capacity ?? DEFAULT_STORAGE));
-      setGems(Number(p.gems ?? 0));
     }
     setLoading(false);
   }, [user]);
