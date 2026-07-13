@@ -354,12 +354,15 @@ export async function batchSyncPlayProducts(
       await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
     }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
+    const existingByChunkIndex = await Promise.all(
+      chunk.map((row) => fetchExistingPurchaseOptions(pkg, row.sku, token).catch(() => null)),
+    );
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
       `${encodeURIComponent(pkg)}/oneTimeProducts:batchUpdate`;
     const updateBody = {
-      requests: chunk.map((row) => ({
-        oneTimeProduct: buildOneTimeProductBody(pkg, row),
+      requests: chunk.map((row, idx) => ({
+        oneTimeProduct: buildOneTimeProductBody(pkg, row, existingByChunkIndex[idx]),
         updateMask: PRODUCT_UPDATE_MASK,
         regionsVersion: { version: "2022/02" },
         allowMissing: true,
