@@ -90,19 +90,11 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     else nextDayIndex = 0; // reset
   }
   const todaysReward = REWARDS[nextDayIndex];
-  // Hard guard: the day-15 nuke is ONLY claimable when the user is about to
-  // complete a true 15-day consecutive streak (streak === 14 and gap === 1).
-  // No shortcuts via resets or partial cycles.
-  const isNukeSlot = nextDayIndex === 14;
-  const gapNow = lastDate ? daysBetween(lastDate, today) : null;
-  const nukeAllowed = isNukeSlot
-    ? (!claimedToday && lastDate !== null && gapNow === 1 && (streak % 15) === 14)
-    : true;
 
 
   const claim = async () => {
     if (!user || busyRef.current || busy || claimedToday) return;
-    if (!nukeAllowed) { setToast("🔒 القنبلة الذرية تتطلب 15 يوم متتالي"); setTimeout(()=>setToast(null), 2400); return; }
+
     busyRef.current = true;
     setBusy(true);
     sound.play("coin");
