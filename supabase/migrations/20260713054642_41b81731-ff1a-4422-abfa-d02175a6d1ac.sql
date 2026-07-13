@@ -1,0 +1,1 @@
+GRANT SELECT (storage_capacity) ON public.profiles TO authenticated;
