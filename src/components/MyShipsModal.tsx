@@ -237,6 +237,26 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
               {/* STORAGE */}
               <div className="pt-1">
                 <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${maxStorage}`} />
+
+                {/* Upgrade capacity */}
+                <div className="mb-2 rounded-xl border-2 border-fuchsia-500/50 bg-gradient-to-b from-fuchsia-950/60 to-stone-900/60 p-2 flex items-center gap-2">
+                  <div className="flex-1 text-right">
+                    <div className="text-fuchsia-200 font-black text-[12px]">🔧 ترقية سعة المخزن</div>
+                    <div className="text-fuchsia-300/80 text-[10px] mt-0.5">
+                      +1 خانة لكل ترقية • السعة الحالية {maxStorage}/{STORAGE_MAX_CAP}
+                    </div>
+                    <div className="text-amber-300 text-[10px] mt-0.5">جواهرك: 💎 {gems.toLocaleString()}</div>
+                  </div>
+                  <button
+                    onClick={upgradeStorage}
+                    disabled={upgrading || maxStorage >= STORAGE_MAX_CAP || gems < STORAGE_UPGRADE_COST}
+                    className="px-3 py-2 rounded-lg bg-gradient-to-b from-fuchsia-400 to-fuchsia-700 border border-fuchsia-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-40 shrink-0"
+                    title={maxStorage >= STORAGE_MAX_CAP ? "وصلت الحد الأقصى" : `التكلفة ${STORAGE_UPGRADE_COST.toLocaleString()} جوهرة`}
+                  >
+                    {maxStorage >= STORAGE_MAX_CAP ? "🏆 الأقصى" : (<>💎 {STORAGE_UPGRADE_COST.toLocaleString()}<br/>ترقية +1</>)}
+                  </button>
+                </div>
+
                 {stored.length === 0 && (
                   <div className="text-center text-amber-300/60 text-xs py-3 rounded-lg bg-stone-900/40 border border-amber-700/30">
                     المخزن فارغ
