@@ -46,6 +46,9 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickSwap, setPickSwap] = useState<string | null>(null); // storage ship id awaiting active pick
   const [notice, setNotice] = useState<string | null>(null);
+  const [maxStorage, setMaxStorage] = useState<number>(DEFAULT_STORAGE);
+  const [gems, setGems] = useState<number>(0);
+  const [upgrading, setUpgrading] = useState(false);
 
   const showNotice = (m: string) => {
     setNotice(m);
