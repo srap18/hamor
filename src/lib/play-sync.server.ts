@@ -204,9 +204,21 @@ function buildOneTimeProductBody(
   // Google requires the PATCH body to list ALL existing purchaseOptions
   // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options
   // verbatim so we don't silently drop them.
-  const preserved = (existingPurchaseOptions ?? []).filter(
-    (opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default",
-  );
+  // Google enforces "at most one buyOption marked legacyCompatible=true".
+  // Since our "default" option owns that flag, strip it from any preserved
+  // sibling options (and their nested buyOption) before re-sending them.
+  const preserved = (existingPurchaseOptions ?? [])
+    .filter((opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default")
+    .map((opt) => {
+      const cleaned: any = { ...opt };
+      if (cleaned.buyOption) {
+        cleaned.buyOption = { ...cleaned.buyOption, legacyCompatible: false };
+      }
+      if (cleaned.rentOption) {
+        cleaned.rentOption = { ...cleaned.rentOption, legacyCompatible: false };
+      }
+      return cleaned;
+    });
 
   return {
     packageName: pkg,
