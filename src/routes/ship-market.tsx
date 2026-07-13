@@ -93,7 +93,7 @@ function ShipyardPage() {
   );
   const fleetStorageMax = shipMarketCapacity(marketLevel);
   const MAX_SHIPS = 3;
-  const MAX_STORAGE = 3;
+  const MAX_STORAGE = Math.max(3, Math.min(20, Number((profile as any)?.storage_capacity ?? 3)));
   const activeCount = activeShips.length;
   const storageCount = storedShips.length;
   const allFull = activeCount >= MAX_SHIPS && storageCount >= MAX_STORAGE;
