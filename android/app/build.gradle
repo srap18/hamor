@@ -44,6 +44,10 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.1'
     implementation 'androidx.multidex:multidex:2.0.1'
 
+    // Google Play Billing — يجبر Google Play Console على تفعيل صلاحية الفوترة
+    // ويجعل زر إضافة المنتجات مفعّلاً عند رفع الـ AAB.
+    implementation 'com.android.billingclient:billing:7.1.1'
+
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
 }
