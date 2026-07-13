@@ -27,7 +27,9 @@ const rarityColors: Record<string, string> = {
 };
 
 const MAX_ACTIVE = 3;
-const MAX_STORAGE = 3;
+const DEFAULT_STORAGE = 3;
+const STORAGE_UPGRADE_COST = 10000;
+const STORAGE_MAX_CAP = 20;
 
 const ERR_MAP: Record<string, string> = {
   "ship is at sea": "السفينة في البحر — أرجعها أولاً",
@@ -44,6 +46,9 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickSwap, setPickSwap] = useState<string | null>(null); // storage ship id awaiting active pick
   const [notice, setNotice] = useState<string | null>(null);
+  const [maxStorage, setMaxStorage] = useState<number>(DEFAULT_STORAGE);
+  const [gems, setGems] = useState<number>(0);
+  const [upgrading, setUpgrading] = useState(false);
 
   const showNotice = (m: string) => {
     setNotice(m);
@@ -53,14 +58,45 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
   const reload = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, in_storage, max_hp, stars")
-      .eq("user_id", user.id)
-      .order("acquired_at", { ascending: true });
-    setShips((data ?? []) as ShipRow[]);
+    const [{ data: shipsData }, { data: profileData }] = await Promise.all([
+      supabase
+        .from("ships_owned")
+        .select("id, template_id, catalog_code, acquired_at, in_storage, max_hp, stars")
+        .eq("user_id", user.id)
+        .order("acquired_at", { ascending: true }),
+      supabase
+        .from("profiles")
+        .select("storage_capacity, gems")
+        .eq("id", user.id)
+        .maybeSingle(),
+    ]);
+    setShips((shipsData ?? []) as ShipRow[]);
+    const p: any = profileData;
+    if (p) {
+      setMaxStorage(Number(p.storage_capacity ?? DEFAULT_STORAGE));
+      setGems(Number(p.gems ?? 0));
+    }
     setLoading(false);
   }, [user]);
+
+  const upgradeStorage = async () => {
+    if (upgrading) return;
+    if (maxStorage >= STORAGE_MAX_CAP) { showNotice("وصلت الحد الأقصى للمخزن"); return; }
+    if (gems < STORAGE_UPGRADE_COST) { showNotice("جواهرك لا تكفي (10,000 جوهرة)"); return; }
+    setUpgrading(true);
+    sound.play("click");
+    const { error } = await (supabase as any).rpc("upgrade_ship_storage");
+    if (error) {
+      const m = (error.message || "").toLowerCase();
+      if (m.includes("not enough gems")) showNotice("جواهرك لا تكفي");
+      else if (m.includes("max storage")) showNotice("وصلت الحد الأقصى");
+      else showNotice(error.message || "تعذر الترقية");
+    } else {
+      showNotice("✨ تمت ترقية المخزن +1");
+      await reload();
+    }
+    setUpgrading(false);
+  };
 
   useEffect(() => { if (open) reload(); }, [open, reload]);
 
@@ -148,7 +184,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
           <div className="text-amber-300 text-[11px] tracking-widest">⚓ أسطولك ⚓</div>
           <h2 className="text-amber-100 text-xl font-black mt-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">سفينتي</h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
-            النشط: {active.length}/{MAX_ACTIVE} • المخزن: {stored.length}/{MAX_STORAGE}
+            النشط: {active.length}/{MAX_ACTIVE} • المخزن: {stored.length}/{maxStorage}
           </div>
         </div>
 
@@ -186,10 +222,10 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
                       </button>
                     ) : (
                       <button
-                        disabled={busyId === ship.id || stored.length >= MAX_STORAGE || active.length <= 1}
+                        disabled={busyId === ship.id || stored.length >= maxStorage || active.length <= 1}
                         onClick={() => moveToStorage(ship.id)}
                         className="px-2.5 py-1.5 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-200 text-[11px] font-black active:scale-95 disabled:opacity-40"
-                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= MAX_STORAGE ? "المخزن ممتلئ" : "نقل إلى المخزن")}
+                        title={active.length <= 1 ? "لا يمكن تفريغ الأسطول بالكامل" : (stored.length >= maxStorage ? "المخزن ممتلئ" : "نقل إلى المخزن")}
                       >
                         📦 للمخزن
                       </button>
@@ -200,7 +236,27 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
 
               {/* STORAGE */}
               <div className="pt-1">
-                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${MAX_STORAGE}`} />
+                <SectionTitle icon="📦" label="المخزن" hint={`${stored.length}/${maxStorage}`} />
+
+                {/* Upgrade capacity */}
+                <div className="mb-2 rounded-xl border-2 border-fuchsia-500/50 bg-gradient-to-b from-fuchsia-950/60 to-stone-900/60 p-2 flex items-center gap-2">
+                  <div className="flex-1 text-right">
+                    <div className="text-fuchsia-200 font-black text-[12px]">🔧 ترقية سعة المخزن</div>
+                    <div className="text-fuchsia-300/80 text-[10px] mt-0.5">
+                      +1 خانة لكل ترقية • السعة الحالية {maxStorage}/{STORAGE_MAX_CAP}
+                    </div>
+                    <div className="text-amber-300 text-[10px] mt-0.5">جواهرك: 💎 {gems.toLocaleString()}</div>
+                  </div>
+                  <button
+                    onClick={upgradeStorage}
+                    disabled={upgrading || maxStorage >= STORAGE_MAX_CAP || gems < STORAGE_UPGRADE_COST}
+                    className="px-3 py-2 rounded-lg bg-gradient-to-b from-fuchsia-400 to-fuchsia-700 border border-fuchsia-200 text-white text-[11px] font-black active:scale-95 disabled:opacity-40 shrink-0"
+                    title={maxStorage >= STORAGE_MAX_CAP ? "وصلت الحد الأقصى" : `التكلفة ${STORAGE_UPGRADE_COST.toLocaleString()} جوهرة`}
+                  >
+                    {maxStorage >= STORAGE_MAX_CAP ? "🏆 الأقصى" : (<>💎 {STORAGE_UPGRADE_COST.toLocaleString()}<br/>ترقية +1</>)}
+                  </button>
+                </div>
+
                 {stored.length === 0 && (
                   <div className="text-center text-amber-300/60 text-xs py-3 rounded-lg bg-stone-900/40 border border-amber-700/30">
                     المخزن فارغ

@@ -3038,6 +3038,7 @@ export type Database = {
           skill_speed: number
           skill_str: number
           steal_blocked_until: string | null
+          storage_capacity: number
           total_damage_dealt: number
           tribe_gems: number
           tribe_id: string | null
@@ -3107,6 +3108,7 @@ export type Database = {
           skill_speed?: number
           skill_str?: number
           steal_blocked_until?: string | null
+          storage_capacity?: number
           total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
@@ -3176,6 +3178,7 @@ export type Database = {
           skill_speed?: number
           skill_str?: number
           steal_blocked_until?: string | null
+          storage_capacity?: number
           total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
@@ -7035,6 +7038,7 @@ export type Database = {
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
       upgrade_dragon_item: { Args: { p_item_id: string }; Returns: Json }
+      upgrade_ship_storage: { Args: never; Returns: Json }
       upgrade_submarine: { Args: { _ship_id: string }; Returns: Json }
       use_crew_from_inventory: {
         Args: { _inventory_id: string; _ship_id?: string }
