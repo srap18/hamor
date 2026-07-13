@@ -67,7 +67,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
       supabase
         .from("profiles")
         .select("storage_capacity, gems")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .maybeSingle(),
     ]);
     setShips((shipsData ?? []) as ShipRow[]);
