@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { sellShip } from "@/lib/economy";
@@ -41,13 +41,14 @@ const ERR_MAP: Record<string, string> = {
 
 export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user } = useAuth();
+  const { profile } = useProfile();
+  const gems = Number((profile as any)?.gems ?? 0);
   const [ships, setShips] = useState<ShipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickSwap, setPickSwap] = useState<string | null>(null); // storage ship id awaiting active pick
   const [notice, setNotice] = useState<string | null>(null);
   const [maxStorage, setMaxStorage] = useState<number>(DEFAULT_STORAGE);
-  const [gems, setGems] = useState<number>(0);
   const [upgrading, setUpgrading] = useState(false);
 
   const showNotice = (m: string) => {
@@ -74,7 +75,6 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     const p: any = profileData;
     if (p) {
       setMaxStorage(Number(p.storage_capacity ?? DEFAULT_STORAGE));
-      setGems(Number(p.gems ?? 0));
     }
     setLoading(false);
   }, [user]);
@@ -93,7 +93,7 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
       else showNotice(error.message || "تعذر الترقية");
     } else {
       showNotice("✨ تمت ترقية المخزن +1");
-      await reload();
+      await Promise.all([reload(), refreshProfile()]);
     }
     setUpgrading(false);
   };
