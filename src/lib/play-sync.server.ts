@@ -196,17 +196,23 @@ function buildOneTimeProductBody(
         availability: "AVAILABLE",
       },
     ],
+    // Auto-convert the base price to every other region using its correct
+    // official currency (avoids "Invalid currency for region code XX" errors
+    // like BG expecting BGN instead of EUR).
+    newRegionsConfig: {
+      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
+      availability: "AVAILABLE",
+      usdPrice: price,
+    },
     taxAndComplianceSettings: {
       withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
     },
   };
 
   // Google requires the PATCH body to list ALL existing purchaseOptions
-  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options
-  // verbatim so we don't silently drop them.
-  // Google enforces "at most one buyOption marked legacyCompatible=true".
-  // Since our "default" option owns that flag, strip it from any preserved
-  // sibling options (and their nested buyOption) before re-sending them.
+  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options but
+  // sanitize them so we don't re-submit stale currency/region pairs that
+  // Google now rejects under regionsVersion 2022/02.
   const preserved = (existingPurchaseOptions ?? [])
     .filter((opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default")
     .map((opt) => {
@@ -217,6 +223,16 @@ function buildOneTimeProductBody(
       if (cleaned.rentOption) {
         cleaned.rentOption = { ...cleaned.rentOption, legacyCompatible: false };
       }
+      // Replace stale regional pricing with a single safe entry in our base
+      // region + let Google auto-convert to the rest via newRegionsConfig.
+      cleaned.regionalPricingAndAvailabilityConfigs = [
+        { regionCode: region, price, availability: "AVAILABLE" },
+      ];
+      cleaned.newRegionsConfig = {
+        eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
+        availability: "AVAILABLE",
+        usdPrice: price,
+      };
       return cleaned;
     });
 
@@ -238,6 +254,7 @@ function buildOneTimeProductBody(
     purchaseOptions: [defaultOption, ...preserved],
   };
 }
+
 
 /**
  * Create or update a managed one-time product via monetization.onetimeproducts.
