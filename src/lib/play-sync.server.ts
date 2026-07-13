@@ -152,7 +152,29 @@ function truncateText(value: string, maxLength: number): string {
   return Array.from(value).slice(0, maxLength).join("");
 }
 
-function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
+async function fetchExistingPurchaseOptions(
+  pkg: string,
+  sku: string,
+  token: string,
+): Promise<any[] | null> {
+  const url =
+    `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+    `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
+  const res = await fetchGoogleWithQuotaRetry(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  const body = (await res.json()) as { purchaseOptions?: any[] };
+  return body.purchaseOptions ?? [];
+}
+
+function buildOneTimeProductBody(
+  pkg: string,
+  row: PlayProductRow,
+  existingPurchaseOptions?: any[] | null,
+) {
   const currency = (row.default_currency || "USD").toUpperCase();
   const region = CURRENCY_TO_REGION[currency] || "US";
   const price = microsToMoney(row.price_micros, currency);
@@ -160,6 +182,31 @@ function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
   const titleAr = truncateText(row.title_ar || row.title_en || row.sku, 55);
   const descriptionEn = truncateText(row.description_en || titleEn, 200);
   const descriptionAr = truncateText(row.description_ar || titleAr, 200);
+
+  const defaultOption = {
+    purchaseOptionId: "default",
+    buyOption: {
+      legacyCompatible: true,
+      multiQuantityEnabled: false,
+    },
+    regionalPricingAndAvailabilityConfigs: [
+      {
+        regionCode: region,
+        price,
+        availability: "AVAILABLE",
+      },
+    ],
+    taxAndComplianceSettings: {
+      withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
+    },
+  };
+
+  // Google requires the PATCH body to list ALL existing purchaseOptions
+  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options
+  // verbatim so we don't silently drop them.
+  const preserved = (existingPurchaseOptions ?? []).filter(
+    (opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default",
+  );
 
   return {
     packageName: pkg,
@@ -176,25 +223,7 @@ function buildOneTimeProductBody(pkg: string, row: PlayProductRow) {
         description: descriptionAr,
       },
     ],
-    purchaseOptions: [
-      {
-        purchaseOptionId: "default",
-        buyOption: {
-          legacyCompatible: true,
-          multiQuantityEnabled: false,
-        },
-        regionalPricingAndAvailabilityConfigs: [
-          {
-            regionCode: region,
-            price,
-            availability: "AVAILABLE",
-          },
-        ],
-        taxAndComplianceSettings: {
-          withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
-        },
-      },
-    ],
+    purchaseOptions: [defaultOption, ...preserved],
   };
 }
 
@@ -207,7 +236,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
-    const body = buildOneTimeProductBody(pkg, row);
+    const existing = await fetchExistingPurchaseOptions(pkg, row.sku, token);
+    const body = buildOneTimeProductBody(pkg, row, existing);
 
     const params = new URLSearchParams({
       updateMask: PRODUCT_UPDATE_MASK,
@@ -324,12 +354,15 @@ export async function batchSyncPlayProducts(
       await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
     }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
+    const existingByChunkIndex = await Promise.all(
+      chunk.map((row) => fetchExistingPurchaseOptions(pkg, row.sku, token).catch(() => null)),
+    );
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
       `${encodeURIComponent(pkg)}/oneTimeProducts:batchUpdate`;
     const updateBody = {
-      requests: chunk.map((row) => ({
-        oneTimeProduct: buildOneTimeProductBody(pkg, row),
+      requests: chunk.map((row, idx) => ({
+        oneTimeProduct: buildOneTimeProductBody(pkg, row, existingByChunkIndex[idx]),
         updateMask: PRODUCT_UPDATE_MASK,
         regionsVersion: { version: "2022/02" },
         allowMissing: true,
