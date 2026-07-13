@@ -85,14 +85,18 @@ export function MyShipsModal({ open, onClose }: { open: boolean; onClose: () => 
     if (gems < STORAGE_UPGRADE_COST) { showNotice("جواهرك لا تكفي (10,000 جوهرة)"); return; }
     setUpgrading(true);
     sound.play("click");
-    const { error } = await (supabase as any).rpc("upgrade_ship_storage");
+    const { data, error } = await (supabase as any).rpc("upgrade_ship_storage");
     if (error) {
       const m = (error.message || "").toLowerCase();
       if (m.includes("not enough gems")) showNotice("جواهرك لا تكفي");
       else if (m.includes("max storage")) showNotice("وصلت الحد الأقصى");
       else showNotice(error.message || "تعذر الترقية");
     } else {
-      showNotice("✨ تمت ترقية المخزن +1");
+      const confirmedCapacity = Number(data?.new_capacity);
+      if (Number.isFinite(confirmedCapacity)) {
+        setMaxStorage(confirmedCapacity);
+      }
+      showNotice(`✨ تمت ترقية المخزن — السعة الآن ${Number.isFinite(confirmedCapacity) ? confirmedCapacity : maxStorage + 1}`);
       await Promise.all([reload(), refreshProfile()]);
     }
     setUpgrading(false);
