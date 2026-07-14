@@ -156,7 +156,7 @@ function ProfilePage() {
     if (!userId) return;
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
-    if (trimmed !== displayNameOriginal.trim() && displayNameChangedAt) {
+    if (trimmed !== displayNameOriginal.trim() && displayNameChangedAt && !freeNameChangeAvailable) {
       const unlockMs = new Date(displayNameChangedAt).getTime() + 14 * 24 * 3600_000;
       const remain = unlockMs - Date.now();
       if (remain > 0) {
