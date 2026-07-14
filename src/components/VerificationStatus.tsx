@@ -13,11 +13,10 @@ export function VerificationStatus() {
   const [phoneRewardClaimed, setPhoneRewardClaimed] = useState<boolean>(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [otp, setOtp] = useState("");
-  const [otpStage, setOtpStage] = useState<"idle" | "code">("idle");
-  const [phoneDraft, setPhoneDraft] = useState("");
+  const [showChange, setShowChange] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
 
-  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 3500); };
+  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 4000); };
 
   const refresh = async () => {
     const { data: u } = await supabase.auth.getUser();
