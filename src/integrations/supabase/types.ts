@@ -3003,6 +3003,7 @@ export type Database = {
           elite_vip_expires_at: string | null
           elite_vip_level: number
           elite_vip_login_broadcast_enabled: boolean
+          free_name_change_available: boolean
           friend_requests_closed: boolean
           gems: number
           golden_fisher_last_activated_at: string | null
@@ -3075,6 +3076,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          free_name_change_available?: boolean
           friend_requests_closed?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
@@ -3147,6 +3149,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          free_name_change_available?: boolean
           friend_requests_closed?: boolean
           gems?: number
           golden_fisher_last_activated_at?: string | null
