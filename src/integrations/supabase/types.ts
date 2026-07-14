@@ -6568,6 +6568,7 @@ export type Database = {
       }
       has_bought_starter: { Args: { _user: string }; Returns: boolean }
       has_fishing_ship: { Args: { _user_id: string }; Returns: boolean }
+      has_pvp_attack_fleet: { Args: { _user_id: string }; Returns: boolean }
       has_pvp_fleet: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -6731,6 +6732,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      pvp_attacker_requirement_error: {
+        Args: { _user_id: string }
+        Returns: string
+      }
+      pvp_defender_requirement_error: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
       pvp_requirement_error: {
         Args: { _actor_label?: string; _user_id: string }
@@ -6739,6 +6748,10 @@ export type Database = {
       pvp_ship_level: {
         Args: { _catalog_code: string; _template_id: number }
         Returns: number
+      }
+      pvp_steal_requirement_error: {
+        Args: { _actor_label?: string; _user_id: string }
+        Returns: string
       }
       pvp_support_requirement_error: {
         Args: { _actor_label?: string; _user_id: string }
