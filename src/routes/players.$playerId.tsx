@@ -1654,6 +1654,7 @@ function PlayerPage() {
                       if (error) {
                         const m = error.message || "";
                         setBusy(false);
+                        if (m.includes("email_not_verified")) { sound.play("error"); flash("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"); return; }
                         if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
                         if (m.includes("attacker has destroyed ship")) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
                         if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
