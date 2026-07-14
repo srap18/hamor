@@ -49,6 +49,7 @@ function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [displayNameOriginal, setDisplayNameOriginal] = useState("");
   const [displayNameChangedAt, setDisplayNameChangedAt] = useState<string | null>(null);
+  const [freeNameChangeAvailable, setFreeNameChangeAvailable] = useState<boolean>(false);
   const [username, setUsername] = useState("");
   const [usernameChangedAt, setUsernameChangedAt] = useState<string | null>(null);
   const [usernameDraft, setUsernameDraft] = useState("");
@@ -76,7 +77,7 @@ function ProfilePage() {
       const [{ data: p }, { data: inv }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name,display_name_changed_at,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame,album_privacy")
+          .select("display_name,display_name_changed_at,free_name_change_available,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame,album_privacy")
           .eq("id", u.user.id).maybeSingle(),
         supabase
           .from("inventory")
@@ -88,6 +89,7 @@ function ProfilePage() {
         setDisplayName(p.display_name ?? "");
         setDisplayNameOriginal(p.display_name ?? "");
         setDisplayNameChangedAt((p as any).display_name_changed_at ?? null);
+        setFreeNameChangeAvailable(((p as any).free_name_change_available ?? true) === true);
         setUsername((p as any).username ?? "");
         setUsernameDraft((p as any).username ?? "");
         setUsernameChangedAt((p as any).username_changed_at ?? null);
@@ -154,7 +156,7 @@ function ProfilePage() {
     if (!userId) return;
     const trimmed = displayName.trim();
     if (trimmed.length < 2) { flash("الاسم قصير جداً"); return; }
-    if (trimmed !== displayNameOriginal.trim() && displayNameChangedAt) {
+    if (trimmed !== displayNameOriginal.trim() && displayNameChangedAt && !freeNameChangeAvailable) {
       const unlockMs = new Date(displayNameChangedAt).getTime() + 14 * 24 * 3600_000;
       const remain = unlockMs - Date.now();
       if (remain > 0) {
@@ -214,6 +216,7 @@ function ProfilePage() {
     if (!updated || updated.length === 0) { flash("لم يتم تحديث الاسم"); return; }
     setDisplayNameOriginal(trimmed);
     setDisplayNameChangedAt(new Date().toISOString());
+    setFreeNameChangeAvailable(false);
     flash("تم حفظ الاسم ✓");
   };
 
@@ -333,7 +336,7 @@ function ProfilePage() {
           const lastMs = displayNameChangedAt ? new Date(displayNameChangedAt).getTime() : 0;
           const unlockMs = lastMs ? lastMs + 14 * 24 * 3600_000 : 0;
           const lockedMs = Math.max(0, unlockMs - nowMs);
-          const locked = lockedMs > 0;
+          const locked = lockedMs > 0 && !freeNameChangeAvailable;
           const days = Math.floor(lockedMs / (24 * 3600_000));
           const hours = Math.floor((lockedMs % (24 * 3600_000)) / 3600_000);
           const changed = displayName.trim() !== displayNameOriginal.trim();
@@ -349,6 +352,11 @@ function ProfilePage() {
                 placeholder="اكتب اسمك"
               />
               <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف · يمكن تغيير الاسم مرة كل 14 يوم</div>
+              {freeNameChangeAvailable && (
+                <div className="text-[11px] font-bold text-emerald-400">
+                  🎁 لديك تغيير اسم مجاني واحد متاح الآن
+                </div>
+              )}
               {locked && (
                 <div className="text-[11px] font-bold text-amber-400">
                   ⏳ متبقي {days > 0 ? `${days} يوم و ${hours} ساعة` : `${hours} ساعة`} قبل تغيير الاسم مرة أخرى
