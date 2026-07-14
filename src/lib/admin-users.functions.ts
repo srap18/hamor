@@ -108,18 +108,44 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
         .from("device_accounts")
         .select("device_id")
         .eq("user_id", data.userId);
-      if (devices && devices.length > 0) {
-        await (supabaseAdmin as any).from("banned_devices").upsert(
-          devices.map((d) => ({
-            device_id: d.device_id,
-            user_id: data.userId,
-            reason: data.reason || "حذف وحظر نهائي",
-            banned_by: context.userId,
-          })),
-          { onConflict: "device_id" },
-        );
+      // Only ban REAL device ids. Reject short/fallback/collision fingerprints.
+      const isRealId = (v: string | null | undefined): v is string => {
+        if (!v) return false;
+        const s = String(v).trim().toLowerCase();
+        if (s.length < 32) return false;
+        if (["unknown","null","undefined","none","default"].includes(s)) return false;
+        if (s.startsWith("fb") && /^fb[0-9a-f]+$/.test(s) && s.length <= 34) return false;
+        if (/^(.)\1+$/.test(s)) return false;
+        return true;
+      };
+      const candidateIds = Array.from(new Set((devices ?? []).map((d) => d.device_id).filter(isRealId)));
+      if (candidateIds.length > 0) {
+        // Collision filter: skip fingerprints shared by more than 5 distinct users.
+        const { data: usage } = await supabaseAdmin
+          .from("device_history")
+          .select("device_id, user_id")
+          .in("device_id", candidateIds);
+        const perId = new Map<string, Set<string>>();
+        for (const r of usage ?? []) {
+          const set = perId.get((r as any).device_id) ?? new Set<string>();
+          set.add((r as any).user_id);
+          perId.set((r as any).device_id, set);
+        }
+        const banIds = candidateIds.filter((id) => (perId.get(id)?.size ?? 1) <= 5);
+        if (banIds.length > 0) {
+          await (supabaseAdmin as any).from("banned_devices").upsert(
+            banIds.map((id) => ({
+              device_id: id,
+              user_id: data.userId,
+              reason: data.reason || "حذف وحظر نهائي",
+              banned_by: context.userId,
+            })),
+            { onConflict: "device_id" },
+          );
+        }
       }
     }
+
 
     // Hard-wipe every trace of this user across all known tables
     const { error: wipeErr } = await (supabaseAdmin as any).rpc("admin_hard_delete_user", { _uid: data.userId });
