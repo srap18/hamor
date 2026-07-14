@@ -335,7 +335,7 @@ function ProfilePage() {
           const lastMs = displayNameChangedAt ? new Date(displayNameChangedAt).getTime() : 0;
           const unlockMs = lastMs ? lastMs + 14 * 24 * 3600_000 : 0;
           const lockedMs = Math.max(0, unlockMs - nowMs);
-          const locked = lockedMs > 0;
+          const locked = lockedMs > 0 && !freeNameChangeAvailable;
           const days = Math.floor(lockedMs / (24 * 3600_000));
           const hours = Math.floor((lockedMs % (24 * 3600_000)) / 3600_000);
           const changed = displayName.trim() !== displayNameOriginal.trim();
@@ -351,6 +351,11 @@ function ProfilePage() {
                 placeholder="اكتب اسمك"
               />
               <div className="text-[10px] text-muted-foreground">من 2 إلى 15 حرف · يمكن تغيير الاسم مرة كل 14 يوم</div>
+              {freeNameChangeAvailable && (
+                <div className="text-[11px] font-bold text-emerald-400">
+                  🎁 لديك تغيير اسم مجاني واحد متاح الآن
+                </div>
+              )}
               {locked && (
                 <div className="text-[11px] font-bold text-amber-400">
                   ⏳ متبقي {days > 0 ? `${days} يوم و ${hours} ساعة` : `${hours} ساعة`} قبل تغيير الاسم مرة أخرى
