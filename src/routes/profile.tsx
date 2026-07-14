@@ -8,6 +8,7 @@ import {
   AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES,
   frameById, type Frame, type FrameKind,
 } from "@/lib/frames";
+import { VerificationStatus } from "@/components/VerificationStatus";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
