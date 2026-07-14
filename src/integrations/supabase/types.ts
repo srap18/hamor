@@ -6610,7 +6610,12 @@ export type Database = {
         Args: { _target_id: string; _video_key: string }
         Returns: string
       }
+      launch_ad_bomb_impl: {
+        Args: { _target_id: string; _video_key: string }
+        Returns: string
+      }
       launch_nuke: { Args: { _target_id: string }; Returns: string }
+      launch_nuke_impl: { Args: { _target_id: string }; Returns: string }
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }
       level_from_xp: { Args: { _xp: number }; Returns: number }
       ludo_active_room_for: { Args: { _uid: string }; Returns: string }
@@ -6884,6 +6889,15 @@ export type Database = {
           _recipient_id: string
           _ship_id: string
         }
+        Returns: Json
+      }
+      send_support_impl: {
+        Args: {
+          _crew_id?: string
+          _kind: string
+          _recipient_id: string
+          _ship_id: string
+        }
         Returns: undefined
       }
       set_audit_context: {
@@ -6961,6 +6975,14 @@ export type Database = {
         Returns: undefined
       }
       start_steal_mission: {
+        Args: {
+          _attacker_ship_id: string
+          _target_ship_id: string
+          _target_user_id: string
+        }
+        Returns: Json
+      }
+      start_steal_mission_impl: {
         Args: {
           _attacker_ship_id: string
           _target_ship_id: string
