@@ -125,67 +125,7 @@ export function VerificationStatus() {
         )}
       </div>
 
-      {/* Phone status + reward */}
-      <div className={`rounded-xl p-3 border ${phoneVerified ? "bg-emerald-950/40 border-emerald-700/50" : "bg-stone-900/60 border-stone-700/60"}`}>
-        <div className="flex items-center gap-2 text-sm font-bold">
-          {phoneVerified ? "🟢" : "⚪"} توثيق الجوال {phoneVerified ? "مُوثّق" : "(اختياري — 500 💎 مرة واحدة)"}
-        </div>
-        <div className="text-[11px] text-stone-300 mt-1" dir="ltr">{phone || "—"}</div>
-
-        {!phoneVerified && otpStage === "idle" && (
-          <div className="mt-2 space-y-2">
-            <input
-              type="tel"
-              dir="ltr"
-              value={phoneDraft}
-              onChange={(e) => setPhoneDraft(e.target.value.replace(/[^\d+]/g, ""))}
-              placeholder="+9665xxxxxxxx"
-              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-600 text-white text-sm"
-            />
-            <button onClick={sendPhoneOtp} disabled={busy}
-              className="w-full py-2 rounded-lg bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white text-xs font-bold active:scale-95 disabled:opacity-60">
-              {busy ? "..." : "📱 إرسال كود التحقق"}
-            </button>
-          </div>
-        )}
-
-        {!phoneVerified && otpStage === "code" && (
-          <div className="mt-2 space-y-2">
-            <input
-              type="text" inputMode="numeric" maxLength={8}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
-              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-600 text-white text-center tracking-[0.5em] font-bold"
-            />
-            <div className="flex gap-2">
-              <button onClick={verifyPhoneOtp} disabled={busy}
-                className="flex-1 py-2 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-xs font-bold active:scale-95 disabled:opacity-60">
-                {busy ? "..." : "✓ تأكيد الكود"}
-              </button>
-              <button onClick={() => { setOtpStage("idle"); setOtp(""); }}
-                className="px-3 py-2 rounded-lg bg-stone-700 text-white text-xs font-bold active:scale-95">
-                إلغاء
-              </button>
-            </div>
-          </div>
-        )}
-
-        {phoneVerified && !phoneRewardClaimed && (
-          <button onClick={claimReward} disabled={busy}
-            className="w-full mt-2 py-2 rounded-lg bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 text-xs font-bold active:scale-95 disabled:opacity-60">
-            {busy ? "..." : "💎 استلام مكافأة 500 جوهرة"}
-          </button>
-        )}
-        {phoneVerified && phoneRewardClaimed && (
-          <div className="mt-2 text-[11px] text-emerald-300 font-bold">✅ تم استلام مكافأة توثيق الجوال</div>
-        )}
-        {!phoneVerified && (
-          <div className="text-[10px] text-stone-400 mt-2 leading-snug">
-            المكافأة تُمنح مرة واحدة فقط لكل حساب — حتى لو غيّرت الرقم لاحقاً لن تُمنح مجدداً.
-          </div>
-        )}
-      </div>
+      {/* Phone verification removed */}
     </section>
   );
 }
