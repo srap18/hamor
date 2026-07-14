@@ -282,6 +282,7 @@ function ProfilePage() {
       </header>
 
       <main className="p-3 pb-10 space-y-4">
+        <VerificationStatus />
         {/* Live preview — profile card frame wraps the entire card */}
         <section className={equippedProfileFrame?.profileClass ?? ""}>
           <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
