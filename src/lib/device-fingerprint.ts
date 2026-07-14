@@ -8,6 +8,13 @@
 const CACHE_KEY = "hamor_hdid_v3";
 const SIGNALS_CACHE_KEY = "hamor_hdid_signals_v3";
 
+function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1200): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), timeoutMs)),
+  ]);
+}
+
 async function sha256Hex(input: string): Promise<string> {
   try {
     const buf = new TextEncoder().encode(input);
@@ -154,7 +161,12 @@ async function collectSignals(): Promise<DeviceSignals> {
   const nav: any = typeof navigator !== "undefined" ? navigator : {};
   const scr: any = typeof screen !== "undefined" ? screen : {};
   const webgl = webglSignal();
-  const [audio, media] = await Promise.all([audioSignal(), mediaDevicesSignal()]);
+  // Some iOS WebViews leave OfflineAudioContext/enumerateDevices pending forever.
+  // Fingerprinting must never be allowed to block sign-in.
+  const [audio, media] = await Promise.all([
+    withTimeout(audioSignal(), "ta"),
+    withTimeout(mediaDevicesSignal(), "tm"),
+  ]);
   return {
     ua: String(nav.userAgent || ""),
     platform: String(nav.platform || ""),

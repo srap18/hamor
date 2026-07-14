@@ -34,6 +34,12 @@ function LoginPage() {
   const [needsMfa, setNeedsMfa] = useState(false);
   const slotGate = useDeviceSlotGate();
 
+  const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((_, reject) => window.setTimeout(() => reject(new Error(message)), timeoutMs)),
+    ]);
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
@@ -49,34 +55,46 @@ function LoginPage() {
     try {
       const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
       const { getHardwareFingerprint } = await import("@/lib/device-fingerprint");
-      const hardwareId = await getHardwareFingerprint();
+      const hardwareId = await waitAtMost(getHardwareFingerprint(), 2500, "fingerprint_timeout");
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
-      const pre = await authPreflight({ data: { email, deviceId, hardwareId } });
+      const pre = await waitAtMost(authPreflight({ data: { email, deviceId, hardwareId } }), 5000, "preflight_timeout");
       if (pre.blocked) {
-        setLoading(false);
         setErr(pre.reason || "ممنوع تسجيل الدخول");
         return;
       }
     } catch {}
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      const msg = (error.message || "").toLowerCase();
-      if (msg.includes("not confirmed") || msg.includes("email not confirmed") || (error as any).code === "email_not_confirmed") {
+    try {
+      const { data, error } = await waitAtMost(
+        supabase.auth.signInWithPassword({ email, password }),
+        15000,
+        "تعذر الاتصال بخدمة الدخول، حاول مرة أخرى",
+      );
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("not confirmed") || msg.includes("email not confirmed") || (error as any).code === "email_not_confirmed") {
+          setNeedsConfirm(true);
+          setErr("يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني");
+          return;
+        }
+        setErr(error.message); return;
+      }
+      if (!data.session?.user.email_confirmed_at) {
         setNeedsConfirm(true);
         setErr("يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني");
         return;
       }
-      setErr(error.message); return;
+      if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
+      const ok = await waitAtMost(
+        slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),
+        8000,
+        "device_check_timeout",
+      ).catch(() => true);
+      if (ok) nav({ to: "/" });
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "تعذر تسجيل الدخول، حاول مرة أخرى");
+    } finally {
+      setLoading(false);
     }
-    if (!data.session?.user.email_confirmed_at) {
-      setNeedsConfirm(true);
-      setErr("يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني");
-      return;
-    }
-    if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-    const ok = await slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null);
-    if (ok) nav({ to: "/" });
   };
 
   const resend = async () => {
