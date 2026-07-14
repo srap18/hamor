@@ -546,7 +546,12 @@ function ChatPage() {
       if (error) {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
-        showNotice("تعذر الإرسال: " + (error.message || ""));
+        const emsg = String(error.message || "");
+        if (emsg.includes("email_not_verified")) {
+          showNotice("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل حتى تقدر ترسل رسائل");
+        } else {
+          showNotice("تعذر الإرسال: " + emsg);
+        }
         restoreDraftRef.current(body);
         return;
       }

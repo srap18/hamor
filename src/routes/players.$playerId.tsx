@@ -578,6 +578,7 @@ function PlayerPage() {
         setBusy(false);
         sound.play("error");
         const showErr = (msg: string) => { flash(msg); sonnerToast.error(msg, { duration: 4000 }); };
+        if (m.includes("email_not_verified")) { showErr("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"); return; }
         if (m.includes("attacker market level under 6")) { showErr("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
         if (m.includes("attacker has destroyed ship")) { showErr("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
         if (m.includes("attacker needs pvp fleet")) { showErr("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
@@ -856,7 +857,8 @@ function PlayerPage() {
     if (missionErr) {
       console.error("[steal] error", missionErr);
       const msg = missionErr.message || "";
-      if (msg.includes("attacker market level under 6")) flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل السرقة");
+      if (msg.includes("email_not_verified")) flash("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل");
+      else if (msg.includes("attacker market level under 6")) flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل السرقة");
       else if (msg.includes("attacker needs pvp fleet")) flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للسرقة");
       else if (msg.includes("no pvp fleet") || msg.includes("market level under 6")) flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6");
       else if (msg.includes("protected")) flash("🛡️ اللاعب محمي بدرع");
@@ -930,7 +932,8 @@ function PlayerPage() {
 
       } else {
         const msg = (error as any).message || "";
-        if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
+        if (msg.includes("email_not_verified")) flash("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل");
+        else if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
         else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
         else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
         else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
@@ -1651,6 +1654,7 @@ function PlayerPage() {
                       if (error) {
                         const m = error.message || "";
                         setBusy(false);
+                        if (m.includes("email_not_verified")) { sound.play("error"); flash("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"); return; }
                         if (m.includes("attacker market level under 6")) { sound.play("error"); flash("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
                         if (m.includes("attacker has destroyed ship")) { sound.play("error"); flash("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
                         if (m.includes("attacker needs pvp fleet")) { sound.play("error"); flash("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
