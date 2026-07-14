@@ -59,6 +59,7 @@ function LoginPage() {
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
       const pre = await waitAtMost(authPreflight({ data: { email, deviceId, hardwareId } }), 5000, "preflight_timeout");
       if (pre.blocked) {
+        setLoading(false);
         setErr(pre.reason || "ممنوع تسجيل الدخول");
         return;
       }
