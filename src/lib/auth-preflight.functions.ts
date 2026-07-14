@@ -91,53 +91,94 @@ export const authPreflight = createServerFn({ method: "POST" })
       if (row) return { blocked: true, reason: "هذا البريد محظور من إنشاء حساب أو الدخول" };
     }
 
-    // Device fingerprint ban — check BOTH the legacy random-uuid device id
-    // AND the hardware fingerprint (survives storage clears / new accounts).
-    const ids = [data.deviceId, data.hardwareId].filter((v): v is string => !!v && v.length >= 8);
+    // Device fingerprint ban — STRICT: only trust real, unique hardware ids.
+    // Ignore anything shorter than 32 chars, known fallback hashes, all-same-char
+    // hashes, or ids used by too many distinct users (broken/shared fingerprints).
+    const MIN_ID_LEN = 32;
+    const COLLISION_THRESHOLD = 5;
+    const isRealId = (v: string | null | undefined): v is string => {
+      if (!v) return false;
+      const s = v.trim().toLowerCase();
+      if (s.length < MIN_ID_LEN) return false;
+      if (["unknown","null","undefined","none","default"].includes(s)) return false;
+      if (s.startsWith("fb") && /^fb[0-9a-f]+$/.test(s) && s.length <= 34) return false;
+      if (/^(.)\1+$/.test(s)) return false;
+      return true;
+    };
+    const ids = [data.deviceId, data.hardwareId].filter(isRealId);
     if (ids.length) {
       const { data: rows } = await sb
         .from("banned_devices")
         .select("device_id")
         .in("device_id", ids)
-        .limit(1);
+        .limit(10);
       if (rows && rows.length > 0) {
-        return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        // Verify none of the matched ids is a shared/collision fingerprint.
+        const matchedIds = rows.map((r: any) => r.device_id).filter(isRealId);
+        if (matchedIds.length) {
+          const { data: usage } = await sb
+            .from("device_history")
+            .select("device_id, user_id")
+            .in("device_id", matchedIds);
+          const perId = new Map<string, Set<string>>();
+          for (const r of usage ?? []) {
+            const set = perId.get((r as any).device_id) ?? new Set<string>();
+            set.add((r as any).user_id);
+            perId.set((r as any).device_id, set);
+          }
+          const trusted = matchedIds.filter((id) => (perId.get(id)?.size ?? 1) <= COLLISION_THRESHOLD);
+          if (trusted.length > 0) {
+            return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+          }
+        }
       }
 
       // Also check: has any BANNED user ever used any of these device ids?
-      // Catches the case where the admin banned the user before we started
-      // recording hardware ids, or where the visitor cleared localStorage
-      // but the same physical device is still recognizable by hardware hash.
+      // Only trust device_ids not shared by many accounts (collision filter).
       const { data: linked } = await sb
         .from("device_accounts")
         .select("user_id, device_id")
         .in("device_id", ids)
-        .limit(100);
-      const userIds = Array.from(new Set((linked ?? []).map((r: any) => r.user_id).filter(Boolean)));
-      if (userIds.length) {
-        const { data: bans } = await sb
-          .from("bans")
-          .select("user_id")
-          .in("user_id", userIds as string[])
-          .eq("active", true)
-          .limit(1);
-        if (bans && bans.length > 0) {
-          const bannedUid = (bans[0] as any).user_id;
-          // Auto-add every id we saw to banned_devices for faster future lookup.
-          try {
-            await sb.from("banned_devices").upsert(
-              ids.map((id) => ({
-                device_id: id,
-                user_id: bannedUid,
-                reason: "auto: matched banned user device",
-              })),
-              { onConflict: "device_id" },
-            );
-          } catch {}
-          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        .limit(500);
+      const perDevice = new Map<string, Set<string>>();
+      for (const r of linked ?? []) {
+        const set = perDevice.get((r as any).device_id) ?? new Set<string>();
+        set.add((r as any).user_id);
+        perDevice.set((r as any).device_id, set);
+      }
+      const trustedIds = ids.filter((id) => (perDevice.get(id)?.size ?? 0) > 0 && (perDevice.get(id)?.size ?? 0) <= COLLISION_THRESHOLD);
+      if (trustedIds.length) {
+        const userIds = Array.from(new Set(
+          (linked ?? [])
+            .filter((r: any) => trustedIds.includes(r.device_id))
+            .map((r: any) => r.user_id)
+            .filter(Boolean),
+        ));
+        if (userIds.length) {
+          const { data: bans } = await sb
+            .from("bans")
+            .select("user_id")
+            .in("user_id", userIds as string[])
+            .eq("active", true)
+            .limit(1);
+          if (bans && bans.length > 0) {
+            const bannedUid = (bans[0] as any).user_id;
+            try {
+              await sb.from("banned_devices").upsert(
+                trustedIds.map((id) => ({
+                  device_id: id,
+                  user_id: bannedUid,
+                  reason: "auto: matched banned user device",
+                })),
+                { onConflict: "device_id" },
+              );
+            } catch {}
+            return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+          }
         }
       }
     }
+
 
     return { blocked: false, reason: null };
   });
