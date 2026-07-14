@@ -8,6 +8,7 @@ import {
   AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES,
   frameById, type Frame, type FrameKind,
 } from "@/lib/frames";
+import { VerificationStatus } from "@/components/VerificationStatus";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -164,11 +165,15 @@ function ProfilePage() {
       }
     }
     if (trimmed.length > 15) { flash("الاسم لا يتجاوز 15 حرف"); return; }
-    if (!/^[\u0600-\u06FFA-Za-z0-9 _-]+$/.test(trimmed)) {
+    if (/[\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/.test(trimmed)) {
+      flash("الاسم يحتوي حركات (تشكيل) أو رموز غير مسموحة");
+      return;
+    }
+    if (!/^[\u0621-\u063A\u0641-\u064A\u066E-\u06D3A-Za-z0-9 _-]+$/.test(trimmed)) {
       flash("الاسم يحتوي رموز أو زخارف غير مسموحة");
       return;
     }
-    if (!/[\u0600-\u06FFA-Za-z]/.test(trimmed)) {
+    if (!/[\u0621-\u063A\u0641-\u064A\u066E-\u06D3A-Za-z]/.test(trimmed)) {
       flash("الاسم لازم يحتوي على حرف واحد على الأقل");
       return;
     }
@@ -281,6 +286,7 @@ function ProfilePage() {
       </header>
 
       <main className="p-3 pb-10 space-y-4">
+        <VerificationStatus />
         {/* Live preview — profile card frame wraps the entire card */}
         <section className={equippedProfileFrame?.profileClass ?? ""}>
           <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
