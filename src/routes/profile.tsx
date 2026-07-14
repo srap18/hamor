@@ -89,6 +89,7 @@ function ProfilePage() {
         setDisplayName(p.display_name ?? "");
         setDisplayNameOriginal(p.display_name ?? "");
         setDisplayNameChangedAt((p as any).display_name_changed_at ?? null);
+        setFreeNameChangeAvailable(((p as any).free_name_change_available ?? true) === true);
         setUsername((p as any).username ?? "");
         setUsernameDraft((p as any).username ?? "");
         setUsernameChangedAt((p as any).username_changed_at ?? null);
