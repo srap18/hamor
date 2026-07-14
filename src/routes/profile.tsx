@@ -216,6 +216,7 @@ function ProfilePage() {
     if (!updated || updated.length === 0) { flash("لم يتم تحديث الاسم"); return; }
     setDisplayNameOriginal(trimmed);
     setDisplayNameChangedAt(new Date().toISOString());
+    setFreeNameChangeAvailable(false);
     flash("تم حفظ الاسم ✓");
   };
 
