@@ -65,11 +65,16 @@ function LoginPage() {
       }
     } catch {}
     try {
-      const { data, error } = await waitAtMost(
-        supabase.auth.signInWithPassword({ email, password }),
-        15000,
-        "تعذر الاتصال بخدمة الدخول، حاول مرة أخرى",
-      );
+      const signInOnce = () => supabase.auth.signInWithPassword({ email, password });
+      let result: Awaited<ReturnType<typeof signInOnce>>;
+      try {
+        result = await waitAtMost(signInOnce(), 30000, "__retry__");
+      } catch {
+        // one silent retry — iOS Safari sometimes drops the first fetch on custom domains
+        result = await waitAtMost(signInOnce(), 30000, "تعذر الاتصال بخدمة الدخول، حاول مرة أخرى");
+      }
+      const { data, error } = result;
+
       if (error) {
         const msg = (error.message || "").toLowerCase();
         if (msg.includes("not confirmed") || msg.includes("email not confirmed") || (error as any).code === "email_not_confirmed") {
