@@ -16,24 +16,29 @@ export type LinkedAccount = {
 };
 
 /**
- * Device IDs shared by MORE than this many distinct users are treated as
- * fallback/collision fingerprints (e.g. from webviews/incognito where the
- * fingerprint APIs were blocked and every device produced the same hash).
- * They are excluded from the "same device" match to prevent false positives.
+ * A hardware_hash / device_id shared by MORE than this many distinct users
+ * is considered a fallback/collision fingerprint (webview/incognito where the
+ * fingerprint APIs are blocked and everyone produces the same hash) and is
+ * NEVER used to link accounts.
  */
-const COLLISION_THRESHOLD = 10;
+const COLLISION_THRESHOLD = 5;
 
-/** Minimum length for a device_id to be considered a real fingerprint. */
-const MIN_DEVICE_ID_LEN = 32;
+/** Minimum length for an id to be considered a real fingerprint. */
+const MIN_ID_LEN = 32;
 
-function isRealDeviceId(id: string | null | undefined): id is string {
+/** Minimum hit count required on device_history before we trust a match. */
+const MIN_HITS = 2;
+
+function isRealId(id: string | null | undefined): id is string {
   if (!id) return false;
   const s = String(id).trim().toLowerCase();
-  if (s.length < MIN_DEVICE_ID_LEN) return false;
-  if (s === "unknown" || s === "null" || s === "undefined" || s === "none") return false;
+  if (s.length < MIN_ID_LEN) return false;
+  if (s === "unknown" || s === "null" || s === "undefined" || s === "none" || s === "default") return false;
   // reject the legacy "fb********************************" fallback hash from
   // device-fingerprint.ts sha256Hex catch-branch (deterministic per empty input)
   if (s.startsWith("fb") && /^fb[0-9a-f]+$/.test(s) && s.length <= 34) return false;
+  // all-zero / all-same-char hashes = broken fingerprint
+  if (/^(.)\1+$/.test(s)) return false;
   return true;
 }
 
@@ -54,46 +59,87 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       .in("role", ["admin", "moderator"]);
     if (!roles || roles.length === 0) throw new Error("forbidden");
 
-    // 1) Real devices this user used (filter garbage / defaults)
+    // ------------------------------------------------------------------
+    // PRIMARY SOURCE: device_slots (authoritative hardware bindings)
+    // A row here means the account was actually seated onto that hardware.
+    // ------------------------------------------------------------------
+    const { data: mySlots } = await supabaseAdmin
+      .from("device_slots")
+      .select("hardware_hash")
+      .eq("user_id", data.userId);
+    const myHardwareHashes = Array.from(
+      new Set((mySlots ?? []).map((r) => r.hardware_hash).filter(isRealId)),
+    );
+
+    // ------------------------------------------------------------------
+    // SECONDARY SOURCE: device_history device_id, but only entries with
+    // meaningful hit counts (drops one-shot / preflight noise).
+    // ------------------------------------------------------------------
     const { data: myDevicesRaw } = await supabaseAdmin
       .from("device_history")
       .select("device_id, first_seen, last_seen, hits")
       .eq("user_id", data.userId);
-    const myDevices = (myDevicesRaw ?? []).filter((d) => isRealDeviceId(d.device_id));
-    const myDeviceIds = Array.from(new Set(myDevices.map((d) => d.device_id)));
+    const myDevices = (myDevicesRaw ?? []).filter(
+      (d) => isRealId(d.device_id) && (d.hits ?? 0) >= MIN_HITS,
+    );
+    const myDeviceIds = Array.from(new Set(myDevices.map((d) => d.device_id!)));
 
-    // 2) IPs — collected for the "self" panel only, NEVER used to link accounts.
+    // IPs — displayed in the "self" panel only, NEVER used to link accounts.
     const { data: myIps } = await supabaseAdmin
       .from("user_ips")
       .select("ip, first_seen, last_seen, hits")
       .eq("user_id", data.userId);
 
-    // 3) Other users on the SAME real devices — with collision filter
     const deviceMap = new Map<string, Set<string>>();
+
+    // 1) Match on device_slots hardware_hash
+    if (myHardwareHashes.length > 0) {
+      const { data: slotOthers } = await supabaseAdmin
+        .from("device_slots")
+        .select("hardware_hash, user_id")
+        .in("hardware_hash", myHardwareHashes);
+
+      const usersPerHash = new Map<string, Set<string>>();
+      for (const r of slotOthers ?? []) {
+        if (!isRealId(r.hardware_hash)) continue;
+        if (!usersPerHash.has(r.hardware_hash)) usersPerHash.set(r.hardware_hash, new Set());
+        usersPerHash.get(r.hardware_hash)!.add(r.user_id);
+      }
+      for (const r of slotOthers ?? []) {
+        if (r.user_id === data.userId) continue;
+        if (!isRealId(r.hardware_hash)) continue;
+        const distinct = usersPerHash.get(r.hardware_hash)?.size ?? 0;
+        if (distinct > COLLISION_THRESHOLD) continue;
+        if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
+        deviceMap.get(r.user_id)!.add(r.hardware_hash);
+      }
+    }
+
+    // 2) Match on device_history device_id (hits >= MIN_HITS on BOTH sides)
     if (myDeviceIds.length > 0) {
       const { data: others } = await supabaseAdmin
         .from("device_history")
-        .select("device_id, user_id")
+        .select("device_id, user_id, hits")
         .in("device_id", myDeviceIds);
 
-      // Count distinct users per device_id to detect collision fingerprints.
       const usersPerDevice = new Map<string, Set<string>>();
       for (const r of others ?? []) {
-        if (!isRealDeviceId(r.device_id)) continue;
+        if (!isRealId(r.device_id)) continue;
+        if ((r.hits ?? 0) < MIN_HITS) continue;
         if (!usersPerDevice.has(r.device_id)) usersPerDevice.set(r.device_id, new Set());
         usersPerDevice.get(r.device_id)!.add(r.user_id);
       }
-
-      // Build linked accounts, excluding devices flagged as collision fingerprints.
       for (const r of others ?? []) {
         if (r.user_id === data.userId) continue;
-        if (!isRealDeviceId(r.device_id)) continue;
-        const distinctUsers = usersPerDevice.get(r.device_id)?.size ?? 0;
-        if (distinctUsers > COLLISION_THRESHOLD) continue; // fallback hash, ignore
+        if (!isRealId(r.device_id)) continue;
+        if ((r.hits ?? 0) < MIN_HITS) continue;
+        const distinct = usersPerDevice.get(r.device_id)?.size ?? 0;
+        if (distinct > COLLISION_THRESHOLD) continue;
         if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
         deviceMap.get(r.user_id)!.add(r.device_id);
       }
     }
+
 
     const userIds = Array.from(deviceMap.keys());
     let profiles: Array<{
