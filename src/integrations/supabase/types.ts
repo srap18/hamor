@@ -6740,6 +6740,10 @@ export type Database = {
         Args: { _catalog_code: string; _template_id: number }
         Returns: number
       }
+      pvp_support_requirement_error: {
+        Args: { _actor_label?: string; _user_id: string }
+        Returns: string
+      }
       qa_award: {
         Args: { _coins: number; _gems: number; _user: string; _xp: number }
         Returns: undefined
