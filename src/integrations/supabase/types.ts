@@ -3020,6 +3020,8 @@ export type Database = {
           media_banned: boolean
           name_frame: string | null
           online_at: string
+          phone_reward_claimed_at: string | null
+          phone_verified_at: string | null
           profile_frame: string | null
           protection_until: string | null
           purchases_blocked: boolean
@@ -3090,6 +3092,8 @@ export type Database = {
           media_banned?: boolean
           name_frame?: string | null
           online_at?: string
+          phone_reward_claimed_at?: string | null
+          phone_verified_at?: string | null
           profile_frame?: string | null
           protection_until?: string | null
           purchases_blocked?: boolean
@@ -3160,6 +3164,8 @@ export type Database = {
           media_banned?: boolean
           name_frame?: string | null
           online_at?: string
+          phone_reward_claimed_at?: string | null
+          phone_verified_at?: string | null
           profile_frame?: string | null
           protection_until?: string | null
           purchases_blocked?: boolean
@@ -5664,6 +5670,7 @@ export type Database = {
         Args: { _dp: number; _stage: number }
         Returns: number
       }
+      assert_email_verified: { Args: never; Returns: undefined }
       assign_crew_to_ship: {
         Args: { _crew_id: string; _ship_id: string }
         Returns: {
@@ -5863,6 +5870,7 @@ export type Database = {
       }
       claim_daily_quest: { Args: { _quest_id: string }; Returns: Json }
       claim_elite_vip_daily_gems: { Args: never; Returns: Json }
+      claim_phone_verification_reward: { Args: never; Returns: Json }
       claim_quest: {
         Args: { _day_key: string; _quest_id: string }
         Returns: undefined
@@ -6669,6 +6677,14 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      my_verification_status: {
+        Args: never
+        Returns: {
+          email_verified: boolean
+          phone_reward_claimed: boolean
+          phone_verified: boolean
+        }[]
       }
       normalize_ar: { Args: { p: string }; Returns: string }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
