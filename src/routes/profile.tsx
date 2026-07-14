@@ -49,6 +49,7 @@ function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [displayNameOriginal, setDisplayNameOriginal] = useState("");
   const [displayNameChangedAt, setDisplayNameChangedAt] = useState<string | null>(null);
+  const [freeNameChangeAvailable, setFreeNameChangeAvailable] = useState<boolean>(false);
   const [username, setUsername] = useState("");
   const [usernameChangedAt, setUsernameChangedAt] = useState<string | null>(null);
   const [usernameDraft, setUsernameDraft] = useState("");
