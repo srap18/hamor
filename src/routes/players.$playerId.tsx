@@ -932,7 +932,8 @@ function PlayerPage() {
 
       } else {
         const msg = (error as any).message || "";
-        if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
+        if (msg.includes("email_not_verified")) flash("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل");
+        else if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
         else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
         else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
         else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
