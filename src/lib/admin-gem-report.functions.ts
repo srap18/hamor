@@ -20,6 +20,14 @@ export type GemReportEvent = {
     | "admin_gift"
     | "admin_edit"
     | "spend"
+    | "spend_ad_bomb"
+    | "spend_lucky_box"
+    | "spend_lootbox"
+    | "spend_dragon_draw"
+    | "spend_dragon_upgrade"
+    | "spend_dragon_smelt"
+    | "spend_support_gift"
+    | "spend_item"
     | "other_gain";
   label_ar: string;
   product_label?: string;
@@ -41,6 +49,72 @@ export type GemReportSummary = {
 };
 
 const WINDOW_MS = 120_000;
+const SPEND_WINDOW_MS = 20_000;
+
+const ITEM_LABELS_AR: Record<string, string> = {
+  nuke: "قنبلة ذرية",
+  ad_bomb: "قنبلة إعلانية",
+  rocket_small: "صاروخ صغير",
+  rocket_medium: "صاروخ متوسط",
+  rocket_large: "صاروخ كبير",
+  shield_1d: "درع يوم",
+  shield_2d: "درع يومين",
+  shield_3d: "درع 3 أيام",
+  shield_7d: "درع أسبوع",
+  anti_nuke: "مضاد ذري",
+  anti_ad_bomb: "مضاد إعلاني",
+  anti_rocket: "مضاد صواريخ",
+  sailor: "بحّار",
+  luck: "طاقم الحظ",
+  guide: "طاقم المرشد",
+  thief: "لص",
+  police: "شرطي",
+  trader: "تاجر",
+  golden_fisher: "الصياد الذهبي",
+  market_expert: "خبير السوق",
+  fixer_1: "مصلّح 1",
+  fixer_2: "مصلّح 2",
+  fixer_3: "مصلّح 3",
+  fixer_4: "مصلّح 4",
+  af_gold: "إطار ذهبي",
+};
+
+const ITEM_TYPE_LABELS_AR: Record<string, string> = {
+  crew: "طاقم",
+  weapon: "سلاح",
+  consumable: "مستهلك",
+  decoration: "زينة",
+  frame: "إطار",
+  background: "خلفية",
+  name_frame: "إطار اسم",
+  bubble_frame: "إطار فقاعة",
+  profile_frame: "إطار بروفايل",
+  shield: "درع",
+  anti: "مضاد",
+  anti_rocket: "مضاد صواريخ",
+  anti_nuke: "مضاد ذري",
+  anti_ad_bomb: "مضاد إعلاني",
+  disabler: "معطّل",
+};
+
+function itemLabel(t: string, id: string): string {
+  const n = ITEM_LABELS_AR[id] ?? id;
+  const tt = ITEM_TYPE_LABELS_AR[t] ?? t;
+  return `شراء ${tt}: ${n}`;
+}
+
+const SOURCE_LABELS_AR: Record<string, { label: string; kind: GemReportEvent["kind"] }> = {
+  dragon_upgrade: { label: "ترقية معدة تنين", kind: "spend_dragon_upgrade" },
+  dragon_smelt: { label: "صهر معدات تنين", kind: "spend_dragon_smelt" },
+  admin_gift: { label: "هدية من الإدارة", kind: "admin_gift" },
+  admin_action: { label: "تعديل يدوي من الإدارة", kind: "admin_edit" },
+  admin_refund: { label: "استرداد من الإدارة", kind: "admin_gift" },
+  admin_correction: { label: "تصحيح من الإدارة", kind: "admin_edit" },
+  admin_compensation: { label: "تعويض من الإدارة", kind: "admin_gift" },
+  security_fix: { label: "تصحيح أمني من الإدارة", kind: "admin_edit" },
+  ship_storage_defect_compensation_v2: { label: "تعويض خلل تخزين السفن", kind: "admin_gift" },
+  ship_storage_refund_reversal: { label: "عكس تعويض تخزين السفن", kind: "admin_edit" },
+};
 
 function packLabelById(id: string | null | undefined): { label: string; gems?: number; usd?: number } {
   if (!id) return { label: "منتج غير معروف" };
