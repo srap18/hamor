@@ -6535,6 +6535,31 @@ export type Database = {
         }[]
       }
       get_staff_user_ids: { Args: never; Returns: string[] }
+      get_tribe_attack_log: {
+        Args: { _limit?: number; _tribe_id: string }
+        Returns: {
+          attacker_avatar_emoji: string
+          attacker_avatar_url: string
+          attacker_id: string
+          attacker_name: string
+          attacker_tribe_emblem: string
+          attacker_tribe_id: string
+          attacker_tribe_name: string
+          attacker_won: boolean
+          created_at: string
+          damage_dealt: number
+          defender_avatar_emoji: string
+          defender_avatar_url: string
+          defender_id: string
+          defender_name: string
+          defender_tribe_emblem: string
+          defender_tribe_id: string
+          defender_tribe_name: string
+          direction: string
+          id: string
+          loot_coins: number
+        }[]
+      }
       get_tribe_effort_leaderboard: {
         Args: { _limit?: number; _mode?: string }
         Returns: {
