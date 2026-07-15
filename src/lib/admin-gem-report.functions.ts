@@ -145,7 +145,7 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = data.userId;
 
-    const [audit, paddle, stripe, polar, codes, vipDaily, eliteDaily, referrals, tribeDaily, adminAudit] = await Promise.all([
+    const [audit, paddle, stripe, polar, codes, vipDaily, eliteDaily, referrals, tribeDaily, adminAudit, adBombs, luckyBox, lootboxes, dragonEq, supportSent, invPurchases] = await Promise.all([
       supabaseAdmin
         .from("economy_audit")
         .select("changed_at,gems_delta,gems_before,gems_after,source,reason,meta")
@@ -200,7 +200,57 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
         .eq("target_user_id", uid)
         .order("created_at", { ascending: false })
         .limit(200),
+      supabaseAdmin
+        .from("ad_bombs")
+        .select("created_at,started_at")
+        .eq("attacker_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("lucky_box_opens")
+        .select("created_at,label,rarity")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("lootbox_owned")
+        .select("acquired_at,type_id,lootbox_types(name_ar,name,price_gems)")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(300),
+      supabaseAdmin
+        .from("dragon_equipment")
+        .select("acquired_at,slot,rarity,name")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("support_gifts")
+        .select("created_at,kind,amount,recipient_id")
+        .eq("sender_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(300),
+      supabaseAdmin
+        .from("inventory")
+        .select("acquired_at,item_type,item_id")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(500),
     ]);
+
+    // Enrich admin_audit with admin usernames
+    const adminIds = Array.from(new Set((adminAudit.data ?? []).map((r: any) => r.admin_id).filter(Boolean)));
+    const adminNames = new Map<string, string>();
+    if (adminIds.length > 0) {
+      const { data: admins } = await supabaseAdmin
+        .from("profiles")
+        .select("id,username,display_name")
+        .in("id", adminIds);
+      for (const a of (admins ?? []) as any[]) {
+        adminNames.set(a.id, a.display_name || a.username || String(a.id).slice(0, 8));
+      }
+    }
+
 
     type Src = { at: number; kind: GemReportEvent["kind"]; label_ar: string; product_label?: string; product_id?: string; amount_usd?: number; expect_gems?: number; detail?: string; used?: boolean };
     const sources: Src[] = [];
