@@ -2,17 +2,28 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
-type Tab = "ach" | "etribes" | "eplayers";
+type Tab = "ach" | "etribes" | "eplayers" | "log";
 
 type Achievement = { id: string; code: string; title: string; description: string | null; emoji: string; earned_at: string };
 type EnemyTribe = { id: string; enemy_tribe_id: string; note: string | null; created_at: string; tribe: { id: string; name: string; emblem: string | null; level: number } | null };
 type EnemyPlayer = { id: string; enemy_user_id: string; reason: string | null; created_at: string; profile: { id: string; display_name: string | null; avatar_emoji: string | null; avatar_url: string | null; level: number | null } | null };
+type LogRow = {
+  id: string; created_at: string; direction: "in" | "out";
+  attacker_id: string; defender_id: string;
+  damage_dealt: number | null; attacker_won: boolean | null; loot_coins: number | null;
+  attacker_name: string | null; attacker_avatar_url: string | null; attacker_avatar_emoji: string | null;
+  attacker_tribe_id: string | null; attacker_tribe_name: string | null; attacker_tribe_emblem: string | null;
+  defender_name: string | null; defender_avatar_url: string | null; defender_avatar_emoji: string | null;
+  defender_tribe_id: string | null; defender_tribe_name: string | null; defender_tribe_emblem: string | null;
+};
 
 export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canManage: boolean }) {
   const [tab, setTab] = useState<Tab>("ach");
   const [ach, setAch] = useState<Achievement[]>([]);
   const [eTribes, setETribes] = useState<EnemyTribe[]>([]);
   const [ePlayers, setEPlayers] = useState<EnemyPlayer[]>([]);
+  const [log, setLog] = useState<LogRow[]>([]);
+  const [logLoading, setLogLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
