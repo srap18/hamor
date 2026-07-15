@@ -195,7 +195,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        {email && <MfaSetupSection />}
+        {/* MFA removed — 2FA disabled globally */}
 
 
 
