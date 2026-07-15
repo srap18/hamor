@@ -76,19 +76,19 @@ function SignupPage() {
     if (!data.session) { setPendingEmail(email); return; }
     if (refCode) {
       try {
-        const dev = (typeof localStorage !== "undefined"
-          ? (localStorage.getItem("oc_device_id") || localStorage.getItem("hamor_device_id"))
-          : null) || null;
+        let dev: string | null = null;
+        try { dev = await getHardwareFingerprint(); } catch {}
         const { data: r } = await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
         if (r && (r as any).ok === false) {
           const reason = (r as any).reason;
           const msg =
             reason === "same_device" || reason === "device_already_used" ? "لا تُحسب الدعوة: نفس الجهاز" :
-            reason === "same_ip" || reason === "same_subnet" ? "لا تُحسب الدعوة: نفس الشبكة" :
             reason === "linked_account" ? "لا تُحسب الدعوة: حسابات مرتبطة" :
             reason === "self_referral" ? "لا يمكن استخدام كودك الشخصي" :
             reason === "already_referred" ? "تم استخدام كود دعوة سابقاً" :
             reason === "code_not_found" ? "كود دعوة غير موجود" :
+            reason === "lifetime_cap_reached" ? "الداعي وصل الحد الأقصى للدعوات" :
+            reason === "daily_cap_reached" ? "الداعي وصل الحد اليومي للدعوات" :
             reason === "device_required" ? "تعذّر التحقق من الجهاز" : null;
           if (msg) setErr(msg);
         }
