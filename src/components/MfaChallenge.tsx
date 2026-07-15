@@ -63,11 +63,14 @@ export function MfaChallenge({ onVerified, onCancel }: { onVerified: () => void;
   );
 }
 
-/** Returns true if current session needs an MFA step-up (aal2 required, currently aal1). */
+/** MFA disabled globally — always returns false and silently unenrolls any existing factors. */
 export async function mfaStepUpRequired(): Promise<boolean> {
   try {
-    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (error || !data) return false;
-    return data.nextLevel === "aal2" && data.currentLevel !== "aal2";
-  } catch { return false; }
+    const { data } = await supabase.auth.mfa.listFactors();
+    const all = [...(data?.totp ?? []), ...((data as any)?.phone ?? [])];
+    for (const f of all) {
+      try { await supabase.auth.mfa.unenroll({ factorId: f.id }); } catch { /* noop */ }
+    }
+  } catch { /* noop */ }
+  return false;
 }
