@@ -1892,6 +1892,39 @@ export type Database = {
           },
         ]
       }
+      global_attack_feed: {
+        Row: {
+          at: string
+          attacker_id: string | null
+          attacker_name: string | null
+          damage: number | null
+          id: string
+          kind: string
+          target_id: string | null
+          target_name: string | null
+        }
+        Insert: {
+          at?: string
+          attacker_id?: string | null
+          attacker_name?: string | null
+          damage?: number | null
+          id?: string
+          kind: string
+          target_id?: string | null
+          target_name?: string | null
+        }
+        Update: {
+          at?: string
+          attacker_id?: string | null
+          attacker_name?: string | null
+          damage?: number | null
+          id?: string
+          kind?: string
+          target_id?: string | null
+          target_name?: string | null
+        }
+        Relationships: []
+      }
       global_banners: {
         Row: {
           attacker_id: string | null
@@ -1958,6 +1991,42 @@ export type Database = {
           kind?: string | null
           target_id?: string | null
           target_name?: string | null
+        }
+        Relationships: []
+      }
+      global_lucky_wins: {
+        Row: {
+          amount: number | null
+          at: string
+          icon: string | null
+          id: string
+          label: string | null
+          player_name: string | null
+          prize_type: string | null
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          at?: string
+          icon?: string | null
+          id?: string
+          label?: string | null
+          player_name?: string | null
+          prize_type?: string | null
+          rarity: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          at?: string
+          icon?: string | null
+          id?: string
+          label?: string | null
+          player_name?: string | null
+          prize_type?: string | null
+          rarity?: Database["public"]["Enums"]["lucky_box_rarity"]
+          user_id?: string | null
         }
         Relationships: []
       }
