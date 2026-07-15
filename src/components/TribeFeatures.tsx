@@ -133,6 +133,7 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
           { k: "ach" as const, l: "🏆 إنجازات", n: ach.length },
           { k: "etribes" as const, l: "🚩 قبائل عدوة", n: eTribes.length },
           { k: "eplayers" as const, l: "🎯 أعداء", n: ePlayers.length },
+          { k: "log" as const, l: "⚔️ السجل", n: 0 },
         ]).map(t => (
           <button key={t.k} onClick={() => setTab(t.k)}
             className={`flex-1 py-2 text-[11px] font-bold ${tab === t.k ? "bg-amber-700/40 text-amber-100" : "text-amber-300/70"}`}>
