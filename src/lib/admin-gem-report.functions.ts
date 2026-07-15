@@ -342,19 +342,78 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     }
     for (const a of (adminAudit.data ?? []) as any[]) {
       const det = a.details ?? {};
-      // Try to detect gems in details
       let gems = 0;
       if (typeof det.gems === "number") gems = det.gems;
       else if (det.after?.gems != null && det.before?.gems != null) gems = Number(det.after.gems) - Number(det.before.gems);
       if (gems === 0) continue;
+      const isGift = a.action?.includes("gift");
+      const adminName = adminNames.get(a.admin_id) ?? String(a.admin_id).slice(0, 8);
       sources.push({
         at: new Date(a.created_at).getTime(),
-        kind: a.action?.includes("gift") ? "admin_gift" : "admin_edit",
-        label_ar: a.action?.includes("gift") ? "هدية من الإدارة" : "تعديل يدوي من الإدارة",
+        kind: isGift ? "admin_gift" : "admin_edit",
+        label_ar: isGift ? `هدية من الإدارة: ${adminName}` : `تعديل يدوي من الإدارة: ${adminName}`,
         expect_gems: gems,
-        detail: `المشرف: ${String(a.admin_id).slice(0, 8)}`,
+        direction: gems > 0 ? "in" : "out",
+        detail: a.reason || undefined,
       });
     }
+
+    // === Spend sources (delta < 0) ===
+    for (const b of (adBombs.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(b.created_at ?? b.started_at).getTime(),
+        kind: "spend_ad_bomb",
+        label_ar: "إطلاق قنبلة إعلانية",
+        direction: "out",
+      });
+    }
+    for (const l of (luckyBox.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(l.created_at).getTime(),
+        kind: "spend_lucky_box",
+        label_ar: "فتح صندوق الحظ",
+        detail: l.label ? `الجائزة: ${l.label}` : undefined,
+        direction: "out",
+      });
+    }
+    for (const lb of (lootboxes.data ?? []) as any[]) {
+      const nm = lb.lootbox_types?.name_ar ?? lb.lootbox_types?.name ?? "صندوق";
+      const g = Number(lb.lootbox_types?.price_gems ?? 0);
+      sources.push({
+        at: new Date(lb.acquired_at).getTime(),
+        kind: "spend_lootbox",
+        label_ar: `شراء صندوق: ${nm}`,
+        expect_gems: g > 0 ? g : undefined,
+        direction: "out",
+      });
+    }
+    for (const d of (dragonEq.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(d.acquired_at).getTime(),
+        kind: "spend_dragon_draw",
+        label_ar: `سحب معدة تنين (${d.slot ?? ""} - ${d.rarity ?? ""})`,
+        direction: "out",
+      });
+    }
+    for (const s of (supportSent.data ?? []) as any[]) {
+      const g = Number(s.amount ?? 0);
+      sources.push({
+        at: new Date(s.created_at).getTime(),
+        kind: "spend_support_gift",
+        label_ar: `دعم طاقم: ${ITEM_LABELS_AR[s.kind] ?? s.kind}`,
+        expect_gems: g > 0 ? g : undefined,
+        direction: "out",
+      });
+    }
+    for (const it of (invPurchases.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(it.acquired_at).getTime(),
+        kind: "spend_item",
+        label_ar: itemLabel(it.item_type, it.item_id),
+        direction: "out",
+      });
+    }
+
 
     // Sort sources by time asc for matching
     sources.sort((a, b) => a.at - b.at);
