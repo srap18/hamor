@@ -259,6 +259,70 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
             )}
           </>
         )}
+
+        {tab === "log" && (
+          logLoading ? (
+            <div className="text-center text-amber-300/60 text-xs py-4">جاري التحميل...</div>
+          ) : log.length === 0 ? (
+            <div className="text-center text-amber-300/60 text-xs py-4">لا توجد هجمات أو دفاعات مسجّلة بعد</div>
+          ) : (
+            <div className="space-y-1.5">
+              {log.map(r => {
+                const isOut = r.direction === "out";
+                const meName = isOut ? (r.attacker_name || "لاعب") : (r.defender_name || "لاعب");
+                const meAvatar = isOut ? r.attacker_avatar_url : r.defender_avatar_url;
+                const meEmoji = isOut ? r.attacker_avatar_emoji : r.defender_avatar_emoji;
+                const otherName = isOut ? (r.defender_name || "لاعب") : (r.attacker_name || "لاعب");
+                const otherAvatar = isOut ? r.defender_avatar_url : r.attacker_avatar_url;
+                const otherEmoji = isOut ? r.defender_avatar_emoji : r.attacker_avatar_emoji;
+                const otherId = isOut ? r.defender_id : r.attacker_id;
+                const otherTribeName = isOut ? r.defender_tribe_name : r.attacker_tribe_name;
+                const otherTribeEmblem = isOut ? r.defender_tribe_emblem : r.attacker_tribe_emblem;
+                const won = isOut ? r.attacker_won : !r.attacker_won;
+                return (
+                  <div key={r.id} className={`p-2 rounded-lg border ${isOut ? "bg-emerald-900/15 border-emerald-700/30" : "bg-red-900/15 border-red-700/30"}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isOut ? "bg-emerald-700/50 text-emerald-100" : "bg-red-700/50 text-red-100"}`}>
+                        {isOut ? "🗡️ هجوم" : "🛡️ دفاع"}
+                      </span>
+                      {won != null && (
+                        <span className={`text-[10px] font-bold ${won ? "text-emerald-300" : "text-red-300"}`}>
+                          {won ? "فوز" : "خسارة"}
+                        </span>
+                      )}
+                      <span className="ms-auto text-[9px] text-amber-400/60">{new Date(r.created_at).toLocaleString("ar")}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {meAvatar
+                        ? <img src={meAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        : <span className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-sm">{meEmoji || "🏴‍☠️"}</span>}
+                      <span className="text-xs text-amber-100 font-bold truncate">{meName}</span>
+                      <span className="text-amber-300/70 text-sm">{isOut ? "⟵" : "⟶"}</span>
+                      {otherAvatar
+                        ? <img src={otherAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        : <span className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-sm">{otherEmoji || "🏴‍☠️"}</span>}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-amber-100 font-bold truncate">{otherName}</div>
+                        {otherTribeName && (
+                          <div className="text-[9px] text-amber-300/70 truncate">{otherTribeEmblem || "🏴‍☠️"} {otherTribeName}</div>
+                        )}
+                      </div>
+                      <Link to="/p/$id" params={{ id: otherId }} className="px-2 py-1 rounded bg-sky-600 text-white text-[9px] font-bold">👤</Link>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-[10px]">
+                      {r.damage_dealt != null && r.damage_dealt > 0 && (
+                        <span className="text-orange-300">💥 {Number(r.damage_dealt).toLocaleString()} ضرر</span>
+                      )}
+                      {r.loot_coins != null && r.loot_coins > 0 && (
+                        <span className="text-amber-300">🪙 {Number(r.loot_coins).toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
       </div>
     </div>
   );
