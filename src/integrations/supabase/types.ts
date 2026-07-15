@@ -7053,10 +7053,9 @@ export type Database = {
         Returns: string
       }
       skip_shield_type_cooldown: { Args: { _item_id: string }; Returns: Json }
-      smelt_dragon_items: {
-        Args: { p_a_id: string; p_b_id: string }
-        Returns: Json
-      }
+      smelt_dragon_items:
+        | { Args: { p_a_id: string; p_b_id: string }; Returns: Json }
+        | { Args: { p_ids: string[] }; Returns: Json }
       split_inventory_assign: {
         Args: { _inv_id: string; _new_meta: Json }
         Returns: string
