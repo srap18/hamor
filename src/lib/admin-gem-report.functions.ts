@@ -434,24 +434,25 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     for (const a of (audit.data ?? []) as any[]) {
       const delta = Number(a.gems_delta ?? 0);
       const at = new Date(a.changed_at).getTime();
-      let match: Src | undefined;
+      const wantDir: "in" | "out" = delta > 0 ? "in" : "out";
+      const win = delta > 0 ? WINDOW_MS : SPEND_WINDOW_MS;
+      const wantAbs = Math.abs(delta);
 
-      if (delta > 0) {
-        // Find nearest unused source within window whose expected gems matches or is unspecified
-        let best: { src: Src; score: number } | undefined;
-        for (const s of sources) {
-          if (s.used) continue;
-          const dt = Math.abs(s.at - at);
-          if (dt > WINDOW_MS) continue;
-          const gemsOk = s.expect_gems == null || s.expect_gems === delta;
-          if (!gemsOk) continue;
-          const score = dt + (s.expect_gems === delta ? 0 : 30_000);
-          if (!best || score < best.score) best = { src: s, score };
-        }
-        if (best) {
-          best.src.used = true;
-          match = best.src;
-        }
+      let match: Src | undefined;
+      let best: { src: Src; score: number } | undefined;
+      for (const s of sources) {
+        if (s.used) continue;
+        if (s.direction && s.direction !== wantDir) continue;
+        const dt = Math.abs(s.at - at);
+        if (dt > win) continue;
+        const gemsOk = s.expect_gems == null || s.expect_gems === wantAbs;
+        if (!gemsOk) continue;
+        const score = dt + (s.expect_gems === wantAbs ? 0 : 30_000);
+        if (!best || score < best.score) best = { src: s, score };
+      }
+      if (best) {
+        best.src.used = true;
+        match = best.src;
       }
 
       let kind: GemReportEvent["kind"] = delta < 0 ? "spend" : "other_gain";
@@ -461,18 +462,22 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       let amount_usd: number | undefined;
       let detail: string | undefined;
 
-      if (match) {
+      // Recorded source in economy_audit wins over heuristic match
+      const srcKey = (a.source as string | null) ?? null;
+      if (srcKey && SOURCE_LABELS_AR[srcKey]) {
+        const s = SOURCE_LABELS_AR[srcKey];
+        kind = s.kind;
+        label = s.label;
+        detail = a.reason || undefined;
+      } else if (match) {
         kind = match.kind;
         label = match.label_ar;
         product_label = match.product_label;
         product_id = match.product_id;
         amount_usd = match.amount_usd;
         detail = match.detail;
-      } else if (a.source === "admin_gift" || a.source === "admin_action") {
-        kind = "admin_gift";
-        label = "هدية / تعديل من الإدارة";
-        detail = a.reason ?? undefined;
       }
+
 
       // Summary
       if (delta > 0) {
