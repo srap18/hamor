@@ -5709,6 +5709,10 @@ export type Database = {
         Args: { _amount: number; _user: string }
         Returns: number
       }
+      award_pending_referral_if_qualified: {
+        Args: { _invitee: string }
+        Returns: boolean
+      }
       award_vip_cashback: {
         Args: { _gold_spent: number; _source?: string; _uid: string }
         Returns: number
