@@ -20,6 +20,14 @@ export type GemReportEvent = {
     | "admin_gift"
     | "admin_edit"
     | "spend"
+    | "spend_ad_bomb"
+    | "spend_lucky_box"
+    | "spend_lootbox"
+    | "spend_dragon_draw"
+    | "spend_dragon_upgrade"
+    | "spend_dragon_smelt"
+    | "spend_support_gift"
+    | "spend_item"
     | "other_gain";
   label_ar: string;
   product_label?: string;
@@ -41,6 +49,72 @@ export type GemReportSummary = {
 };
 
 const WINDOW_MS = 120_000;
+const SPEND_WINDOW_MS = 20_000;
+
+const ITEM_LABELS_AR: Record<string, string> = {
+  nuke: "قنبلة ذرية",
+  ad_bomb: "قنبلة إعلانية",
+  rocket_small: "صاروخ صغير",
+  rocket_medium: "صاروخ متوسط",
+  rocket_large: "صاروخ كبير",
+  shield_1d: "درع يوم",
+  shield_2d: "درع يومين",
+  shield_3d: "درع 3 أيام",
+  shield_7d: "درع أسبوع",
+  anti_nuke: "مضاد ذري",
+  anti_ad_bomb: "مضاد إعلاني",
+  anti_rocket: "مضاد صواريخ",
+  sailor: "بحّار",
+  luck: "طاقم الحظ",
+  guide: "طاقم المرشد",
+  thief: "لص",
+  police: "شرطي",
+  trader: "تاجر",
+  golden_fisher: "الصياد الذهبي",
+  market_expert: "خبير السوق",
+  fixer_1: "مصلّح 1",
+  fixer_2: "مصلّح 2",
+  fixer_3: "مصلّح 3",
+  fixer_4: "مصلّح 4",
+  af_gold: "إطار ذهبي",
+};
+
+const ITEM_TYPE_LABELS_AR: Record<string, string> = {
+  crew: "طاقم",
+  weapon: "سلاح",
+  consumable: "مستهلك",
+  decoration: "زينة",
+  frame: "إطار",
+  background: "خلفية",
+  name_frame: "إطار اسم",
+  bubble_frame: "إطار فقاعة",
+  profile_frame: "إطار بروفايل",
+  shield: "درع",
+  anti: "مضاد",
+  anti_rocket: "مضاد صواريخ",
+  anti_nuke: "مضاد ذري",
+  anti_ad_bomb: "مضاد إعلاني",
+  disabler: "معطّل",
+};
+
+function itemLabel(t: string, id: string): string {
+  const n = ITEM_LABELS_AR[id] ?? id;
+  const tt = ITEM_TYPE_LABELS_AR[t] ?? t;
+  return `شراء ${tt}: ${n}`;
+}
+
+const SOURCE_LABELS_AR: Record<string, { label: string; kind: GemReportEvent["kind"] }> = {
+  dragon_upgrade: { label: "ترقية معدة تنين", kind: "spend_dragon_upgrade" },
+  dragon_smelt: { label: "صهر معدات تنين", kind: "spend_dragon_smelt" },
+  admin_gift: { label: "هدية من الإدارة", kind: "admin_gift" },
+  admin_action: { label: "تعديل يدوي من الإدارة", kind: "admin_edit" },
+  admin_refund: { label: "استرداد من الإدارة", kind: "admin_gift" },
+  admin_correction: { label: "تصحيح من الإدارة", kind: "admin_edit" },
+  admin_compensation: { label: "تعويض من الإدارة", kind: "admin_gift" },
+  security_fix: { label: "تصحيح أمني من الإدارة", kind: "admin_edit" },
+  ship_storage_defect_compensation_v2: { label: "تعويض خلل تخزين السفن", kind: "admin_gift" },
+  ship_storage_refund_reversal: { label: "عكس تعويض تخزين السفن", kind: "admin_edit" },
+};
 
 function packLabelById(id: string | null | undefined): { label: string; gems?: number; usd?: number } {
   if (!id) return { label: "منتج غير معروف" };
@@ -71,7 +145,7 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const uid = data.userId;
 
-    const [audit, paddle, stripe, polar, codes, vipDaily, eliteDaily, referrals, tribeDaily, adminAudit] = await Promise.all([
+    const [audit, paddle, stripe, polar, codes, vipDaily, eliteDaily, referrals, tribeDaily, adminAudit, adBombs, luckyBox, lootboxes, dragonEq, supportSent, invPurchases] = await Promise.all([
       supabaseAdmin
         .from("economy_audit")
         .select("changed_at,gems_delta,gems_before,gems_after,source,reason,meta")
@@ -126,9 +200,59 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
         .eq("target_user_id", uid)
         .order("created_at", { ascending: false })
         .limit(200),
+      supabaseAdmin
+        .from("ad_bombs")
+        .select("created_at,started_at")
+        .eq("attacker_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("lucky_box_opens")
+        .select("created_at,label,rarity")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("lootbox_owned")
+        .select("acquired_at,type_id,lootbox_types(name_ar,name,price_gems)")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(300),
+      supabaseAdmin
+        .from("dragon_equipment")
+        .select("acquired_at,slot,rarity,name")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(500),
+      supabaseAdmin
+        .from("support_gifts")
+        .select("created_at,kind,amount,recipient_id")
+        .eq("sender_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(300),
+      supabaseAdmin
+        .from("inventory")
+        .select("acquired_at,item_type,item_id")
+        .eq("user_id", uid)
+        .order("acquired_at", { ascending: false })
+        .limit(500),
     ]);
 
-    type Src = { at: number; kind: GemReportEvent["kind"]; label_ar: string; product_label?: string; product_id?: string; amount_usd?: number; expect_gems?: number; detail?: string; used?: boolean };
+    // Enrich admin_audit with admin usernames
+    const adminIds = Array.from(new Set((adminAudit.data ?? []).map((r: any) => r.admin_id).filter(Boolean)));
+    const adminNames = new Map<string, string>();
+    if (adminIds.length > 0) {
+      const { data: admins } = await supabaseAdmin
+        .from("profiles")
+        .select("id,username,display_name")
+        .in("id", adminIds);
+      for (const a of (admins ?? []) as any[]) {
+        adminNames.set(a.id, a.display_name || a.username || String(a.id).slice(0, 8));
+      }
+    }
+
+
+    type Src = { at: number; kind: GemReportEvent["kind"]; label_ar: string; product_label?: string; product_id?: string; amount_usd?: number; expect_gems?: number; detail?: string; direction?: "in" | "out"; used?: boolean };
     const sources: Src[] = [];
 
     for (const p of (paddle.data ?? []) as any[]) {
@@ -218,19 +342,78 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     }
     for (const a of (adminAudit.data ?? []) as any[]) {
       const det = a.details ?? {};
-      // Try to detect gems in details
       let gems = 0;
       if (typeof det.gems === "number") gems = det.gems;
       else if (det.after?.gems != null && det.before?.gems != null) gems = Number(det.after.gems) - Number(det.before.gems);
       if (gems === 0) continue;
+      const isGift = a.action?.includes("gift");
+      const adminName = adminNames.get(a.admin_id) ?? String(a.admin_id).slice(0, 8);
       sources.push({
         at: new Date(a.created_at).getTime(),
-        kind: a.action?.includes("gift") ? "admin_gift" : "admin_edit",
-        label_ar: a.action?.includes("gift") ? "هدية من الإدارة" : "تعديل يدوي من الإدارة",
+        kind: isGift ? "admin_gift" : "admin_edit",
+        label_ar: isGift ? `هدية من الإدارة: ${adminName}` : `تعديل يدوي من الإدارة: ${adminName}`,
         expect_gems: gems,
-        detail: `المشرف: ${String(a.admin_id).slice(0, 8)}`,
+        direction: gems > 0 ? "in" : "out",
+        detail: a.reason || undefined,
       });
     }
+
+    // === Spend sources (delta < 0) ===
+    for (const b of (adBombs.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(b.created_at ?? b.started_at).getTime(),
+        kind: "spend_ad_bomb",
+        label_ar: "إطلاق قنبلة إعلانية",
+        direction: "out",
+      });
+    }
+    for (const l of (luckyBox.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(l.created_at).getTime(),
+        kind: "spend_lucky_box",
+        label_ar: "فتح صندوق الحظ",
+        detail: l.label ? `الجائزة: ${l.label}` : undefined,
+        direction: "out",
+      });
+    }
+    for (const lb of (lootboxes.data ?? []) as any[]) {
+      const nm = lb.lootbox_types?.name_ar ?? lb.lootbox_types?.name ?? "صندوق";
+      const g = Number(lb.lootbox_types?.price_gems ?? 0);
+      sources.push({
+        at: new Date(lb.acquired_at).getTime(),
+        kind: "spend_lootbox",
+        label_ar: `شراء صندوق: ${nm}`,
+        expect_gems: g > 0 ? g : undefined,
+        direction: "out",
+      });
+    }
+    for (const d of (dragonEq.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(d.acquired_at).getTime(),
+        kind: "spend_dragon_draw",
+        label_ar: `سحب معدة تنين (${d.slot ?? ""} - ${d.rarity ?? ""})`,
+        direction: "out",
+      });
+    }
+    for (const s of (supportSent.data ?? []) as any[]) {
+      const g = Number(s.amount ?? 0);
+      sources.push({
+        at: new Date(s.created_at).getTime(),
+        kind: "spend_support_gift",
+        label_ar: `دعم طاقم: ${ITEM_LABELS_AR[s.kind] ?? s.kind}`,
+        expect_gems: g > 0 ? g : undefined,
+        direction: "out",
+      });
+    }
+    for (const it of (invPurchases.data ?? []) as any[]) {
+      sources.push({
+        at: new Date(it.acquired_at).getTime(),
+        kind: "spend_item",
+        label_ar: itemLabel(it.item_type, it.item_id),
+        direction: "out",
+      });
+    }
+
 
     // Sort sources by time asc for matching
     sources.sort((a, b) => a.at - b.at);
@@ -251,24 +434,25 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     for (const a of (audit.data ?? []) as any[]) {
       const delta = Number(a.gems_delta ?? 0);
       const at = new Date(a.changed_at).getTime();
-      let match: Src | undefined;
+      const wantDir: "in" | "out" = delta > 0 ? "in" : "out";
+      const win = delta > 0 ? WINDOW_MS : SPEND_WINDOW_MS;
+      const wantAbs = Math.abs(delta);
 
-      if (delta > 0) {
-        // Find nearest unused source within window whose expected gems matches or is unspecified
-        let best: { src: Src; score: number } | undefined;
-        for (const s of sources) {
-          if (s.used) continue;
-          const dt = Math.abs(s.at - at);
-          if (dt > WINDOW_MS) continue;
-          const gemsOk = s.expect_gems == null || s.expect_gems === delta;
-          if (!gemsOk) continue;
-          const score = dt + (s.expect_gems === delta ? 0 : 30_000);
-          if (!best || score < best.score) best = { src: s, score };
-        }
-        if (best) {
-          best.src.used = true;
-          match = best.src;
-        }
+      let match: Src | undefined;
+      let best: { src: Src; score: number } | undefined;
+      for (const s of sources) {
+        if (s.used) continue;
+        if (s.direction && s.direction !== wantDir) continue;
+        const dt = Math.abs(s.at - at);
+        if (dt > win) continue;
+        const gemsOk = s.expect_gems == null || s.expect_gems === wantAbs;
+        if (!gemsOk) continue;
+        const score = dt + (s.expect_gems === wantAbs ? 0 : 30_000);
+        if (!best || score < best.score) best = { src: s, score };
+      }
+      if (best) {
+        best.src.used = true;
+        match = best.src;
       }
 
       let kind: GemReportEvent["kind"] = delta < 0 ? "spend" : "other_gain";
@@ -278,18 +462,22 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       let amount_usd: number | undefined;
       let detail: string | undefined;
 
-      if (match) {
+      // Recorded source in economy_audit wins over heuristic match
+      const srcKey = (a.source as string | null) ?? null;
+      if (srcKey && SOURCE_LABELS_AR[srcKey]) {
+        const s = SOURCE_LABELS_AR[srcKey];
+        kind = s.kind;
+        label = s.label;
+        detail = a.reason || undefined;
+      } else if (match) {
         kind = match.kind;
         label = match.label_ar;
         product_label = match.product_label;
         product_id = match.product_id;
         amount_usd = match.amount_usd;
         detail = match.detail;
-      } else if (a.source === "admin_gift" || a.source === "admin_action") {
-        kind = "admin_gift";
-        label = "هدية / تعديل من الإدارة";
-        detail = a.reason ?? undefined;
       }
+
 
       // Summary
       if (delta > 0) {
