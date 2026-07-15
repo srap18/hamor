@@ -58,6 +58,21 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
 
   useEffect(() => { load(); }, [load]);
 
+  const loadLog = useCallback(async () => {
+    setLogLoading(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("get_tribe_attack_log", { _tribe_id: tribeId, _limit: 100 });
+      if (error) throw error;
+      setLog((data || []) as LogRow[]);
+    } catch (e: any) {
+      setErr(e?.message || "خطأ في تحميل السجل");
+    }
+    setLogLoading(false);
+  }, [tribeId]);
+
+  useEffect(() => { if (tab === "log") loadLog(); }, [tab, loadLog]);
+
+
   const wrap = async (fn: () => Promise<void>) => {
     setBusy(true); setErr(null);
     try { await fn(); } catch (e: any) { setErr(e?.message || "خطأ"); }
