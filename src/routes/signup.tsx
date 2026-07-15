@@ -167,9 +167,8 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
     if (error || !data.user?.email_confirmed_at) { setErr("لم يتم تأكيد الرابط بعد"); return; }
     if (refCode) {
       try {
-        const dev = (typeof localStorage !== "undefined"
-          ? (localStorage.getItem("oc_device_id") || localStorage.getItem("hamor_device_id"))
-          : null) || null;
+        let dev: string | null = null;
+        try { dev = await getHardwareFingerprint(); } catch {}
         await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
         localStorage.removeItem("pending_referral_code");
       } catch {}
