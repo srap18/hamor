@@ -252,7 +252,7 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
     }
 
 
-    type Src = { at: number; kind: GemReportEvent["kind"]; label_ar: string; product_label?: string; product_id?: string; amount_usd?: number; expect_gems?: number; detail?: string; used?: boolean };
+    type Src = { at: number; kind: GemReportEvent["kind"]; label_ar: string; product_label?: string; product_id?: string; amount_usd?: number; expect_gems?: number; detail?: string; direction: "in" | "out"; used?: boolean };
     const sources: Src[] = [];
 
     for (const p of (paddle.data ?? []) as any[]) {
