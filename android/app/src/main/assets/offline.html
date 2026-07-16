@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>لا يوجد اتصال بالإنترنت</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Tajawal", "Cairo", sans-serif;
+    color: #ffe9a8;
+    background: radial-gradient(ellipse at center, #0d3a5c 0%, #061826 55%, #020a13 100%);
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+  .wrap {
+    min-height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px; padding: 32px 24px;
+    text-align: center;
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+    padding-top: max(32px, env(safe-area-inset-top));
+  }
+  .icon {
+    font-size: 88px; line-height: 1;
+    filter: drop-shadow(0 6px 24px rgba(245, 196, 94, 0.35));
+    animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-8px); }
+  }
+  h1 {
+    margin: 4px 0 0; font-size: 24px; font-weight: 800;
+    color: #f5c45e;
+  }
+  p {
+    margin: 0; max-width: 320px;
+    font-size: 15px; line-height: 1.7;
+    color: #cbd5e1;
+  }
+  .btn {
+    margin-top: 14px;
+    background: linear-gradient(180deg, #f7d47a 0%, #b8791e 100%);
+    color: #1a0f00;
+    border: 2px solid #ffe9a8;
+    border-radius: 14px;
+    padding: 12px 28px;
+    font-size: 16px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: transform .12s ease;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn[disabled] { opacity: 0.6; }
+  .hint {
+    margin-top: 6px; font-size: 12px; color: #7ea3c2;
+  }
+  .brand {
+    position: absolute; bottom: 14px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: #4a6b85;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon">📡</div>
+    <h1>لا يوجد اتصال بالإنترنت</h1>
+    <p>يبدو أن جهازك غير متصل بالشبكة حالياً. تحقق من اتصالك بالواي فاي أو بيانات الجوال ثم أعد المحاولة.</p>
+    <button id="retry" class="btn" onclick="retry()">🔁 إعادة المحاولة</button>
+    <div class="hint" id="hint">في انتظار عودة الاتصال...</div>
+  </div>
+  <div class="brand">ملوك القراصنة 🏴‍☠️</div>
+
+<script>
+  var TARGET = "https://www.molok-alqarasna.com/";
+  var checking = false;
+
+  function setHint(msg) {
+    var el = document.getElementById('hint');
+    if (el) el.textContent = msg;
+  }
+
+  async function ping() {
+    try {
+      // نستخدم HEAD مع no-store لضمان فحص حقيقي للشبكة
+      var res = await fetch(TARGET + "manifest.json?_=" + Date.now(), {
+        method: "GET",
+        cache: "no-store"
+      });
+      return res && (res.ok || res.status < 500);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function retry() {
+    if (checking) return;
+    checking = true;
+    var btn = document.getElementById('retry');
+    btn.disabled = true;
+    setHint("جاري التحقق من الاتصال...");
+    var ok = navigator.onLine && (await ping());
+    if (ok) {
+      setHint("تم الاتصال! جاري إعادة تحميل اللعبة...");
+      window.location.replace(TARGET);
+      return;
+    }
+    setHint("لا يزال الاتصال مفقوداً، حاول مرة أخرى.");
+    btn.disabled = false;
+    checking = false;
+  }
+
+  // إعادة تحميل تلقائي عند عودة الشبكة
+  window.addEventListener('online', function () {
+    setHint("عاد الاتصال! جاري إعادة التحميل...");
+    setTimeout(function () { window.location.replace(TARGET); }, 400);
+  });
+
+  // فحص دوري خفيف كل 5 ثواني
+  setInterval(async function () {
+    if (checking) return;
+    if (navigator.onLine && (await ping())) {
+      window.location.replace(TARGET);
+    }
+  }, 5000);
+</script>
+</body>
+</html>
