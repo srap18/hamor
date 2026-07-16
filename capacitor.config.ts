@@ -3,13 +3,11 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.hamor.game',
   appName: 'ملوك القراصنة',
-  // Capacitor يتطلب webDir موجود ليتم cap sync — نستخدم مجلد dist
-  // الذي يحتوي على index.html احتياطي فقط. المحتوى الفعلي للعبة
-  // يُحمَّل من server.url أدناه (الموقع المنشور).
   webDir: 'dist',
   server: {
     url: 'https://www.molok-alqarasna.com',
-    cleartext: true,
+    // HTTPS فقط — لا cleartext ولا mixed content (متطلب Google Play).
+    cleartext: false,
     allowNavigation: [
       'www.molok-alqarasna.com',
       '*.molok-alqarasna.com',
@@ -19,7 +17,7 @@ const config: CapacitorConfig = {
     ]
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     androidScheme: 'https'
   },
   plugins: {

@@ -4,8 +4,8 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MainActivity — يمنح أذونات المايك والكاميرا والصور تلقائياً داخل WebView
- * ويطلب أذونات النظام عند الحاجة.
+ * MainActivity — يعالج مطالب أذونات WebView (مايك/كاميرا) عند الطلب فقط،
+ * ويعرض صفحة أوفلاين مخصصة، ويوفر سلوك زر الرجوع الطبيعي للتنقّل داخل WebView.
+ *
+ * لا نطلب أي إذن عند بدء التطبيق — كل الأذونات in-context لتفادي رفض
+ * Google Play بسبب "Requesting permissions without a valid use case".
  */
 public class MainActivity extends BridgeActivity {
 
@@ -35,10 +38,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // اطلب الأذونات المطلوبة للعبة عند فتح التطبيق أول مرة.
-        requestGamePermissions();
-
-        // تجاوز WebChromeClient لمنح الأذونات (مايك/كاميرا) لصفحات الويب.
+        // منح WebView أذونات المايك/الكاميرا عند الطلب فقط.
         bridge.getWebView().setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
@@ -78,33 +78,21 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
-    private void requestGamePermissions() {
-        List<String> needed = new ArrayList<>();
-        addIfMissing(needed, Manifest.permission.RECORD_AUDIO);
-        addIfMissing(needed, Manifest.permission.CAMERA);
-        addIfMissing(needed, Manifest.permission.MODIFY_AUDIO_SETTINGS);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            addIfMissing(needed, Manifest.permission.READ_MEDIA_IMAGES);
-            addIfMissing(needed, Manifest.permission.READ_MEDIA_VIDEO);
-            addIfMissing(needed, Manifest.permission.POST_NOTIFICATIONS);
-        } else {
-            addIfMissing(needed, Manifest.permission.READ_EXTERNAL_STORAGE);
+    /**
+     * سلوك زر الرجوع الطبيعي — يعود إلى الصفحة السابقة داخل WebView بدل
+     * الخروج المفاجئ من التطبيق. متطلب أساسي في Google Play لتجربة تطبيق
+     * حقيقية (Minimum Functionality).
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            WebView web = bridge != null ? bridge.getWebView() : null;
+            if (web != null && web.canGoBack()) {
+                web.goBack();
+                return true;
+            }
         }
-
-        if (!needed.isEmpty()) {
-            ActivityCompat.requestPermissions(
-                this,
-                needed.toArray(new String[0]),
-                REQ_RUNTIME_PERMS
-            );
-        }
-    }
-
-    private void addIfMissing(List<String> list, String perm) {
-        if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
-            list.add(perm);
-        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void handleWebPermissionRequest(PermissionRequest request) {
@@ -128,13 +116,11 @@ public class MainActivity extends BridgeActivity {
                     grantedWeb.add(res);
                 }
             } else {
-                // أذونات أخرى (مثل MIDI): امنحها مباشرة.
                 grantedWeb.add(res);
             }
         }
 
         if (!osPermsNeeded.isEmpty()) {
-            // نحتاج طلب أذونات النظام أولاً، ثم نمنح WebView بعد الرد.
             pendingWebRequest = request;
             ActivityCompat.requestPermissions(
                 this,

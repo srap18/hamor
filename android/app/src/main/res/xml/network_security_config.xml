@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  يمنع أي اتصال cleartext (HTTP) — كل شيء عبر HTTPS فقط.
+  متطلب صارم لتجنب رفض Google Play بسبب "Insecure Network Configuration".
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
