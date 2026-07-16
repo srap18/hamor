@@ -1,41 +1,88 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { syncServerTime } from "@/lib/server-time";
 
 /**
  * Custom offline UI shown whenever the device loses network.
- * Replaces the browser's default "webpage not available" screen —
- * required to keep Google Play from flagging the app for poor offline UX.
+ * Uses both navigator.onLine events AND active pings, because Android
+ * WebView does not always fire 'online'/'offline' reliably when the
+ * user toggles wifi/mobile-data while the app is already open.
  */
 export function OfflineOverlay() {
   const [offline, setOffline] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const checkingRef = useRef(false);
+
+  const probe = async (): Promise<boolean> => {
+    if (checkingRef.current) return !offline;
+    checkingRef.current = true;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch(
+        window.location.origin + "/manifest.json?_=" + Date.now(),
+        { cache: "no-store", method: "GET", signal: ctrl.signal },
+      );
+      clearTimeout(t);
+      return !!res && (res.ok || res.status < 500);
+    } catch {
+      return false;
+    } finally {
+      checkingRef.current = false;
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
     setOffline(!navigator.onLine);
-    const on = () => setOffline(false);
-    const off = () => setOffline(true);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
+
+    const goOnline = async () => {
+      if (await probe()) {
+        setOffline(false);
+        try { syncServerTime(true); } catch {}
+      }
     };
+    const goOffline = () => setOffline(true);
+
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+
+    // Active poll every 6s — catches Android WebView cases where the
+    // browser events never fire after toggling wifi / mobile data.
+    const interval = window.setInterval(async () => {
+      const online = navigator.onLine && (await probe());
+      setOffline((prev) => {
+        if (prev && online) {
+          try { syncServerTime(true); } catch {}
+          return false;
+        }
+        if (!prev && !online) return true;
+        return prev;
+      });
+    }, 6000);
+
+    // Also re-check whenever the app returns to the foreground.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void goOnline();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const retry = async () => {
     setRetrying(true);
     try {
-      // Ping same-origin to force a real network check.
-      await fetch(window.location.origin + "/manifest.json", {
-        cache: "no-store",
-        method: "HEAD",
-      });
-      setOffline(false);
-      try { syncServerTime(true); } catch {}
-    } catch {
-      // still offline — flash the button
+      if (await probe()) {
+        setOffline(false);
+        try { syncServerTime(true); } catch {}
+      }
     } finally {
       setTimeout(() => setRetrying(false), 400);
     }
