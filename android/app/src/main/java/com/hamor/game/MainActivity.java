@@ -45,6 +45,37 @@ public class MainActivity extends BridgeActivity {
                 runOnUiThread(() -> handleWebPermissionRequest(request));
             }
         });
+
+        // عند انقطاع الاتصال، اعرض صفحة أوفلاين مخصصة بدل صفحة المتصفح الافتراضية.
+        bridge.getWebView().setWebViewClient(new BridgeWebViewClient(bridge) {
+            private boolean showingOffline = false;
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (url != null && !url.startsWith("file:///android_asset/offline.html")) {
+                    showingOffline = false;
+                }
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request != null && request.isForMainFrame() && !showingOffline) {
+                    showingOffline = true;
+                    view.loadUrl("file:///android_asset/offline.html");
+                }
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri url = request != null ? request.getUrl() : null;
+                if (url != null && "file".equals(url.getScheme())) {
+                    return false;
+                }
+                return super.shouldOverrideUrlLoading(view, request);
+            }
+        });
     }
 
     private void requestGamePermissions() {
