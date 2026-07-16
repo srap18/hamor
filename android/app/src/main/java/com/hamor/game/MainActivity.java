@@ -2,16 +2,22 @@ package com.hamor.game;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +43,37 @@ public class MainActivity extends BridgeActivity {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(() -> handleWebPermissionRequest(request));
+            }
+        });
+
+        // عند انقطاع الاتصال، اعرض صفحة أوفلاين مخصصة بدل صفحة المتصفح الافتراضية.
+        bridge.getWebView().setWebViewClient(new BridgeWebViewClient(bridge) {
+            private boolean showingOffline = false;
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (url != null && !url.startsWith("file:///android_asset/offline.html")) {
+                    showingOffline = false;
+                }
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (request != null && request.isForMainFrame() && !showingOffline) {
+                    showingOffline = true;
+                    view.loadUrl("file:///android_asset/offline.html");
+                }
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri url = request != null ? request.getUrl() : null;
+                if (url != null && "file".equals(url.getScheme())) {
+                    return false;
+                }
+                return super.shouldOverrideUrlLoading(view, request);
             }
         });
     }
