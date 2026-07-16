@@ -67,6 +67,20 @@ public class MainActivity extends BridgeActivity {
                 }
             }
 
+            // Legacy fallback for older Android WebView versions (pre-API 23)
+            // and edge cases where the modern callback is skipped (e.g. DNS failure
+            // before the request object is fully materialised). Without this,
+            // the WebView falls back to the system's "webpage not available" page.
+            @SuppressWarnings("deprecation")
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                if (!showingOffline) {
+                    showingOffline = true;
+                    view.loadUrl("file:///android_asset/offline.html");
+                }
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri url = request != null ? request.getUrl() : null;
