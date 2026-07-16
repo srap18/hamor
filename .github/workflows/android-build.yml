@@ -125,7 +125,7 @@ jobs:
         run: |
           cd android
           # تحديث رقم الإصدار تلقائياً  1003
-          sed -i 's/versionCode [0-9]*/versionCode 1004/' app/build.gradle
+          sed -i 's/versionCode [0-9]*/versionCode 1006/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
       # تم تعطيل التوقيع لكي تقوم بتوقيعه يدوياً بنفسك كما طلبت، مع الحفاظ على كل السطور والتعليقات:
