@@ -86,38 +86,13 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
           continue;
         }
 
-        // Elite VIP subscription path
-        const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === packId);
-        if (eliteTier) {
-          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-          await supabaseAdmin
-            .from("profiles")
-            .update({
-              elite_vip_level: eliteTier.level,
-              elite_vip_expires_at: expiresAt,
-            } as never)
-            .eq("id", data.userId);
-          await supabaseAdmin.from("paddle_purchases").insert({
-            user_id: data.userId,
-            paddle_transaction_id: txn.id,
-            pack_id: packId,
-            status: "completed",
-            environment: data.environment,
-            granted: true,
-            granted_at: new Date().toISOString(),
-            amount_cents: Number(txn.details?.totals?.total ?? 0),
-          } as never);
-          granted.push(packId);
-          grantedCount += 1;
-          continue;
-        }
-
         const pack = STORE_PACKS.find((p) => p.id === packId);
-        if (!pack) {
+        const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === packId);
+        if (!pack && !eliteTier) {
           skipped.push({ id: txn.id, reason: `unknown_pack_id:${packId}` });
           continue;
         }
-        const reward = pack.reward;
+        const reward = pack?.reward ?? {};
         const amountCents = Number(txn.details?.totals?.total ?? 0);
 
         const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {

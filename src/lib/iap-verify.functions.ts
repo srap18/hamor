@@ -89,26 +89,24 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
 
     const env = data.platform === "ios" ? "apple_iap" : "google_play";
 
-    // 2) Elite VIP subscription path.
+    // 2) Elite VIP subscription path — use the same atomic, idempotent grant
+    // as web payments so concurrent verification cannot shorten an entitlement.
     if (eliteTier) {
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          elite_vip_level: eliteTier.level,
-          elite_vip_expires_at: expiresAt,
-        } as never)
-        .eq("id", userId);
-      await supabaseAdmin.from("paddle_purchases").insert({
-        user_id: userId,
-        paddle_transaction_id: data.transactionId,
-        pack_id: data.productId,
-        status: "completed",
-        environment: env,
-        granted: true,
-        granted_at: new Date().toISOString(),
+      const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase" as never, {
+        _txn_id: data.transactionId,
+        _user: userId,
+        _pack_id: data.productId,
+        _amount_cents: Math.round(eliteTier.monthlyPriceUsd * 100),
+        _gems: 0,
+        _coins: 0,
+        _rubies: 0,
+        _shield_days: 0,
+        _vip_days: 0,
+        _env: env,
       } as never);
-      return { ok: true, alreadyGranted: false, productId: data.productId };
+      if (error) throw new Error(error.message);
+      const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
+      return { ok: true, alreadyGranted, productId: data.productId };
     }
 
     // 3) Regular store pack — reuse the canonical grant RPC.
