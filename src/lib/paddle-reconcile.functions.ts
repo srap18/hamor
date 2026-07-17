@@ -100,11 +100,12 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
         }
 
         const pack = STORE_PACKS.find((p) => p.id === packId);
-        if (!pack) {
+        const isEliteVip = /^elite_vip_[1-5]_monthly$/.test(packId);
+        if (!pack && !isEliteVip) {
           skipped.push({ id: txn.id, reason: `unknown_pack_id:${packId}` });
           continue;
         }
-        const reward = pack.reward;
+        const reward = pack?.reward ?? {};
         const amountCents = Number(txn.details?.totals?.total ?? 0);
 
         const { data: grantRes, error } = await supabaseAdmin.rpc("grant_paddle_purchase", {

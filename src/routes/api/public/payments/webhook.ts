@@ -13,7 +13,11 @@ function getSupabase(): any {
 }
 
 function rewardFor(packId: string) {
-  return STORE_PACKS.find((p) => p.id === packId)?.reward;
+  const reward = STORE_PACKS.find((p) => p.id === packId)?.reward;
+  // Elite VIP products intentionally live in the subscription catalog rather
+  // than STORE_PACKS. The canonical grant RPC derives their level from packId.
+  if (!reward && eliteLevelFromPriceId(packId)) return {};
+  return reward;
 }
 
 function getPackIdFromTransaction(data: any): string | undefined {
