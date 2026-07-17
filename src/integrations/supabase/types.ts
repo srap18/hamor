@@ -6933,6 +6933,13 @@ export type Database = {
       request_join_tribe: { Args: { _tribe_id: string }; Returns: Json }
       reset_player_to_ledger: { Args: { _uid: string }; Returns: Json }
       resume_golden_fisher: { Args: never; Returns: Json }
+      resync_my_elite_vip: {
+        Args: never
+        Returns: {
+          expires_at: string
+          level: number
+        }[]
+      }
       revoke_paddle_purchase: {
         Args: {
           _block_account?: boolean
