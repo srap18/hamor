@@ -5564,6 +5564,10 @@ export type Database = {
         Returns: Json
       }
       admin_redeem_code_for_all: { Args: { p_code: string }; Returns: Json }
+      admin_redeem_code_for_legacy_20260717: {
+        Args: { p_code: string; p_target_user: string }
+        Returns: Json
+      }
       admin_remove_email_ban: { Args: { p_email: string }; Returns: Json }
       admin_revert_economy_window: {
         Args: { _from: string; _reason?: string; _source: string; _to: string }
