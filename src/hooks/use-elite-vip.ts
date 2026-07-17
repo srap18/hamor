@@ -28,13 +28,18 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
     const readLevel = (row: { elite_vip_level?: number | null } | null): number =>
       Math.max(0, Number(row?.elite_vip_level ?? 0));
 
-    (async () => {
-      const { data } = await (supabase as any).rpc("get_my_elite_vip");
+    const refresh = async () => {
+      // Self-heal: if a paid Elite VIP purchase exists but the profile is
+      // behind (missed webhook / stale realtime), repair it and return the
+      // effective level in one round-trip.
+      const { data } = await (supabase as any).rpc("resync_my_elite_vip");
       if (cancelled) return;
       const r = Array.isArray(data) ? data[0] : data;
       setLevel(readLevel(r as any));
       setLoading(false);
-    })();
+    };
+
+    refresh();
 
     // Realtime sync — if subscription webhook updates the row, re-read.
     const channel = supabase
@@ -42,19 +47,28 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        async () => {
-          const { data } = await (supabase as any).rpc("get_my_elite_vip");
-          const r = Array.isArray(data) ? data[0] : data;
-          setLevel(readLevel(r as any));
-        },
+        refresh,
       )
       .subscribe();
+
+    // Refresh whenever the app regains focus (mobile users returning from
+    // the Paddle / Apple Pay sheet often miss the realtime UPDATE).
+    const onFocus = () => { void refresh(); };
+    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    const onPurchase = () => { void refresh(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("paddle-purchase-completed", onPurchase);
 
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("paddle-purchase-completed", onPurchase);
     };
   }, [user, authLoading]);
+
 
   return { level, loading };
 }
