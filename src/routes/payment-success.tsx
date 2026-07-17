@@ -99,10 +99,12 @@ function PaymentSuccess() {
               if (firstPack) setReward(firstPack);
               setStatus("done");
               refreshProfile();
+              notifyVipRefresh();
               sound.play("coin");
             }
             return;
           }
+
         } catch (e) {
           console.error("[payment-success] reconcile attempt failed", e);
         }
