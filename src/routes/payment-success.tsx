@@ -77,10 +77,12 @@ function PaymentSuccess() {
               if (pack) setReward(pack);
               setStatus("done");
               await refreshProfile();
+              notifyVipRefresh();
               sound.play("coin");
             }
             return;
           }
+
         } catch (e) {
           console.error("[payment-success] instant claim failed", e);
         }
