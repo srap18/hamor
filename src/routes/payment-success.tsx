@@ -27,12 +27,17 @@ function PaymentSuccess() {
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
 
+  const notifyVipRefresh = () => {
+    try { window.dispatchEvent(new Event("paddle-purchase-completed")); } catch { /* noop */ }
+  };
+
   const runRecovery = async () => {
     setRecovering(true);
     setRecoverMsg(null);
     try {
       const r = await reconcile({ data: { environment: getPaddleEnvironment() } });
       refreshProfile();
+      notifyVipRefresh();
       if (r?.grantedCount && r.grantedCount > 0) {
         setRecoverMsg(`✅ تم استرجاع ${r.grantedCount} شحنة. تحقق من حسابك الآن.`);
         sound.play("coin");
@@ -46,6 +51,7 @@ function PaymentSuccess() {
       setRecovering(false);
     }
   };
+
 
   useEffect(() => {
     let cancelled = false;
