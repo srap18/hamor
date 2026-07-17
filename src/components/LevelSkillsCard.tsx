@@ -70,7 +70,10 @@ export function LevelSkillsCard({ userId }: { userId: string }) {
   const pct = prog.to_next > 0
     ? Math.min(100, Math.round((prog.into_level / prog.to_next) * 100))
     : 100;
-  const capPct = Math.min(100, Math.round((prog.xp_today / prog.daily_cap) * 100));
+  const hasDailyCap = prog.daily_cap > 0;
+  const capPct = hasDailyCap
+    ? Math.min(100, Math.round((prog.xp_today / prog.daily_cap) * 100))
+    : 100;
   const maxed = prog.level >= MAX_LEVEL;
 
   const skillRows: { id: SkillId; value: number }[] = [
@@ -119,14 +122,14 @@ export function LevelSkillsCard({ userId }: { userId: string }) {
         {/* Daily cap */}
         <div>
           <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-            <span>الخبرة اليومية (سقف يومي)</span>
+            <span>الخبرة المكتسبة اليوم</span>
             <span>
-              {prog.xp_today.toLocaleString()} / {prog.daily_cap.toLocaleString()}
+              {prog.xp_today.toLocaleString()}{hasDailyCap ? ` / ${prog.daily_cap.toLocaleString()}` : " — بلا سقف"}
               {prog.scale < 1 && <span className="text-amber-300 ms-1">×{prog.scale}</span>}
             </span>
           </div>
           <div className="h-2 rounded-full bg-slate-800 overflow-hidden border border-slate-700">
-            <div className={`h-full ${capPct >= 100 ? "bg-rose-500" : "bg-cyan-500"} transition-all`}
+            <div className={`h-full ${hasDailyCap && capPct >= 100 ? "bg-rose-500" : "bg-cyan-500"} transition-all`}
                  style={{ width: `${capPct}%` }} />
           </div>
           {prog.scale < 1 && (
