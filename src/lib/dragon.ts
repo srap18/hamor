@@ -52,11 +52,11 @@ export function pearlUpgradeCost(fromLevel: number): number | null {
 }
 
 
-/** Effective dragon level — max of pearl level and the DP-derived level. */
+/** Effective dragon level — strictly derived from boss damage (DP).
+ *  pearl_level is capped by the DP-derived level so nobody can be
+ *  over-leveled relative to the damage they actually dealt. */
 export function effectiveLevel(d: Dragon): number {
-  const dpLvl = overallLevel(d);
-  const pearlLvl = Math.max(0, d.pearl_level ?? 0);
-  return Math.max(dpLvl, pearlLvl);
+  return overallLevel(d);
 }
 
 export type DragonStage = {
