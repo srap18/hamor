@@ -18,6 +18,10 @@ import eiffelVideo from "@/assets/bg-eiffel.mp4.asset.json";
 import eiffelBurnedVideo from "@/assets/bg-eiffel-burned.mp4.asset.json";
 import worldcupVideo from "@/assets/bg-worldcup.mp4.asset.json";
 import worldcupBurnedVideo from "@/assets/bg-worldcup-burned.mp4.asset.json";
+import hilalBg from "@/assets/bg-hilal.jpg.asset.json";
+import hilalBurnedBg from "@/assets/bg-hilal-burned.jpg.asset.json";
+import hilalVideo from "@/assets/bg-hilal.mp4.asset.json";
+import hilalBurnedVideo from "@/assets/bg-hilal-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
