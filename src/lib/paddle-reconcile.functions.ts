@@ -144,6 +144,15 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
           } as never);
         }
 
+        // Referral 30% bonus — idempotent on (invitee_id, txn_id).
+        if (!alreadyGranted && amountCents > 0) {
+          await supabaseAdmin.rpc("grant_referral_bonus", {
+            _user: userId,
+            _txn_id: txn.id,
+            _amount_cents: amountCents,
+          });
+        }
+
         if (alreadyGranted) continue;
 
         if (reward.items?.length) {
