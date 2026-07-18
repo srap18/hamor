@@ -208,15 +208,25 @@ export function BackgroundsPanel() {
                 </div>
               )}
               {isOwned ? (
-                <button
-                  onClick={() => equip(b)}
-                  disabled={isEquipped}
-                  className={`mt-1 w-full py-1.5 rounded text-xs font-extrabold border-2 active:scale-95 ${
-                    isEquipped ? "bg-stone-700 border-stone-500 text-stone-300" : "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white"
-                  }`}
-                >
-                  {isEquipped ? "مركّبه الآن" : "تركيب"}
-                </button>
+                <>
+                  <button
+                    onClick={() => equip(b)}
+                    disabled={isEquipped}
+                    className={`mt-1 w-full py-1.5 rounded text-xs font-extrabold border-2 active:scale-95 ${
+                      isEquipped ? "bg-stone-700 border-stone-500 text-stone-300" : "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white"
+                    }`}
+                  >
+                    {isEquipped ? "مركّبه الآن" : "تركيب"}
+                  </button>
+                  {b.durationDays && (
+                    <button
+                      onClick={() => buy(b)}
+                      className="mt-1 w-full py-1 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-[11px] font-extrabold active:scale-95 flex items-center justify-center gap-1"
+                    >
+                      🔄 تجديد <GemIcon size={12} /><span className="tabular-nums">{b.price.toLocaleString()}</span>
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   onClick={() => buy(b)}
@@ -224,6 +234,7 @@ export function BackgroundsPanel() {
                 >
                   {b.currency === "gems" ? <GemIcon size={16} /> : <CoinIcon size={16} />}
                   <span className="tabular-nums">{b.price.toLocaleString()}</span>
+                  {b.durationDays && <span className="text-[10px] opacity-80">/ {b.durationDays}ي</span>}
                 </button>
               )}
             </div>
