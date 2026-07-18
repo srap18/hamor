@@ -202,6 +202,11 @@ export function BackgroundsPanel() {
                 )}
               </div>
               <div className="mt-1.5 text-center text-[12px] font-extrabold text-white text-glow truncate">{b.name}</div>
+              {isOwned && expiries[b.id] && (
+                <div className="text-center text-[10px] font-bold text-amber-200">
+                  ⏳ متبقّي {fmtRemaining(expiries[b.id])}
+                </div>
+              )}
               {isOwned ? (
                 <button
                   onClick={() => equip(b)}
