@@ -33,6 +33,7 @@ export function BackgroundsPanel() {
   const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
   const [owned, setOwned] = useState<string[]>(["onepiece"]);
   const [expiries, setExpiries] = useState<Record<string, number>>({});
+  const now = useServerTick(60_000);
   const [selected, setSelected] = useState<string>("onepiece");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
