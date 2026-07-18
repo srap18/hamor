@@ -74,7 +74,6 @@ export function BackgroundsPanel() {
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 
-  const now = useServerTick();
   const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;
   const fmtLeft = () => {
     const s = Math.max(0, Math.floor(msLeft / 1000));
