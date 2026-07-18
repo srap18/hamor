@@ -32,6 +32,8 @@ export function BackgroundsPanel() {
   const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
   const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
   const [owned, setOwned] = useState<string[]>(["onepiece"]);
+  const [expiries, setExpiries] = useState<Record<string, number>>({});
+  const now = useServerTick();
   const [selected, setSelected] = useState<string>("onepiece");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,22 +50,30 @@ export function BackgroundsPanel() {
     // Source of truth = server inventory. Premium backgrounds must exist there.
     supabase
       .from("inventory")
-      .select("item_id")
+      .select("item_id, meta")
       .eq("user_id", user.id)
       .eq("item_type", "background")
       .then(({ data }) => {
+        const nowMs = serverNowMs();
+        const exp: Record<string, number> = {};
         const serverIds = (data || [])
-          .map((r: any) => r.item_id as string)
-          .filter((id) => BACKGROUNDS.some((b) => b.id === id));
+          .map((r: any) => {
+            const id = r.item_id as string;
+            const expAt = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+            if (expAt && expAt <= nowMs) return null; // expired -> hide
+            if (expAt) exp[id] = expAt;
+            return id;
+          })
+          .filter((id): id is string => !!id && BACKGROUNDS.some((b) => b.id === id));
         const next = Array.from(new Set(["onepiece", ...serverIds]));
         setOwned(next);
+        setExpiries(exp);
         setOwnedBgIds(next);
       });
   }, [user]);
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 
-  const now = useServerTick();
   const msLeft = burnedUntil ? new Date(burnedUntil).getTime() - now : 0;
   const fmtLeft = () => {
     const s = Math.max(0, Math.floor(msLeft / 1000));
@@ -86,7 +96,8 @@ export function BackgroundsPanel() {
   };
 
   const buy = async (b: SceneBg) => {
-    if (owned.includes(b.id)) {
+    const isTimed = !!b.durationDays;
+    if (owned.includes(b.id) && !isTimed) {
       setSelectedBgId(b.id); setSelected(b.id); flash(`تم تركيب ${b.name}`); return;
     }
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
@@ -96,11 +107,20 @@ export function BackgroundsPanel() {
 
     if (b.currency === "gems") {
       if ((profile.gems ?? 0) < b.price) { flash(`💎 تحتاج ${b.price.toLocaleString()} جوهرة`); return; }
-      if (!window.confirm(`شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`)) return;
+      const renew = isTimed && owned.includes(b.id);
+      const confirmMsg = isTimed
+        ? (renew
+            ? `تجديد ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`
+            : `شراء ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`)
+        : `شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`;
+      if (!window.confirm(confirmMsg)) return;
       setBusy(true);
       const { error } = await supabase.rpc("buy_background_gems", { _bg_id: b.id, _gems: b.price });
       setBusy(false);
       if (error) { flash(error.message || "فشل الشراء"); return; }
+      if (isTimed) {
+        setExpiries((e) => ({ ...e, [b.id]: Date.now() + b.durationDays! * 86400_000 }));
+      }
     } else {
       const shortfall = Math.max(0, b.price - coins);
       const gemsNeeded = Math.ceil(shortfall / 1000);
@@ -116,8 +136,18 @@ export function BackgroundsPanel() {
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
     flash(`اشتريت ${b.name}`);
-    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price.toLocaleString()} ${b.currency === "gems" ? "جوهرة" : "ذهب"} • خلفية`, image: b.image, emoji: "🖼️" });
+    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price.toLocaleString()} ${b.currency === "gems" ? "جوهرة" : "ذهب"} • خلفية${isTimed ? ` • ${b.durationDays} أيام` : ""}`, image: b.image, emoji: "🖼️" });
     refreshProfile();
+  };
+
+  const fmtRemaining = (until: number) => {
+    const s = Math.max(0, Math.floor((until - now) / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return `${d}ي ${h}س`;
+    if (h > 0) return `${h}س ${m}د`;
+    return `${m}د`;
   };
 
   const equip = (b: SceneBg) => {
@@ -172,16 +202,31 @@ export function BackgroundsPanel() {
                 )}
               </div>
               <div className="mt-1.5 text-center text-[12px] font-extrabold text-white text-glow truncate">{b.name}</div>
+              {isOwned && expiries[b.id] && (
+                <div className="text-center text-[10px] font-bold text-amber-200">
+                  ⏳ متبقّي {fmtRemaining(expiries[b.id])}
+                </div>
+              )}
               {isOwned ? (
-                <button
-                  onClick={() => equip(b)}
-                  disabled={isEquipped}
-                  className={`mt-1 w-full py-1.5 rounded text-xs font-extrabold border-2 active:scale-95 ${
-                    isEquipped ? "bg-stone-700 border-stone-500 text-stone-300" : "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white"
-                  }`}
-                >
-                  {isEquipped ? "مركّبه الآن" : "تركيب"}
-                </button>
+                <>
+                  <button
+                    onClick={() => equip(b)}
+                    disabled={isEquipped}
+                    className={`mt-1 w-full py-1.5 rounded text-xs font-extrabold border-2 active:scale-95 ${
+                      isEquipped ? "bg-stone-700 border-stone-500 text-stone-300" : "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white"
+                    }`}
+                  >
+                    {isEquipped ? "مركّبه الآن" : "تركيب"}
+                  </button>
+                  {b.durationDays && (
+                    <button
+                      onClick={() => buy(b)}
+                      className="mt-1 w-full py-1 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-[11px] font-extrabold active:scale-95 flex items-center justify-center gap-1"
+                    >
+                      🔄 تجديد <GemIcon size={12} /><span className="tabular-nums">{b.price.toLocaleString()}</span>
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   onClick={() => buy(b)}
@@ -189,6 +234,7 @@ export function BackgroundsPanel() {
                 >
                   {b.currency === "gems" ? <GemIcon size={16} /> : <CoinIcon size={16} />}
                   <span className="tabular-nums">{b.price.toLocaleString()}</span>
+                  {b.durationDays && <span className="text-[10px] opacity-80">/ {b.durationDays}ي</span>}
                 </button>
               )}
             </div>

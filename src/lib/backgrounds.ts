@@ -18,6 +18,10 @@ import eiffelVideo from "@/assets/bg-eiffel.mp4.asset.json";
 import eiffelBurnedVideo from "@/assets/bg-eiffel-burned.mp4.asset.json";
 import worldcupVideo from "@/assets/bg-worldcup.mp4.asset.json";
 import worldcupBurnedVideo from "@/assets/bg-worldcup-burned.mp4.asset.json";
+import hilalBg from "@/assets/bg-hilal.jpg.asset.json";
+import hilalBurnedBg from "@/assets/bg-hilal-burned.jpg.asset.json";
+import hilalVideo from "@/assets/bg-hilal.mp4.asset.json";
+import hilalBurnedVideo from "@/assets/bg-hilal-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -44,6 +48,8 @@ export type SceneBg = {
     y?: string;
     duration?: string;
   };
+  /** If set, background is timed and re-purchase renews expiry. */
+  durationDays?: number;
 };
 
 // Unified ship slots — same layout for every background so all 30 ships
@@ -165,6 +171,27 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+  },
+  {
+    id: "hilal",
+    name: "الهلال ✨",
+    burnedName: "الهلال المحترقة 🔥",
+    price: 11000,
+    currency: "gems",
+    rarity: "legendary",
+    image: hilalBg.url,
+    burnedImage: hilalBurnedBg.url,
+    video: hilalVideo.url,
+    burnedVideo: hilalBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
   },
 ];
 
