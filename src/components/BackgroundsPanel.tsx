@@ -32,6 +32,7 @@ export function BackgroundsPanel() {
   const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
   const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
   const [owned, setOwned] = useState<string[]>(["onepiece"]);
+  const [expiries, setExpiries] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<string>("onepiece");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,15 +49,24 @@ export function BackgroundsPanel() {
     // Source of truth = server inventory. Premium backgrounds must exist there.
     supabase
       .from("inventory")
-      .select("item_id")
+      .select("item_id, meta")
       .eq("user_id", user.id)
       .eq("item_type", "background")
       .then(({ data }) => {
+        const nowMs = serverNowMs();
+        const exp: Record<string, number> = {};
         const serverIds = (data || [])
-          .map((r: any) => r.item_id as string)
-          .filter((id) => BACKGROUNDS.some((b) => b.id === id));
+          .map((r: any) => {
+            const id = r.item_id as string;
+            const expAt = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+            if (expAt && expAt <= nowMs) return null; // expired -> hide
+            if (expAt) exp[id] = expAt;
+            return id;
+          })
+          .filter((id): id is string => !!id && BACKGROUNDS.some((b) => b.id === id));
         const next = Array.from(new Set(["onepiece", ...serverIds]));
         setOwned(next);
+        setExpiries(exp);
         setOwnedBgIds(next);
       });
   }, [user]);
