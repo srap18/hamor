@@ -1961,32 +1961,54 @@ function Index() {
 
 
 
-      {/* Fish market — takes the old ship market spot on the left beach */}
-      <Placeable
-        id="fish-market"
-        defaultStyle={{ left: "37.9%", top: "38.7%", width: "20%", height: "16%" }}
-      >
-        {(style) => (
-          <FishMarketBuilding
-            level={fishMarketLevel}
-            burnedUntil={(profile as any)?.bg_burned_until}
-            style={style}
+      {scene.id === "hilal" ? (
+        <>
+          {/* Al-Hilal background: invisible fixed tap zones over the two painted buildings */}
+          {/* Upper "سوق الزعيم" → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "22%", top: "37%", width: "36%", height: "12%" }}
           />
-        )}
-      </Placeable>
-      {/* Ship Market — floating on the sea at the marked spot */}
-      <Placeable
-        id="ship-market"
-        defaultStyle={{ left: "80.9%", top: "33%", width: "20%", height: "16%" }}
-      >
-        {(style) => (
-          <ShipMarketBuilding
-            level={marketLevel}
-            burnedUntil={(profile as any)?.bg_burned_until}
-            style={style}
+          {/* Lower "مخزن الزعيم" → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "0%", top: "51%", width: "46%", height: "14%" }}
           />
-        )}
-      </Placeable>
+        </>
+      ) : (
+        <>
+          {/* Fish market — takes the old ship market spot on the left beach */}
+          <Placeable
+            id="fish-market"
+            defaultStyle={{ left: "37.9%", top: "38.7%", width: "20%", height: "16%" }}
+          >
+            {(style) => (
+              <FishMarketBuilding
+                level={fishMarketLevel}
+                burnedUntil={(profile as any)?.bg_burned_until}
+                style={style}
+              />
+            )}
+          </Placeable>
+          {/* Ship Market — floating on the sea at the marked spot */}
+          <Placeable
+            id="ship-market"
+            defaultStyle={{ left: "80.9%", top: "33%", width: "20%", height: "16%" }}
+          >
+            {(style) => (
+              <ShipMarketBuilding
+                level={marketLevel}
+                burnedUntil={(profile as any)?.bg_burned_until}
+                style={style}
+              />
+            )}
+          </Placeable>
+        </>
+      )}
 
 
 
