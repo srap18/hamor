@@ -127,5 +127,14 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       } as never);
     }
 
+    // Referral 30% bonus — safe: idempotent on (invitee_id, txn_id).
+    if (!alreadyGranted && amountCents > 0) {
+      await supabaseAdmin.rpc("grant_referral_bonus", {
+        _user: userId,
+        _txn_id: txn.id,
+        _amount_cents: amountCents,
+      });
+    }
+
     return { granted: true, packId, alreadyGranted };
   });
