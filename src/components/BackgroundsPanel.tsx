@@ -96,7 +96,8 @@ export function BackgroundsPanel() {
   };
 
   const buy = async (b: SceneBg) => {
-    if (owned.includes(b.id)) {
+    const isTimed = !!b.durationDays;
+    if (owned.includes(b.id) && !isTimed) {
       setSelectedBgId(b.id); setSelected(b.id); flash(`تم تركيب ${b.name}`); return;
     }
     if (!user || !profile) { flash("سجّل الدخول أولاً"); return; }
@@ -106,11 +107,20 @@ export function BackgroundsPanel() {
 
     if (b.currency === "gems") {
       if ((profile.gems ?? 0) < b.price) { flash(`💎 تحتاج ${b.price.toLocaleString()} جوهرة`); return; }
-      if (!window.confirm(`شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`)) return;
+      const renew = isTimed && owned.includes(b.id);
+      const confirmMsg = isTimed
+        ? (renew
+            ? `تجديد ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`
+            : `شراء ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`)
+        : `شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`;
+      if (!window.confirm(confirmMsg)) return;
       setBusy(true);
       const { error } = await supabase.rpc("buy_background_gems", { _bg_id: b.id, _gems: b.price });
       setBusy(false);
       if (error) { flash(error.message || "فشل الشراء"); return; }
+      if (isTimed) {
+        setExpiries((e) => ({ ...e, [b.id]: Date.now() + b.durationDays! * 86400_000 }));
+      }
     } else {
       const shortfall = Math.max(0, b.price - coins);
       const gemsNeeded = Math.ceil(shortfall / 1000);
@@ -126,8 +136,18 @@ export function BackgroundsPanel() {
     setOwned(next); setOwnedBgIds(next);
     setSelectedBgId(b.id); setSelected(b.id);
     flash(`اشتريت ${b.name}`);
-    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price.toLocaleString()} ${b.currency === "gems" ? "جوهرة" : "ذهب"} • خلفية`, image: b.image, emoji: "🖼️" });
+    showBanner({ kind: "purchase", title: b.name, subtitle: `${b.price.toLocaleString()} ${b.currency === "gems" ? "جوهرة" : "ذهب"} • خلفية${isTimed ? ` • ${b.durationDays} أيام` : ""}`, image: b.image, emoji: "🖼️" });
     refreshProfile();
+  };
+
+  const fmtRemaining = (until: number) => {
+    const s = Math.max(0, Math.floor((until - now) / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return `${d}ي ${h}س`;
+    if (h > 0) return `${h}س ${m}د`;
+    return `${m}د`;
   };
 
   const equip = (b: SceneBg) => {
