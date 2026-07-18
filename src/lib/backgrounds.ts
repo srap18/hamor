@@ -48,6 +48,8 @@ export type SceneBg = {
     y?: string;
     duration?: string;
   };
+  /** If set, background is timed and re-purchase renews expiry. */
+  durationDays?: number;
 };
 
 // Unified ship slots — same layout for every background so all 30 ships
