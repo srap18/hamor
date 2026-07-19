@@ -16,16 +16,23 @@ export function OfflineOverlay() {
   const probe = async (): Promise<boolean> => {
     if (checkingRef.current) return !offline;
     checkingRef.current = true;
+    // Tolerate weak networks: up to 3 retries with generous 15s timeout each.
     try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 4000);
-      const res = await fetch(
-        window.location.origin + "/manifest.json?_=" + Date.now(),
-        { cache: "no-store", method: "GET", signal: ctrl.signal },
-      );
-      clearTimeout(t);
-      return !!res && (res.ok || res.status < 500);
-    } catch {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 15000);
+          const res = await fetch(
+            window.location.origin + "/manifest.json?_=" + Date.now(),
+            { cache: "no-store", method: "GET", signal: ctrl.signal },
+          );
+          clearTimeout(t);
+          if (res && (res.ok || res.status < 500)) return true;
+        } catch {
+          // fall through to retry
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
       return false;
     } finally {
       checkingRef.current = false;
