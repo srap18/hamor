@@ -6848,6 +6848,14 @@ export type Database = {
         Returns: string
       }
       pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
+      pvp_level_gap_error: {
+        Args: { _attacker: string; _defender: string }
+        Returns: string
+      }
+      pvp_min_eligible_ship_level: {
+        Args: { _user_id: string }
+        Returns: number
+      }
       pvp_requirement_error: {
         Args: { _actor_label?: string; _user_id: string }
         Returns: string
