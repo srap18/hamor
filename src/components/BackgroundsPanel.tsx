@@ -227,7 +227,7 @@ export function BackgroundsPanel() {
                   >
                     {isEquipped ? "مركّبه الآن" : "تركيب"}
                   </button>
-                  {b.durationDays && (
+                  {b.durationDays && expiries[b.id] && (
                     <button
                       onClick={() => buy(b)}
                       className="mt-1 w-full py-1 rounded bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-[11px] font-extrabold active:scale-95 flex items-center justify-center gap-1"
@@ -235,6 +235,7 @@ export function BackgroundsPanel() {
                       🔄 تجديد <GemIcon size={12} /><span className="tabular-nums">{b.price.toLocaleString()}</span>
                     </button>
                   )}
+
                 </>
               ) : (
                 <button
