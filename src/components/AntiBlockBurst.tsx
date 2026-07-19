@@ -101,7 +101,7 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
   const hasGuardian = !!dragonImg;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
+    <div onClick={() => setBurst(null)} className="pointer-events-auto cursor-pointer fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
       {/* dark vignette */}
       <div className="absolute inset-0 z-0 bg-gradient-radial from-transparent via-black/30 to-black/70 animate-[fadeIn_0.25s_ease-out]" />
 
@@ -257,7 +257,7 @@ export function AttackerAntiBlockBurst() {
   const hasGuardian = !!dragonImg;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
+    <div onClick={() => setBurst(null)} className="pointer-events-auto cursor-pointer fixed inset-0 z-[80] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 z-0 bg-gradient-radial from-transparent via-black/30 to-black/70 animate-[fadeIn_0.25s_ease-out]" />
       <div className="absolute z-[1] h-72 w-72 rounded-full border-4 border-rose-300/80 animate-[ping_1.2s_ease-out_2]" />
       <div className="absolute z-[1] h-48 w-48 rounded-full border-2 border-orange-300/80 animate-[ping_1.5s_ease-out_2]" />
