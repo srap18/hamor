@@ -528,7 +528,8 @@ function RootComponent() {
             // Only ONE toast on screen — new toast replaces the previous one
             // (no stacking, no GPU strain from multiple animated blurs).
             visibleToasts={1}
-            duration={3500}
+            duration={3000}
+            closeButton={false}
             offset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             toastOptions={{
