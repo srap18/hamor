@@ -141,20 +141,6 @@ function CosmeticsShop() {
         إطارات تظهر للجميع في بروفايلك ورسائلك — اشترِ مرة، استخدمها للأبد.
       </p>
 
-      {/* 🔥 شريط العرض */}
-      <div className="mx-3 mt-3 rounded-2xl border border-rose-300/50 bg-gradient-to-r from-rose-600/90 via-fuchsia-600/90 to-amber-500/90 px-3 py-2.5 flex items-center justify-between gap-2 shadow-[0_8px_24px_rgba(244,63,94,0.45)] animate-pulse">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🎉</span>
-          <div className="leading-tight">
-            <div className="text-[13px] font-extrabold text-white">عرض على كل إطارات البروفايل</div>
-            <div className="text-[10px] text-amber-100">الصورة • الاسم • الفقاعة • البطاقة</div>
-          </div>
-        </div>
-        <div className="bg-black/40 border border-amber-200/60 px-2.5 py-1 rounded-lg text-amber-100 font-extrabold text-sm">
-          -30%
-        </div>
-      </div>
-
       <main className="p-3 pb-10">
         <div className="grid grid-cols-2 gap-3">
           {list.map(f => {
@@ -176,10 +162,6 @@ function CosmeticsShop() {
                 <div className="absolute top-1.5 right-1.5 z-10 text-[8px] font-extrabold uppercase tracking-wider bg-black/60 px-1.5 py-0.5 rounded-full border border-white/15">
                   {RARITY_LABEL[f.rarity]}
                 </div>
-                {/* شارة الخصم */}
-                <div className="absolute top-1.5 left-1.5 z-10 text-[9px] font-extrabold bg-gradient-to-r from-rose-500 to-amber-500 text-white px-1.5 py-0.5 rounded-full border border-amber-200/70 shadow-[0_2px_8px_rgba(244,63,94,0.6)]">
-                  -30%
-                </div>
 
                 <div className="relative aspect-[4/3] rounded-xl bg-gradient-to-b from-black/60 to-black/30 border border-white/10 flex items-center justify-center mb-2 overflow-hidden">
                   <FramePreview frame={f} />
@@ -195,13 +177,10 @@ function CosmeticsShop() {
                   <button
                     onClick={() => buy(f)}
                     disabled={busy}
-                    className="mt-2 w-full rounded-lg bg-gradient-to-b from-cyan-300 to-cyan-500 border border-cyan-100 text-cyan-950 font-extrabold py-1.5 text-xs flex flex-col items-center justify-center gap-0 active:scale-95 disabled:opacity-50 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
+                    className="mt-2 w-full rounded-lg bg-gradient-to-b from-cyan-300 to-cyan-500 border border-cyan-100 text-cyan-950 font-extrabold py-1.5 text-xs flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
                   >
-                    <span className="text-[9px] text-cyan-900/70 line-through tabular-nums">{f.price.toLocaleString()} 💎</span>
-                    <span className="flex items-center gap-1">
-                      <span className="tabular-nums">{discountedPrice(f.price).toLocaleString()}</span>
-                      <span>💎</span>
-                    </span>
+                    <span className="tabular-nums">{f.price.toLocaleString()}</span>
+                    <span>💎</span>
                   </button>
                 )}
               </div>
@@ -209,6 +188,7 @@ function CosmeticsShop() {
           })}
         </div>
       </main>
+
 
       {pop && (
         <div className="fixed left-1/2 top-20 -translate-x-1/2 z-50 text-base font-bold text-amber-200 bg-stone-900/90 px-4 py-2 rounded-xl border border-amber-400/50 animate-float-up">
