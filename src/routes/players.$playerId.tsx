@@ -1474,8 +1474,17 @@ function PlayerPage() {
       {/* Ship action menu — multi-step */}
       {selectedShip && mode !== null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => !busy && closeMenu()}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm glass-hud rounded-2xl border-2 border-amber-400/60 p-4 flex flex-col gap-3 max-h-[80vh] overflow-y-auto">
-            <div className="text-center">
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm glass-hud rounded-2xl border-2 border-amber-400/60 p-4 flex flex-col gap-3 max-h-[80vh] overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => { sound.play("click"); closeMenu(); }}
+              disabled={busy}
+              aria-label="إغلاق"
+              className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-stone-800/90 border border-amber-400/60 text-amber-200 flex items-center justify-center text-sm font-bold active:scale-95 disabled:opacity-40"
+            >
+              ✕
+            </button>
+            <div className="text-center pt-5">
               <div className="text-amber-200 font-bold text-base">سفينة {p?.display_name ?? ""}</div>
               <div className="text-amber-300/70 text-xs mt-0.5">مستوى {selectedShip.template_id} · ❤️ {selectedShip.hp ?? "-"}/{selectedShip.max_hp ?? "-"}</div>
               <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
