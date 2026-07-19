@@ -52,22 +52,36 @@ function CosmeticsShop() {
   const [userId, setUserId] = useState<string | null>(null);
   const [gems, setGems] = useState(0);
   const [owned, setOwned] = useState<Set<string>>(new Set());
+  const [expiries, setExpiries] = useState<Record<string, number>>({});
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [pop, setPop] = useState<string | null>(null);
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1800); };
 
   const reload = async (uid: string) => {
+    // Self-heal: remove expired cosmetics server-side first.
+    await supabase.rpc("cleanup_my_expired_cosmetics" as never).catch(() => {});
     const [{ data: p }, { data: inv }] = await Promise.all([
       supabase.from("profiles").select("gems").eq("id", uid).maybeSingle(),
       supabase
         .from("inventory")
-        .select("item_id,item_type")
+        .select("item_id,item_type,meta")
         .eq("user_id", uid)
         .in("item_type", ["frame", "name_frame", "bubble_frame", "profile_frame"]),
     ]);
     if (p) setGems(p.gems);
-    setOwned(new Set((inv ?? []).map((r: any) => r.item_id)));
+    const now = Date.now();
+    const nextOwned = new Set<string>();
+    const nextExp: Record<string, number> = {};
+    (inv ?? []).forEach((r: any) => {
+      const exp = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+      if (exp && exp <= now) return; // expired -> hide
+      nextOwned.add(r.item_id);
+      if (exp) nextExp[r.item_id] = exp;
+    });
+    setOwned(nextOwned);
+    setExpiries(nextExp);
   };
 
   useEffect(() => {
@@ -79,20 +93,36 @@ function CosmeticsShop() {
     })();
   }, [nav]);
 
+  // Live countdown ticker
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
   const buy = async (f: Frame) => {
     if (!userId || busy) return;
-    if (owned.has(f.id)) { flash("تملك هذا الإطار"); return; }
     if (gems < f.price) { flash("جواهر غير كافية"); return; }
     setBusy(true);
     const itemType = FRAME_KIND_TO_ITEM_TYPE[f.kind];
     const { error } = await buyWithGems(f.id, itemType, f.price, { kind: f.kind, name: f.name });
     if (error) { setBusy(false); flash("فشل الشراء"); return; }
     setGems(gems - f.price);
-    setOwned(new Set([...owned, f.id]));
     setBusy(false);
-    flash(`اشتريت ${f.name} ✓`);
-    showBanner({ kind: "purchase", title: f.name, subtitle: `${f.price} جوهرة • ${f.kind}`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
+    await reload(userId);
+    flash(`${owned.has(f.id) ? "جدّدت" : "اشتريت"} ${f.name} ✓ (30 يوم)`);
+    showBanner({ kind: "purchase", title: f.name, subtitle: `${f.price} جوهرة • 30 يوم`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
   };
+
+  const fmtLeft = (until: number) => {
+    const s = Math.max(0, Math.floor((until - nowMs) / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return `${d}ي ${h}س`;
+    if (h > 0) return `${h}س ${m}د`;
+    return `${m}د`;
+  };
+
 
 
   const list = LIST_BY_KIND[tab];
