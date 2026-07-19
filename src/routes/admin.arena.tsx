@@ -279,7 +279,52 @@ function AdminArenaPage() {
         </div>
       </section>
 
+      {/* Adjust player score */}
+      <section className="rounded-xl border border-cyan-700/40 bg-cyan-900/10 p-4 space-y-3">
+        <div>
+          <div className="font-semibold">⚖️ تعديل نقاط لاعب (الأسبوع الحالي)</div>
+          <div className="text-xs text-slate-400">ابحث باسم العرض أو اليوزر، ثم امنح أو اخصم نقاط. يُحدَّث فوراً للجميع.</div>
+        </div>
+        <div className="relative">
+          <input
+            className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+            placeholder="🔎 ابحث عن لاعب..."
+            value={selected ? `${selected.avatar_emoji ?? "🧑‍✈️"} ${selected.display_name}${selected.username ? ` @${selected.username}` : ""}` : query}
+            onChange={(e) => { setSelected(null); setQuery(e.target.value); }}
+          />
+          {!selected && hits.length > 0 && (
+            <div className="absolute z-10 top-full mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 shadow-lg max-h-64 overflow-auto">
+              {hits.map((h) => (
+                <button key={h.id} type="button"
+                  onClick={() => { setSelected(h); setHits([]); setQuery(""); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-800 text-sm text-start">
+                  <span className="text-lg">{h.avatar_emoji ?? "🧑‍✈️"}</span>
+                  <span className="flex-1 truncate">{h.display_name}</span>
+                  {h.username && <span className="text-xs text-slate-400">@{h.username}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {selected && (
+          <div className="flex items-center justify-between text-sm bg-slate-900/60 rounded px-3 py-2 border border-slate-700">
+            <span className="text-slate-300">النقاط الحالية:</span>
+            <span className="font-black text-amber-300 tabular-nums">{(currentScore ?? 0).toLocaleString()} ⭐</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input type="number" min={1} placeholder="مقدار النقاط"
+            value={amount} onChange={(e) => setAmount(e.target.value)}
+            className="flex-1 px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm" />
+          <button disabled={adjusting} onClick={() => adjust(1)}
+            className="px-3 py-2 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">+ منح</button>
+          <button disabled={adjusting} onClick={() => adjust(-1)}
+            className="px-3 py-2 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50">− خصم</button>
+        </div>
+      </section>
+
       {/* Reset scores */}
+
       <section className="rounded-xl border border-red-800/50 bg-red-900/10 p-4 flex items-center justify-between gap-3">
         <div>
           <div className="font-semibold text-red-200">تصفير النقاط</div>
