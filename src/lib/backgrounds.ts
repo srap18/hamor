@@ -174,7 +174,6 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
-    durationDays: 7,
   },
   {
     id: "hilal",
