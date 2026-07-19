@@ -158,6 +158,22 @@ function WeeklyXpAdmin() {
     load();
   };
 
+  const adjust = async (sign: 1 | -1) => {
+    if (!selected) { toast.error("اختر لاعب أولاً"); return; }
+    const n = Math.floor(Number(amount));
+    if (!Number.isFinite(n) || n <= 0) { toast.error("ادخل رقم موجب"); return; }
+    setAdjusting(true);
+    const { data, error } = await supabase.rpc("admin_adjust_weekly_xp" as never,
+      { _user_id: selected.id, _delta: sign * n } as never);
+    setAdjusting(false);
+    if (error) { toast.error(error.message); return; }
+    setCurrentXp(Number(data ?? 0));
+    setAmount("");
+    await logAudit(sign > 0 ? "weekly_xp_grant" : "weekly_xp_deduct", selected.id, { amount: n });
+    toast.success(sign > 0 ? `تم منح ${n.toLocaleString()} XP` : `تم خصم ${n.toLocaleString()} XP`);
+    load();
+  };
+
   if (loading || !cfg) {
     return <div className="p-6 text-slate-400">جاري التحميل...</div>;
   }
