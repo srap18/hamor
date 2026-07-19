@@ -45,13 +45,6 @@ const LIST_BY_KIND: Record<FrameKind, Frame[]> = {
   profile: PROFILE_FRAMES,
 };
 
-// 🔥 عرض على جميع إطارات البروفايل (الصورة، الاسم، الفقاعة، البطاقة)
-const PROFILE_OFFER_DISCOUNT = 0.30; // 30% خصم
-const OFFER_LABEL = "خصم 30%";
-
-function discountedPrice(price: number): number {
-  return Math.max(1, Math.round(price * (1 - PROFILE_OFFER_DISCOUNT)));
-}
 
 function CosmeticsShop() {
   const nav = useNavigate();
