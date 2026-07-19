@@ -48,7 +48,71 @@ function AdminArenaPage() {
   const [saving, setSaving] = useState(false);
   const [topCount, setTopCount] = useState<number | null>(null);
 
-  const load = async () => {
+  // Score adjust state
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<PlayerHit[]>([]);
+  const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [amount, setAmount] = useState("");
+  const [currentScore, setCurrentScore] = useState<number | null>(null);
+  const [adjusting, setAdjusting] = useState(false);
+
+  const weekStartISO = () => {
+    const d = new Date();
+    const day = d.getUTCDay();
+    const diff = (day + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - diff);
+    d.setUTCHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const loadCurrentScore = async (uid: string) => {
+    const { data } = await supabase.from("arena_scores")
+      .select("score").eq("user_id", uid).eq("week_start", weekStartISO()).maybeSingle();
+    setCurrentScore(((data as { score?: number } | null)?.score) ?? 0);
+  };
+
+  useEffect(() => {
+    if (!selected) { setCurrentScore(null); return; }
+    loadCurrentScore(selected.id);
+    const ch = supabase.channel(`arena-adm-${selected.id}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "arena_scores", filter: `user_id=eq.${selected.id}` },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { score?: number; week_start?: string } | null;
+          if (row?.week_start === weekStartISO()) setCurrentScore(row.score ?? 0);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [selected]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setHits([]); return; }
+    let cancel = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles")
+        .select("id,display_name,username,avatar_emoji")
+        .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+        .limit(8);
+      if (!cancel) setHits((data ?? []) as PlayerHit[]);
+    }, 250);
+    return () => { cancel = true; clearTimeout(t); };
+  }, [query]);
+
+  const adjust = async (sign: 1 | -1) => {
+    if (!selected) { toast.error("اختر لاعب أولاً"); return; }
+    const n = Math.floor(Number(amount));
+    if (!Number.isFinite(n) || n <= 0) { toast.error("ادخل رقم موجب"); return; }
+    setAdjusting(true);
+    const { data, error } = await supabase.rpc("admin_adjust_arena_score" as never,
+      { _user_id: selected.id, _delta: sign * n } as never);
+    setAdjusting(false);
+    if (error) { toast.error(error.message); return; }
+    setCurrentScore(Number(data ?? 0));
+    setAmount("");
+    toast.success(sign > 0 ? `تم منح ${n.toLocaleString()} نقطة` : `تم خصم ${n.toLocaleString()} نقطة`);
+  };
+
     setLoading(true);
     const { data } = await supabase.from("arena_settings").select("*").maybeSingle();
     if (data) setS({ ...DEFAULT_SETTINGS, ...(data as unknown as Settings) });
