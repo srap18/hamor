@@ -3739,7 +3739,21 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       })();
       return () => { cancelled = true; };
     }
-    const col = tab === "xp" ? "xp" : tab === "gems" ? "gems" : "coins";
+    if (tab === "xp") {
+      (async () => {
+        const { data } = await (supabase as any).rpc("get_weekly_xp_leaderboard", { _limit: 100 });
+        if (cancelled) return;
+        const mapped = ((data as any[]) || []).map((r) => ({
+          id: r.user_id, display_name: r.display_name, avatar_emoji: r.avatar_emoji, avatar_url: r.avatar_url,
+          level: r.level, xp: Number(r.weekly_xp) || 0, coins: 0, gems: 0,
+          avatar_frame: (r as any).avatar_frame, name_frame: (r as any).name_frame,
+        })) as LbProfile[];
+        setRows(mapped.filter((p) => !staffIds.has(p.id)));
+        setLoading(false);
+      })();
+      return () => { cancelled = true; };
+    }
+    const col = tab === "gems" ? "gems" : "coins";
     (async () => {
       const { data } = await (supabase as any).rpc("get_currency_leaderboard", { _col: col, _limit: 100 });
       if (cancelled) return;
@@ -3752,6 +3766,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       setLoading(false);
     })();
     return () => { cancelled = true; };
+
 
   }, [tab, staffIds, refreshSeq]);
 
