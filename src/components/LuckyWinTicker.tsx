@@ -56,7 +56,7 @@ export function LuckyWinTicker() {
   );
 }
 
-function LuckyToast({ toast }: { toast: Toast }) {
+function LuckyToast({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const isLegendary = toast.rarity === "legendary";
 
   if (isLegendary) {
