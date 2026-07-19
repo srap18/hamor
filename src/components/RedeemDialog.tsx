@@ -37,6 +37,7 @@ const ERR_MSG: Record<string, string> = {
   code_expired: "انتهت صلاحية الكود",
   code_exhausted: "تم استخدام الكود كاملاً",
   already_redeemed: "لقد استخدمت هذا الكود من قبل",
+  already_redeemed_on_this_device: "تم استخدام هذا الكود من حساب آخر على نفس الجهاز — لا يمكن تفعيله مرتين",
   "fleet and storage full": "الأسطول والمخزن ممتلئان",
   "storage full": "المخزن ممتلئ",
   "fleet full": "الأسطول ممتلئ",
