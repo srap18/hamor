@@ -30,12 +30,55 @@ type LbRow = {
 
 const emptyTier = (rank: number): Tier => ({ rank, coins: 0, gems: 0, xp: 0, text: "" });
 
+type PlayerHit = { id: string; display_name: string; username: string | null; avatar_emoji: string | null };
+
 function WeeklyXpAdmin() {
   const [cfg, setCfg] = useState<Config | null>(null);
   const [board, setBoard] = useState<LbRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Adjust weekly XP
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<PlayerHit[]>([]);
+  const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [currentXp, setCurrentXp] = useState<number | null>(null);
+  const [amount, setAmount] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setHits([]); return; }
+    let cancel = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles")
+        .select("id,display_name,username,avatar_emoji")
+        .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+        .limit(8);
+      if (!cancel) setHits((data ?? []) as PlayerHit[]);
+    }, 250);
+    return () => { cancel = true; clearTimeout(t); };
+  }, [query]);
+
+  const loadCurrentXp = async (uid: string) => {
+    const { data } = await supabase.from("profiles").select("weekly_xp").eq("id", uid).maybeSingle();
+    setCurrentXp(Number(((data as { weekly_xp?: number } | null)?.weekly_xp) ?? 0));
+  };
+
+  useEffect(() => {
+    if (!selected) { setCurrentXp(null); return; }
+    loadCurrentXp(selected.id);
+    const ch = supabase.channel(`wxp-adm-${selected.id}`)
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${selected.id}` },
+        (payload) => {
+          const row = payload.new as { weekly_xp?: number } | null;
+          if (row && typeof row.weekly_xp === "number") setCurrentXp(row.weekly_xp);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [selected]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -112,6 +155,22 @@ function WeeklyXpAdmin() {
     const n = ((data as { distributed?: number } | null)?.distributed) ?? 0;
     await logAudit("weekly_xp_distribute_now", null, { winners: n });
     toast.success(`تم التوزيع لـ ${n} فائزين`);
+    load();
+  };
+
+  const adjust = async (sign: 1 | -1) => {
+    if (!selected) { toast.error("اختر لاعب أولاً"); return; }
+    const n = Math.floor(Number(amount));
+    if (!Number.isFinite(n) || n <= 0) { toast.error("ادخل رقم موجب"); return; }
+    setAdjusting(true);
+    const { data, error } = await supabase.rpc("admin_adjust_weekly_xp" as never,
+      { _user_id: selected.id, _delta: sign * n } as never);
+    setAdjusting(false);
+    if (error) { toast.error(error.message); return; }
+    setCurrentXp(Number(data ?? 0));
+    setAmount("");
+    await logAudit(sign > 0 ? "weekly_xp_grant" : "weekly_xp_deduct", selected.id, { amount: n });
+    toast.success(sign > 0 ? `تم منح ${n.toLocaleString()} XP` : `تم خصم ${n.toLocaleString()} XP`);
     load();
   };
 
@@ -231,6 +290,49 @@ function WeeklyXpAdmin() {
           {saving ? "⏳ حفظ..." : "💾 حفظ التغييرات"}
         </button>
       </div>
+
+      <section className="rounded-xl border border-cyan-700/40 bg-cyan-900/10 p-4 space-y-3 mb-4">
+        <div>
+          <div className="font-semibold">⚖️ تعديل XP الأسبوعي للاعب</div>
+          <div className="text-xs text-slate-400">ابحث عن لاعب، ثم امنح أو اخصم نقاط XP الأسبوعية. يُحدَّث فوراً في الترتيب.</div>
+        </div>
+        <div className="relative">
+          <input
+            className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+            placeholder="🔎 ابحث عن لاعب..."
+            value={selected ? `${selected.avatar_emoji ?? "🧑‍✈️"} ${selected.display_name}${selected.username ? ` @${selected.username}` : ""}` : query}
+            onChange={(e) => { setSelected(null); setQuery(e.target.value); }}
+          />
+          {!selected && hits.length > 0 && (
+            <div className="absolute z-10 top-full mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 shadow-lg max-h-64 overflow-auto">
+              {hits.map((h) => (
+                <button key={h.id} type="button"
+                  onClick={() => { setSelected(h); setHits([]); setQuery(""); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-800 text-sm text-start">
+                  <span className="text-lg">{h.avatar_emoji ?? "🧑‍✈️"}</span>
+                  <span className="flex-1 truncate">{h.display_name}</span>
+                  {h.username && <span className="text-xs text-slate-400">@{h.username}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {selected && (
+          <div className="flex items-center justify-between text-sm bg-slate-900/60 rounded px-3 py-2 border border-slate-700">
+            <span className="text-slate-300">XP الحالي هذا الأسبوع:</span>
+            <span className="font-black text-amber-300 tabular-nums">{(currentXp ?? 0).toLocaleString()} ⭐</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input type="number" min={1} placeholder="مقدار XP"
+            value={amount} onChange={(e) => setAmount(e.target.value)}
+            className="flex-1 px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm" />
+          <button disabled={adjusting} onClick={() => adjust(1)}
+            className="px-3 py-2 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">+ منح</button>
+          <button disabled={adjusting} onClick={() => adjust(-1)}
+            className="px-3 py-2 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50">− خصم</button>
+        </div>
+      </section>
 
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
         <h2 className="font-bold mb-3">📊 الترتيب الحالي (أعلى 50)</h2>
