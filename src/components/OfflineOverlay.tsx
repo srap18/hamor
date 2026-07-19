@@ -16,21 +16,30 @@ export function OfflineOverlay() {
   const probe = async (): Promise<boolean> => {
     if (checkingRef.current) return !offline;
     checkingRef.current = true;
+    // Tolerate weak networks: up to 3 retries with generous 15s timeout each.
     try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 4000);
-      const res = await fetch(
-        window.location.origin + "/manifest.json?_=" + Date.now(),
-        { cache: "no-store", method: "GET", signal: ctrl.signal },
-      );
-      clearTimeout(t);
-      return !!res && (res.ok || res.status < 500);
-    } catch {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 15000);
+          const res = await fetch(
+            window.location.origin + "/manifest.json?_=" + Date.now(),
+            { cache: "no-store", method: "GET", signal: ctrl.signal },
+          );
+          clearTimeout(t);
+          if (res && (res.ok || res.status < 500)) return true;
+        } catch {
+          // fall through to retry
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
       return false;
     } finally {
       checkingRef.current = false;
     }
   };
+
+  const failStreakRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
@@ -38,28 +47,40 @@ export function OfflineOverlay() {
 
     const goOnline = async () => {
       if (await probe()) {
+        failStreakRef.current = 0;
         setOffline(false);
         try { syncServerTime(true); } catch {}
       }
     };
-    const goOffline = () => setOffline(true);
+    // Do NOT trust the 'offline' event alone — Android WebView fires it on
+    // transient signal drops. Verify with a probe before showing overlay.
+    const goOffline = async () => {
+      if (!(await probe())) {
+        failStreakRef.current += 1;
+        if (failStreakRef.current >= 2) setOffline(true);
+      } else {
+        failStreakRef.current = 0;
+      }
+    };
 
     window.addEventListener("online", goOnline);
     window.addEventListener("offline", goOffline);
 
-    // Active poll every 6s — catches Android WebView cases where the
-    // browser events never fire after toggling wifi / mobile data.
+    // Active poll every 20s — only show overlay after 2 consecutive fails
+    // so weak/slow networks don't flap the overlay open and shut.
     const interval = window.setInterval(async () => {
       const online = navigator.onLine && (await probe());
-      setOffline((prev) => {
-        if (prev && online) {
-          try { syncServerTime(true); } catch {}
+      if (online) {
+        failStreakRef.current = 0;
+        setOffline((prev) => {
+          if (prev) { try { syncServerTime(true); } catch {} }
           return false;
-        }
-        if (!prev && !online) return true;
-        return prev;
-      });
-    }, 6000);
+        });
+      } else {
+        failStreakRef.current += 1;
+        if (failStreakRef.current >= 2) setOffline(true);
+      }
+    }, 20000);
 
     // Also re-check whenever the app returns to the foreground.
     const onVisible = () => {
