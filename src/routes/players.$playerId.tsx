@@ -61,28 +61,23 @@ type Profile = {
 };
 type Ship = { id: string; template_id: number; catalog_code: string | null; at_sea: boolean; acquired_at: string; in_storage?: boolean; hp?: number; max_hp?: number; destroyed_at?: string | null; repair_ends_at?: string | null; stealing_ends_at?: string | null; stealing_target_user_id?: string | null };
 
-// A ship is "still destroyed" (uncombat-able) only while current HP is below 30% of max.
-// Past 30% HP it sails and fishes again on the owner's side, so it must also be attackable/stealable.
-const FISH_REPAIR_MIN = 0.30;
+// A ship is considered "destroyed" (uncombat-able) only when HP has actually
+// hit zero. Any ship with HP > 1 is still attackable — this matches the
+// server-side `pvp_fleet_count` rule (hp > 1). Previously we blocked attacks
+// when HP fell below 30% of max, which unfairly shielded heavily-damaged
+// defenders (e.g. 50k/190k = 26%) from any retaliation.
 function isShipStillDown(
   destroyedAt?: string | null,
   repairEndsAt?: string | null,
   hp?: number | null,
-  maxHp?: number | null,
+  _maxHp?: number | null,
 ): boolean {
-  // HP-based rule when available.
-  if (hp != null && maxHp != null && maxHp > 0) {
-    return (hp / maxHp) < FISH_REPAIR_MIN;
-  }
+  if (hp != null) return hp <= 1;
   if (!destroyedAt) return false;
   if (!repairEndsAt) return true;
-  const start = new Date(destroyedAt).getTime();
-  const end = new Date(repairEndsAt).getTime();
-  const now = serverNowMs();
-  if (now >= end) return false;
-  const total = Math.max(1, end - start);
-  return (now - start) / total < FISH_REPAIR_MIN;
+  return serverNowMs() < new Date(repairEndsAt).getTime();
 }
+
 
 
 function PlayerPage() {
