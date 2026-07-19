@@ -67,7 +67,7 @@ export function EliteVipLoginOverlay() {
     const next = queue[0];
     setCurrent(next);
     setQueue((q) => q.slice(1));
-    const t = setTimeout(() => setCurrent(null), 5000);
+    const t = setTimeout(() => setCurrent(null), 3000);
     return () => clearTimeout(t);
   }, [queue, current]);
 
@@ -102,7 +102,7 @@ export function EliteVipLoginOverlay() {
         style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
         aria-live="polite"
       >
-        <div className={`vip-slide-in-bottom pointer-events-auto relative w-full max-w-[260px] rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg`}>
+        <div onClick={() => setCurrent(null)} className={`vip-slide-in-bottom pointer-events-auto cursor-pointer relative w-full max-w-[260px] rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg`}>
           <div className="relative flex items-center gap-2 px-2 py-1.5" dir="rtl">
             <img
               src={tier.badge}

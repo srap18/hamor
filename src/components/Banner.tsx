@@ -13,12 +13,13 @@ export type BannerOptions = {
 
 function BannerUI({ opts, onDone }: { opts: BannerOptions; onDone: () => void }) {
   const [open, setOpen] = useState(false);
+  const dur = Math.min(opts.duration ?? 2200, 3000);
   useEffect(() => {
     setOpen(true);
-    const t = setTimeout(() => setOpen(false), opts.duration ?? 2200);
-    const t2 = setTimeout(() => onDone(), (opts.duration ?? 2200) + 350);
+    const t = setTimeout(() => setOpen(false), dur);
+    const t2 = setTimeout(() => onDone(), dur + 350);
     return () => { clearTimeout(t); clearTimeout(t2); };
-  }, [onDone, opts.duration]);
+  }, [onDone, dur]);
 
   const isCatch = opts.kind === "catch";
   const isPurchase = opts.kind === "purchase";
@@ -32,7 +33,8 @@ function BannerUI({ opts, onDone }: { opts: BannerOptions; onDone: () => void })
   return (
     <div
       dir="rtl"
-      className={`fixed left-1/2 top-20 z-[9998] -translate-x-1/2 pointer-events-none transition-all duration-300 ${
+      onClick={() => setOpen(false)}
+      className={`fixed left-1/2 top-20 z-[9998] -translate-x-1/2 pointer-events-auto cursor-pointer transition-all duration-300 ${
         open ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}
     >
