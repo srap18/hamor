@@ -17,48 +17,64 @@ export function NetworkRecovery() {
     typeof navigator !== "undefined" ? !navigator.onLine : false,
   );
   const lastRecoverRef = useRef<number>(0);
+  const hiddenSinceRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const recover = async (reason: string) => {
-      // Throttle to once every 3s.
+    const recover = async (reason: string, force = false) => {
       const now = Date.now();
-      if (now - lastRecoverRef.current < 3000) return;
+      if (!force && now - lastRecoverRef.current < 3000) return;
       lastRecoverRef.current = now;
       try { syncServerTime(true); } catch {}
-      // Kick supabase realtime back up.
+      // Kick supabase realtime back up — channels die silently when the tab
+      // is backgrounded, especially on mobile browsers / Android WebView.
       try {
         const rt: any = (supabase as any).realtime;
         if (rt) {
           try { rt.disconnect?.(); } catch {}
           try { rt.connect?.(); } catch {}
+          // Rejoin every existing channel so subscriptions actually resume.
+          try {
+            const chans = rt.channels || [];
+            for (const ch of chans) {
+              try { ch.rejoin?.(); } catch {}
+              try { ch.socket?.connect?.(); } catch {}
+            }
+          } catch {}
         }
       } catch {}
-      // Refetch active queries & re-run loaders.
       try { await queryClient.invalidateQueries(); } catch {}
       try { await router.invalidate(); } catch {}
-      // Best-effort debug breadcrumb.
       try { console.info("[NetworkRecovery] recovered:", reason); } catch {}
     };
 
     const onOnline = () => {
       if (wasOfflineRef.current) {
         wasOfflineRef.current = false;
-        recover("online");
+        recover("online", true);
       }
     };
     const onOffline = () => { wasOfflineRef.current = true; };
     const onVisible = () => {
-      if (document.visibilityState === "visible") {
-        // If browser missed the online event while tab was hidden, recover now.
-        if (navigator.onLine) {
-          if (wasOfflineRef.current) {
-            wasOfflineRef.current = false;
-            recover("visible-after-offline");
-          } else {
-            // Lightweight refresh on returning to tab.
-            recover("visible");
-          }
-        }
+      if (document.visibilityState === "hidden") {
+        hiddenSinceRef.current = Date.now();
+        return;
+      }
+      if (document.visibilityState !== "visible") return;
+      if (!navigator.onLine) return;
+
+      const hiddenFor = hiddenSinceRef.current
+        ? Date.now() - hiddenSinceRef.current
+        : 0;
+      hiddenSinceRef.current = null;
+
+      // If the tab was hidden for a long time (>60s), the WebSocket is almost
+      // certainly dead and cached queries are stale — force a full refresh
+      // that bypasses the 3s throttle, so the page never feels "frozen".
+      if (wasOfflineRef.current || hiddenFor > 60_000) {
+        wasOfflineRef.current = false;
+        recover("visible-after-long-hide", true);
+      } else {
+        recover("visible");
       }
     };
     const onFocus = () => {
