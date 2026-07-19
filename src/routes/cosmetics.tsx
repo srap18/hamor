@@ -168,13 +168,14 @@ function CosmeticsShop() {
       </div>
 
       <p className="px-4 mt-3 text-[11px] text-white/60 text-center">
-        إطارات تظهر للجميع في بروفايلك ورسائلك — اشترِ مرة، استخدمها للأبد.
+        الإطارات صلاحيتها <b className="text-amber-200">30 يوم</b> من الشراء — يمكن تجديدها في أي وقت.
       </p>
 
       <main className="p-3 pb-10">
         <div className="grid grid-cols-2 gap-3">
           {list.map(f => {
             const isOwned = owned.has(f.id);
+            const exp = expiries[f.id];
             return (
               <div
                 key={f.id}
@@ -199,20 +200,27 @@ function CosmeticsShop() {
 
                 <div className="text-[12px] font-extrabold text-center text-white truncate drop-shadow">{f.name}</div>
 
-                {isOwned ? (
-                  <div className="mt-2 text-center text-[10px] font-extrabold text-emerald-200 bg-emerald-900/60 border border-emerald-400/40 rounded-lg py-1.5">
-                    ✓ مملوك
+                {isOwned && exp && (
+                  <div className="mt-1 text-center text-[10px] font-bold text-amber-200">
+                    ⏳ متبقّي {fmtLeft(exp)}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => buy(f)}
-                    disabled={busy}
-                    className="mt-2 w-full rounded-lg bg-gradient-to-b from-cyan-300 to-cyan-500 border border-cyan-100 text-cyan-950 font-extrabold py-1.5 text-xs flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
-                  >
-                    <span className="tabular-nums">{f.price.toLocaleString()}</span>
-                    <span>💎</span>
-                  </button>
                 )}
+
+                <button
+                  onClick={() => buy(f)}
+                  disabled={busy}
+                  className={`mt-2 w-full rounded-lg border font-extrabold py-1.5 text-xs flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50 ${
+                    isOwned
+                      ? "bg-gradient-to-b from-amber-300 to-amber-500 border-amber-100 text-amber-950 shadow-[0_4px_14px_rgba(251,191,36,0.45)]"
+                      : "bg-gradient-to-b from-cyan-300 to-cyan-500 border-cyan-100 text-cyan-950 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
+                  }`}
+                >
+                  {isOwned && <span>🔄</span>}
+                  <span className="tabular-nums">{f.price.toLocaleString()}</span>
+                  <span>💎</span>
+                  <span className="text-[10px] opacity-80">/ 30ي</span>
+                </button>
+
               </div>
             );
           })}
