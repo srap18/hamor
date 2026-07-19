@@ -5968,8 +5968,10 @@ export type Database = {
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
       cleanup_elite_login_broadcasts: { Args: never; Returns: undefined }
+      cleanup_expired_cosmetics: { Args: never; Returns: undefined }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
+      cleanup_my_expired_cosmetics: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_old_notifications_batch: { Args: never; Returns: number }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
