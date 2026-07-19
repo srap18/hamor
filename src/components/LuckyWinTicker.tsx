@@ -61,7 +61,7 @@ function LuckyToast({ toast, onDismiss }: { toast: Toast; onDismiss: () => void 
 
   if (isLegendary) {
     return (
-      <div className="pointer-events-auto relative max-w-md w-full animate-scale-in">
+      <div onClick={onDismiss} className="pointer-events-auto cursor-pointer relative max-w-md w-full animate-scale-in">
         {/* halo */}
         <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-fuchsia-500/40 via-amber-400/40 to-fuchsia-500/40 blur-2xl animate-pulse" />
         <div className="relative rounded-2xl overflow-hidden border-2 border-amber-300/70 shadow-[0_0_35px_rgba(251,191,36,0.55)] bg-gradient-to-br from-[#1a0f2e] via-[#3d1663] to-[#1a0f2e]">
