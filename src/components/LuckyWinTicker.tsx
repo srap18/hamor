@@ -50,7 +50,7 @@ export function LuckyWinTicker() {
       style={{ top: "max(4.75rem, calc(env(safe-area-inset-top) + 4.75rem))" }}
     >
       {queue.slice(-3).map((t) => (
-        <LuckyToast key={t.id} toast={t} />
+        <LuckyToast key={t.id} toast={t} onDismiss={() => setQueue((q) => q.filter((x) => x.id !== t.id))} />
       ))}
     </div>
   );
