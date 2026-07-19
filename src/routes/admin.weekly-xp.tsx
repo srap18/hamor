@@ -30,12 +30,55 @@ type LbRow = {
 
 const emptyTier = (rank: number): Tier => ({ rank, coins: 0, gems: 0, xp: 0, text: "" });
 
+type PlayerHit = { id: string; display_name: string; username: string | null; avatar_emoji: string | null };
+
 function WeeklyXpAdmin() {
   const [cfg, setCfg] = useState<Config | null>(null);
   const [board, setBoard] = useState<LbRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Adjust weekly XP
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<PlayerHit[]>([]);
+  const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [currentXp, setCurrentXp] = useState<number | null>(null);
+  const [amount, setAmount] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setHits([]); return; }
+    let cancel = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles")
+        .select("id,display_name,username,avatar_emoji")
+        .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+        .limit(8);
+      if (!cancel) setHits((data ?? []) as PlayerHit[]);
+    }, 250);
+    return () => { cancel = true; clearTimeout(t); };
+  }, [query]);
+
+  const loadCurrentXp = async (uid: string) => {
+    const { data } = await supabase.from("profiles").select("weekly_xp").eq("id", uid).maybeSingle();
+    setCurrentXp(Number(((data as { weekly_xp?: number } | null)?.weekly_xp) ?? 0));
+  };
+
+  useEffect(() => {
+    if (!selected) { setCurrentXp(null); return; }
+    loadCurrentXp(selected.id);
+    const ch = supabase.channel(`wxp-adm-${selected.id}`)
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${selected.id}` },
+        (payload) => {
+          const row = payload.new as { weekly_xp?: number } | null;
+          if (row && typeof row.weekly_xp === "number") setCurrentXp(row.weekly_xp);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [selected]);
 
   const load = useCallback(async () => {
     setLoading(true);
