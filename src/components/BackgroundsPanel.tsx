@@ -47,30 +47,39 @@ export function BackgroundsPanel() {
       setOwnedBgIds(base);
       return;
     }
-    // Source of truth = server inventory. Premium backgrounds must exist there.
-    supabase
-      .from("inventory")
-      .select("item_id, meta")
-      .eq("user_id", user.id)
-      .eq("item_type", "background")
-      .then(({ data }) => {
-        const nowMs = serverNowMs();
-        const exp: Record<string, number> = {};
-        const serverIds = (data || [])
-          .map((r: any) => {
-            const id = r.item_id as string;
-            const expAt = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
-            if (expAt && expAt <= nowMs) return null; // expired -> hide
-            if (expAt) exp[id] = expAt;
-            return id;
-          })
-          .filter((id): id is string => !!id && BACKGROUNDS.some((b) => b.id === id));
-        const next = Array.from(new Set(["onepiece", ...serverIds]));
-        setOwned(next);
-        setExpiries(exp);
-        setOwnedBgIds(next);
-      });
+    (async () => {
+      // Self-heal expired backgrounds server-side first
+      try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch {}
+      const { data } = await supabase
+        .from("inventory")
+        .select("item_id, meta")
+        .eq("user_id", user.id)
+        .eq("item_type", "background");
+      const nowMs = serverNowMs();
+      const exp: Record<string, number> = {};
+      const serverIds = (data || [])
+        .map((r: any) => {
+          const id = r.item_id as string;
+          const expAt = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+          if (expAt && expAt <= nowMs) return null;
+          if (expAt) exp[id] = expAt;
+          return id;
+        })
+        .filter((id): id is string => !!id && BACKGROUNDS.some((b) => b.id === id));
+      const next = Array.from(new Set(["onepiece", ...serverIds]));
+      setOwned(next);
+      setExpiries(exp);
+      setOwnedBgIds(next);
+      // If currently selected bg was expired/removed, revert to default
+      const cur = getSelectedBgId();
+      if (!next.includes(cur)) {
+        setSelectedBgId("onepiece");
+        setSelected("onepiece");
+      }
+      refreshProfile();
+    })();
   }, [user]);
+
 
   const flash = (m: string) => { setPop(m); setTimeout(() => setPop(null), 1500); };
 

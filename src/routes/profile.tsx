@@ -74,6 +74,8 @@ function ProfilePage() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) { nav({ to: "/login" }); return; }
       setUserId(u.user.id);
+      // Self-heal expired frames/backgrounds before reading
+      try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch {}
       const [{ data: p }, { data: inv }] = await Promise.all([
         supabase
           .from("profiles")
@@ -81,7 +83,7 @@ function ProfilePage() {
           .eq("id", u.user.id).maybeSingle(),
         supabase
           .from("inventory")
-          .select("item_id,item_type")
+          .select("item_id,item_type,meta")
           .eq("user_id", u.user.id)
           .in("item_type", ["frame", "name_frame", "bubble_frame", "profile_frame"]),
       ]);
@@ -102,10 +104,18 @@ function ProfilePage() {
         setProfileFrame((p as any).profile_frame ?? null);
         setAlbumPrivacy(((p as any).album_privacy === "friends" ? "friends" : "public"));
       }
-      setOwnedFrameIds(new Set((inv ?? []).map((r: any) => r.item_id)));
+      const nowMs = Date.now();
+      const validIds = new Set<string>();
+      (inv ?? []).forEach((r: any) => {
+        const exp = r?.meta?.expires_at ? new Date(r.meta.expires_at).getTime() : null;
+        if (exp && exp <= nowMs) return;
+        validIds.add(r.item_id);
+      });
+      setOwnedFrameIds(validIds);
       setLoading(false);
     })();
   }, [nav]);
+
 
   const onUpload = async (file: File) => {
     if (!userId) return;
