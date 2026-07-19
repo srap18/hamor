@@ -111,6 +111,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...EIFFEL_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.6%", duration: "8s" },
+    durationDays: 7,
   },
   {
     id: "eiffel",
@@ -131,6 +132,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1, x: "0%", y: "0%", duration: "10s" },
+    durationDays: 7,
   },
   {
     id: "crystal_kingdom",
@@ -151,6 +153,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1.2%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
   },
   {
     id: "worldcup",
@@ -171,6 +174,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
   },
   {
     id: "hilal",
@@ -193,6 +197,7 @@ export const BACKGROUNDS: SceneBg[] = [
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
   },
+
 ];
 
 const STORE_KEY = "ocean.bg.selected";
