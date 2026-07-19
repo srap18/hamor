@@ -67,7 +67,7 @@ export function EliteVipLoginOverlay() {
     const next = queue[0];
     setCurrent(next);
     setQueue((q) => q.slice(1));
-    const t = setTimeout(() => setCurrent(null), 5000);
+    const t = setTimeout(() => setCurrent(null), 3000);
     return () => clearTimeout(t);
   }, [queue, current]);
 
