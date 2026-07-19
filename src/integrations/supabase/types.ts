@@ -5345,6 +5345,10 @@ export type Database = {
             Args: { p_delta: number; p_reason?: string; p_tribe_id: string }
             Returns: Json
           }
+      admin_adjust_weekly_xp: {
+        Args: { _delta: number; _user_id: string }
+        Returns: number
+      }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_dragon_equipment: {
