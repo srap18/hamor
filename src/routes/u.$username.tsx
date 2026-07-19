@@ -202,15 +202,7 @@ function UserProfilePage() {
           </div>
         </section>
 
-        {/* Bio */}
-        <section className="rounded-2xl p-4 glass-hud border border-accent/30">
-          <div className="text-xs font-bold text-accent mb-2">📝 الوصف</div>
-          <div className="text-sm text-foreground whitespace-pre-wrap break-words">
-            {profile.bio?.trim() ? profile.bio : <span className="text-muted-foreground">لم يضف وصف</span>}
-          </div>
-        </section>
-
-        {/* Action buttons */}
+        {/* Action buttons — placed BEFORE bio so they're visible without scrolling */}
         {!isSelf && (
           <section className="grid grid-cols-3 gap-2">
             <Link
@@ -250,6 +242,15 @@ function UserProfilePage() {
             ✏️ تعديل ملفي الشخصي
           </Link>
         )}
+
+        {/* Bio */}
+        <section className="rounded-2xl p-4 glass-hud border border-accent/30">
+          <div className="text-xs font-bold text-accent mb-2">📝 الوصف</div>
+          <div className="text-sm text-foreground whitespace-pre-wrap break-words">
+            {profile.bio?.trim() ? profile.bio : <span className="text-muted-foreground">لم يضف وصف</span>}
+          </div>
+        </section>
+
 
         {/* Album */}
         {albumPrivacy === "friends" && (
