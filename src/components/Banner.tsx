@@ -33,7 +33,8 @@ function BannerUI({ opts, onDone }: { opts: BannerOptions; onDone: () => void })
   return (
     <div
       dir="rtl"
-      className={`fixed left-1/2 top-20 z-[9998] -translate-x-1/2 pointer-events-none transition-all duration-300 ${
+      onClick={() => setOpen(false)}
+      className={`fixed left-1/2 top-20 z-[9998] -translate-x-1/2 pointer-events-auto cursor-pointer transition-all duration-300 ${
         open ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
       }`}
     >
