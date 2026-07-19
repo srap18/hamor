@@ -61,7 +61,7 @@ function CosmeticsShop() {
 
   const reload = async (uid: string) => {
     // Self-heal: remove expired cosmetics server-side first.
-    await supabase.rpc("cleanup_my_expired_cosmetics" as never).catch(() => {});
+    try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch {}
     const [{ data: p }, { data: inv }] = await Promise.all([
       supabase.from("profiles").select("gems").eq("id", uid).maybeSingle(),
       supabase
