@@ -14,8 +14,8 @@ type LuckyWin = {
 
 type Toast = LuckyWin & { visible: boolean };
 
-const RARE_DURATION_MS = 6500;
-const LEGENDARY_DURATION_MS = 9000;
+const RARE_DURATION_MS = 3000;
+const LEGENDARY_DURATION_MS = 3000;
 
 export function LuckyWinTicker() {
   const [queue, setQueue] = useState<Toast[]>([]);
