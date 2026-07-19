@@ -82,18 +82,18 @@ function CosmeticsShop() {
   const buy = async (f: Frame) => {
     if (!userId || busy) return;
     if (owned.has(f.id)) { flash("تملك هذا الإطار"); return; }
-    const finalPrice = discountedPrice(f.price);
-    if (gems < finalPrice) { flash("جواهر غير كافية"); return; }
+    if (gems < f.price) { flash("جواهر غير كافية"); return; }
     setBusy(true);
     const itemType = FRAME_KIND_TO_ITEM_TYPE[f.kind];
-    const { error } = await buyWithGems(f.id, itemType, finalPrice, { kind: f.kind, name: f.name, offer: OFFER_LABEL });
+    const { error } = await buyWithGems(f.id, itemType, f.price, { kind: f.kind, name: f.name });
     if (error) { setBusy(false); flash("فشل الشراء"); return; }
-    setGems(gems - finalPrice);
+    setGems(gems - f.price);
     setOwned(new Set([...owned, f.id]));
     setBusy(false);
     flash(`اشتريت ${f.name} ✓`);
-    showBanner({ kind: "purchase", title: f.name, subtitle: `${finalPrice} جوهرة • ${f.kind}`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
+    showBanner({ kind: "purchase", title: f.name, subtitle: `${f.price} جوهرة • ${f.kind}`, image: f.imageUrl ?? f.preview, emoji: "🎖️" });
   };
+
 
   const list = LIST_BY_KIND[tab];
 
