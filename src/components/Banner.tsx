@@ -13,12 +13,13 @@ export type BannerOptions = {
 
 function BannerUI({ opts, onDone }: { opts: BannerOptions; onDone: () => void }) {
   const [open, setOpen] = useState(false);
+  const dur = Math.min(opts.duration ?? 2200, 3000);
   useEffect(() => {
     setOpen(true);
-    const t = setTimeout(() => setOpen(false), opts.duration ?? 2200);
-    const t2 = setTimeout(() => onDone(), (opts.duration ?? 2200) + 350);
+    const t = setTimeout(() => setOpen(false), dur);
+    const t2 = setTimeout(() => onDone(), dur + 350);
     return () => { clearTimeout(t); clearTimeout(t2); };
-  }, [onDone, opts.duration]);
+  }, [onDone, dur]);
 
   const isCatch = opts.kind === "catch";
   const isPurchase = opts.kind === "purchase";
