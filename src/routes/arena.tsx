@@ -84,8 +84,35 @@ function ArenaPage() {
       }
     })();
     const t = setInterval(() => setNow(Date.now()), 60000);
-    return () => clearInterval(t);
+
+    // Realtime updates when admin adjusts scores or players earn points
+    const ws = weekStart().toISOString().slice(0, 10);
+    const ch = supabase.channel("arena-scores-live")
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "arena_scores", filter: `week_start=eq.${ws}` },
+        async () => {
+          const { data: r } = await supabase.from("arena_scores")
+            .select("user_id,score,wins").eq("week_start", ws)
+            .order("score", { ascending: false }).limit(50);
+          setRows((r ?? []) as Row[]);
+          const missing = ((r ?? []) as Row[]).map((x) => x.user_id).filter((id) => !names[id]);
+          if (missing.length) {
+            const { data: profs } = await supabase.from("profiles")
+              .select("id,display_name,avatar_emoji").in("id", missing);
+            setNames((prev) => {
+              const next = { ...prev };
+              (profs ?? []).forEach((p: { id: string; display_name: string; avatar_emoji: string }) => {
+                next[p.id] = { display_name: p.display_name, avatar_emoji: p.avatar_emoji };
+              });
+              return next;
+            });
+          }
+        })
+      .subscribe();
+
+    return () => { clearInterval(t); supabase.removeChannel(ch); };
   }, []);
+
 
   const wkEnd = weekStart();
   wkEnd.setUTCDate(wkEnd.getUTCDate() + 7);
