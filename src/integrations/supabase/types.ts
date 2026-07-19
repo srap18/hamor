@@ -5335,6 +5335,10 @@ export type Database = {
         Returns: undefined
       }
       add_xp: { Args: { _uid: string; _xp: number }; Returns: undefined }
+      admin_adjust_arena_score: {
+        Args: { _delta: number; _user_id: string }
+        Returns: number
+      }
       admin_adjust_tribe_points:
         | { Args: { _delta: number; _tribe_id: string }; Returns: Json }
         | {

@@ -9,6 +9,9 @@ export const Route = createFileRoute("/admin/arena")({
   ssr: false,
 });
 
+type PlayerHit = { id: string; display_name: string; username: string | null; avatar_emoji: string | null };
+
+
 type Reward = { rank: string; text: string };
 type Settings = {
   enabled: boolean;
@@ -45,8 +48,74 @@ function AdminArenaPage() {
   const [saving, setSaving] = useState(false);
   const [topCount, setTopCount] = useState<number | null>(null);
 
+  // Score adjust state
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<PlayerHit[]>([]);
+  const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [amount, setAmount] = useState("");
+  const [currentScore, setCurrentScore] = useState<number | null>(null);
+  const [adjusting, setAdjusting] = useState(false);
+
+  const weekStartISO = () => {
+    const d = new Date();
+    const day = d.getUTCDay();
+    const diff = (day + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - diff);
+    d.setUTCHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const loadCurrentScore = async (uid: string) => {
+    const { data } = await supabase.from("arena_scores")
+      .select("score").eq("user_id", uid).eq("week_start", weekStartISO()).maybeSingle();
+    setCurrentScore(((data as { score?: number } | null)?.score) ?? 0);
+  };
+
+  useEffect(() => {
+    if (!selected) { setCurrentScore(null); return; }
+    loadCurrentScore(selected.id);
+    const ch = supabase.channel(`arena-adm-${selected.id}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "arena_scores", filter: `user_id=eq.${selected.id}` },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as { score?: number; week_start?: string } | null;
+          if (row?.week_start === weekStartISO()) setCurrentScore(row.score ?? 0);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [selected]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setHits([]); return; }
+    let cancel = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles")
+        .select("id,display_name,username,avatar_emoji")
+        .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+        .limit(8);
+      if (!cancel) setHits((data ?? []) as PlayerHit[]);
+    }, 250);
+    return () => { cancel = true; clearTimeout(t); };
+  }, [query]);
+
+  const adjust = async (sign: 1 | -1) => {
+    if (!selected) { toast.error("اختر لاعب أولاً"); return; }
+    const n = Math.floor(Number(amount));
+    if (!Number.isFinite(n) || n <= 0) { toast.error("ادخل رقم موجب"); return; }
+    setAdjusting(true);
+    const { data, error } = await supabase.rpc("admin_adjust_arena_score" as never,
+      { _user_id: selected.id, _delta: sign * n } as never);
+    setAdjusting(false);
+    if (error) { toast.error(error.message); return; }
+    setCurrentScore(Number(data ?? 0));
+    setAmount("");
+    toast.success(sign > 0 ? `تم منح ${n.toLocaleString()} نقطة` : `تم خصم ${n.toLocaleString()} نقطة`);
+  };
+
   const load = async () => {
     setLoading(true);
+
     const { data } = await supabase.from("arena_settings").select("*").maybeSingle();
     if (data) setS({ ...DEFAULT_SETTINGS, ...(data as unknown as Settings) });
     const ws = (() => {
@@ -210,7 +279,52 @@ function AdminArenaPage() {
         </div>
       </section>
 
+      {/* Adjust player score */}
+      <section className="rounded-xl border border-cyan-700/40 bg-cyan-900/10 p-4 space-y-3">
+        <div>
+          <div className="font-semibold">⚖️ تعديل نقاط لاعب (الأسبوع الحالي)</div>
+          <div className="text-xs text-slate-400">ابحث باسم العرض أو اليوزر، ثم امنح أو اخصم نقاط. يُحدَّث فوراً للجميع.</div>
+        </div>
+        <div className="relative">
+          <input
+            className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+            placeholder="🔎 ابحث عن لاعب..."
+            value={selected ? `${selected.avatar_emoji ?? "🧑‍✈️"} ${selected.display_name}${selected.username ? ` @${selected.username}` : ""}` : query}
+            onChange={(e) => { setSelected(null); setQuery(e.target.value); }}
+          />
+          {!selected && hits.length > 0 && (
+            <div className="absolute z-10 top-full mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 shadow-lg max-h-64 overflow-auto">
+              {hits.map((h) => (
+                <button key={h.id} type="button"
+                  onClick={() => { setSelected(h); setHits([]); setQuery(""); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-800 text-sm text-start">
+                  <span className="text-lg">{h.avatar_emoji ?? "🧑‍✈️"}</span>
+                  <span className="flex-1 truncate">{h.display_name}</span>
+                  {h.username && <span className="text-xs text-slate-400">@{h.username}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {selected && (
+          <div className="flex items-center justify-between text-sm bg-slate-900/60 rounded px-3 py-2 border border-slate-700">
+            <span className="text-slate-300">النقاط الحالية:</span>
+            <span className="font-black text-amber-300 tabular-nums">{(currentScore ?? 0).toLocaleString()} ⭐</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input type="number" min={1} placeholder="مقدار النقاط"
+            value={amount} onChange={(e) => setAmount(e.target.value)}
+            className="flex-1 px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm" />
+          <button disabled={adjusting} onClick={() => adjust(1)}
+            className="px-3 py-2 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">+ منح</button>
+          <button disabled={adjusting} onClick={() => adjust(-1)}
+            className="px-3 py-2 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold disabled:opacity-50">− خصم</button>
+        </div>
+      </section>
+
       {/* Reset scores */}
+
       <section className="rounded-xl border border-red-800/50 bg-red-900/10 p-4 flex items-center justify-between gap-3">
         <div>
           <div className="font-semibold text-red-200">تصفير النقاط</div>
