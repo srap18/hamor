@@ -9,6 +9,9 @@ export const Route = createFileRoute("/admin/arena")({
   ssr: false,
 });
 
+type PlayerHit = { id: string; display_name: string; username: string | null; avatar_emoji: string | null };
+
+
 type Reward = { rank: string; text: string };
 type Settings = {
   enabled: boolean;
