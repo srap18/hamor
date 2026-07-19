@@ -54,7 +54,11 @@ export function GlobalNotificationListener() {
       // Reuse a single toast id so every new notification REPLACES the
       // previous one instead of stacking. Sonner updates the same toast
       // in-place → smooth, elegant, and easy on the GPU.
-      const opts: any = { id: "oc-notif", duration: 3500 };
+      const opts: any = {
+        id: "oc-notif",
+        duration: 3000,
+        onClick: () => { try { toast.dismiss("oc-notif"); } catch { /* noop */ } },
+      };
       if (n.body) opts.description = n.body;
       if (n.kind === "attack" || n.kind === "nuke") {
         toast.error(title, opts);

@@ -56,6 +56,21 @@ if (typeof window !== "undefined") {
     });
   } catch {}
 
+  // Tap-to-dismiss for all Sonner toasts across the app.
+  try {
+    const dismiss = (e: Event) => {
+      const el = (e.target as HTMLElement | null)?.closest?.("[data-sonner-toast]") as HTMLElement | null;
+      if (!el) return;
+      // Native close button already handles this; avoid double dismiss.
+      if ((e.target as HTMLElement).closest("[data-close-button]")) return;
+      import("sonner").then(({ toast }) => {
+        const id = el.getAttribute("data-id") || undefined;
+        if (id) toast.dismiss(id); else toast.dismiss();
+      }).catch(() => {});
+    };
+    document.addEventListener("click", dismiss, true);
+  } catch {}
+
   // Disable browser zoom (Ctrl+wheel, Ctrl/Cmd +/-, pinch gestures, double-tap).
   try {
     window.addEventListener("wheel", (e) => {
@@ -528,7 +543,8 @@ function RootComponent() {
             // Only ONE toast on screen — new toast replaces the previous one
             // (no stacking, no GPU strain from multiple animated blurs).
             visibleToasts={1}
-            duration={3500}
+            duration={3000}
+            closeButton={false}
             offset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
             toastOptions={{

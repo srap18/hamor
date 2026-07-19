@@ -14,8 +14,8 @@ type LuckyWin = {
 
 type Toast = LuckyWin & { visible: boolean };
 
-const RARE_DURATION_MS = 6500;
-const LEGENDARY_DURATION_MS = 9000;
+const RARE_DURATION_MS = 3000;
+const LEGENDARY_DURATION_MS = 3000;
 
 export function LuckyWinTicker() {
   const [queue, setQueue] = useState<Toast[]>([]);
@@ -50,18 +50,18 @@ export function LuckyWinTicker() {
       style={{ top: "max(4.75rem, calc(env(safe-area-inset-top) + 4.75rem))" }}
     >
       {queue.slice(-3).map((t) => (
-        <LuckyToast key={t.id} toast={t} />
+        <LuckyToast key={t.id} toast={t} onDismiss={() => setQueue((q) => q.filter((x) => x.id !== t.id))} />
       ))}
     </div>
   );
 }
 
-function LuckyToast({ toast }: { toast: Toast }) {
+function LuckyToast({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const isLegendary = toast.rarity === "legendary";
 
   if (isLegendary) {
     return (
-      <div className="pointer-events-auto relative max-w-md w-full animate-scale-in">
+      <div onClick={onDismiss} className="pointer-events-auto cursor-pointer relative max-w-md w-full animate-scale-in">
         {/* halo */}
         <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-fuchsia-500/40 via-amber-400/40 to-fuchsia-500/40 blur-2xl animate-pulse" />
         <div className="relative rounded-2xl overflow-hidden border-2 border-amber-300/70 shadow-[0_0_35px_rgba(251,191,36,0.55)] bg-gradient-to-br from-[#1a0f2e] via-[#3d1663] to-[#1a0f2e]">
@@ -94,7 +94,7 @@ function LuckyToast({ toast }: { toast: Toast }) {
 
   // Rare
   return (
-    <div className="pointer-events-auto relative max-w-md w-full animate-fade-in">
+    <div onClick={onDismiss} className="pointer-events-auto cursor-pointer relative max-w-md w-full animate-fade-in">
       <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-400/30 via-violet-500/30 to-sky-400/30 blur-xl" />
       <div className="relative rounded-xl overflow-hidden border border-violet-300/60 shadow-[0_0_18px_rgba(139,92,246,0.45)] bg-gradient-to-r from-[#0f172a] via-[#3b1f6a] to-[#0f172a]">
         <div className="flex items-center gap-2.5 px-3 py-2">
