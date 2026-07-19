@@ -206,20 +206,27 @@ function CosmeticsShop() {
                   </div>
                 )}
 
-                <button
-                  onClick={() => buy(f)}
-                  disabled={busy}
-                  className={`mt-2 w-full rounded-lg border font-extrabold py-1.5 text-xs flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50 ${
-                    isOwned
-                      ? "bg-gradient-to-b from-amber-300 to-amber-500 border-amber-100 text-amber-950 shadow-[0_4px_14px_rgba(251,191,36,0.45)]"
-                      : "bg-gradient-to-b from-cyan-300 to-cyan-500 border-cyan-100 text-cyan-950 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
-                  }`}
-                >
-                  {isOwned && <span>🔄</span>}
-                  <span className="tabular-nums">{f.price.toLocaleString()}</span>
-                  <span>💎</span>
-                  <span className="text-[10px] opacity-80">/ 30ي</span>
-                </button>
+                {isOwned && !exp ? (
+                  <div className="mt-2 w-full rounded-lg border border-emerald-300/50 bg-gradient-to-b from-emerald-500/30 to-emerald-700/30 text-emerald-100 font-extrabold py-1.5 text-xs text-center">
+                    ✅ مملوك دائم
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => buy(f)}
+                    disabled={busy}
+                    className={`mt-2 w-full rounded-lg border font-extrabold py-1.5 text-xs flex items-center justify-center gap-1 active:scale-95 disabled:opacity-50 ${
+                      isOwned
+                        ? "bg-gradient-to-b from-amber-300 to-amber-500 border-amber-100 text-amber-950 shadow-[0_4px_14px_rgba(251,191,36,0.45)]"
+                        : "bg-gradient-to-b from-cyan-300 to-cyan-500 border-cyan-100 text-cyan-950 shadow-[0_4px_14px_rgba(34,211,238,0.45)]"
+                    }`}
+                  >
+                    {isOwned && <span>🔄</span>}
+                    <span className="tabular-nums">{f.price.toLocaleString()}</span>
+                    <span>💎</span>
+                    <span className="text-[10px] opacity-80">/ 30ي</span>
+                  </button>
+                )}
+
 
               </div>
             );
