@@ -84,7 +84,7 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
             dragonLevel,
           });
           try { sound.play("click"); } catch { /* noop */ }
-          window.setTimeout(() => setBurst((b) => (b && b.id === row.id ? null : b)), 4200);
+          window.setTimeout(() => setBurst((b) => (b && b.id === row.id ? null : b)), 3000);
         },
       )
       .subscribe();
@@ -242,7 +242,7 @@ export function AttackerAntiBlockBurst() {
             dragonLevel,
           });
           try { sound.play("click"); } catch { /* noop */ }
-          window.setTimeout(() => setBurst((b) => (b && b.id === key ? null : b)), 4200);
+          window.setTimeout(() => setBurst((b) => (b && b.id === key ? null : b)), 3000);
         },
       )
       .subscribe();
