@@ -2083,7 +2083,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
           )}
           <button
             type="button"
-            onClick={startRec}
+            onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return; } startRec(); }}
             onContextMenu={(e) => {
               if (!canUploadAudio) return;
               e.preventDefault();
