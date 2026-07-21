@@ -3065,6 +3065,7 @@ export type Database = {
           bg_burned_until: string | null
           bio: string
           bubble_frame: string | null
+          chat_audio_upload_allowed: boolean
           coins: number
           created_at: string
           display_name: string
@@ -3138,6 +3139,7 @@ export type Database = {
           bg_burned_until?: string | null
           bio?: string
           bubble_frame?: string | null
+          chat_audio_upload_allowed?: boolean
           coins?: number
           created_at?: string
           display_name: string
@@ -3211,6 +3213,7 @@ export type Database = {
           bg_burned_until?: string | null
           bio?: string
           bubble_frame?: string | null
+          chat_audio_upload_allowed?: boolean
           coins?: number
           created_at?: string
           display_name?: string
@@ -5606,6 +5609,10 @@ export type Database = {
           email: string
           id: string
         }[]
+      }
+      admin_set_chat_audio_upload: {
+        Args: { _allowed: boolean; _target: string }
+        Returns: undefined
       }
       admin_set_dragon: {
         Args: {
