@@ -1898,6 +1898,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
   };
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [micMenuOpen, setMicMenuOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
