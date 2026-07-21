@@ -2081,30 +2081,35 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
               }}
             />
           )}
-          <button
-            type="button"
-            onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return; } startRec(); }}
-            onContextMenu={(e) => {
-              if (!canUploadAudio) return;
-              e.preventDefault();
-              fileInputRef.current?.click();
-            }}
-            onPointerDown={(e) => {
-              if (!canUploadAudio) return;
-              longPressTimerRef.current = window.setTimeout(() => {
-                longPressFiredRef.current = true;
-                fileInputRef.current?.click();
-              }, 600);
-              (e.currentTarget as HTMLButtonElement).dataset.lp = "1";
-            }}
-            onPointerUp={() => {
-              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
-            }}
-            onPointerLeave={() => {
-              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
-            }}
-            disabled={disabled || uploading}
-            className="px-3 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50" title="تسجيل صوتي">🎤</button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                if (canUploadAudio) { setMicMenuOpen((v) => !v); return; }
+                startRec();
+              }}
+              disabled={disabled || uploading}
+              className="px-3 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50"
+              title="صوتي"
+            >🎤</button>
+            {canUploadAudio && micMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMicMenuOpen(false)} />
+                <div className="absolute bottom-full mb-1 right-0 z-50 min-w-[150px] rounded-lg bg-stone-900 border border-amber-600/60 shadow-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => { setMicMenuOpen(false); startRec(); }}
+                    className="block w-full text-right px-3 py-2 text-xs text-white hover:bg-stone-800"
+                  >🎙️ تسجيل حي</button>
+                  <button
+                    type="button"
+                    onClick={() => { setMicMenuOpen(false); fileInputRef.current?.click(); }}
+                    className="block w-full text-right px-3 py-2 text-xs text-white hover:bg-stone-800 border-t border-amber-700/30"
+                  >📎 رفع ملف صوتي</button>
+                </div>
+              </>
+            )}
+          </div>
           <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
