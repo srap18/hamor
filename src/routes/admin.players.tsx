@@ -435,7 +435,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }, { data: pad }, { data: stp }, { data: pol }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name,chat_audio_upload_allowed").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
