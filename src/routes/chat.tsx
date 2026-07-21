@@ -115,6 +115,16 @@ function ChatPage() {
   const [pinEditOpen, setPinEditOpen] = useState(false);
   const [pinDraft, setPinDraft] = useState("");
   const [marketLevel, setMarketLevel] = useState<number | null>(null);
+  const [canUploadAudio, setCanUploadAudio] = useState(false);
+  useEffect(() => {
+    if (!user) { setCanUploadAudio(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("chat_audio_upload_allowed" as any).eq("id", user.id).maybeSingle();
+      if (!cancelled) setCanUploadAudio(!!(data as any)?.chat_audio_upload_allowed);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const SHIP_MARKET_MIN = 0;
   const canChat = true;
@@ -980,6 +990,7 @@ function ChatPage() {
             dmWith={dmWith}
             replyTo={replyTo}
             onClearReply={() => setReplyTo(null)}
+            canUploadAudio={canUploadAudio}
           />
         )
       )}
@@ -1867,11 +1878,12 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
+function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply, canUploadAudio }: {
   restoreDraftRef: React.MutableRefObject<(body: string) => void>;
   onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
   replyTo?: { id: string; body: string; name: string } | null; onClearReply?: () => void;
+  canUploadAudio?: boolean;
 }) {
   const [text, setText] = useState("");
   useEffect(() => {
@@ -1892,7 +1904,54 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
   const startedAtRef = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
   const cancelledRef = useRef<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef<boolean>(false);
   const MAX_REC_SECONDS = 30;
+
+  const uploadAudioFile = async (file: File) => {
+    if (!file) return;
+    if (uploading || recording) return;
+    // Accept any browser-decodable audio; keep it under ~10MB to stay stealthy.
+    if (file.size > 10 * 1024 * 1024) { alert("الملف كبير (الحد 10 ميجا)"); return; }
+    setUploading(true);
+    try {
+      // Probe real duration in the browser so the message renders like a live recording.
+      const durationMs: number = await new Promise((resolve) => {
+        try {
+          const url = URL.createObjectURL(file);
+          const a = new Audio();
+          a.preload = "metadata";
+          a.src = url;
+          const done = (v: number) => { try { URL.revokeObjectURL(url); } catch {} resolve(v); };
+          a.onloadedmetadata = () => {
+            const d = isFinite(a.duration) && a.duration > 0 ? Math.round(a.duration * 1000) : 0;
+            done(Math.min(d || 5000, MAX_REC_SECONDS * 1000));
+          };
+          a.onerror = () => done(5000);
+          window.setTimeout(() => done(a.duration ? Math.round(a.duration * 1000) : 5000), 3000);
+        } catch { resolve(5000); }
+      });
+      const mime = file.type || "audio/mpeg";
+      const ext = /webm/i.test(mime) ? "webm"
+        : /mp4|m4a|aac/i.test(mime) ? "m4a"
+        : /ogg/i.test(mime) ? "ogg"
+        : /wav/i.test(mime) ? "wav"
+        : "mp3";
+      const path = `${userId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, file, { contentType: mime, upsert: false });
+      if (upErr) { setUploading(false); alert("فشل الرفع: " + upErr.message); return; }
+      const { data: pub } = supabase.storage.from("chat-audio").getPublicUrl(path);
+      const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: durationMs };
+      if (channel === "tribe") row.tribe_id = tribeId;
+      if (channel === "dm") row.recipient_id = dmWith;
+      const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
+      if (error) { alert("تعذر الإرسال: " + error.message); return; }
+      if (data) onAudioSent(data as Msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const stopTimer = () => { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; } };
 
@@ -2008,7 +2067,43 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
             placeholder={uploading ? "جاري رفع التسجيل..." : "اكتب رساله..."}
             className="flex-1 px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-sm text-white disabled:opacity-50"
           />
-          <button type="button" onClick={startRec} disabled={disabled || uploading}
+          {canUploadAudio && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (e.target) e.target.value = "";
+                if (!f) return;
+                await uploadAudioFile(f);
+              }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return; } startRec(); }}
+            onContextMenu={(e) => {
+              if (!canUploadAudio) return;
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }}
+            onPointerDown={(e) => {
+              if (!canUploadAudio) return;
+              longPressTimerRef.current = window.setTimeout(() => {
+                longPressFiredRef.current = true;
+                fileInputRef.current?.click();
+              }, 600);
+              (e.currentTarget as HTMLButtonElement).dataset.lp = "1";
+            }}
+            onPointerUp={() => {
+              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
+            }}
+            onPointerLeave={() => {
+              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
+            }}
+            disabled={disabled || uploading}
             className="px-3 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50" title="تسجيل صوتي">🎤</button>
           <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>

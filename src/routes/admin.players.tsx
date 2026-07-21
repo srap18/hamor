@@ -326,6 +326,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [usernameVal, setUsernameVal] = useState("");
   const [bio, setBio] = useState("");
   const [mediaBanned, setMediaBanned] = useState(false);
+  const [audioUploadAllowed, setAudioUploadAllowed] = useState(false);
+  const [savingAudioUpload, setSavingAudioUpload] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -433,7 +435,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }, { data: pad }, { data: stp }, { data: pol }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name,chat_audio_upload_allowed").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
@@ -463,6 +465,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       setUsernameVal((p.username ?? "") as string);
       setBio((p.bio ?? "") as string);
       setMediaBanned(Boolean(p.media_banned));
+      setAudioUploadAllowed(Boolean(p.chat_audio_upload_allowed));
       // تحديث الحقول الحيّة من قاعدة البيانات (قائمة الأب قد تكون قديمة)
       if (p.coins != null) setCoins(String(p.coins));
       if (p.gems != null) setGems(String(p.gems));
@@ -989,6 +992,21 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             <button onClick={wipeProfile}
               className="px-3 py-2 rounded-lg bg-rose-600/50 hover:bg-rose-600/70 text-rose-100 text-xs font-bold">
               🧹 مسح الوصف + الصورة + الألبوم
+            </button>
+            <button
+              disabled={savingAudioUpload}
+              onClick={async () => {
+                const next = !audioUploadAllowed;
+                setSavingAudioUpload(true);
+                const { error } = await (supabase as any).rpc("admin_set_chat_audio_upload", { _target: player.id, _allowed: next });
+                setSavingAudioUpload(false);
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                setAudioUploadAllowed(next);
+                await logAudit(next ? "grant_chat_audio_upload" : "revoke_chat_audio_upload", player.id, {});
+                toast.success(next ? "🎤 سُمح برفع ملفات الصوت في الشات" : "🚫 أُلغي السماح");
+              }}
+              className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${audioUploadAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-slate-700/60 hover:bg-slate-700/80 text-slate-100"}`}>
+              {savingAudioUpload ? "..." : audioUploadAllowed ? "🎤 مسموح — رفع ملف صوت في الشات (ضغط مطوّل على الميكرفون)" : "🎤 السماح برفع ملف صوت كأنه تسجيل"}
             </button>
           </div>
         </div>
