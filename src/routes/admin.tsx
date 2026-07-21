@@ -133,7 +133,7 @@ function AdminLayout() {
 
         <div className="p-3 md:p-4 border-b border-slate-800 flex items-center justify-between gap-2">
           <div className="text-base md:text-lg font-bold flex items-center gap-2">
-            <span>⚓</span> Admin Panel
+            <span>⚓</span> لوحة الإدارة
           </div>
           <div className="flex md:hidden items-center gap-1.5">
             <Link to="/" className="text-xs px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700">🎮</Link>
