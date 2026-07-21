@@ -2020,7 +2020,43 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
             placeholder={uploading ? "جاري رفع التسجيل..." : "اكتب رساله..."}
             className="flex-1 px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-sm text-white disabled:opacity-50"
           />
-          <button type="button" onClick={startRec} disabled={disabled || uploading}
+          {canUploadAudio && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (e.target) e.target.value = "";
+                if (!f) return;
+                await uploadAudioFile(f);
+              }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={startRec}
+            onContextMenu={(e) => {
+              if (!canUploadAudio) return;
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }}
+            onPointerDown={(e) => {
+              if (!canUploadAudio) return;
+              longPressTimerRef.current = window.setTimeout(() => {
+                longPressFiredRef.current = true;
+                fileInputRef.current?.click();
+              }, 600);
+              (e.currentTarget as HTMLButtonElement).dataset.lp = "1";
+            }}
+            onPointerUp={() => {
+              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
+            }}
+            onPointerLeave={() => {
+              if (longPressTimerRef.current) { window.clearTimeout(longPressTimerRef.current); longPressTimerRef.current = null; }
+            }}
+            disabled={disabled || uploading}
             className="px-3 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50" title="تسجيل صوتي">🎤</button>
           <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
