@@ -990,6 +990,7 @@ function ChatPage() {
             dmWith={dmWith}
             replyTo={replyTo}
             onClearReply={() => setReplyTo(null)}
+            canUploadAudio={canUploadAudio}
           />
         )
       )}
