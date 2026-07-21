@@ -212,7 +212,6 @@ function AdminTicketsPage() {
             const prof = profiles[t.user_id];
             const dn = prof?.display_name?.trim();
             const un = prof?.username?.trim();
-            const nameLabel = dn && un ? `${dn} (@${un})` : dn || (un ? `@${un}` : t.user_id.slice(0, 8));
             return (
               <div key={t.id} className="rounded-xl bg-slate-900/70 border border-slate-800 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
