@@ -701,6 +701,7 @@ export type Database = {
           fish_id: string
           id: string
           qty: number
+          source: string
           tribe_id: string | null
           user_id: string
         }
@@ -709,6 +710,7 @@ export type Database = {
           fish_id: string
           id?: string
           qty?: number
+          source?: string
           tribe_id?: string | null
           user_id: string
         }
@@ -717,6 +719,7 @@ export type Database = {
           fish_id?: string
           id?: string
           qty?: number
+          source?: string
           tribe_id?: string | null
           user_id?: string
         }
