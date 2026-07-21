@@ -115,6 +115,16 @@ function ChatPage() {
   const [pinEditOpen, setPinEditOpen] = useState(false);
   const [pinDraft, setPinDraft] = useState("");
   const [marketLevel, setMarketLevel] = useState<number | null>(null);
+  const [canUploadAudio, setCanUploadAudio] = useState(false);
+  useEffect(() => {
+    if (!user) { setCanUploadAudio(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("chat_audio_upload_allowed" as any).eq("id", user.id).maybeSingle();
+      if (!cancelled) setCanUploadAudio(!!(data as any)?.chat_audio_upload_allowed);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const SHIP_MARKET_MIN = 0;
   const canChat = true;
