@@ -1904,7 +1904,54 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
   const startedAtRef = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
   const cancelledRef = useRef<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef<boolean>(false);
   const MAX_REC_SECONDS = 30;
+
+  const uploadAudioFile = async (file: File) => {
+    if (!file) return;
+    if (uploading || recording) return;
+    // Accept any browser-decodable audio; keep it under ~10MB to stay stealthy.
+    if (file.size > 10 * 1024 * 1024) { alert("الملف كبير (الحد 10 ميجا)"); return; }
+    setUploading(true);
+    try {
+      // Probe real duration in the browser so the message renders like a live recording.
+      const durationMs: number = await new Promise((resolve) => {
+        try {
+          const url = URL.createObjectURL(file);
+          const a = new Audio();
+          a.preload = "metadata";
+          a.src = url;
+          const done = (v: number) => { try { URL.revokeObjectURL(url); } catch {} resolve(v); };
+          a.onloadedmetadata = () => {
+            const d = isFinite(a.duration) && a.duration > 0 ? Math.round(a.duration * 1000) : 0;
+            done(Math.min(d || 5000, MAX_REC_SECONDS * 1000));
+          };
+          a.onerror = () => done(5000);
+          window.setTimeout(() => done(a.duration ? Math.round(a.duration * 1000) : 5000), 3000);
+        } catch { resolve(5000); }
+      });
+      const mime = file.type || "audio/mpeg";
+      const ext = /webm/i.test(mime) ? "webm"
+        : /mp4|m4a|aac/i.test(mime) ? "m4a"
+        : /ogg/i.test(mime) ? "ogg"
+        : /wav/i.test(mime) ? "wav"
+        : "mp3";
+      const path = `${userId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, file, { contentType: mime, upsert: false });
+      if (upErr) { setUploading(false); alert("فشل الرفع: " + upErr.message); return; }
+      const { data: pub } = supabase.storage.from("chat-audio").getPublicUrl(path);
+      const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: durationMs };
+      if (channel === "tribe") row.tribe_id = tribeId;
+      if (channel === "dm") row.recipient_id = dmWith;
+      const { data, error } = await supabase.from("messages").insert(row).select("*").maybeSingle();
+      if (error) { alert("تعذر الإرسال: " + error.message); return; }
+      if (data) onAudioSent(data as Msg);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const stopTimer = () => { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; } };
 
