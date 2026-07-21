@@ -993,6 +993,21 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               className="px-3 py-2 rounded-lg bg-rose-600/50 hover:bg-rose-600/70 text-rose-100 text-xs font-bold">
               🧹 مسح الوصف + الصورة + الألبوم
             </button>
+            <button
+              disabled={savingAudioUpload}
+              onClick={async () => {
+                const next = !audioUploadAllowed;
+                setSavingAudioUpload(true);
+                const { error } = await (supabase as any).rpc("admin_set_chat_audio_upload", { _target: player.id, _allowed: next });
+                setSavingAudioUpload(false);
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                setAudioUploadAllowed(next);
+                await logAudit(next ? "grant_chat_audio_upload" : "revoke_chat_audio_upload", player.id, {});
+                toast.success(next ? "🎤 سُمح برفع ملفات الصوت في الشات" : "🚫 أُلغي السماح");
+              }}
+              className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${audioUploadAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-slate-700/60 hover:bg-slate-700/80 text-slate-100"}`}>
+              {savingAudioUpload ? "..." : audioUploadAllowed ? "🎤 مسموح — رفع ملف صوت في الشات (ضغط مطوّل على الميكرفون)" : "🎤 السماح برفع ملف صوت كأنه تسجيل"}
+            </button>
           </div>
         </div>
 
