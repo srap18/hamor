@@ -465,6 +465,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       setUsernameVal((p.username ?? "") as string);
       setBio((p.bio ?? "") as string);
       setMediaBanned(Boolean(p.media_banned));
+      setAudioUploadAllowed(Boolean(p.chat_audio_upload_allowed));
       // تحديث الحقول الحيّة من قاعدة البيانات (قائمة الأب قد تكون قديمة)
       if (p.coins != null) setCoins(String(p.coins));
       if (p.gems != null) setGems(String(p.gems));
