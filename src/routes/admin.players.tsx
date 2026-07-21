@@ -80,6 +80,9 @@ function getItemNameAr(itemType: string, itemId: string): string {
 export const Route = createFileRoute("/admin/players")({
   component: AdminPlayers,
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    edit: typeof s.edit === "string" ? s.edit : undefined,
+  }),
 });
 
 type Player = {
