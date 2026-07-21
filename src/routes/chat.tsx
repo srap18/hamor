@@ -1878,11 +1878,12 @@ function NoTribePanel({ userId }: { userId: string }) {
 }
 
 // ===================== Chat Composer with Voice Recorder =====================
-function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply }: {
+function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAudioSent, channel, tribeId, dmWith, replyTo, onClearReply, canUploadAudio }: {
   restoreDraftRef: React.MutableRefObject<(body: string) => void>;
   onSend: (override?: string) => void; sending?: boolean; disabled: boolean; userId: string;
   onAudioSent: (m: Msg) => void; channel: Channel; tribeId: string | null; dmWith: string | null;
   replyTo?: { id: string; body: string; name: string } | null; onClearReply?: () => void;
+  canUploadAudio?: boolean;
 }) {
   const [text, setText] = useState("");
   useEffect(() => {
