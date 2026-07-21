@@ -80,6 +80,9 @@ function getItemNameAr(itemType: string, itemId: string): string {
 export const Route = createFileRoute("/admin/players")({
   component: AdminPlayers,
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    edit: typeof s.edit === "string" ? s.edit : undefined,
+  }),
 });
 
 type Player = {
@@ -131,6 +134,15 @@ function AdminPlayers() {
 
 
   useEffect(() => { load(); }, [load]);
+
+  const editParam = Route.useSearch({ select: (s) => s.edit });
+  useEffect(() => {
+    if (!editParam) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).eq("id", editParam).maybeSingle();
+      if (data) setEditing(data as Player);
+    })();
+  }, [editParam]);
 
   const notify = async (userId: string, title: string, body: string) => {
     const { data: userData } = await supabase.auth.getUser();

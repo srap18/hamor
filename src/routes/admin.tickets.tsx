@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -212,14 +212,23 @@ function AdminTicketsPage() {
             const prof = profiles[t.user_id];
             const dn = prof?.display_name?.trim();
             const un = prof?.username?.trim();
-            const nameLabel = dn && un ? `${dn} (@${un})` : dn || (un ? `@${un}` : t.user_id.slice(0, 8));
             return (
               <div key={t.id} className="rounded-xl bg-slate-900/70 border border-slate-800 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-sm font-bold">{cat.icon} {t.subject}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      {cat.label} · 👤 {nameLabel} · {new Date(t.created_at).toLocaleString("ar")}
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
+                      <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-200">
+                        👤 <span className="font-bold text-amber-200">{dn || "بدون اسم"}</span>
+                        {un && <span className="text-sky-300"> · @{un}</span>}
+                      </span>
+                      <Link
+                        to="/admin/players"
+                        search={{ edit: t.user_id }}
+                        className="px-2 py-0.5 rounded-full bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-100"
+                      >✏️ تعديل اللاعب</Link>
+                      <span className="text-slate-400">{cat.label}</span>
+                      <span className="text-slate-500">· {new Date(t.created_at).toLocaleString("ar")}</span>
                     </div>
                   </div>
                   <span className={`text-[10px] px-2 py-1 rounded-full border ${st.color}`}>{st.label}</span>
