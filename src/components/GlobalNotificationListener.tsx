@@ -13,6 +13,16 @@ type Notif = {
   created_at: string;
 };
 
+type DmMsg = {
+  id: string;
+  channel: string;
+  sender_id: string;
+  recipient_id: string | null;
+  body: string | null;
+  audio_url: string | null;
+  created_at: string;
+};
+
 const iconFor = (kind: string) =>
   kind === "nuke" ? "☢️"
   : kind === "attack" ? "⚔️"
