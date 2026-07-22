@@ -120,8 +120,54 @@ export function GlobalNotificationListener() {
     window.addEventListener("focus", onVis);
     void poll();
 
+    // === DM push notifications: instant + accurate ===
+    // Listens to public.messages inserts where recipient = me and channel = dm,
+    // fetches sender name, then toasts + plays sound + bumps unread badge.
+    const seenDm = new Set<string>();
+    const nameCache = new Map<string, string>();
+    const resolveName = async (id: string): Promise<string> => {
+      const cached = nameCache.get(id);
+      if (cached) return cached;
+      const { data } = await supabase.from("profiles").select("display_name").eq("id", id).maybeSingle();
+      const name = (data as { display_name?: string } | null)?.display_name || "لاعب";
+      nameCache.set(id, name);
+      return name;
+    };
+    const showDm = async (m: DmMsg) => {
+      if (seenDm.has(m.id)) return;
+      seenDm.add(m.id);
+      try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
+      const name = await resolveName(m.sender_id);
+      const preview = m.audio_url ? "🎤 رسالة صوتية" : (m.body || "").slice(0, 140);
+      toast(`✉️ ${name}`, {
+        id: "oc-dm",
+        description: preview || "رسالة جديدة",
+        duration: 3500,
+        onClick: () => {
+          try { toast.dismiss("oc-dm"); } catch { /* noop */ }
+          try { window.location.assign("/chat"); } catch { /* noop */ }
+        },
+      });
+      try { sound.play("click"); } catch { /* noop */ }
+      try { window.dispatchEvent(new CustomEvent("dm-inbound", { detail: { from: m.sender_id } })); } catch { /* noop */ }
+    };
+    const dmChannel = supabase
+      .channel(`global-dm:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` },
+        (payload) => {
+          const m = payload.new as DmMsg;
+          if (!m || m.channel !== "dm") return;
+          if (m.sender_id === user.id) return;
+          void showDm(m);
+        },
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(dmChannel);
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onVis);
