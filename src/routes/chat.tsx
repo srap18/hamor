@@ -779,18 +779,23 @@ function ChatPage() {
                 return (
                 <div
                   key={f.id}
-                  className={`group w-full flex items-center gap-3 p-2.5 rounded-xl border-2 ${unread > 0 ? "border-red-400/70 bg-gradient-to-l from-red-950/40 via-stone-900/80 to-amber-950/40 shadow-[0_0_14px_rgba(239,68,68,0.25)]" : "border-amber-700/40 bg-gradient-to-l from-stone-900/90 via-stone-900/70 to-amber-950/40"} hover:border-amber-400/80 hover:shadow-[0_0_18px_rgba(252,191,73,0.25)] transition-all relative overflow-hidden`}
+                  className={`group relative w-full flex items-center gap-3 p-3 rounded-2xl border transition-all overflow-hidden backdrop-blur-sm ${unread > 0
+                    ? "border-red-400/60 bg-gradient-to-l from-red-950/50 via-stone-900/85 to-amber-950/40 shadow-[0_0_20px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.05)]"
+                    : "border-amber-500/25 bg-gradient-to-l from-stone-900/85 via-stone-950/80 to-amber-950/30 shadow-[0_2px_10px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-amber-400/70 hover:shadow-[0_0_22px_rgba(252,191,73,0.28)]"}`}
                 >
-                  <div className="absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 opacity-60 group-hover:opacity-100" />
+                  {/* soft gold shimmer sheen */}
+                  <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-l from-amber-300/[0.04] via-transparent to-transparent" />
+                  {/* right gold rail */}
+                  <div aria-hidden className="absolute inset-y-2 right-0 w-[3px] rounded-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-800 opacity-70 group-hover:opacity-100 shadow-[0_0_8px_rgba(252,191,73,0.6)]" />
                   <Link
                     to="/p/$id"
                     params={{ id: f.id }}
                     className="relative shrink-0 active:scale-95 transition-transform"
                     aria-label={`محيط ${f.display_name}`}
                   >
-                    <Avatar p={f} size={42} />
+                    <Avatar p={f} size={44} />
                     {unread > 0 && (
-                      <span className="absolute -top-1 -left-1 min-w-[20px] h-[20px] px-1 rounded-full bg-red-600 text-white text-[11px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
+                      <span className="absolute -top-1 -left-1 min-w-[20px] h-[20px] px-1 rounded-full bg-gradient-to-b from-red-400 to-red-700 text-white text-[11px] font-black flex items-center justify-center border-2 border-amber-100 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse">
                         {unread > 9 ? "9+" : unread}
                       </span>
                     )}
@@ -800,17 +805,17 @@ function ChatPage() {
                     onClick={() => setDmWith(f.id)}
                     className="flex-1 min-w-0 text-right active:scale-[0.98] transition-transform"
                   >
-                    <div className="text-sm font-extrabold text-amber-100 truncate">{f.display_name}</div>
+                    <div className="text-[15px] font-black bg-gradient-to-l from-amber-100 via-amber-50 to-amber-200 bg-clip-text text-transparent truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{f.display_name}</div>
                     {entry?.lastBody ? (
-                      <div className={`text-[11px] truncate ${unread > 0 ? "text-amber-100 font-bold" : "text-amber-300/60"}`}>{entry.lastFromMe ? "↩︎ " : ""}{entry.lastBody}</div>
+                      <div className={`text-[11px] truncate mt-0.5 ${unread > 0 ? "text-amber-100 font-bold" : "text-amber-200/60"}`}>{entry.lastFromMe ? "↩︎ " : ""}{entry.lastBody}</div>
                     ) : (
-                      <div className="text-[10px] text-amber-300/70 font-bold">⭐ المستوى {f.level ?? 1}</div>
+                      <div className="text-[10px] text-amber-300/70 font-bold mt-0.5">⭐ المستوى {f.level ?? 1}</div>
                     )}
                   </button>
                   <button
                     type="button"
                     onClick={() => setDmWith(f.id)}
-                    className="text-amber-300/70 group-hover:text-amber-200 text-lg px-1"
+                    className="shrink-0 w-8 h-8 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-200 group-hover:bg-amber-500/25 group-hover:text-amber-100 text-lg flex items-center justify-center transition"
                     aria-label="فتح المحادثة"
                   >
                     ‹
