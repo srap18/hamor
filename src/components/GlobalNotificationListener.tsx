@@ -139,7 +139,7 @@ export function GlobalNotificationListener() {
       try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
       const name = await resolveName(m.sender_id);
       const preview = m.audio_url ? "🎤 رسالة صوتية" : (m.body || "").slice(0, 140);
-      toast(`✉️ ${name}`, {
+      const opts: any = {
         id: "oc-dm",
         description: preview || "رسالة جديدة",
         duration: 3500,
@@ -147,7 +147,8 @@ export function GlobalNotificationListener() {
           try { toast.dismiss("oc-dm"); } catch { /* noop */ }
           try { window.location.assign("/chat"); } catch { /* noop */ }
         },
-      });
+      };
+      toast(`✉️ ${name}`, opts);
       try { sound.play("click"); } catch { /* noop */ }
       try { window.dispatchEvent(new CustomEvent("dm-inbound", { detail: { from: m.sender_id } })); } catch { /* noop */ }
     };
