@@ -684,7 +684,7 @@ function ChatPage() {
       )}
 
 
-      <div className={`absolute left-2 right-2 rounded-2xl border-2 overflow-hidden flex flex-col ${soloTribe ? "bg-gradient-to-b from-stone-950/85 to-stone-950/70 border-amber-500/60 shadow-[0_0_30px_rgba(252,191,73,0.25)]" : "bg-stone-950/70 border-amber-700/60"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl border overflow-hidden flex flex-col backdrop-blur-md ${soloTribe ? "bg-gradient-to-b from-stone-950/90 via-stone-950/80 to-stone-950/70 border-amber-400/60 shadow-[0_0_36px_rgba(252,191,73,0.28),inset_0_1px_0_rgba(255,255,255,0.06)]" : "bg-gradient-to-b from-stone-950/80 via-stone-950/70 to-stone-950/65 border-amber-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.05)]"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "games" ? (
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-md mx-auto text-center pt-6">
