@@ -831,7 +831,6 @@ function ChatPage() {
           <>
             {tab === "dm" && dmFriendInfo && (
               <div className="flex items-center gap-2 p-3 border-b border-amber-400/40 bg-gradient-to-l from-amber-950/85 via-stone-900/85 to-stone-900/85 shadow-[inset_0_-2px_12px_rgba(0,0,0,0.5),0_1px_0_rgba(252,191,73,0.15)] backdrop-blur">
-                <div aria-hidden className="pointer-events-none absolute" />
                 <button onClick={() => setDmWith(null)} className="w-8 h-8 rounded-lg bg-stone-800 border border-amber-700/50 text-amber-300 text-sm active:scale-95 flex items-center justify-center">←</button>
                 <div className="relative">
                   <Avatar p={dmFriendInfo} size={36} />
