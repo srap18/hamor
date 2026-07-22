@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.record_golden_fisher_competition_catch() FROM PUBLIC, anon, authenticated, service_role;
