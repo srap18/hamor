@@ -378,6 +378,26 @@ function AdminCompetitions() {
   };
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel("admin-competition-leaderboard-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "competition_catches" },
+        () => {
+          if (refreshTimer) clearTimeout(refreshTimer);
+          refreshTimer = setTimeout(() => { void load(); }, 250);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
   const create = async () => {
     if (!title.trim()) { setMsg("اكتب عنوان الفعالية"); return; }
     const startOffset = startD * 24 + startH;

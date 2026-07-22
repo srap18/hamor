@@ -184,6 +184,26 @@ function CompetitionsPage() {
   };
   useEffect(() => { loadAll(); }, []);
 
+  useEffect(() => {
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel("competition-leaderboard-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "competition_catches" },
+        () => {
+          if (refreshTimer) clearTimeout(refreshTimer);
+          refreshTimer = setTimeout(() => { void loadAll(); }, 250);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
 
   const [, setTick] = useState(0);
   useEffect(() => {
