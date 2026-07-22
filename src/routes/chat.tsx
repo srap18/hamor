@@ -663,18 +663,23 @@ function ChatPage() {
       )}
 
       {!soloTribe && (
-        <div className="absolute left-2 right-2 z-20 flex gap-1" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
-          {((["public", "tribe", "dm", "topics"] as Channel[]).concat(isAdmin ? (["games"] as Channel[]) : [])).map(t => (
-            <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
-              className={`relative flex-1 py-1.5 rounded-t-lg text-[10px] font-bold border-2 border-b-0 ${tab === t ? "bg-amber-500 border-amber-200 text-amber-950" : "bg-stone-900/70 border-amber-900/60 text-amber-200/70"}`}>
-              {t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "topics" ? "📝 مواضيع" : "🎲 ألعاب"}
-              {t === "dm" && dmTotal > 0 && tab !== "dm" && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-200 shadow animate-pulse">
-                  {dmTotal > 9 ? "9+" : dmTotal}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="absolute left-2 right-2 z-20 flex gap-1.5" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
+          {((["public", "tribe", "dm", "topics"] as Channel[]).concat(isAdmin ? (["games"] as Channel[]) : [])).map(t => {
+            const active = tab === t;
+            return (
+              <button key={t} onClick={() => { setTab(t); setDmWith(null); }}
+                className={`relative flex-1 py-2 rounded-t-xl text-[11px] font-black border-2 border-b-0 transition-all backdrop-blur-sm ${active
+                  ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 border-amber-100 text-amber-950 shadow-[0_-2px_18px_rgba(252,191,73,0.55),inset_0_1px_0_rgba(255,255,255,0.6)] -translate-y-0.5"
+                  : "bg-gradient-to-b from-stone-900/80 to-stone-950/80 border-amber-900/60 text-amber-200/70 hover:text-amber-100 hover:border-amber-500/60"}`}>
+                <span className="drop-shadow">{t === "public" ? "🌍 عام" : t === "tribe" ? "🏴‍☠️ قبيلة" : t === "dm" ? "✉️ خاص" : t === "topics" ? "📝 مواضيع" : "🎲 ألعاب"}</span>
+                {t === "dm" && dmTotal > 0 && tab !== "dm" && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 rounded-full bg-gradient-to-b from-red-400 to-red-700 text-white text-[10px] font-black flex items-center justify-center border-2 border-amber-100 shadow-[0_0_10px_rgba(239,68,68,0.7)] animate-pulse">
+                    {dmTotal > 9 ? "9+" : dmTotal}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
