@@ -22,6 +22,10 @@ import hilalBg from "@/assets/bg-hilal.jpg.asset.json";
 import hilalBurnedBg from "@/assets/bg-hilal-burned.jpg.asset.json";
 import hilalVideo from "@/assets/bg-hilal.mp4.asset.json";
 import hilalBurnedVideo from "@/assets/bg-hilal-burned.mp4.asset.json";
+import titanBg from "@/assets/bg-titan.jpg.asset.json";
+import titanBurnedBg from "@/assets/bg-titan-burned.jpg.asset.json";
+import titanVideo from "@/assets/bg-titan.mp4.asset.json";
+import titanBurnedVideo from "@/assets/bg-titan-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -50,6 +54,8 @@ export type SceneBg = {
   };
   /** If set, background is timed and re-purchase renews expiry. */
   durationDays?: number;
+  /** If true, the background can only be obtained through redemption codes (no shop purchase). */
+  codeOnly?: boolean;
 };
 
 // Unified ship slots — same layout for every background so all 30 ships
@@ -195,6 +201,27 @@ export const BACKGROUNDS: SceneBg[] = [
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
+  },
+  {
+    id: "titan",
+    name: "الهجوم على العمالقة ✨",
+    burnedName: "الهجوم على العمالقة المحترقة 🔥",
+    price: 0,
+    currency: "gems",
+    rarity: "legendary",
+    image: titanBg.url,
+    burnedImage: titanBurnedBg.url,
+    video: titanVideo.url,
+    burnedVideo: titanBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    codeOnly: true,
   },
 
 ];
