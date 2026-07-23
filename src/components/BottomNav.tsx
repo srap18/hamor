@@ -102,8 +102,14 @@ export function BottomNav({ active }: { active?: string }) {
   const [unread, setUnread] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
 
+  // Notifications + realtime channel: set up ONCE per user. Previously this
+  // effect also depended on `active`, which tore down the Supabase realtime
+  // channel and re-ran all 4 badge queries on every navigation — the biggest
+  // source of tab-switch latency. Splitting DM-read into its own effect keeps
+  // the channel stable across navigations without changing any behavior.
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     const loadNotifs = async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const [{ data: personalNotifs }, { data: broadcastNotifs }, { data: reads }, { data: boxes }] = await Promise.all([
@@ -120,6 +126,7 @@ export function BottomNav({ active }: { active?: string }) {
         supabase.from("notification_reads").select("notification_id").eq("user_id", user.id),
         supabase.from("lootbox_owned").select("id").eq("user_id", user.id).eq("opened", false),
       ]);
+      if (cancelled) return;
       const readIds = new Set((reads || []).map((r: any) => r.notification_id));
       const notifications = [...(personalNotifs || []), ...(broadcastNotifs || [])];
       const unreadNotifications = notifications.filter((n: any) => !readIds.has(n.id)).length;
@@ -127,20 +134,13 @@ export function BottomNav({ active }: { active?: string }) {
     };
 
     const loadDm = async () => {
-      if (active === "/chat") {
-        setDmUnread(0);
-        return;
-      }
       const { total } = await loadDmUnreadMap(user.id);
-      setDmUnread(total);
+      if (!cancelled) setDmUnread(total);
     };
 
     loadNotifs();
     loadDm();
 
-    // Split notifications INSERT into personal + broadcast with server-side
-    // filters so Realtime doesn't fan every insert (all players' notifications)
-    // out to every connected client just to trigger a badge refetch.
     const ch = supabase
       .channel(`bottom-nav:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, loadNotifs)
@@ -149,15 +149,20 @@ export function BottomNav({ active }: { active?: string }) {
       .subscribe();
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(ch);
     };
-  }, [user, active]);
+  }, [user]);
 
+  // When entering /chat, mark DMs read and zero the badge locally. This is
+  // independent of the realtime channel above, so navigating in/out of /chat
+  // no longer rebuilds the subscription.
   useEffect(() => {
     if (!user || active !== "/chat") return;
     markAllDmRead(user.id);
     setDmUnread(0);
   }, [user, active]);
+
 
   const friendsBadge = useMemo(() => (unread > 0 ? unread : undefined), [unread]);
 
