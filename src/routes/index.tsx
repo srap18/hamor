@@ -3485,7 +3485,7 @@ function Index() {
 
 
       {/* Settings modal */}
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <Suspense fallback={null}><SettingsModal onClose={() => setSettingsOpen(false)} /></Suspense>}
 
       {/* Leaderboard / players modal */}
       {boostOpen && <LeaderboardModal initialRestore={leaderboardRestore} onClose={() => { setBoostOpen(false); setLeaderboardRestore(null); }} />}
