@@ -287,6 +287,14 @@
   }
   .animate-smoke-rise { animation: smoke-rise 2.4s ease-out infinite; }
 
+  @keyframes smoke-drift {
+    0%   { transform: translateX(0); opacity: 0.6; }
+    50%  { opacity: 0.85; }
+    100% { transform: translateX(80px); opacity: 0; }
+  }
+  .animate-smoke-drift { animation: smoke-drift linear infinite; }
+
+
   @keyframes float-soft {
     0%, 100% { transform: translateY(0) rotate(-0.3deg); }
     50%      { transform: translateY(-3px) rotate(0.3deg); }
