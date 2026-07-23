@@ -68,7 +68,7 @@ import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 
-import { AdBombOverlay } from "@/components/AdBombOverlay";
+
 import { DestroyerSign } from "@/components/DestroyerSign";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
