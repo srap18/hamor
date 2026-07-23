@@ -4370,7 +4370,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
           onClick={onClose}>إغلاق</button>
       </div>
       {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} onBeforePlayerOpen={beforePlayerLink} />}
-      {prizesModal && <PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} />}
+      {prizesModal && <Suspense fallback={null}><PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} /></Suspense>}
     </div>
   );
 }
