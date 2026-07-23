@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
-import { PrizesModal, type PrizeTier } from "@/components/PrizesModal";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { type PrizeTier } from "@/components/PrizesModal";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+
 import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, getUpgradeSubImage, UPGRADE_SUB_STAR_CAPACITY, UPGRADE_SUB_SUCCESS_PCT, UPGRADE_SUB_COST } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
@@ -22,11 +23,29 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
-import { DailyLoginModal } from "@/components/DailyLoginModal";
-import { LuckyBoxButton } from "@/components/LuckyBox";
 
 import { sound } from "@/lib/sound";
-import { SettingsModal } from "@/components/SettingsModal";
+
+// Lazy-loaded modal components: only fetched from the network when actually
+// opened. Together they trim ~1.5k lines from the initial bundle. All are
+// rendered conditionally, so wrapping with a null-fallback Suspense causes no
+// visible flash and preserves every prop, event, and side-effect.
+const SettingsModal = lazy(() =>
+  import("@/components/SettingsModal").then((m) => ({ default: m.SettingsModal })),
+);
+const DailyLoginModal = lazy(() =>
+  import("@/components/DailyLoginModal").then((m) => ({ default: m.DailyLoginModal })),
+);
+const PrizesModal = lazy(() =>
+  import("@/components/PrizesModal").then((m) => ({ default: m.PrizesModal })),
+);
+const LuckyBoxButton = lazy(() =>
+  import("@/components/LuckyBox").then((m) => ({ default: m.LuckyBoxButton })),
+);
+const AdBombOverlay = lazy(() =>
+  import("@/components/AdBombOverlay").then((m) => ({ default: m.AdBombOverlay })),
+);
+
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -49,7 +68,7 @@ import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 
-import { AdBombOverlay } from "@/components/AdBombOverlay";
+
 import { DestroyerSign } from "@/components/DestroyerSign";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
@@ -1854,7 +1873,7 @@ function Index() {
       {/* Only show ad-bombs that target the current player's own ocean.
           Previously we passed `global`, which caused an attacker to see the
           bomb they placed on someone else replay on their own home page. */}
-      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+      {profile?.id && <Suspense fallback={null}><AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} /></Suspense>}
 
       {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
       {profile?.id && (
@@ -2266,9 +2285,9 @@ function Index() {
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
-      <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
+      <Suspense fallback={null}><DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} /></Suspense>
 
-      {marketLevel >= 6 && <LuckyBoxButton onChanged={() => refreshProfile()} />}
+      {marketLevel >= 6 && <Suspense fallback={null}><LuckyBoxButton onChanged={() => refreshProfile()} /></Suspense>}
 
 
 
@@ -3466,7 +3485,7 @@ function Index() {
 
 
       {/* Settings modal */}
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <Suspense fallback={null}><SettingsModal onClose={() => setSettingsOpen(false)} /></Suspense>}
 
       {/* Leaderboard / players modal */}
       {boostOpen && <LeaderboardModal initialRestore={leaderboardRestore} onClose={() => { setBoostOpen(false); setLeaderboardRestore(null); }} />}
@@ -4351,7 +4370,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
           onClick={onClose}>إغلاق</button>
       </div>
       {openTribeId && <TribeDetailModal tribeId={openTribeId} onClose={() => setOpenTribeId(null)} onBeforePlayerOpen={beforePlayerLink} />}
-      {prizesModal && <PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} />}
+      {prizesModal && <Suspense fallback={null}><PrizesModal title={prizesModal.title} tiers={prizesModal.tiers} onClose={() => setPrizesModal(null)} /></Suspense>}
     </div>
   );
 }
