@@ -1979,6 +1979,25 @@ function Index() {
             style={{ left: "0%", top: "51%", width: "46%", height: "14%" }}
           />
         </>
+      ) : scene.id === "titan" ? (
+        <>
+          {/* Attack on Titan background: fixed tap zones over the painted markets */}
+          {/* Right river boat "سوق السمن" → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "62%", top: "36%", width: "34%", height: "9%" }}
+          />
+          {/* Left waterfront building "مخزن سمك" → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "8%", top: "48%", width: "30%", height: "13%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — takes the old ship market spot on the left beach */}
