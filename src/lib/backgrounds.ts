@@ -22,6 +22,10 @@ import hilalBg from "@/assets/bg-hilal.jpg.asset.json";
 import hilalBurnedBg from "@/assets/bg-hilal-burned.jpg.asset.json";
 import hilalVideo from "@/assets/bg-hilal.mp4.asset.json";
 import hilalBurnedVideo from "@/assets/bg-hilal-burned.mp4.asset.json";
+import titanBg from "@/assets/bg-titan.jpg.asset.json";
+import titanBurnedBg from "@/assets/bg-titan-burned.jpg.asset.json";
+import titanVideo from "@/assets/bg-titan.mp4.asset.json";
+import titanBurnedVideo from "@/assets/bg-titan-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
