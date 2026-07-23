@@ -54,6 +54,8 @@ export type SceneBg = {
   };
   /** If set, background is timed and re-purchase renews expiry. */
   durationDays?: number;
+  /** If true, the background can only be obtained through redemption codes (no shop purchase). */
+  codeOnly?: boolean;
 };
 
 // Unified ship slots — same layout for every background so all 30 ships
