@@ -1873,7 +1873,7 @@ function Index() {
       {/* Only show ad-bombs that target the current player's own ocean.
           Previously we passed `global`, which caused an attacker to see the
           bomb they placed on someone else replay on their own home page. */}
-      {profile?.id && <AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} />}
+      {profile?.id && <Suspense fallback={null}><AdBombOverlay targetUserId={profile.id} isOwner onFlash={showToast} /></Suspense>}
 
       {/* Wooden sign of destroyer taunts — owner sees the same sign visitors see. */}
       {profile?.id && (
