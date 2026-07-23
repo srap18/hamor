@@ -488,7 +488,7 @@ function RootComponent() {
         ? (window as any).requestIdleCallback(cb, { timeout: 1500 })
         : setTimeout(cb, 400);
     const handle = idle(() => {
-      const tabs = ["/shop", "/friends", "/chat", "/fish-market", "/"] as const;
+      const tabs = ["/shop", "/friends", "/chat", "/battle", "/arena", "/inventory", "/fish-market", "/ship-market", "/profile", "/"] as const;
       for (const to of tabs) {
         router.preloadRoute({ to }).catch(() => {});
       }
