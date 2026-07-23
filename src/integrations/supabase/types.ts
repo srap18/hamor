@@ -6870,6 +6870,7 @@ export type Database = {
         Args: { _attacker: string; _defender: string }
         Returns: string
       }
+      pvp_max_ship_level: { Args: { _user_id: string }; Returns: number }
       pvp_min_eligible_ship_level: {
         Args: { _user_id: string }
         Returns: number
