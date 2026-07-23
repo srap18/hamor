@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,9 @@ import { SHIPS, catchPerTrip, shipBowFacesRight, shipMarketCapacity, getShipByCo
 import { FISH } from "@/lib/fish";
 import { buyShipByCode, marketStartUpgrade, marketFinishUpgradeWithGems } from "@/lib/economy";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { MyShipsModal } from "@/components/MyShipsModal";
+const MyShipsModal = lazy(() =>
+  import("@/components/MyShipsModal").then((m) => ({ default: m.MyShipsModal }))
+);
 import { getCached, setCached } from "@/lib/swr-cache";
 import iconArmor from "@/assets/icons/icon-armor.png";
 import iconCoins from "@/assets/icons/icon-coins.png";
