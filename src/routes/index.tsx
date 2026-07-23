@@ -2285,9 +2285,9 @@ function Index() {
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
-      <DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} />
+      <Suspense fallback={null}><DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} /></Suspense>
 
-      {marketLevel >= 6 && <LuckyBoxButton onChanged={() => refreshProfile()} />}
+      {marketLevel >= 6 && <Suspense fallback={null}><LuckyBoxButton onChanged={() => refreshProfile()} /></Suspense>}
 
 
 
