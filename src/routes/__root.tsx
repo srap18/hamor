@@ -492,6 +492,9 @@ function RootComponent() {
       for (const to of tabs) {
         router.preloadRoute({ to }).catch(() => {});
       }
+      // Warm heavy component chunks in the background so first-open feels instant.
+      import("@/components/MyShipsModal").catch(() => {});
+      import("@/components/LudoPanel").catch(() => {});
     });
     return () => {
       try { (window as any).cancelIdleCallback?.(handle); } catch {}
