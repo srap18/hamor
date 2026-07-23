@@ -8,6 +8,7 @@ import { FISH, FISH_TOTAL } from "@/lib/fish";
 import { SHIPS, getShipByCode } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { refreshProfile } from "@/hooks/use-auth";
+import { getCached, setCached } from "@/lib/swr-cache";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
@@ -26,6 +27,14 @@ interface InvRow { id: string; item_type: string; item_id: string; quantity: num
 interface FishRow { fish_id: string; quantity: number; total_caught: number; }
 interface OwnedShip { id: string; catalog_code: string | null; hp: number; max_hp: number; in_storage: boolean; }
 
+interface InventoryCache {
+  inv: InvRow[];
+  fishRows: FishRow[];
+  ships: OwnedShip[];
+  goldenFisherUntil: string | null;
+  marketExpertUntil: string | null;
+}
+
 function InventoryPage() {
   const [tab, setTab] = useState<Tab>("crew");
   const [inv, setInv] = useState<InvRow[]>([]);
@@ -39,19 +48,22 @@ function InventoryPage() {
   const usingCrewRef = useRef(false);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (showSpinner = true) => {
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
+      const cacheKey = `inventory:${u.user.id}`;
+      if (showSpinner && !getCached<InventoryCache>(cacheKey)) setLoading(true);
       const [{ data: i }, { data: f }, { data: s }, { data: p }] = await Promise.all([
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
         supabase.from("profiles").select("golden_fisher_until, market_expert_until").eq("id", u.user.id).maybeSingle(),
       ]);
-      setGoldenFisherUntil(((p as any)?.golden_fisher_until as string | null) ?? null);
-      setMarketExpertUntil(((p as any)?.market_expert_until as string | null) ?? null);
+      const gfu = ((p as any)?.golden_fisher_until as string | null) ?? null;
+      const meu = ((p as any)?.market_expert_until as string | null) ?? null;
+      setGoldenFisherUntil(gfu);
+      setMarketExpertUntil(meu);
       let stockQty: Record<string, number> = {};
       try {
         const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
@@ -64,16 +76,26 @@ function InventoryPage() {
 
       const caughtRows = (f ?? []) as FishRow[];
       const fishIds = new Set([...caughtRows.map((r) => r.fish_id), ...Object.keys(stockQty)]);
-      setInv((i ?? []) as InvRow[]);
-      setShips((s as OwnedShip[] | null) ?? []);
-      setFishRows(Array.from(fishIds).map((fish_id) => {
+      const invNext = (i ?? []) as InvRow[];
+      const shipsNext = (s as OwnedShip[] | null) ?? [];
+      const fishNext: FishRow[] = Array.from(fishIds).map((fish_id) => {
         const caught = caughtRows.find((r) => r.fish_id === fish_id);
         return {
           fish_id,
           quantity: stockQty[fish_id] ?? 0,
           total_caught: Math.max(caught?.total_caught ?? 0, stockQty[fish_id] ?? 0),
         };
-      }));
+      });
+      setInv(invNext);
+      setShips(shipsNext);
+      setFishRows(fishNext);
+      setCached<InventoryCache>(cacheKey, {
+        inv: invNext,
+        fishRows: fishNext,
+        ships: shipsNext,
+        goldenFisherUntil: gfu,
+        marketExpertUntil: meu,
+      });
     } catch (e) {
       console.error("[inventory] load failed", e);
       toast.error("تعذر تحميل المخزن — حاول مرة ثانية");
@@ -83,9 +105,27 @@ function InventoryPage() {
   };
 
   useEffect(() => {
-    load();
-    const onChanged = () => load();
-    const onFocus = () => load();
+    // Hydrate from cache instantly so re-entering /inventory shows the last
+    // known state without an empty/loading flash. Server refetch runs in the
+    // background and reconciles the authoritative values right after.
+    (async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) { load(); return; }
+        const cached = getCached<InventoryCache>(`inventory:${u.user.id}`);
+        if (cached) {
+          setInv(cached.inv);
+          setFishRows(cached.fishRows);
+          setShips(cached.ships);
+          setGoldenFisherUntil(cached.goldenFisherUntil);
+          setMarketExpertUntil(cached.marketExpertUntil);
+          setLoading(false);
+        }
+        load(!cached);
+      } catch { load(); }
+    })();
+    const onChanged = () => load(false);
+    const onFocus = () => load(false);
     window.addEventListener("fish-stock-changed", onChanged);
     window.addEventListener("focus", onFocus);
     return () => {
@@ -95,6 +135,9 @@ function InventoryPage() {
   }, []);
 
   useEffect(() => {
+    const cacheKey = "inventory:fish-prices";
+    const cached = getCached<Record<string, number>>(cacheKey);
+    if (cached) setPriceMap(cached);
     const loadPrices = async () => {
       const { data } = await (supabase as any)
         .from("fish_market_prices")
@@ -104,6 +147,7 @@ function InventoryPage() {
         m[row.fish_id] = Number(row.current_price) || 0;
       }
       setPriceMap(m);
+      setCached(cacheKey, m);
     };
     loadPrices();
     const ch = supabase
