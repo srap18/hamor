@@ -183,7 +183,7 @@ export function BackgroundsPanel() {
       )}
 
       <div className="grid grid-cols-2 auto-rows-min content-start gap-3">
-        {BACKGROUNDS.map((b) => {
+        {BACKGROUNDS.filter((b) => !b.codeOnly || owned.includes(b.id)).map((b) => {
           const isOwned = owned.includes(b.id);
           const isEquipped = selected === b.id;
           return (
