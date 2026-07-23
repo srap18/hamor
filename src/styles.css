@@ -248,7 +248,9 @@
     .animate-sea-flow,
     .animate-wave-slide,
     .animate-float-soft,
-    .animate-shimmer {
+    .animate-shimmer,
+    .animate-smoke-drift {
+
       animation: none !important;
     }
   }
