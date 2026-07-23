@@ -124,18 +124,6 @@
   }
   .animate-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
 
-  @keyframes cloud-drift {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(140vw); }
-  }
-  .animate-cloud-drift { animation: cloud-drift linear infinite; }
-
-  @keyframes bird-fly {
-    0% { transform: translate(0, 0); }
-    50% { transform: translate(60vw, -10px); }
-    100% { transform: translate(130vw, 5px); }
-  }
-  .animate-bird-fly { animation: bird-fly linear infinite; }
 
   @keyframes wave-slide {
     0% { background-position: 0 0; }
@@ -195,12 +183,12 @@
   html.low-perf .animate-bg-burned-pulse,
   html.low-perf .animate-burned-glow,
   html.low-perf .animate-sea-flow,
-  html.low-perf .animate-cloud-drift,
-  html.low-perf .animate-bird-fly,
   html.low-perf .animate-wave-slide,
   html.low-perf .animate-float-soft,
   html.low-perf .animate-shimmer,
   html.low-perf .animate-smoke-rise,
+  html.low-perf .animate-smoke-drift,
+
   html.low-perf .animate-bow-splash,
   html.low-perf .animate-sail-flap,
   html.low-perf .animate-crew-bob,
@@ -213,14 +201,14 @@
     animation: none !important;
   }
 
-  /* User toggle: pause animated background (video, drift, sea, clouds, birds).
+  /* User toggle: pause animated background (video, drift, sea).
      Keeps the static background image but stops continuous motion. */
   html.bg-motion-paused .animate-bg-drift,
   html.bg-motion-paused .animate-bg-burned-pulse,
   html.bg-motion-paused .animate-burned-glow,
   html.bg-motion-paused .animate-sea-flow,
-  html.bg-motion-paused .animate-cloud-drift,
-  html.bg-motion-paused .animate-bird-fly {
+  html.bg-motion-paused .animate-sea-flow {
+
     animation: none !important;
   }
 
@@ -258,11 +246,11 @@
     .animate-bg-burned-pulse,
     .animate-burned-glow,
     .animate-sea-flow,
-    .animate-cloud-drift,
-    .animate-bird-fly,
     .animate-wave-slide,
     .animate-float-soft,
-    .animate-shimmer {
+    .animate-shimmer,
+    .animate-smoke-drift {
+
       animation: none !important;
     }
   }
@@ -302,6 +290,14 @@
     100% { transform: translate(-50%, -60px) scale(1.4); opacity: 0; }
   }
   .animate-smoke-rise { animation: smoke-rise 2.4s ease-out infinite; }
+
+  @keyframes smoke-drift {
+    0%   { transform: translateX(0); opacity: 0.6; }
+    50%  { opacity: 0.85; }
+    100% { transform: translateX(80px); opacity: 0; }
+  }
+  .animate-smoke-drift { animation: smoke-drift linear infinite; }
+
 
   @keyframes float-soft {
     0%, 100% { transform: translateY(0) rotate(-0.3deg); }
@@ -591,14 +587,14 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* ========== Performance optimizations ========== */
-.animate-cloud-drift,
-.animate-bird-fly,
 .animate-flag-wave,
 .animate-sail-flap,
 .animate-crew-bob,
 .animate-bow-splash,
 .animate-smoke-rise,
+.animate-smoke-drift,
 .animate-shimmer {
+
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -622,10 +618,6 @@ button, a, [role="button"] {
   }
 }
 
-@media (max-width: 640px) {
-  .animate-cloud-drift { animation-duration: 180s !important; }
-  .animate-bird-fly { animation-duration: 60s !important; }
-}
 
 /* ===========================================================
    Mobile-frame wrapper — keeps the app shaped like a phone UI

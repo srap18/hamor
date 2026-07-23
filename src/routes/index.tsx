@@ -43,7 +43,7 @@ import {
 } from "@/lib/ship-slot-editor";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Landing } from "@/components/Landing";
-import cloudImg from "@/assets/cloud-realistic.png";
+
 import harborBgPoster from "@/assets/harbor-bg.jpg";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { repairBurnedBg } from "@/components/BurnedBgOverlay";
@@ -54,7 +54,7 @@ import { DestroyerSign } from "@/components/DestroyerSign";
 import { ShipMarketBuilding } from "@/components/ShipMarketBuilding";
 import { FishMarketBuilding } from "@/components/FishMarketBuilding";
 import { Placeable } from "@/components/AdminLayoutEditor";
-import birdImg from "@/assets/bird-realistic.png";
+
 import { CoinIcon, GemIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSynced } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
@@ -2063,23 +2063,6 @@ function Index() {
 
 
 
-      {/* Realistic drifting clouds — disabled on iOS / low-perf to reduce GPU heat */}
-      {!isHeavyFxDisabled && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "6%", left: "-20%", width: "26%", opacity: 0.85, animationDuration: "90s", filter: "drop-shadow(0 4px 10px rgba(255,255,255,0.15))" }} draggable={false} />
-          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "16%", left: "-30%", width: "18%", opacity: 0.7, animationDuration: "120s", animationDelay: "-30s", transform: "scaleX(-1)" }} draggable={false} />
-          <img src={cloudImg} alt="" loading="lazy" className="absolute animate-cloud-drift select-none" style={{ top: "2%", left: "-45%", width: "32%", opacity: 0.9, animationDuration: "150s", animationDelay: "-70s" }} draggable={false} />
-        </div>
-      )}
-
-      {/* Realistic flying seagulls — disabled on iOS / low-perf */}
-      {!isHeavyFxDisabled && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[6]">
-          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "12%", left: "-10%", width: "5%", animationDuration: "28s", filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))" }} draggable={false} />
-          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "20%", left: "-15%", width: "3.5%", animationDuration: "36s", animationDelay: "-10s" }} draggable={false} />
-          <img src={birdImg} alt="" loading="lazy" className="absolute animate-bird-fly select-none" style={{ top: "6%", left: "-20%", width: "4%", animationDuration: "44s", animationDelay: "-22s" }} draggable={false} />
-        </div>
-      )}
 
 
 
