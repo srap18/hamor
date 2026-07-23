@@ -2622,18 +2622,19 @@ function Index() {
                       className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black text-accent active:scale-95 ${
                         isCurrent ? "border-amber-300 bg-amber-500/20" : "border-accent/40 bg-secondary/70"
                       }`}
-                      onClick={async (e) => {
+                      onClick={(e) => {
+                        // Close the modal FIRST so a slow network never
+                        // freezes the picker. The RPC runs in the background;
+                        // the server also accepts the choice on collect via
+                        // _requested_fish_id, so no data is lost if it fails.
                         setShipGuide(s.id, fishId);
-                        // Persist guide preference server-side so the Golden Fisher
-                        // honors it while running offline. AWAIT before collecting
-                        // to prevent a race where collect_fishing_reward reads the
-                        // stale preferred_fish_id.
-                        if (s.dbId) {
-                          try {
-                            await (supabase as any).rpc("set_guide_fish", { _ship_db_id: s.dbId, _fish_id: fishId });
-                          } catch {}
-                        }
+                        const shipDbId = s.dbId;
                         close();
+                        if (shipDbId) {
+                          void (supabase as any)
+                            .rpc("set_guide_fish", { _ship_db_id: shipDbId, _fish_id: fishId })
+                            .catch(() => {});
+                        }
                         if (!changeOnly) {
                           collect(s.id, e);
                         } else {
@@ -2644,6 +2645,7 @@ function Index() {
                       {f.img ? <img src={f.img} alt={f.name} className="h-7 w-7 object-contain" loading="lazy" /> : <span className="text-xl">{f.emoji}</span>}
                       <span>{f.name}</span>
                     </button>
+
                   );
                 })}
               </div>
