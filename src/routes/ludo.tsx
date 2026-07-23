@@ -1,7 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin } from "@/hooks/use-admin";
-import { LudoPanel } from "@/components/LudoPanel";
+
+const LudoPanel = lazy(() =>
+  import("@/components/LudoPanel").then((m) => ({ default: m.LudoPanel }))
+);
 
 export const Route = createFileRoute("/ludo")({
   component: LudoFullscreen,
@@ -53,7 +57,9 @@ function LudoFullscreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <LudoPanel userId={user.id} fullscreen />
+        <Suspense fallback={<div className="min-h-[60vh] grid place-items-center text-amber-200 text-sm">جاري تحميل اللعبة...</div>}>
+          <LudoPanel userId={user.id} fullscreen />
+        </Suspense>
       </div>
     </div>
   );
