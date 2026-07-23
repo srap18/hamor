@@ -1126,18 +1126,6 @@ function PlayerPage() {
       </div>
 
 
-      {/* Animated clouds */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-        <div className="absolute text-white/70 text-5xl animate-cloud-drift" style={{ top: "8%", left: "-15%", animationDuration: "60s" }}>☁️</div>
-        <div className="absolute text-white/60 text-4xl animate-cloud-drift" style={{ top: "18%", left: "-25%", animationDuration: "85s", animationDelay: "-20s" }}>☁️</div>
-        <div className="absolute text-white/80 text-6xl animate-cloud-drift" style={{ top: "3%", left: "-40%", animationDuration: "110s", animationDelay: "-50s" }}>☁️</div>
-      </div>
-
-      {/* Animated birds */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[6]">
-        <div className="absolute text-xl animate-bird-fly" style={{ top: "12%", left: "-10%", animationDuration: "22s" }}>🕊️</div>
-        <div className="absolute text-base animate-bird-fly" style={{ top: "20%", left: "-15%", animationDuration: "28s", animationDelay: "-8s" }}>🕊️</div>
-      </div>
 
       {/* Dragon — same position as in the player's own ocean (DragonShoreCreature) */}
       <DragonShoreCreature userId={playerId} interactive={false} />
@@ -2089,8 +2077,9 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         {/* Smoke when destroyed */}
         {destroyed && (
           <>
-            <div className="absolute pointer-events-none text-4xl animate-cloud-drift" style={{ left: "30%", top: "-30%", animationDuration: "6s", filter: "grayscale(1) brightness(0.7)" }}>💨</div>
-            <div className="absolute pointer-events-none text-5xl animate-cloud-drift" style={{ left: "45%", top: "-50%", animationDuration: "8s", animationDelay: "-2s", filter: "grayscale(1) brightness(0.5)" }}>💨</div>
+            <div className="absolute pointer-events-none text-4xl animate-smoke-drift" style={{ left: "30%", top: "-30%", animationDuration: "6s", filter: "grayscale(1) brightness(0.7)" }}>💨</div>
+            <div className="absolute pointer-events-none text-5xl animate-smoke-drift" style={{ left: "45%", top: "-50%", animationDuration: "8s", animationDelay: "-2s", filter: "grayscale(1) brightness(0.5)" }}>💨</div>
+
             <div className="absolute pointer-events-none text-3xl animate-pulse" style={{ left: "40%", top: "10%" }}>🔥</div>
           </>
         )}
@@ -2098,7 +2087,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         {damaged && (
           <>
             <div
-              className="absolute pointer-events-none animate-cloud-drift"
+              className="absolute pointer-events-none animate-smoke-drift"
               style={{
                 left: "35%",
                 top: "-20%",

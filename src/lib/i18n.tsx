@@ -32,8 +32,9 @@ export const dict: Dict = {
   "settings.death_banners": { ar: "💀 إظهار لافتات الموت", en: "💀 Show death banners" },
   "settings.pause_bg": { ar: "🎬 إيقاف الخلفية المتحركة", en: "🎬 Pause animated background" },
   "settings.pause_bg_hint": {
-    ar: "يوقف الفيديو والحركة في الخلفية (السحب، الطيور، البحر) ويترك صورة ثابتة — مفيد للجوالات الضعيفة أو لما يسخن الجهاز.",
-    en: "Stops video and background motion (clouds, birds, sea) and keeps a still image — useful for weaker phones or when the device overheats.",
+    ar: "يوقف الفيديو والحركة في الخلفية (البحر) ويترك صورة ثابتة — مفيد للجوالات الضعيفة أو لما يسخن الجهاز.",
+    en: "Stops video and background motion (sea) and keeps a still image — useful for weaker phones or when the device overheats.",
+
   },
   "settings.lite_mode": { ar: "🔋 موفر البطارية (يقلل تسخين الجوال)", en: "🔋 Battery saver (reduces device heat)" },
   "settings.lite_hint": {
