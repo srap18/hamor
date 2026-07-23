@@ -436,7 +436,11 @@ function ShipyardPage() {
           </div>
         )}
       </div>
-      <MyShipsModal open={storageOpen} onClose={() => { setStorageOpen(false); loadData(); }} />
+      {storageOpen && (
+        <Suspense fallback={null}>
+          <MyShipsModal open={storageOpen} onClose={() => { setStorageOpen(false); loadData(); }} />
+        </Suspense>
+      )}
     </div>
   );
 }
