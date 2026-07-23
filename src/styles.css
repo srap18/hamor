@@ -592,7 +592,9 @@ input, textarea, [contenteditable="true"] {
 .animate-crew-bob,
 .animate-bow-splash,
 .animate-smoke-rise,
+.animate-smoke-drift,
 .animate-shimmer {
+
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
