@@ -199,7 +199,7 @@
     animation: none !important;
   }
 
-  /* User toggle: pause animated background (video, drift, sea, clouds, birds).
+  /* User toggle: pause animated background (video, drift, sea).
      Keeps the static background image but stops continuous motion. */
   html.bg-motion-paused .animate-bg-drift,
   html.bg-motion-paused .animate-bg-burned-pulse,
