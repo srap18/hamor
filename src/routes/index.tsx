@@ -23,11 +23,29 @@ import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
-import { DailyLoginModal } from "@/components/DailyLoginModal";
-import { LuckyBoxButton } from "@/components/LuckyBox";
 
 import { sound } from "@/lib/sound";
-import { SettingsModal } from "@/components/SettingsModal";
+
+// Lazy-loaded modal components: only fetched from the network when actually
+// opened. Together they trim ~1.5k lines from the initial bundle. All are
+// rendered conditionally, so wrapping with a null-fallback Suspense causes no
+// visible flash and preserves every prop, event, and side-effect.
+const SettingsModal = lazy(() =>
+  import("@/components/SettingsModal").then((m) => ({ default: m.SettingsModal })),
+);
+const DailyLoginModal = lazy(() =>
+  import("@/components/DailyLoginModal").then((m) => ({ default: m.DailyLoginModal })),
+);
+const PrizesModal = lazy(() =>
+  import("@/components/PrizesModal").then((m) => ({ default: m.PrizesModal })),
+);
+const LuckyBoxButton = lazy(() =>
+  import("@/components/LuckyBox").then((m) => ({ default: m.LuckyBoxButton })),
+);
+const AdBombOverlay = lazy(() =>
+  import("@/components/AdBombOverlay").then((m) => ({ default: m.AdBombOverlay })),
+);
+
 
 import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { NotificationsBell } from "@/components/NotificationsBell";
