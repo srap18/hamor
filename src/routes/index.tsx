@@ -1981,37 +1981,8 @@ function Index() {
         </>
       ) : scene.id === "titan" ? (
         <>
-          {/* Attack on Titan background: warm glow highlights + fixed tap zones */}
-          {/* Ambient warm lift across the ocean so ships don't disappear in the dark */}
-          <div
-            className="absolute pointer-events-none z-[6]"
-            style={{
-              left: "0%", top: "55%", width: "100%", height: "38%",
-              background: "radial-gradient(ellipse at 50% 40%, rgba(255,190,120,0.22), rgba(255,150,90,0.10) 45%, transparent 75%)",
-              mixBlendMode: "screen",
-            }}
-          />
-          {/* Glow — Ship Market (right boat) */}
-          <div
-            className="absolute pointer-events-none z-[7] animate-pulse"
-            style={{
-              left: "58%", top: "30%", width: "42%", height: "22%",
-              background: "radial-gradient(ellipse at 45% 55%, rgba(255,210,130,0.55), rgba(255,160,70,0.28) 40%, transparent 70%)",
-              mixBlendMode: "screen",
-              filter: "blur(2px)",
-            }}
-          />
-          {/* Glow — Fish Market (left building) */}
-          <div
-            className="absolute pointer-events-none z-[7] animate-pulse"
-            style={{
-              left: "2%", top: "42%", width: "42%", height: "26%",
-              background: "radial-gradient(ellipse at 50% 50%, rgba(255,215,140,0.55), rgba(255,170,80,0.28) 40%, transparent 72%)",
-              mixBlendMode: "screen",
-              filter: "blur(2px)",
-              animationDelay: "1.2s",
-            }}
-          />
+          {/* Attack on Titan background: fixed tap zones only, no overlay effects */}
+
           {/* Right river boat → Ship Market */}
           <Link
             to="/ship-market"
