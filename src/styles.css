@@ -948,7 +948,17 @@ body.paddle-checkout-open .paddle-frame {
 .frame-anim-sparkle,
 .frame-anim-wave,
 .frame-anim-leaf,
-.frame-anim-pulse {
+.frame-anim-pulse,
+.frame-anim-aurora,
+.frame-anim-neon,
+.frame-anim-rotate,
+.frame-anim-orbit,
+.frame-anim-royal,
+.frame-anim-diamond,
+.frame-anim-obsidian,
+.frame-anim-sakura,
+.frame-anim-emerald,
+.frame-anim-imperial {
   will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
