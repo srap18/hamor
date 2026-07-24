@@ -171,7 +171,7 @@ function SeasonPage() {
                 const p = profs[r.user_id];
                 const frame = frameForDamage(r.damage_total);
                 return (
-                  <div key={r.user_id} className={`flex items-center gap-3 rounded-xl p-2 ${me===r.user_id?"bg-amber-500/15 border border-amber-400/40":"bg-white/5 border border-white/10"}`}>
+                  <button type="button" onClick={() => openPlayer(r.user_id)} key={r.user_id} className={`w-full flex items-center gap-3 rounded-xl p-2 text-right active:scale-[0.99] ${me===r.user_id?"bg-amber-500/15 border border-amber-400/40":"bg-white/5 border border-white/10"}`}>
                     <div className="w-8 text-center font-black text-amber-300">#{rank}</div>
                     <SeasonFrameRing frame={frame} size={48} showCrown={false}>
                       {p?.avatar_url ? (
