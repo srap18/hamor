@@ -163,10 +163,23 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
                   {result.reward_xp > 0 && <div>✨ {result.reward_xp.toLocaleString()} خبرة</div>}
                 </>
               )}
-              {(result.reward_type === "item" || result.reward_type === "ship") && (
+              {(result.reward_type === "item" || result.reward_type === "ship" || result.reward_type === "lootbox") && (
                 <ItemLine code={result.item_id} type={result.reward_type} qty={result.quantity || 1} />
               )}
+              {result.reward_type === "vip" && result.item_id && (
+                <div>👑 VIP مستوى {result.item_id} — {result.meta?.permanent ? "دائم" : `${result.quantity || 1} يوم`}</div>
+              )}
+              {result.reward_type === "elite_vip" && result.item_id && (
+                <div>💎 Elite VIP مستوى {result.item_id} — {result.meta?.permanent ? "دائم" : `${result.quantity || 1} يوم`}</div>
+              )}
+              {(result.reward_vip_level ?? 0) > 0 && (
+                <div>👑 +{result.reward_vip_level} مستوى VIP{(result.reward_vip_days ?? 0) > 0 ? ` — ${result.reward_vip_days} يوم` : " — دائم"}</div>
+              )}
+              {(result.reward_elite_vip_level ?? 0) > 0 && (
+                <div>💎 +{result.reward_elite_vip_level} مستوى Elite VIP{(result.reward_elite_vip_days ?? 0) > 0 ? ` — ${result.reward_elite_vip_days} يوم` : " — دائم"}</div>
+              )}
               {Array.isArray(result.extra_rewards) && result.extra_rewards.length > 0 && (
+
                 <div className="mt-2 pt-2 border-t border-emerald-700/40 space-y-1 text-right">
                   {result.extra_rewards.map((r, i) => (
                     <div key={i}>
