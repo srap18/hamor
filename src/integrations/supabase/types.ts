@@ -3502,6 +3502,144 @@ export type Database = {
         }
         Relationships: []
       }
+      season_damage: {
+        Row: {
+          damage_total: number
+          first_reached_at: string
+          season_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          damage_total?: number
+          first_reached_at?: string
+          season_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          damage_total?: number
+          first_reached_at?: string
+          season_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_damage_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_damage_events: {
+        Row: {
+          attack_id: string
+          created_at: string
+          damage: number
+          season_id: number
+          user_id: string
+        }
+        Insert: {
+          attack_id: string
+          created_at?: string
+          damage: number
+          season_id: number
+          user_id: string
+        }
+        Update: {
+          attack_id?: string
+          created_at?: string
+          damage?: number
+          season_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_damage_events_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_results: {
+        Row: {
+          final_damage: number
+          final_rank: number
+          frame_tier: number
+          granted_at: string
+          reward_gems: number
+          season_id: number
+          tx_id: string | null
+          user_id: string
+        }
+        Insert: {
+          final_damage: number
+          final_rank: number
+          frame_tier?: number
+          granted_at?: string
+          reward_gems?: number
+          season_id: number
+          tx_id?: string | null
+          user_id: string
+        }
+        Update: {
+          final_damage?: number
+          final_rank?: number
+          frame_tier?: number
+          granted_at?: string
+          reward_gems?: number
+          season_id?: number
+          tx_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_results_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          closed_at: string | null
+          code: string
+          created_at: string
+          ends_at: string
+          id: number
+          name: string
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          closed_at?: string | null
+          code: string
+          created_at?: string
+          ends_at: string
+          id?: number
+          name: string
+          starts_at?: string
+          status?: string
+        }
+        Update: {
+          closed_at?: string | null
+          code?: string
+          created_at?: string
+          ends_at?: string
+          id?: number
+          name?: string
+          starts_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       shield_type_activations: {
         Row: {
           item_id: string
@@ -6011,6 +6149,7 @@ export type Database = {
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_old_notifications_batch: { Args: never; Returns: number }
       cleanup_voice_artifacts: { Args: never; Returns: undefined }
+      close_season: { Args: { _season_id: number }; Returns: Json }
       collect_fishing_reward: {
         Args: {
           _client_progress?: number
@@ -6035,6 +6174,26 @@ export type Database = {
       consume_inventory_item: {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
+      }
+      cron_close_expired_seasons: { Args: never; Returns: number }
+      current_season: {
+        Args: never
+        Returns: {
+          closed_at: string | null
+          code: string
+          created_at: string
+          ends_at: string
+          id: number
+          name: string
+          starts_at: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "seasons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       daily_rockets_status: { Args: never; Returns: Json }
       daily_xp_cap: { Args: never; Returns: number }
@@ -7030,6 +7189,7 @@ export type Database = {
           xp: number
         }[]
       }
+      season_frame_tier: { Args: { _damage: number }; Returns: number }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
       sell_fish_by_qty:
         | { Args: { _fish_id: string; _qty: number }; Returns: number }
