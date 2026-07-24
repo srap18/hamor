@@ -48,47 +48,47 @@ export const AVATAR_FRAMES: Frame[] = [
   {
     id: "af_aries", name: "إطار الحَمَل 🔥", kind: "avatar",
     price: 1000, currency: "gem", rarity: "rare", preview: "♈",
-    imageUrl: ariesImg, animClass: "frame-anim-flame",
+    imageUrl: ariesImg, animClass: "frame-anim-imperial",
   },
   {
     id: "af_phoenix", name: "أجنحة العنقاء", kind: "avatar",
     price: 5000, currency: "gem", rarity: "epic", preview: "🔥",
-    imageUrl: phoenixImg, animClass: "frame-anim-flame",
+    imageUrl: phoenixImg, animClass: "frame-anim-imperial",
   },
   {
     id: "af_virgo", name: "إطار العذراء 🌾", kind: "avatar",
     price: 8000, currency: "gem", rarity: "epic", preview: "♍",
-    imageUrl: virgoImg, animClass: "frame-anim-leaf",
+    imageUrl: virgoImg, animClass: "frame-anim-emerald",
   },
   {
     id: "af_leo", name: "إطار الأسد ☀️", kind: "avatar",
     price: 12000, currency: "gem", rarity: "legendary", preview: "♌",
-    imageUrl: leoImg, animClass: "frame-anim-flame",
+    imageUrl: leoImg, animClass: "frame-anim-royal",
   },
   {
     id: "af_taurus", name: "إطار الثور 💚", kind: "avatar",
     price: 18000, currency: "gem", rarity: "legendary", preview: "♉",
-    imageUrl: taurusImg, animClass: "frame-anim-leaf",
+    imageUrl: taurusImg, animClass: "frame-anim-emerald",
   },
   {
     id: "af_gemini", name: "إطار الجوزاء ✨", kind: "avatar",
     price: 25000, currency: "gem", rarity: "legendary", preview: "♊",
-    imageUrl: geminiImg, animClass: "frame-anim-sparkle",
+    imageUrl: geminiImg, animClass: "frame-anim-neon",
   },
   {
     id: "af_scorpio", name: "إطار العقرب 🦂", kind: "avatar",
     price: 50000, currency: "gem", rarity: "mythic", preview: "♏",
-    imageUrl: scorpioImg, animClass: "frame-anim-pulse mix-blend-multiply",
+    imageUrl: scorpioImg, animClass: "frame-anim-obsidian",
   },
   {
     id: "af_pisces", name: "إطار الحوت 🐟", kind: "avatar",
     price: 75000, currency: "gem", rarity: "mythic", preview: "♓",
-    imageUrl: piscesImg, animClass: "frame-anim-wave",
+    imageUrl: piscesImg, animClass: "frame-anim-aurora",
   },
   {
     id: "af_cosmic_vip", name: "🌌 الإطار الكوني (VIP 10 حصري)", kind: "avatar",
     price: 999999, currency: "gem", rarity: "mythic", preview: "🌌",
-    imageUrl: cosmicVipImg, animClass: "frame-anim-pulse",
+    imageUrl: cosmicVipImg, animClass: "frame-anim-orbit",
   },
 
   // ─── Premium Luxury avatar frames (animated SVG rings) ───
@@ -422,12 +422,15 @@ export function frameById(id?: string | null): Frame | undefined {
 }
 
 function frameMotionClass(id: string): string {
-  if (id.includes("aries") || id.includes("phoenix") || id.includes("leo")) return "frame-anim-flame";
-  if (id.includes("virgo") || id.includes("taurus")) return "frame-anim-leaf";
-  if (id.includes("gemini")) return "frame-anim-sparkle";
-  if (id.includes("scorpio")) return "frame-anim-pulse";
-  if (id.includes("pisces")) return "frame-anim-wave";
-  return "frame-anim-float";
+  // Every frame uses a premium 3D-style luxury animation — no flat 2D motions.
+  if (id.includes("aries") || id.includes("phoenix")) return "frame-anim-imperial";
+  if (id.includes("leo")) return "frame-anim-royal";
+  if (id.includes("virgo") || id.includes("taurus")) return "frame-anim-emerald";
+  if (id.includes("gemini")) return "frame-anim-neon";
+  if (id.includes("scorpio")) return "frame-anim-obsidian";
+  if (id.includes("pisces")) return "frame-anim-aurora";
+  if (id.includes("cosmic")) return "frame-anim-orbit";
+  return "frame-anim-royal";
 }
 
 // Map frame kind → inventory item_type stored in DB
