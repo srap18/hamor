@@ -20,6 +20,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShipsShopRouteImport } from './routes/ships-shop'
 import { Route as ShipMarketRouteImport } from './routes/ship-market'
+import { Route as SeasonRouteImport } from './routes/season'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RechargeRouteImport } from './routes/recharge'
@@ -137,6 +138,11 @@ const ShipsShopRoute = ShipsShopRouteImport.update({
 const ShipMarketRoute = ShipMarketRouteImport.update({
   id: '/ship-market',
   path: '/ship-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeasonRoute = SeasonRouteImport.update({
+  id: '/season',
+  path: '/season',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -488,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/season': typeof SeasonRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -563,6 +570,7 @@ export interface FileRoutesByTo {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/season': typeof SeasonRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -640,6 +648,7 @@ export interface FileRoutesById {
   '/recharge': typeof RechargeRoute
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/season': typeof SeasonRoute
   '/ship-market': typeof ShipMarketRoute
   '/ships-shop': typeof ShipsShopRoute
   '/shop': typeof ShopRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
+    | '/season'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -793,6 +803,7 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
+    | '/season'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -869,6 +880,7 @@ export interface FileRouteTypes {
     | '/recharge'
     | '/refund'
     | '/reset-password'
+    | '/season'
     | '/ship-market'
     | '/ships-shop'
     | '/shop'
@@ -946,6 +958,7 @@ export interface RootRouteChildren {
   RechargeRoute: typeof RechargeRoute
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SeasonRoute: typeof SeasonRoute
   ShipMarketRoute: typeof ShipMarketRoute
   ShipsShopRoute: typeof ShipsShopRoute
   ShopRoute: typeof ShopRoute
@@ -1048,6 +1061,13 @@ declare module '@tanstack/react-router' {
       path: '/ship-market'
       fullPath: '/ship-market'
       preLoaderRoute: typeof ShipMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/season': {
+      id: '/season'
+      path: '/season'
+      fullPath: '/season'
+      preLoaderRoute: typeof SeasonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1585,6 +1605,7 @@ const rootRouteChildren: RootRouteChildren = {
   RechargeRoute: RechargeRoute,
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SeasonRoute: SeasonRoute,
   ShipMarketRoute: ShipMarketRoute,
   ShipsShopRoute: ShipsShopRoute,
   ShopRoute: ShopRoute,
