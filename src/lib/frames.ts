@@ -331,66 +331,74 @@ export const PROFILE_FRAMES: Frame[] = [
   {
     id: "pf_aries", name: "بطاقة الحَمَل ♈", kind: "profile",
     price: 1000, currency: "gem", rarity: "rare", preview: "♈",
+    animClass: "frame-anim-imperial",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-orange-400 via-red-600 to-orange-900 " +
       "border-[3px] border-double border-amber-200 ring-2 ring-orange-950/70 ring-offset-2 ring-offset-amber-300 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_10px_30px_rgba(251,146,60,0.55)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_18px_44px_rgba(251,146,60,0.8)]",
   },
   {
     id: "pf_phoenix", name: "بطاقة العنقاء 🔥", kind: "profile",
     price: 5000, currency: "gem", rarity: "epic", preview: "🔥",
+    animClass: "frame-anim-imperial",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-amber-300 via-orange-600 to-rose-800 " +
       "border-[3px] border-double border-amber-100 ring-2 ring-rose-950/70 ring-offset-2 ring-offset-amber-200 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_14px_36px_rgba(244,63,94,0.55)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_20px_48px_rgba(244,63,94,0.8)]",
   },
   {
     id: "pf_virgo", name: "بطاقة العذراء 🌾", kind: "profile",
     price: 8000, currency: "gem", rarity: "epic", preview: "♍",
+    animClass: "frame-anim-emerald",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-amber-200 via-yellow-500 to-amber-800 " +
       "border-[3px] border-double border-amber-50 ring-2 ring-amber-900/70 ring-offset-2 ring-offset-yellow-200 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(251,191,36,0.6)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.75),0_18px_46px_rgba(251,191,36,0.8)]",
   },
   {
     id: "pf_leo", name: "بطاقة الأسد ☀️", kind: "profile",
     price: 12000, currency: "gem", rarity: "legendary", preview: "♌",
+    animClass: "frame-anim-royal",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-yellow-200 via-amber-500 to-orange-800 " +
       "border-[3px] border-double border-yellow-50 ring-2 ring-amber-950/80 ring-offset-2 ring-offset-yellow-300 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_16px_40px_rgba(251,191,36,0.75)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.8),0_20px_50px_rgba(251,191,36,0.9)]",
   },
   {
     id: "pf_taurus", name: "بطاقة الثور 💚", kind: "profile",
     price: 18000, currency: "gem", rarity: "legendary", preview: "♉",
+    animClass: "frame-anim-emerald",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-emerald-400 via-teal-600 to-emerald-900 " +
       "border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950/80 ring-offset-2 ring-offset-emerald-200 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_16px_40px_rgba(16,185,129,0.6)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_20px_50px_rgba(16,185,129,0.8)]",
   },
   {
     id: "pf_gemini", name: "بطاقة الجوزاء ✨", kind: "profile",
     price: 25000, currency: "gem", rarity: "legendary", preview: "♊",
+    animClass: "frame-anim-neon",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-fuchsia-500 via-purple-600 to-violet-900 " +
       "border-[3px] border-double border-fuchsia-100 ring-2 ring-violet-950/80 ring-offset-2 ring-offset-fuchsia-200 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_16px_42px_rgba(168,85,247,0.65)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),0_20px_52px_rgba(168,85,247,0.85)]",
   },
   {
     id: "pf_scorpio", name: "بطاقة العقرب 🦂", kind: "profile",
     price: 50000, currency: "gem", rarity: "mythic", preview: "♏",
+    animClass: "frame-anim-obsidian",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-rose-600 via-red-800 to-zinc-950 " +
       "border-[3px] border-double border-rose-200 ring-2 ring-black ring-offset-2 ring-offset-rose-300 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.4),0_20px_50px_rgba(244,63,94,0.75)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_24px_58px_rgba(244,63,94,0.9)]",
   },
   {
     id: "pf_pisces", name: "بطاقة الحوت 🐟", kind: "profile",
     price: 75000, currency: "gem", rarity: "mythic", preview: "♓",
+    animClass: "frame-anim-aurora",
     profileClass:
       "rounded-2xl p-[6px] bg-gradient-to-br from-cyan-300 via-sky-600 to-blue-900 " +
       "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_20px_50px_rgba(59,130,246,0.75)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_24px_58px_rgba(59,130,246,0.9)]",
   },
   // ─── Premium Luxury profile cards (matched sets) ───
   { id: "pf_lux_aurora",    name: "بطاقة الشفق القطبي 🌌", kind: "profile", price: 30000, currency: "gem", rarity: "legendary", preview: "🌌",
