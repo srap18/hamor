@@ -705,7 +705,7 @@ function ChatPage() {
         ) : tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehavior: "contain" }}>
             <div className="flex items-center gap-2 mb-3 px-1">
               <span className="text-xl">✉️</span>
               <div className="text-sm font-extrabold text-amber-200 tracking-wide">المحادثات الخاصة</div>
@@ -869,7 +869,7 @@ function ChatPage() {
               </div>
             )}
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2">
+            <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-2" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehavior: "contain" }}>
               {(pinned || isAdmin) && (
                 <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-1 px-3 py-2 bg-gradient-to-b from-amber-900/95 to-amber-950/95 border-b-2 border-amber-400/70 shadow-lg backdrop-blur">
                   <div className="flex items-start gap-2">
