@@ -188,7 +188,7 @@ function SeasonPage() {
                       <div className="text-[9px] text-amber-200/70">ضرر</div>
                       <div className="text-sm font-black text-amber-200 tabular-nums">{fmt(r.damage_total)}</div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
               {rows.length === 0 && (
