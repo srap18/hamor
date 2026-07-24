@@ -2026,14 +2026,14 @@ function Index() {
             to="/ship-market"
             aria-label="سوق السفن"
             className="absolute z-[12] rounded-[40%] active:bg-white/10"
-            style={{ left: "52%", top: "58%", width: "40%", height: "16%" }}
+            style={{ left: "50%", top: "27%", width: "42%", height: "17%" }}
           />
           {/* Left chest "مخزن سمك" → Fish Market */}
           <Link
             to="/fish-market"
             aria-label="سوق السمك"
             className="absolute z-[12] rounded-[40%] active:bg-white/10"
-            style={{ left: "1%", top: "66%", width: "24%", height: "18%" }}
+            style={{ left: "1%", top: "32%", width: "30%", height: "15%" }}
           />
         </>
 
