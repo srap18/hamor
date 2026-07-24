@@ -165,7 +165,12 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           siteName: SITE_NAME,
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
-          confirmationUrl: buildAppConfirmationUrl(emailType, payload.data.url) ?? payload.data.url,
+          confirmationUrl:
+            buildAppConfirmationUrl(
+              emailType,
+              (payload.data as any).url,
+              (payload.data as any).token_hash ?? (payload.data as any).token_hash_new ?? null,
+            ) ?? (payload.data as any).url,
           token: payload.data.token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
