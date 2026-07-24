@@ -15,16 +15,16 @@ import piscesImg from "@/assets/frames/pisces.png";
 import cosmicVipImg from "@/assets/frames/cosmic-vip.png";
 
 // Premium luxury frames (SVG rings, ultra-light, animate at 60fps)
-import luxAurora    from "@/assets/frames/lux-aurora.svg";
-import luxNeon      from "@/assets/frames/lux-neon.svg";
-import luxDragon    from "@/assets/frames/lux-dragon.svg";
-import luxCelestial from "@/assets/frames/lux-celestial.svg";
-import luxRoyal     from "@/assets/frames/lux-royal.svg";
-import luxDiamond   from "@/assets/frames/lux-diamond.svg";
-import luxObsidian  from "@/assets/frames/lux-obsidian.svg";
-import luxSakura    from "@/assets/frames/lux-sakura.svg";
-import luxEmerald   from "@/assets/frames/lux-emerald.svg";
-import luxImperial  from "@/assets/frames/lux-imperial.svg";
+import luxAurora    from "@/assets/frames/lux-aurora.png";
+import luxNeon      from "@/assets/frames/lux-neon.png";
+import luxDragon    from "@/assets/frames/lux-dragon.png";
+import luxCelestial from "@/assets/frames/lux-celestial.png";
+import luxRoyal     from "@/assets/frames/lux-royal.png";
+import luxDiamond   from "@/assets/frames/lux-diamond.png";
+import luxObsidian  from "@/assets/frames/lux-obsidian.png";
+import luxSakura    from "@/assets/frames/lux-sakura.png";
+import luxEmerald   from "@/assets/frames/lux-emerald.png";
+import luxImperial  from "@/assets/frames/lux-imperial.png";
 
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
