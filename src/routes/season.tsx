@@ -255,7 +255,7 @@ function SeasonPage() {
   );
 }
 
-function PodiumCard({ row, p, rank, isMe, tall }: { row: Row; p?: Profile; rank: 1|2|3; isMe?: boolean; tall?: boolean }) {
+function PodiumCard({ row, p, rank, isMe, tall, onOpen }: { row: Row; p?: Profile; rank: 1|2|3; isMe?: boolean; tall?: boolean; onOpen?: (id: string) => void }) {
   const frame = frameForDamage(row.damage_total);
   const styles = {
     1: { bg: "from-amber-400 via-yellow-300 to-amber-500", border: "border-amber-200", glow: "shadow-[0_0_30px_rgba(255,200,0,0.9)]", label: "SEASON CHAMPION" },
@@ -264,7 +264,7 @@ function PodiumCard({ row, p, rank, isMe, tall }: { row: Row; p?: Profile; rank:
   }[rank];
   const size = tall ? 92 : 76;
   return (
-    <div className={`relative flex flex-col items-center ${tall ? "pt-0" : "pt-6"}`}>
+    <button type="button" onClick={() => onOpen?.(row.user_id)} className={`relative flex flex-col items-center ${tall ? "pt-0" : "pt-6"} active:scale-95`}>
       {rank === 1 && <div className="absolute -top-2 text-3xl z-30" style={{ filter: "drop-shadow(0 0 10px gold)" }}>👑</div>}
       <SeasonFrameRing frame={frame} size={size} intense={rank===1}>
         {p?.avatar_url ? (
