@@ -370,6 +370,7 @@ function isLeaderboardTab(value: unknown): value is LeaderboardTab {
 
 
 function Index() {
+  const navigate = useNavigate();
   const bgPaused = useBgMotionPaused();
   const { isAdmin } = useIsAdmin();
   const [ships, setShips] = useState<Ship[]>(() => loadFleet());
