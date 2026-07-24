@@ -14,6 +14,18 @@ import scorpioImg from "@/assets/frames/scorpio.png";
 import piscesImg from "@/assets/frames/pisces.png";
 import cosmicVipImg from "@/assets/frames/cosmic-vip.png";
 
+// Premium luxury frames (SVG rings, ultra-light, animate at 60fps)
+import luxAurora    from "@/assets/frames/lux-aurora.svg";
+import luxNeon      from "@/assets/frames/lux-neon.svg";
+import luxDragon    from "@/assets/frames/lux-dragon.svg";
+import luxCelestial from "@/assets/frames/lux-celestial.svg";
+import luxRoyal     from "@/assets/frames/lux-royal.svg";
+import luxDiamond   from "@/assets/frames/lux-diamond.svg";
+import luxObsidian  from "@/assets/frames/lux-obsidian.svg";
+import luxSakura    from "@/assets/frames/lux-sakura.svg";
+import luxEmerald   from "@/assets/frames/lux-emerald.svg";
+import luxImperial  from "@/assets/frames/lux-imperial.svg";
+
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
 export type Frame = {
