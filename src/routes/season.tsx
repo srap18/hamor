@@ -137,9 +137,9 @@ function SeasonPage() {
             {/* Podium */}
             {rows.length >= 3 && (
               <section className="grid grid-cols-3 items-end gap-2">
-                <PodiumCard row={second} p={profs[second.user_id]} rank={2} isMe={me===second.user_id} />
-                <PodiumCard row={first} p={profs[first.user_id]} rank={1} isMe={me===first.user_id} tall />
-                <PodiumCard row={third} p={profs[third.user_id]} rank={3} isMe={me===third.user_id} />
+                <PodiumCard row={second} p={profs[second.user_id]} rank={2} isMe={me===second.user_id} onOpen={openPlayer} />
+                <PodiumCard row={first} p={profs[first.user_id]} rank={1} isMe={me===first.user_id} tall onOpen={openPlayer} />
+                <PodiumCard row={third} p={profs[third.user_id]} rank={3} isMe={me===third.user_id} onOpen={openPlayer} />
               </section>
             )}
 
