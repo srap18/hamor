@@ -60,25 +60,21 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
     if (!roles || roles.length === 0) throw new Error("forbidden");
 
     // ------------------------------------------------------------------
-    // AUTHORITATIVE SOURCE: device_slots.hardware_hash ONLY.
-    // A device_slots row is written only after the client passes the full
-    // hardware-fingerprint challenge and the account occupies a physical
-    // slot on that device for 14+ days. This is the ONLY signal strong
-    // enough to say "same device" with 100% confidence.
-    //
-    // device_history.device_id is deliberately NOT used here — soft
-    // browser fingerprints collide across truly-different devices
-    // (school wifi, incognito, webviews) and cause false positives.
+    // PRIMARY SOURCE: device_slots (authoritative hardware bindings)
+    // A row here means the account was actually seated onto that hardware.
     // ------------------------------------------------------------------
     const { data: mySlots } = await supabaseAdmin
       .from("device_slots")
-      .select("hardware_hash, assigned_at, locked_until")
+      .select("hardware_hash")
       .eq("user_id", data.userId);
     const myHardwareHashes = Array.from(
       new Set((mySlots ?? []).map((r) => r.hardware_hash).filter(isRealId)),
     );
 
-    // device_history is kept for the "self" panel display only.
+    // ------------------------------------------------------------------
+    // SECONDARY SOURCE: device_history device_id, but only entries with
+    // meaningful hit counts (drops one-shot / preflight noise).
+    // ------------------------------------------------------------------
     const { data: myDevicesRaw } = await supabaseAdmin
       .from("device_history")
       .select("device_id, first_seen, last_seen, hits")
@@ -86,6 +82,7 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
     const myDevices = (myDevicesRaw ?? []).filter(
       (d) => isRealId(d.device_id) && (d.hits ?? 0) >= MIN_HITS,
     );
+    const myDeviceIds = Array.from(new Set(myDevices.map((d) => d.device_id!)));
 
     // IPs — displayed in the "self" panel only, NEVER used to link accounts.
     const { data: myIps } = await supabaseAdmin
@@ -95,7 +92,7 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
 
     const deviceMap = new Map<string, Set<string>>();
 
-    // Match strictly on device_slots.hardware_hash (authoritative hardware id)
+    // 1) Match on device_slots hardware_hash
     if (myHardwareHashes.length > 0) {
       const { data: slotOthers } = await supabaseAdmin
         .from("device_slots")
@@ -118,6 +115,30 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       }
     }
 
+    // 2) Match on device_history device_id (hits >= MIN_HITS on BOTH sides)
+    if (myDeviceIds.length > 0) {
+      const { data: others } = await supabaseAdmin
+        .from("device_history")
+        .select("device_id, user_id, hits")
+        .in("device_id", myDeviceIds);
+
+      const usersPerDevice = new Map<string, Set<string>>();
+      for (const r of others ?? []) {
+        if (!isRealId(r.device_id)) continue;
+        if ((r.hits ?? 0) < MIN_HITS) continue;
+        if (!usersPerDevice.has(r.device_id)) usersPerDevice.set(r.device_id, new Set());
+        usersPerDevice.get(r.device_id)!.add(r.user_id);
+      }
+      for (const r of others ?? []) {
+        if (r.user_id === data.userId) continue;
+        if (!isRealId(r.device_id)) continue;
+        if ((r.hits ?? 0) < MIN_HITS) continue;
+        const distinct = usersPerDevice.get(r.device_id)?.size ?? 0;
+        if (distinct > COLLISION_THRESHOLD) continue;
+        if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
+        deviceMap.get(r.user_id)!.add(r.device_id);
+      }
+    }
 
 
     const userIds = Array.from(deviceMap.keys());
