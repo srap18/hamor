@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+<defs>
+<linearGradient id="g_sakura" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fbcfe8"/><stop offset="50%" stop-color="#f472b6"/><stop offset="100%" stop-color="#f9a8d4"/></linearGradient>
+<radialGradient id="g_sakura_glow" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="60%" stop-color="#fce7f3" stop-opacity="0"/>
+  <stop offset="100%" stop-color="#fce7f3" stop-opacity="0.55"/>
+</radialGradient>
+<filter id="g_sakura_shadow" x="-20%" y="-20%" width="140%" height="140%">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+  <feOffset dx="0" dy="2"/>
+  <feComponentTransfer><feFuncA type="linear" slope="0.7"/></feComponentTransfer>
+  <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+</defs>
+<circle cx="100" cy="100" r="96" fill="none" stroke="url(#g_sakura)" stroke-width="8" filter="url(#g_sakura_shadow)"/>
+<circle cx="100" cy="100" r="86" fill="none" stroke="#fce7f3" stroke-width="2" opacity="0.9"/>
+<circle cx="100" cy="100" r="78" fill="none" stroke="url(#g_sakura)" stroke-width="3" opacity="0.85"/>
+<circle cx="100" cy="100" r="98" fill="url(#g_sakura_glow)"/>
+<ellipse cx="100.0" cy="4.0" rx="6" ry="3" fill="#fff1f2" transform="rotate(0 100.0 4.0)"/>
+<ellipse cx="167.9" cy="32.1" rx="6" ry="3" fill="#fff1f2" transform="rotate(45 167.9 32.1)"/>
+<ellipse cx="196.0" cy="100.0" rx="6" ry="3" fill="#fff1f2" transform="rotate(90 196.0 100.0)"/>
+<ellipse cx="167.9" cy="167.9" rx="6" ry="3" fill="#fff1f2" transform="rotate(135 167.9 167.9)"/>
+<ellipse cx="100.0" cy="196.0" rx="6" ry="3" fill="#fff1f2" transform="rotate(180 100.0 196.0)"/>
+<ellipse cx="32.1" cy="167.9" rx="6" ry="3" fill="#fff1f2" transform="rotate(225 32.1 167.9)"/>
+<ellipse cx="4.0" cy="100.0" rx="6" ry="3" fill="#fff1f2" transform="rotate(270 4.0 100.0)"/>
+<ellipse cx="32.1" cy="32.1" rx="6" ry="3" fill="#fff1f2" transform="rotate(315 32.1 32.1)"/>
+</svg>
