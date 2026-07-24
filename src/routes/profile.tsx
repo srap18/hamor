@@ -9,6 +9,7 @@ import {
   frameById, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
+import { SeasonAchievements } from "@/components/SeasonAchievements";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
