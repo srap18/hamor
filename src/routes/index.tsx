@@ -3492,7 +3492,7 @@ function Index() {
                 onClick={() => {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
-                  else if (it.action === "boost") { navigate({ to: "/season" }); }
+                  else if (it.action === "boost") { setBoostOpen(true); }
 
                 }}
                 className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
