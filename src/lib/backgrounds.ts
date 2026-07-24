@@ -26,6 +26,10 @@ import titanBg from "@/assets/bg-titan.jpg.asset.json";
 import titanBurnedBg from "@/assets/bg-titan-burned.jpg.asset.json";
 import titanVideo from "@/assets/bg-titan.mp4.asset.json";
 import titanBurnedVideo from "@/assets/bg-titan-burned.mp4.asset.json";
+import spongebobBg from "@/assets/bg-spongebob.jpg.asset.json";
+import spongebobBurnedBg from "@/assets/bg-spongebob-burned.jpg.asset.json";
+import spongebobVideo from "@/assets/bg-spongebob.mp4.asset.json";
+import spongebobBurnedVideo from "@/assets/bg-spongebob-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
