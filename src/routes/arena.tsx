@@ -158,6 +158,15 @@ function ArenaPage() {
           </div>
         </div>
 
+        <Link to="/season" className="block mb-3">
+          <div className="rounded-2xl p-3 text-center border-2 border-amber-400/70 shadow-[0_0_24px_rgba(255,200,0,0.35)]"
+               style={{ background: "linear-gradient(135deg, rgba(255,180,0,0.25), rgba(180,0,255,0.25))" }}>
+            <div className="text-[10px] tracking-widest text-amber-300 font-black">SEASON CHAMPIONSHIP</div>
+            <div className="text-amber-100 font-black text-lg">🏆 SEASON RANKING</div>
+            <div className="text-amber-200/80 text-[10px]">ترتيب الموسم · جوائز ضخمة · إطارات أسطورية</div>
+          </div>
+        </Link>
+
         {eventLive && (
           <div className="mb-3 rounded-2xl p-3 text-center border-2 border-pink-400/70 animate-pulse"
                style={{ background: "linear-gradient(180deg,#7c1d6f 0%,#3b0764 100%)" }}>
