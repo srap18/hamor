@@ -370,6 +370,7 @@ function isLeaderboardTab(value: unknown): value is LeaderboardTab {
 
 
 function Index() {
+  const navigate = useNavigate();
   const bgPaused = useBgMotionPaused();
   const { isAdmin } = useIsAdmin();
   const [ships, setShips] = useState<Ship[]>(() => loadFleet());
@@ -3491,7 +3492,8 @@ function Index() {
                 onClick={() => {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
-                  else if (it.action === "boost") { setLeaderboardRestore(null); setBoostOpen(true); }
+                  else if (it.action === "boost") { navigate({ to: "/season" }); }
+
                 }}
                 className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
               >

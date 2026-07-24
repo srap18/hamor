@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BackButton } from "@/components/BackButton";
@@ -35,6 +35,8 @@ function countdown(target: string) {
 }
 
 function SeasonPage() {
+  const navigate = useNavigate();
+  const openPlayer = (id: string) => { if (id) navigate({ to: "/players/$playerId", params: { playerId: id } }); };
   const [tab, setTab] = useState<"live" | "history">("live");
   const [season, setSeason] = useState<Season | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -135,9 +137,9 @@ function SeasonPage() {
             {/* Podium */}
             {rows.length >= 3 && (
               <section className="grid grid-cols-3 items-end gap-2">
-                <PodiumCard row={second} p={profs[second.user_id]} rank={2} isMe={me===second.user_id} />
-                <PodiumCard row={first} p={profs[first.user_id]} rank={1} isMe={me===first.user_id} tall />
-                <PodiumCard row={third} p={profs[third.user_id]} rank={3} isMe={me===third.user_id} />
+                <PodiumCard row={second} p={profs[second.user_id]} rank={2} isMe={me===second.user_id} onOpen={openPlayer} />
+                <PodiumCard row={first} p={profs[first.user_id]} rank={1} isMe={me===first.user_id} tall onOpen={openPlayer} />
+                <PodiumCard row={third} p={profs[third.user_id]} rank={3} isMe={me===third.user_id} onOpen={openPlayer} />
               </section>
             )}
 
@@ -169,7 +171,7 @@ function SeasonPage() {
                 const p = profs[r.user_id];
                 const frame = frameForDamage(r.damage_total);
                 return (
-                  <div key={r.user_id} className={`flex items-center gap-3 rounded-xl p-2 ${me===r.user_id?"bg-amber-500/15 border border-amber-400/40":"bg-white/5 border border-white/10"}`}>
+                  <button type="button" onClick={() => openPlayer(r.user_id)} key={r.user_id} className={`w-full flex items-center gap-3 rounded-xl p-2 text-right active:scale-[0.99] ${me===r.user_id?"bg-amber-500/15 border border-amber-400/40":"bg-white/5 border border-white/10"}`}>
                     <div className="w-8 text-center font-black text-amber-300">#{rank}</div>
                     <SeasonFrameRing frame={frame} size={48} showCrown={false}>
                       {p?.avatar_url ? (
@@ -186,7 +188,7 @@ function SeasonPage() {
                       <div className="text-[9px] text-amber-200/70">ضرر</div>
                       <div className="text-sm font-black text-amber-200 tabular-nums">{fmt(r.damage_total)}</div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
               {rows.length === 0 && (
@@ -253,7 +255,7 @@ function SeasonPage() {
   );
 }
 
-function PodiumCard({ row, p, rank, isMe, tall }: { row: Row; p?: Profile; rank: 1|2|3; isMe?: boolean; tall?: boolean }) {
+function PodiumCard({ row, p, rank, isMe, tall, onOpen }: { row: Row; p?: Profile; rank: 1|2|3; isMe?: boolean; tall?: boolean; onOpen?: (id: string) => void }) {
   const frame = frameForDamage(row.damage_total);
   const styles = {
     1: { bg: "from-amber-400 via-yellow-300 to-amber-500", border: "border-amber-200", glow: "shadow-[0_0_30px_rgba(255,200,0,0.9)]", label: "SEASON CHAMPION" },
@@ -262,7 +264,7 @@ function PodiumCard({ row, p, rank, isMe, tall }: { row: Row; p?: Profile; rank:
   }[rank];
   const size = tall ? 92 : 76;
   return (
-    <div className={`relative flex flex-col items-center ${tall ? "pt-0" : "pt-6"}`}>
+    <button type="button" onClick={() => onOpen?.(row.user_id)} className={`relative flex flex-col items-center ${tall ? "pt-0" : "pt-6"} active:scale-95`}>
       {rank === 1 && <div className="absolute -top-2 text-3xl z-30" style={{ filter: "drop-shadow(0 0 10px gold)" }}>👑</div>}
       <SeasonFrameRing frame={frame} size={size} intense={rank===1}>
         {p?.avatar_url ? (
@@ -277,6 +279,6 @@ function PodiumCard({ row, p, rank, isMe, tall }: { row: Row; p?: Profile; rank:
         <div className="text-[10px] font-black text-black/80 tabular-nums">{fmt(row.damage_total)}</div>
         <div className="text-[9px] text-black/70">{frame?.name || ""}</div>
       </div>
-    </div>
+    </button>
   );
 }
