@@ -577,8 +577,6 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       toast.success("تم تحديث الصورة");
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -598,6 +596,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       onClose();
     } catch (e: any) {
       toast.error("خطأ: " + (e?.message ?? "غير معروف"));
+    } finally {
+      setDeleting(false);
     }
   };
 
