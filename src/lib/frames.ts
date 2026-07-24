@@ -109,74 +109,82 @@ export const NAME_FRAMES: Frame[] = [
   {
     id: "nf_aries", name: "لوحة الحَمَل ♈", kind: "name",
     price: 1000, currency: "gem", rarity: "rare", preview: "Aa",
+    animClass: "frame-anim-imperial",
     nameClass:
       "relative bg-gradient-to-b from-orange-500 via-red-600 to-orange-900 " +
       "border-[3px] border-double border-amber-200 ring-2 ring-orange-950/70 ring-offset-2 ring-offset-amber-300/80 " +
       "text-white font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.35),0_4px_14px_rgba(251,146,60,0.55)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.5),0_8px_26px_rgba(251,146,60,0.75)]",
   },
   {
     id: "nf_phoenix", name: "لوحة العنقاء 🔥", kind: "name",
     price: 5000, currency: "gem", rarity: "epic", preview: "Aa",
+    animClass: "frame-anim-imperial",
     nameClass:
       "relative bg-gradient-to-b from-amber-300 via-orange-500 to-rose-800 " +
       "border-[3px] border-double border-amber-100 ring-2 ring-rose-950/70 ring-offset-2 ring-offset-amber-200 " +
       "text-white font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_18px_rgba(244,63,94,0.45)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.5),0_10px_30px_rgba(244,63,94,0.7)]",
   },
   {
     id: "nf_virgo", name: "لوحة العذراء 🌾", kind: "name",
     price: 8000, currency: "gem", rarity: "epic", preview: "Aa",
+    animClass: "frame-anim-emerald",
     nameClass:
       "relative bg-gradient-to-b from-amber-200 via-yellow-400 to-amber-700 " +
       "border-[3px] border-double border-amber-50 ring-2 ring-amber-900/70 ring-offset-2 ring-offset-yellow-200 " +
       "text-amber-950 font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(120,53,15,0.45),0_4px_14px_rgba(251,191,36,0.55)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(120,53,15,0.55),0_8px_26px_rgba(251,191,36,0.7)]",
   },
   {
     id: "nf_leo", name: "لوحة الأسد ☀️", kind: "name",
     price: 12000, currency: "gem", rarity: "legendary", preview: "Aa",
+    animClass: "frame-anim-royal",
     nameClass:
       "relative bg-gradient-to-b from-yellow-200 via-amber-400 to-orange-700 " +
       "border-[3px] border-double border-yellow-50 ring-2 ring-amber-950/80 ring-offset-2 ring-offset-yellow-300 " +
-      "text-amber-950 font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(120,53,15,0.5),0_6px_20px_rgba(251,191,36,0.7)]",
+      "text-amber-950 font-black tracking-wide " +
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.8),inset_0_-2px_0_rgba(120,53,15,0.55),0_10px_30px_rgba(251,191,36,0.85)]",
   },
   {
     id: "nf_taurus", name: "لوحة الثور 💚", kind: "name",
     price: 18000, currency: "gem", rarity: "legendary", preview: "Aa",
+    animClass: "frame-anim-emerald",
     nameClass:
       "relative bg-gradient-to-b from-emerald-300 via-teal-600 to-emerald-900 " +
       "border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950/80 ring-offset-2 ring-offset-emerald-200 " +
       "text-white font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_20px_rgba(16,185,129,0.55)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.5),0_10px_30px_rgba(16,185,129,0.75)]",
   },
   {
     id: "nf_gemini", name: "لوحة الجوزاء ✨", kind: "name",
     price: 25000, currency: "gem", rarity: "legendary", preview: "Aa",
+    animClass: "frame-anim-neon",
     nameClass:
       "relative bg-gradient-to-b from-fuchsia-400 via-purple-600 to-violet-900 " +
       "border-[3px] border-double border-fuchsia-100 ring-2 ring-violet-950/80 ring-offset-2 ring-offset-fuchsia-200 " +
       "text-white font-extrabold tracking-wide " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.4),0_6px_22px_rgba(168,85,247,0.6)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),inset_0_-2px_0_rgba(0,0,0,0.5),0_10px_32px_rgba(168,85,247,0.8)]",
   },
   {
     id: "nf_scorpio", name: "لوحة العقرب 🦂", kind: "name",
     price: 50000, currency: "gem", rarity: "mythic", preview: "Aa",
+    animClass: "frame-anim-obsidian",
     nameClass:
       "relative bg-gradient-to-b from-rose-600 via-red-800 to-zinc-950 " +
       "border-[3px] border-double border-rose-200 ring-2 ring-black ring-offset-2 ring-offset-rose-300 " +
       "text-white font-extrabold tracking-wider " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.45),inset_0_-2px_0_rgba(0,0,0,0.7),0_8px_26px_rgba(244,63,94,0.7)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.75),0_12px_34px_rgba(244,63,94,0.85)]",
   },
   {
     id: "nf_pisces", name: "لوحة الحوت 🐟", kind: "name",
     price: 75000, currency: "gem", rarity: "mythic", preview: "Aa",
+    animClass: "frame-anim-aurora",
     nameClass:
       "relative bg-gradient-to-b from-cyan-300 via-sky-600 to-blue-900 " +
       "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
       "text-white font-extrabold tracking-wider " +
-      "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),inset_0_-2px_0_rgba(0,0,0,0.45),0_8px_26px_rgba(59,130,246,0.7)]",
+      "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(0,0,0,0.5),0_12px_34px_rgba(59,130,246,0.85)]",
   },
   // ─── Premium Luxury name plates (matched sets) ───
   { id: "nf_lux_aurora",    name: "لوحة الشفق القطبي 🌌", kind: "name", price: 30000, currency: "gem", rarity: "legendary", preview: "Aa",
