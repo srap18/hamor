@@ -422,12 +422,15 @@ export function frameById(id?: string | null): Frame | undefined {
 }
 
 function frameMotionClass(id: string): string {
-  if (id.includes("aries") || id.includes("phoenix") || id.includes("leo")) return "frame-anim-flame";
-  if (id.includes("virgo") || id.includes("taurus")) return "frame-anim-leaf";
-  if (id.includes("gemini")) return "frame-anim-sparkle";
-  if (id.includes("scorpio")) return "frame-anim-pulse";
-  if (id.includes("pisces")) return "frame-anim-wave";
-  return "frame-anim-float";
+  // Every frame uses a premium 3D-style luxury animation — no flat 2D motions.
+  if (id.includes("aries") || id.includes("phoenix")) return "frame-anim-imperial";
+  if (id.includes("leo")) return "frame-anim-royal";
+  if (id.includes("virgo") || id.includes("taurus")) return "frame-anim-emerald";
+  if (id.includes("gemini")) return "frame-anim-neon";
+  if (id.includes("scorpio")) return "frame-anim-obsidian";
+  if (id.includes("pisces")) return "frame-anim-aurora";
+  if (id.includes("cosmic")) return "frame-anim-orbit";
+  return "frame-anim-royal";
 }
 
 // Map frame kind → inventory item_type stored in DB
