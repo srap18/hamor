@@ -3492,7 +3492,7 @@ function Index() {
                 onClick={() => {
                   sound.play("click");
                   if (it.action === "settings") setSettingsOpen(true);
-                  else if (it.action === "boost") { navigate({ to: "/season" }); }
+                  else if (it.action === "boost") { setBoostOpen(true); }
 
                 }}
                 className="flex min-w-0 flex-col items-center gap-0.5 px-0 py-1 active:scale-95"
@@ -3954,7 +3954,13 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
 
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>
 
-        <div className="grid grid-cols-9 gap-1 mb-3">
+        <div className="grid grid-cols-10 gap-1 mb-3">
+          <button
+            onClick={() => { sound.play("click"); onClose(); navigate({ to: "/season" }); }}
+            className="py-1.5 rounded-lg text-[9px] font-bold border transition bg-gradient-to-b from-amber-400 to-amber-600 text-black border-amber-300 shadow-[0_0_10px_rgba(255,200,0,0.5)]">
+            <div className="text-sm">👑</div>
+            <div className="leading-tight">موسم</div>
+          </button>
           {TABS.map(t => (
             <button key={t.id}
               onClick={() => { sound.play("click"); setTab(t.id); setRows([]); setFishRows([]); setShipRows([]); }}
