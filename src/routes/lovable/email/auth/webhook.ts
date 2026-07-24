@@ -36,22 +36,33 @@ const SENDER_DOMAIN = "notify.www.molok-alqarasna.com"
 const ROOT_DOMAIN = "www.molok-alqarasna.com"
 const FROM_DOMAIN = "www.molok-alqarasna.com"
 
-function buildAppConfirmationUrl(actionType: string, rawUrl: string | null | undefined): string | null {
-  if (!rawUrl) return null
-  try {
-    const source = new URL(rawUrl)
-    const tokenHash = source.searchParams.get('token_hash')
-    const type = source.searchParams.get('type') || actionType
-    if (!tokenHash) return rawUrl
+function buildAppConfirmationUrl(
+  actionType: string,
+  rawUrl: string | null | undefined,
+  tokenHashFromPayload?: string | null,
+): string | null {
+  // Prefer building from token_hash directly (Supabase send-email hook payload)
+  // because data.url is not guaranteed to contain token_hash across payload versions.
+  let tokenHash: string | null = tokenHashFromPayload ?? null
+  let type = actionType
 
-    const appUrl = new URL('/auth/confirm', `https://${ROOT_DOMAIN}`)
-    appUrl.searchParams.set('token_hash', tokenHash)
-    appUrl.searchParams.set('type', type)
-    appUrl.searchParams.set('next', actionType === 'recovery' ? '/reset-password' : '/')
-    return appUrl.toString()
-  } catch {
-    return rawUrl
+  if (!tokenHash && rawUrl) {
+    try {
+      const source = new URL(rawUrl)
+      tokenHash = source.searchParams.get('token_hash')
+      type = source.searchParams.get('type') || actionType
+    } catch {
+      /* noop */
+    }
   }
+
+  if (!tokenHash) return rawUrl ?? null
+
+  const appUrl = new URL('/auth/confirm', `https://${ROOT_DOMAIN}`)
+  appUrl.searchParams.set('token_hash', tokenHash)
+  appUrl.searchParams.set('type', type)
+  appUrl.searchParams.set('next', actionType === 'recovery' ? '/reset-password' : '/')
+  return appUrl.toString()
 }
 
 function redactEmail(email: string | null | undefined): string {
