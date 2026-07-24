@@ -21,14 +21,21 @@ type ExtraReward = {
 
 type RedeemResult = {
   ok: boolean;
-  reward_type: "bundle" | "item" | "ship";
+  reward_type: "bundle" | "item" | "ship" | "lootbox" | "vip" | "elite_vip" | "bundle_multi";
   item_id: string | null;
+  item_type?: string | null;
   reward_coins: number;
   reward_gems: number;
   reward_xp: number;
+  reward_vip_level?: number;
+  reward_vip_days?: number;
+  reward_elite_vip_level?: number;
+  reward_elite_vip_days?: number;
   quantity: number;
   extra_rewards?: ExtraReward[] | null;
+  meta?: Record<string, unknown> | null;
 };
+
 
 const ERR_MSG: Record<string, string> = {
   not_authenticated: "يجب تسجيل الدخول",
