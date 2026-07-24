@@ -705,7 +705,7 @@ function ChatPage() {
         ) : tab === "topics" ? (
           <ForumTopics userId={user?.id || ""} />
         ) : tab === "dm" && !dmWith ? (
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehavior: "contain" }}>
             <div className="flex items-center gap-2 mb-3 px-1">
               <span className="text-xl">✉️</span>
               <div className="text-sm font-extrabold text-amber-200 tracking-wide">المحادثات الخاصة</div>
