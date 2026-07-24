@@ -552,6 +552,8 @@ function ProfilePage() {
         <Link to="/invite" className="block text-center rounded-2xl px-4 py-3 bg-gradient-to-b from-emerald-500 to-emerald-800 border-2 border-emerald-300 text-white font-extrabold shadow-lg active:scale-95">
           🎁 ادعُ أصدقاءك — اربح 30% جواهر
         </Link>
+
+        {userId && <SeasonAchievements userId={userId} />}
       </main>
 
       {pop && (
