@@ -35,6 +35,8 @@ function countdown(target: string) {
 }
 
 function SeasonPage() {
+  const navigate = useNavigate();
+  const openPlayer = (id: string) => { if (id) navigate({ to: "/players/$playerId", params: { playerId: id } }); };
   const [tab, setTab] = useState<"live" | "history">("live");
   const [season, setSeason] = useState<Season | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
