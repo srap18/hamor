@@ -1842,6 +1842,24 @@ export type Database = {
         }
         Relationships: []
       }
+      friend_request_cooldown: {
+        Row: {
+          addressee_id: string
+          requester_id: string
+          until_at: string
+        }
+        Insert: {
+          addressee_id: string
+          requester_id: string
+          until_at: string
+        }
+        Update: {
+          addressee_id?: string
+          requester_id?: string
+          until_at?: string
+        }
+        Relationships: []
+      }
       friends: {
         Row: {
           addressee_id: string
