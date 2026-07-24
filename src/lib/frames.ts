@@ -14,6 +14,18 @@ import scorpioImg from "@/assets/frames/scorpio.png";
 import piscesImg from "@/assets/frames/pisces.png";
 import cosmicVipImg from "@/assets/frames/cosmic-vip.png";
 
+// Premium luxury frames (SVG rings, ultra-light, animate at 60fps)
+import luxAurora    from "@/assets/frames/lux-aurora.svg";
+import luxNeon      from "@/assets/frames/lux-neon.svg";
+import luxDragon    from "@/assets/frames/lux-dragon.svg";
+import luxCelestial from "@/assets/frames/lux-celestial.svg";
+import luxRoyal     from "@/assets/frames/lux-royal.svg";
+import luxDiamond   from "@/assets/frames/lux-diamond.svg";
+import luxObsidian  from "@/assets/frames/lux-obsidian.svg";
+import luxSakura    from "@/assets/frames/lux-sakura.svg";
+import luxEmerald   from "@/assets/frames/lux-emerald.svg";
+import luxImperial  from "@/assets/frames/lux-imperial.svg";
+
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
 export type Frame = {
@@ -78,6 +90,18 @@ export const AVATAR_FRAMES: Frame[] = [
     price: 999999, currency: "gem", rarity: "mythic", preview: "🌌",
     imageUrl: cosmicVipImg, animClass: "frame-anim-pulse",
   },
+
+  // ─── Premium Luxury avatar frames (animated SVG rings) ───
+  { id: "af_lux_aurora",    name: "إطار الشفق القطبي 🌌",   kind: "avatar", price: 30000, currency: "gem", rarity: "legendary", preview: "🌌", imageUrl: luxAurora,    animClass: "frame-anim-aurora" },
+  { id: "af_lux_neon",      name: "إطار النيون الفاخر ⚡",   kind: "avatar", price: 35000, currency: "gem", rarity: "legendary", preview: "⚡", imageUrl: luxNeon,      animClass: "frame-anim-neon" },
+  { id: "af_lux_dragon",    name: "إطار قلب التنين 🐉",     kind: "avatar", price: 45000, currency: "gem", rarity: "mythic",    preview: "🐉", imageUrl: luxDragon,    animClass: "frame-anim-imperial" },
+  { id: "af_lux_celestial", name: "إطار السماوي ✨",         kind: "avatar", price: 55000, currency: "gem", rarity: "mythic",    preview: "✨", imageUrl: luxCelestial, animClass: "frame-anim-orbit" },
+  { id: "af_lux_royal",     name: "إطار التاج الملكي 👑",    kind: "avatar", price: 65000, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: luxRoyal,     animClass: "frame-anim-royal" },
+  { id: "af_lux_diamond",   name: "إطار الماس النقي 💎",     kind: "avatar", price: 80000, currency: "gem", rarity: "mythic",    preview: "💎", imageUrl: luxDiamond,   animClass: "frame-anim-diamond" },
+  { id: "af_lux_obsidian",  name: "إطار العقيق الأسود 🖤",   kind: "avatar", price: 90000, currency: "gem", rarity: "mythic",    preview: "🖤", imageUrl: luxObsidian,  animClass: "frame-anim-obsidian" },
+  { id: "af_lux_sakura",    name: "إطار زهر الساكورا 🌸",   kind: "avatar", price: 40000, currency: "gem", rarity: "legendary", preview: "🌸", imageUrl: luxSakura,    animClass: "frame-anim-sakura" },
+  { id: "af_lux_emerald",   name: "إطار الزمرد المشع 💚",   kind: "avatar", price: 70000, currency: "gem", rarity: "mythic",    preview: "💚", imageUrl: luxEmerald,   animClass: "frame-anim-emerald" },
+  { id: "af_lux_imperial",  name: "إطار الإمبراطور 🔥",     kind: "avatar", price: 120000, currency: "gem", rarity: "mythic",   preview: "🔥", imageUrl: luxImperial,  animClass: "frame-anim-imperial" },
 ];
 
 // ─────── إطارات الاسم (لوحات فاخرة بحواف معدنية) ───────
@@ -154,6 +178,37 @@ export const NAME_FRAMES: Frame[] = [
       "text-white font-extrabold tracking-wider " +
       "shadow-[inset_0_2px_0_rgba(255,255,255,0.65),inset_0_-2px_0_rgba(0,0,0,0.45),0_8px_26px_rgba(59,130,246,0.7)]",
   },
+  // ─── Premium Luxury name plates (matched sets) ───
+  { id: "nf_lux_aurora",    name: "لوحة الشفق القطبي 🌌", kind: "name", price: 30000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-cyan-500 via-fuchsia-600 to-emerald-500 border-[3px] border-double border-cyan-100 ring-2 ring-fuchsia-900/70 ring-offset-2 ring-offset-cyan-200 text-white font-extrabold tracking-wide shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.35),0_6px_20px_rgba(168,85,247,0.65)]",
+    animClass: "frame-anim-aurora" },
+  { id: "nf_lux_neon",      name: "لوحة النيون الفاخر ⚡", kind: "name", price: 35000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-pink-500 via-cyan-400 to-pink-500 border-[3px] border-double border-pink-100 ring-2 ring-cyan-900 ring-offset-2 ring-offset-pink-200 text-white font-extrabold tracking-wide shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.35),0_6px_22px_rgba(236,72,153,0.75)]",
+    animClass: "frame-anim-neon" },
+  { id: "nf_lux_dragon",    name: "لوحة قلب التنين 🐉",   kind: "name", price: 45000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-rose-600 via-red-900 to-amber-600 border-[3px] border-double border-amber-200 ring-2 ring-red-950 ring-offset-2 ring-offset-rose-300 text-white font-extrabold tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.55),0_8px_24px_rgba(220,38,38,0.75)]",
+    animClass: "frame-anim-imperial" },
+  { id: "nf_lux_celestial", name: "لوحة السماوي ✨",       kind: "name", price: 55000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-indigo-700 via-violet-600 to-sky-500 border-[3px] border-double border-indigo-100 ring-2 ring-indigo-950 ring-offset-2 ring-offset-violet-200 text-white font-extrabold tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.45),0_8px_26px_rgba(99,102,241,0.75)]",
+    animClass: "frame-anim-orbit" },
+  { id: "nf_lux_royal",     name: "لوحة التاج الملكي 👑",  kind: "name", price: 65000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-yellow-300 via-amber-500 to-yellow-700 border-[3px] border-double border-yellow-100 ring-2 ring-amber-950 ring-offset-2 ring-offset-yellow-300 text-amber-950 font-black tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(120,53,15,0.5),0_8px_28px_rgba(250,204,21,0.85)]",
+    animClass: "frame-anim-royal" },
+  { id: "nf_lux_diamond",   name: "لوحة الماس النقي 💎",   kind: "name", price: 80000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-sky-100 via-white to-sky-200 border-[3px] border-double border-white ring-2 ring-sky-300 ring-offset-2 ring-offset-white text-slate-900 font-black tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.85),inset_0_-2px_0_rgba(0,0,0,0.15),0_10px_30px_rgba(186,230,253,0.9)]",
+    animClass: "frame-anim-diamond" },
+  { id: "nf_lux_obsidian",  name: "لوحة العقيق الأسود 🖤", kind: "name", price: 90000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-slate-900 via-violet-700 to-slate-900 border-[3px] border-double border-violet-300 ring-2 ring-black ring-offset-2 ring-offset-violet-400 text-white font-extrabold tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.35),inset_0_-2px_0_rgba(0,0,0,0.7),0_10px_32px_rgba(139,92,246,0.75)]",
+    animClass: "frame-anim-obsidian" },
+  { id: "nf_lux_sakura",    name: "لوحة زهر الساكورا 🌸", kind: "name", price: 40000, currency: "gem", rarity: "legendary", preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-pink-200 via-pink-400 to-rose-400 border-[3px] border-double border-pink-50 ring-2 ring-rose-900/50 ring-offset-2 ring-offset-pink-100 text-rose-950 font-extrabold tracking-wide shadow-[inset_0_2px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(0,0,0,0.25),0_6px_22px_rgba(244,114,182,0.75)]",
+    animClass: "frame-anim-sakura" },
+  { id: "nf_lux_emerald",   name: "لوحة الزمرد المشع 💚", kind: "name", price: 70000, currency: "gem", rarity: "mythic",    preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-emerald-700 via-emerald-400 to-emerald-800 border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950 ring-offset-2 ring-offset-emerald-200 text-white font-extrabold tracking-wider shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_8px_28px_rgba(52,211,153,0.8)]",
+    animClass: "frame-anim-emerald" },
+  { id: "nf_lux_imperial",  name: "لوحة الإمبراطور 🔥",   kind: "name", price: 120000, currency: "gem", rarity: "mythic",   preview: "Aa",
+    nameClass: "relative bg-gradient-to-b from-red-950 via-red-600 to-red-950 border-[3px] border-double border-red-200 ring-2 ring-black ring-offset-2 ring-offset-red-300 text-white font-black tracking-widest shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.6),0_10px_32px_rgba(220,38,38,0.85)]",
+    animClass: "frame-anim-imperial" },
 ];
 
 // ─────── إطارات فقاعة الشات (فاخرة بحواف ذهبية مزدوجة) ───────
@@ -222,6 +277,37 @@ export const BUBBLE_FRAMES: Frame[] = [
       "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
       "text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.6),inset_0_-2px_0_rgba(0,0,0,0.45),0_10px_30px_rgba(59,130,246,0.75)]",
   },
+  // ─── Premium Luxury bubbles (matched sets) ───
+  { id: "bf_lux_aurora",    name: "فقاعة الشفق القطبي 🌌", kind: "bubble", price: 30000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-cyan-500 via-fuchsia-600 to-emerald-500 border-[3px] border-double border-cyan-100 ring-2 ring-fuchsia-900/70 ring-offset-2 ring-offset-cyan-200 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.35),0_10px_28px_rgba(168,85,247,0.65)]",
+    animClass: "frame-anim-aurora" },
+  { id: "bf_lux_neon",      name: "فقاعة النيون الفاخر ⚡", kind: "bubble", price: 35000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-pink-500 via-cyan-400 to-pink-500 border-[3px] border-double border-pink-100 ring-2 ring-cyan-900 ring-offset-2 ring-offset-pink-200 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.35),0_10px_30px_rgba(236,72,153,0.75)]",
+    animClass: "frame-anim-neon" },
+  { id: "bf_lux_dragon",    name: "فقاعة قلب التنين 🐉",   kind: "bubble", price: 45000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-rose-600 via-red-900 to-amber-600 border-[3px] border-double border-amber-200 ring-2 ring-red-950 ring-offset-2 ring-offset-rose-300 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.5),0_12px_32px_rgba(220,38,38,0.75)]",
+    animClass: "frame-anim-imperial" },
+  { id: "bf_lux_celestial", name: "فقاعة السماوي ✨",       kind: "bubble", price: 55000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-indigo-700 via-violet-600 to-sky-500 border-[3px] border-double border-indigo-100 ring-2 ring-indigo-950 ring-offset-2 ring-offset-violet-200 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.45),0_12px_32px_rgba(99,102,241,0.75)]",
+    animClass: "frame-anim-orbit" },
+  { id: "bf_lux_royal",     name: "فقاعة التاج الملكي 👑",  kind: "bubble", price: 65000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-700 border-[3px] border-double border-yellow-100 ring-2 ring-amber-950 ring-offset-2 ring-offset-yellow-300 text-amber-950 font-bold shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(120,53,15,0.5),0_12px_34px_rgba(250,204,21,0.85)]",
+    animClass: "frame-anim-royal" },
+  { id: "bf_lux_diamond",   name: "فقاعة الماس النقي 💎",   kind: "bubble", price: 80000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-sky-100 via-white to-sky-200 border-[3px] border-double border-white ring-2 ring-sky-300 ring-offset-2 ring-offset-white text-slate-900 font-bold shadow-[inset_0_2px_0_rgba(255,255,255,0.85),inset_0_-2px_0_rgba(0,0,0,0.15),0_14px_36px_rgba(186,230,253,0.9)]",
+    animClass: "frame-anim-diamond" },
+  { id: "bf_lux_obsidian",  name: "فقاعة العقيق الأسود 🖤", kind: "bubble", price: 90000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-slate-900 via-violet-700 to-slate-900 border-[3px] border-double border-violet-300 ring-2 ring-black ring-offset-2 ring-offset-violet-400 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.35),inset_0_-2px_0_rgba(0,0,0,0.7),0_14px_38px_rgba(139,92,246,0.75)]",
+    animClass: "frame-anim-obsidian" },
+  { id: "bf_lux_sakura",    name: "فقاعة زهر الساكورا 🌸", kind: "bubble", price: 40000, currency: "gem", rarity: "legendary", preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-pink-200 via-pink-400 to-rose-400 border-[3px] border-double border-pink-50 ring-2 ring-rose-900/50 ring-offset-2 ring-offset-pink-100 text-rose-950 font-medium shadow-[inset_0_2px_0_rgba(255,255,255,0.75),inset_0_-2px_0_rgba(0,0,0,0.25),0_10px_30px_rgba(244,114,182,0.75)]",
+    animClass: "frame-anim-sakura" },
+  { id: "bf_lux_emerald",   name: "فقاعة الزمرد المشع 💚", kind: "bubble", price: 70000, currency: "gem", rarity: "mythic",    preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-emerald-700 via-emerald-400 to-emerald-800 border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950 ring-offset-2 ring-offset-emerald-200 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-2px_0_rgba(0,0,0,0.4),0_12px_34px_rgba(52,211,153,0.8)]",
+    animClass: "frame-anim-emerald" },
+  { id: "bf_lux_imperial",  name: "فقاعة الإمبراطور 🔥",   kind: "bubble", price: 120000, currency: "gem", rarity: "mythic",   preview: "💬",
+    bubbleClass: "relative bg-gradient-to-br from-red-950 via-red-600 to-red-950 border-[3px] border-double border-red-200 ring-2 ring-black ring-offset-2 ring-offset-red-300 text-white font-bold shadow-[inset_0_2px_0_rgba(255,255,255,0.5),inset_0_-2px_0_rgba(0,0,0,0.6),0_16px_40px_rgba(220,38,38,0.85)]",
+    animClass: "frame-anim-imperial" },
 ];
 
 // ─────── إطارات بطاقة البروفايل (إطارات مزخرفة مزدوجة) ───────
@@ -290,6 +376,37 @@ export const PROFILE_FRAMES: Frame[] = [
       "border-[3px] border-double border-cyan-100 ring-2 ring-blue-950 ring-offset-2 ring-offset-cyan-200 " +
       "shadow-[inset_0_2px_0_rgba(255,255,255,0.6),0_20px_50px_rgba(59,130,246,0.75)]",
   },
+  // ─── Premium Luxury profile cards (matched sets) ───
+  { id: "pf_lux_aurora",    name: "بطاقة الشفق القطبي 🌌", kind: "profile", price: 30000, currency: "gem", rarity: "legendary", preview: "🌌",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-cyan-400 via-fuchsia-600 to-emerald-500 border-[3px] border-double border-cyan-100 ring-2 ring-fuchsia-900/70 ring-offset-2 ring-offset-cyan-200 shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_16px_40px_rgba(168,85,247,0.65)]",
+    animClass: "frame-anim-aurora" },
+  { id: "pf_lux_neon",      name: "بطاقة النيون الفاخر ⚡", kind: "profile", price: 35000, currency: "gem", rarity: "legendary", preview: "⚡",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-pink-500 via-cyan-400 to-pink-500 border-[3px] border-double border-pink-100 ring-2 ring-cyan-900 ring-offset-2 ring-offset-pink-200 shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_18px_44px_rgba(236,72,153,0.75)]",
+    animClass: "frame-anim-neon" },
+  { id: "pf_lux_dragon",    name: "بطاقة قلب التنين 🐉",   kind: "profile", price: 45000, currency: "gem", rarity: "mythic",    preview: "🐉",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-rose-500 via-red-900 to-amber-600 border-[3px] border-double border-amber-200 ring-2 ring-red-950 ring-offset-2 ring-offset-rose-300 shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_20px_46px_rgba(220,38,38,0.75)]",
+    animClass: "frame-anim-imperial" },
+  { id: "pf_lux_celestial", name: "بطاقة السماوي ✨",       kind: "profile", price: 55000, currency: "gem", rarity: "mythic",    preview: "✨",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-indigo-700 via-violet-600 to-sky-500 border-[3px] border-double border-indigo-100 ring-2 ring-indigo-950 ring-offset-2 ring-offset-violet-200 shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_20px_48px_rgba(99,102,241,0.75)]",
+    animClass: "frame-anim-orbit" },
+  { id: "pf_lux_royal",     name: "بطاقة التاج الملكي 👑",  kind: "profile", price: 65000, currency: "gem", rarity: "mythic",    preview: "👑",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-700 border-[3px] border-double border-yellow-100 ring-2 ring-amber-950 ring-offset-2 ring-offset-yellow-300 shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_20px_50px_rgba(250,204,21,0.85)]",
+    animClass: "frame-anim-royal" },
+  { id: "pf_lux_diamond",   name: "بطاقة الماس النقي 💎",   kind: "profile", price: 80000, currency: "gem", rarity: "mythic",    preview: "💎",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-sky-100 via-white to-sky-200 border-[3px] border-double border-white ring-2 ring-sky-300 ring-offset-2 ring-offset-white shadow-[inset_0_2px_0_rgba(255,255,255,0.85),0_22px_52px_rgba(186,230,253,0.9)]",
+    animClass: "frame-anim-diamond" },
+  { id: "pf_lux_obsidian",  name: "بطاقة العقيق الأسود 🖤", kind: "profile", price: 90000, currency: "gem", rarity: "mythic",    preview: "🖤",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-slate-900 via-violet-700 to-slate-900 border-[3px] border-double border-violet-300 ring-2 ring-black ring-offset-2 ring-offset-violet-400 shadow-[inset_0_2px_0_rgba(255,255,255,0.35),0_22px_54px_rgba(139,92,246,0.75)]",
+    animClass: "frame-anim-obsidian" },
+  { id: "pf_lux_sakura",    name: "بطاقة زهر الساكورا 🌸", kind: "profile", price: 40000, currency: "gem", rarity: "legendary", preview: "🌸",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-pink-200 via-pink-400 to-rose-400 border-[3px] border-double border-pink-50 ring-2 ring-rose-900/50 ring-offset-2 ring-offset-pink-100 shadow-[inset_0_2px_0_rgba(255,255,255,0.75),0_18px_44px_rgba(244,114,182,0.75)]",
+    animClass: "frame-anim-sakura" },
+  { id: "pf_lux_emerald",   name: "بطاقة الزمرد المشع 💚", kind: "profile", price: 70000, currency: "gem", rarity: "mythic",    preview: "💚",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-emerald-700 via-emerald-400 to-emerald-800 border-[3px] border-double border-emerald-100 ring-2 ring-emerald-950 ring-offset-2 ring-offset-emerald-200 shadow-[inset_0_2px_0_rgba(255,255,255,0.55),0_20px_50px_rgba(52,211,153,0.8)]",
+    animClass: "frame-anim-emerald" },
+  { id: "pf_lux_imperial",  name: "بطاقة الإمبراطور 🔥",   kind: "profile", price: 120000, currency: "gem", rarity: "mythic",   preview: "🔥",
+    profileClass: "rounded-2xl p-[6px] bg-gradient-to-br from-red-950 via-red-600 to-red-950 border-[3px] border-double border-red-200 ring-2 ring-black ring-offset-2 ring-offset-red-300 shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_24px_56px_rgba(220,38,38,0.85)]",
+    animClass: "frame-anim-imperial" },
 ];
 
 export const ALL_FRAMES: Frame[] = [
