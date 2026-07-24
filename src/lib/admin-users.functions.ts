@@ -1,16 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .in("role", ["admin", "moderator"]);
-  if (error) throw new Error(error.message);
-  if (!data || data.length === 0) throw new Error("ليس لديك صلاحية");
-}
 
 export const adminUpdateUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -30,9 +19,12 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error: roleError } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).in("role", ["admin", "moderator"]);
+    if (roleError) throw new Error(roleError.message);
+    if (!roles || roles.length === 0) throw new Error("ليس لديك صلاحية");
 
-    if (input_hasField(data, "email") && data.email) {
+    if (Object.prototype.hasOwnProperty.call(data, "email") && data.email) {
       // Skip if email matches the current one (avoids "Error updating user")
       const { data: existing } = await supabaseAdmin.auth.admin.getUserById(data.userId);
       const currentEmail = existing?.user?.email?.toLowerCase() ?? null;
@@ -77,11 +69,6 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
-
-function input_hasField<T extends object>(d: T, k: string) {
-  return Object.prototype.hasOwnProperty.call(d, k);
-}
-
 export const adminDeleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { userId: string; banEmail?: boolean; banDevices?: boolean; reason?: string }) => {
@@ -89,7 +76,10 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error: roleError } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).in("role", ["admin", "moderator"]);
+    if (roleError) throw new Error(roleError.message);
+    if (!roles || roles.length === 0) throw new Error("ليس لديك صلاحية");
     if (data.userId === context.userId) throw new Error("لا يمكن حذف حسابك");
 
     // Fetch email first so we can block re-registration
@@ -154,12 +144,13 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
 
-    await supabaseAdmin.from("admin_audit").insert({
+    const { error: auditError } = await supabaseAdmin.from("admin_audit").insert({
       admin_id: context.userId,
       action: "admin_delete_user",
-      target_user_id: data.userId,
+      target_user_id: null,
       details: { email, banEmail: !!data.banEmail, banDevices: !!data.banDevices, reason: data.reason ?? "" } as never,
     });
+    if (auditError) console.error("admin_delete_user audit failed", auditError.message);
 
     return { ok: true, email };
   });
@@ -171,7 +162,10 @@ export const adminPermanentBan = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error: roleError } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).in("role", ["admin", "moderator"]);
+    if (roleError) throw new Error(roleError.message);
+    if (!roles || roles.length === 0) throw new Error("ليس لديك صلاحية");
     if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
 
     const reason = data.reason || "حظر نهائي";
@@ -201,7 +195,10 @@ export const adminBlockLogin = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error: roleError } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).in("role", ["admin", "moderator"]);
+    if (roleError) throw new Error(roleError.message);
+    if (!roles || roles.length === 0) throw new Error("ليس لديك صلاحية");
     if (data.userId === context.userId) throw new Error("لا يمكن منع حسابك");
 
     if (data.unblock) {
@@ -259,7 +256,10 @@ export const adminHardBan = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error: roleError } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).in("role", ["admin", "moderator"]);
+    if (roleError) throw new Error(roleError.message);
+    if (!roles || roles.length === 0) throw new Error("ليس لديك صلاحية");
     if (data.userId === context.userId) throw new Error("لا يمكن حظر حسابك");
 
     const reason = data.reason?.trim() || "حظر قوي";
