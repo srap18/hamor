@@ -2552,10 +2552,9 @@ function Index() {
                         label={ready ? "اجمع" : s.progress > 0 || s.fishing ? "اجمع وارجع" : "صيد"}
                         onClick={(e: React.MouseEvent) => {
                           setMenuShipId(null);
-                          if (!ready && s.progress <= 0 && !s.fishing && getCrewBonuses(s).guide) {
-                            setFishPickerShipId(s.id);
-                            return;
-                          }
+                          // Guide is optional — never block sailing. If the
+                          // player wants to target a specific fish, they can
+                          // tap the 🧭 button before or during the trip.
                           collect(s.id, e);
                         }}
                       />
