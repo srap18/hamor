@@ -90,6 +90,18 @@ export const AVATAR_FRAMES: Frame[] = [
     price: 999999, currency: "gem", rarity: "mythic", preview: "🌌",
     imageUrl: cosmicVipImg, animClass: "frame-anim-pulse",
   },
+
+  // ─── Premium Luxury avatar frames (animated SVG rings) ───
+  { id: "af_lux_aurora",    name: "إطار الشفق القطبي 🌌",   kind: "avatar", price: 30000, currency: "gem", rarity: "legendary", preview: "🌌", imageUrl: luxAurora,    animClass: "frame-anim-aurora" },
+  { id: "af_lux_neon",      name: "إطار النيون الفاخر ⚡",   kind: "avatar", price: 35000, currency: "gem", rarity: "legendary", preview: "⚡", imageUrl: luxNeon,      animClass: "frame-anim-neon" },
+  { id: "af_lux_dragon",    name: "إطار قلب التنين 🐉",     kind: "avatar", price: 45000, currency: "gem", rarity: "mythic",    preview: "🐉", imageUrl: luxDragon,    animClass: "frame-anim-imperial" },
+  { id: "af_lux_celestial", name: "إطار السماوي ✨",         kind: "avatar", price: 55000, currency: "gem", rarity: "mythic",    preview: "✨", imageUrl: luxCelestial, animClass: "frame-anim-orbit" },
+  { id: "af_lux_royal",     name: "إطار التاج الملكي 👑",    kind: "avatar", price: 65000, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: luxRoyal,     animClass: "frame-anim-royal" },
+  { id: "af_lux_diamond",   name: "إطار الماس النقي 💎",     kind: "avatar", price: 80000, currency: "gem", rarity: "mythic",    preview: "💎", imageUrl: luxDiamond,   animClass: "frame-anim-diamond" },
+  { id: "af_lux_obsidian",  name: "إطار العقيق الأسود 🖤",   kind: "avatar", price: 90000, currency: "gem", rarity: "mythic",    preview: "🖤", imageUrl: luxObsidian,  animClass: "frame-anim-obsidian" },
+  { id: "af_lux_sakura",    name: "إطار زهر الساكورا 🌸",   kind: "avatar", price: 40000, currency: "gem", rarity: "legendary", preview: "🌸", imageUrl: luxSakura,    animClass: "frame-anim-sakura" },
+  { id: "af_lux_emerald",   name: "إطار الزمرد المشع 💚",   kind: "avatar", price: 70000, currency: "gem", rarity: "mythic",    preview: "💚", imageUrl: luxEmerald,   animClass: "frame-anim-emerald" },
+  { id: "af_lux_imperial",  name: "إطار الإمبراطور 🔥",     kind: "avatar", price: 120000, currency: "gem", rarity: "mythic",   preview: "🔥", imageUrl: luxImperial,  animClass: "frame-anim-imperial" },
 ];
 
 // ─────── إطارات الاسم (لوحات فاخرة بحواف معدنية) ───────
