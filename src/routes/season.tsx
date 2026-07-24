@@ -279,6 +279,6 @@ function PodiumCard({ row, p, rank, isMe, tall, onOpen }: { row: Row; p?: Profil
         <div className="text-[10px] font-black text-black/80 tabular-nums">{fmt(row.damage_total)}</div>
         <div className="text-[9px] text-black/70">{frame?.name || ""}</div>
       </div>
-    </div>
+    </button>
   );
 }
