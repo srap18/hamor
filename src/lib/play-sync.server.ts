@@ -219,6 +219,7 @@ function buildOneTimeProductBody(
     defaultOption.newRegionsConfig = {
       availability: "AVAILABLE",
       usdPrice: usdPriceForAutoConvert,
+      eurPrice: eurPriceForAutoConvert,
     };
   }
 
