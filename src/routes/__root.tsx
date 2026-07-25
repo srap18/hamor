@@ -552,6 +552,7 @@ function RootComponent() {
           <AdminEditToggle />
           <SignedInOnly>
             <InstallAppButton />
+            <TutorialOverlay />
           </SignedInOnly>
           <Toaster
             position="top-center"
