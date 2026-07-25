@@ -46,7 +46,7 @@ jobs:
       #   - إذن com.android.vending.BILLING  (AndroidManifest.xml)
       #   - MainActivity المخصصة (أوفلاين + أذونات in-context)
       #   - network_security_config, data_extraction_rules, styles, colors...
-      # حذف المجلد كان يُلغي كل هذا قبل البناء، فيصدر APK بدون فوترة ولا Install Referrer.
+      # حذف المجلد كان يُلغي كل هذا قبل البناء، فيصدر APK بدون فوترة ولا Install Referrer. 
       #
       # Capacitor sync فقط ينسخ ملفات الويب والإضافات إلى المشروع الموجود
       # ولا يمس build.gradle ولا AndroidManifest.xml.
