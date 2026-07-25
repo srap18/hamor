@@ -188,6 +188,7 @@ function buildOneTimeProductBody(
   // we skip auto-conversion and just publish in the base region.
   const usdPriceForAutoConvert =
     currency === "USD" ? price : microsToMoney(row.price_micros, "USD");
+  const eurPriceForAutoConvert = microsToMoney(row.price_micros, "EUR");
   const canAutoConvert = currency === "USD";
 
   const defaultOption: any = {
