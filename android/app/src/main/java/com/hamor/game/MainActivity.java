@@ -43,6 +43,14 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(InAppPurchasesPlugin.class);
         super.onCreate(savedInstanceState);
 
+        // Google Play Install Referrer — يربط التنزيلات بمصادر الاكتساب
+        // في Play Console ويزيل تحذير "The install referrer library is missing".
+        // يجب أن تكون هناك مرجعية فعلية للكلاس في الكود حتى يضمّها الـ AAB
+        // في الـ DEX ويتعرّف عليها Play Console.
+        initInstallReferrer();
+
+
+
         // منح WebView أذونات المايك/الكاميرا عند الطلب فقط.
         bridge.getWebView().setWebChromeClient(new WebChromeClient() {
             @Override
