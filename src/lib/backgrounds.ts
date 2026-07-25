@@ -30,6 +30,10 @@ import spongebobBg from "@/assets/bg-spongebob.jpg.asset.json";
 import spongebobBurnedBg from "@/assets/bg-spongebob-burned.jpg.asset.json";
 import spongebobVideo from "@/assets/bg-spongebob.mp4.asset.json";
 import spongebobBurnedVideo from "@/assets/bg-spongebob-burned.mp4.asset.json";
+import coveBg from "@/assets/bg-cove.jpg.asset.json";
+import coveBurnedBg from "@/assets/bg-cove-burned.jpg.asset.json";
+import coveVideo from "@/assets/bg-cove.mp4.asset.json";
+import coveBurnedVideo from "@/assets/bg-cove-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -83,6 +87,25 @@ const UNIFIED_SHIP_SLOTS = [
 const EIFFEL_SLOTS = UNIFIED_SHIP_SLOTS;
 
 export const BACKGROUNDS: SceneBg[] = [
+  {
+    id: "cove",
+    name: "خليج القراصنة ✨",
+    burnedName: "خليج القراصنة المحترق 🔥",
+    price: 0,
+    rarity: "legendary",
+    image: coveBg.url,
+    burnedImage: coveBurnedBg.url,
+    video: coveVideo.url,
+    burnedVideo: coveBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 30,
+    waterLeft: 40,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.12, x: "-0.6%", y: "-0.5%", duration: "10s" },
+  },
   {
     id: "onepiece",
     name: "One Piece ✨",

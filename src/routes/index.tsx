@@ -2069,10 +2069,10 @@ function Index() {
 
       ) : (
         <>
-          {/* Fish market — takes the old ship market spot on the left beach */}
+          {/* Fish market — top-right cliff hut on the cove bg */}
           <Placeable
             id="fish-market"
-            defaultStyle={{ left: "37.9%", top: "38.7%", width: "20%", height: "16%" }}
+            defaultStyle={{ left: "62%", top: "31%", width: "24%", height: "12%" }}
           >
             {(style) => (
               <FishMarketBuilding
@@ -2082,10 +2082,10 @@ function Index() {
               />
             )}
           </Placeable>
-          {/* Ship Market — floating on the sea at the marked spot */}
+          {/* Ship Market — dockside hut at the lower-left beach */}
           <Placeable
             id="ship-market"
-            defaultStyle={{ left: "80.9%", top: "33%", width: "20%", height: "16%" }}
+            defaultStyle={{ left: "8%", top: "47%", width: "26%", height: "15%" }}
           >
             {(style) => (
               <ShipMarketBuilding
