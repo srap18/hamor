@@ -1592,7 +1592,7 @@ function Index() {
     // that the guide crew is actually assigned and the fish is in the pool.
     // Don't gate on the local `guide` bool: crew rows may not have refreshed
     // yet after a fresh assignment, which would silently drop the request.
-    const storedGuide = getShipGuide(s.id);
+    const storedGuide = getShipGuide(s.id, s.dbId);
     const requestedFishId = storedGuide || null;
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
