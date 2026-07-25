@@ -31,10 +31,10 @@ export function BackgroundsPanel() {
   const gems = profile?.gems ?? 0;
   const burnedUntil = (profile as any)?.bg_burned_until as string | null | undefined;
   const isBurned = !!burnedUntil && new Date(burnedUntil).getTime() > serverNowMs();
-  const [owned, setOwned] = useState<string[]>(["onepiece"]);
+  const [owned, setOwned] = useState<string[]>(["cove"]);
   const [expiries, setExpiries] = useState<Record<string, number>>({});
   const now = useServerTick();
-  const [selected, setSelected] = useState<string>("onepiece");
+  const [selected, setSelected] = useState<string>("cove");
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [repairing, setRepairing] = useState(false);
@@ -42,7 +42,7 @@ export function BackgroundsPanel() {
   useEffect(() => {
     setSelected(getSelectedBgId());
     if (!user) {
-      const base = ["onepiece"];
+      const base = ["cove"];
       setOwned(base);
       setOwnedBgIds(base);
       return;
@@ -66,15 +66,15 @@ export function BackgroundsPanel() {
           return id;
         })
         .filter((id): id is string => !!id && BACKGROUNDS.some((b) => b.id === id));
-      const next = Array.from(new Set(["onepiece", ...serverIds]));
+      const next = Array.from(new Set(["cove", ...serverIds]));
       setOwned(next);
       setExpiries(exp);
       setOwnedBgIds(next);
       // If currently selected bg was expired/removed, revert to default
       const cur = getSelectedBgId();
       if (!next.includes(cur)) {
-        setSelectedBgId("onepiece");
-        setSelected("onepiece");
+        setSelectedBgId("cove");
+        setSelected("cove");
       }
       refreshProfile();
     })();
