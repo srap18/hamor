@@ -532,21 +532,27 @@ function RootComponent() {
           <GlobalBanner />
           <SoftProtection />
 
-          <LastAttackTicker />
-          <GlobalNotificationListener />
-          <LuckyBoxGlobalBanner />
-          <LuckyWinTicker />
-          <SelfAntiBlockBurst />
-          <AttackerAntiBlockBurst />
+          <SignedInOnly>
+            <LastAttackTicker />
+            <GlobalNotificationListener />
+            <LuckyBoxGlobalBanner />
+            <LuckyWinTicker />
+            <SelfAntiBlockBurst />
+            <AttackerAntiBlockBurst />
+          </SignedInOnly>
 
           <NetworkRecovery />
           <OfflineOverlay />
-          <EliteVipLoginOverlay />
+          <SignedInOnly>
+            <EliteVipLoginOverlay />
+          </SignedInOnly>
 
           <Outlet />
 
           <AdminEditToggle />
-          <InstallAppButton />
+          <SignedInOnly>
+            <InstallAppButton />
+          </SignedInOnly>
           <Toaster
             position="top-center"
             theme="dark"
