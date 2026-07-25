@@ -42,7 +42,7 @@ jobs:
 
       # ⚠️ مهم جداً: لا نحذف مجلد android/ ولا نعيد إنشاءه.
       # المجلد الموجود في المستودع يحتوي على:
-      #   - Google Play Billing 7.1.1 + Install Referrer 2.2  (build.gradle)
+      #   - Google Play Billing 7.1.1 + Install Referrer 2.2  (build.gradle) 
       #   - إذن com.android.vending.BILLING  (AndroidManifest.xml)
       #   - MainActivity المخصصة (أوفلاين + أذونات in-context)
       #   - network_security_config, data_extraction_rules, styles, colors...
