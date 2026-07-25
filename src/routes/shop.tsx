@@ -100,8 +100,10 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "ships", label: "سفن", banner: "Special Ships" },
   { id: "vip", label: "👑 VIP", banner: "Elite VIP" },
   { id: "backgrounds", label: "🖼️ خلفيات", banner: "Backgrounds" },
+  { id: "frames", label: "🎖️ إطارات", banner: "Frames" },
   { id: "recharge", label: "💳 شحن", banner: "Recharge" },
 ];
+
 
 // Max armor duration capped at 2 days. Higher tiers removed.
 const PROTECTION: Item[] = [
