@@ -41,22 +41,30 @@ function buildAppConfirmationUrl(
   rawUrl: string | null | undefined,
   tokenHashFromPayload?: string | null,
 ): string | null {
-  // Prefer building from token_hash directly (Supabase send-email hook payload)
-  // because data.url is not guaranteed to contain token_hash across payload versions.
+  // Prefer explicit token_hash from payload; fall back to parsing the raw URL.
+  // Supabase's verify URL uses `token` for the hashed OTP (which verifyOtp
+  // accepts as `token_hash`); some payload versions surface it as `token_hash`.
   let tokenHash: string | null = tokenHashFromPayload ?? null
   let type = actionType
 
-  if (!tokenHash && rawUrl) {
+  if (rawUrl) {
     try {
       const source = new URL(rawUrl)
-      tokenHash = source.searchParams.get('token_hash')
+      if (!tokenHash) {
+        tokenHash =
+          source.searchParams.get('token_hash') ||
+          source.searchParams.get('token')
+      }
       type = source.searchParams.get('type') || actionType
     } catch {
       /* noop */
     }
   }
 
-  if (!tokenHash) return rawUrl ?? null
+  if (!tokenHash) {
+    console.warn('buildAppConfirmationUrl: missing token_hash', { actionType, hasRawUrl: !!rawUrl })
+    return rawUrl ?? null
+  }
 
   const appUrl = new URL('/auth/confirm', `https://${ROOT_DOMAIN}`)
   appUrl.searchParams.set('token_hash', tokenHash)
