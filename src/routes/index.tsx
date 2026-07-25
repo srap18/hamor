@@ -455,9 +455,14 @@ function Index() {
     // and the client-side _requested_fish_id survive page reloads.
     if (typeof window !== "undefined") {
       for (const o of owned) {
-        if (o.preferred_fish_id) {
-          try { window.localStorage.setItem(`ship_guide_db_${o.id}`, o.preferred_fish_id); } catch { /* noop */ }
-        }
+        try {
+          if (o.preferred_fish_id) {
+            window.localStorage.setItem(`ship_guide_db_${o.id}`, o.preferred_fish_id);
+          } else {
+            // Mirror the DB exactly — clear stale local pick if server has none.
+            window.localStorage.removeItem(`ship_guide_db_${o.id}`);
+          }
+        } catch { /* noop */ }
       }
     }
 
