@@ -245,6 +245,7 @@ function buildOneTimeProductBody(
         cleaned.newRegionsConfig = {
           availability: "AVAILABLE",
           usdPrice: usdPriceForAutoConvert,
+          eurPrice: eurPriceForAutoConvert,
         };
       } else {
         delete cleaned.newRegionsConfig;
