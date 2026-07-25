@@ -164,7 +164,9 @@ export async function purchaseIap(productId: string): Promise<IapPurchase | null
     };
   } catch (e) {
     console.warn("[iap] purchase failed", e);
-    return null;
+    const message = e instanceof Error ? e.message : String(e ?? "");
+    if (/cancel|إلغاء|canceled/i.test(message)) return null;
+    throw e;
   }
 }
 

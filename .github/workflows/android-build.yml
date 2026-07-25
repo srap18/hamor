@@ -60,7 +60,7 @@ jobs:
       # لو انكسر أي منها نفشل مبكراً بدل ما نرفع AAB معطوب لـ Play Console.
       - name: Verify Play Billing & Install Referrer are present
         run: |
-          set -e
+          set -euo pipefail
           echo "== build.gradle deps =="
           grep -q "com.android.billingclient:billing" android/app/build.gradle \
             || (echo "ERROR: Play Billing dependency missing" && exit 1)
@@ -69,7 +69,21 @@ jobs:
           echo "== AndroidManifest permissions =="
           grep -q "com.android.vending.BILLING" android/app/src/main/AndroidManifest.xml \
             || (echo "ERROR: BILLING permission missing" && exit 1)
-          echo "OK: billing + install referrer + permission are in place."
+          echo "== resolved release dependencies =="
+          cd android
+          ./gradlew :app:dependencyInsight \
+            --dependency com.android.billingclient:billing \
+            --configuration releaseRuntimeClasspath \
+            --no-daemon > /tmp/billing-dependency.txt
+          ./gradlew :app:dependencyInsight \
+            --dependency com.android.installreferrer:installreferrer \
+            --configuration releaseRuntimeClasspath \
+            --no-daemon > /tmp/referrer-dependency.txt
+          grep -q "com.android.billingclient:billing:7.1.1" /tmp/billing-dependency.txt \
+            || (cat /tmp/billing-dependency.txt && echo "ERROR: Play Billing 7.1.1 is not on releaseRuntimeClasspath" && exit 1)
+          grep -q "com.android.installreferrer:installreferrer:2.2" /tmp/referrer-dependency.txt \
+            || (cat /tmp/referrer-dependency.txt && echo "ERROR: Install Referrer 2.2 is not on releaseRuntimeClasspath" && exit 1)
+          echo "OK: billing + install referrer resolve for the release bundle and BILLING permission is present."
 
       - name: Build Unsigned Release APK and AAB
         run: |
@@ -78,19 +92,29 @@ jobs:
           sed -i 's/versionCode [0-9]*/versionCode 1008/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
-      # التحقق النهائي: نفتح الـ AAB ونتأكد أن كلاسات المكتبتين مضمنة داخل الحزمة.
-      # لو المكتبة مذكورة في gradle لكن ProGuard/Gradle استبعدها لأي سبب،
-      # هذا الفحص يُفشل البناء بدل ما نكتشف المشكلة بعد الرفع.
+      # التحقق النهائي من ملفات DEX داخل الـ AAB. ملفات AAB لا تخزن كلاسات
+      # Java كمسارات منفصلة؛ لذلك فحص `unzip -l` بحثاً عن com/android/... يعطي
+      # نتيجة سالبة كاذبة دائماً. نفك نصوص DEX ونبحث عن واصفات الكلاسات الفعلية.
       - name: Verify libraries are bundled inside AAB
         run: |
-          set -e
+          set -euo pipefail
           AAB=android/app/build/outputs/bundle/release/app-release.aab
           test -f "$AAB" || (echo "ERROR: AAB not produced" && exit 1)
-          unzip -l "$AAB" > /tmp/aab-listing.txt
-          grep -q "com/android/billingclient" /tmp/aab-listing.txt \
-            || (echo "ERROR: billingclient classes not bundled in AAB" && exit 1)
-          grep -q "com/android/installreferrer" /tmp/aab-listing.txt \
-            || (echo "ERROR: installreferrer classes not bundled in AAB" && exit 1)
+
+          mapfile -t DEX_FILES < <(unzip -Z1 "$AAB" | grep -E '^base/dex/classes([0-9]*)?\.dex$')
+          test "${#DEX_FILES[@]}" -gt 0 \
+            || (echo "ERROR: no base DEX files found in AAB" && exit 1)
+
+          : > /tmp/aab-dex-strings.txt
+          for dex in "${DEX_FILES[@]}"; do
+            echo "Inspecting $dex"
+            unzip -p "$AAB" "$dex" | strings >> /tmp/aab-dex-strings.txt
+          done
+
+          grep -Fq "Lcom/android/billingclient/api/BillingClient;" /tmp/aab-dex-strings.txt \
+            || (echo "ERROR: BillingClient class descriptor not found in AAB DEX" && exit 1)
+          grep -Fq "Lcom/android/installreferrer/api/InstallReferrerClient;" /tmp/aab-dex-strings.txt \
+            || (echo "ERROR: InstallReferrerClient class descriptor not found in AAB DEX" && exit 1)
           echo "OK: Play Billing + Install Referrer classes are bundled in the AAB."
 
       - name: Upload Unsigned Outputs
