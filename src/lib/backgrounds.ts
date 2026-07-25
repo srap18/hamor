@@ -2,8 +2,6 @@ import eiffelNightBg from "@/assets/bg-eiffel-night.png";
 import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
 import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
-import onepieceBg from "@/assets/bg-onepiece.jpg.asset.json";
-import onepieceBurnedBg from "@/assets/bg-onepiece-burned.jpg.asset.json";
 import eiffelBg from "@/assets/bg-eiffel.jpg.asset.json";
 import eiffelBurnedBg from "@/assets/bg-eiffel-burned.jpg.asset.json";
 import worldcupBg from "@/assets/bg-worldcup.jpg.asset.json";
