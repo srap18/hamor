@@ -323,18 +323,30 @@ function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?:
   return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode, hp });
 }
 
-// Optional fishing guide: when set, ship targets that specific fish id
-// Stored in localStorage as: ship_guide_<shipId> = <fishId>
-function getShipGuide(shipId: number): string | null {
+// Optional fishing guide: when set, ship targets that specific fish id.
+// Keyed by the ship's stable database UUID (dbId), so the selection sticks
+// across page reloads, fleet re-syncs, and ship reorderings. We also keep a
+// legacy fallback on the ephemeral local id for old writes.
+function getShipGuide(shipId: number, dbId?: string | null): string | null {
   if (typeof window === "undefined") return null;
+  if (dbId) {
+    const v = window.localStorage.getItem(`ship_guide_db_${dbId}`);
+    if (v) return v;
+  }
   return window.localStorage.getItem(`ship_guide_${shipId}`);
 }
 
-function setShipGuide(shipId: number, fishId: string | null) {
+function setShipGuide(shipId: number, dbId: string | null | undefined, fishId: string | null) {
   if (typeof window === "undefined") return;
-  if (fishId) window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
-  else window.localStorage.removeItem(`ship_guide_${shipId}`);
+  if (fishId) {
+    if (dbId) window.localStorage.setItem(`ship_guide_db_${dbId}`, fishId);
+    window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
+  } else {
+    if (dbId) window.localStorage.removeItem(`ship_guide_db_${dbId}`);
+    window.localStorage.removeItem(`ship_guide_${shipId}`);
+  }
 }
+
 
 // Crew assignment + inventory (localStorage-backed for now)
 function getShipCrew(shipId: number): string | null {
@@ -434,11 +446,21 @@ function Index() {
     maybeFinalizeShipRepairs(uid);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars, preferred_fish_id")
       .eq("user_id", uid)
       .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null; preferred_fish_id: string | null }[];
+    // Hydrate localStorage guide cache from the server so the picker highlight
+    // and the client-side _requested_fish_id survive page reloads.
+    if (typeof window !== "undefined") {
+      for (const o of owned) {
+        if (o.preferred_fish_id) {
+          try { window.localStorage.setItem(`ship_guide_db_${o.id}`, o.preferred_fish_id); } catch { /* noop */ }
+        }
+      }
+    }
+
 
     setShips((curr) => {
       // If the user has zero ships in DB, clear the harbor — a placeholder
@@ -1570,7 +1592,7 @@ function Index() {
     // that the guide crew is actually assigned and the fish is in the pool.
     // Don't gate on the local `guide` bool: crew rows may not have refreshed
     // yet after a fresh assignment, which would silently drop the request.
-    const storedGuide = getShipGuide(s.id);
+    const storedGuide = getShipGuide(s.id, s.dbId);
     const requestedFishId = storedGuide || null;
     // Destroyed ships cannot fish at all until fully repaired.
     if (isDestroyed(s)) {
@@ -2636,7 +2658,7 @@ function Index() {
         if (!s) return null;
         const choices = fishPoolForShip(s);
         const changeOnly = fishPickerChangeOnly;
-        const currentGuide = getShipGuide(s.id);
+        const currentGuide = getShipGuide(s.id, s.dbId);
         const close = () => { setFishPickerShipId(null); setFishPickerChangeOnly(false); };
         return (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={close}>
@@ -2666,7 +2688,7 @@ function Index() {
                         // freezes the picker. The RPC runs in the background;
                         // the server also accepts the choice on collect via
                         // _requested_fish_id, so no data is lost if it fails.
-                        setShipGuide(s.id, fishId);
+                        setShipGuide(s.id, s.dbId, fishId);
                         const shipDbId = s.dbId;
                         close();
                         if (shipDbId) {
