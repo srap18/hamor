@@ -44,7 +44,7 @@ jobs:
       # المجلد الموجود في المستودع يحتوي على:
       #   - Google Play Billing 7.1.1 + Install Referrer 2.2  (build.gradle) 
       #   - إذن com.android.vending.BILLING  (AndroidManifest.xml)
-      #   - MainActivity المخصصة (أوفلاين + أذونات in-context)
+      #   - MainActivity المخصصة (أوفلاين + أذونات in-context) 
       #   - network_security_config, data_extraction_rules, styles, colors... 
       # حذف المجلد كان يُلغي كل هذا قبل البناء، فيصدر APK بدون فوترة ولا Install Referrer. 
       #
