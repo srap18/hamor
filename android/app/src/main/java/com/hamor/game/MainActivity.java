@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
@@ -16,6 +17,9 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.android.installreferrer.api.InstallReferrerClient;
+import com.android.installreferrer.api.InstallReferrerStateListener;
+import com.android.installreferrer.api.ReferrerDetails;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
 
@@ -38,6 +42,14 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(InAppPurchasesPlugin.class);
         super.onCreate(savedInstanceState);
+
+        // Google Play Install Referrer — يربط التنزيلات بمصادر الاكتساب
+        // في Play Console ويزيل تحذير "The install referrer library is missing".
+        // يجب أن تكون هناك مرجعية فعلية للكلاس في الكود حتى يضمّها الـ AAB
+        // في الـ DEX ويتعرّف عليها Play Console.
+        initInstallReferrer();
+
+
 
         // منح WebView أذونات المايك/الكاميرا عند الطلب فقط.
         bridge.getWebView().setWebChromeClient(new WebChromeClient() {
@@ -108,6 +120,44 @@ public class MainActivity extends BridgeActivity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    /**
+     * تهيئة Google Play Install Referrer Client — الاتصال يتم مرة واحدة
+     * عند فتح التطبيق أول مرة. النتائج تُسجّل في logcat فقط؛ الغرض الأساسي
+     * هو ضمان تضمين مكتبة installreferrer داخل الـ AAB حتى يتعرّف Play Console
+     * على مصدر التنزيل ويتعرّف على التطبيق كمُتبنٍّ للمكتبة رسمياً.
+     */
+    private void initInstallReferrer() {
+        try {
+            final InstallReferrerClient client = InstallReferrerClient.newBuilder(this).build();
+            client.startConnection(new InstallReferrerStateListener() {
+                @Override
+                public void onInstallReferrerSetupFinished(int responseCode) {
+                    try {
+                        if (responseCode == InstallReferrerClient.InstallReferrerResponse.OK) {
+                            ReferrerDetails details = client.getInstallReferrer();
+                            Log.d("InstallReferrer", "referrer=" + details.getInstallReferrer()
+                                + " clickTs=" + details.getReferrerClickTimestampSeconds()
+                                + " installTs=" + details.getInstallBeginTimestampSeconds());
+                        } else {
+                            Log.d("InstallReferrer", "setup responseCode=" + responseCode);
+                        }
+                    } catch (Exception e) {
+                        Log.w("InstallReferrer", "getInstallReferrer failed", e);
+                    } finally {
+                        try { client.endConnection(); } catch (Exception ignored) {}
+                    }
+                }
+
+                @Override
+                public void onInstallReferrerServiceDisconnected() {
+                    // لا داعي لإعادة الاتصال — Play Console يحتاج فقط وجود المكتبة.
+                }
+            });
+        } catch (Exception e) {
+            Log.w("InstallReferrer", "init failed", e);
+        }
     }
 
     private void handleWebPermissionRequest(PermissionRequest request) {
