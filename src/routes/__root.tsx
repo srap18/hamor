@@ -31,6 +31,13 @@ import { NetworkRecovery } from "@/components/NetworkRecovery";
 import { OfflineOverlay } from "@/components/OfflineOverlay";
 import { installNativeShell } from "@/lib/native-shell";
 import { installToastSanitizer } from "@/lib/sanitize-toast";
+import { useAuth } from "@/hooks/use-auth";
+
+function SignedInOnly({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth() as any;
+  if (loading || !user) return null;
+  return <>{children}</>;
+}
 
 
 // Install the server-time clock as early as possible on the client so every
@@ -525,21 +532,27 @@ function RootComponent() {
           <GlobalBanner />
           <SoftProtection />
 
-          <LastAttackTicker />
-          <GlobalNotificationListener />
-          <LuckyBoxGlobalBanner />
-          <LuckyWinTicker />
-          <SelfAntiBlockBurst />
-          <AttackerAntiBlockBurst />
+          <SignedInOnly>
+            <LastAttackTicker />
+            <GlobalNotificationListener />
+            <LuckyBoxGlobalBanner />
+            <LuckyWinTicker />
+            <SelfAntiBlockBurst />
+            <AttackerAntiBlockBurst />
+          </SignedInOnly>
 
           <NetworkRecovery />
           <OfflineOverlay />
-          <EliteVipLoginOverlay />
+          <SignedInOnly>
+            <EliteVipLoginOverlay />
+          </SignedInOnly>
 
           <Outlet />
 
           <AdminEditToggle />
-          <InstallAppButton />
+          <SignedInOnly>
+            <InstallAppButton />
+          </SignedInOnly>
           <Toaster
             position="top-center"
             theme="dark"
