@@ -30,6 +30,10 @@ import spongebobBg from "@/assets/bg-spongebob.jpg.asset.json";
 import spongebobBurnedBg from "@/assets/bg-spongebob-burned.jpg.asset.json";
 import spongebobVideo from "@/assets/bg-spongebob.mp4.asset.json";
 import spongebobBurnedVideo from "@/assets/bg-spongebob-burned.mp4.asset.json";
+import coveBg from "@/assets/bg-cove.jpg.asset.json";
+import coveBurnedBg from "@/assets/bg-cove-burned.jpg.asset.json";
+import coveVideo from "@/assets/bg-cove.mp4.asset.json";
+import coveBurnedVideo from "@/assets/bg-cove-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
