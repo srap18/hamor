@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/shop")({
 });
 
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "frames" | "recharge" | "vip";
 
 type Item = {
   id: string;
@@ -99,8 +100,10 @@ const TABS: { id: Tab; label: string; banner: string }[] = [
   { id: "ships", label: "سفن", banner: "Special Ships" },
   { id: "vip", label: "👑 VIP", banner: "Elite VIP" },
   { id: "backgrounds", label: "🖼️ خلفيات", banner: "Backgrounds" },
+  { id: "frames", label: "🎖️ إطارات", banner: "Frames" },
   { id: "recharge", label: "💳 شحن", banner: "Recharge" },
 ];
+
 
 // Max armor duration capped at 2 days. Higher tiers removed.
 const PROTECTION: Item[] = [
@@ -163,11 +166,13 @@ const SHIPS_FOR_SALE: Item[] = [
 
 
 function Shop() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useProfile();
   const coins = profile?.coins ?? 0;
   const gems = profile?.gems ?? 0;
   const [tab, setTab] = useState<Tab>("recharge");
+
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [selected, setSelected] = useState<Item | null>(null);
   const [qty, setQty] = useState(1);
@@ -324,7 +329,11 @@ function Shop() {
           return (
             <button
               key={t.id}
-              onClick={() => { setTab(t.id); setSelected(null); }}
+              onClick={() => {
+                if (t.id === "frames") { navigate({ to: "/cosmetics" }); return; }
+                setTab(t.id); setSelected(null);
+              }}
+
               className={`flex-1 py-2 rounded-t-xl text-sm font-bold border-2 border-b-0 transition-all active:scale-95 ${
                 active
                   ? "bg-gradient-to-b from-rose-400 to-rose-600 border-rose-200 text-white shadow-lg -mb-px"
