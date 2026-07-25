@@ -2688,7 +2688,7 @@ function Index() {
                         // freezes the picker. The RPC runs in the background;
                         // the server also accepts the choice on collect via
                         // _requested_fish_id, so no data is lost if it fails.
-                        setShipGuide(s.id, fishId);
+                        setShipGuide(s.id, s.dbId, fishId);
                         const shipDbId = s.dbId;
                         close();
                         if (shipDbId) {
