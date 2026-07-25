@@ -3136,6 +3136,7 @@ export type Database = {
           total_damage_dealt: number
           tribe_gems: number
           tribe_id: string | null
+          tutorial_completed: boolean
           username: string
           username_changed_at: string | null
           vip_expires_at: string | null
@@ -3210,6 +3211,7 @@ export type Database = {
           total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
+          tutorial_completed?: boolean
           username: string
           username_changed_at?: string | null
           vip_expires_at?: string | null
@@ -3284,6 +3286,7 @@ export type Database = {
           total_damage_dealt?: number
           tribe_gems?: number
           tribe_id?: string | null
+          tutorial_completed?: boolean
           username?: string
           username_changed_at?: string | null
           vip_expires_at?: string | null
@@ -6166,6 +6169,7 @@ export type Database = {
           xp_awarded: number
         }[]
       }
+      complete_tutorial: { Args: never; Returns: undefined }
       compute_dragon_overall_level: {
         Args: { _dp: number; _stage: number }
         Returns: number
