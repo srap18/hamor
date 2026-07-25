@@ -2658,7 +2658,7 @@ function Index() {
         if (!s) return null;
         const choices = fishPoolForShip(s);
         const changeOnly = fishPickerChangeOnly;
-        const currentGuide = getShipGuide(s.id);
+        const currentGuide = getShipGuide(s.id, s.dbId);
         const close = () => { setFishPickerShipId(null); setFishPickerChangeOnly(false); };
         return (
           <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={close}>
