@@ -329,7 +329,11 @@ function Shop() {
           return (
             <button
               key={t.id}
-              onClick={() => { setTab(t.id); setSelected(null); }}
+              onClick={() => {
+                if (t.id === "frames") { navigate({ to: "/cosmetics" }); return; }
+                setTab(t.id); setSelected(null);
+              }}
+
               className={`flex-1 py-2 rounded-t-xl text-sm font-bold border-2 border-b-0 transition-all active:scale-95 ${
                 active
                   ? "bg-gradient-to-b from-rose-400 to-rose-600 border-rose-200 text-white shadow-lg -mb-px"
