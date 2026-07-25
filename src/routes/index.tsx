@@ -2688,19 +2688,34 @@ function Index() {
                       className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-black text-accent active:scale-95 ${
                         isCurrent ? "border-amber-300 bg-amber-500/20" : "border-accent/40 bg-secondary/70"
                       }`}
-                      onClick={(e) => {
-                        // Close the modal FIRST so a slow network never
-                        // freezes the picker. The RPC runs in the background;
-                        // the server also accepts the choice on collect via
-                        // _requested_fish_id, so no data is lost if it fails.
-                        setShipGuide(s.id, s.dbId, fishId);
+                      onClick={async (e) => {
                         const shipDbId = s.dbId;
-                        close();
+                        // Optimistic local pick for instant feedback.
+                        setShipGuide(s.id, shipDbId, fishId);
+                        // Persist to the server BEFORE closing so a realtime
+                        // ships_owned resync can't overwrite the local cache
+                        // with the previous DB value mid-flight.
                         if (shipDbId) {
-                          void (supabase as any)
-                            .rpc("set_guide_fish", { _ship_db_id: shipDbId, _fish_id: fishId })
-                            .catch(() => {});
+                          try {
+                            const { data } = await (supabase as any)
+                              .rpc("set_guide_fish", { _ship_db_id: shipDbId, _fish_id: fishId });
+                            if (data && data.ok === false) {
+                              // Server rejected — roll back local pick so the
+                              // picker doesn't lie about the ship's real state.
+                              setShipGuide(s.id, shipDbId, null);
+                              showToast(
+                                data.reason === "no_guide_crew"
+                                  ? "تحتاج طاقم المرشد أولاً"
+                                  : "تعذّر حفظ الاختيار",
+                              );
+                              close();
+                              return;
+                            }
+                          } catch {
+                            /* network hiccup — local pick stands, collect uses _requested_fish_id */
+                          }
                         }
+                        close();
                         if (!changeOnly) {
                           collect(s.id, e);
                         } else {
