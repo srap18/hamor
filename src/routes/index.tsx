@@ -323,18 +323,30 @@ function catchAmountForLevel(level: number, maxHp?: number | null, catalogCode?:
   return catchAmountForShip({ level, maxHp: maxHp ?? undefined, catalogCode, hp });
 }
 
-// Optional fishing guide: when set, ship targets that specific fish id
-// Stored in localStorage as: ship_guide_<shipId> = <fishId>
-function getShipGuide(shipId: number): string | null {
+// Optional fishing guide: when set, ship targets that specific fish id.
+// Keyed by the ship's stable database UUID (dbId), so the selection sticks
+// across page reloads, fleet re-syncs, and ship reorderings. We also keep a
+// legacy fallback on the ephemeral local id for old writes.
+function getShipGuide(shipId: number, dbId?: string | null): string | null {
   if (typeof window === "undefined") return null;
+  if (dbId) {
+    const v = window.localStorage.getItem(`ship_guide_db_${dbId}`);
+    if (v) return v;
+  }
   return window.localStorage.getItem(`ship_guide_${shipId}`);
 }
 
-function setShipGuide(shipId: number, fishId: string | null) {
+function setShipGuide(shipId: number, dbId: string | null | undefined, fishId: string | null) {
   if (typeof window === "undefined") return;
-  if (fishId) window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
-  else window.localStorage.removeItem(`ship_guide_${shipId}`);
+  if (fishId) {
+    if (dbId) window.localStorage.setItem(`ship_guide_db_${dbId}`, fishId);
+    window.localStorage.setItem(`ship_guide_${shipId}`, fishId);
+  } else {
+    if (dbId) window.localStorage.removeItem(`ship_guide_db_${dbId}`);
+    window.localStorage.removeItem(`ship_guide_${shipId}`);
+  }
 }
+
 
 // Crew assignment + inventory (localStorage-backed for now)
 function getShipCrew(shipId: number): string | null {
