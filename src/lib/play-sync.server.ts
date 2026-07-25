@@ -211,8 +211,11 @@ function buildOneTimeProductBody(
     // Auto-convert base USD price to every other region using Google's
     // official regional currencies (avoids "Invalid currency for region code
     // BG. Expected BGN but got EUR" style errors under regionsVersion 2022/02).
+    // Withdrawal right type is set on taxAndComplianceSettings above — the
+    // current OneTimeProductNewRegionsConfig schema only accepts usdPrice
+    // and availability; sending eeaWithdrawalRightType returns HTTP 400
+    // ("Unknown name eeaWithdrawalRightType ... Cannot find field").
     defaultOption.newRegionsConfig = {
-      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
       availability: "AVAILABLE",
       usdPrice: usdPriceForAutoConvert,
     };
