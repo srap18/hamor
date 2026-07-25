@@ -1037,7 +1037,7 @@ function PlayerPage() {
   }
 
 
-  const scene = getSceneVisual(p?.selected_bg_id || "onepiece", p?.bg_burned_until);
+  const scene = getSceneVisual(p?.selected_bg_id || "cove", p?.bg_burned_until);
   const bgPaused = useBgMotionPaused();
 
   const wTop = scene.waterTop ?? 45;
