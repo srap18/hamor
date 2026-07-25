@@ -18,9 +18,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # نُنشئ dist/ احتياطي بـ index.html بسيط يُعيد التوجيه للموقع. 
-      # التطبيق الفعلي يُحمَّل من server.url في capacitor.config.ts، 
-      # لكن Capacitor sync يتطلب أن يكون webDir موجوداً وفيه ملف. 
+      # نُنشئ dist/ احتياطي بـ index.html بسيط يُعيد التوجيه للموقع.
+      # التطبيق الفعلي يُحمَّل من server.url في capacitor.config.ts،
+      # لكن Capacitor sync يتطلب أن يكون webDir موجوداً وفيه ملف.
       - name: Prepare webDir fallback
         run: |
           mkdir -p dist
@@ -40,140 +40,58 @@ jobs:
           </html>
           EOF
 
-      - name: Setup Android & Sync
+      # ⚠️ مهم جداً: لا نحذف مجلد android/ ولا نعيد إنشاءه.
+      # المجلد الموجود في المستودع يحتوي على:
+      #   - Google Play Billing 7.1.1 + Install Referrer 2.2  (build.gradle)
+      #   - إذن com.android.vending.BILLING  (AndroidManifest.xml)
+      #   - MainActivity المخصصة (أوفلاين + أذونات in-context)
+      #   - network_security_config, data_extraction_rules, styles, colors...
+      # حذف المجلد كان يُلغي كل هذا قبل البناء، فيصدر APK بدون فوترة ولا Install Referrer.
+      #
+      # Capacitor sync فقط ينسخ ملفات الويب والإضافات إلى المشروع الموجود
+      # ولا يمس build.gradle ولا AndroidManifest.xml.
+      - name: Capacitor sync (preserve repo android/)
         run: |
-          rm -rf android
-          bunx cap add android
           mkdir -p android/app/src/main/assets
-
-          # توليد أيقونات وسبلاش لجميع كثافات الشاشة تلقائياً
-          # (الأداة ستبحث عن الصور تلقائياً في مجلد assets)
-          bun add -D @capacitor/assets
-          bunx capacitor-assets generate --android
-
-          # تنظيف أيقونات أندرويد الافتراضية القديمة لضمان عدم تداخلها
-          find android/app/src/main/res/ -name "ic_launcher*.png" -type f -delete
-          
-          # تنظيف المجلدات التي تسبب تعارضاً مع الأيقونات الجديدة
-          rm -rf android/app/src/main/res/mipmap-anydpi-v26
-
-          # نسخ الأيقونة يدوياً لجميع مجلدات mipmap لضمان ظهورها (بما فيها النوع Round)
-          for folder in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-             if [ -d "android/app/src/main/res/mipmap-$folder" ]; then
-                cp assets/icon-only.png "android/app/src/main/res/mipmap-$folder/ic_launcher.png"
-                cp assets/icon-only.png "android/app/src/main/res/mipmap-$folder/ic_launcher_round.png"
-             fi
-          done
-
           bunx cap sync android
-
-          # ضمان وجود الموارد الأساسية (strings.xml و file_paths.xml) بعد الـ Sync
-          mkdir -p android/app/src/main/res/values
-          mkdir -p android/app/src/main/res/xml
-          
-          cat > android/app/src/main/res/values/strings.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <string name="app_name">Hamor</string>
-              <string name="title_activity_main">MainActivity</string>
-          </resources>
-          EOF
-
-          cat > android/app/src/main/res/xml/file_paths.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <paths>
-              <external-path name="files" path="." />
-          </paths>
-          EOF
-
-          # تحقق أن الأيقونات وُلّدت فعلاً داخل mipmap (نفشل مبكراً لو ماوصلت)
-          echo "== mipmap contents =="
-          ls -la android/app/src/main/res/mipmap-* || true
-          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
-            || (echo "ERROR: ic_launcher.png missing in mipmap-xxxhdpi" && exit 1)
-
-          # موارد ثابتة (ألوان + ثيم)
-          cat > android/app/src/main/res/values/colors.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-            <color name="colorPrimary">#6200EE</color>
-            <color name="colorPrimaryDark">#3700B3</color>
-            <color name="colorAccent">#03DAC5</color>
-          </resources>
-          EOF
-          cat > android/app/src/main/res/values/styles.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-            <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-              <item name="colorPrimary">@color/colorPrimary</item>
-              <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-              <item name="colorAccent">@color/colorAccent</item>
-            </style>
-            <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
-              <item name="windowActionBar">false</item>
-              <item name="windowNoTitle">true</item>
-            </style>
-            <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-              <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
-            </style>
-          </resources>
-          EOF
-
           chmod +x android/gradlew
+
+      # التحقق من أن مكتبات المتجر والإذن موجودة فعلاً في التسليمة قبل البناء.
+      # لو انكسر أي منها نفشل مبكراً بدل ما نرفع AAB معطوب لـ Play Console.
+      - name: Verify Play Billing & Install Referrer are present
+        run: |
+          set -e
+          echo "== build.gradle deps =="
+          grep -q "com.android.billingclient:billing" android/app/build.gradle \
+            || (echo "ERROR: Play Billing dependency missing" && exit 1)
+          grep -q "com.android.installreferrer:installreferrer" android/app/build.gradle \
+            || (echo "ERROR: Install Referrer dependency missing" && exit 1)
+          echo "== AndroidManifest permissions =="
+          grep -q "com.android.vending.BILLING" android/app/src/main/AndroidManifest.xml \
+            || (echo "ERROR: BILLING permission missing" && exit 1)
+          echo "OK: billing + install referrer + permission are in place."
 
       - name: Build Unsigned Release APK and AAB
         run: |
           cd android
-          # تحديث رقم الإصدار تلقائياً  1003
-          sed -i 's/versionCode [0-9]*/versionCode 1006/' app/build.gradle
+          # تحديث رقم الإصدار تلقائياً
+          sed -i 's/versionCode [0-9]*/versionCode 1007/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
-      # تم تعطيل التوقيع لكي تقوم بتوقيعه يدوياً بنفسك كما طلبت، مع الحفاظ على كل السطور والتعليقات:
-      #- name: Generate keystore and sign APK
-      #  run: |
-      #    set -e
-      #    KEYSTORE=$RUNNER_TEMP/release.jks
-      #    STORE_PASS="hamor2026"
-      #    KEY_ALIAS="hamor"
-      #    KEY_PASS="hamor2026"
-      #
-      #    # نولّد keystore ثابت الباراميترات (نفس الـ alias/كلمة السر)
-      #    # حتى تقدر تستخدمه لاحقاً لتحديث اللعبة بنفس التوقيع. 
-      #    keytool -genkeypair -v \
-      #      -keystore "$KEYSTORE" \
-      #      -alias "$KEY_ALIAS" \
-      #      -keyalg RSA -keysize 2048 -validity 10000 \
-      #      -storepass "$STORE_PASS" -keypass "$KEY_PASS" \
-      #      -dname "CN=Hamor Game, O=Hamor, C=SA"
-      #
-      #    UNSIGNED=android/app/build/outputs/apk/release/app-release-unsigned.apk
-      #    SIGNED=android/app/build/outputs/apk/release/app-release-signed.apk
-      #
-      #    # zipalign ثم توقيع بـ apksigner (v1+v2+v3)
-      #    BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -n1)
-      #    "$BUILD_TOOLS/zipalign" -v -p 4 "$UNSIGNED" "$SIGNED.aligned"
-      #    "$BUILD_TOOLS/apksigner" sign \
-      #      --ks "$KEYSTORE" \
-      #      --ks-key-alias "$KEY_ALIAS" \
-      #      --ks-pass pass:"$STORE_PASS" \
-      #      --key-pass pass:"$KEY_PASS" \
-      #      --out "$SIGNED" \
-      #      "$SIGNED.aligned"
-      #    "$BUILD_TOOLS/apksigner" verify "$SIGNED"
-      #
-      #    cp "$KEYSTORE" android/app/build/outputs/apk/release/release.jks
-      #    echo "STORE_PASS=$STORE_PASS  KEY_ALIAS=$KEY_ALIAS  KEY_PASS=$KEY_PASS" \
-      #      > android/app/build/outputs/apk/release/KEYSTORE_INFO.txt
-      #
-      # - name: Upload Signed APK
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: android-release-signed
-      #     path: |
-      #       android/app/build/outputs/apk/release/app-release-signed.apk
-      #       android/app/build/outputs/apk/release/release.jks
-      #       android/app/build/outputs/apk/release/KEYSTORE_INFO.txt 
-      #     if-no-files-found: error
+      # التحقق النهائي: نفتح الـ AAB ونتأكد أن كلاسات المكتبتين مضمنة داخل الحزمة.
+      # لو المكتبة مذكورة في gradle لكن ProGuard/Gradle استبعدها لأي سبب،
+      # هذا الفحص يُفشل البناء بدل ما نكتشف المشكلة بعد الرفع.
+      - name: Verify libraries are bundled inside AAB
+        run: |
+          set -e
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          test -f "$AAB" || (echo "ERROR: AAB not produced" && exit 1)
+          unzip -l "$AAB" > /tmp/aab-listing.txt
+          grep -q "com/android/billingclient" /tmp/aab-listing.txt \
+            || (echo "ERROR: billingclient classes not bundled in AAB" && exit 1)
+          grep -q "com/android/installreferrer" /tmp/aab-listing.txt \
+            || (echo "ERROR: installreferrer classes not bundled in AAB" && exit 1)
+          echo "OK: Play Billing + Install Referrer classes are bundled in the AAB."
 
       - name: Upload Unsigned Outputs
         uses: actions/upload-artifact@v4
