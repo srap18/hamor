@@ -56,7 +56,7 @@ export const Route = createFileRoute("/shop")({
 });
 
 
-type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "recharge" | "vip";
+type Tab = "protection" | "weapons" | "crews" | "ships" | "backgrounds" | "frames" | "recharge" | "vip";
 
 type Item = {
   id: string;
