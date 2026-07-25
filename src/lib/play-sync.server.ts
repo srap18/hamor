@@ -241,7 +241,6 @@ function buildOneTimeProductBody(
       ];
       if (canAutoConvert) {
         cleaned.newRegionsConfig = {
-          eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
           availability: "AVAILABLE",
           usdPrice: usdPriceForAutoConvert,
         };
