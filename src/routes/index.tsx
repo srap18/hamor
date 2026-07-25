@@ -2067,6 +2067,26 @@ function Index() {
 
 
 
+      ) : scene.id === "cove" ? (
+        <>
+          {/* Pirate Cove background: the buildings are painted into the scene,
+              so only tap zones are needed — no Placeable market huts. */}
+          {/* Top-right cliff hut → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "60%", top: "28%", width: "30%", height: "15%" }}
+          />
+          {/* Lower-left dock hut → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "6%", top: "45%", width: "30%", height: "17%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}
