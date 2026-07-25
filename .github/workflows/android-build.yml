@@ -75,7 +75,7 @@ jobs:
         run: |
           cd android
           # تحديث رقم الإصدار تلقائياً
-          sed -i 's/versionCode [0-9]*/versionCode 1007/' app/build.gradle
+          sed -i 's/versionCode [0-9]*/versionCode 1008/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
       # التحقق النهائي: نفتح الـ AAB ونتأكد أن كلاسات المكتبتين مضمنة داخل الحزمة.
