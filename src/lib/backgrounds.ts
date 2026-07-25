@@ -10,8 +10,6 @@ import eiffelNightVideo from "@/assets/bg-eiffel-night.mp4.asset.json";
 import eiffelNightBurnedVideo from "@/assets/bg-eiffel-night-burned.mp4.asset.json";
 import crystalKingdomVideo from "@/assets/bg-crystal-kingdom.mp4.asset.json";
 import crystalKingdomBurnedVideo from "@/assets/bg-crystal-kingdom-burned.mp4.asset.json";
-import onepieceVideo from "@/assets/bg-onepiece.mp4.asset.json";
-import onepieceBurnedVideo from "@/assets/bg-onepiece-burned.mp4.asset.json";
 import eiffelVideo from "@/assets/bg-eiffel.mp4.asset.json";
 import eiffelBurnedVideo from "@/assets/bg-eiffel-burned.mp4.asset.json";
 import worldcupVideo from "@/assets/bg-worldcup.mp4.asset.json";
