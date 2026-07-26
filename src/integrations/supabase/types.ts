@@ -2849,16 +2849,20 @@ export type Database = {
       }
       play_products: {
         Row: {
+          base_plan_id: string | null
+          base_plan_state: string | null
           created_at: string
           default_currency: string
           description_ar: string
           description_en: string
           id: string
+          last_sync_source: string | null
           price_micros: number
           product_type: string
           rewards: Json
           sku: string
           status: string
+          subscription_exists: boolean | null
           sync_error: string | null
           sync_status: string
           synced_at: string | null
@@ -2867,16 +2871,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_plan_id?: string | null
+          base_plan_state?: string | null
           created_at?: string
           default_currency?: string
           description_ar?: string
           description_en?: string
           id?: string
+          last_sync_source?: string | null
           price_micros: number
           product_type?: string
           rewards?: Json
           sku: string
           status?: string
+          subscription_exists?: boolean | null
           sync_error?: string | null
           sync_status?: string
           synced_at?: string | null
@@ -2885,16 +2893,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_plan_id?: string | null
+          base_plan_state?: string | null
           created_at?: string
           default_currency?: string
           description_ar?: string
           description_en?: string
           id?: string
+          last_sync_source?: string | null
           price_micros?: number
           product_type?: string
           rewards?: Json
           sku?: string
           status?: string
+          subscription_exists?: boolean | null
           sync_error?: string | null
           sync_status?: string
           synced_at?: string | null
