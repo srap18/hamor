@@ -42,7 +42,7 @@ jobs:
 
       # ⚠️ مهم جداً: لا نحذف مجلد android/ ولا نعيد إنشاءه.
       # المجلد الموجود في المستودع يحتوي على:
-      #   - Google Play Billing 7.1.1 + Install Referrer 2.2  (build.gradle) 
+      #   - Google Play Billing 8.0.0 + Install Referrer 2.2  (build.gradle) 
       #   - إذن com.android.vending.BILLING  (AndroidManifest.xml)
       #   - MainActivity المخصصة (أوفلاين + أذونات in-context) 
       #   - network_security_config, data_extraction_rules, styles, colors... 
@@ -79,8 +79,8 @@ jobs:
             --dependency com.android.installreferrer:installreferrer \
             --configuration releaseRuntimeClasspath \
             --no-daemon > /tmp/referrer-dependency.txt
-          grep -q "com.android.billingclient:billing:7.1.1" /tmp/billing-dependency.txt \
-            || (cat /tmp/billing-dependency.txt && echo "ERROR: Play Billing 7.1.1 is not on releaseRuntimeClasspath" && exit 1)
+          grep -q "com.android.billingclient:billing:8.0.0" /tmp/billing-dependency.txt \
+            || (cat /tmp/billing-dependency.txt && echo "ERROR: Play Billing 8.0.0 is not on releaseRuntimeClasspath" && exit 1)
           grep -q "com.android.installreferrer:installreferrer:2.2" /tmp/referrer-dependency.txt \
             || (cat /tmp/referrer-dependency.txt && echo "ERROR: Install Referrer 2.2 is not on releaseRuntimeClasspath" && exit 1)
           echo "OK: billing + install referrer resolve for the release bundle and BILLING permission is present."

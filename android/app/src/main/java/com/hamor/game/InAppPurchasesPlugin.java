@@ -135,9 +135,10 @@ public class InAppPurchasesPlugin extends Plugin implements PurchasesUpdatedList
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
             .setProductList(products)
             .build();
-        billingClient.queryProductDetailsAsync(params, (billingResult, details) -> {
-            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && details != null) {
-                result.addAll(details);
+        billingClient.queryProductDetailsAsync(params, (billingResult, queryResult) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && queryResult != null) {
+                List<ProductDetails> details = queryResult.getProductDetailsList();
+                if (details != null) result.addAll(details);
             }
             done.run();
         });
