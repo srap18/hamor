@@ -1193,8 +1193,8 @@ function Index() {
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
-    // Realtime channel + focus reload cover updates. Slow poll (30s) as a safety net.
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 30000);
+    // Realtime channel + focus reload cover updates. Very slow safety-net poll (3 min).
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 180000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);

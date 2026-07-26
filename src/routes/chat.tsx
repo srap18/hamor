@@ -453,7 +453,8 @@ function ChatPage() {
         if (active && ps) setProfMap(prev => { const n = new Map(prev); (ps as any[]).forEach(p => n.set(p.id, p)); return n; });
       }
     };
-    const pollTimer = window.setInterval(() => { if (!document.hidden) pollNewer(); }, 5000);
+    // Realtime is primary; poll is a slow safety-net (20s instead of 5s → 4x fewer queries).
+    const pollTimer = window.setInterval(() => { if (!document.hidden) pollNewer(); }, 20000);
     const onVis = () => { if (document.visibilityState === "visible") pollNewer(); };
     document.addEventListener("visibilitychange", onVis);
 
