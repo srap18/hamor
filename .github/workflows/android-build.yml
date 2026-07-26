@@ -79,8 +79,8 @@ jobs:
             --dependency com.android.installreferrer:installreferrer \
             --configuration releaseRuntimeClasspath \
             --no-daemon > /tmp/referrer-dependency.txt
-          grep -q "com.android.billingclient:billing:7.1.1" /tmp/billing-dependency.txt \
-            || (cat /tmp/billing-dependency.txt && echo "ERROR: Play Billing 7.1.1 is not on releaseRuntimeClasspath" && exit 1)
+          grep -q "com.android.billingclient:billing:8.0.0" /tmp/billing-dependency.txt \
+            || (cat /tmp/billing-dependency.txt && echo "ERROR: Play Billing 8.0.0 is not on releaseRuntimeClasspath" && exit 1)
           grep -q "com.android.installreferrer:installreferrer:2.2" /tmp/referrer-dependency.txt \
             || (cat /tmp/referrer-dependency.txt && echo "ERROR: Install Referrer 2.2 is not on releaseRuntimeClasspath" && exit 1)
           echo "OK: billing + install referrer resolve for the release bundle and BILLING permission is present."
