@@ -30,11 +30,28 @@ export function markDmRead(uid: string, peerId: string) {
   const now = new Date().toISOString();
   localStorage.setItem(PEER_KEY(uid, peerId), now);
   localStorage.setItem(GLOBAL_KEY(uid), now);
+  // Zero unread for this peer in the cache without a network round-trip.
+  const hit = DM_CACHE.get(uid);
+  if (hit) {
+    const entry = hit.data.map.get(peerId);
+    if (entry && entry.count > 0) {
+      const nextMap = new Map(hit.data.map);
+      nextMap.set(peerId, { ...entry, count: 0 });
+      const total = Math.max(0, hit.data.total - entry.count);
+      DM_CACHE.set(uid, { ...hit, data: { map: nextMap, total } });
+    }
+  }
 }
 
 export function markAllDmRead(uid: string) {
   if (typeof localStorage === "undefined") return;
   localStorage.setItem(GLOBAL_KEY(uid), new Date().toISOString());
+  const hit = DM_CACHE.get(uid);
+  if (hit) {
+    const nextMap = new Map<string, DmEntry>();
+    hit.data.map.forEach((v, k) => nextMap.set(k, { ...v, count: 0 }));
+    DM_CACHE.set(uid, { ...hit, data: { map: nextMap, total: 0 } });
+  }
 }
 
 // Module-level TTL cache: BottomNav + chat + index all call this; without a
