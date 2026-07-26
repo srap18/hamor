@@ -21,7 +21,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) { setMfaChecked(true); return; }
     setMfaChecked(false);
-    mfaStepUpRequired().then((req) => { setNeedsMfa(req); setMfaChecked(true); });
+    let cancelled = false;
+    // Safety fallback: never let a slow/failing MFA lookup freeze the app
+    // on the "جاري التحميل..." screen. If it takes >4s, proceed without MFA.
+    const t = window.setTimeout(() => {
+      if (!cancelled) { setNeedsMfa(false); setMfaChecked(true); }
+    }, 4000);
+    mfaStepUpRequired()
+      .then((req) => { if (!cancelled) { setNeedsMfa(req); setMfaChecked(true); } })
+      .catch(() => { if (!cancelled) { setNeedsMfa(false); setMfaChecked(true); } })
+      .finally(() => { window.clearTimeout(t); });
+    return () => { cancelled = true; window.clearTimeout(t); };
   }, [user?.id]);
 
 
