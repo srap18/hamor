@@ -561,13 +561,210 @@ export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { 
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SUBSCRIPTIONS (androidpublisher v3 monetization.subscriptions)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SUB_UPDATE_MASK = "listings,taxAndComplianceSettings";
+const BASE_PLAN_UPDATE_MASK = "autoRenewingBasePlanType,regionalConfigs,otherRegionsConfig";
+
+export type SubscriptionSyncDetail = {
+  ok: boolean;
+  error?: string;
+  subscriptionExisted?: boolean;
+  basePlanId?: string;
+  basePlanState?: string;
+};
+
+async function fetchSubscription(
+  pkg: string,
+  productId: string,
+  token: string,
+): Promise<any | null> {
+  const url =
+    `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+    `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(productId)}`;
+  const res = await fetchGoogleWithQuotaRetry(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+function buildSubscriptionBody(pkg: string, row: PlayProductRow) {
+  const titleEn = truncateText(row.title_en || row.sku, 55);
+  const titleAr = truncateText(row.title_ar || titleEn, 55);
+  const descriptionEn = truncateText(row.description_en || titleEn, 200);
+  const descriptionAr = truncateText(row.description_ar || titleAr, 200);
+  return {
+    packageName: pkg,
+    productId: row.sku,
+    listings: [
+      { languageCode: "en-US", title: titleEn, description: descriptionEn, benefits: [] },
+      { languageCode: "ar", title: titleAr, description: descriptionAr, benefits: [] },
+    ],
+    taxAndComplianceSettings: {
+      eeaWithdrawalRightType: "WITHDRAWAL_RIGHT_SERVICE",
+    },
+  };
+}
+
+function buildBasePlanBody(row: PlayProductRow, basePlanId: string) {
+  const currency = (row.default_currency || "USD").toUpperCase();
+  const region = CURRENCY_TO_REGION[currency] || "US";
+  const price = microsToMoney(row.price_micros, currency);
+  const usdPrice = currency === "USD" ? price : microsToMoney(row.price_micros, "USD");
+  const eurPrice = microsToMoney(row.price_micros, "EUR");
+  return {
+    basePlanId,
+    autoRenewingBasePlanType: {
+      billingPeriodDuration: "P1M",
+      gracePeriodDuration: "P7D",
+      accountHoldDuration: "P30D",
+      resubscribeState: "RESUBSCRIBE_STATE_ACTIVE",
+      prorationMode: "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE",
+      legacyCompatible: true,
+    },
+    regionalConfigs: [
+      { regionCode: region, price, newSubscriberAvailability: true },
+    ],
+    otherRegionsConfig: {
+      usdPrice,
+      eurPrice,
+      newSubscriberAvailability: true,
+    },
+  };
+}
+
+export async function upsertSubscription(
+  row: PlayProductRow & { base_plan_id?: string | null },
+): Promise<SubscriptionSyncDetail> {
+  try {
+    const pkg = getPackageName();
+    const token = await getAccessToken();
+    const basePlanId = (row.base_plan_id || "monthly")
+      .toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
+    const existing = await fetchSubscription(pkg, row.sku, token);
+    const subscriptionExisted = existing !== null;
+
+    // 1) Upsert the subscription "product" (listings + tax settings).
+    const subBody = buildSubscriptionBody(pkg, row);
+    const subParams = new URLSearchParams({
+      updateMask: SUB_UPDATE_MASK,
+      allowMissing: "true",
+      "regionsVersion.version": "2022/02",
+      latencyTolerance: LATENCY_TOLERANT,
+    });
+    const subUrl =
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}?${subParams.toString()}`;
+    const subRes = await fetchGoogleWithQuotaRetry(subUrl, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(subBody),
+    });
+    const subText = await subRes.text();
+    if (!subRes.ok) {
+      console.error("[play-sync] subscription upsert failed", { sku: row.sku, status: subRes.status, body: subText });
+      return {
+        ok: false, subscriptionExisted, basePlanId,
+        error: `PATCH ${subUrl}\nHTTP ${subRes.status}\n${subText}\n\nREQUEST BODY:\n${JSON.stringify(subBody, null, 2)}`,
+      };
+    }
+
+    // 2) Upsert the base plan.
+    const bpBody = buildBasePlanBody(row, basePlanId);
+    const bpParams = new URLSearchParams({
+      updateMask: BASE_PLAN_UPDATE_MASK,
+      allowMissing: "true",
+      "regionsVersion.version": "2022/02",
+      latencyTolerance: LATENCY_TOLERANT,
+    });
+    const bpUrl =
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+      `/basePlans/${encodeURIComponent(basePlanId)}?${bpParams.toString()}`;
+    const bpRes = await fetchGoogleWithQuotaRetry(bpUrl, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(bpBody),
+    });
+    const bpText = await bpRes.text();
+    if (!bpRes.ok) {
+      console.error("[play-sync] base plan upsert failed", { sku: row.sku, status: bpRes.status, body: bpText });
+      return {
+        ok: false, subscriptionExisted, basePlanId,
+        error: `PATCH ${bpUrl}\nHTTP ${bpRes.status}\n${bpText}\n\nREQUEST BODY:\n${JSON.stringify(bpBody, null, 2)}`,
+      };
+    }
+    const bpJson = JSON.parse(bpText || "{}") as { state?: string };
+    let currentState = bpJson.state;
+
+    // 3) Activate / deactivate.
+    const desired = row.status === "active" ? "ACTIVE" : "INACTIVE";
+    if (desired === "ACTIVE" && currentState !== "ACTIVE") {
+      const actUrl =
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `/basePlans/${encodeURIComponent(basePlanId)}:activate`;
+      const actRes = await fetchGoogleWithQuotaRetry(actUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+      });
+      const actText = await actRes.text();
+      if (!actRes.ok) {
+        console.error("[play-sync] base plan activate failed", { sku: row.sku, status: actRes.status, body: actText });
+        return {
+          ok: false, subscriptionExisted, basePlanId, basePlanState: currentState,
+          error: `POST ${actUrl}\nHTTP ${actRes.status}\n${actText}`,
+        };
+      }
+      currentState = "ACTIVE";
+    } else if (desired === "INACTIVE" && currentState === "ACTIVE") {
+      const deactUrl =
+        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `/basePlans/${encodeURIComponent(basePlanId)}:deactivate`;
+      const deactRes = await fetchGoogleWithQuotaRetry(deactUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+      });
+      if (deactRes.ok) currentState = "INACTIVE";
+    }
+
+    return { ok: true, subscriptionExisted, basePlanId, basePlanState: currentState };
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? String(e) };
+  }
+}
+
+export async function batchGetSubscriptions(skus: string[]): Promise<Set<string>> {
+  const found = new Set<string>();
+  if (skus.length === 0) return found;
+  const pkg = getPackageName();
+  const token = await getAccessToken();
+  for (const sku of skus) {
+    const sub = await fetchSubscription(pkg, sku, token);
+    if (sub) found.add(sku);
+    await new Promise((r) => setTimeout(r, 150));
+  }
+  return found;
+}
+
 /**
  * Dispatch one product row to Play (upsert or delete based on status/product_type).
- * Subscriptions ('subs') are not implemented yet — surfaced as an explicit error.
  */
-export async function syncPlayProduct(row: PlayProductRow) {
+export async function syncPlayProduct(row: PlayProductRow & { base_plan_id?: string | null }) {
   if (row.product_type === "subs") {
-    return { ok: false as const, error: "subscriptions sync not implemented yet" };
+    const detail = await upsertSubscription(row);
+    if (detail.ok) return { ok: true as const, detail };
+    return { ok: false as const, error: detail.error ?? "subscription sync failed", detail };
   }
   return upsertInAppProduct(row);
 }
+

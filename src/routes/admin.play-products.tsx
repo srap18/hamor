@@ -32,6 +32,10 @@ type Row = {
   sync_error: string | null;
   synced_at: string | null;
   rewards: Record<string, unknown>;
+  base_plan_id?: string | null;
+  base_plan_state?: string | null;
+  subscription_exists?: boolean | null;
+  last_sync_source?: string | null;
 };
 
 const EMPTY: Row = {
@@ -49,7 +53,12 @@ const EMPTY: Row = {
   sync_error: null,
   synced_at: null,
   rewards: {},
+  base_plan_id: null,
+  base_plan_state: null,
+  subscription_exists: null,
+  last_sync_source: null,
 };
+
 
 function statusColor(s: string) {
   if (s === "ok") return "text-green-400";
@@ -118,8 +127,12 @@ function AdminPlayProductsPage() {
           product_type: editing.product_type,
           status: editing.status,
           rewards,
+          base_plan_id: editing.product_type === "subs"
+            ? (editing.base_plan_id || "monthly")
+            : null,
         },
       });
+
       toast.success("تم الحفظ — يتم الآن المزامنة مع Play");
       closeEditor();
       setTimeout(refresh, 1500);
@@ -265,6 +278,21 @@ function AdminPlayProductsPage() {
                     <div className={`font-bold ${statusColor(r.sync_status)}`}>
                       {r.sync_status === "ok" ? "✓ متزامن" : r.sync_status === "error" ? "✗ خطأ" : "⏳ قيد الانتظار"}
                     </div>
+                    {r.product_type === "subs" && (
+                      <div className="text-[11px] text-slate-400 mt-1 space-y-0.5">
+                        <div>
+                          خطة: <span className="font-mono text-slate-300">{r.base_plan_id ?? "—"}</span>
+                          {r.base_plan_state && (
+                            <span className={`ml-1 font-bold ${r.base_plan_state === "ACTIVE" ? "text-green-400" : "text-amber-400"}`}>
+                              {r.base_plan_state}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          Play: {r.subscription_exists === true ? "موجود ✓" : r.subscription_exists === false ? "مفقود ✗" : "غير معروف"}
+                        </div>
+                      </div>
+                    )}
                     {r.sync_error && (
                       <button
                         onClick={() => setErrorDetail(`SKU: ${r.sku}\n\n${r.sync_error}`)}
@@ -274,7 +302,13 @@ function AdminPlayProductsPage() {
                         📋 {r.sync_error}
                       </button>
                     )}
+                    {r.synced_at && (
+                      <div className="text-[10px] text-slate-500 mt-1">
+                        {new Date(r.synced_at).toLocaleString("ar")}
+                      </div>
+                    )}
                   </td>
+
                   <td className="p-2 whitespace-nowrap">
                     <button
                       onClick={() => syncOne(r)}
@@ -366,7 +400,22 @@ function AdminPlayProductsPage() {
                   <option value="inactive">معطّل</option>
                 </select>
               </label>
+              {editing.product_type === "subs" && (
+                <label className="block text-xs text-slate-300 col-span-2">
+                  Base Plan ID (اشتراك — دورة شهرية P1M)
+                  <input
+                    value={editing.base_plan_id ?? "monthly"}
+                    onChange={(e) => setEditing({ ...editing, base_plan_id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })}
+                    className="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono"
+                    placeholder="monthly"
+                  />
+                  <span className="text-slate-500 block mt-1">
+                    ⚠️ رفع أيقونة الاشتراك يجب أن يتم يدوياً من Play Console (Google API لا يدعم رفع الأيقونات).
+                  </span>
+                </label>
+              )}
             </div>
+
             <label className="block text-xs text-slate-300">
               المكافآت داخل اللعبة (JSON)
               <textarea value={rewardsText} onChange={(e) => setRewardsText(e.target.value)}

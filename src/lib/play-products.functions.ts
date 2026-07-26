@@ -27,7 +27,9 @@ const productInput = z.object({
   product_type: z.enum(["inapp", "subs"]).default("inapp"),
   status: z.enum(["active", "inactive"]).default("active"),
   rewards: z.record(z.any()).default({}),
+  base_plan_id: z.string().max(63).regex(/^[a-z0-9-]+$/).optional().nullable(),
 });
+
 
 export const upsertPlayProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -36,7 +38,7 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const row = {
+    const row: any = {
       sku: data.sku,
       title_ar: data.title_ar,
       title_en: data.title_en,
@@ -48,6 +50,9 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
       status: data.status,
       rewards: data.rewards,
     };
+    if (data.product_type === "subs") {
+      row.base_plan_id = (data.base_plan_id || "monthly").toLowerCase();
+    }
 
     if (data.id) {
       const { error } = await supabaseAdmin.from("play_products").update(row).eq("id", data.id);
@@ -59,6 +64,7 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, id: inserted!.id };
   });
+
 
 export const deletePlayProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -96,42 +102,64 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { batchSyncPlayProducts } = await import("@/lib/play-sync.server");
+    const { batchSyncPlayProducts, upsertSubscription } = await import("@/lib/play-sync.server");
 
     const { data: rows, error } = await supabaseAdmin
       .from("play_products")
-      .select("id, sku, title_ar, title_en, description_ar, description_en, price_micros, default_currency, product_type, status");
+      .select("id, sku, title_ar, title_en, description_ar, description_en, price_micros, default_currency, product_type, status, base_plan_id" as any);
     if (error) throw new Error(error.message);
 
-    const products = (rows ?? []).map((r) => ({
+    const asRow = (r: any) => ({
       sku: r.sku,
       title_ar: r.title_ar,
       title_en: r.title_en,
       description_ar: r.description_ar ?? "",
       description_en: r.description_en ?? "",
-      price_micros: r.price_micros as any,
+      price_micros: r.price_micros,
       default_currency: r.default_currency,
       product_type: r.product_type as "inapp" | "subs",
       status: r.status as "active" | "inactive",
-    }));
-    const inAppProducts = products.filter((product) => product.product_type === "inapp");
+      base_plan_id: r.base_plan_id ?? null,
+    });
+    const inAppProducts = (rows ?? []).filter((r: any) => r.product_type === "inapp").map(asRow);
+    const subs = (rows ?? []).filter((r: any) => r.product_type === "subs").map(asRow);
+
     const batchSync = await batchSyncPlayProducts(inAppProducts);
     const batchResults = batchSync.results;
+
+    // Sequential subscription sync (no batch endpoint for subs).
+    const subResults = new Map<string, { ok: boolean; error?: string; detail?: any }>();
+    for (const s of subs) {
+      const detail = await upsertSubscription(s);
+      subResults.set(s.sku, { ok: detail.ok, error: detail.error, detail });
+      await new Promise((r) => setTimeout(r, 400));
+    }
+
     let ok = 0, failed = 0;
     const errors: { sku: string; error: string }[] = [];
-    for (const r of rows ?? []) {
-      const result = r.product_type === "subs"
-        ? { ok: false as const, error: "subscriptions sync not implemented yet" }
-        : batchResults.get(r.sku) ?? { ok: false as const, error: "لم تُرجع Google نتيجة لهذا المنتج" };
-      await supabaseAdmin.from("play_products").update({
-        sync_status: result.ok ? "ok" : "error",
-        sync_error: result.ok ? null : result.error,
+    for (const r of (rows ?? []) as any[]) {
+      let result: { ok: boolean; error?: string; detail?: any };
+      const updatePatch: any = {
         synced_at: new Date().toISOString(),
-      }).eq("id", r.id);
+        last_sync_source: "sync_all",
+      };
+      if (r.product_type === "subs") {
+        const sr = subResults.get(r.sku) ?? { ok: false, error: "لم تُرجع Google نتيجة لهذا الاشتراك" };
+        result = sr;
+        updatePatch.subscription_exists = sr.detail?.subscriptionExisted ?? null;
+        updatePatch.base_plan_state = sr.detail?.basePlanState ?? null;
+        if (sr.detail?.basePlanId) updatePatch.base_plan_id = sr.detail.basePlanId;
+      } else {
+        const br = batchResults.get(r.sku) ?? { ok: false as const, error: "لم تُرجع Google نتيجة لهذا المنتج" };
+        result = { ok: br.ok, error: (br as any).error };
+      }
+      updatePatch.sync_status = result.ok ? "ok" : "error";
+      updatePatch.sync_error = result.ok ? null : (result.error ?? null);
+      await supabaseAdmin.from("play_products").update(updatePatch).eq("id", r.id);
       if (result.ok) ok++;
       else {
         failed++;
-        if (errors.length < 3) errors.push({ sku: r.sku, error: (result as any).error });
+        if (errors.length < 5) errors.push({ sku: r.sku, error: result.error ?? "unknown" });
       }
     }
     return {
@@ -139,8 +167,10 @@ export const syncAllPlayProducts = createServerFn({ method: "POST" })
       failed,
       total: (rows ?? []).length,
       errors,
-      mode: "batch" as const,
-      apiRequestsMaximum: Math.ceil(inAppProducts.length / 5) * 2,
+      mode: "batch+subs" as const,
+      inAppCount: inAppProducts.length,
+      subsCount: subs.length,
+      apiRequestsMaximum: Math.ceil(inAppProducts.length / 5) * 2 + subs.length * 3,
       quotaBlocked: batchSync.quotaBlocked,
     };
   });
@@ -155,28 +185,38 @@ export const syncOnePlayProduct = createServerFn({ method: "POST" })
 
     const { data: r, error } = await supabaseAdmin
       .from("play_products")
-      .select("id, sku, title_ar, title_en, description_ar, description_en, price_micros, default_currency, product_type, status")
+      .select("id, sku, title_ar, title_en, description_ar, description_en, price_micros, default_currency, product_type, status, base_plan_id" as any)
       .eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!r) throw new Error("not found");
+    const row = r as any;
 
-    const result = await syncPlayProduct({
-      sku: r.sku,
-      title_ar: r.title_ar,
-      title_en: r.title_en,
-      description_ar: r.description_ar ?? "",
-      description_en: r.description_en ?? "",
-      price_micros: r.price_micros as any,
-      default_currency: r.default_currency,
-      product_type: r.product_type as any,
-      status: r.status as any,
+    const result: any = await syncPlayProduct({
+      sku: row.sku,
+      title_ar: row.title_ar,
+      title_en: row.title_en,
+      description_ar: row.description_ar ?? "",
+      description_en: row.description_en ?? "",
+      price_micros: row.price_micros,
+      default_currency: row.default_currency,
+      product_type: row.product_type,
+      status: row.status,
+      base_plan_id: row.base_plan_id ?? null,
     });
-    await supabaseAdmin.from("play_products").update({
+    const updatePatch: any = {
       sync_status: result.ok ? "ok" : "error",
       sync_error: result.ok ? null : result.error,
       synced_at: new Date().toISOString(),
-    }).eq("id", r.id);
+      last_sync_source: "sync_one",
+    };
+    if (row.product_type === "subs" && result.detail) {
+      updatePatch.subscription_exists = result.detail.subscriptionExisted ?? null;
+      updatePatch.base_plan_state = result.detail.basePlanState ?? null;
+      if (result.detail.basePlanId) updatePatch.base_plan_id = result.detail.basePlanId;
+    }
+    await supabaseAdmin.from("play_products").update(updatePatch).eq("id", row.id);
     return result;
+
   });
 
 /**
@@ -258,6 +298,25 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         }
       }
 
+      // Subscriptions comparison (no batchGet endpoint — probe individually).
+      const { data: subRows } = await supabaseAdmin
+        .from("play_products")
+        .select("sku")
+        .eq("product_type", "subs");
+      const subSkus = (subRows ?? []).map((r: any) => r.sku).filter(Boolean);
+      const subsFoundInPlay: string[] = [];
+      const subsMissingInPlay: string[] = [];
+      for (const sku of subSkus) {
+        const url =
+          `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+          `${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(sku)}`;
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
+        if (r.status === 404) { subsMissingInPlay.push(sku); continue; }
+        if (r.ok) subsFoundInPlay.push(sku);
+        else subsMissingInPlay.push(sku);
+        await new Promise((res) => setTimeout(res, 120));
+      }
+
       const playSet = new Set(playSkus);
       const found = skus.filter((sku: string) => playSet.has(sku));
       const missing = skus.filter((sku: string) => !playSet.has(sku));
@@ -267,14 +326,20 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       checks.foundSkus = found;
       checks.missingSkus = missing;
       checks.unmanagedPlaySkus = unmanaged;
+      checks.subscriptions = {
+        localCount: subSkus.length,
+        foundInPlay: subsFoundInPlay,
+        missingInPlay: subsMissingInPlay,
+      };
       checks.createEndpoint =
         `PATCH https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
         `${encodeURIComponent(checks.package)}/onetimeproducts/{productId}`;
-      if (skus.length === 0) {
-        checks.note = "لا توجد منتجات شراء لمرة واحدة في قاعدة البيانات للمقارنة.";
+      if (skus.length === 0 && subSkus.length === 0) {
+        checks.note = "لا توجد منتجات في قاعدة البيانات للمقارنة.";
       }
-      checks.hint = missing.length
-        ? `${missing.length} منتج غير موجود في Google Play — اضغط "مزامنة الكل" لإنشائها عبر المسار الصحيح.`
+      const totalMissing = missing.length + subsMissingInPlay.length;
+      checks.hint = totalMissing
+        ? `${totalMissing} منتج/اشتراك غير موجود في Google Play — اضغط "مزامنة الكل" لإنشائها.`
         : undefined;
       return { ok: true, checks };
     } catch (e: any) {
