@@ -433,7 +433,7 @@ function ChatPage() {
         newestAt = cur.length ? cur[cur.length - 1].created_at : null;
         return cur;
       });
-      let pq = supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
+      let pq = supabase.from("messages").select("id,channel,sender_id,recipient_id,tribe_id,body,created_at,audio_url,audio_duration_ms,reply_to_id,reply_to_body,reply_to_name").order("created_at", { ascending: true }).limit(50);
       if (tab === "public") pq = pq.eq("channel", "public");
       else if (tab === "tribe" && profile?.tribe_id) pq = pq.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
       else if (tab === "dm" && dmWith) pq = pq.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
