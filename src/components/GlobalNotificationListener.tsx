@@ -113,8 +113,9 @@ export function GlobalNotificationListener() {
         if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
       }
     };
-    // Poll every 15s in background as a safety net. Realtime is primary and instant.
-    const interval = setInterval(() => { if (!document.hidden) poll(); }, 15000);
+    // Safety-net poll: very slow (2 min). Realtime + visibility/focus refetches are primary.
+    // Previously 15s → contributed to the top-3 slowest notification queries in the DB.
+    const interval = setInterval(() => { if (!document.hidden) poll(); }, 120000);
     const onVis = () => { if (document.visibilityState === "visible") poll(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);

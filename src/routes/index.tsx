@@ -21,6 +21,7 @@ import {
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
+import { getFishStockSummary, type FishStockRow } from "@/lib/fish-stock-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 
@@ -855,18 +856,17 @@ function Index() {
     if (!user) return;
     let cancelled = false;
     const load = async () => {
-      const [{ data: caught }, { data: summary }] = await Promise.all([
+      const [{ data: caught }, summary] = await Promise.all([
         supabase.from("fish_caught").select("fish_id,total_caught").eq("user_id", user.id),
-        supabase.rpc("get_fish_stock_summary" as never),
+        getFishStockSummary(user.id),
       ]);
       if (cancelled) return;
       const ids = new Set<string>();
       ((caught ?? []) as Array<{ fish_id: string; total_caught: number | null }>).forEach((r) => {
         if ((r.total_caught ?? 0) > 0) ids.add(r.fish_id);
       });
-      ((summary ?? []) as Array<{ fish_id: string; qty: number | string }>).forEach((r) => {
-        const q = typeof r.qty === "string" ? parseInt(r.qty, 10) : r.qty;
-        if (q && q > 0) ids.add(r.fish_id);
+      (summary ?? []).forEach((r: FishStockRow) => {
+        if (r.qty > 0) ids.add(r.fish_id);
       });
       setFish(ids.size);
       try { window.localStorage.setItem("ocean.fishCount", String(ids.size)); } catch {}
@@ -1193,8 +1193,8 @@ function Index() {
       .subscribe();
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
-    // Realtime channel + focus reload cover updates. Slow poll (30s) as a safety net.
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 30000);
+    // Realtime channel + focus reload cover updates. Very slow safety-net poll (3 min).
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 180000);
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
