@@ -38,7 +38,7 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const row = {
+    const row: any = {
       sku: data.sku,
       title_ar: data.title_ar,
       title_en: data.title_en,
@@ -50,6 +50,9 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
       status: data.status,
       rewards: data.rewards,
     };
+    if (data.product_type === "subs") {
+      row.base_plan_id = (data.base_plan_id || "monthly").toLowerCase();
+    }
 
     if (data.id) {
       const { error } = await supabaseAdmin.from("play_products").update(row).eq("id", data.id);
@@ -61,6 +64,7 @@ export const upsertPlayProduct = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, id: inserted!.id };
   });
+
 
 export const deletePlayProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
