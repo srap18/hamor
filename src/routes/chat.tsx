@@ -23,6 +23,7 @@ import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 import { useServerFn } from "@tanstack/react-start";
 import { moderateChatText } from "@/lib/chat-moderation.functions";
+import { getCached, setCached } from "@/lib/swr-cache";
 
 
 export const Route = createFileRoute("/chat")({
@@ -315,15 +316,15 @@ function ChatPage() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    const refresh = async () => {
-      const { map, total } = await loadDmUnreadMap(user.id);
+    const refresh = async (force = false) => {
+      const { map, total } = await loadDmUnreadMap(user.id, force ? { force: true } : undefined);
       if (cancelled) return;
       setDmMap(map);
       setDmTotal(total);
     };
     refresh();
     const ch = supabase.channel(`dm-unread:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { refresh(true); })
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);
@@ -350,10 +351,20 @@ function ChatPage() {
     if (!user) return;
     const loadKey = `${tab}:${dmWith || ""}`;
     let active = true;
-    setMsgs([]);
-    setMsgsKey("");
+    // Show cached messages instantly on re-entry (no flash / no wait).
+    const cachedMsgs = getCached<Msg[]>(`chat:msgs:${loadKey}`);
+    const cachedProfs = getCached<Array<[string, Prof]>>(`chat:profs:${loadKey}`);
+    if (cachedMsgs && cachedMsgs.length) {
+      setMsgs(cachedMsgs);
+      setMsgsKey(loadKey);
+      if (cachedProfs) setProfMap(new Map(cachedProfs));
+    } else {
+      setMsgs([]);
+      setMsgsKey("");
+    }
     // Load the NEWEST 100 (was loading oldest 100 — caused new messages to disappear on reload)
-    let q = supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(100);
+    const MSG_COLS = "id,channel,sender_id,recipient_id,tribe_id,body,created_at,audio_url,audio_duration_ms,reply_to_id,reply_to_body,reply_to_name";
+    let q = supabase.from("messages").select(MSG_COLS).order("created_at", { ascending: false }).limit(100);
     if (tab === "public") q = q.eq("channel", "public");
     else if (tab === "tribe" && profile?.tribe_id) q = q.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
     else if (tab === "dm" && dmWith) q = q.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
@@ -364,11 +375,14 @@ function ChatPage() {
       const list = ((data || []) as Msg[]).slice().reverse(); // oldest -> newest for display
       setMsgs(list);
       setMsgsKey(loadKey);
+      setCached(`chat:msgs:${loadKey}`, list);
       const ids = Array.from(new Set(list.map(m => m.sender_id)));
       if (ids.length) {
         const { data: ps } = await supabase.from("profiles").select("id,display_name,avatar_emoji,avatar_url,level,avatar_frame,name_frame,bubble_frame,profile_frame,elite_vip_level").in("id", ids);
         if (!active) return;
-        setProfMap(new Map((ps || []).map((p: any) => [p.id, p])));
+        const nextMap = new Map((ps || []).map((p: any) => [p.id, p as Prof]));
+        setProfMap(nextMap);
+        setCached(`chat:profs:${loadKey}`, Array.from(nextMap.entries()));
       }
     });
 
@@ -419,7 +433,7 @@ function ChatPage() {
         newestAt = cur.length ? cur[cur.length - 1].created_at : null;
         return cur;
       });
-      let pq = supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(50);
+      let pq = supabase.from("messages").select("id,channel,sender_id,recipient_id,tribe_id,body,created_at,audio_url,audio_duration_ms,reply_to_id,reply_to_body,reply_to_name").order("created_at", { ascending: true }).limit(50);
       if (tab === "public") pq = pq.eq("channel", "public");
       else if (tab === "tribe" && profile?.tribe_id) pq = pq.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
       else if (tab === "dm" && dmWith) pq = pq.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);

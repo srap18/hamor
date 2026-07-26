@@ -133,8 +133,8 @@ export function BottomNav({ active }: { active?: string }) {
       setUnread(unreadNotifications + (boxes?.length ?? 0));
     };
 
-    const loadDm = async () => {
-      const { total } = await loadDmUnreadMap(user.id);
+    const loadDm = async (force = false) => {
+      const { total } = await loadDmUnreadMap(user.id, force ? { force: true } : undefined);
       if (!cancelled) setDmUnread(total);
     };
 
@@ -145,7 +145,7 @@ export function BottomNav({ active }: { active?: string }) {
       .channel(`bottom-nav:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, loadNotifs)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, loadNotifs)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, loadDm)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { loadDm(true); })
       .subscribe();
 
     return () => {
