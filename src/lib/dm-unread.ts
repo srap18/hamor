@@ -50,7 +50,7 @@ export async function loadDmUnreadMap(uid: string): Promise<{
       .eq("channel", "dm")
       .or(`recipient_id.eq.${uid},sender_id.eq.${uid}`)
       .order("created_at", { ascending: false })
-      .limit(300),
+      .limit(100),
     supabase.from("user_blocks").select("blocked_id").eq("blocker_id", uid),
     supabase.from("user_blocks").select("blocker_id").eq("blocked_id", uid),
     supabase.from("friends").select("requester_id,addressee_id").eq("status", "accepted").or(`requester_id.eq.${uid},addressee_id.eq.${uid}`),
