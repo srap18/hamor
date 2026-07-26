@@ -113,7 +113,7 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
         }
         const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
-        // Ships — idempotent per txn; run even when currency was previously granted.
+        // Ships — idempotent per txn.
         if (
           (reward.phoenixShips ?? 0) > 0 ||
           (reward.dragonT1Ships ?? 0) > 0 ||
@@ -130,23 +130,20 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
           } as never);
         }
 
-        if (alreadyGranted) continue;
-
+        // Items — always run; idempotent per (txn, item_type, item_id).
         if (reward.items?.length) {
-          for (const it of reward.items) {
-            await supabaseAdmin.rpc("grant_inventory_item", {
-              _user: data.userId,
-              _item_type: it.itemType,
-              _item_id: it.itemId,
-              _qty: it.qty,
-            });
-          }
+          await supabaseAdmin.rpc("grant_pack_items" as never, {
+            _txn_id: txn.id,
+            _user: data.userId,
+            _items: reward.items,
+          } as never);
         }
 
-
+        if (alreadyGranted) continue;
 
         granted.push(packId);
         grantedCount += 1;
+
       }
     }
 
