@@ -121,11 +121,11 @@ export function NotificationsBell() {
       .channel(`notifs:${user.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, onInsert)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, onInsert)
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") load();
-      });
-    // Safety-net poll every 15s. Realtime (above) is primary and instant.
-    const poll = setInterval(() => { if (!document.hidden) load(); }, 15000);
+      .subscribe();
+    // Realtime (above) + visibility/focus handlers below are primary.
+    // Safety-net poll is very slow (2 min) — only needed if realtime drops on mobile.
+    // Previously this fired every 15s and caused ~16M redundant notification queries.
+    const poll = setInterval(() => { if (!document.hidden) load(); }, 120000);
     const onVis = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
