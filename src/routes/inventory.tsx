@@ -66,11 +66,9 @@ function InventoryPage() {
       setMarketExpertUntil(meu);
       let stockQty: Record<string, number> = {};
       try {
-        const { data: summary } = await supabase.rpc("get_fish_stock_summary" as never);
-        const summaryRows = (summary ?? []) as Array<{ fish_id: string; qty: number | string }>;
+        const summaryRows = await getFishStockSummary(u.user.id);
         for (const row of summaryRows) {
-          const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
-          if (q && q > 0) stockQty[row.fish_id] = q;
+          if (row.qty > 0) stockQty[row.fish_id] = row.qty;
         }
       } catch { /* non-fatal */ }
 

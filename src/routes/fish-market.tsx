@@ -431,15 +431,15 @@ function FishMarket() {
   const loadFish = async () => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
     const cacheKey = `fish-market:stock:${user.id}`;
-    const { data, error } = await supabase.rpc("get_fish_stock_summary" as never);
-    if (error) return;
-    const rows = (data ?? []) as Array<{ fish_id: string; qty: number | string; oldest_caught_at: string }>;
+    let rows: Array<{ fish_id: string; qty: number; oldest_caught_at?: string }>;
+    try {
+      rows = await getFishStockSummary(user.id);
+    } catch { return; }
     const map: Record<string, number> = {};
     const ages: Record<string, string> = {};
     for (const row of rows) {
-      const q = typeof row.qty === "string" ? parseInt(row.qty, 10) : row.qty;
-      if (!q || q <= 0) continue;
-      map[row.fish_id] = q;
+      if (!row.qty || row.qty <= 0) continue;
+      map[row.fish_id] = row.qty;
       if (row.oldest_caught_at) ages[row.fish_id] = row.oldest_caught_at;
     }
     setQtyMap(map);
