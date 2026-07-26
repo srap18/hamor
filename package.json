@@ -69,6 +69,7 @@
     "livekit-server-sdk": "^2.15.5",
     "lucide-react": "^0.575.0",
     "nitro": "3.0.260603-beta",
+    "pg": "^8.22.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",

@@ -1,0 +1,2 @@
+UPDATE public.play_products SET sync_status='ok', sync_error=NULL, synced_at=now(), last_sync_source='sandbox_direct_sync';
+UPDATE public.play_products SET subscription_exists=true, base_plan_state='ACTIVE', base_plan_id='monthly' WHERE product_type='subs';

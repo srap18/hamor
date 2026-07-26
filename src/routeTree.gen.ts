@@ -84,6 +84,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksPlaySyncRouteImport } from './routes/api/public/hooks/play-sync'
 import { Route as ApiPublicHooksPlayRtdnRouteImport } from './routes/api/public/hooks/play-rtdn'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
+import { Route as ApiPublicAdminRunPlaySyncRouteImport } from './routes/api/public/admin/run-play-sync'
 
 const VipRoute = VipRouteImport.update({
   id: '/vip',
@@ -463,6 +464,12 @@ const ApiPublicHooksGoldenFisherTickRoute =
     path: '/api/public/hooks/golden-fisher-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAdminRunPlaySyncRoute =
+  ApiPublicAdminRunPlaySyncRouteImport.update({
+    id: '/api/public/admin/run-play-sync',
+    path: '/api/public/admin/run-play-sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -533,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
@@ -609,6 +617,7 @@ export interface FileRoutesByTo {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
@@ -687,6 +696,7 @@ export interface FileRoutesById {
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
@@ -766,6 +776,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin/'
+    | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
@@ -842,6 +853,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin'
+    | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
@@ -919,6 +931,7 @@ export interface FileRouteTypes {
     | '/players/$playerId'
     | '/u/$username'
     | '/admin/'
+    | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
@@ -975,6 +988,7 @@ export interface RootRouteChildren {
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   UUsernameRoute: typeof UUsernameRoute
+  ApiPublicAdminRunPlaySyncRoute: typeof ApiPublicAdminRunPlaySyncRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
   ApiPublicHooksPlayRtdnRoute: typeof ApiPublicHooksPlayRtdnRoute
   ApiPublicHooksPlaySyncRoute: typeof ApiPublicHooksPlaySyncRoute
@@ -1511,6 +1525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksGoldenFisherTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/admin/run-play-sync': {
+      id: '/api/public/admin/run-play-sync'
+      path: '/api/public/admin/run-play-sync'
+      fullPath: '/api/public/admin/run-play-sync'
+      preLoaderRoute: typeof ApiPublicAdminRunPlaySyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1622,6 +1643,7 @@ const rootRouteChildren: RootRouteChildren = {
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   UUsernameRoute: UUsernameRoute,
+  ApiPublicAdminRunPlaySyncRoute: ApiPublicAdminRunPlaySyncRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
   ApiPublicHooksPlayRtdnRoute: ApiPublicHooksPlayRtdnRoute,
   ApiPublicHooksPlaySyncRoute: ApiPublicHooksPlaySyncRoute,
