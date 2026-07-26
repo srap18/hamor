@@ -133,8 +133,8 @@ export function BottomNav({ active }: { active?: string }) {
       setUnread(unreadNotifications + (boxes?.length ?? 0));
     };
 
-    const loadDm = async () => {
-      const { total } = await loadDmUnreadMap(user.id);
+    const loadDm = async (force = false) => {
+      const { total } = await loadDmUnreadMap(user.id, force ? { force: true } : undefined);
       if (!cancelled) setDmUnread(total);
     };
 
