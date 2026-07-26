@@ -21,6 +21,7 @@ import {
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
+import { getFishStockSummary, type FishStockRow } from "@/lib/fish-stock-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 
@@ -864,7 +865,7 @@ function Index() {
       ((caught ?? []) as Array<{ fish_id: string; total_caught: number | null }>).forEach((r) => {
         if ((r.total_caught ?? 0) > 0) ids.add(r.fish_id);
       });
-      (summary ?? []).forEach((r) => {
+      (summary ?? []).forEach((r: FishStockRow) => {
         if (r.qty > 0) ids.add(r.fish_id);
       });
       setFish(ids.size);

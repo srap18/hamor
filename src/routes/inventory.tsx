@@ -9,6 +9,7 @@ import { SHIPS, getShipByCode } from "@/lib/ships";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { refreshProfile } from "@/hooks/use-auth";
 import { getCached, setCached } from "@/lib/swr-cache";
+import { getFishStockSummary } from "@/lib/fish-stock-cache";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
