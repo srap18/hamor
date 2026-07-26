@@ -400,7 +400,22 @@ function AdminPlayProductsPage() {
                   <option value="inactive">معطّل</option>
                 </select>
               </label>
+              {editing.product_type === "subs" && (
+                <label className="block text-xs text-slate-300 col-span-2">
+                  Base Plan ID (اشتراك — دورة شهرية P1M)
+                  <input
+                    value={editing.base_plan_id ?? "monthly"}
+                    onChange={(e) => setEditing({ ...editing, base_plan_id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })}
+                    className="mt-1 w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono"
+                    placeholder="monthly"
+                  />
+                  <span className="text-slate-500 block mt-1">
+                    ⚠️ رفع أيقونة الاشتراك يجب أن يتم يدوياً من Play Console (Google API لا يدعم رفع الأيقونات).
+                  </span>
+                </label>
+              )}
             </div>
+
             <label className="block text-xs text-slate-300">
               المكافآت داخل اللعبة (JSON)
               <textarea value={rewardsText} onChange={(e) => setRewardsText(e.target.value)}
