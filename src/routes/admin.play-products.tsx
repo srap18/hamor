@@ -32,6 +32,10 @@ type Row = {
   sync_error: string | null;
   synced_at: string | null;
   rewards: Record<string, unknown>;
+  base_plan_id?: string | null;
+  base_plan_state?: string | null;
+  subscription_exists?: boolean | null;
+  last_sync_source?: string | null;
 };
 
 const EMPTY: Row = {
@@ -49,7 +53,12 @@ const EMPTY: Row = {
   sync_error: null,
   synced_at: null,
   rewards: {},
+  base_plan_id: null,
+  base_plan_state: null,
+  subscription_exists: null,
+  last_sync_source: null,
 };
+
 
 function statusColor(s: string) {
   if (s === "ok") return "text-green-400";
