@@ -2817,6 +2817,36 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_delivery_audit: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          pack_id: string | null
+          txn_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          pack_id?: string | null
+          txn_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          pack_id?: string | null
+          txn_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       play_products: {
         Row: {
           created_at: string
@@ -5469,6 +5499,16 @@ export type Database = {
       _grant_ship_with_storage: {
         Args: { _catalog_code: string; _uid: string }
         Returns: string
+      }
+      _log_payment_delivery: {
+        Args: {
+          _detail: Json
+          _kind: string
+          _pack: string
+          _txn_id: string
+          _user: string
+        }
+        Returns: undefined
       }
       _market_expert_max_price: {
         Args: { _fish_id: string; _uid: string }
