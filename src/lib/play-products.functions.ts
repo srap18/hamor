@@ -27,7 +27,9 @@ const productInput = z.object({
   product_type: z.enum(["inapp", "subs"]).default("inapp"),
   status: z.enum(["active", "inactive"]).default("active"),
   rewards: z.record(z.any()).default({}),
+  base_plan_id: z.string().max(63).regex(/^[a-z0-9-]+$/).optional().nullable(),
 });
+
 
 export const upsertPlayProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
