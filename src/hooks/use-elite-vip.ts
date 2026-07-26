@@ -8,10 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
  * never client-writable). Use this for UI display only — combat/shop
  * effects are computed server-side.
  */
+// Module-level cache — avoid re-running the heavy resync RPC on every mount.
+const LEVEL_CACHE = new Map<string, { value: number; ts: number }>();
+const LEVEL_TTL_MS = 60_000;
+
 export function useEliteVipLevel(): { level: number; loading: boolean } {
   const { user, loading: authLoading } = useAuth();
-  const [level, setLevel] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  const cached = user ? LEVEL_CACHE.get(user.id) : undefined;
+  const [level, setLevel] = useState<number>(cached?.value ?? 0);
+  const [loading, setLoading] = useState<boolean>(!cached);
 
   useEffect(() => {
     if (authLoading) return;
@@ -21,25 +26,32 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       return;
     }
     let cancelled = false;
-    // Server returns the EFFECTIVE level (already enforces expires_at and
-    // lazy-resets the DB row). The client must NOT recompute it — visual
-    // tampering on the device cannot grant any real perk because every
-    // sensitive RPC (combat/shop) re-checks server-side too.
     const readLevel = (row: { elite_vip_level?: number | null } | null): number =>
       Math.max(0, Number(row?.elite_vip_level ?? 0));
 
     const refresh = async () => {
-      // Self-heal: if a paid Elite VIP purchase exists but the profile is
-      // behind (missed webhook / stale realtime), repair it and return the
-      // effective level in one round-trip.
+      const hit = LEVEL_CACHE.get(user.id);
+      if (hit && Date.now() - hit.ts < LEVEL_TTL_MS) {
+        if (!cancelled) { setLevel(hit.value); setLoading(false); }
+        return;
+      }
       const { data } = await (supabase as any).rpc("resync_my_elite_vip");
       if (cancelled) return;
       const r = Array.isArray(data) ? data[0] : data;
-      setLevel(readLevel(r as any));
+      const v = readLevel(r as any);
+      LEVEL_CACHE.set(user.id, { value: v, ts: Date.now() });
+      setLevel(v);
       setLoading(false);
     };
 
+    // Show cached value instantly; still refresh in background if stale.
+    if (cached) { setLevel(cached.value); setLoading(false); }
     refresh();
+
+    const forceRefresh = () => {
+      if (user) LEVEL_CACHE.delete(user.id);
+      refresh();
+    };
 
     // Realtime sync — if subscription webhook updates the row, re-read.
     const channel = supabase
@@ -47,15 +59,13 @@ export function useEliteVipLevel(): { level: number; loading: boolean } {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        refresh,
+        forceRefresh,
       )
       .subscribe();
 
-    // Refresh whenever the app regains focus (mobile users returning from
-    // the Paddle / Apple Pay sheet often miss the realtime UPDATE).
     const onFocus = () => { void refresh(); };
     const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
-    const onPurchase = () => { void refresh(); };
+    const onPurchase = () => { void forceRefresh(); };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("paddle-purchase-completed", onPurchase);

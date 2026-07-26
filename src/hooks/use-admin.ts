@@ -44,7 +44,7 @@ export function useIsAdmin() {
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
-  return { isAdmin: !!isAdmin, loading: loading && authLoading };
+  return { isAdmin: !!isAdmin, loading: loading || authLoading };
 }
 
 export async function logAudit(action: string, target_user_id: string | null, details: Record<string, unknown> = {}) {
