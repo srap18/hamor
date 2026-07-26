@@ -127,8 +127,12 @@ function AdminPlayProductsPage() {
           product_type: editing.product_type,
           status: editing.status,
           rewards,
+          base_plan_id: editing.product_type === "subs"
+            ? (editing.base_plan_id || "monthly")
+            : null,
         },
       });
+
       toast.success("تم الحفظ — يتم الآن المزامنة مع Play");
       closeEditor();
       setTimeout(refresh, 1500);
