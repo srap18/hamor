@@ -2071,21 +2071,22 @@ function Index() {
         <>
           {/* Pirate Cove background: the buildings are painted into the scene,
               so only tap zones are needed — no Placeable market huts. */}
-          {/* Top-right cliff hut → Fish Market */}
-          <Link
-            to="/fish-market"
-            aria-label="سوق السمك"
-            className="absolute z-[12] rounded-[40%] active:bg-white/10"
-            style={{ left: "60%", top: "28%", width: "30%", height: "15%" }}
-          />
-          {/* Lower-left dock hut → Ship Market */}
+          {/* Top-right cliff hut → Ship Market */}
           <Link
             to="/ship-market"
             aria-label="سوق السفن"
             className="absolute z-[12] rounded-[40%] active:bg-white/10"
-            style={{ left: "6%", top: "45%", width: "30%", height: "17%" }}
+            style={{ left: "58%", top: "27%", width: "34%", height: "17%" }}
+          />
+          {/* Lower-left dock hut → Fish Market (the near one) */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "4%", top: "44%", width: "32%", height: "18%" }}
           />
         </>
+
 
       ) : (
         <>
