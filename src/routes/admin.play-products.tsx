@@ -278,6 +278,21 @@ function AdminPlayProductsPage() {
                     <div className={`font-bold ${statusColor(r.sync_status)}`}>
                       {r.sync_status === "ok" ? "✓ متزامن" : r.sync_status === "error" ? "✗ خطأ" : "⏳ قيد الانتظار"}
                     </div>
+                    {r.product_type === "subs" && (
+                      <div className="text-[11px] text-slate-400 mt-1 space-y-0.5">
+                        <div>
+                          خطة: <span className="font-mono text-slate-300">{r.base_plan_id ?? "—"}</span>
+                          {r.base_plan_state && (
+                            <span className={`ml-1 font-bold ${r.base_plan_state === "ACTIVE" ? "text-green-400" : "text-amber-400"}`}>
+                              {r.base_plan_state}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          Play: {r.subscription_exists === true ? "موجود ✓" : r.subscription_exists === false ? "مفقود ✗" : "غير معروف"}
+                        </div>
+                      </div>
+                    )}
                     {r.sync_error && (
                       <button
                         onClick={() => setErrorDetail(`SKU: ${r.sku}\n\n${r.sync_error}`)}
@@ -287,7 +302,13 @@ function AdminPlayProductsPage() {
                         📋 {r.sync_error}
                       </button>
                     )}
+                    {r.synced_at && (
+                      <div className="text-[10px] text-slate-500 mt-1">
+                        {new Date(r.synced_at).toLocaleString("ar")}
+                      </div>
+                    )}
                   </td>
+
                   <td className="p-2 whitespace-nowrap">
                     <button
                       onClick={() => syncOne(r)}
