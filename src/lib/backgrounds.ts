@@ -30,6 +30,10 @@ import coveBg from "@/assets/bg-cove.jpg.asset.json";
 import coveBurnedBg from "@/assets/bg-cove-burned.jpg.asset.json";
 import coveVideo from "@/assets/bg-cove.mp4.asset.json";
 import coveBurnedVideo from "@/assets/bg-cove-burned.mp4.asset.json";
+import elvenlakeBg from "@/assets/bg-elvenlake.jpg.asset.json";
+import elvenlakeBurnedBg from "@/assets/bg-elvenlake-burned.jpg.asset.json";
+import elvenlakeVideo from "@/assets/bg-elvenlake.mp4.asset.json";
+import elvenlakeBurnedVideo from "@/assets/bg-elvenlake-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -238,6 +242,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: spongebobBurnedBg.url,
     video: spongebobVideo.url,
     burnedVideo: spongebobBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "elvenlake",
+    name: "بحيرة الجان ✨",
+    burnedName: "بحيرة الجان المحترقة 🔥",
+    price: 4000,
+    currency: "gems",
+    rarity: "legendary",
+    image: elvenlakeBg.url,
+    burnedImage: elvenlakeBurnedBg.url,
+    video: elvenlakeVideo.url,
+    burnedVideo: elvenlakeBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",

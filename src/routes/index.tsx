@@ -2088,6 +2088,25 @@ function Index() {
         </>
 
 
+      ) : scene.id === "elvenlake" ? (
+        <>
+          {/* Elven Lake background: painted buildings — fixed tap zones only */}
+          {/* Small waterside hut with sign → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "46%", top: "42%", width: "24%", height: "11%" }}
+          />
+          {/* Large cathedral building with "سوق" sign → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "12%", top: "50%", width: "32%", height: "15%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}
