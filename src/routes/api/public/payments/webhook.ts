@@ -228,20 +228,16 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
 
 
 
-  // Grant inventory items (e.g. ad_bomb_pack → 1× ad_bomb)
+  // Grant inventory items (idempotent per Paddle txn via paddle_purchase_items dedup).
   if (reward.items?.length) {
-    for (const it of reward.items) {
-      const { error: invErr } = await getSupabase().rpc("grant_inventory_item", {
-        _user: userId,
-        _item_type: it.itemType,
-        _item_id: it.itemId,
-        _qty: it.qty,
-      });
-      if (invErr) {
-        console.error("grant_inventory_item failed:", invErr, it);
-        // Throw so the webhook returns 400 and Paddle retries — better than silent loss.
-        throw new Error(`grant_inventory_item failed for ${it.itemType}/${it.itemId}: ${invErr.message}`);
-      }
+    const { error: invErr } = await getSupabase().rpc("grant_pack_items", {
+      _txn_id: data.id,
+      _user: userId,
+      _items: reward.items,
+    });
+    if (invErr) {
+      console.error("grant_pack_items failed:", invErr);
+      throw new Error(`grant_pack_items failed: ${invErr.message}`);
     }
   }
 
@@ -265,6 +261,7 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
       throw new Error(`grant_pack_ships failed: ${shipErr.message}`);
     }
   }
+
 
   // Referral bonus: if buyer was invited, reward inviter with 30% of purchase value in gems.
   // Game-funded — no deduction from buyer.

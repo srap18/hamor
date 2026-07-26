@@ -126,8 +126,16 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
         }
         const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
-        // Ships — idempotent per txn; run even when currency was already granted so
-        // partial past failures self-heal on the next reconcile.
+        // Items — always run; idempotent per (txn, item_type, item_id).
+        if (reward.items?.length) {
+          await supabaseAdmin.rpc("grant_pack_items" as never, {
+            _txn_id: txn.id,
+            _user: userId,
+            _items: reward.items,
+          } as never);
+        }
+
+        // Ships — idempotent per txn.
         if (
           (reward.phoenixShips ?? 0) > 0 ||
           (reward.dragonT1Ships ?? 0) > 0 ||
@@ -153,23 +161,13 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
           });
         }
 
-        if (alreadyGranted) continue;
-
-        if (reward.items?.length) {
-          for (const it of reward.items) {
-            await supabaseAdmin.rpc("grant_inventory_item", {
-              _user: userId,
-              _item_type: it.itemType,
-              _item_id: it.itemId,
-              _qty: it.qty,
-            });
-          }
+        if (!alreadyGranted) {
+          granted.push(packId);
+          grantedCount += 1;
         }
-
-        granted.push(packId);
-        grantedCount += 1;
       }
     }
+
 
     return { ok: true, grantedCount, granted, skipped };
   });

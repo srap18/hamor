@@ -2736,6 +2736,30 @@ export type Database = {
         }
         Relationships: []
       }
+      paddle_purchase_items: {
+        Row: {
+          granted_at: string
+          item_id: string
+          item_type: string
+          paddle_transaction_id: string
+          qty: number
+        }
+        Insert: {
+          granted_at?: string
+          item_id: string
+          item_type: string
+          paddle_transaction_id: string
+          qty: number
+        }
+        Update: {
+          granted_at?: string
+          item_id?: string
+          item_type?: string
+          paddle_transaction_id?: string
+          qty?: number
+        }
+        Relationships: []
+      }
       paddle_purchases: {
         Row: {
           amount_cents: number
@@ -6807,6 +6831,10 @@ export type Database = {
           _user: string
         }
         Returns: undefined
+      }
+      grant_pack_items: {
+        Args: { _items: Json; _txn_id: string; _user: string }
+        Returns: Json
       }
       grant_pack_ships: {
         Args: {

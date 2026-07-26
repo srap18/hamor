@@ -95,22 +95,18 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
-    // Skip extras (inventory items, phoenix ships) if the webhook (or a prior call)
-    // already granted this transaction — prevents double-grants.
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
-    if (!alreadyGranted && reward.items?.length) {
-      for (const it of reward.items) {
-        await supabaseAdmin.rpc("grant_inventory_item", {
-          _user: userId,
-          _item_type: it.itemType,
-          _item_id: it.itemId,
-          _qty: it.qty,
-        });
-      }
+    // Items — always run; idempotent per (txn, item_type, item_id).
+    if (reward.items?.length) {
+      await supabaseAdmin.rpc("grant_pack_items" as never, {
+        _txn_id: txn.id,
+        _user: userId,
+        _items: reward.items,
+      } as never);
     }
 
-    // Ships — idempotent per txn, always attempted so partial failures self-heal.
+    // Ships — idempotent per txn.
     if (
       (reward.phoenixShips ?? 0) > 0 ||
       (reward.dragonT1Ships ?? 0) > 0 ||
@@ -127,7 +123,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       } as never);
     }
 
-    // Referral 30% bonus — safe: idempotent on (invitee_id, txn_id).
+    // Referral 30% bonus — idempotent on (invitee_id, txn_id).
     if (!alreadyGranted && amountCents > 0) {
       await supabaseAdmin.rpc("grant_referral_bonus", {
         _user: userId,
@@ -138,3 +134,4 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
 
     return { granted: true, packId, alreadyGranted };
   });
+
