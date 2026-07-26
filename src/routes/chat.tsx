@@ -315,15 +315,15 @@ function ChatPage() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    const refresh = async () => {
-      const { map, total } = await loadDmUnreadMap(user.id);
+    const refresh = async (force = false) => {
+      const { map, total } = await loadDmUnreadMap(user.id, force ? { force: true } : undefined);
       if (cancelled) return;
       setDmMap(map);
       setDmTotal(total);
     };
     refresh();
     const ch = supabase.channel(`dm-unread:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { refresh(true); })
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);
