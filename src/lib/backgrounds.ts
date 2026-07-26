@@ -252,6 +252,27 @@ export const BACKGROUNDS: SceneBg[] = [
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
   },
+  {
+    id: "elvenlake",
+    name: "بحيرة الجان ✨",
+    burnedName: "بحيرة الجان المحترقة 🔥",
+    price: 4000,
+    currency: "gems",
+    rarity: "legendary",
+    image: elvenlakeBg.url,
+    burnedImage: elvenlakeBurnedBg.url,
+    video: elvenlakeVideo.url,
+    burnedVideo: elvenlakeBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
 
 ];
 
