@@ -298,6 +298,25 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         }
       }
 
+      // Subscriptions comparison (no batchGet endpoint — probe individually).
+      const { data: subRows } = await supabaseAdmin
+        .from("play_products")
+        .select("sku")
+        .eq("product_type", "subs");
+      const subSkus = (subRows ?? []).map((r: any) => r.sku).filter(Boolean);
+      const subsFoundInPlay: string[] = [];
+      const subsMissingInPlay: string[] = [];
+      for (const sku of subSkus) {
+        const url =
+          `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+          `${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(sku)}`;
+        const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
+        if (r.status === 404) { subsMissingInPlay.push(sku); continue; }
+        if (r.ok) subsFoundInPlay.push(sku);
+        else subsMissingInPlay.push(sku);
+        await new Promise((res) => setTimeout(res, 120));
+      }
+
       const playSet = new Set(playSkus);
       const found = skus.filter((sku: string) => playSet.has(sku));
       const missing = skus.filter((sku: string) => !playSet.has(sku));
@@ -307,14 +326,20 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       checks.foundSkus = found;
       checks.missingSkus = missing;
       checks.unmanagedPlaySkus = unmanaged;
+      checks.subscriptions = {
+        localCount: subSkus.length,
+        foundInPlay: subsFoundInPlay,
+        missingInPlay: subsMissingInPlay,
+      };
       checks.createEndpoint =
         `PATCH https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
         `${encodeURIComponent(checks.package)}/onetimeproducts/{productId}`;
-      if (skus.length === 0) {
-        checks.note = "لا توجد منتجات شراء لمرة واحدة في قاعدة البيانات للمقارنة.";
+      if (skus.length === 0 && subSkus.length === 0) {
+        checks.note = "لا توجد منتجات في قاعدة البيانات للمقارنة.";
       }
-      checks.hint = missing.length
-        ? `${missing.length} منتج غير موجود في Google Play — اضغط "مزامنة الكل" لإنشائها عبر المسار الصحيح.`
+      const totalMissing = missing.length + subsMissingInPlay.length;
+      checks.hint = totalMissing
+        ? `${totalMissing} منتج/اشتراك غير موجود في Google Play — اضغط "مزامنة الكل" لإنشائها.`
         : undefined;
       return { ok: true, checks };
     } catch (e: any) {
