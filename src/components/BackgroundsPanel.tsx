@@ -129,7 +129,7 @@ export function BackgroundsPanel() {
             ? `تجديد ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`
             : `شراء ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`)
         : `شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`;
-      if (!window.confirm(confirmMsg)) return;
+      if (!(await askConfirm(confirmMsg))) return;
       setBusy(true);
       const { error } = await supabase.rpc("buy_background_gems", { _bg_id: b.id, _gems: b.price });
       setBusy(false);
