@@ -38,6 +38,13 @@ export function BackgroundsPanel() {
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [repairing, setRepairing] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ msg: string; onOk: () => void } | null>(null);
+
+  const askConfirm = (msg: string) => new Promise<boolean>((resolve) => {
+    setConfirmState({ msg, onOk: () => { setConfirmState(null); resolve(true); } });
+    // cancel handler set in JSX via close button
+    (window as any).__bgConfirmCancel = () => { setConfirmState(null); resolve(false); };
+  });
 
   useEffect(() => {
     setSelected(getSelectedBgId());
@@ -95,7 +102,7 @@ export function BackgroundsPanel() {
   const handleRepair = async () => {
     if (repairing) return;
     if (gems < 100) { flash("💎 تحتاج 100 جوهرة للإصلاح"); return; }
-    if (!window.confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+    if (!(await askConfirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟"))) return;
     setRepairing(true);
     const { error } = await repairBurnedBg();
     setRepairing(false);
@@ -122,7 +129,7 @@ export function BackgroundsPanel() {
             ? `تجديد ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`
             : `شراء ${b.name} لمدة ${b.durationDays} أيام مقابل ${b.price.toLocaleString()} جوهرة؟`)
         : `شراء ${b.name} مقابل ${b.price.toLocaleString()} جوهرة؟`;
-      if (!window.confirm(confirmMsg)) return;
+      if (!(await askConfirm(confirmMsg))) return;
       setBusy(true);
       const { error } = await supabase.rpc("buy_background_gems", { _bg_id: b.id, _gems: b.price });
       setBusy(false);
@@ -134,7 +141,7 @@ export function BackgroundsPanel() {
       const shortfall = Math.max(0, b.price - coins);
       const gemsNeeded = Math.ceil(shortfall / 1000);
       if (shortfall > 0 && (profile.gems ?? 0) < gemsNeeded) { flash(`غير كافية (تحتاج ${gemsNeeded} جوهرة لتغطية النقص)`); return; }
-      if (shortfall > 0 && !window.confirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`)) return;
+      if (shortfall > 0 && !(await askConfirm(`الذهب غير كافٍ. سيُخصم ${gemsNeeded} جوهرة لتغطية النقص (1 جوهرة = 1000 ذهب). متابعة؟`))) return;
       setBusy(true);
       const { error } = await supabase.rpc("buy_background", { _bg_id: b.id, _price: b.price });
       setBusy(false);
@@ -255,6 +262,18 @@ export function BackgroundsPanel() {
       {pop && (
         <div className="fixed left-1/2 top-1/3 -translate-x-1/2 z-[60] text-base font-bold text-amber-200 text-glow pointer-events-none animate-float-up bg-stone-900/85 px-4 py-2 rounded-xl border border-amber-400/40">
           {pop}
+        </div>
+      )}
+
+      {confirmState && (
+        <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => (window as any).__bgConfirmCancel?.()}>
+          <div dir="rtl" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-stone-900 to-stone-950 p-4 shadow-2xl">
+            <div className="text-white text-sm font-bold mb-4 leading-relaxed">{confirmState.msg}</div>
+            <div className="flex gap-2">
+              <button onClick={() => (window as any).__bgConfirmCancel?.()} className="flex-1 py-2 rounded-lg bg-stone-700 border-2 border-stone-500 text-white text-sm font-extrabold active:scale-95">إلغاء</button>
+              <button onClick={() => confirmState.onOk()} className="flex-1 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-sm font-extrabold active:scale-95">تأكيد</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
