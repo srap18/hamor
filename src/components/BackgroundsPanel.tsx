@@ -264,6 +264,18 @@ export function BackgroundsPanel() {
           {pop}
         </div>
       )}
+
+      {confirmState && (
+        <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => (window as any).__bgConfirmCancel?.()}>
+          <div dir="rtl" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-stone-900 to-stone-950 p-4 shadow-2xl">
+            <div className="text-white text-sm font-bold mb-4 leading-relaxed">{confirmState.msg}</div>
+            <div className="flex gap-2">
+              <button onClick={() => (window as any).__bgConfirmCancel?.()} className="flex-1 py-2 rounded-lg bg-stone-700 border-2 border-stone-500 text-white text-sm font-extrabold active:scale-95">إلغاء</button>
+              <button onClick={() => confirmState.onOk()} className="flex-1 py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-sm font-extrabold active:scale-95">تأكيد</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
