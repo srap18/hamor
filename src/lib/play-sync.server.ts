@@ -14,6 +14,7 @@
  */
 import { SignJWT, importPKCS8 } from "jose";
 import { parseServiceAccount, normalizePem, type ServiceAccount } from "./play-service-account.server";
+import { toPlayId } from "./iap-play-ids";
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
@@ -154,12 +155,12 @@ function truncateText(value: string, maxLength: number): string {
 
 async function fetchExistingPurchaseOptions(
   pkg: string,
-  sku: string,
+  playSku: string,
   token: string,
 ): Promise<any[] | null> {
   const url =
     `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-    `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
+    `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}`;
   const res = await fetchGoogleWithQuotaRetry(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
@@ -175,6 +176,7 @@ function buildOneTimeProductBody(
   row: PlayProductRow,
   existingPurchaseOptions?: any[] | null,
 ) {
+  const playSku = toPlayId(row.sku);
   const currency = (row.default_currency || "USD").toUpperCase();
   const region = CURRENCY_TO_REGION[currency] || "US";
   const price = microsToMoney(row.price_micros, currency);
@@ -209,13 +211,6 @@ function buildOneTimeProductBody(
     },
   };
   if (canAutoConvert) {
-    // Auto-convert base USD price to every other region using Google's
-    // official regional currencies (avoids "Invalid currency for region code
-    // BG. Expected BGN but got EUR" style errors under regionsVersion 2022/02).
-    // Withdrawal right type is set on taxAndComplianceSettings above — the
-    // current OneTimeProductNewRegionsConfig schema only accepts usdPrice
-    // and availability; sending eeaWithdrawalRightType returns HTTP 400
-    // ("Unknown name eeaWithdrawalRightType ... Cannot find field").
     defaultOption.newRegionsConfig = {
       availability: "AVAILABLE",
       usdPrice: usdPriceForAutoConvert,
@@ -223,11 +218,6 @@ function buildOneTimeProductBody(
     };
   }
 
-  // Google requires the PATCH body to list ALL existing purchaseOptions
-  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options but
-  // sanitize them: strip all stale regional pricing entries (they may carry
-  // currency/region mismatches Google no longer accepts) and republish them
-  // with just our base region so nothing gets silently dropped.
   const preserved = (existingPurchaseOptions ?? [])
     .filter((opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default")
     .map((opt) => {
@@ -256,7 +246,7 @@ function buildOneTimeProductBody(
 
   return {
     packageName: pkg,
-    productId: row.sku,
+    productId: playSku,
     listings: [
       {
         languageCode: "en-US",
@@ -283,7 +273,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
-    const existing = await fetchExistingPurchaseOptions(pkg, row.sku, token);
+    const playSku = toPlayId(row.sku);
+    const existing = await fetchExistingPurchaseOptions(pkg, playSku, token);
     const body = buildOneTimeProductBody(pkg, row, existing);
 
     const params = new URLSearchParams({
@@ -294,7 +285,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     });
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
+      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(playSku)}?${params.toString()}`;
 
     const res = await fetchGoogleWithQuotaRetry(url, {
       method: "PATCH",
@@ -320,7 +311,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
 
       const stateUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(row.sku)}/purchaseOptions:batchUpdateStates`;
+        `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}/purchaseOptions:batchUpdateStates`;
       const stateRequestKey = needsActivation
         ? "activatePurchaseOptionRequest"
         : "deactivatePurchaseOptionRequest";
@@ -329,7 +320,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
           {
             [stateRequestKey]: {
               packageName: pkg,
-              productId: row.sku,
+              productId: playSku,
               purchaseOptionId: "default",
                latencyTolerance: LATENCY_TOLERANT,
             },
@@ -347,11 +338,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       const stateResponseText = await stateRes.text();
       if (stateRes.ok) return { ok: true };
       console.error("[play-sync] purchase option state update failed", {
-        sku: row.sku,
-        url: stateUrl,
-        status: stateRes.status,
-        body: stateResponseText,
-        requestBody: stateBody,
+        sku: row.sku, playSku, url: stateUrl, status: stateRes.status, body: stateResponseText,
       });
       return {
         ok: false,
@@ -359,13 +346,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       };
     }
     const errBody = responseText;
-    // Log full details server-side for debugging.
     console.error("[play-sync] upsert failed", {
-      sku: row.sku,
-      url,
-      status: res.status,
-      body: errBody,
-      requestBody: body,
+      sku: row.sku, playSku, url, status: res.status, body: errBody, requestBody: body,
     });
     return {
       ok: false,
@@ -401,8 +383,9 @@ export async function batchSyncPlayProducts(
       await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
     }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
+    const chunkPlaySkus = chunk.map((row) => toPlayId(row.sku));
     const existingByChunkIndex = await Promise.all(
-      chunk.map((row) => fetchExistingPurchaseOptions(pkg, row.sku, token).catch(() => null)),
+      chunk.map((_, idx) => fetchExistingPurchaseOptions(pkg, chunkPlaySkus[idx], token).catch(() => null)),
     );
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
@@ -440,6 +423,7 @@ export async function batchSyncPlayProducts(
         status: updateResponse.status,
         body: updateResponseText,
         skus: chunk.map((row) => row.sku),
+        playSkus: chunkPlaySkus,
       });
       for (const row of chunk) results.set(row.sku, { ok: false, error });
       if (quotaExceeded) {
@@ -461,16 +445,18 @@ export async function batchSyncPlayProducts(
         purchaseOptions?: { purchaseOptionId?: string; state?: string }[];
       }[];
     };
-    const returnedBySku = new Map(
+    const returnedByPlaySku = new Map(
       (responseJson.oneTimeProducts ?? [])
         .filter((product) => product.productId)
         .map((product) => [product.productId!, product]),
     );
     const stateRequests: Record<string, unknown>[] = [];
-    const stateSkus: string[] = [];
+    const stateSkus: string[] = []; // DB skus (for results map keying)
 
-    for (const row of chunk) {
-      const currentState = returnedBySku.get(row.sku)?.purchaseOptions
+    for (let i = 0; i < chunk.length; i++) {
+      const row = chunk[i];
+      const playSku = chunkPlaySkus[i];
+      const currentState = returnedByPlaySku.get(playSku)?.purchaseOptions
         ?.find((option) => option.purchaseOptionId === "default")?.state;
       const shouldActivate = row.status === "active" && currentState !== "ACTIVE";
       const shouldDeactivate = row.status === "inactive" && currentState === "ACTIVE";
@@ -484,7 +470,7 @@ export async function batchSyncPlayProducts(
       stateRequests.push({
         [requestKey]: {
           packageName: pkg,
-          productId: row.sku,
+          productId: playSku,
           purchaseOptionId: "default",
           latencyTolerance: LATENCY_TOLERANT,
         },
@@ -546,9 +532,10 @@ export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { 
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
+    const playSku = toPlayId(sku);
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
+      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}`;
     const res = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
@@ -594,13 +581,14 @@ async function fetchSubscription(
 }
 
 function buildSubscriptionBody(pkg: string, row: PlayProductRow) {
+  const playSku = toPlayId(row.sku);
   const titleEn = truncateText(row.title_en || row.sku, 55);
   const titleAr = truncateText(row.title_ar || titleEn, 55);
   const descriptionEn = truncateText(row.description_en || titleEn, 200);
   const descriptionAr = truncateText(row.description_ar || titleAr, 200);
   return {
     packageName: pkg,
-    productId: row.sku,
+    productId: playSku,
     listings: [
       { languageCode: "en-US", title: titleEn, description: descriptionEn, benefits: [] },
       { languageCode: "ar", title: titleAr, description: descriptionAr, benefits: [] },
@@ -644,10 +632,11 @@ export async function upsertSubscription(
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
+    const playSku = toPlayId(row.sku);
     const basePlanId = (row.base_plan_id || "monthly")
       .toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-    const existing = await fetchSubscription(pkg, row.sku, token);
+    const existing = await fetchSubscription(pkg, playSku, token);
     const subscriptionExisted = existing !== null;
 
     // 1) Upsert the subscription "product" (listings + tax settings).
@@ -660,7 +649,7 @@ export async function upsertSubscription(
     });
     const subUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}?${subParams.toString()}`;
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}?${subParams.toString()}`;
     const subRes = await fetchGoogleWithQuotaRetry(subUrl, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -668,7 +657,7 @@ export async function upsertSubscription(
     });
     const subText = await subRes.text();
     if (!subRes.ok) {
-      console.error("[play-sync] subscription upsert failed", { sku: row.sku, status: subRes.status, body: subText });
+      console.error("[play-sync] subscription upsert failed", { sku: row.sku, playSku, status: subRes.status, body: subText });
       return {
         ok: false, subscriptionExisted, basePlanId,
         error: `PATCH ${subUrl}\nHTTP ${subRes.status}\n${subText}\n\nREQUEST BODY:\n${JSON.stringify(subBody, null, 2)}`,
@@ -685,7 +674,7 @@ export async function upsertSubscription(
     });
     const bpUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
       `/basePlans/${encodeURIComponent(basePlanId)}?${bpParams.toString()}`;
     const bpRes = await fetchGoogleWithQuotaRetry(bpUrl, {
       method: "PATCH",
@@ -694,7 +683,7 @@ export async function upsertSubscription(
     });
     const bpText = await bpRes.text();
     if (!bpRes.ok) {
-      console.error("[play-sync] base plan upsert failed", { sku: row.sku, status: bpRes.status, body: bpText });
+      console.error("[play-sync] base plan upsert failed", { sku: row.sku, playSku, status: bpRes.status, body: bpText });
       return {
         ok: false, subscriptionExisted, basePlanId,
         error: `PATCH ${bpUrl}\nHTTP ${bpRes.status}\n${bpText}\n\nREQUEST BODY:\n${JSON.stringify(bpBody, null, 2)}`,
@@ -708,16 +697,16 @@ export async function upsertSubscription(
     if (desired === "ACTIVE" && currentState !== "ACTIVE") {
       const actUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
         `/basePlans/${encodeURIComponent(basePlanId)}:activate`;
       const actRes = await fetchGoogleWithQuotaRetry(actUrl, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+        body: JSON.stringify({ packageName: pkg, productId: playSku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
       });
       const actText = await actRes.text();
       if (!actRes.ok) {
-        console.error("[play-sync] base plan activate failed", { sku: row.sku, status: actRes.status, body: actText });
+        console.error("[play-sync] base plan activate failed", { sku: row.sku, playSku, status: actRes.status, body: actText });
         return {
           ok: false, subscriptionExisted, basePlanId, basePlanState: currentState,
           error: `POST ${actUrl}\nHTTP ${actRes.status}\n${actText}`,
@@ -727,12 +716,12 @@ export async function upsertSubscription(
     } else if (desired === "INACTIVE" && currentState === "ACTIVE") {
       const deactUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
         `/basePlans/${encodeURIComponent(basePlanId)}:deactivate`;
       const deactRes = await fetchGoogleWithQuotaRetry(deactUrl, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+        body: JSON.stringify({ packageName: pkg, productId: playSku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
       });
       if (deactRes.ok) currentState = "INACTIVE";
     }
@@ -749,7 +738,7 @@ export async function batchGetSubscriptions(skus: string[]): Promise<Set<string>
   const pkg = getPackageName();
   const token = await getAccessToken();
   for (const sku of skus) {
-    const sub = await fetchSubscription(pkg, sku, token);
+    const sub = await fetchSubscription(pkg, toPlayId(sku), token);
     if (sub) found.add(sku);
     await new Promise((r) => setTimeout(r, 150));
   }
