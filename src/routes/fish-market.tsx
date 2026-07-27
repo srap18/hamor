@@ -564,14 +564,14 @@ function FishMarket() {
         }
         setPop(`❌ ${msg || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
-        await loadFish();
+        await loadFish({ force: true });
         return;
       }
       const serverEarned = Number(data ?? 0);
       if (serverEarned <= 0) {
         setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
         setTimeout(() => setPop(null), 1800);
-        await loadFish();
+        await loadFish({ force: true });
         return;
       }
       applyOptimisticProfileDelta({ coins: +serverEarned });
@@ -591,7 +591,12 @@ function FishMarket() {
         ? { basePrice: baseUnit, boostedPrice: effectiveUnit, qty: requestedQty }
         : null;
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
-      await loadFish();
+      // Invalidate shared cache + broadcast so index/inventory/other tabs refresh
+      // instantly without a manual refresh.
+      invalidateFishStock(user.id);
+      try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+      try { localStorage.setItem("fish-stock-ping", String(Date.now())); } catch {}
+      await loadFish({ force: true });
       refreshProfile();
     } finally {
       setSelling(false);
