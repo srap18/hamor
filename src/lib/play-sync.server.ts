@@ -155,12 +155,12 @@ function truncateText(value: string, maxLength: number): string {
 
 async function fetchExistingPurchaseOptions(
   pkg: string,
-  sku: string,
+  playSku: string,
   token: string,
 ): Promise<any[] | null> {
   const url =
     `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-    `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
+    `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}`;
   const res = await fetchGoogleWithQuotaRetry(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
@@ -176,6 +176,7 @@ function buildOneTimeProductBody(
   row: PlayProductRow,
   existingPurchaseOptions?: any[] | null,
 ) {
+  const playSku = toPlayId(row.sku);
   const currency = (row.default_currency || "USD").toUpperCase();
   const region = CURRENCY_TO_REGION[currency] || "US";
   const price = microsToMoney(row.price_micros, currency);
@@ -210,13 +211,6 @@ function buildOneTimeProductBody(
     },
   };
   if (canAutoConvert) {
-    // Auto-convert base USD price to every other region using Google's
-    // official regional currencies (avoids "Invalid currency for region code
-    // BG. Expected BGN but got EUR" style errors under regionsVersion 2022/02).
-    // Withdrawal right type is set on taxAndComplianceSettings above — the
-    // current OneTimeProductNewRegionsConfig schema only accepts usdPrice
-    // and availability; sending eeaWithdrawalRightType returns HTTP 400
-    // ("Unknown name eeaWithdrawalRightType ... Cannot find field").
     defaultOption.newRegionsConfig = {
       availability: "AVAILABLE",
       usdPrice: usdPriceForAutoConvert,
@@ -224,11 +218,6 @@ function buildOneTimeProductBody(
     };
   }
 
-  // Google requires the PATCH body to list ALL existing purchaseOptions
-  // (FAILED_PRECONDITION otherwise). Preserve any non-"default" options but
-  // sanitize them: strip all stale regional pricing entries (they may carry
-  // currency/region mismatches Google no longer accepts) and republish them
-  // with just our base region so nothing gets silently dropped.
   const preserved = (existingPurchaseOptions ?? [])
     .filter((opt) => opt?.purchaseOptionId && opt.purchaseOptionId !== "default")
     .map((opt) => {
@@ -257,7 +246,7 @@ function buildOneTimeProductBody(
 
   return {
     packageName: pkg,
-    productId: row.sku,
+    productId: playSku,
     listings: [
       {
         languageCode: "en-US",
