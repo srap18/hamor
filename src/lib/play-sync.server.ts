@@ -532,9 +532,10 @@ export async function deleteInAppProduct(sku: string): Promise<{ ok: true } | { 
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
+    const playSku = toPlayId(sku);
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(sku)}`;
+      `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}`;
     const res = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
