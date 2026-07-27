@@ -34,6 +34,10 @@ import elvenlakeBg from "@/assets/bg-elvenlake.jpg.asset.json";
 import elvenlakeBurnedBg from "@/assets/bg-elvenlake-burned.jpg.asset.json";
 import elvenlakeVideo from "@/assets/bg-elvenlake.mp4.asset.json";
 import elvenlakeBurnedVideo from "@/assets/bg-elvenlake-burned.mp4.asset.json";
+import marketVillageBg from "@/assets/bg-marketvillage.jpg.asset.json";
+import marketVillageBurnedBg from "@/assets/bg-marketvillage-burned.jpg.asset.json";
+import marketVillageVideo from "@/assets/bg-marketvillage.mp4.asset.json";
+import marketVillageBurnedVideo from "@/assets/bg-marketvillage-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
