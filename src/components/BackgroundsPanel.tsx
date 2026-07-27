@@ -38,6 +38,13 @@ export function BackgroundsPanel() {
   const [pop, setPop] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [repairing, setRepairing] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ msg: string; onOk: () => void } | null>(null);
+
+  const askConfirm = (msg: string) => new Promise<boolean>((resolve) => {
+    setConfirmState({ msg, onOk: () => { setConfirmState(null); resolve(true); } });
+    // cancel handler set in JSX via close button
+    (window as any).__bgConfirmCancel = () => { setConfirmState(null); resolve(false); };
+  });
 
   useEffect(() => {
     setSelected(getSelectedBgId());
