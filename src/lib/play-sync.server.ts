@@ -581,13 +581,14 @@ async function fetchSubscription(
 }
 
 function buildSubscriptionBody(pkg: string, row: PlayProductRow) {
+  const playSku = toPlayId(row.sku);
   const titleEn = truncateText(row.title_en || row.sku, 55);
   const titleAr = truncateText(row.title_ar || titleEn, 55);
   const descriptionEn = truncateText(row.description_en || titleEn, 200);
   const descriptionAr = truncateText(row.description_ar || titleAr, 200);
   return {
     packageName: pkg,
-    productId: row.sku,
+    productId: playSku,
     listings: [
       { languageCode: "en-US", title: titleEn, description: descriptionEn, benefits: [] },
       { languageCode: "ar", title: titleAr, description: descriptionAr, benefits: [] },
