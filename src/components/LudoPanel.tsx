@@ -410,7 +410,7 @@ function PlayerCard({
           {frame?.imageUrl && (
             <img src={frame.imageUrl} alt="" loading="lazy"
               className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frame.animClass ?? ""}`}
-              style={{ filter: "drop-shadow(0 0 6px rgba(252,191,73,0.7))" }} />
+              style={{ filter: "drop-shadow(0 0 4px rgba(252,191,73,0.4))" }} />
           )}
         </div>
         <div className="flex-1 min-w-0">
