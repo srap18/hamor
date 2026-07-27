@@ -383,8 +383,9 @@ export async function batchSyncPlayProducts(
       await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
     }
     const chunk = rows.slice(offset, offset + BATCH_SIZE);
+    const chunkPlaySkus = chunk.map((row) => toPlayId(row.sku));
     const existingByChunkIndex = await Promise.all(
-      chunk.map((row) => fetchExistingPurchaseOptions(pkg, row.sku, token).catch(() => null)),
+      chunk.map((_, idx) => fetchExistingPurchaseOptions(pkg, chunkPlaySkus[idx], token).catch(() => null)),
     );
     const updateUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
@@ -422,6 +423,7 @@ export async function batchSyncPlayProducts(
         status: updateResponse.status,
         body: updateResponseText,
         skus: chunk.map((row) => row.sku),
+        playSkus: chunkPlaySkus,
       });
       for (const row of chunk) results.set(row.sku, { ok: false, error });
       if (quotaExceeded) {
@@ -443,16 +445,18 @@ export async function batchSyncPlayProducts(
         purchaseOptions?: { purchaseOptionId?: string; state?: string }[];
       }[];
     };
-    const returnedBySku = new Map(
+    const returnedByPlaySku = new Map(
       (responseJson.oneTimeProducts ?? [])
         .filter((product) => product.productId)
         .map((product) => [product.productId!, product]),
     );
     const stateRequests: Record<string, unknown>[] = [];
-    const stateSkus: string[] = [];
+    const stateSkus: string[] = []; // DB skus (for results map keying)
 
-    for (const row of chunk) {
-      const currentState = returnedBySku.get(row.sku)?.purchaseOptions
+    for (let i = 0; i < chunk.length; i++) {
+      const row = chunk[i];
+      const playSku = chunkPlaySkus[i];
+      const currentState = returnedByPlaySku.get(playSku)?.purchaseOptions
         ?.find((option) => option.purchaseOptionId === "default")?.state;
       const shouldActivate = row.status === "active" && currentState !== "ACTIVE";
       const shouldDeactivate = row.status === "inactive" && currentState === "ACTIVE";
@@ -466,7 +470,7 @@ export async function batchSyncPlayProducts(
       stateRequests.push({
         [requestKey]: {
           packageName: pkg,
-          productId: row.sku,
+          productId: playSku,
           purchaseOptionId: "default",
           latencyTolerance: LATENCY_TOLERANT,
         },
