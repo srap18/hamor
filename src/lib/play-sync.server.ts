@@ -632,10 +632,11 @@ export async function upsertSubscription(
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
+    const playSku = toPlayId(row.sku);
     const basePlanId = (row.base_plan_id || "monthly")
       .toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-    const existing = await fetchSubscription(pkg, row.sku, token);
+    const existing = await fetchSubscription(pkg, playSku, token);
     const subscriptionExisted = existing !== null;
 
     // 1) Upsert the subscription "product" (listings + tax settings).
@@ -648,7 +649,7 @@ export async function upsertSubscription(
     });
     const subUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}?${subParams.toString()}`;
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}?${subParams.toString()}`;
     const subRes = await fetchGoogleWithQuotaRetry(subUrl, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -656,7 +657,7 @@ export async function upsertSubscription(
     });
     const subText = await subRes.text();
     if (!subRes.ok) {
-      console.error("[play-sync] subscription upsert failed", { sku: row.sku, status: subRes.status, body: subText });
+      console.error("[play-sync] subscription upsert failed", { sku: row.sku, playSku, status: subRes.status, body: subText });
       return {
         ok: false, subscriptionExisted, basePlanId,
         error: `PATCH ${subUrl}\nHTTP ${subRes.status}\n${subText}\n\nREQUEST BODY:\n${JSON.stringify(subBody, null, 2)}`,
@@ -673,7 +674,7 @@ export async function upsertSubscription(
     });
     const bpUrl =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
       `/basePlans/${encodeURIComponent(basePlanId)}?${bpParams.toString()}`;
     const bpRes = await fetchGoogleWithQuotaRetry(bpUrl, {
       method: "PATCH",
@@ -682,7 +683,7 @@ export async function upsertSubscription(
     });
     const bpText = await bpRes.text();
     if (!bpRes.ok) {
-      console.error("[play-sync] base plan upsert failed", { sku: row.sku, status: bpRes.status, body: bpText });
+      console.error("[play-sync] base plan upsert failed", { sku: row.sku, playSku, status: bpRes.status, body: bpText });
       return {
         ok: false, subscriptionExisted, basePlanId,
         error: `PATCH ${bpUrl}\nHTTP ${bpRes.status}\n${bpText}\n\nREQUEST BODY:\n${JSON.stringify(bpBody, null, 2)}`,
@@ -696,16 +697,16 @@ export async function upsertSubscription(
     if (desired === "ACTIVE" && currentState !== "ACTIVE") {
       const actUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
         `/basePlans/${encodeURIComponent(basePlanId)}:activate`;
       const actRes = await fetchGoogleWithQuotaRetry(actUrl, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+        body: JSON.stringify({ packageName: pkg, productId: playSku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
       });
       const actText = await actRes.text();
       if (!actRes.ok) {
-        console.error("[play-sync] base plan activate failed", { sku: row.sku, status: actRes.status, body: actText });
+        console.error("[play-sync] base plan activate failed", { sku: row.sku, playSku, status: actRes.status, body: actText });
         return {
           ok: false, subscriptionExisted, basePlanId, basePlanState: currentState,
           error: `POST ${actUrl}\nHTTP ${actRes.status}\n${actText}`,
@@ -715,12 +716,12 @@ export async function upsertSubscription(
     } else if (desired === "INACTIVE" && currentState === "ACTIVE") {
       const deactUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(row.sku)}` +
+        `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
         `/basePlans/${encodeURIComponent(basePlanId)}:deactivate`;
       const deactRes = await fetchGoogleWithQuotaRetry(deactUrl, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ packageName: pkg, productId: row.sku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
+        body: JSON.stringify({ packageName: pkg, productId: playSku, basePlanId, latencyTolerance: LATENCY_TOLERANT }),
       });
       if (deactRes.ok) currentState = "INACTIVE";
     }
