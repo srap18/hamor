@@ -141,13 +141,15 @@ export const Route = createFileRoute("/api/public/admin/run-play-sync")({
           // deno-lint-ignore no-explicit-any
           const { access_token } = (await tokRes.json()) as any;
 
+          const { toPlayId, fromPlayId } = await import("@/lib/iap-play-ids");
           const { data: skuRows } = await supabaseAdmin
             .from("play_products").select("sku").eq("product_type", "inapp");
           // deno-lint-ignore no-explicit-any
           const skus = (skuRows ?? []).map((r: any) => r.sku).filter(Boolean) as string[];
+          const playSkusToQuery = skus.map((s) => toPlayId(s));
           const playSkus: string[] = [];
-          for (let index = 0; index < skus.length; index += 100) {
-            const batch = skus.slice(index, index + 100);
+          for (let index = 0; index < playSkusToQuery.length; index += 100) {
+            const batch = playSkusToQuery.slice(index, index + 100);
             const params = new URLSearchParams();
             for (const sku of batch) params.append("productIds", sku);
             const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/oneTimeProducts:batchGet?${params.toString()}`;
@@ -164,7 +166,8 @@ export const Route = createFileRoute("/api/public/admin/run-play-sync")({
           const subsFoundInPlay: string[] = []; const subsMissingInPlay: string[] = [];
           const subsDetail: { sku: string; basePlans?: { basePlanId: string; state: string }[] }[] = [];
           for (const sku of subSkus) {
-            const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(sku)}`;
+            const playSku = toPlayId(sku);
+            const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(playSku)}`;
             const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
             if (r.status === 404) { subsMissingInPlay.push(sku); continue; }
             if (r.ok) {
@@ -179,9 +182,9 @@ export const Route = createFileRoute("/api/public/admin/run-play-sync")({
             } else subsMissingInPlay.push(sku);
             await new Promise((res) => setTimeout(res, 120));
           }
-          const playSet = new Set(playSkus);
-          const found = skus.filter((sku) => playSet.has(sku));
-          const missing = skus.filter((sku) => !playSet.has(sku));
+          const playSetInternal = new Set(playSkus.map((s) => fromPlayId(s)));
+          const found = skus.filter((sku) => playSetInternal.has(sku));
+          const missing = skus.filter((sku) => !playSetInternal.has(sku));
           return Response.json({
             ok: true, ranAction: "test",
             inapp: { local: skus.length, inPlay: playSkus.length, found: found.length, missing },
