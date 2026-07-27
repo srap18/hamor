@@ -424,8 +424,11 @@ function ChatPage() {
         .subscribe();
     })();
 
-    // Fallback poller — kept as a safety net for flaky mobile sockets, but
-    // tightened to 1.5s so missed messages still feel near-instant.
+    // Fallback poller — realtime is primary; poller is a slow safety net for
+    // flaky mobile sockets. Guard: never fetch until initial load has populated
+    // a newestAt cursor. Without this guard, the poll degrades into a
+    // `ORDER BY created_at ASC LIMIT 50` scan of the entire channel — which
+    // was the #4 slowest DB query in the project (1.66M calls, 5,665s total).
     const pollNewer = async () => {
       if (!active) return;
       let newestAt: string | null = null;
@@ -433,12 +436,14 @@ function ChatPage() {
         newestAt = cur.length ? cur[cur.length - 1].created_at : null;
         return cur;
       });
-      let pq = supabase.from("messages").select("id,channel,sender_id,recipient_id,tribe_id,body,created_at,audio_url,audio_duration_ms,reply_to_id,reply_to_body,reply_to_name").order("created_at", { ascending: true }).limit(50);
+      // No cursor yet → initial load is in flight or channel is empty. Skip;
+      // fetching without a cursor would scan from t=0 and hammer the DB.
+      if (!newestAt) return;
+      let pq = supabase.from("messages").select("id,channel,sender_id,recipient_id,tribe_id,body,created_at,audio_url,audio_duration_ms,reply_to_id,reply_to_body,reply_to_name").gt("created_at", newestAt).order("created_at", { ascending: true }).limit(50);
       if (tab === "public") pq = pq.eq("channel", "public");
       else if (tab === "tribe" && profile?.tribe_id) pq = pq.eq("channel", "tribe").eq("tribe_id", profile.tribe_id);
       else if (tab === "dm" && dmWith) pq = pq.eq("channel", "dm").or(`and(sender_id.eq.${user.id},recipient_id.eq.${dmWith}),and(sender_id.eq.${dmWith},recipient_id.eq.${user.id})`);
       else return;
-      if (newestAt) pq = pq.gt("created_at", newestAt);
       const { data } = await pq;
       if (!active || !data || data.length === 0) return;
       const fresh = data as Msg[];
@@ -453,8 +458,9 @@ function ChatPage() {
         if (active && ps) setProfMap(prev => { const n = new Map(prev); (ps as any[]).forEach(p => n.set(p.id, p)); return n; });
       }
     };
-    // Realtime is primary; poll is a slow safety-net (20s instead of 5s → 4x fewer queries).
-    const pollTimer = window.setInterval(() => { if (!document.hidden) pollNewer(); }, 20000);
+    // Realtime is primary and JWT-authenticated → safety-net poll can be slow.
+    // 20s → 60s = 3x fewer polls; visibility resume + realtime cover the gap.
+    const pollTimer = window.setInterval(() => { if (!document.hidden) pollNewer(); }, 60000);
     const onVis = () => { if (document.visibilityState === "visible") pollNewer(); };
     document.addEventListener("visibilitychange", onVis);
 
