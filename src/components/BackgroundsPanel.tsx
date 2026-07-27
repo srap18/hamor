@@ -102,7 +102,7 @@ export function BackgroundsPanel() {
   const handleRepair = async () => {
     if (repairing) return;
     if (gems < 100) { flash("💎 تحتاج 100 جوهرة للإصلاح"); return; }
-    if (!window.confirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟")) return;
+    if (!(await askConfirm("إصلاح الخلفية المحترقة مقابل 100 جوهرة؟"))) return;
     setRepairing(true);
     const { error } = await repairBurnedBg();
     setRepairing(false);
