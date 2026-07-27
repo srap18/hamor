@@ -274,9 +274,10 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         .select("sku")
         .eq("product_type", "inapp");
       const skus = (skuRows ?? []).map((r: any) => r.sku).filter(Boolean);
+      const playSkusToQuery = skus.map((s: string) => toPlayId(s));
       const playSkus: string[] = [];
-      for (let index = 0; index < skus.length; index += 100) {
-        const batch = skus.slice(index, index + 100);
+      for (let index = 0; index < playSkusToQuery.length; index += 100) {
+        const batch = playSkusToQuery.slice(index, index + 100);
         const params = new URLSearchParams();
         for (const sku of batch) params.append("productIds", sku);
         const url =
@@ -308,9 +309,10 @@ export const testPlayConnection = createServerFn({ method: "POST" })
       const subsFoundInPlay: string[] = [];
       const subsMissingInPlay: string[] = [];
       for (const sku of subSkus) {
+        const playSku = toPlayId(sku);
         const url =
           `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-          `${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(sku)}`;
+          `${encodeURIComponent(checks.package)}/subscriptions/${encodeURIComponent(playSku)}`;
         const r = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
         if (r.status === 404) { subsMissingInPlay.push(sku); continue; }
         if (r.ok) subsFoundInPlay.push(sku);
@@ -318,10 +320,11 @@ export const testPlayConnection = createServerFn({ method: "POST" })
         await new Promise((res) => setTimeout(res, 120));
       }
 
-      const playSet = new Set(playSkus);
-      const found = skus.filter((sku: string) => playSet.has(sku));
-      const missing = skus.filter((sku: string) => !playSet.has(sku));
-      const unmanaged = playSkus.filter((sku) => !skus.includes(sku));
+      // Translate Play IDs back to internal SKUs for reporting.
+      const playSetInternal = new Set(playSkus.map((s) => fromPlayId(s)));
+      const found = skus.filter((sku: string) => playSetInternal.has(sku));
+      const missing = skus.filter((sku: string) => !playSetInternal.has(sku));
+      const unmanaged = playSkus.filter((s) => !skus.includes(fromPlayId(s)));
       checks.localSkus = skus.length;
       checks.productsInPlay = playSkus.length;
       checks.foundSkus = found;
