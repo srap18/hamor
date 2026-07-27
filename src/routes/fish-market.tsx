@@ -10,7 +10,7 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs, syncServerTime } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
-import { getFishStockSummary } from "@/lib/fish-stock-cache";
+import { getFishStockSummary, invalidateFishStock } from "@/lib/fish-stock-cache";
 import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
 import tier2Asset from "@/assets/sell-results/tier2_khaser.png.asset.json";
 import tier3Asset from "@/assets/sell-results/tier3_motad.png.asset.json";
@@ -429,12 +429,13 @@ function FishMarket() {
 
   // Load owned fish quantities + ages via fast aggregate RPC (avoids loading
   // tens of thousands of rows for large stocks which causes "Load failed").
-  const loadFish = async () => {
+  const loadFish = async (opts?: { force?: boolean }) => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
     const cacheKey = `fish-market:stock:${user.id}`;
     let rows: Array<{ fish_id: string; qty: number; oldest_caught_at?: string }>;
     try {
-      rows = await getFishStockSummary(user.id);
+      if (opts?.force) invalidateFishStock(user.id);
+      rows = await getFishStockSummary(user.id, { force: opts?.force });
     } catch { return; }
     const map: Record<string, number> = {};
     const ages: Record<string, string> = {};
@@ -460,9 +461,9 @@ function FishMarket() {
     }
     loadFish();
     if (!user) return;
-    const onFocus = () => loadFish();
-    const onStockChanged = () => loadFish();
-    const onStorage = (e: StorageEvent) => { if (e.key === "fish-stock-ping") loadFish(); };
+    const onFocus = () => loadFish({ force: true });
+    const onStockChanged = () => loadFish({ force: true });
+    const onStorage = (e: StorageEvent) => { if (e.key === "fish-stock-ping") loadFish({ force: true }); };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     window.addEventListener("fish-stock-changed", onStockChanged);
@@ -472,7 +473,7 @@ function FishMarket() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${user.id}` },
-        () => loadFish()
+        () => loadFish({ force: true })
       )
       .subscribe();
     return () => {
@@ -563,14 +564,14 @@ function FishMarket() {
         }
         setPop(`❌ ${msg || "تعذر البيع"}`);
         setTimeout(() => setPop(null), 2500);
-        await loadFish();
+        await loadFish({ force: true });
         return;
       }
       const serverEarned = Number(data ?? 0);
       if (serverEarned <= 0) {
         setPop("تم تحديث المخزن، حاول البيع مرة ثانية");
         setTimeout(() => setPop(null), 1800);
-        await loadFish();
+        await loadFish({ force: true });
         return;
       }
       applyOptimisticProfileDelta({ coins: +serverEarned });
@@ -590,7 +591,12 @@ function FishMarket() {
         ? { basePrice: baseUnit, boostedPrice: effectiveUnit, qty: requestedQty }
         : null;
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
-      await loadFish();
+      // Invalidate shared cache + broadcast so index/inventory/other tabs refresh
+      // instantly without a manual refresh.
+      invalidateFishStock(user.id);
+      try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+      try { localStorage.setItem("fish-stock-ping", String(Date.now())); } catch {}
+      await loadFish({ force: true });
       refreshProfile();
     } finally {
       setSelling(false);
