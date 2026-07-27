@@ -461,9 +461,9 @@ function FishMarket() {
     }
     loadFish();
     if (!user) return;
-    const onFocus = () => loadFish();
-    const onStockChanged = () => loadFish();
-    const onStorage = (e: StorageEvent) => { if (e.key === "fish-stock-ping") loadFish(); };
+    const onFocus = () => loadFish({ force: true });
+    const onStockChanged = () => loadFish({ force: true });
+    const onStorage = (e: StorageEvent) => { if (e.key === "fish-stock-ping") loadFish({ force: true }); };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
     window.addEventListener("fish-stock-changed", onStockChanged);
@@ -473,7 +473,7 @@ function FishMarket() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "fish_stock", filter: `user_id=eq.${user.id}` },
-        () => loadFish()
+        () => loadFish({ force: true })
       )
       .subscribe();
     return () => {
