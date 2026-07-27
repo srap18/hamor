@@ -34,6 +34,10 @@ import elvenlakeBg from "@/assets/bg-elvenlake.jpg.asset.json";
 import elvenlakeBurnedBg from "@/assets/bg-elvenlake-burned.jpg.asset.json";
 import elvenlakeVideo from "@/assets/bg-elvenlake.mp4.asset.json";
 import elvenlakeBurnedVideo from "@/assets/bg-elvenlake-burned.mp4.asset.json";
+import marketVillageBg from "@/assets/bg-marketvillage.jpg.asset.json";
+import marketVillageBurnedBg from "@/assets/bg-marketvillage-burned.jpg.asset.json";
+import marketVillageVideo from "@/assets/bg-marketvillage.mp4.asset.json";
+import marketVillageBurnedVideo from "@/assets/bg-marketvillage-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -214,7 +218,7 @@ export const BACKGROUNDS: SceneBg[] = [
     id: "titan",
     name: "الهجوم على العمالقة ✨",
     burnedName: "الهجوم على العمالقة المحترقة 🔥",
-    price: 0,
+    price: 5000,
     currency: "gems",
     rarity: "legendary",
     image: titanBg.url,
@@ -229,7 +233,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
-    codeOnly: true,
+    durationDays: 7,
   },
   {
     id: "spongebob",
@@ -263,6 +267,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: elvenlakeBurnedBg.url,
     video: elvenlakeVideo.url,
     burnedVideo: elvenlakeBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "market_village",
+    name: "قرية الأسواق ✨",
+    burnedName: "قرية الأسواق المحترقة 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: marketVillageBg.url,
+    burnedImage: marketVillageBurnedBg.url,
+    video: marketVillageVideo.url,
+    burnedVideo: marketVillageBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
