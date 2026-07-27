@@ -429,12 +429,13 @@ function FishMarket() {
 
   // Load owned fish quantities + ages via fast aggregate RPC (avoids loading
   // tens of thousands of rows for large stocks which causes "Load failed").
-  const loadFish = async () => {
+  const loadFish = async (opts?: { force?: boolean }) => {
     if (!user) { setQtyMap({}); setAgeMap({}); setStockIdsMap({}); return; }
     const cacheKey = `fish-market:stock:${user.id}`;
     let rows: Array<{ fish_id: string; qty: number; oldest_caught_at?: string }>;
     try {
-      rows = await getFishStockSummary(user.id);
+      if (opts?.force) invalidateFishStock(user.id);
+      rows = await getFishStockSummary(user.id, { force: opts?.force });
     } catch { return; }
     const map: Record<string, number> = {};
     const ages: Record<string, string> = {};
