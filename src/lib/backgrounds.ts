@@ -218,7 +218,7 @@ export const BACKGROUNDS: SceneBg[] = [
     id: "titan",
     name: "الهجوم على العمالقة ✨",
     burnedName: "الهجوم على العمالقة المحترقة 🔥",
-    price: 0,
+    price: 5000,
     currency: "gems",
     rarity: "legendary",
     image: titanBg.url,
@@ -233,7 +233,7 @@ export const BACKGROUNDS: SceneBg[] = [
     waterRight: 96,
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
-    codeOnly: true,
+    durationDays: 7,
   },
   {
     id: "spongebob",
