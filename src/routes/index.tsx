@@ -2107,6 +2107,26 @@ function Index() {
           />
         </>
 
+      ) : scene.id === "market_village" ? (
+        <>
+          {/* Market Village background: painted "سوق سفن" and "سوق سمك" buildings — fixed tap zones only */}
+          {/* Right upper wooden building "سوق سفن" → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "48%", top: "28%", width: "38%", height: "11%" }}
+          />
+          {/* Left waterfront "سوق سمك" building → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "2%", top: "40%", width: "30%", height: "14%" }}
+          />
+        </>
+
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}
