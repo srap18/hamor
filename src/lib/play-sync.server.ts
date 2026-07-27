@@ -664,33 +664,31 @@ export async function upsertSubscription(
       };
     }
 
-    // 2) Upsert the base plan.
-    const bpBody = buildBasePlanBody(row, basePlanId);
-    const bpParams = new URLSearchParams({
-      updateMask: BASE_PLAN_UPDATE_MASK,
-      allowMissing: "true",
-      "regionsVersion.version": "2022/02",
-      latencyTolerance: LATENCY_TOLERANT,
-    });
-    const bpUrl =
-      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/subscriptions/${encodeURIComponent(playSku)}` +
-      `/basePlans/${encodeURIComponent(basePlanId)}?${bpParams.toString()}`;
-    const bpRes = await fetchGoogleWithQuotaRetry(bpUrl, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(bpBody),
-    });
-    const bpText = await bpRes.text();
-    if (!bpRes.ok) {
-      console.error("[play-sync] base plan upsert failed", { sku: row.sku, playSku, status: bpRes.status, body: bpText });
+    // 2) Read the current base plan state.
+    //
+    // Google Play's Monetization API does NOT expose PATCH/CREATE on the
+    // individual `subscriptions/{sku}/basePlans/{id}` resource — that URL
+    // returns an HTML 404 from Google's frontend, not a JSON API error.
+    // Base plans are created inside Play Console (or via the parent
+    // subscription payload with `basePlans` in the updateMask, but that
+    // combination often collides with existing plans). Since our earlier
+    // sync run already created + activated the `monthly` plan for every
+    // subscription, we skip the PATCH and rely on the existing plan.
+    // Pricing changes on already-published subscriptions must go through
+    // `subscriptions.basePlans.migratePrices` and are not attempted here.
+    const existingBasePlan = (existing?.basePlans ?? []).find(
+      (b: any) => b?.basePlanId === basePlanId,
+    );
+    let currentState: string | undefined = existingBasePlan?.state;
+    if (!existingBasePlan) {
       return {
         ok: false, subscriptionExisted, basePlanId,
-        error: `PATCH ${bpUrl}\nHTTP ${bpRes.status}\n${bpText}\n\nREQUEST BODY:\n${JSON.stringify(bpBody, null, 2)}`,
+        error:
+          `Base plan "${basePlanId}" is missing on subscription "${playSku}" in Play Console.\n` +
+          `Google's API does not allow creating base plans over REST. Create it manually in Play Console (Monetization → Subscriptions → ${playSku}) as a monthly (P1M) auto-renewing plan, then press "مزامنة الكل" again.\n\n` +
+          `REQUEST BODY (for reference):\n${JSON.stringify(buildBasePlanBody(row, basePlanId), null, 2)}`,
       };
     }
-    const bpJson = JSON.parse(bpText || "{}") as { state?: string };
-    let currentState = bpJson.state;
 
     // 3) Activate / deactivate.
     const desired = row.status === "active" ? "ACTIVE" : "INACTIVE";
