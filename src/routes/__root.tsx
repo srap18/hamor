@@ -56,13 +56,18 @@ if (typeof window !== "undefined") {
       document.documentElement.classList.add("power-saver");
     }
   } catch {}
-  // Re-sync whenever the tab regains focus or comes back from background.
+  // Re-sync when the tab regains focus / visibility. Use the throttled
+  // (non-force) sync — the 5-min gate in syncServerTime() dedupes rapid
+  // focus flaps (tab switching, keyboard show/hide). Force-sync on every
+  // focus was firing ~30x per session per user and dominated get_server_time
+  // (5.3M RPC calls project-wide).
   try {
-    window.addEventListener("focus", () => syncServerTime(true));
+    window.addEventListener("focus", () => syncServerTime(false));
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") syncServerTime(true);
+      if (document.visibilityState === "visible") syncServerTime(false);
     });
   } catch {}
+
 
   // Tap-to-dismiss for all Sonner toasts across the app.
   try {

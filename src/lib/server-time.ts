@@ -108,9 +108,13 @@ export function installServerClock(): void {
     (globalThis as any).Date = Patched;
   } catch {}
 
-  // Periodically resync (every 2 minutes) and force sync now.
+  // Sync once on install, then let the 5-min throttle in syncServerTime() gate
+  // the rest. Previously this ran with force=true every 2 min → 30 RPCs/hr per
+  // user (5.3M calls, top-15 slowest RPC). Drift over 5 min is <1s which the
+  // monotonic performance.now() anchor absorbs.
   syncServerTime(true);
   try {
-    setInterval(() => { syncServerTime(true); }, 2 * 60_000);
+    setInterval(() => { syncServerTime(false); }, 5 * 60_000);
   } catch {}
+
 }
