@@ -273,7 +273,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
   try {
     const pkg = getPackageName();
     const token = await getAccessToken();
-    const existing = await fetchExistingPurchaseOptions(pkg, row.sku, token);
+    const playSku = toPlayId(row.sku);
+    const existing = await fetchExistingPurchaseOptions(pkg, playSku, token);
     const body = buildOneTimeProductBody(pkg, row, existing);
 
     const params = new URLSearchParams({
@@ -284,7 +285,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     });
     const url =
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(row.sku)}?${params.toString()}`;
+      `${encodeURIComponent(pkg)}/onetimeproducts/${encodeURIComponent(playSku)}?${params.toString()}`;
 
     const res = await fetchGoogleWithQuotaRetry(url, {
       method: "PATCH",
@@ -310,7 +311,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
 
       const stateUrl =
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
-        `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(row.sku)}/purchaseOptions:batchUpdateStates`;
+        `${encodeURIComponent(pkg)}/oneTimeProducts/${encodeURIComponent(playSku)}/purchaseOptions:batchUpdateStates`;
       const stateRequestKey = needsActivation
         ? "activatePurchaseOptionRequest"
         : "deactivatePurchaseOptionRequest";
@@ -319,7 +320,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
           {
             [stateRequestKey]: {
               packageName: pkg,
-              productId: row.sku,
+              productId: playSku,
               purchaseOptionId: "default",
                latencyTolerance: LATENCY_TOLERANT,
             },
@@ -337,11 +338,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       const stateResponseText = await stateRes.text();
       if (stateRes.ok) return { ok: true };
       console.error("[play-sync] purchase option state update failed", {
-        sku: row.sku,
-        url: stateUrl,
-        status: stateRes.status,
-        body: stateResponseText,
-        requestBody: stateBody,
+        sku: row.sku, playSku, url: stateUrl, status: stateRes.status, body: stateResponseText,
       });
       return {
         ok: false,
@@ -349,13 +346,8 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
       };
     }
     const errBody = responseText;
-    // Log full details server-side for debugging.
     console.error("[play-sync] upsert failed", {
-      sku: row.sku,
-      url,
-      status: res.status,
-      body: errBody,
-      requestBody: body,
+      sku: row.sku, playSku, url, status: res.status, body: errBody, requestBody: body,
     });
     return {
       ok: false,
