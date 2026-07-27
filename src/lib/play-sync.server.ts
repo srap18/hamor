@@ -738,7 +738,7 @@ export async function batchGetSubscriptions(skus: string[]): Promise<Set<string>
   const pkg = getPackageName();
   const token = await getAccessToken();
   for (const sku of skus) {
-    const sub = await fetchSubscription(pkg, sku, token);
+    const sub = await fetchSubscription(pkg, toPlayId(sku), token);
     if (sub) found.add(sku);
     await new Promise((r) => setTimeout(r, 150));
   }
