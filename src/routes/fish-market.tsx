@@ -10,7 +10,7 @@ import { CoinIcon } from "@/components/CurrencyIcon";
 import { serverNow, serverNowMs, syncServerTime } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
 import { getCached, setCached } from "@/lib/swr-cache";
-import { getFishStockSummary } from "@/lib/fish-stock-cache";
+import { getFishStockSummary, invalidateFishStock } from "@/lib/fish-stock-cache";
 import tier1Asset from "@/assets/sell-results/tier1_yaes.png.asset.json";
 import tier2Asset from "@/assets/sell-results/tier2_khaser.png.asset.json";
 import tier3Asset from "@/assets/sell-results/tier3_motad.png.asset.json";
