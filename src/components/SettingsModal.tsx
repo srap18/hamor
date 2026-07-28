@@ -297,6 +297,17 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           </button>
         )}
 
+        <button
+          onClick={() => {
+            sound.play("click");
+            window.open("https://whatsapp.com/channel/0029Vb8lnG647Xe7EE3yWr3G", "_blank", "noopener,noreferrer");
+          }}
+          className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-xs font-bold active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span>💬</span>
+          <span>قناة الواتساب الرسمية</span>
+        </button>
+
 
         {email && (
           <div className="mt-3 space-y-2">
