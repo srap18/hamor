@@ -213,7 +213,7 @@ export const BACKGROUNDS: SceneBg[] = [
     id: "hilal",
     name: "الهلال ✨",
     burnedName: "الهلال المحترقة 🔥",
-    price: 7700,
+    price: 5000,
     currency: "gems",
     rarity: "legendary",
     image: hilalBg.url,
