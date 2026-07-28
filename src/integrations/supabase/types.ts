@@ -5592,6 +5592,15 @@ export type Database = {
         Returns: number
       }
       _ship_repair_seconds: { Args: { _template_id: number }; Returns: number }
+      _steal_duration_seconds: {
+        Args: {
+          _cat: Database["public"]["Tables"]["ship_catalog"]["Row"]
+          _ship_id: string
+          _started_at?: string
+          _user: string
+        }
+        Returns: number
+      }
       _steal_seconds_for: {
         Args: { _cat: Database["public"]["Tables"]["ship_catalog"]["Row"] }
         Returns: number
