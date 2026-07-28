@@ -5526,6 +5526,15 @@ export type Database = {
         }
         Returns: number
       }
+      _effective_steal_elapsed: {
+        Args: {
+          _as_of?: string
+          _ship_id: string
+          _started_at: string
+          _user: string
+        }
+        Returns: number
+      }
       _enforce_combat_cooldown: { Args: never; Returns: undefined }
       _enforce_rate_limit: {
         Args: { _action: string; _min_ms: number }
