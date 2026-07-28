@@ -327,6 +327,28 @@ export const BACKGROUNDS: SceneBg[] = [
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
   },
+  {
+    id: "shabab",
+    name: "نادي الشباب ✨",
+    burnedName: "نادي الشباب المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: shababBg.url,
+    burnedImage: shababBurnedBg.url,
+    video: shababVideo.url,
+    burnedVideo: shababBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+
 
 ];
 
