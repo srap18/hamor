@@ -5502,6 +5502,10 @@ export type Database = {
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
+      _cosmetic_expiry_days: {
+        Args: { _item_id: string; _item_type: string }
+        Returns: number
+      }
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _detect_bot_and_ban: {
@@ -6168,26 +6172,16 @@ export type Database = {
         }
         Returns: undefined
       }
-      buy_with_gems:
-        | {
-            Args: {
-              _gems_cost: number
-              _item_id: string
-              _item_type: string
-              _meta?: Json
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              _count?: number
-              _gems_cost: number
-              _item_id: string
-              _item_type: string
-              _meta?: Json
-            }
-            Returns: undefined
-          }
+      buy_with_gems: {
+        Args: {
+          _count?: number
+          _gems_cost: number
+          _item_id: string
+          _item_type: string
+          _meta?: Json
+        }
+        Returns: undefined
+      }
       can_view_album: {
         Args: { _owner: string; _viewer: string }
         Returns: boolean
