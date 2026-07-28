@@ -50,6 +50,10 @@ import nassrBg from "@/assets/bg-nassr.jpg.asset.json";
 import nassrBurnedBg from "@/assets/bg-nassr-burned.jpg.asset.json";
 import nassrVideo from "@/assets/bg-nassr.mp4.asset.json";
 import nassrBurnedVideo from "@/assets/bg-nassr-burned.mp4.asset.json";
+import ahliBg from "@/assets/bg-ahli.jpg.asset.json";
+import ahliBurnedBg from "@/assets/bg-ahli-burned.jpg.asset.json";
+import ahliVideo from "@/assets/bg-ahli.mp4.asset.json";
+import ahliBurnedVideo from "@/assets/bg-ahli-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
