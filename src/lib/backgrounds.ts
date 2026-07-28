@@ -38,6 +38,10 @@ import marketVillageBg from "@/assets/bg-marketvillage.jpg.asset.json";
 import marketVillageBurnedBg from "@/assets/bg-marketvillage-burned.jpg.asset.json";
 import marketVillageVideo from "@/assets/bg-marketvillage.mp4.asset.json";
 import marketVillageBurnedVideo from "@/assets/bg-marketvillage-burned.mp4.asset.json";
+import ittihadBg from "@/assets/bg-ittihad.jpg.asset.json";
+import ittihadBurnedBg from "@/assets/bg-ittihad-burned.jpg.asset.json";
+import ittihadVideo from "@/assets/bg-ittihad.mp4.asset.json";
+import ittihadBurnedVideo from "@/assets/bg-ittihad-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -288,6 +292,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: marketVillageBurnedBg.url,
     video: marketVillageVideo.url,
     burnedVideo: marketVillageBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "ittihad",
+    name: "نادي الاتحاد ✨",
+    burnedName: "نادي الاتحاد المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: ittihadBg.url,
+    burnedImage: ittihadBurnedBg.url,
+    video: ittihadVideo.url,
+    burnedVideo: ittihadBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",

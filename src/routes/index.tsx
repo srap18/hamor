@@ -2127,6 +2127,25 @@ function Index() {
         </>
 
 
+      ) : scene.id === "ittihad" ? (
+        <>
+          {/* Al-Ittihad background: painted "سوق العميد" and "مخزن الاتحاد" — fixed tap zones only */}
+          {/* Upper "سوق العميد" building → Ship Market */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "18%", top: "39%", width: "40%", height: "12%" }}
+          />
+          {/* Lower-left "مخزن الاتحاد" building → Fish Market */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "1%", top: "53%", width: "36%", height: "14%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}
