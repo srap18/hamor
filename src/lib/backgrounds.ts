@@ -46,6 +46,10 @@ import shababBg from "@/assets/bg-shabab.jpg.asset.json";
 import shababBurnedBg from "@/assets/bg-shabab-burned.jpg.asset.json";
 import shababVideo from "@/assets/bg-shabab.mp4.asset.json";
 import shababBurnedVideo from "@/assets/bg-shabab-burned.mp4.asset.json";
+import nassrBg from "@/assets/bg-nassr.jpg.asset.json";
+import nassrBurnedBg from "@/assets/bg-nassr-burned.jpg.asset.json";
+import nassrVideo from "@/assets/bg-nassr.mp4.asset.json";
+import nassrBurnedVideo from "@/assets/bg-nassr-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
