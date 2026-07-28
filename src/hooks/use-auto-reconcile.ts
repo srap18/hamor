@@ -47,9 +47,17 @@ export function useAutoReconcile() {
         const r = await reconcile({ data: { environment: getPaddleEnvironment() } });
         try { localStorage.setItem(key, String(now)); } catch { /* noop */ }
 
+        // Cleanup expired cosmetics (backgrounds/frames) on every reconcile pass.
+        // Runs on boot, tab focus, and every 6h — ensures expired items are
+        // removed and defaults re-applied even for players who never open the shop.
+        try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch { /* noop */ }
+
         if (!cancelled && r?.grantedCount && r.grantedCount > 0) {
           refreshProfile();
           try { window.dispatchEvent(new Event("paddle-purchase-completed")); } catch { /* noop */ }
+        } else if (!cancelled) {
+          // Refresh profile silently in case cleanup reset selected_bg_id/frames
+          refreshProfile();
         }
       } catch (e) {
         // Silent by design — payment recovery must never spam the user.
