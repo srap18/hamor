@@ -50,6 +50,10 @@ import nassrBg from "@/assets/bg-nassr.jpg.asset.json";
 import nassrBurnedBg from "@/assets/bg-nassr-burned.jpg.asset.json";
 import nassrVideo from "@/assets/bg-nassr.mp4.asset.json";
 import nassrBurnedVideo from "@/assets/bg-nassr-burned.mp4.asset.json";
+import ahliBg from "@/assets/bg-ahli.jpg.asset.json";
+import ahliBurnedBg from "@/assets/bg-ahli-burned.jpg.asset.json";
+import ahliVideo from "@/assets/bg-ahli.mp4.asset.json";
+import ahliBurnedVideo from "@/assets/bg-ahli-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -363,6 +367,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: nassrBurnedBg.url,
     video: nassrVideo.url,
     burnedVideo: nassrBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "ahli",
+    name: "النادي الأهلي ✨",
+    burnedName: "النادي الأهلي المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: ahliBg.url,
+    burnedImage: ahliBurnedBg.url,
+    video: ahliVideo.url,
+    burnedVideo: ahliBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",

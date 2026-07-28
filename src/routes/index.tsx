@@ -2182,6 +2182,23 @@ function Index() {
           />
         </>
 
+      ) : scene.id === "ahli" ? (
+        <>
+          {/* Al-Ahli background: painted "سوق الزعيم" and "مخزن الزعيم" — fixed tap zones only */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "3%", top: "42%", width: "36%", height: "12%" }}
+          />
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "0%", top: "53%", width: "38%", height: "15%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}
