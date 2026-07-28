@@ -3374,6 +3374,30 @@ export type Database = {
           },
         ]
       }
+      pvp_engagements: {
+        Row: {
+          expires_at: string
+          last_attack_at: string
+          opened_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          expires_at?: string
+          last_attack_at?: string
+          opened_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          expires_at?: string
+          last_attack_at?: string
+          opened_at?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       quest_progress: {
         Row: {
           claimed: boolean
@@ -7099,6 +7123,10 @@ export type Database = {
       }
       open_lootbox: { Args: { _box_id: string }; Returns: Json }
       open_lucky_box: { Args: never; Returns: Json }
+      open_pvp_engagement: {
+        Args: { _x: string; _y: string }
+        Returns: undefined
+      }
       pause_golden_fisher: { Args: never; Returns: Json }
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
@@ -7126,6 +7154,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      pvp_engaged: { Args: { _x: string; _y: string }; Returns: boolean }
       pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
       pvp_level_gap_error: {
         Args: { _attacker: string; _defender: string }
