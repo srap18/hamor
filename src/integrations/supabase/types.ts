@@ -2192,6 +2192,30 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_cosmetics: {
+        Row: {
+          created_at: string
+          item_id: string
+          item_type: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          item_type: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          item_type?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       level_xp_table: {
         Row: {
           cumulative_xp: number
