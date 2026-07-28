@@ -1,0 +1,1 @@
+ALTER TABLE public.ship_catalog ADD COLUMN IF NOT EXISTS steal_seconds integer NOT NULL DEFAULT 120;

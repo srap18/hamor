@@ -3774,6 +3774,7 @@ export type Database = {
           repair_seconds: number
           sort_order: number
           speed: number
+          steal_seconds: number
           storage: number
           tribe_only: boolean
         }
@@ -3799,6 +3800,7 @@ export type Database = {
           repair_seconds?: number
           sort_order?: number
           speed?: number
+          steal_seconds?: number
           storage?: number
           tribe_only?: boolean
         }
@@ -3824,6 +3826,7 @@ export type Database = {
           repair_seconds?: number
           sort_order?: number
           speed?: number
+          steal_seconds?: number
           storage?: number
           tribe_only?: boolean
         }
