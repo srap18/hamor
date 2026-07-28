@@ -2165,6 +2165,23 @@ function Index() {
           />
         </>
 
+      ) : scene.id === "nassr" ? (
+        <>
+          {/* Al-Nassr background: painted "سوق النصر" and "مخزن العالمي" — fixed tap zones only */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "17%", top: "38%", width: "38%", height: "12%" }}
+          />
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "0%", top: "50%", width: "36%", height: "15%" }}
+          />
+        </>
+
       ) : (
         <>
           {/* Fish market — top-right cliff hut on the cove bg */}

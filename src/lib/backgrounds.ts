@@ -46,6 +46,10 @@ import shababBg from "@/assets/bg-shabab.jpg.asset.json";
 import shababBurnedBg from "@/assets/bg-shabab-burned.jpg.asset.json";
 import shababVideo from "@/assets/bg-shabab.mp4.asset.json";
 import shababBurnedVideo from "@/assets/bg-shabab-burned.mp4.asset.json";
+import nassrBg from "@/assets/bg-nassr.jpg.asset.json";
+import nassrBurnedBg from "@/assets/bg-nassr-burned.jpg.asset.json";
+import nassrVideo from "@/assets/bg-nassr.mp4.asset.json";
+import nassrBurnedVideo from "@/assets/bg-nassr-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -338,6 +342,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: shababBurnedBg.url,
     video: shababVideo.url,
     burnedVideo: shababBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "nassr",
+    name: "نادي النصر ✨",
+    burnedName: "نادي النصر المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: nassrBg.url,
+    burnedImage: nassrBurnedBg.url,
+    video: nassrVideo.url,
+    burnedVideo: nassrBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
