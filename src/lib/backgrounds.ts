@@ -377,6 +377,27 @@ export const BACKGROUNDS: SceneBg[] = [
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
   },
+  {
+    id: "ahli",
+    name: "النادي الأهلي ✨",
+    burnedName: "النادي الأهلي المحترق 🔥",
+    price: 5000,
+    currency: "gems",
+    rarity: "legendary",
+    image: ahliBg.url,
+    burnedImage: ahliBurnedBg.url,
+    video: ahliVideo.url,
+    burnedVideo: ahliBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
 
 
 ];
