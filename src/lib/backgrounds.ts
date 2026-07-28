@@ -38,6 +38,10 @@ import marketVillageBg from "@/assets/bg-marketvillage.jpg.asset.json";
 import marketVillageBurnedBg from "@/assets/bg-marketvillage-burned.jpg.asset.json";
 import marketVillageVideo from "@/assets/bg-marketvillage.mp4.asset.json";
 import marketVillageBurnedVideo from "@/assets/bg-marketvillage-burned.mp4.asset.json";
+import ittihadBg from "@/assets/bg-ittihad.jpg.asset.json";
+import ittihadBurnedBg from "@/assets/bg-ittihad-burned.jpg.asset.json";
+import ittihadVideo from "@/assets/bg-ittihad.mp4.asset.json";
+import ittihadBurnedVideo from "@/assets/bg-ittihad-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
