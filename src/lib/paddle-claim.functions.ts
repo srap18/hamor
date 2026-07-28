@@ -98,12 +98,14 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
     // Items — always run; idempotent per (txn, item_type, item_id).
+    // NEVER swallow errors here or the buyer loses items while the txn is marked granted.
     if (reward.items?.length) {
-      await supabaseAdmin.rpc("grant_pack_items" as never, {
+      const { error: itemsErr } = await supabaseAdmin.rpc("grant_pack_items" as never, {
         _txn_id: txn.id,
         _user: userId,
         _items: reward.items,
       } as never);
+      if (itemsErr) throw new Error(`grant_pack_items failed: ${itemsErr.message}`);
     }
 
     // Ships — idempotent per txn.
@@ -113,7 +115,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
       (reward.dragonT2Ships ?? 0) > 0 ||
       (reward.dragonT3Ships ?? 0) > 0
     ) {
-      await supabaseAdmin.rpc("grant_pack_ships" as never, {
+      const { error: shipsErr } = await supabaseAdmin.rpc("grant_pack_ships" as never, {
         _txn_id: txn.id,
         _user: userId,
         _phoenix: reward.phoenixShips ?? 0,
@@ -121,6 +123,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
         _dragon_t2: reward.dragonT2Ships ?? 0,
         _dragon_t3: reward.dragonT3Ships ?? 0,
       } as never);
+      if (shipsErr) throw new Error(`grant_pack_ships failed: ${shipsErr.message}`);
     }
 
     // Referral 30% bonus — idempotent on (invitee_id, txn_id).

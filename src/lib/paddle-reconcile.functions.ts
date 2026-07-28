@@ -63,13 +63,9 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
       const txns: any[] = txBody?.data ?? [];
 
       for (const txn of txns) {
-        // Already in our DB and granted? skip.
-        const { data: existing } = await supabaseAdmin
-          .from("paddle_purchases")
-          .select("granted")
-          .eq("paddle_transaction_id", txn.id)
-          .maybeSingle();
-        if (existing?.granted) continue;
+        // Note: we do NOT skip already-granted txns here. grant_paddle_purchase,
+        // grant_pack_items, and grant_pack_ships are all idempotent, and re-running
+        // them heals cases where the currency landed but items/ships did not.
 
         // Only grant if customData userId matches (or is missing → trust email match).
         const ownerId = txn.custom_data?.userId ?? txn.customData?.userId;
@@ -128,11 +124,15 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
 
         // Items — always run; idempotent per (txn, item_type, item_id).
         if (reward.items?.length) {
-          await supabaseAdmin.rpc("grant_pack_items" as never, {
+          const { error: itemsErr } = await supabaseAdmin.rpc("grant_pack_items" as never, {
             _txn_id: txn.id,
             _user: userId,
             _items: reward.items,
           } as never);
+          if (itemsErr) {
+            skipped.push({ id: txn.id, reason: `items:${itemsErr.message}` });
+            continue;
+          }
         }
 
         // Ships — idempotent per txn.
@@ -142,7 +142,7 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
           (reward.dragonT2Ships ?? 0) > 0 ||
           (reward.dragonT3Ships ?? 0) > 0
         ) {
-          await supabaseAdmin.rpc("grant_pack_ships" as never, {
+          const { error: shipsErr } = await supabaseAdmin.rpc("grant_pack_ships" as never, {
             _txn_id: txn.id,
             _user: userId,
             _phoenix: reward.phoenixShips ?? 0,
@@ -150,6 +150,10 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
             _dragon_t2: reward.dragonT2Ships ?? 0,
             _dragon_t3: reward.dragonT3Ships ?? 0,
           } as never);
+          if (shipsErr) {
+            skipped.push({ id: txn.id, reason: `ships:${shipsErr.message}` });
+            continue;
+          }
         }
 
         // Referral 30% bonus — idempotent on (invitee_id, txn_id).
