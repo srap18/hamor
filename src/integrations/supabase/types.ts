@@ -5583,6 +5583,10 @@ export type Database = {
         Returns: number
       }
       _ship_repair_seconds: { Args: { _template_id: number }; Returns: number }
+      _steal_seconds_for: {
+        Args: { _cat: Database["public"]["Tables"]["ship_catalog"]["Row"] }
+        Returns: number
+      }
       _try_anti_block: {
         Args: { _anti_id: string; _defender: string; _pct: number }
         Returns: boolean
