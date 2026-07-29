@@ -308,6 +308,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           <span>قناة الواتساب الرسمية</span>
         </button>
 
+        <button
+          onClick={() => {
+            sound.play("click");
+            window.open("https://t.me/PirateKingsss", "_blank", "noopener,noreferrer");
+          }}
+          className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-sky-500 to-sky-700 text-white text-xs font-bold active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span>✈️</span>
+          <span>قناة التليجرام الرسمية</span>
+        </button>
+
+
 
         {email && (
           <div className="mt-3 space-y-2">
