@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 
@@ -19,8 +19,17 @@ const LEGENDARY_DURATION_MS = 3000;
 
 export function LuckyWinTicker() {
   const [queue, setQueue] = useState<Toast[]>([]);
+  const hiddenRef = useRef(false);
 
   useEffect(() => {
+    const readPref = () => {
+      try { hiddenRef.current = localStorage.getItem("lucky-banner-hidden") === "1"; } catch { /* noop */ }
+      if (hiddenRef.current) setQueue([]);
+    };
+    readPref();
+    window.addEventListener("lucky-banner-pref", readPref);
+    window.addEventListener("storage", readPref);
+
     const ch = supabase
       .channel("global:lucky_wins")
       .on(
@@ -29,6 +38,7 @@ export function LuckyWinTicker() {
         (payload) => {
           const n = payload.new as LuckyWin;
           if (!n || (n.rarity !== "rare" && n.rarity !== "legendary")) return;
+          if (hiddenRef.current) return;
           setQueue((q) => [...q, { ...n, visible: true }]);
           try { sound.play(n.rarity === "legendary" ? "success" : "click"); } catch { /* noop */ }
           const ttl = n.rarity === "legendary" ? LEGENDARY_DURATION_MS : RARE_DURATION_MS;
@@ -39,8 +49,13 @@ export function LuckyWinTicker() {
       )
       .subscribe();
 
-    return () => { void supabase.removeChannel(ch); };
+    return () => {
+      window.removeEventListener("lucky-banner-pref", readPref);
+      window.removeEventListener("storage", readPref);
+      void supabase.removeChannel(ch);
+    };
   }, []);
+
 
   if (queue.length === 0) return null;
 
