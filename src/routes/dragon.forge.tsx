@@ -70,6 +70,15 @@ function ForgePage() {
   const buy = async (slot: Slot, rarity: Rarity, currency: "coins" | "gems") => {
     if (busy) return;
     if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+    const offer = SHOP.find((o) => o.slot === slot && o.rarity === rarity && o.currency === currency);
+    if (offer && currency === "gems") {
+      const ok = await confirmDialog({
+        title: "تأكيد الشراء",
+        message: `شراء ${RARITY_LABEL[rarity]} ${SLOT_LABEL[slot]} مقابل ${offer.price.toLocaleString()} 💎؟`,
+        confirmText: "اشترِ",
+      });
+      if (!ok) return;
+    }
     setBusy(true);
 
     const { data, error } = await rpc("buy_dragon_equipment", { p_slot: slot, p_rarity: rarity, p_currency: currency });
