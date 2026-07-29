@@ -295,8 +295,8 @@ export const BACKGROUNDS: SceneBg[] = [
   },
   {
     id: "market_village",
-    name: "قرية الأسواق ✨",
-    burnedName: "قرية الأسواق المحترقة 🔥",
+    name: "قرية الجوي بوي ✨",
+    burnedName: "قرية الجوي بوي المحترقة 🔥",
     price: 5000,
     currency: "gems",
     rarity: "legendary",
