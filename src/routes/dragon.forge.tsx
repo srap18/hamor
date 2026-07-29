@@ -112,6 +112,17 @@ function ForgePage() {
   const upgrade = async (id: string) => {
     if (busy) return;
     if (!(await rateLimit("purchase", 1000))) { flash("⏳ تمهّل قليلاً قبل المحاولة مجدداً"); return; }
+    const it = items.find((x) => x.id === id);
+    const cost = it ? UPGRADE_COST[it.rarity] : null;
+    const next = it ? nextRarity(it.rarity) : null;
+    if (it && cost && next) {
+      const ok = await confirmDialog({
+        title: "تأكيد الترقية",
+        message: `ترقية ${SLOT_LABEL[it.slot]} من ${RARITY_LABEL[it.rarity]} إلى ${RARITY_LABEL[next]} مقابل ${cost.toLocaleString()} 💎؟`,
+        confirmText: "رقِّ",
+      });
+      if (!ok) return;
+    }
     setBusy(true);
     const { data, error } = await rpc("upgrade_dragon_item", { p_item_id: id });
 
