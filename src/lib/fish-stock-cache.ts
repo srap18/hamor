@@ -10,7 +10,7 @@ export type FishStockRow = { fish_id: string; qty: number; oldest_caught_at?: st
 
 type Entry = { data: FishStockRow[]; ts: number; promise?: Promise<FishStockRow[]> };
 const CACHE = new Map<string, Entry>();
-const TTL_MS = 30_000;
+const TTL_MS = 3_000;
 
 function normalize(rows: unknown): FishStockRow[] {
   return (Array.isArray(rows) ? rows : []).map((r) => {
