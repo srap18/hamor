@@ -459,7 +459,7 @@ function FishMarket() {
         setStockIdsMap({});
       }
     }
-    loadFish();
+    loadFish({ force: true });
     if (!user) return;
     const onFocus = () => loadFish({ force: true });
     const onStockChanged = () => loadFish({ force: true });
