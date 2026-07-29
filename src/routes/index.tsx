@@ -1803,10 +1803,19 @@ function Index() {
       // Invalidate any list caches that depend on stock.
       try { invalidateCache(`fish-market:list:`); } catch {}
     }
+    // Invalidate the shared stock cache so any next open of fish-market/inventory
+    // fetches fresh rows immediately (no 3s TTL window with stale data).
+    try { invalidateFishStock(profile?.id); } catch {}
     // Tell any open fish-market / inventory tab to reload right now (don't wait for realtime).
     try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
     // Cross-tab signal — other tabs (e.g. fish-market open in a second tab) reload immediately.
     try { localStorage.setItem("fish-stock-ping", String(Date.now())); } catch {}
+    // Second, delayed refresh — covers rare cases where the DB commit is visible
+    // to the RPC caller but replication to a follow-up SELECT briefly lags.
+    window.setTimeout(() => {
+      try { invalidateFishStock(profile?.id); } catch {}
+      try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+    }, 800);
     setPop({
       id: serverNowMs(),
       x: popAnchor.left + popAnchor.width / 2,
