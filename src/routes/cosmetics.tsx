@@ -103,6 +103,13 @@ function CosmeticsShop() {
   const buy = async (f: Frame) => {
     if (!userId || busy) return;
     if (gems < f.price) { flash("جواهر غير كافية"); return; }
+    const renew = owned.has(f.id);
+    const ok = await confirmDialog({
+      title: renew ? "تأكيد التجديد" : "تأكيد الشراء",
+      message: `${renew ? "تجديد" : "شراء"} إطار "${f.name}" مقابل ${f.price.toLocaleString()} 💎 لمدة 30 يوم؟`,
+      confirmText: renew ? "جدّد" : "اشترِ",
+    });
+    if (!ok) return;
     setBusy(true);
     const itemType = FRAME_KIND_TO_ITEM_TYPE[f.kind];
     const { error } = await buyWithGems(f.id, itemType, f.price, { kind: f.kind, name: f.name });
