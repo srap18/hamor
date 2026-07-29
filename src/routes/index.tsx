@@ -21,7 +21,7 @@ import {
 } from "@/lib/economy";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
 import { useSwrCache, getCached, setCached, invalidateCache } from "@/lib/swr-cache";
-import { getFishStockSummary, type FishStockRow } from "@/lib/fish-stock-cache";
+import { getFishStockSummary, invalidateFishStock, type FishStockRow } from "@/lib/fish-stock-cache";
 import { isLowPerfMode, isHeavyFxDisabled } from "@/lib/perf-mode";
 import { useBgMotionPaused } from "@/lib/bg-motion";
 
