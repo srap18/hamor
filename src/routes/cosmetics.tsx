@@ -7,6 +7,7 @@ import {
 } from "@/lib/frames";
 import { buyWithGems } from "@/lib/economy";
 import { showBanner } from "@/components/Banner";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/cosmetics")({
   ssr: false,
