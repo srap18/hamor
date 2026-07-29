@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { useDragonUnlocked } from "@/lib/dragon-access";
+import { confirmDialog } from "@/components/ConfirmDialog";
 
 import {
   EquipmentItem, Rarity, Slot,
