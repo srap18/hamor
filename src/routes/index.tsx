@@ -5325,12 +5325,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         );
         return (
           <div
-            className="absolute top-0 left-1/2 w-[62%] flex flex-col gap-[3px] pointer-events-none z-40"
+            className="absolute top-0 left-1/2 w-[72%] flex flex-col gap-[6px] pointer-events-none z-40"
             style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
           >
             {/* Luxury frame */}
             <div
-              className="rounded-[10px] px-1 py-[3px] flex flex-col gap-[3px]"
+              className="rounded-[12px] px-1.5 py-[5px] flex flex-col gap-[6px]"
               style={{
                 background: "linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.95) 100%)",
                 border: "1px solid rgba(251,191,36,0.55)",
@@ -5339,7 +5339,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               }}
             >
               {/* HP bar */}
-              <div className="relative h-[7px] rounded-full bg-black/80 border border-white/15">
+              <div className="relative h-[8px] rounded-full bg-black/80 border border-white/15">
                 {barFill(hpFill, hpPct, hpGlow)}
                 <div
                   className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-black text-white tabular-nums"
@@ -5350,14 +5350,14 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 </div>
               </div>
               {/* Capacity bar */}
-              <div className="relative h-[14px] rounded-full bg-black/85 border border-amber-300/45">
+              <div className="relative h-[15px] rounded-full bg-black/85 border border-amber-300/45">
                 {barFill(capFill, capPct)}
                 <div
-                  className="absolute inset-0 flex items-center justify-center gap-0.5 text-[9px] leading-none font-black text-white whitespace-nowrap px-1"
+                  className="absolute inset-0 flex items-center justify-center gap-1 text-[9px] leading-none font-black text-white whitespace-nowrap px-1"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
                 >
                   <span className="tabular-nums" dir="ltr">
-                    {caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}
+                    {compact(caughtNow)}/{compact(capacity)}
                   </span>
                   <span className="tabular-nums text-amber-200 text-[8px]" dir="ltr">
                     {Math.floor(capPct)}%
@@ -5366,6 +5366,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 </div>
               </div>
             </div>
+
 
 
             {active && (
