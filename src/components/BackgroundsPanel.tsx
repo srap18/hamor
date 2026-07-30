@@ -270,6 +270,76 @@ export function BackgroundsPanel() {
         })}
       </div>
 
+      {previewId && (() => {
+        const b = BACKGROUNDS.find((x) => x.id === previewId)!;
+        const isOwned = owned.includes(b.id);
+        const vid = previewBurned ? b.burnedVideo : b.video;
+        const img = previewBurned ? b.burnedImage : b.image;
+        return (
+          <div className="fixed inset-0 z-[75] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => setPreviewId(null)}>
+            <div dir="rtl" onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-stone-900 to-stone-950 p-3 shadow-2xl">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 min-w-0 text-white text-[13px] font-extrabold truncate">
+                  {previewBurned ? b.burnedName : b.name}
+                </div>
+                <button onClick={() => setPreviewId(null)} className="px-2 py-1 rounded-lg bg-stone-700 border border-stone-500 text-white text-[11px] font-extrabold active:scale-95">إغلاق ✕</button>
+              </div>
+
+              <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border border-white/25 bg-black">
+                {vid ? (
+                  <video
+                    key={vid}
+                    src={vid}
+                    poster={img}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <img src={img} alt={b.name} className="absolute inset-0 h-full w-full object-cover" />
+                )}
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setPreviewBurned(false)}
+                  className={`py-1.5 rounded-lg text-[11px] font-extrabold border-2 active:scale-95 ${!previewBurned ? "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white" : "bg-stone-800 border-stone-600 text-stone-300"}`}
+                >
+                  ✨ سليمة
+                </button>
+                <button
+                  onClick={() => setPreviewBurned(true)}
+                  className={`py-1.5 rounded-lg text-[11px] font-extrabold border-2 active:scale-95 ${previewBurned ? "bg-gradient-to-b from-rose-400 to-rose-700 border-rose-200 text-white" : "bg-stone-800 border-stone-600 text-stone-300"}`}
+                >
+                  🔥 محترقة
+                </button>
+              </div>
+
+              {isOwned ? (
+                <button
+                  onClick={() => { equip(b); setPreviewId(null); }}
+                  disabled={selected === b.id}
+                  className={`mt-2 w-full py-2 rounded-lg text-[12px] font-extrabold border-2 active:scale-95 ${selected === b.id ? "bg-stone-700 border-stone-500 text-stone-300" : "bg-gradient-to-b from-emerald-400 to-emerald-700 border-emerald-200 text-white"}`}
+                >
+                  {selected === b.id ? "مركّبه الآن" : "تركيب"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setPreviewId(null); buy(b); }}
+                  className="mt-2 w-full py-2 rounded-lg bg-gradient-to-b from-amber-300 to-amber-600 border-2 border-amber-200 text-amber-950 text-[12px] font-extrabold active:scale-95 flex items-center justify-center gap-1"
+                >
+                  شراء {b.currency === "gems" ? <GemIcon size={15} /> : <CoinIcon size={15} />}
+                  <span className="tabular-nums">{b.price.toLocaleString()}</span>
+                  {b.durationDays && <span className="text-[10px] opacity-80">/ {b.durationDays}ي</span>}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {pop && (
         <div className="fixed left-1/2 top-1/3 -translate-x-1/2 z-[60] text-base font-bold text-amber-200 text-glow pointer-events-none animate-float-up bg-stone-900/85 px-4 py-2 rounded-xl border border-amber-400/40">
           {pop}
