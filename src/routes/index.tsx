@@ -8,7 +8,6 @@ import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, g
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
-import ShipDetailsModal from "@/components/ShipDetailsModal";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { activateGoldenFisher, tickGoldenFisher, removeGoldenFisher, pauseGoldenFisher, resumeGoldenFisher } from "@/lib/golden-fisher.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -4854,7 +4853,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   // so React re-renders during the trip cannot restart or stutter the tween.
   const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 1700 : 2100;
   const [animating, setAnimating] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const currentTransformRef = useRef<string>("translate3d(0%, 0, 0)");
   const runningAnimRef = useRef<Animation | null>(null);
@@ -5268,7 +5266,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
 
-      {/* Always-visible HUD above each ship: HP% + capacity + details button */}
+      {/* Always-visible HUD above each ship: HP + fill counter (premium, instant) */}
       {(() => {
         const maxHp = ship.maxHp ?? 100;
         const curHp = Math.max(0, ship.hp ?? maxHp);
@@ -5282,18 +5280,20 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             : n.toLocaleString("en-US");
         const hpFill =
           hpPct > 60
-            ? "linear-gradient(180deg,#86efac 0%,#22c55e 50%,#15803d 100%)"
+            ? "linear-gradient(180deg,#7dffb4 0%,#22c55e 45%,#0f9c4a 100%)"
             : hpPct > 30
-            ? "linear-gradient(180deg,#fde68a 0%,#f59e0b 50%,#b45309 100%)"
-            : "linear-gradient(180deg,#fca5a5 0%,#ef4444 50%,#991b1b 100%)";
+            ? "linear-gradient(180deg,#ffe08a 0%,#f59e0b 45%,#b45309 100%)"
+            : "linear-gradient(180deg,#ffb0b0 0%,#ef4444 45%,#991b1b 100%)";
+        const hpGlow =
+          hpPct > 60 ? "rgba(34,197,94,0.55)" : hpPct > 30 ? "rgba(245,158,11,0.55)" : "rgba(239,68,68,0.6)";
         const capFill = ready
-          ? "linear-gradient(180deg,#fff3c4 0%,#fbbf24 50%,#b45309 100%)"
+          ? "linear-gradient(180deg,#fff3c4 0%,#fbbf24 45%,#b45309 100%)"
           : ship.fishing
-          ? "linear-gradient(180deg,#a5f3fc 0%,#22d3ee 50%,#0e7490 100%)"
-          : "linear-gradient(180deg,#e2e8f0 0%,#94a3b8 50%,#475569 100%)";
+          ? "linear-gradient(180deg,#a5f3fc 0%,#22d3ee 45%,#0e7490 100%)"
+          : "linear-gradient(180deg,#e2e8f0 0%,#94a3b8 45%,#475569 100%)";
         // Instant, GPU-only bar: scaleX transform with a very short linear tween.
-        const barFill = (fill: string, p: number) => (
-          <div className="absolute inset-[1.5px] rounded-full overflow-hidden">
+        const barFill = (fill: string, p: number, glow?: string) => (
+          <div className="absolute inset-[1px] rounded-full overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 w-full rounded-full"
               style={{
@@ -5302,88 +5302,71 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
                 transformOrigin: "left center",
                 transition: "transform 110ms linear",
                 willChange: "transform",
+                boxShadow: glow && !isHeavyFxDisabled ? `0 0 6px ${glow}` : undefined,
               }}
             />
+            {/* glass gloss */}
             <div
               aria-hidden
               className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
-              style={{ background: "linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0))" }}
+              style={{ background: "linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0))" }}
+            />
+            {/* segment ticks */}
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "repeating-linear-gradient(90deg, rgba(0,0,0,0.45) 0 1px, rgba(0,0,0,0) 1px 25%)",
+                opacity: 0.5,
+              }}
             />
           </div>
         );
         return (
           <div
-            className="absolute -top-1 left-1/2 w-[86%] flex flex-col gap-[3px] pointer-events-none z-40"
+            className="absolute top-0 left-1/2 w-[62%] flex flex-col gap-[3px] pointer-events-none z-40"
             style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
           >
             {/* Luxury frame */}
             <div
-              className="rounded-[12px] px-1.5 py-[4px] flex flex-col gap-[4px]"
+              className="rounded-[10px] px-1 py-[3px] flex flex-col gap-[3px]"
               style={{
-                background: "linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(2,6,23,0.97) 100%)",
-                border: "1.5px solid rgba(251,191,36,0.7)",
-                boxShadow: "0 3px 10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,236,180,0.4)",
+                background: "linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.95) 100%)",
+                border: "1px solid rgba(251,191,36,0.55)",
+                boxShadow:
+                  "0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,236,180,0.35)",
               }}
             >
-              {/* HP row — big, readable percentage */}
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] leading-none shrink-0">❤️</span>
-                <div className="relative flex-1 h-[12px] rounded-full bg-black/85 border border-white/20">
-                  {barFill(hpFill, hpPct)}
-                  <div
-                    className="absolute inset-0 flex items-center justify-center text-[9px] leading-none font-black text-white tabular-nums"
-                    dir="ltr"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,1), 0 0 3px rgba(0,0,0,1)" }}
-                  >
-                    {compact(curHp)} / {compact(maxHp)}
-                  </div>
-                </div>
-                <span
-                  className="text-[10px] leading-none font-black tabular-nums shrink-0 w-[30px] text-center text-emerald-200"
+              {/* HP bar */}
+              <div className="relative h-[7px] rounded-full bg-black/80 border border-white/15">
+                {barFill(hpFill, hpPct, hpGlow)}
+                <div
+                  className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-black text-white tabular-nums"
                   dir="ltr"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,1)" }}
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95)" }}
                 >
-                  {Math.round(hpPct)}%
-                </span>
-              </div>
-              {/* Capacity row */}
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] leading-none shrink-0">📦</span>
-                <div className="relative flex-1 h-[14px] rounded-full bg-black/85 border border-amber-300/50">
-                  {barFill(capFill, capPct)}
-                  <div
-                    className="absolute inset-0 flex items-center justify-center text-[9px] leading-none font-black text-white tabular-nums whitespace-nowrap"
-                    dir="ltr"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,1), 0 0 3px rgba(0,0,0,1)" }}
-                  >
-                    {compact(caughtNow)} / {compact(capacity)}
-                  </div>
+                  {compact(curHp)}/{compact(maxHp)}
                 </div>
-                <span
-                  className="text-[10px] leading-none font-black tabular-nums shrink-0 w-[30px] text-center text-amber-200"
-                  dir="ltr"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,1)" }}
-                >
-                  {Math.floor(capPct)}%
-                </span>
               </div>
-              {/* Details button */}
-              <button
-                type="button"
-                className="pointer-events-auto self-center px-2.5 py-[3px] rounded-full text-[9px] font-black text-amber-100 active:scale-95"
-                style={{
-                  background: "linear-gradient(180deg, rgba(120,53,15,0.95), rgba(2,6,23,0.95))",
-                  border: "1px solid rgba(251,191,36,0.6)",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,236,180,0.3)",
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDetails(true);
-                }}
-              >
-                ⚓ تفاصيل السفينة
-              </button>
+              {/* Capacity bar */}
+              <div className="relative h-[14px] rounded-full bg-black/85 border border-amber-300/45">
+                {barFill(capFill, capPct)}
+                <div
+                  className="absolute inset-0 flex items-center justify-center gap-0.5 text-[9px] leading-none font-black text-white whitespace-nowrap px-1"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
+                >
+                  <span className="tabular-nums" dir="ltr">
+                    {caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}
+                  </span>
+                  <span className="tabular-nums text-amber-200 text-[8px]" dir="ltr">
+                    {Math.floor(capPct)}%
+                  </span>
+                  {ready && <span className="text-amber-200">✦</span>}
+                </div>
+              </div>
             </div>
+
 
             {active && (
               ready ? (
@@ -5406,22 +5389,6 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
           </div>
         );
       })()}
-      {showDetails && (
-        <ShipDetailsModal
-          ship={{
-            level: ship.level,
-            catalogCode: ship.catalogCode,
-            img: ship.img,
-            hp: ship.hp,
-            maxHp: ship.maxHp,
-            capacity,
-            stars: ship.stars,
-            maxStars: ship.maxStars,
-          }}
-          onClose={() => setShowDetails(false)}
-        />
-      )}
-
       </div>
     </div>
   );
