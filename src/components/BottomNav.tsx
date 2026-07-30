@@ -4,6 +4,8 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
+
 
 import iconBattle from "@/assets/nav-icon-battle.png";
 import iconArena from "@/assets/nav-icon-arena.png";
@@ -164,7 +166,13 @@ export function BottomNav({ active }: { active?: string }) {
   }, [user, active]);
 
 
-  const friendsBadge = useMemo(() => (unread > 0 ? unread : undefined), [unread]);
+  // New accounts (fish-market level < 6) see no notification badge at all.
+  const notifEligible = useNotifEligible();
+  const friendsBadge = useMemo(
+    () => (notifEligible && unread > 0 ? unread : undefined),
+    [unread, notifEligible],
+  );
+
 
   return (
     <div

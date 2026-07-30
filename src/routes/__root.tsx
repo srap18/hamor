@@ -22,6 +22,8 @@ import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
 import { useEffect, useState } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
+
 import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
@@ -41,6 +43,15 @@ function SignedInOnly({ children }: { children: React.ReactNode }) {
   if (loading || !user) return null;
   return <>{children}</>;
 }
+
+/** Signed-in AND past the notification level gate (fish-market level 6). */
+function NotifGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth() as any;
+  const eligible = useNotifEligible();
+  if (loading || !user || !eligible) return null;
+  return <>{children}</>;
+}
+
 
 
 // Install the server-time clock as early as possible on the client so every
@@ -543,8 +554,11 @@ function RootComponent() {
       <I18nProvider>
       <AdminLayoutEditorProvider>
         <MobileFrame>
-          <GlobalBanner />
+          <NotifGate>
+            <GlobalBanner />
+          </NotifGate>
           <SoftProtection />
+
 
           <SignedInOnly>
             <LastAttackTicker />
