@@ -130,6 +130,16 @@ function PlayerPage() {
     })();
   }, []);
   useEffect(() => {
+    if (!playerId) return;
+    let alive = true;
+    (async () => {
+      const { data } = await (supabase as any).rpc("pvp_attack_check", { _defender: playerId });
+      if (alive && data) setPvpCheck({ ok: !!data.ok, reason: data.reason ?? null });
+    })();
+    return () => { alive = false; };
+  }, [playerId]);
+
+  useEffect(() => {
     const onPref = () => {
       try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
     };
