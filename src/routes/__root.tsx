@@ -22,6 +22,8 @@ import { EliteVipLoginOverlay } from "@/components/EliteVipLoginOverlay";
 import { useEffect, useState } from "react";
 import { loadEconomyOverrides } from "@/lib/economy-overrides";
 import { MobileFrame } from "@/components/MobileFrame";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
+
 import { AdminLayoutEditorProvider, AdminEditToggle } from "@/components/AdminLayoutEditor";
 import { sound } from "@/lib/sound";
 import { installServerClock, syncServerTime } from "@/lib/server-time";
