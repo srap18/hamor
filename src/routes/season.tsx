@@ -119,8 +119,12 @@ function SeasonPage() {
     })();
   }, []);
 
-  const myRow = useMemo(() => (me ? rows.find((r) => r.user_id === me) : null), [me, rows]);
-  const myRank = useMemo(() => (me ? rows.findIndex((r) => r.user_id === me) + 1 : 0), [me, rows]);
+  const myRow = useMemo(() => (me ? rows.find((r) => r.user_id === me) || myOwn : null), [me, rows, myOwn]);
+  const myRank = useMemo(() => {
+    if (!me) return 0;
+    const i = rows.findIndex((r) => r.user_id === me);
+    return i >= 0 ? i + 1 : myOwnRank;
+  }, [me, rows, myOwnRank]);
   const [first, second, third, ...rest] = rows;
 
   return (
