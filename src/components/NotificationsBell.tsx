@@ -162,7 +162,11 @@ export function NotificationsBell() {
   const iconFor = (kind: string) =>
     kind === "nuke" ? "☢️" : kind === "attack" ? "⚔️" : kind === "support" ? "🛠️" : kind === "ship" ? "⛵" : kind === "friend" ? "🤝" : "📢";
 
+  // Hidden for brand-new accounts (below level 6).
+  if (!notifEligible) return null;
+
   return (
+
     <>
       <button
         onClick={toggle}
