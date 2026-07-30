@@ -42,6 +42,15 @@ function SignedInOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Signed-in AND past the notification level gate (fish-market level 6). */
+function NotifGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth() as any;
+  const eligible = useNotifEligible();
+  if (loading || !user || !eligible) return null;
+  return <>{children}</>;
+}
+
+
 
 // Install the server-time clock as early as possible on the client so every
 // Date.now() / new Date() call across the app reflects server time, not the
