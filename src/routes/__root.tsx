@@ -543,8 +543,11 @@ function RootComponent() {
       <I18nProvider>
       <AdminLayoutEditorProvider>
         <MobileFrame>
-          <GlobalBanner />
+          <NotifGate>
+            <GlobalBanner />
+          </NotifGate>
           <SoftProtection />
+
 
           <SignedInOnly>
             <LastAttackTicker />
