@@ -8,6 +8,7 @@ import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, g
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
+import ShipDetailsModal from "@/components/ShipDetailsModal";
 import { CREWS, FIXER_HEAL } from "@/lib/crews";
 import { activateGoldenFisher, tickGoldenFisher, removeGoldenFisher, pauseGoldenFisher, resumeGoldenFisher } from "@/lib/golden-fisher.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -4853,6 +4854,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   // so React re-renders during the trip cannot restart or stutter the tween.
   const SAIL_TRAVEL_MS = isHeavyFxDisabled ? 1700 : 2100;
   const [animating, setAnimating] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const currentTransformRef = useRef<string>("translate3d(0%, 0, 0)");
   const runningAnimRef = useRef<Animation | null>(null);
