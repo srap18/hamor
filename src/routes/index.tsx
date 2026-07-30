@@ -5288,63 +5288,79 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
             />
           </div>
         );
+        // Unified status label (repair / fishing countdown / ready) — same slot for every ship.
+        let statusLabel = "";
+        let statusTone = "text-white";
+        const repairRem = repairRemainingSeconds(ship.repairEndsAt);
+        if (repairRem > 0) {
+          statusLabel = `🔧 ${formatRepairTime(repairRem)}`;
+          statusTone = "text-orange-200";
+        } else if (ship.fishing && !ready) {
+          const sailorActive = crews.some((c) => c.id === "sailor");
+          const mult = sailorActive ? 2 : 1;
+          const wallRem = Math.max(0, Math.ceil(ship.timeLeft / mult));
+          if (wallRem <= 0) {
+            statusLabel = gfMarketFullRef.current ? "🛒 المخزن ممتلئ" : "⏳ جارٍ الجمع";
+            statusTone = "text-cyan-200";
+          } else {
+            const m = Math.floor(wallRem / 60);
+            const s = wallRem % 60;
+            statusLabel = `${sailorActive ? "⚓" : "⏱"} ${m}:${String(s).padStart(2, "0")}`;
+            statusTone = "text-cyan-100";
+          }
+        } else if (ship.fishing && ready) {
+          statusLabel = "✅ جاهز";
+          statusTone = "text-amber-200";
+        } else if (active) {
+          statusLabel = "⏸ متوقف";
+          statusTone = "text-slate-200";
+        }
+
         return (
           <div
-            className="absolute top-0 left-1/2 w-[70%] flex flex-col gap-[5px] pointer-events-none z-40"
-            style={{ transform: `translateX(-50%) translateY(-10px) scaleX(${flipX})` }}
+            className="absolute bottom-full left-1/2 mb-[6px] w-[78%] flex flex-col items-center gap-[4px] pointer-events-none z-40"
+            style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
           >
-            {/* Frameless HUD — no panel behind, keeps the ship fully visible */}
-            <div className="flex flex-col gap-[5px]">
-              {/* HP bar — transparent track */}
-              <div className="relative h-[6px] rounded-full border border-white/25 bg-transparent overflow-hidden">
+            {/* Status / timer chip — always the top row, never over the hull */}
+            {statusLabel && (
+              <div
+                className={`px-1.5 py-[2px] rounded-md bg-black/70 border border-white/20 text-[10px] leading-none font-black whitespace-nowrap tabular-nums ${statusTone}`}
+                dir="ltr"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+              >
+                {statusLabel}
+              </div>
+            )}
+
+            {/* HP bar — thin, transparent track, number inline on the right */}
+            <div className="w-full flex items-center gap-1">
+              <div className="relative flex-1 h-[7px] rounded-full border border-white/30 bg-black/25 overflow-hidden">
                 {barFill(hpFill, hpPct, hpGlow)}
               </div>
-              <div
-                className="text-center text-[8px] leading-none font-black text-white tabular-nums"
+              <span
+                className="text-[8px] leading-none font-black text-white tabular-nums whitespace-nowrap"
                 dir="ltr"
                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}
               >
                 {compact(curHp)}/{compact(maxHp)}
-              </div>
-              {/* Capacity bar */}
-              <div className="relative h-[10px] rounded-full border border-amber-300/40 bg-transparent overflow-hidden">
-                {barFill(capFill, capPct)}
-                <div
-                  className="absolute inset-0 flex items-center justify-center gap-1 text-[8px] leading-none font-black text-white whitespace-nowrap px-1"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
-                >
-                  <span className="tabular-nums" dir="ltr">
-                    {compact(caughtNow)}/{compact(capacity)}
-                  </span>
-                  <span className="tabular-nums text-amber-200 text-[7px]" dir="ltr">
-                    {Math.floor(capPct)}%
-                  </span>
-                  {ready && <span className="text-amber-200">✦</span>}
-                </div>
-              </div>
+              </span>
             </div>
 
-
-
-
-            {active && (
-              ready ? (
-                <div className="text-center text-[9px] text-amber-200 font-bold animate-pulse">
-                  ✦ جاهز للجمع ✦
-                </div>
-              ) : ship.fishing ? (
-                <div className="text-center text-[10px] text-emerald-200 font-extrabold tabular-nums flex items-center justify-center gap-1">
-                  <span>🎣 يصطاد</span>
-                  {ship.sailorAtStart && (
-                    <span className="text-cyan-200">⛵×2 سرعة</span>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center text-[9px] text-slate-200 font-bold">
-                  ⏸ متوقف — اضغط للإبحار
-                </div>
-              )
-            )}
+            {/* Capacity bar */}
+            <div className="relative w-full h-[11px] rounded-full border border-amber-300/45 bg-black/30 overflow-hidden">
+              {barFill(capFill, capPct)}
+              <div
+                className="absolute inset-0 flex items-center justify-center gap-1 text-[8px] leading-none font-black text-white whitespace-nowrap px-1"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
+              >
+                <span className="tabular-nums" dir="ltr">
+                  {compact(caughtNow)}/{compact(capacity)}
+                </span>
+                <span className="tabular-nums text-amber-200 text-[7px]" dir="ltr">
+                  {Math.floor(capPct)}%
+                </span>
+              </div>
+            </div>
           </div>
         );
       })()}
