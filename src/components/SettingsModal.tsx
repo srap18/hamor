@@ -245,18 +245,21 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             } catch { /* noop */ }
           }}
         />
-        <ToggleRow
-          label="🔔 إظهار التنبيهات المنبثقة"
-          value={showToasts}
-          onChange={(v) => {
-            setShowToasts(v);
-            try {
-              if (v) localStorage.removeItem("toasts-hidden");
-              else localStorage.setItem("toasts-hidden", "1");
-              window.dispatchEvent(new Event("toasts-pref"));
-            } catch { /* noop */ }
-          }}
-        />
+        {notifEligible && (
+          <ToggleRow
+            label="🔔 إظهار التنبيهات المنبثقة"
+            value={showToasts}
+            onChange={(v) => {
+              setShowToasts(v);
+              try {
+                if (v) localStorage.removeItem("toasts-hidden");
+                else localStorage.setItem("toasts-hidden", "1");
+                window.dispatchEvent(new Event("toasts-pref"));
+              } catch { /* noop */ }
+            }}
+          />
+        )}
+
 
         <ToggleRow
           label={t("settings.pause_bg")}
