@@ -43,6 +43,8 @@ function SeasonPage() {
   const [profs, setProfs] = useState<Record<string, Profile>>({});
   const [me, setMe] = useState<string | null>(null);
   const [myResults, setMyResults] = useState<(ResultRow & { season?: Season })[]>([]);
+  const [myOwn, setMyOwn] = useState<Row | null>(null);
+  const [myOwnRank, setMyOwnRank] = useState<number>(0);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
