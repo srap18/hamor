@@ -1995,7 +1995,6 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
     if (nowMs >= endMs) onRepaired?.();
   }, [nowMs, destroyed, repairEndsAt, onRepaired]);
   const hpPct = Math.max(0, Math.min(100, Math.round((hp / Math.max(1, maxHp)) * 100)));
-  const hpColor = hpPct > 60 ? "bg-emerald-500" : hpPct > 30 ? "bg-amber-500" : "bg-red-600";
   const remainingSec = destroyed && repairEndsAt ? Math.max(0, Math.ceil((new Date(repairEndsAt).getTime() - nowMs) / 1000)) : 0;
   const fmtTime = (s: number) => {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
