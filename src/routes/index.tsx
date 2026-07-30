@@ -5325,47 +5325,40 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         );
         return (
           <div
-            className="absolute top-0 left-1/2 w-[72%] flex flex-col gap-[6px] pointer-events-none z-40"
-            style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
+            className="absolute top-0 left-1/2 w-[70%] flex flex-col gap-[5px] pointer-events-none z-40"
+            style={{ transform: `translateX(-50%) translateY(-10px) scaleX(${flipX})` }}
           >
-            {/* Luxury frame */}
-            <div
-              className="rounded-[12px] px-1.5 py-[5px] flex flex-col gap-[6px]"
-              style={{
-                background: "linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.95) 100%)",
-                border: "1px solid rgba(251,191,36,0.55)",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,236,180,0.35)",
-              }}
-            >
-              {/* HP bar */}
-              <div className="relative h-[8px] rounded-full bg-black/80 border border-white/15">
+            {/* Frameless HUD — no panel behind, keeps the ship fully visible */}
+            <div className="flex flex-col gap-[5px]">
+              {/* HP bar — transparent track */}
+              <div className="relative h-[6px] rounded-full border border-white/25 bg-transparent overflow-hidden">
                 {barFill(hpFill, hpPct, hpGlow)}
-                <div
-                  className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-black text-white tabular-nums"
-                  dir="ltr"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95)" }}
-                >
-                  {compact(curHp)}/{compact(maxHp)}
-                </div>
+              </div>
+              <div
+                className="text-center text-[8px] leading-none font-black text-white tabular-nums"
+                dir="ltr"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}
+              >
+                {compact(curHp)}/{compact(maxHp)}
               </div>
               {/* Capacity bar */}
-              <div className="relative h-[15px] rounded-full bg-black/85 border border-amber-300/45">
+              <div className="relative h-[10px] rounded-full border border-amber-300/40 bg-transparent overflow-hidden">
                 {barFill(capFill, capPct)}
                 <div
-                  className="absolute inset-0 flex items-center justify-center gap-1 text-[9px] leading-none font-black text-white whitespace-nowrap px-1"
+                  className="absolute inset-0 flex items-center justify-center gap-1 text-[8px] leading-none font-black text-white whitespace-nowrap px-1"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
                 >
                   <span className="tabular-nums" dir="ltr">
                     {compact(caughtNow)}/{compact(capacity)}
                   </span>
-                  <span className="tabular-nums text-amber-200 text-[8px]" dir="ltr">
+                  <span className="tabular-nums text-amber-200 text-[7px]" dir="ltr">
                     {Math.floor(capPct)}%
                   </span>
                   {ready && <span className="text-amber-200">✦</span>}
                 </div>
               </div>
             </div>
+
 
 
 
