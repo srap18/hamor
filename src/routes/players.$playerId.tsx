@@ -108,6 +108,8 @@ function PlayerPage() {
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
+  // Server-authoritative PvP bracket check (6-15 vs 16+) — identical rules to the RPCs.
+  const [pvpCheck, setPvpCheck] = useState<{ ok: boolean; reason: string | null } | null>(null);
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
