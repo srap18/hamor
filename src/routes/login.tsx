@@ -44,7 +44,6 @@ function LoginPage() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
-      if (!data.session.user.email_confirmed_at) { setNeedsConfirm(true); return; }
       nav({ to: "/" });
     });
   }, [nav]);
@@ -83,11 +82,6 @@ function LoginPage() {
           return;
         }
         setErr(error.message); return;
-      }
-      if (!data.session?.user.email_confirmed_at) {
-        setNeedsConfirm(true);
-        setErr("يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني");
-        return;
       }
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
       const ok = await waitAtMost(

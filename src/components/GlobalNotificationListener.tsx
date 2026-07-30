@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
 
 type Notif = {
@@ -46,11 +47,14 @@ const iconFor = (kind: string) =>
  */
 export function GlobalNotificationListener() {
   const { user } = useAuth();
+  const notifEligible = useNotifEligible();
   const seenRef = useRef<Set<string>>(new Set());
   const baselineRef = useRef<string>(new Date().toISOString());
 
   useEffect(() => {
     if (!user) return;
+    // New accounts (below level 6) get no notifications at all.
+    if (!notifEligible) return;
     // Reset baseline when user changes (so we don't replay old notifs on login).
     baselineRef.current = new Date().toISOString();
     seenRef.current = new Set();
@@ -175,7 +179,7 @@ export function GlobalNotificationListener() {
       window.removeEventListener("focus", onVis);
     };
 
-  }, [user]);
+  }, [user, notifEligible]);
 
   return null;
 }

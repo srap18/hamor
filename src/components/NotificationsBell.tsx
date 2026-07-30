@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
 import { getProfilesPublic, type PublicProfile } from "@/lib/profiles-public";
 
@@ -29,6 +30,7 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 
 export function NotificationsBell() {
   const { user } = useAuth();
+  const notifEligible = useNotifEligible();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notif[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
@@ -160,7 +162,11 @@ export function NotificationsBell() {
   const iconFor = (kind: string) =>
     kind === "nuke" ? "☢️" : kind === "attack" ? "⚔️" : kind === "support" ? "🛠️" : kind === "ship" ? "⛵" : kind === "friend" ? "🤝" : "📢";
 
+  // Hidden for brand-new accounts (below level 6).
+  if (!notifEligible) return null;
+
   return (
+
     <>
       <button
         onClick={toggle}
