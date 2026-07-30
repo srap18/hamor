@@ -198,7 +198,11 @@ export function BackgroundsPanel() {
               key={b.id}
               className={`relative rounded-xl border-2 bg-gradient-to-b ${RARITY_COLOR[b.rarity]} p-1.5 shadow-lg`}
             >
-              <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border border-white/30 bg-black">
+              <button
+                type="button"
+                onClick={() => { setPreviewId(b.id); setPreviewBurned(false); }}
+                className="relative block w-full aspect-[16/9] rounded-lg overflow-hidden border border-white/30 bg-black active:scale-95"
+              >
                 <div className="absolute inset-y-0 right-0 w-1/2 overflow-hidden border-r border-white/20">
                   <img src={b.image} alt={b.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover animate-bg-drift" />
                   <div className="absolute right-1 bottom-1 px-1.5 py-0.5 rounded bg-emerald-700/90 border border-emerald-200 text-[9px] font-bold">سليمة</div>
@@ -216,7 +220,11 @@ export function BackgroundsPanel() {
                 {!isOwned && (
                   <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/60 border border-white/30 text-[9px] font-bold capitalize">{b.rarity}</div>
                 )}
-              </div>
+                <div className="absolute inset-x-0 top-0 flex justify-center pointer-events-none">
+                  <div className="px-2 py-0.5 rounded-b-md bg-black/65 border-x border-b border-white/25 text-[9px] font-extrabold text-white">👁️ معاينة</div>
+                </div>
+              </button>
+
               <div className="mt-1.5 text-center text-[12px] font-extrabold text-white text-glow truncate">{b.name}</div>
               {isOwned && expiries[b.id] && (
                 <div className="text-center text-[10px] font-bold text-amber-200">
