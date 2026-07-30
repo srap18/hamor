@@ -4935,43 +4935,8 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         backfaceVisibility: "hidden",
       }}
     >
-      {/* Lightweight per-ship timer (fishing time-left, or repair countdown). */}
-      {(() => {
-        let label = "";
-        const repairRem = repairRemainingSeconds(ship.repairEndsAt);
-        if (repairRem > 0) {
-          label = `🔧 ${formatRepairTime(repairRem)}`;
-        } else if (ship.fishing && !ready) {
-          // `timeLeft` is in "effective trip seconds". With a sailor active the
-          // trip progresses at 2x, so real wall-clock remaining = timeLeft / 2.
-          // Display the wall-clock value so players can see the sailor's effect.
-          const sailorActive = crews.some((c) => c.id === "sailor");
-          const mult = sailorActive ? 2 : 1;
-          const wallRem = Math.max(0, Math.ceil(ship.timeLeft / mult));
-          if (wallRem <= 0) {
-            label = gfMarketFullRef.current
-              ? "🛒 المخزن ممتلئ — بِع السمك"
-              : "⏳ جارٍ الجمع...";
-          } else {
-            const m = Math.floor(wallRem / 60);
-            const s = wallRem % 60;
-            label = `${sailorActive ? "⚓" : "⏱"} ${m}:${String(s).padStart(2, "0")}`;
-          }
-        } else if (ship.fishing && ready) {
-          label = "✅ جاهز";
-        }
+      {/* timer moved into the unified HUD stack above the ship */}
 
-
-        if (!label) return null;
-        return (
-          <div
-            className="absolute left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-black/65 border border-white/15 text-white text-[10px] font-bold whitespace-nowrap pointer-events-none z-20 tabular-nums"
-            style={{ top: "-14px", textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
-          >
-            {label}
-          </div>
-        );
-      })()}
 
       {/* Wake ripples behind — only while actually moving */}
       {moving && (
