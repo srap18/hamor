@@ -7182,6 +7182,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      pvp_attack_bracket: { Args: { _user_id: string }; Returns: number }
+      pvp_attack_check: { Args: { _defender: string }; Returns: Json }
       pvp_attacker_requirement_error: {
         Args: { _user_id: string }
         Returns: string
@@ -7189,6 +7191,11 @@ export type Database = {
       pvp_defender_requirement_error: {
         Args: { _user_id: string }
         Returns: string
+      }
+      pvp_defense_bracket: { Args: { _user_id: string }; Returns: number }
+      pvp_eligible_ship_count: {
+        Args: { _min_level: number; _user_id: string }
+        Returns: number
       }
       pvp_engaged: { Args: { _x: string; _y: string }; Returns: boolean }
       pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
@@ -7199,6 +7206,10 @@ export type Database = {
       pvp_max_ship_level: { Args: { _user_id: string }; Returns: number }
       pvp_min_eligible_ship_level: {
         Args: { _user_id: string }
+        Returns: number
+      }
+      pvp_owned_ship_count: {
+        Args: { _min_level: number; _user_id: string }
         Returns: number
       }
       pvp_requirement_error: {

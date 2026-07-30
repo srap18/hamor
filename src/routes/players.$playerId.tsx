@@ -108,6 +108,8 @@ function PlayerPage() {
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
+  // Server-authoritative PvP bracket check (6-15 vs 16+) — identical rules to the RPCs.
+  const [pvpCheck, setPvpCheck] = useState<{ ok: boolean; reason: string | null } | null>(null);
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
@@ -127,6 +129,16 @@ function PlayerPage() {
       if (data) setMyDragonLvl(overallLevel(data));
     })();
   }, []);
+  useEffect(() => {
+    if (!playerId) return;
+    let alive = true;
+    (async () => {
+      const { data } = await (supabase as any).rpc("pvp_attack_check", { _defender: playerId });
+      if (alive && data) setPvpCheck({ ok: !!data.ok, reason: data.reason ?? null });
+    })();
+    return () => { alive = false; };
+  }, [playerId]);
+
   useEffect(() => {
     const onPref = () => {
       try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
@@ -1505,7 +1517,7 @@ function PlayerPage() {
                     ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
                     : targetProtected
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
-                      : null;
+                      : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
               const attackDisabled = busy || targetDead || !!blockReason;
               const stealDisabled = busy || !targetFishing || !!blockReason;
 
