@@ -387,8 +387,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <footer
           id="legal-footer"
           style={{
-            position: "relative",
-            zIndex: 1,
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 0,
+            pointerEvents: "none",
             padding: "16px 12px",
             background: "#0a1929",
             color: "#cbd5e1",
@@ -398,6 +402,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
             fontFamily: "Cairo, Tajawal, system-ui, sans-serif",
           }}
         >
+
           <nav aria-label="Legal" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px", marginBottom: "8px" }}>
             <a href="/" style={{ color: "#fcd34d", textDecoration: "underline" }}>الرئيسية</a>
             <a href="/pricing" style={{ color: "#fcd34d", textDecoration: "underline" }}>الأسعار</a>
