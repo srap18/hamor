@@ -79,41 +79,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
   if (!session) return null;
 
-  // Email not confirmed → block entry, offer resend
-  if (user && !user.email_confirmed_at) {
-    const resend = async () => {
-      if (!user.email || resending) return;
-      setResending(true); setResendMsg(null);
-      const { error } = await supabase.auth.resend({
-        type: "signup", email: user.email,
-        options: { emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/` },
-      });
-      setResending(false);
-      setResendMsg(error ? "تعذر الإرسال: " + error.message : "تم إرسال الرابط ✓ راجع بريدك");
-    };
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-950 text-amber-100 p-6 gap-4 text-center" dir="rtl">
-        <div className="text-6xl">📧</div>
-        <h1 className="text-2xl font-bold text-amber-300">يرجى تأكيد حسابك</h1>
-        <p className="text-amber-200/80 max-w-md">يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني <span className="text-amber-300 break-all">{user.email}</span></p>
-        <div className="flex flex-col gap-2 w-full max-w-xs">
-          <button onClick={resend} disabled={resending}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50">
-            {resending ? "جاري الإرسال..." : "📧 إعادة إرسال رابط التأكيد"}
-          </button>
-          {resendMsg && <div className="text-xs text-emerald-300">{resendMsg}</div>}
-          <button onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}
-            className="px-4 py-2 rounded-lg bg-stone-800 text-amber-200/70 text-sm">
-            تسجيل خروج
-          </button>
-          <button onClick={async () => { const { data } = await supabase.auth.refreshSession(); if (data.user?.email_confirmed_at) location.reload(); else setResendMsg("لم يتم التأكيد بعد"); }}
-            className="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-amber-50 text-sm font-bold">
-            تحققت — حدّث الصفحة
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Email confirmation is NOT required to play. Players can verify anytime
+  // later from Settings → account verification.
+
 
   // MFA step-up required (account has 2FA enabled but session is aal1)
   if (needsMfa) {
