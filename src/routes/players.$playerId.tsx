@@ -1517,7 +1517,7 @@ function PlayerPage() {
                     ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
                     : targetProtected
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
-                      : null;
+                      : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
               const attackDisabled = busy || targetDead || !!blockReason;
               const stealDisabled = busy || !targetFishing || !!blockReason;
 
