@@ -43,6 +43,8 @@ function SeasonPage() {
   const [profs, setProfs] = useState<Record<string, Profile>>({});
   const [me, setMe] = useState<string | null>(null);
   const [myResults, setMyResults] = useState<(ResultRow & { season?: Season })[]>([]);
+  const [myOwn, setMyOwn] = useState<Row | null>(null);
+  const [myOwnRank, setMyOwnRank] = useState<number>(0);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
@@ -78,6 +80,28 @@ function SeasonPage() {
         }
       }
 
+      // My own row + true rank (even when outside the top 100)
+      if (s?.id && u.user?.id) {
+        const { data: mine } = await supabase.from("season_damage")
+          .select("user_id, damage_total, first_reached_at")
+          .eq("season_id", s.id)
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        if (mine) {
+          const m = mine as Row;
+          setMyOwn(m);
+          const { count } = await supabase.from("season_damage")
+            .select("user_id", { count: "exact", head: true })
+            .eq("season_id", s.id)
+            .gt("damage_total", Number(m.damage_total || 0));
+          setMyOwnRank((count ?? 0) + 1);
+          const { data: mp } = await supabase.from("profiles")
+            .select("id, display_name, avatar_emoji, avatar_url, level")
+            .eq("id", u.user.id).maybeSingle();
+          if (mp) setProfs((prev) => ({ ...prev, [(mp as Profile).id]: mp as Profile }));
+        }
+      }
+
       if (u.user?.id) {
         const { data: res } = await supabase.from("season_results")
           .select("season_id, user_id, final_rank, final_damage, frame_tier, reward_gems")
@@ -95,8 +119,12 @@ function SeasonPage() {
     })();
   }, []);
 
-  const myRow = useMemo(() => (me ? rows.find((r) => r.user_id === me) : null), [me, rows]);
-  const myRank = useMemo(() => (me ? rows.findIndex((r) => r.user_id === me) + 1 : 0), [me, rows]);
+  const myRow = useMemo(() => (me ? rows.find((r) => r.user_id === me) || myOwn : null), [me, rows, myOwn]);
+  const myRank = useMemo(() => {
+    if (!me) return 0;
+    const i = rows.findIndex((r) => r.user_id === me);
+    return i >= 0 ? i + 1 : myOwnRank;
+  }, [me, rows, myOwnRank]);
   const [first, second, third, ...rest] = rows;
 
   return (
