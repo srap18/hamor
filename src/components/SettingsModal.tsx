@@ -11,10 +11,12 @@ import { setPowerSaver, usePowerSaver } from "@/lib/power-saver";
 import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { useT, type Lang } from "@/lib/i18n";
+import { useNotifEligible } from "@/hooks/use-notif-eligible";
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
   const { t, lang, setLang } = useT();
+  const notifEligible = useNotifEligible();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
   const [showDeathBanner, setShowDeathBanner] = useState(true);
