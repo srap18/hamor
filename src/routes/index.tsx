@@ -5272,12 +5272,12 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         const curHp = Math.max(0, ship.hp ?? maxHp);
         const hpPct = Math.max(0, Math.min(100, (curHp / maxHp) * 100));
         const capPct = Math.max(0, Math.min(100, pct));
-        const compact = (n: number) =>
-          n >= 1_000_000
-            ? `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`
-            : n >= 10_000
-            ? `${Math.round(n / 1000)}K`
-            : n.toLocaleString("en-US");
+        const compact = (n: number) => {
+          const trim = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1).replace(/\.0$/, ""));
+          if (n >= 1_000_000) return `${trim(Math.round(n / 100_000) / 10)}M`;
+          if (n >= 1_000) return `${trim(Math.round(n / 100) / 10)}K`;
+          return String(Math.round(n));
+        };
         const hpFill =
           hpPct > 60
             ? "linear-gradient(180deg,#7dffb4 0%,#22c55e 45%,#0f9c4a 100%)"
