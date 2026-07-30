@@ -164,7 +164,13 @@ export function BottomNav({ active }: { active?: string }) {
   }, [user, active]);
 
 
-  const friendsBadge = useMemo(() => (unread > 0 ? unread : undefined), [unread]);
+  // New accounts (fish-market level < 6) see no notification badge at all.
+  const notifEligible = useNotifEligible();
+  const friendsBadge = useMemo(
+    () => (notifEligible && unread > 0 ? unread : undefined),
+    [unread, notifEligible],
+  );
+
 
   return (
     <div
