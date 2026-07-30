@@ -1,4 +1,3 @@
-import { siteUrl } from "@/lib/site-url";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
@@ -14,8 +13,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [needsMfa, setNeedsMfa] = useState(false);
   const [mfaChecked, setMfaChecked] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState<string | null>(null);
   const securityBlock = useSecurityEnforcement();
 
   useEffect(() => {
