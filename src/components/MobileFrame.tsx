@@ -30,12 +30,22 @@ export function MobileFrame({ children }: { children: ReactNode }) {
       const appHeight = keyboardOpen ? previousStable : viewportHeight;
       const keyboardInset = keyboardOpen ? rawInset : 0;
 
+      // Lock the frame width to the real visual viewport width. Some Android
+      // WebViews (e.g. OnePlus) briefly report a layout width wider than the
+      // screen, which in an RTL document pushes the whole UI to the right.
+      const viewportWidth = Math.floor(
+        Math.min(viewport?.width ?? window.innerWidth, window.innerWidth || Number.MAX_SAFE_INTEGER),
+      );
+      if (viewportWidth > 0) {
+        document.documentElement.style.setProperty("--app-width", `${viewportWidth}px`);
+      }
       document.documentElement.style.setProperty(
         "--app-height",
         `${Math.floor(appHeight)}px`,
       );
       document.documentElement.style.setProperty("--keyboard-inset", `${Math.floor(keyboardInset)}px`);
       document.documentElement.style.setProperty("--visual-viewport-offset-top", `${Math.floor(viewportOffsetTop)}px`);
+
       document.documentElement.classList.toggle("keyboard-open", keyboardInset > 0);
       if (isEditing || keyboardInset > 0) {
         window.scrollTo(0, 0);
