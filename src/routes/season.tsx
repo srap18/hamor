@@ -78,6 +78,28 @@ function SeasonPage() {
         }
       }
 
+      // My own row + true rank (even when outside the top 100)
+      if (s?.id && u.user?.id) {
+        const { data: mine } = await supabase.from("season_damage")
+          .select("user_id, damage_total, first_reached_at")
+          .eq("season_id", s.id)
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        if (mine) {
+          const m = mine as Row;
+          setMyOwn(m);
+          const { count } = await supabase.from("season_damage")
+            .select("user_id", { count: "exact", head: true })
+            .eq("season_id", s.id)
+            .gt("damage_total", Number(m.damage_total || 0));
+          setMyOwnRank((count ?? 0) + 1);
+          const { data: mp } = await supabase.from("profiles")
+            .select("id, display_name, avatar_emoji, avatar_url, level")
+            .eq("id", u.user.id).maybeSingle();
+          if (mp) setProfs((prev) => ({ ...prev, [(mp as Profile).id]: mp as Profile }));
+        }
+      }
+
       if (u.user?.id) {
         const { data: res } = await supabase.from("season_results")
           .select("season_id, user_id, final_rank, final_damage, frame_tier, reward_gems")
