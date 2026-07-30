@@ -5564,6 +5564,10 @@ export type Database = {
         Args: { _action: string; _min_ms: number }
         Returns: undefined
       }
+      _extend_ship_crew_timers: {
+        Args: { _seconds: number; _ship_id: string }
+        Returns: undefined
+      }
       _fish_price_bounds: {
         Args: { _fish_id: string }
         Returns: {

@@ -5266,47 +5266,107 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
 
 
-      {/* Always-visible HUD above each ship: HP + fill counter */}
+      {/* Always-visible HUD above each ship: HP + fill counter (premium, instant) */}
       {(() => {
         const maxHp = ship.maxHp ?? 100;
-        const curHp = ship.hp ?? maxHp;
+        const curHp = Math.max(0, ship.hp ?? maxHp);
         const hpPct = Math.max(0, Math.min(100, (curHp / maxHp) * 100));
-        const hpColor =
+        const capPct = Math.max(0, Math.min(100, pct));
+        const compact = (n: number) =>
+          n >= 1_000_000
+            ? `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`
+            : n >= 10_000
+            ? `${Math.round(n / 1000)}K`
+            : n.toLocaleString("en-US");
+        const hpFill =
           hpPct > 60
-            ? "from-emerald-400 to-emerald-300"
+            ? "linear-gradient(180deg,#7dffb4 0%,#22c55e 45%,#0f9c4a 100%)"
             : hpPct > 30
-            ? "from-amber-400 to-amber-300"
-            : "from-rose-500 to-rose-400";
+            ? "linear-gradient(180deg,#ffe08a 0%,#f59e0b 45%,#b45309 100%)"
+            : "linear-gradient(180deg,#ffb0b0 0%,#ef4444 45%,#991b1b 100%)";
+        const hpGlow =
+          hpPct > 60 ? "rgba(34,197,94,0.55)" : hpPct > 30 ? "rgba(245,158,11,0.55)" : "rgba(239,68,68,0.6)";
+        const capFill = ready
+          ? "linear-gradient(180deg,#fff3c4 0%,#fbbf24 45%,#b45309 100%)"
+          : ship.fishing
+          ? "linear-gradient(180deg,#a5f3fc 0%,#22d3ee 45%,#0e7490 100%)"
+          : "linear-gradient(180deg,#e2e8f0 0%,#94a3b8 45%,#475569 100%)";
+        // Instant, GPU-only bar: scaleX transform with a very short linear tween.
+        const barFill = (fill: string, p: number, glow?: string) => (
+          <div className="absolute inset-[1px] rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 w-full rounded-full"
+              style={{
+                background: fill,
+                transform: `scaleX(${Math.max(0, p) / 100})`,
+                transformOrigin: "left center",
+                transition: "transform 110ms linear",
+                willChange: "transform",
+                boxShadow: glow && !isHeavyFxDisabled ? `0 0 6px ${glow}` : undefined,
+              }}
+            />
+            {/* glass gloss */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
+              style={{ background: "linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0))" }}
+            />
+            {/* segment ticks */}
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "repeating-linear-gradient(90deg, rgba(0,0,0,0.45) 0 1px, rgba(0,0,0,0) 1px 25%)",
+                opacity: 0.5,
+              }}
+            />
+          </div>
+        );
         return (
-          <div className="absolute top-0 left-1/2 w-[55%] flex flex-col gap-[1px] pointer-events-none z-40" style={{ transform: `translateX(-50%) scaleX(${flipX})` }}>
-            {/* HP bar — slim */}
-            <div className="relative h-1.5 bg-black/70 rounded-full overflow-hidden border border-white/20 shadow-md">
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${hpColor} transition-all duration-300`}
-                style={{ width: `${hpPct}%` }}
-              />
-            </div>
-            {/* Fill counter — clear total/current label */}
-            <div className="relative h-3.5">
-              <div className="absolute inset-0 bg-black/80 rounded-full overflow-hidden border border-accent/60 shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
+          <div
+            className="absolute top-0 left-1/2 w-[62%] flex flex-col gap-[3px] pointer-events-none z-40"
+            style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
+          >
+            {/* Luxury frame */}
+            <div
+              className="rounded-[10px] px-1 py-[3px] flex flex-col gap-[3px]"
+              style={{
+                background: "linear-gradient(180deg, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.95) 100%)",
+                border: "1px solid rgba(251,191,36,0.55)",
+                boxShadow:
+                  "0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,236,180,0.35)",
+              }}
+            >
+              {/* HP bar */}
+              <div className="relative h-[7px] rounded-full bg-black/80 border border-white/15">
+                {barFill(hpFill, hpPct, hpGlow)}
                 <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    ready
-                      ? "bg-gradient-to-r from-amber-300 to-yellow-200 animate-shimmer"
-                      : ship.fishing
-                      ? "bg-gradient-to-r from-emerald-400 to-emerald-300"
-                      : "bg-gradient-to-r from-slate-400 to-slate-300"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
+                  className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-black text-white tabular-nums"
+                  dir="ltr"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95)" }}
+                >
+                  {compact(curHp)}/{compact(maxHp)}
+                </div>
               </div>
-              {/* Label sits OUTSIDE the clipped fill so long numbers are never cut off */}
-              <div className="absolute inset-0 flex items-center justify-center text-[9px] leading-none font-black text-white whitespace-nowrap pointer-events-none px-1"
-                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}>
-                <span className="tabular-nums" dir="ltr">{caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}</span>
-                {ready && <span className="ml-0.5 animate-pulse">✦</span>}
+              {/* Capacity bar */}
+              <div className="relative h-[14px] rounded-full bg-black/85 border border-amber-300/45">
+                {barFill(capFill, capPct)}
+                <div
+                  className="absolute inset-0 flex items-center justify-center gap-0.5 text-[9px] leading-none font-black text-white whitespace-nowrap px-1"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.95)" }}
+                >
+                  <span className="tabular-nums" dir="ltr">
+                    {caughtNow.toLocaleString("en-US")}/{capacity.toLocaleString("en-US")}
+                  </span>
+                  <span className="tabular-nums text-amber-200 text-[8px]" dir="ltr">
+                    {Math.floor(capPct)}%
+                  </span>
+                  {ready && <span className="text-amber-200">✦</span>}
+                </div>
               </div>
             </div>
+
 
             {active && (
               ready ? (
