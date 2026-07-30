@@ -2013,17 +2013,77 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
         transition: "left 1.2s ease-in-out",
       }}
     >
-      {/* HP bar / repair timer above ship */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-7 w-[110%] z-20 pointer-events-none">
-        <div className="h-1.5 w-full rounded-full bg-black/60 border border-black/70 overflow-hidden">
-          <div className={`h-full ${hpColor} transition-[width] duration-300`} style={{ width: `${hpPct}%` }} />
-        </div>
-        <div className="text-center text-[9px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] tabular-nums leading-tight">
-          {destroyed
-            ? (repairEndsAt ? `🛠️ ${fmtTime(remainingSec)}` : "💀 مدمّرة")
-            : `❤️ ${hp}/${maxHp}`}
-        </div>
-      </div>
+      {/* Premium HUD above the ship: status chip + thin HP bar (same style as home) */}
+      {(() => {
+        const compact = (n: number) => {
+          const trim = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1).replace(/\.0$/, ""));
+          if (n >= 1_000_000) return `${trim(Math.round(n / 100_000) / 10)}M`;
+          if (n >= 1_000) return `${trim(Math.round(n / 100) / 10)}K`;
+          return String(Math.round(n));
+        };
+        const hpFill =
+          hpPct > 60
+            ? "linear-gradient(180deg,#7dffb4 0%,#22c55e 45%,#0f9c4a 100%)"
+            : hpPct > 30
+            ? "linear-gradient(180deg,#ffe08a 0%,#f59e0b 45%,#b45309 100%)"
+            : "linear-gradient(180deg,#ffb0b0 0%,#ef4444 45%,#991b1b 100%)";
+        const hpGlow = hpPct > 60 ? "rgba(34,197,94,0.55)" : hpPct > 30 ? "rgba(245,158,11,0.55)" : "rgba(239,68,68,0.6)";
+        const statusLabel = destroyed ? (repairEndsAt ? `🔧 ${fmtTime(remainingSec)}` : "💀 مدمّرة") : "";
+        return (
+          <div
+            className="absolute bottom-full left-1/2 w-[86%] flex flex-col items-center gap-[4px] pointer-events-none z-30"
+            style={{ transform: "translateX(-50%)", marginBottom: crews.length && !destroyed ? "30%" : "6px" }}
+          >
+            {statusLabel && (
+              <div
+                className="px-1.5 py-[2px] rounded-md bg-black/70 border border-white/20 text-[10px] leading-none font-black whitespace-nowrap tabular-nums text-orange-200"
+                dir="ltr"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.9)" }}
+              >
+                {statusLabel}
+              </div>
+            )}
+            <div className="w-full flex items-center gap-1">
+              <div className="relative flex-1 h-[7px] rounded-full border border-white/30 bg-black/25 overflow-hidden">
+                <div className="absolute inset-[1px] rounded-full overflow-hidden">
+                  <div
+                    className="absolute inset-y-0 left-0 w-full rounded-full"
+                    style={{
+                      background: hpFill,
+                      transform: `scaleX(${Math.max(0, hpPct) / 100})`,
+                      transformOrigin: "left center",
+                      transition: "transform 110ms linear",
+                      willChange: "transform",
+                      boxShadow: `0 0 6px ${hpGlow}`,
+                    }}
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-x-0 top-0 h-1/2 rounded-t-full pointer-events-none"
+                    style={{ background: "linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0))" }}
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "repeating-linear-gradient(90deg, rgba(0,0,0,0.45) 0 1px, rgba(0,0,0,0) 1px 25%)",
+                      opacity: 0.5,
+                    }}
+                  />
+                </div>
+              </div>
+              <span
+                className="text-[8px] leading-none font-black text-white tabular-nums whitespace-nowrap"
+                dir="ltr"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.9)" }}
+              >
+                {compact(hp)}/{compact(maxHp)}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* Crew characters standing on the ship deck (visible to all spectators) */}
       {!destroyed && crews.length > 0 && (
