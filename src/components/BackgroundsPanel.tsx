@@ -36,6 +36,9 @@ export function BackgroundsPanel() {
   const now = useServerTick();
   const [selected, setSelected] = useState<string>("cove");
   const [pop, setPop] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewBurned, setPreviewBurned] = useState(false);
+
   const [busy, setBusy] = useState(false);
   const [repairing, setRepairing] = useState(false);
   const [confirmState, setConfirmState] = useState<{ msg: string; onOk: () => void } | null>(null);
