@@ -3993,6 +3993,7 @@ export type Database = {
           hp: number
           id: string
           in_storage: boolean
+          last_damaged_at: string | null
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
@@ -4016,6 +4017,7 @@ export type Database = {
           hp?: number
           id?: string
           in_storage?: boolean
+          last_damaged_at?: string | null
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
@@ -4039,6 +4041,7 @@ export type Database = {
           hp?: number
           id?: string
           in_storage?: boolean
+          last_damaged_at?: string | null
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
@@ -6683,6 +6686,7 @@ export type Database = {
           hp: number
           id: string
           in_storage: boolean
+          last_damaged_at: string | null
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
@@ -7273,6 +7277,7 @@ export type Database = {
         Args: { _reason?: string; _txn_id: string }
         Returns: Json
       }
+      regen_damaged_ships: { Args: { _user: string }; Returns: undefined }
       register_device: { Args: { _device_id: string }; Returns: Json }
       reject_all_friend_requests: { Args: never; Returns: number }
       remove_ad_bombs: { Args: never; Returns: number }
