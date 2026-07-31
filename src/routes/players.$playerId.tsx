@@ -1256,7 +1256,12 @@ function PlayerPage() {
         const total = Math.max(1, endMs - startMs);
         const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
         const ratio = total > 0 ? elapsed / total : 0;
-        const stolenSoFar = Math.floor(r.fishing_power * ratio);
+        // Real, server-computed loot you'd receive right now (capped by your
+        // ship hold + fish market space + the target's actual fish).
+        const prev = stealPreview[r.id];
+        const stolenSoFar = prev ? prev.count : Math.floor(r.fishing_power * ratio);
+        const previewReason = prev?.reason ?? null;
+
         const secsLeft = Math.max(0, Math.ceil((endMs - nowTs) / 1000));
         return (
           <div key={`raider-${r.id}`} className="absolute z-20 -translate-x-1/2 -translate-y-1/2" style={{ top, left }}>
