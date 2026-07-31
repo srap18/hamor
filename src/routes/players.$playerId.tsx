@@ -1289,10 +1289,18 @@ function PlayerPage() {
                 <img decoding="async" src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
                 <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
                 {isMine && (
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
-                    🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
-                  </div>
+                  <>
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
+                      🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                    </div>
+                    {previewReason && stolenSoFar <= 0 && (
+                      <div className="absolute -top-[3.1rem] left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-700/95 border border-rose-200 text-[9px] text-rose-50 font-bold whitespace-nowrap shadow max-w-[180px] truncate">
+                        ⚠️ {stealReasonText(previewReason)}
+                      </div>
+                    )}
+                  </>
                 )}
+
                 <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
                   {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
                 </div>
