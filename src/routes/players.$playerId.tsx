@@ -662,7 +662,12 @@ function PlayerPage() {
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
 
-    // BLOCKED by anti-rocket: server sets blocked=true and applied no damage. Stop here — no FX, no weapon consume.
+    // The weapon is consumed the moment it is fired — the server accepted the
+    // attack, so it counts as used no matter the outcome (hit, blocked by an
+    // anti-defense, or zero damage). Applies to every weapon in this flow.
+    await consumeItem(weaponId, "weapon");
+
+    // BLOCKED by an anti-defense: server applied no damage. Stop here — no FX.
     const firstRow: any = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
     if (firstRow?.blocked === true) {
       sound.play("error");
@@ -671,8 +676,6 @@ function PlayerPage() {
       return;
     }
 
-    // Validation passed — now consume the weapon and run FX/damage for all targets.
-    await consumeItem(weaponId, "weapon");
 
 
 

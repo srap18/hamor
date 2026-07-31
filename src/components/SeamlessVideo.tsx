@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Looping background video. Single <video> element — no crossfade.
@@ -26,6 +26,14 @@ export function SeamlessVideo({
   playbackRate?: number;
 }) {
   const ref = useRef<HTMLVideoElement | null>(null);
+  // When autoplay is refused (Android WebView / Data Saver / decode failure),
+  // the browser paints its own big "play" button over the scene. Detect that
+  // and drop the <video> entirely so the poster image shows instead.
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
 
   useEffect(() => {
     const v = ref.current;
@@ -53,7 +61,9 @@ export function SeamlessVideo({
 
     const onLoaded = () => tryPlay();
     const onCanPlay = () => tryPlay();
+    const onError = () => setFailed(true);
     const onGesture = () => {
+      setFailed(false);
       tryPlay();
       window.removeEventListener("pointerdown", onGesture);
       window.removeEventListener("touchstart", onGesture);
@@ -64,22 +74,46 @@ export function SeamlessVideo({
       else { try { v.pause(); } catch { /* noop */ } }
     };
 
+    // If playback never actually started, fall back to the still background.
+    const watchdog = window.setTimeout(() => {
+      if (v.paused || v.currentTime === 0 || v.readyState < 2) setFailed(true);
+    }, 4000);
+
     v.addEventListener("loadeddata", onLoaded);
     v.addEventListener("canplay", onCanPlay);
+    v.addEventListener("error", onError);
+    v.addEventListener("stalled", onError);
     window.addEventListener("pointerdown", onGesture, { once: true });
     window.addEventListener("touchstart", onGesture, { once: true, passive: true });
     window.addEventListener("keydown", onGesture, { once: true });
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
+      window.clearTimeout(watchdog);
       v.removeEventListener("loadeddata", onLoaded);
       v.removeEventListener("canplay", onCanPlay);
+      v.removeEventListener("error", onError);
+      v.removeEventListener("stalled", onError);
       window.removeEventListener("pointerdown", onGesture);
       window.removeEventListener("touchstart", onGesture);
       window.removeEventListener("keydown", onGesture);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [src, playbackRate]);
+  }, [src, playbackRate, failed]);
+
+  if (failed) {
+    return poster ? (
+      <img
+        src={poster}
+        alt=""
+        aria-hidden
+        decoding="async"
+        draggable={false}
+        className={className}
+        style={style}
+      />
+    ) : null;
+  }
 
   return (
     <video
@@ -90,11 +124,12 @@ export function SeamlessVideo({
       loop
       muted
       playsInline
-      preload="auto"
+      controls={false}
       disablePictureInPicture
       disableRemotePlayback
+      preload="auto"
       className={className}
-      style={style}
+      style={{ ...style, pointerEvents: "none" }}
     />
   );
 }

@@ -5283,7 +5283,9 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
       {/* Always-visible HUD above each ship: HP + fill counter (premium, instant) */}
       {(() => {
         const maxHp = ship.maxHp ?? 100;
-        const curHp = Math.max(0, ship.hp ?? maxHp);
+        // Always derive HP from the server repair window so the bar and the
+        // countdown can never disagree (100% exactly when the timer hits 0).
+        const curHp = Math.max(0, liveRepairHp(ship) ?? ship.hp ?? maxHp);
         const hpPct = Math.max(0, Math.min(100, (curHp / maxHp) * 100));
         const capPct = Math.max(0, Math.min(100, pct));
         const compact = (n: number) => {
