@@ -153,6 +153,11 @@ interface Ship {
   maxHp?: number;
   destroyedAt?: string | null;
   repairEndsAt?: string | null;
+  // Server-authoritative repair window start (destroyed_at or last_damaged_at)
+  // and the HP snapshot at that moment — used to interpolate live HP locally
+  // with exactly the same formula the server uses.
+  repairFromAt?: string | null;
+  repairFromHp?: number | null;
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
   stealingStartedAt?: string | null;
@@ -177,6 +182,27 @@ function repairProgress(destroyedAt?: string | null, repairEndsAt?: string | nul
   const total = end - start;
   if (total <= 0) return 1;
   return Math.max(0, Math.min(1, (now - start) / total));
+}
+
+// Live HP derived from the server repair window: HP rises linearly from the
+// snapshot taken when the ship was hit (repairFromHp at repairFromAt) up to
+// max HP exactly at repairEndsAt. Mirrors the server formula so the bar and
+// the timer always agree; the server stays authoritative (this only fills the
+// gap between DB syncs and never lowers HP).
+function liveRepairHp(ship: Pick<Ship, "hp" | "maxHp" | "repairFromAt" | "repairFromHp" | "repairEndsAt">): number | undefined {
+  const maxHp = ship.maxHp;
+  if (!maxHp || maxHp <= 0) return ship.hp;
+  const stored = Math.max(0, ship.hp ?? maxHp);
+  if (!ship.repairFromAt || !ship.repairEndsAt) return stored;
+  const start = new Date(ship.repairFromAt).getTime();
+  const end = new Date(ship.repairEndsAt).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return stored;
+  const now = serverNowMs();
+  if (now >= end) return maxHp;
+  const fromHp = Math.max(0, Math.min(maxHp, ship.repairFromHp ?? stored));
+  const ratio = Math.max(0, Math.min(1, (now - start) / (end - start)));
+  const computed = fromHp + Math.floor((maxHp - fromHp) * ratio);
+  return Math.max(stored, Math.min(maxHp, computed));
 }
 // A ship is "blocked from fishing" only while current HP is below 30% of max.
 // Past that point it can sail and fish (capacity scales with HP on the server),
@@ -447,11 +473,11 @@ function Index() {
     maybeFinalizeShipRepairs(uid);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, passive_repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars, preferred_fish_id")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, passive_repair_ends_at, last_damaged_at, repair_started_hp, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars, preferred_fish_id")
       .eq("user_id", uid)
       .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; passive_repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null; preferred_fish_id: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; passive_repair_ends_at: string | null; last_damaged_at: string | null; repair_started_hp: number | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null; preferred_fish_id: string | null }[];
     // Hydrate localStorage guide cache from the server so the picker highlight
     // and the client-side _requested_fish_id survive page reloads.
     if (typeof window !== "undefined") {
@@ -546,7 +572,7 @@ function Index() {
           const sailorAtStart = sameTrip
             ? (!!s.sailorAtStart || hasSailorNow)
             : (fishing ? hasSailorNow : false);
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, repairFromAt: row.destroyed_at ?? row.last_damaged_at, repairFromHp: row.destroyed_at ? 0 : row.repair_started_hp, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -610,6 +636,8 @@ function Index() {
           maxHp: dbShip.max_hp ?? undefined,
           destroyedAt: dbShip.destroyed_at,
           repairEndsAt: dbShip.repair_ends_at ?? dbShip.passive_repair_ends_at,
+          repairFromAt: dbShip.destroyed_at ?? dbShip.last_damaged_at,
+          repairFromHp: dbShip.destroyed_at ? 0 : dbShip.repair_started_hp,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
           stealingStartedAt: dbShip.stealing_started_at,
@@ -1409,6 +1437,9 @@ function Index() {
       for (let i = 0; i < snapshot.length; i++) {
         const s = snapshot[i];
         if (s.fishing || Math.abs((s.fishing ? 1 : 0) - s.sail) > EPS) { anyWork = true; break; }
+        // A ship under repair also needs ticks so its HP bar and timer move
+        // together instead of jumping only when the repair finishes.
+        if (s.repairEndsAt && new Date(s.repairEndsAt).getTime() > now) { anyWork = true; break; }
       }
       if (!anyWork) { schedule(IDLE_MS); return; }
       let dirty = false;
@@ -1421,11 +1452,17 @@ function Index() {
           if (sailMoving) sailBusy = true;
           const sail = sailMoving ? target : s.sail;
 
+          // Server-authoritative gradual repair: HP climbs in step with the
+          // repair countdown (25% of the time → 25% of the damage restored).
+          const repairing = !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > now;
+          const liveHp = repairing ? liveRepairHp(s) : undefined;
+          const hpChanged = liveHp != null && liveHp !== s.hp;
+          if (repairing) progressBusy = true;
 
           if (!s.fishing || !s.startedAt) {
-            if (!sailMoving) return s; // no change → skip re-render
+            if (!sailMoving && !hpChanged) return s; // no change → skip re-render
             dirty = true;
-            return { ...s, sail };
+            return hpChanged ? { ...s, sail, hp: liveHp } : { ...s, sail };
           }
           progressBusy = true; // fishing ship → keep ticking, but slowly in Lite Mode
           if (s.dbId && !isServerClockSynced()) {
@@ -1493,12 +1530,14 @@ function Index() {
           // sailor bonus accumulated since assignment. Dividing again would
           // halve the remaining time instantly when sailor is assigned mid-trip.
           const timeLeft = Math.max(0, s.duration - elapsed);
-          if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
+          if (!sailMoving && !hpChanged && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
 
           dirty = true;
-          return { ...s, sail, progress, timeLeft };
+          return hpChanged
+            ? { ...s, sail, progress, timeLeft, hp: liveHp }
+            : { ...s, sail, progress, timeLeft };
         });
         return dirty ? next : curr;
       });
