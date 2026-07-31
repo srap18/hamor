@@ -77,7 +77,7 @@ function ProfilePage() {
       setUserId(u.user.id);
       // Self-heal expired frames/backgrounds before reading
       try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch {}
-      const [{ data: p }, { data: inv }] = await Promise.all([
+      const [{ data: p }, { data: inv }, { data: seasonRes }] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name,display_name_changed_at,free_name_change_available,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame,album_privacy")
@@ -87,6 +87,10 @@ function ProfilePage() {
           .select("item_id,item_type,meta")
           .eq("user_id", u.user.id)
           .in("item_type", ["frame", "name_frame", "bubble_frame", "profile_frame"]),
+        supabase
+          .from("season_results")
+          .select("frame_tier")
+          .eq("user_id", u.user.id),
       ]);
       if (p) {
         setDisplayName(p.display_name ?? "");
