@@ -123,14 +123,11 @@ export function NotificationsBell() {
         sound.play("click");
       }
     };
-    // Split into two server-filtered subscriptions so Realtime only forwards
-    // rows meant for this user (personal or broadcast) instead of every
-    // notification insert in the game. Same behavior, tiny fraction of WAL.
-    const ch = supabase
-      .channel(`notifs:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, onInsert)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, onInsert)
-      .subscribe();
+    // Shared bus: one socket per player instead of a dedicated channel here.
+    // Delivers the exact same personal + broadcast INSERT payloads, at the same
+    // instant, in the same order — only the transport is de-duplicated.
+    const onBus = (p: any) => { if (p.eventType === "INSERT") onInsert(p); };
+    const unsub = subscribeNotifBus(user.id, { onPersonal: onBus, onBroadcast: onBus });
     // Realtime (above) + visibility/focus handlers below are primary.
     // Safety-net poll is very slow (2 min) — only needed if realtime drops on mobile.
     // Previously this fired every 15s and caused ~16M redundant notification queries.
