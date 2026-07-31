@@ -198,12 +198,10 @@ export function AttackerAntiBlockBurst() {
     if (!uid) return;
     const seen = new Set<string>();
 
-    const ch = supabase
-      .channel(`anti-burst-attacker:${uid}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${uid}` },
-        async (payload) => {
+    // Shared bus carries personal INSERT *and* UPDATE rows, matching the
+    // previous `event: "*"` subscription exactly.
+    const unsub = subscribeNotifBus(uid, {
+      onPersonal: (async (payload: any) => {
           const row = (payload.new ?? payload.old) as {
             id: string; kind: string; recipient_id: string; created_by: string | null; created_at: string;
             title?: string | null; body?: string | null; meta?: Record<string, unknown> | null;
