@@ -533,6 +533,13 @@ function ProfilePage() {
           frames={AVATAR_FRAMES}
           owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
         />
+        {seasonFrameIds.size > 0 && (
+          <FrameSection
+            title="🏆 إطارات المواسم (ممنوحة)" kind="avatar"
+            frames={SEASON_AWARD_FRAMES.filter(f => seasonFrameIds.has(f.id))}
+            owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
+          />
+        )}
         <FrameSection
           title="إطارات اسمي" kind="name"
           frames={NAME_FRAMES}
