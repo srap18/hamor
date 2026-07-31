@@ -283,7 +283,25 @@ function PlayerPage() {
     })();
   }, [playerId]);
 
+  // Live, server-accurate loot preview for MY active raids (what I'd actually
+  // get if I stopped right now). The old UI showed fishing_power × progress,
+  // which had nothing to do with the real transferable amount.
+  const [stealPreview, setStealPreview] = useState<Record<string, { count: number; reason: string | null }>>({});
+
+  const stealReasonText = (reason: string | null | undefined) => {
+    switch (reason) {
+      case "hold_full": return "مخزن سفينتك ممتلئ — فرّغ السمك وحاول مرة ثانية";
+      case "market_full": return "سوق السمك عندك ممتلئ — بِع السمك عشان تستقبل الغنيمة";
+      case "target_empty": return "سفينة الخصم ما فيها سمك حاليًا";
+      case "target_gone": return "سفينة الخصم اختفت من الميناء";
+      case "too_early": return "الوقت لسه بدري — كمّل المهمة عشان تحصل غنيمة";
+      default: return "ما فيه غنيمة متاحة الآن";
+    }
+  };
+
+
   // Load raiders currently stealing FROM this player (their ships visible in this harbor)
+
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
@@ -488,9 +506,33 @@ function PlayerPage() {
     })();
   }, [raiders, nowTs, me]);
 
+  // Poll the server for the real claimable loot of MY active raids.
+  useEffect(() => {
+    if (!me) return;
+    const mineIds = raiders.filter((r) => r.user_id === me).map((r) => r.id);
+    if (mineIds.length === 0) { setStealPreview({}); return; }
+    let alive = true;
+    const run = async () => {
+      if (document.hidden) return;
+      const entries = await Promise.all(
+        mineIds.map(async (id) => {
+          const { data } = await (supabase as any).rpc("steal_mission_preview", { _attacker_ship_id: id });
+          const d = (data ?? {}) as { count?: number; reason?: string | null };
+          return [id, { count: Number(d.count ?? 0), reason: d.reason ?? null }] as const;
+        }),
+      );
+      if (alive) setStealPreview(Object.fromEntries(entries));
+    };
+    run();
+    const t = setInterval(run, 10000);
+    return () => { alive = false; clearInterval(t); };
+  }, [me, raiders.filter((r) => r.user_id === me).map((r) => r.id).join(",")]);
+
+
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
+    const prevReason = stealPreview[shipId]?.reason ?? null;
     const { data, error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
     if (error) {
       const msg = String(error.message || "");
@@ -509,7 +551,7 @@ function PlayerPage() {
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
     if (n > 0) flash(`🛑 أوقفت السرقة — رجعت سفينة اللص ومعها ${n} سمكة (قيمتها ${v})`);
-    else flash("🛑 أوقفت السرقة — ما فيه غنيمة متاحة الآن");
+    else flash(`🛑 أوقفت السرقة — ${stealReasonText(prevReason)}`);
     loadRaiders();
     broadcastRaid();
   };
@@ -1214,7 +1256,12 @@ function PlayerPage() {
         const total = Math.max(1, endMs - startMs);
         const elapsed = Math.max(0, Math.min(total, nowTs - startMs));
         const ratio = total > 0 ? elapsed / total : 0;
-        const stolenSoFar = Math.floor(r.fishing_power * ratio);
+        // Real, server-computed loot you'd receive right now (capped by your
+        // ship hold + fish market space + the target's actual fish).
+        const prev = stealPreview[r.id];
+        const stolenSoFar = prev ? prev.count : Math.floor(r.fishing_power * ratio);
+        const previewReason = prev?.reason ?? null;
+
         const secsLeft = Math.max(0, Math.ceil((endMs - nowTs) / 1000));
         return (
           <div key={`raider-${r.id}`} className="absolute z-20 -translate-x-1/2 -translate-y-1/2" style={{ top, left }}>
@@ -1242,10 +1289,18 @@ function PlayerPage() {
                 <img decoding="async" src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
                 <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
                 {isMine && (
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
-                    🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
-                  </div>
+                  <>
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
+                      🐟 {stolenSoFar} · ⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}
+                    </div>
+                    {previewReason && stolenSoFar <= 0 && (
+                      <div className="absolute -top-[3.1rem] left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-700/95 border border-rose-200 text-[9px] text-rose-50 font-bold whitespace-nowrap shadow max-w-[180px] truncate">
+                        ⚠️ {stealReasonText(previewReason)}
+                      </div>
+                    )}
+                  </>
                 )}
+
                 <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-400/60 text-[10px] text-rose-100 font-bold whitespace-nowrap">
                   {r.owner_emoji} {isMine ? "سفينتك" : r.owner_name}
                 </div>
@@ -1260,7 +1315,14 @@ function PlayerPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setCancelRaiderId(null)}>
           <div className="w-full max-w-xs glass-hud rounded-2xl border-2 border-rose-400/60 p-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
             <div className="text-center text-amber-100 font-bold">إيقاف السرقة؟</div>
-            <div className="text-center text-amber-300/70 text-xs">سترجع سفينة اللص بالغنيمة الحالية فقط</div>
+            <div className="text-center text-amber-300/70 text-xs">
+              {stealPreview[cancelRaiderId]
+                ? (stealPreview[cancelRaiderId].count > 0
+                    ? `سترجع سفينتك ومعها ${stealPreview[cancelRaiderId].count} سمكة الآن`
+                    : `⚠️ ${stealReasonText(stealPreview[cancelRaiderId].reason)}`)
+                : "سترجع سفينة اللص بالغنيمة الحالية فقط"}
+            </div>
+
             <div className="flex gap-2">
               <button onClick={() => setCancelRaiderId(null)} className="flex-1 py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
               <button onClick={() => stopRaid(cancelRaiderId)} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">🛑 أوقف</button>
