@@ -137,7 +137,7 @@ export function NotificationsBell() {
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
     return () => {
-      supabase.removeChannel(ch);
+      unsub();
       clearInterval(poll);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onVis);
