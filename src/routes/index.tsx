@@ -473,11 +473,11 @@ function Index() {
     maybeFinalizeShipRepairs(uid);
     const { data } = await supabase
       .from("ships_owned")
-      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, passive_repair_ends_at, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars, preferred_fish_id")
+      .select("id, template_id, catalog_code, acquired_at, hp, max_hp, destroyed_at, repair_ends_at, passive_repair_ends_at, last_damaged_at, repair_started_hp, at_sea, fishing_started_at, stealing_ends_at, stealing_target_user_id, stealing_started_at, stars, max_stars, preferred_fish_id")
       .eq("user_id", uid)
       .eq("in_storage", false)
       .order("acquired_at", { ascending: true });
-    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; passive_repair_ends_at: string | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null; preferred_fish_id: string | null }[];
+    const owned = (data ?? []) as { id: string; template_id: number | null; catalog_code: string | null; hp: number | null; max_hp: number | null; destroyed_at: string | null; repair_ends_at: string | null; passive_repair_ends_at: string | null; last_damaged_at: string | null; repair_started_hp: number | null; at_sea: boolean | null; fishing_started_at: string | null; stealing_ends_at: string | null; stealing_target_user_id: string | null; stealing_started_at: string | null; stars: number | null; max_stars: number | null; preferred_fish_id: string | null }[];
     // Hydrate localStorage guide cache from the server so the picker highlight
     // and the client-side _requested_fish_id survive page reloads.
     if (typeof window !== "undefined") {
