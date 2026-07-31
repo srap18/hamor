@@ -636,6 +636,8 @@ function Index() {
           maxHp: dbShip.max_hp ?? undefined,
           destroyedAt: dbShip.destroyed_at,
           repairEndsAt: dbShip.repair_ends_at ?? dbShip.passive_repair_ends_at,
+          repairFromAt: dbShip.destroyed_at ?? dbShip.last_damaged_at,
+          repairFromHp: dbShip.destroyed_at ? 0 : dbShip.repair_started_hp,
           stealingEndsAt: dbShip.stealing_ends_at,
           stealingTargetUserId: dbShip.stealing_target_user_id,
           stealingStartedAt: dbShip.stealing_started_at,
