@@ -1522,7 +1522,15 @@ function PlayerPage() {
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                       : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
               const attackDisabled = busy || targetDead || !!blockReason;
-              const stealDisabled = busy || !targetFishing || !!blockReason;
+              // Steal must never look "dead" without telling the player why:
+              // the button stays tappable and flashes the exact blocking reason.
+              const stealReason = blockReason
+                ? blockReason
+                : targetDead
+                  ? "💥 سفينة الخصم مدمّرة — ما فيها سمك للسرقة"
+                  : !targetFishing
+                    ? "🎣 لازم سفينة الخصم تكون تصيد في البحر عشان تسرقها"
+                    : null;
 
               return (
               <>
@@ -1530,7 +1538,13 @@ function PlayerPage() {
                   <div className="text-center text-[11px] text-rose-200 bg-rose-900/40 border border-rose-700/40 rounded-lg py-2 px-2">{blockReason}</div>
                 )}
                 <button aria-label="هجوم على سفينة اللاعب" disabled={attackDisabled} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95 disabled:opacity-40">⚔️ هجوم {targetDead && <span className="text-[10px] opacity-80">(مدمّرة)</span>}</button>
-                <button aria-label="سرقة سفينة اللاعب" disabled={stealDisabled} onClick={() => setMode("myship")} className="py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40">🗡️ سرقة {!targetFishing && !blockReason && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
+                <button
+                  aria-label="سرقة سفينة اللاعب"
+                  disabled={busy}
+                  onClick={() => { if (stealReason) { sound.play("error"); flash(stealReason); return; } setMode("myship"); }}
+                  className={`py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40 ${stealReason ? "opacity-70" : ""}`}
+                >🗡️ سرقة {stealReason && !blockReason && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
+
                 <button aria-label="دعم وإصلاح سفينة اللاعب" disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button aria-label="إلغاء وإغلاق القائمة" onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
               </>
