@@ -1437,6 +1437,9 @@ function Index() {
       for (let i = 0; i < snapshot.length; i++) {
         const s = snapshot[i];
         if (s.fishing || Math.abs((s.fishing ? 1 : 0) - s.sail) > EPS) { anyWork = true; break; }
+        // A ship under repair also needs ticks so its HP bar and timer move
+        // together instead of jumping only when the repair finishes.
+        if (s.repairEndsAt && new Date(s.repairEndsAt).getTime() > now) { anyWork = true; break; }
       }
       if (!anyWork) { schedule(IDLE_MS); return; }
       let dirty = false;
@@ -1449,11 +1452,17 @@ function Index() {
           if (sailMoving) sailBusy = true;
           const sail = sailMoving ? target : s.sail;
 
+          // Server-authoritative gradual repair: HP climbs in step with the
+          // repair countdown (25% of the time → 25% of the damage restored).
+          const repairing = !!s.repairEndsAt && new Date(s.repairEndsAt).getTime() > now;
+          const liveHp = repairing ? liveRepairHp(s) : undefined;
+          const hpChanged = liveHp != null && liveHp !== s.hp;
+          if (repairing) progressBusy = true;
 
           if (!s.fishing || !s.startedAt) {
-            if (!sailMoving) return s; // no change → skip re-render
+            if (!sailMoving && !hpChanged) return s; // no change → skip re-render
             dirty = true;
-            return { ...s, sail };
+            return hpChanged ? { ...s, sail, hp: liveHp } : { ...s, sail };
           }
           progressBusy = true; // fishing ship → keep ticking, but slowly in Lite Mode
           if (s.dbId && !isServerClockSynced()) {
