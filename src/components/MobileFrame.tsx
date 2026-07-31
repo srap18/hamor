@@ -30,12 +30,19 @@ export function MobileFrame({ children }: { children: ReactNode }) {
       const appHeight = keyboardOpen ? previousStable : viewportHeight;
       const keyboardInset = keyboardOpen ? rawInset : 0;
 
-      // Lock the frame width to the real visual viewport width. Some Android
-      // WebViews (e.g. OnePlus) briefly report a layout width wider than the
-      // screen, which in an RTL document pushes the whole UI to the right.
-      const viewportWidth = Math.floor(
-        Math.min(viewport?.width ?? window.innerWidth, window.innerWidth || Number.MAX_SAFE_INTEGER),
-      );
+      // Frame width must always cover the FULL screen, whatever the aspect
+      // ratio (phones, foldables, OnePlus Pad and other Android tablets).
+      // Some Android WebViews momentarily report a visual-viewport width that
+      // is narrower than the real layout width; taking the smallest value used
+      // to leave a wide empty band beside the UI. Take the widest reliable
+      // measurement instead — on devices that report consistent values this
+      // resolves to exactly the same number as before, so nothing changes.
+      const widthCandidates = [
+        viewport?.width ?? 0,
+        window.innerWidth || 0,
+        document.documentElement.clientWidth || 0,
+      ].filter((n) => n > 0);
+      const viewportWidth = widthCandidates.length ? Math.floor(Math.max(...widthCandidates)) : 0;
       if (viewportWidth > 0) {
         document.documentElement.style.setProperty("--app-width", `${viewportWidth}px`);
       }
