@@ -7551,6 +7551,10 @@ export type Database = {
           total_value: number
         }[]
       }
+      steal_mission_preview: {
+        Args: { _attacker_ship_id: string }
+        Returns: Json
+      }
       submarine_capacity_for_stars: {
         Args: { _stars: number }
         Returns: number
