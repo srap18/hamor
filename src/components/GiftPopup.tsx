@@ -79,19 +79,16 @@ export function GiftPopup() {
       for (const n of (data || []) as GiftNotif[]) enqueue(n);
     })();
 
-    const ch = supabase
-      .channel(`gift-pop:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
-        (payload) => {
-          const n = payload.new as GiftNotif;
-          if (n.kind !== "gift") return;
-          enqueue(n);
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    // Shared notification bus — same personal INSERT rows as before.
+    const unsub = subscribeNotifBus(user.id, {
+      onPersonal: (payload) => {
+        if (payload.eventType !== "INSERT") return;
+        const n = payload.new as GiftNotif;
+        if (n.kind !== "gift") return;
+        enqueue(n);
+      },
+    });
+    return () => { unsub(); };
   }, [user?.id]);
 
   if (!current) return null;
