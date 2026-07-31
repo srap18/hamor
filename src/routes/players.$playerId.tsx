@@ -283,7 +283,13 @@ function PlayerPage() {
     })();
   }, [playerId]);
 
+  // Live, server-accurate loot preview for MY active raids (what I'd actually
+  // get if I stopped right now). The old UI showed fishing_power × progress,
+  // which had nothing to do with the real transferable amount.
+  const [stealPreview, setStealPreview] = useState<Record<string, { count: number; reason: string | null }>>({});
+
   // Load raiders currently stealing FROM this player (their ships visible in this harbor)
+
   const loadRaiders = async () => {
     const { data: rs } = await supabase
       .from("ships_owned")
