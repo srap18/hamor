@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import {
-  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES,
+  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES,
   frameById, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
@@ -63,6 +63,7 @@ function ProfilePage() {
   const [bubbleFrame, setBubbleFrame] = useState<string | null>(null);
   const [profileFrame, setProfileFrame] = useState<string | null>(null);
   const [ownedFrameIds, setOwnedFrameIds] = useState<Set<string>>(new Set());
+  const [seasonFrameIds, setSeasonFrameIds] = useState<Set<string>>(new Set());
   const [albumPrivacy, setAlbumPrivacy] = useState<"public" | "friends">("public");
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [pop, setPop] = useState<string | null>(null);
@@ -77,7 +78,7 @@ function ProfilePage() {
       setUserId(u.user.id);
       // Self-heal expired frames/backgrounds before reading
       try { await (supabase.rpc as any)("cleanup_my_expired_cosmetics"); } catch {}
-      const [{ data: p }, { data: inv }] = await Promise.all([
+      const [{ data: p }, { data: inv }, { data: seasonRes }] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name,display_name_changed_at,free_name_change_available,username,username_changed_at,bio,avatar_emoji,avatar_url,avatar_frame,name_frame,bubble_frame,profile_frame,album_privacy")
@@ -87,6 +88,10 @@ function ProfilePage() {
           .select("item_id,item_type,meta")
           .eq("user_id", u.user.id)
           .in("item_type", ["frame", "name_frame", "bubble_frame", "profile_frame"]),
+        supabase
+          .from("season_results")
+          .select("frame_tier")
+          .eq("user_id", u.user.id),
       ]);
       if (p) {
         setDisplayName(p.display_name ?? "");
@@ -112,6 +117,13 @@ function ProfilePage() {
         if (exp && exp <= nowMs) return;
         validIds.add(r.item_id);
       });
+      // Season award frames are permanent — earned by season rank, never expire
+      const earnedSeason = new Set<string>();
+      (seasonRes ?? []).forEach((r: any) => {
+        const t = Number(r?.frame_tier || 0);
+        if (t >= 1 && t <= 10) { earnedSeason.add(`sf_${t}`); validIds.add(`sf_${t}`); }
+      });
+      setSeasonFrameIds(earnedSeason);
       setOwnedFrameIds(validIds);
       setLoading(false);
     })();
@@ -521,6 +533,13 @@ function ProfilePage() {
           frames={AVATAR_FRAMES}
           owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
         />
+        {seasonFrameIds.size > 0 && (
+          <FrameSection
+            title="🏆 إطارات المواسم (ممنوحة)" kind="avatar"
+            frames={SEASON_AWARD_FRAMES.filter(f => seasonFrameIds.has(f.id))}
+            owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
+          />
+        )}
         <FrameSection
           title="إطارات اسمي" kind="name"
           frames={NAME_FRAMES}
