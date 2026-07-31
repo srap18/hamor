@@ -5613,6 +5613,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _owned_ship_repair_seconds: {
+        Args: { _catalog_code: string; _template_id: number }
+        Returns: number
+      }
       _pay_coins_with_gem_fallback: {
         Args: { _coins_needed: number; _uid: string }
         Returns: undefined
