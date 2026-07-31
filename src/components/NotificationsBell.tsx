@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
 import { getProfilesPublic, type PublicProfile } from "@/lib/profiles-public";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 
 
 type Notif = {
