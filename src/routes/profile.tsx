@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import {
-  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES,
+  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES,
   frameById, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
