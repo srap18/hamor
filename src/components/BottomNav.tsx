@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { memo, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
