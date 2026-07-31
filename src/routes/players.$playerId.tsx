@@ -1522,15 +1522,32 @@ function PlayerPage() {
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                       : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
               const attackDisabled = busy || targetDead || !!blockReason;
+              // Steal is NOT part of the PvP bracket system (6–15 / 16+) and does not
+              // require a PvP fleet — only shields, market level 6, target fishing,
+              // and having one of MY ships docked (not fishing / repairing / raiding).
+              const myIdleShip = myShips.some(
+                (s) => !s.at_sea && !s.destroyed_at && !s.stealing_target_user_id
+                  && !(s.repair_ends_at && new Date(s.repair_ends_at).getTime() > serverNowMs()),
+              );
+              const stealBlock = myShieldActive
+                ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل السرقة"
+                : targetShielded
+                  ? "🛡️ الخصم محمي بدرع — لا يمكن السرقة"
+                  : targetProtected
+                    ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
+                    : null;
               // Steal must never look "dead" without telling the player why:
               // the button stays tappable and flashes the exact blocking reason.
-              const stealReason = blockReason
-                ? blockReason
+              const stealReason = stealBlock
+                ? stealBlock
                 : targetDead
                   ? "💥 سفينة الخصم مدمّرة — ما فيها سمك للسرقة"
                   : !targetFishing
                     ? "🎣 لازم سفينة الخصم تكون تصيد في البحر عشان تسرقها"
-                    : null;
+                    : !myIdleShip
+                      ? "⚓ لازم تكون عندك سفينة راسية بالميناء (مو تصيد) عشان تسرق"
+                      : null;
+
 
               return (
               <>
@@ -1543,7 +1560,7 @@ function PlayerPage() {
                   disabled={busy}
                   onClick={() => { if (stealReason) { sound.play("error"); flash(stealReason); return; } setMode("myship"); }}
                   className={`py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40 ${stealReason ? "opacity-70" : ""}`}
-                >🗡️ سرقة {stealReason && !blockReason && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
+                >🗡️ سرقة {stealReason && !stealBlock && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : !targetFishing ? "لازم تكون تصيد" : "سفنك مشغولة"})</span>}</button>
 
                 <button aria-label="دعم وإصلاح سفينة اللاعب" disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button aria-label="إلغاء وإغلاق القائمة" onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
