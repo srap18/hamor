@@ -1,11 +1,11 @@
 // Weapon catalog — used when attacking other players' ships.
 // Damage is balanced against ship HP scale: L1=80 HP up to L30=1965 HP.
 // Only the Nuke (aoe=true) can destroy a max-level ship and it hits ALL ships at once.
-import rocketSmallImg from "@/assets/weapons/rocket-small.png";
-import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
-import rocketLargeImg from "@/assets/weapons/rocket-large.png";
-import nukeImg from "@/assets/weapons/nuke.png";
-import adBombImg from "@/assets/weapons/ad-bomb.png";
+import rocketSmallImg from "@/assets/weapons/rocket-small.webp";
+import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
+import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
+import nukeImg from "@/assets/weapons/nuke.webp";
+import adBombImg from "@/assets/weapons/ad-bomb.webp";
 
 export type Weapon = {
   id: string;

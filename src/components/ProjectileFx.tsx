@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import explosionReal from "@/assets/fx/explosion-real.png";
-import nukeReal from "@/assets/fx/nuke-real.png";
-import smokeReal from "@/assets/fx/smoke-real.png";
+import explosionReal from "@/assets/fx/explosion-real.webp";
+import nukeReal from "@/assets/fx/nuke-real.webp";
+import smokeReal from "@/assets/fx/smoke-real.webp";
 
 
 

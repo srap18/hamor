@@ -1,19 +1,19 @@
 // Dragon system constants and helpers
-import dragonStage1 from "@/assets/dragon-stage-1.png";
-import dragonStage2 from "@/assets/dragon-stage-2.png";
-import dragonStage3 from "@/assets/dragon-stage-3.png";
-import dragonStage4 from "@/assets/dragon-stage-4.png";
-import dragonStage5 from "@/assets/dragon-stage-5.png";
-import dragonStage6 from "@/assets/dragon-stage-6.png";
-import dragonStage7 from "@/assets/dragon-stage-7.png";
-import dragonStage8 from "@/assets/dragon-stage-8.png";
-import dragonStage9 from "@/assets/dragon-stage-9.png";
-import dragonStage10 from "@/assets/dragon-stage-10.png";
-import dragonStage11 from "@/assets/dragon-stage-11.png";
-import dragonStage12 from "@/assets/dragon-stage-12.png";
-import dragonStage13 from "@/assets/dragon-stage-13.png";
-import dragonStage14 from "@/assets/dragon-stage-14.png";
-import dragonStage15 from "@/assets/dragon-stage-15.png";
+import dragonStage1 from "@/assets/dragon-stage-1.webp";
+import dragonStage2 from "@/assets/dragon-stage-2.webp";
+import dragonStage3 from "@/assets/dragon-stage-3.webp";
+import dragonStage4 from "@/assets/dragon-stage-4.webp";
+import dragonStage5 from "@/assets/dragon-stage-5.webp";
+import dragonStage6 from "@/assets/dragon-stage-6.webp";
+import dragonStage7 from "@/assets/dragon-stage-7.webp";
+import dragonStage8 from "@/assets/dragon-stage-8.webp";
+import dragonStage9 from "@/assets/dragon-stage-9.webp";
+import dragonStage10 from "@/assets/dragon-stage-10.webp";
+import dragonStage11 from "@/assets/dragon-stage-11.webp";
+import dragonStage12 from "@/assets/dragon-stage-12.webp";
+import dragonStage13 from "@/assets/dragon-stage-13.webp";
+import dragonStage14 from "@/assets/dragon-stage-14.webp";
+import dragonStage15 from "@/assets/dragon-stage-15.webp";
 
 export type Dragon = {
   user_id: string;

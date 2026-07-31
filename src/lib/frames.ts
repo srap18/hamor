@@ -4,27 +4,27 @@
 // `bubbleClass`  → tailwind classes applied to the chat message bubble
 // `profileClass` → tailwind classes applied to the outer profile card wrapper
 
-import ariesImg from "@/assets/frames/aries.png";
-import phoenixImg from "@/assets/frames/phoenix-wings.png";
-import virgoImg from "@/assets/frames/virgo.png";
-import leoImg from "@/assets/frames/leo.png";
-import taurusImg from "@/assets/frames/taurus.png";
-import geminiImg from "@/assets/frames/gemini.png";
-import scorpioImg from "@/assets/frames/scorpio.png";
-import piscesImg from "@/assets/frames/pisces.png";
-import cosmicVipImg from "@/assets/frames/cosmic-vip.png";
+import ariesImg from "@/assets/frames/aries.webp";
+import phoenixImg from "@/assets/frames/phoenix-wings.webp";
+import virgoImg from "@/assets/frames/virgo.webp";
+import leoImg from "@/assets/frames/leo.webp";
+import taurusImg from "@/assets/frames/taurus.webp";
+import geminiImg from "@/assets/frames/gemini.webp";
+import scorpioImg from "@/assets/frames/scorpio.webp";
+import piscesImg from "@/assets/frames/pisces.webp";
+import cosmicVipImg from "@/assets/frames/cosmic-vip.webp";
 
 // Premium luxury frames (SVG rings, ultra-light, animate at 60fps)
-import luxAurora    from "@/assets/frames/lux-aurora.png";
-import luxNeon      from "@/assets/frames/lux-neon.png";
-import luxDragon    from "@/assets/frames/lux-dragon.png";
-import luxCelestial from "@/assets/frames/lux-celestial.png";
-import luxRoyal     from "@/assets/frames/lux-royal.png";
-import luxDiamond   from "@/assets/frames/lux-diamond.png";
-import luxObsidian  from "@/assets/frames/lux-obsidian.png";
-import luxSakura    from "@/assets/frames/lux-sakura.png";
-import luxEmerald   from "@/assets/frames/lux-emerald.png";
-import luxImperial  from "@/assets/frames/lux-imperial.png";
+import luxAurora    from "@/assets/frames/lux-aurora.webp";
+import luxNeon      from "@/assets/frames/lux-neon.webp";
+import luxDragon    from "@/assets/frames/lux-dragon.webp";
+import luxCelestial from "@/assets/frames/lux-celestial.webp";
+import luxRoyal     from "@/assets/frames/lux-royal.webp";
+import luxDiamond   from "@/assets/frames/lux-diamond.webp";
+import luxObsidian  from "@/assets/frames/lux-obsidian.webp";
+import luxSakura    from "@/assets/frames/lux-sakura.webp";
+import luxEmerald   from "@/assets/frames/lux-emerald.webp";
+import luxImperial  from "@/assets/frames/lux-imperial.webp";
 
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 

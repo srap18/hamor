@@ -6,21 +6,21 @@ import { sound } from "@/lib/sound";
 
 
 // Dragon stage images (1..15)
-import dragon1 from "@/assets/dragon-stage-1.png";
-import dragon2 from "@/assets/dragon-stage-2.png";
-import dragon3 from "@/assets/dragon-stage-3.png";
-import dragon4 from "@/assets/dragon-stage-4.png";
-import dragon5 from "@/assets/dragon-stage-5.png";
-import dragon6 from "@/assets/dragon-stage-6.png";
-import dragon7 from "@/assets/dragon-stage-7.png";
-import dragon8 from "@/assets/dragon-stage-8.png";
-import dragon9 from "@/assets/dragon-stage-9.png";
-import dragon10 from "@/assets/dragon-stage-10.png";
-import dragon11 from "@/assets/dragon-stage-11.png";
-import dragon12 from "@/assets/dragon-stage-12.png";
-import dragon13 from "@/assets/dragon-stage-13.png";
-import dragon14 from "@/assets/dragon-stage-14.png";
-import dragon15 from "@/assets/dragon-stage-15.png";
+import dragon1 from "@/assets/dragon-stage-1.webp";
+import dragon2 from "@/assets/dragon-stage-2.webp";
+import dragon3 from "@/assets/dragon-stage-3.webp";
+import dragon4 from "@/assets/dragon-stage-4.webp";
+import dragon5 from "@/assets/dragon-stage-5.webp";
+import dragon6 from "@/assets/dragon-stage-6.webp";
+import dragon7 from "@/assets/dragon-stage-7.webp";
+import dragon8 from "@/assets/dragon-stage-8.webp";
+import dragon9 from "@/assets/dragon-stage-9.webp";
+import dragon10 from "@/assets/dragon-stage-10.webp";
+import dragon11 from "@/assets/dragon-stage-11.webp";
+import dragon12 from "@/assets/dragon-stage-12.webp";
+import dragon13 from "@/assets/dragon-stage-13.webp";
+import dragon14 from "@/assets/dragon-stage-14.webp";
+import dragon15 from "@/assets/dragon-stage-15.webp";
 
 const DRAGON_IMAGES = [
   dragon1, dragon2, dragon3, dragon4, dragon5,

@@ -8,13 +8,13 @@ import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 
 
-import iconBattle from "@/assets/nav-icon-battle.png";
-import iconArena from "@/assets/nav-icon-arena.png";
-import iconFriends from "@/assets/nav-icon-friends.png";
-import iconInventory from "@/assets/nav-icon-inventory.png";
-import iconShop from "@/assets/nav-icon-shop.png";
-import iconChat from "@/assets/nav-icon-chat.png";
-import iconSettings from "@/assets/nav-icon-settings.png";
+import iconBattle from "@/assets/nav-icon-battle.webp";
+import iconArena from "@/assets/nav-icon-arena.webp";
+import iconFriends from "@/assets/nav-icon-friends.webp";
+import iconInventory from "@/assets/nav-icon-inventory.webp";
+import iconShop from "@/assets/nav-icon-shop.webp";
+import iconChat from "@/assets/nav-icon-chat.webp";
+import iconSettings from "@/assets/nav-icon-settings.webp";
 
 const items = [
   { src: iconBattle, label: "تحدي", to: "/battle" as const },

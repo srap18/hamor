@@ -12,16 +12,16 @@ const MyShipsModal = lazy(() =>
   import("@/components/MyShipsModal").then((m) => ({ default: m.MyShipsModal }))
 );
 import { getCached, setCached } from "@/lib/swr-cache";
-import iconArmor from "@/assets/icons/icon-armor.png";
-import iconCoins from "@/assets/icons/icon-coins.png";
-import iconFishing from "@/assets/icons/icon-fishing.png";
-import iconGems from "@/assets/icons/icon-gems.png";
-import iconHp from "@/assets/icons/icon-hp.png";
-import iconRepair from "@/assets/icons/icon-repair.png";
-import iconSpeed from "@/assets/icons/icon-speed.png";
-import iconStorage from "@/assets/icons/icon-storage.png";
-import iconTimer from "@/assets/icons/icon-timer.png";
-import iconUpgrade from "@/assets/icons/icon-upgrade.png";
+import iconArmor from "@/assets/icons/icon-armor.webp";
+import iconCoins from "@/assets/icons/icon-coins.webp";
+import iconFishing from "@/assets/icons/icon-fishing.webp";
+import iconGems from "@/assets/icons/icon-gems.webp";
+import iconHp from "@/assets/icons/icon-hp.webp";
+import iconRepair from "@/assets/icons/icon-repair.webp";
+import iconSpeed from "@/assets/icons/icon-speed.webp";
+import iconStorage from "@/assets/icons/icon-storage.webp";
+import iconTimer from "@/assets/icons/icon-timer.webp";
+import iconUpgrade from "@/assets/icons/icon-upgrade.webp";
 import { serverNowMs } from "@/lib/server-time";
 
 // عرض المستوى المطلوب للناس: السفينة الداخلية مستوى 33 (الغواصة الترقيّة) تظهر كأنها 31.

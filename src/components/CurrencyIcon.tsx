@@ -1,7 +1,7 @@
 import { memo } from "react";
-import coinImg from "@/assets/icon-coin-3d.png";
-import gemImg from "@/assets/icon-gem-3d.png";
-import rubyImg from "@/assets/icon-ruby-3d.png";
+import coinImg from "@/assets/icon-coin-3d.webp";
+import gemImg from "@/assets/icon-gem-3d.webp";
+import rubyImg from "@/assets/icon-ruby-3d.webp";
 
 type Props = { size?: number; className?: string };
 

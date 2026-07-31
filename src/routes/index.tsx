@@ -82,14 +82,14 @@ import { consumePlayerReturnSource, savePlayerReturnSource } from "@/lib/navigat
 
 import { frameById } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
-import navIconBattle from "@/assets/nav-icon-battle.png";
-import navIconTribe from "@/assets/nav-icon-tribe.png";
-import navIconArena from "@/assets/nav-icon-arena.png";
-import navIconFriends from "@/assets/nav-icon-friends.png";
-import navIconInventory from "@/assets/nav-icon-inventory.png";
-import navIconShop from "@/assets/nav-icon-shop.png";
-import navIconChat from "@/assets/nav-icon-chat.png";
-import navIconSettings from "@/assets/nav-icon-settings.png";
+import navIconBattle from "@/assets/nav-icon-battle.webp";
+import navIconTribe from "@/assets/nav-icon-tribe.webp";
+import navIconArena from "@/assets/nav-icon-arena.webp";
+import navIconFriends from "@/assets/nav-icon-friends.webp";
+import navIconInventory from "@/assets/nav-icon-inventory.webp";
+import navIconShop from "@/assets/nav-icon-shop.webp";
+import navIconChat from "@/assets/nav-icon-chat.webp";
+import navIconSettings from "@/assets/nav-icon-settings.webp";
 
 
 

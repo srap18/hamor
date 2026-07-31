@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { getDragonVideoForStage } from "@/lib/dragon-videos";
-import dragonEgg from "@/assets/dragon-egg.png";
+import dragonEgg from "@/assets/dragon-egg.webp";
 
 type Props = {
   /** Dragon form 1..15 — drives which clip plays. Stable: only changes on promotion. */

@@ -4,11 +4,11 @@
 // values for combat math or pricing; the server applies them via the
 // `get_combat_multiplier` and `get_effective_shop_price` SQL functions.
 
-import elite1 from "@/assets/elite-vip-1.png";
-import elite2 from "@/assets/elite-vip-2.png";
-import elite3 from "@/assets/elite-vip-3.png";
-import elite4 from "@/assets/elite-vip-4.png";
-import elite5 from "@/assets/elite-vip-5.png";
+import elite1 from "@/assets/elite-vip-1.webp";
+import elite2 from "@/assets/elite-vip-2.webp";
+import elite3 from "@/assets/elite-vip-3.webp";
+import elite4 from "@/assets/elite-vip-4.webp";
+import elite5 from "@/assets/elite-vip-5.webp";
 
 export type EliteVipTier = {
   level: 1 | 2 | 3 | 4 | 5;

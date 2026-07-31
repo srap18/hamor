@@ -69,16 +69,16 @@ type Item = {
   image?: string;
 };
 
-import rocketSmallImg from "@/assets/weapons/rocket-small.png";
-import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
-import rocketLargeImg from "@/assets/weapons/rocket-large.png";
-import nukeImg from "@/assets/weapons/nuke.png";
-import coinIcon from "@/assets/icons/icon-coins.png";
-import gemIcon from "@/assets/icons/icon-gems.png";
-import phoenixShipImg from "@/assets/ships/ship-phoenix.png";
-import shipDragonRedImg from "@/assets/ships/ship-dragon-red.png";
-import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.png";
-import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.png";
+import rocketSmallImg from "@/assets/weapons/rocket-small.webp";
+import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
+import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
+import nukeImg from "@/assets/weapons/nuke.webp";
+import coinIcon from "@/assets/icons/icon-coins.webp";
+import gemIcon from "@/assets/icons/icon-gems.webp";
+import phoenixShipImg from "@/assets/ships/ship-phoenix.webp";
+import shipDragonRedImg from "@/assets/ships/ship-dragon-red.webp";
+import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.webp";
+import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.webp";
 import { buyPackWithPaddle } from "@/lib/paddle-buy";
 import { isNativeApp } from "@/lib/platform";
 import { showBanner } from "@/components/Banner";

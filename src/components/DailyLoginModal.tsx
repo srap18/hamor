@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { syncServerTime, serverTodayKey } from "@/lib/server-time";
-import iconCoins from "@/assets/icons/icon-coins.png";
-import iconGems from "@/assets/icons/icon-gems.png";
+import iconCoins from "@/assets/icons/icon-coins.webp";
+import iconGems from "@/assets/icons/icon-gems.webp";
 
 type Reward = {
   item_type: "crew" | "weapon" | "coins" | "gems";

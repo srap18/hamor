@@ -7,7 +7,7 @@ import { overallLevel, getStage, type Dragon } from "@/lib/dragon";
 import { useDragonUnlocked } from "@/lib/dragon-access";
 import { DragonEvolutionVideo } from "@/components/DragonEvolutionVideo";
 import { RARITY_COLOR, RARITY_LABEL, SLOT_IMG, SLOT_LABEL, type Rarity, type Slot } from "@/lib/dragon-equipment";
-import nestImg from "@/assets/dragon-nest-only.png";
+import nestImg from "@/assets/dragon-nest-only.webp";
 import hatchVideo from "@/assets/dragon-hatch.mp4.asset.json";
 
 type InspectInfo = {

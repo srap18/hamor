@@ -1,7 +1,7 @@
 // Dragon equipment catalog and helpers
-import swordImg from "@/assets/dragon-sword.png";
-import shieldImg from "@/assets/dragon-shield.png";
-import talismanImg from "@/assets/dragon-talisman.png";
+import swordImg from "@/assets/dragon-sword.webp";
+import shieldImg from "@/assets/dragon-shield.webp";
+import talismanImg from "@/assets/dragon-talisman.webp";
 
 export type Slot = "weapon" | "armor" | "talisman";
 export type Rarity = "common" | "rare" | "epic" | "legendary" | "divine" | "fatak";

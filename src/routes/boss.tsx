@@ -4,7 +4,7 @@ import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
-import bossImg from "@/assets/world-boss.png";
+import bossImg from "@/assets/world-boss.webp";
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
