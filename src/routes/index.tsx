@@ -110,7 +110,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://www.molok-alqarasna.com/" },
-      { rel: "preload", as: "image", href: harborBgPoster, fetchpriority: "high" },
+      { rel: "preload", as: "image", href: harborBgPoster, fetchPriority: "high" },
     ],
   }),
 });
