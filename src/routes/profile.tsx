@@ -116,6 +116,13 @@ function ProfilePage() {
         if (exp && exp <= nowMs) return;
         validIds.add(r.item_id);
       });
+      // Season award frames are permanent — earned by season rank, never expire
+      const earnedSeason = new Set<string>();
+      (seasonRes ?? []).forEach((r: any) => {
+        const t = Number(r?.frame_tier || 0);
+        if (t >= 1 && t <= 10) { earnedSeason.add(`sf_${t}`); validIds.add(`sf_${t}`); }
+      });
+      setSeasonFrameIds(earnedSeason);
       setOwnedFrameIds(validIds);
       setLoading(false);
     })();
