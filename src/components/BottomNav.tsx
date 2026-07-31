@@ -143,16 +143,18 @@ export function BottomNav({ active }: { active?: string }) {
     loadNotifs();
     loadDm();
 
-    const ch = supabase
-      .channel(`bottom-nav:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, loadNotifs)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, loadNotifs)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { loadDm(true); })
-      .subscribe();
+    // Shared notification bus (one socket per player, see lib/notif-bus).
+    // Same three subscriptions as before, same payloads, same timing.
+    const onNotif = (p: any) => { if (p.eventType === "INSERT") loadNotifs(); };
+    const unsub = subscribeNotifBus(user.id, {
+      onPersonal: onNotif,
+      onBroadcast: onNotif,
+      onDmMessage: (p: any) => { if (p.eventType === "INSERT") loadDm(true); },
+    });
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(ch);
+      unsub();
     };
   }, [user]);
 
