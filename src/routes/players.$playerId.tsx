@@ -506,6 +506,29 @@ function PlayerPage() {
     })();
   }, [raiders, nowTs, me]);
 
+  // Poll the server for the real claimable loot of MY active raids.
+  useEffect(() => {
+    if (!me) return;
+    const mineIds = raiders.filter((r) => r.user_id === me).map((r) => r.id);
+    if (mineIds.length === 0) { setStealPreview({}); return; }
+    let alive = true;
+    const run = async () => {
+      if (document.hidden) return;
+      const entries = await Promise.all(
+        mineIds.map(async (id) => {
+          const { data } = await (supabase as any).rpc("steal_mission_preview", { _attacker_ship_id: id });
+          const d = (data ?? {}) as { count?: number; reason?: string | null };
+          return [id, { count: Number(d.count ?? 0), reason: d.reason ?? null }] as const;
+        }),
+      );
+      if (alive) setStealPreview(Object.fromEntries(entries));
+    };
+    run();
+    const t = setInterval(run, 10000);
+    return () => { alive = false; clearInterval(t); };
+  }, [me, raiders.filter((r) => r.user_id === me).map((r) => r.id).join(",")]);
+
+
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
