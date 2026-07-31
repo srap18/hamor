@@ -399,7 +399,7 @@ function ChatPage() {
       if (!active) return;
       ch = supabase.channel(`msgs-${tab}-${dmWith || ""}-${Date.now()}`, {
         config: { broadcast: { self: false }, presence: { key: "" } },
-      })
+      });
       const onInsert = async (payload: any) => {
           const m = payload.new as Msg;
           let ok = false;
