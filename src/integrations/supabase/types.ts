@@ -5628,6 +5628,19 @@ export type Database = {
       }
       _require_market_level: { Args: { _min: number }; Returns: undefined }
       _require_ship_at_sea: { Args: { _uid: string }; Returns: undefined }
+      _settle_steal_mission: {
+        Args: { _attacker_ship_id: string; _reason: string }
+        Returns: {
+          fish_summary: Json
+          stolen_count: number
+          total_value: number
+        }[]
+      }
+      _ship_fish_capacity: { Args: { _ship_id: string }; Returns: number }
+      _ship_fish_load: {
+        Args: { _owner: string; _ship_id: string }
+        Returns: number
+      }
       _ship_repair_ratio: {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
@@ -6251,7 +6264,11 @@ export type Database = {
       }
       cancel_steal_mission: {
         Args: { _attacker_ship_id: string }
-        Returns: Json
+        Returns: {
+          fish_summary: Json
+          stolen_count: number
+          total_value: number
+        }[]
       }
       catch_thief: {
         Args: { _attacker_ship_id: string }
@@ -6293,7 +6310,11 @@ export type Database = {
       claim_session: { Args: { _token: string }; Returns: undefined }
       claim_steal_mission: {
         Args: { _attacker_ship_id: string; _force?: boolean }
-        Returns: Json
+        Returns: {
+          fish_summary: Json
+          stolen_count: number
+          total_value: number
+        }[]
       }
       claim_vip_daily: { Args: never; Returns: Json }
       claim_vip_shield: { Args: never; Returns: Json }
@@ -7471,6 +7492,10 @@ export type Database = {
       }
       shield_purchases_last_week: { Args: { _user: string }; Returns: number }
       ship_from_storage: { Args: { p_ship_id: string }; Returns: Json }
+      ship_has_police: {
+        Args: { _owner: string; _ship_id: string }
+        Returns: boolean
+      }
       ship_to_storage: { Args: { p_ship_id: string }; Returns: Json }
       signup_block_reason: {
         Args: { _device_id: string; _email: string }
@@ -7500,7 +7525,9 @@ export type Database = {
           _target_ship_id: string
           _target_user_id: string
         }
-        Returns: Json
+        Returns: {
+          ends_at: string
+        }[]
       }
       start_steal_mission_impl: {
         Args: {
