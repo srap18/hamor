@@ -3997,8 +3997,10 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
+          passive_repair_ends_at: string | null
           preferred_fish_id: string | null
           repair_ends_at: string | null
+          repair_started_hp: number | null
           source_txn_id: string | null
           stars: number
           stealing_ends_at: string | null
@@ -4021,8 +4023,10 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
+          passive_repair_ends_at?: string | null
           preferred_fish_id?: string | null
           repair_ends_at?: string | null
+          repair_started_hp?: number | null
           source_txn_id?: string | null
           stars?: number
           stealing_ends_at?: string | null
@@ -4045,8 +4049,10 @@ export type Database = {
           last_fishing_reward_at?: string | null
           max_hp?: number
           max_stars?: number
+          passive_repair_ends_at?: string | null
           preferred_fish_id?: string | null
           repair_ends_at?: string | null
+          repair_started_hp?: number | null
           source_txn_id?: string | null
           stars?: number
           stealing_ends_at?: string | null
@@ -6690,8 +6696,10 @@ export type Database = {
           last_fishing_reward_at: string | null
           max_hp: number
           max_stars: number
+          passive_repair_ends_at: string | null
           preferred_fish_id: string | null
           repair_ends_at: string | null
+          repair_started_hp: number | null
           source_txn_id: string | null
           stars: number
           stealing_ends_at: string | null
@@ -7277,7 +7285,7 @@ export type Database = {
         Args: { _reason?: string; _txn_id: string }
         Returns: Json
       }
-      regen_damaged_ships: { Args: { _user: string }; Returns: undefined }
+      regen_damaged_ships: { Args: { _user?: string }; Returns: undefined }
       register_device: { Args: { _device_id: string }; Returns: Json }
       reject_all_friend_requests: { Args: never; Returns: number }
       remove_ad_bombs: { Args: never; Returns: number }
