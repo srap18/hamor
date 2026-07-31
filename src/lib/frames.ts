@@ -433,8 +433,23 @@ export const PROFILE_FRAMES: Frame[] = [
     animClass: "frame-anim-imperial" },
 ];
 
+// ── Season award frames (granted by season rank, not purchasable) ──
+// id = `sf_<tier>` — matches SEASON_FRAMES tiers in @/lib/season-frames
+export const SEASON_AWARD_FRAMES: Frame[] = [
+  { id: "sf_1",  name: "إطار النار 🔥",        kind: "avatar", price: 0, currency: "gem", rarity: "rare",      preview: "🔥", imageUrl: luxNeon,      animClass: "frame-anim-neon" },
+  { id: "sf_2",  name: "إطار البرق ⚡",         kind: "avatar", price: 0, currency: "gem", rarity: "rare",      preview: "⚡", imageUrl: luxAurora,    animClass: "frame-anim-aurora" },
+  { id: "sf_3",  name: "إطار الأمواج 🌊",       kind: "avatar", price: 0, currency: "gem", rarity: "epic",      preview: "🌊", imageUrl: luxEmerald,   animClass: "frame-anim-emerald" },
+  { id: "sf_4",  name: "إطار الجمجمة 💀",       kind: "avatar", price: 0, currency: "gem", rarity: "epic",      preview: "💀", imageUrl: luxObsidian,  animClass: "frame-anim-obsidian" },
+  { id: "sf_5",  name: "إطار التنين 🐲",        kind: "avatar", price: 0, currency: "gem", rarity: "epic",      preview: "🐲", imageUrl: luxDragon,    animClass: "frame-anim-royal" },
+  { id: "sf_6",  name: "إطار البركان 🌋",       kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🌋", imageUrl: luxSakura,    animClass: "frame-anim-sakura" },
+  { id: "sf_7",  name: "إطار الماس 💎",         kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "💎", imageUrl: luxDiamond,   animClass: "frame-anim-diamond" },
+  { id: "sf_8",  name: "إطار التاج 👑",         kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "👑", imageUrl: luxRoyal,     animClass: "frame-anim-royal" },
+  { id: "sf_9",  name: "الطاقة الأسطورية ✨",   kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "✨", imageUrl: luxCelestial, animClass: "frame-anim-aurora" },
+  { id: "sf_10", name: "ملك القراصنة 🏴‍☠️",      kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: luxImperial,  animClass: "frame-anim-imperial" },
+];
+
 export const ALL_FRAMES: Frame[] = [
-  ...AVATAR_FRAMES, ...NAME_FRAMES, ...BUBBLE_FRAMES, ...PROFILE_FRAMES,
+  ...AVATAR_FRAMES, ...NAME_FRAMES, ...BUBBLE_FRAMES, ...PROFILE_FRAMES, ...SEASON_AWARD_FRAMES,
 ];
 
 export function frameById(id?: string | null): Frame | undefined {
