@@ -491,6 +491,7 @@ function PlayerPage() {
   const stopRaid = async (shipId: string) => {
     setCancelRaiderId(null);
     sound.play("click");
+    const prevReason = stealPreview[shipId]?.reason ?? null;
     const { data, error } = await (supabase as any).rpc("cancel_steal_mission", { _attacker_ship_id: shipId });
     if (error) {
       const msg = String(error.message || "");
@@ -509,7 +510,7 @@ function PlayerPage() {
     const n = row?.stolen_count ?? 0;
     const v = row?.total_value ?? 0;
     if (n > 0) flash(`🛑 أوقفت السرقة — رجعت سفينة اللص ومعها ${n} سمكة (قيمتها ${v})`);
-    else flash("🛑 أوقفت السرقة — ما فيه غنيمة متاحة الآن");
+    else flash(`🛑 أوقفت السرقة — ${stealReasonText(prevReason)}`);
     loadRaiders();
     broadcastRaid();
   };
