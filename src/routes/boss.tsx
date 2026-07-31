@@ -4,7 +4,7 @@ import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
-import bossImg from "@/assets/world-boss.png";
+import bossImg from "@/assets/world-boss.webp";
 
 export const Route = createFileRoute("/boss")({
   ssr: false,
@@ -443,7 +443,7 @@ function BossPage() {
                   animation: `ember-rise ${1.6+i*0.3}s ${i*0.4}s ease-out infinite` }} />
             ))}
             <div className="relative w-full h-full" style={{ animation: "boss-fly 3.2s ease-in-out infinite" }}>
-              <img src={bossImg} alt={boss.name} draggable={false}
+              <img decoding="async" src={bossImg} alt={boss.name} draggable={false}
                 className="w-full h-full object-contain"
                 style={{
                   animation: "boss-wing 2.4s ease-in-out infinite",
@@ -470,7 +470,7 @@ function BossPage() {
             <div className={`absolute right-2 bottom-10 w-[42%] aspect-[4/3]`}
                  style={{ animation: shake === "ship" ? "shake-x 0.22s" : undefined }}>
               <div style={{ animation: "ship-bob 2.6s ease-in-out infinite", transformOrigin: "50% 90%" }}>
-                <img src={shipDef.image} alt={shipDef.name} draggable={false}
+                <img decoding="async" src={shipDef.image} alt={shipDef.name} draggable={false}
                   className="w-full h-full object-contain"
                   style={{ transform: "scaleX(-1)",
                     filter: shipDestroyed ? "grayscale(0.9) brightness(0.5)" : "drop-shadow(0 6px 8px rgba(0,0,0,0.7))" }} />
@@ -560,7 +560,7 @@ function BossPage() {
                       setShipDestroyed(sDead);
                     }}
                       className={`relative shrink-0 w-12 h-12 rounded-lg border-2 ${sel ? "border-amber-300 bg-amber-500/20" : "border-stone-700 bg-stone-800/60"} flex items-center justify-center active:scale-95 ${sDead ? "opacity-50" : ""}`}>
-                      <img src={d.image} alt="" className="w-10 h-10 object-contain" style={{ transform: "scaleX(-1)" }} />
+                      <img decoding="async" src={d.image} alt="" className="w-10 h-10 object-contain" style={{ transform: "scaleX(-1)" }} />
                       {sDead && <span className="absolute -top-1 -right-1 text-xs">💀</span>}
                     </button>
                   );

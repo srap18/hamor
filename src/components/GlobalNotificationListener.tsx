@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
@@ -86,20 +87,17 @@ export function GlobalNotificationListener() {
       try { sound.play("click"); } catch { /* noop */ }
     };
 
-    // Realtime = instant. Server-side filter keeps this user's rows only.
-    const channel = supabase
-      .channel(`global-notifs:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
-        (payload) => {
-          const n = payload.new as Notif;
-          if (!n) return;
-          showToast(n);
-          if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
-        },
-      )
-      .subscribe();
+    // Realtime = instant. Shared bus delivers this user's personal rows only —
+    // identical payloads to the previous dedicated channel, one socket less.
+    const unsubNotif = subscribeNotifBus(user.id, {
+      onPersonal: (payload) => {
+        if (payload.eventType !== "INSERT") return;
+        const n = payload.new as Notif;
+        if (!n) return;
+        showToast(n);
+        if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
+      },
+    });
 
     // Safety-net poll: only runs if realtime drops (mobile background, network flap).
     const poll = async () => {
@@ -157,23 +155,19 @@ export function GlobalNotificationListener() {
       try { sound.play("click"); } catch { /* noop */ }
       try { window.dispatchEvent(new CustomEvent("dm-inbound", { detail: { from: m.sender_id } })); } catch { /* noop */ }
     };
-    const dmChannel = supabase
-      .channel(`global-dm:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` },
-        (payload) => {
-          const m = payload.new as DmMsg;
-          if (!m || m.channel !== "dm") return;
-          if (m.sender_id === user.id) return;
-          void showDm(m);
-        },
-      )
-      .subscribe();
+    const unsubDm = subscribeNotifBus(user.id, {
+      onDmMessage: (payload) => {
+        if (payload.eventType !== "INSERT") return;
+        const m = payload.new as DmMsg;
+        if (!m || m.channel !== "dm") return;
+        if (m.sender_id === user.id) return;
+        void showDm(m);
+      },
+    });
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(dmChannel);
+      unsubNotif();
+      unsubDm();
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onVis);

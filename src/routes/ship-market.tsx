@@ -12,16 +12,16 @@ const MyShipsModal = lazy(() =>
   import("@/components/MyShipsModal").then((m) => ({ default: m.MyShipsModal }))
 );
 import { getCached, setCached } from "@/lib/swr-cache";
-import iconArmor from "@/assets/icons/icon-armor.png";
-import iconCoins from "@/assets/icons/icon-coins.png";
-import iconFishing from "@/assets/icons/icon-fishing.png";
-import iconGems from "@/assets/icons/icon-gems.png";
-import iconHp from "@/assets/icons/icon-hp.png";
-import iconRepair from "@/assets/icons/icon-repair.png";
-import iconSpeed from "@/assets/icons/icon-speed.png";
-import iconStorage from "@/assets/icons/icon-storage.png";
-import iconTimer from "@/assets/icons/icon-timer.png";
-import iconUpgrade from "@/assets/icons/icon-upgrade.png";
+import iconArmor from "@/assets/icons/icon-armor.webp";
+import iconCoins from "@/assets/icons/icon-coins.webp";
+import iconFishing from "@/assets/icons/icon-fishing.webp";
+import iconGems from "@/assets/icons/icon-gems.webp";
+import iconHp from "@/assets/icons/icon-hp.webp";
+import iconRepair from "@/assets/icons/icon-repair.webp";
+import iconSpeed from "@/assets/icons/icon-speed.webp";
+import iconStorage from "@/assets/icons/icon-storage.webp";
+import iconTimer from "@/assets/icons/icon-timer.webp";
+import iconUpgrade from "@/assets/icons/icon-upgrade.webp";
 import { serverNowMs } from "@/lib/server-time";
 
 // عرض المستوى المطلوب للناس: السفينة الداخلية مستوى 33 (الغواصة الترقيّة) تظهر كأنها 31.
@@ -297,7 +297,7 @@ function ShipyardPage() {
                   <div className="absolute bottom-10 left-1/2 h-8 w-3/4 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
                   <div className="absolute bottom-4 left-1/2 h-6 w-4/5 -translate-x-1/2 rounded-full border border-white/10 bg-white/5" />
                   <div className="relative z-10 w-full" style={{ transform: `scaleX(${selectedShipFlip})` }}>
-                    <img src={selectedShip.image} alt={selectedShip.title} className="animate-[float-up_12s_ease-in-out_infinite] max-h-[320px] w-full object-contain drop-shadow-[0_28px_45px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-[1.03]" width={1280} height={960} />
+                    <img decoding="async" src={selectedShip.image} alt={selectedShip.title} className="animate-[float-up_12s_ease-in-out_infinite] max-h-[320px] w-full object-contain drop-shadow-[0_28px_45px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-[1.03]" width={1280} height={960} />
                   </div>
                 </div>
 
@@ -316,7 +316,7 @@ function ShipyardPage() {
           <div className="flex flex-col gap-4">
             <div className="glass-hud rounded-2xl p-4">
               <div className="flex items-center gap-2">
-                <img src={iconUpgrade} alt="أيقونة الترقية" className="h-9 w-9" width={512} height={512} loading="lazy" />
+                <img decoding="async" src={iconUpgrade} alt="أيقونة الترقية" className="h-9 w-9" width={512} height={512} loading="lazy" />
                 <div>
                   <h2 className="text-lg font-black">ترقية السوق</h2>
                   <p className="text-xs text-muted-foreground">تفتح سفنًا أعلى وتزيد قيمة الأسطول مع مرور الوقت.</p>
@@ -338,7 +338,7 @@ function ShipyardPage() {
                     <span className="font-black">{acceleratingCost} Gems</span>
                   </div>
                   <button onClick={finishWithGems} disabled={busy === "boost"} className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-black text-accent-foreground disabled:opacity-50">
-                    <img src={iconGems} alt="أيقونة الجواهر" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                    <img decoding="async" src={iconGems} alt="أيقونة الجواهر" className="h-5 w-5" width={512} height={512} loading="lazy" />
                     {busy === "boost" ? "جارٍ التسريع..." : acceleratingCost === 0 ? "إكمال الترقية الآن" : `إنهاء الآن (${acceleratingCost})`}
                   </button>
                   <div className="text-[11px] text-muted-foreground">المعادلة المستخدمة: ceil(seconds_remaining / 60)</div>
@@ -378,7 +378,7 @@ function ShipyardPage() {
                   <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/20 p-2">
                     <div className="absolute inset-x-6 bottom-2 h-5 rounded-full bg-primary/15 blur-2xl" />
                     <div style={{ transform: `scaleX(${shipFlip})` }}>
-                      <img src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
+                      <img decoding="async" src={ship.image} alt={ship.title} className="mx-auto h-32 w-full object-contain transition-transform duration-500 group-hover:scale-105" width={1024} height={768} loading="lazy" />
                     </div>
                     <span className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[10px] font-bold text-white/90">Lvl {reqLevel}</span>
                   </div>
@@ -416,7 +416,7 @@ function ShipyardPage() {
 
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm font-black">
-                      <img src={iconCoins} alt="أيقونة الذهب" className="h-5 w-5" width={512} height={512} loading="lazy" />
+                      <img decoding="async" src={iconCoins} alt="أيقونة الذهب" className="h-5 w-5" width={512} height={512} loading="lazy" />
                       <span>{ship.price.toLocaleString()}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); buyShip(ship); }} disabled={locked || busy === ship.code || allFull} className="rounded-lg bg-primary px-3 py-2 text-xs font-black text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
@@ -477,7 +477,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span className="font-black">{preview ? formatDuration(preview.seconds) : "..."}</span>
       </div>
       <button onClick={onStart} disabled={busy || level >= 31} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
-        <img src={iconTimer} alt="أيقونة المؤقت" className="h-5 w-5" width={512} height={512} loading="lazy" />
+        <img decoding="async" src={iconTimer} alt="أيقونة المؤقت" className="h-5 w-5" width={512} height={512} loading="lazy" />
         {level >= 31 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
       </button>
     </div>
@@ -487,7 +487,7 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
 function Res({ icon, label, value }: { icon: string; label: string; value: number }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border bg-card/70 px-3 py-2">
-      <img src={icon} alt={label} className="h-6 w-6" width={512} height={512} loading="lazy" />
+      <img decoding="async" src={icon} alt={label} className="h-6 w-6" width={512} height={512} loading="lazy" />
       <div>
         <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
         <div className="text-sm font-black">{value.toLocaleString()}</div>
@@ -499,7 +499,7 @@ function Res({ icon, label, value }: { icon: string; label: string; value: numbe
 function Spec({ icon, label, value }: { icon: string; label: string; value: number | string }) {
   return (
     <div className="rounded-xl border border-border bg-card/70 p-3 text-center">
-      <img src={icon} alt={label} className="mx-auto h-8 w-8" width={512} height={512} loading="lazy" />
+      <img decoding="async" src={icon} alt={label} className="mx-auto h-8 w-8" width={512} height={512} loading="lazy" />
       <div className="mt-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</div>
       <div className="mt-1 text-sm font-black">{value}</div>
     </div>
@@ -509,7 +509,7 @@ function Spec({ icon, label, value }: { icon: string; label: string; value: numb
 function Mini({ icon, value }: { icon: string; value: number | string }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2 py-1.5">
-      <img src={icon} alt="stat" className="h-4 w-4" width={512} height={512} loading="lazy" />
+      <img decoding="async" src={icon} alt="stat" className="h-4 w-4" width={512} height={512} loading="lazy" />
       <span className="text-[11px] font-bold">{value}</span>
     </div>
   );

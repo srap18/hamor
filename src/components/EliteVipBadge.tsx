@@ -21,7 +21,7 @@ export function EliteVipBadge({ level, size = "sm", showLabel = false, className
   if (!tier) return null;
   return (
     <span className={`inline-flex items-center gap-1 align-middle ${className}`} title={`Elite VIP ${tier.level} — ${tier.nameAr}`}>
-      <img
+      <img decoding="async"
         src={tier.badge}
         alt={`VIP ${tier.level}`}
         loading="lazy"

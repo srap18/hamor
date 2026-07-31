@@ -3,16 +3,16 @@ import { ReactNode } from "react";
 // Premium image-based seasonal frames — matches the shop's luxury frame style,
 // with extra aura pulse, sweeping shine and bobbing crown to feel one tier above.
 
-import luxNeon      from "@/assets/frames/lux-neon.png";
-import luxAurora    from "@/assets/frames/lux-aurora.png";
-import luxEmerald   from "@/assets/frames/lux-emerald.png";
-import luxObsidian  from "@/assets/frames/lux-obsidian.png";
-import luxDragon    from "@/assets/frames/lux-dragon.png";
-import luxSakura    from "@/assets/frames/lux-sakura.png";
-import luxDiamond   from "@/assets/frames/lux-diamond.png";
-import luxRoyal     from "@/assets/frames/lux-royal.png";
-import luxCelestial from "@/assets/frames/lux-celestial.png";
-import luxImperial  from "@/assets/frames/lux-imperial.png";
+import luxNeon      from "@/assets/frames/lux-neon.webp";
+import luxAurora    from "@/assets/frames/lux-aurora.webp";
+import luxEmerald   from "@/assets/frames/lux-emerald.webp";
+import luxObsidian  from "@/assets/frames/lux-obsidian.webp";
+import luxDragon    from "@/assets/frames/lux-dragon.webp";
+import luxSakura    from "@/assets/frames/lux-sakura.webp";
+import luxDiamond   from "@/assets/frames/lux-diamond.webp";
+import luxRoyal     from "@/assets/frames/lux-royal.webp";
+import luxCelestial from "@/assets/frames/lux-celestial.webp";
+import luxImperial  from "@/assets/frames/lux-imperial.webp";
 
 export type SeasonFrame = {
   tier: number;
@@ -109,7 +109,7 @@ export function SeasonFrameRing({
       </div>
 
       {/* Premium frame image on top with luxury animation */}
-      <img
+      <img decoding="async"
         src={frame.imageUrl}
         alt=""
         aria-hidden

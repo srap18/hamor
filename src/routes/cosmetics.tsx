@@ -260,7 +260,7 @@ function FramePreview({ frame: f }: { frame: Frame }) {
           <div className="absolute w-12 h-12 rounded-full bg-gradient-to-b from-stone-600 to-stone-800 flex items-center justify-center text-xl">
             🧙
           </div>
-          <img
+          <img decoding="async"
             src={f.imageUrl}
             alt={f.name}
             className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${f.animClass ?? ""}`}

@@ -2,17 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { sound } from "@/lib/sound";
 import { serverNowMs } from "@/lib/server-time";
-import t1 from "@/assets/buildings/shipyard-t1.png";
-import t2 from "@/assets/buildings/shipyard-t2.png";
-import t3 from "@/assets/buildings/shipyard-t3.png";
-import t4 from "@/assets/buildings/shipyard-t4.png";
-import t5 from "@/assets/buildings/shipyard-t5.png";
-import t6 from "@/assets/buildings/shipyard-t6.png";
-import t7 from "@/assets/buildings/shipyard-t7.png";
-import t8 from "@/assets/buildings/shipyard-t8.png";
-import t9 from "@/assets/buildings/shipyard-t9.png";
-import t10 from "@/assets/buildings/shipyard-t10.png";
-import burnedImg from "@/assets/buildings/shipyard-burned.png";
+import t1 from "@/assets/buildings/shipyard-t1.webp";
+import t2 from "@/assets/buildings/shipyard-t2.webp";
+import t3 from "@/assets/buildings/shipyard-t3.webp";
+import t4 from "@/assets/buildings/shipyard-t4.webp";
+import t5 from "@/assets/buildings/shipyard-t5.webp";
+import t6 from "@/assets/buildings/shipyard-t6.webp";
+import t7 from "@/assets/buildings/shipyard-t7.webp";
+import t8 from "@/assets/buildings/shipyard-t8.webp";
+import t9 from "@/assets/buildings/shipyard-t9.webp";
+import t10 from "@/assets/buildings/shipyard-t10.webp";
+import burnedImg from "@/assets/buildings/shipyard-burned.webp";
 
 /**
  * Animated in-world Ship Market building.

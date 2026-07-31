@@ -1,5 +1,5 @@
-import eiffelNightBg from "@/assets/bg-eiffel-night.png";
-import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.png";
+import eiffelNightBg from "@/assets/bg-eiffel-night.webp";
+import eiffelNightBurnedBg from "@/assets/bg-eiffel-night-burned.webp";
 import crystalKingdomBg from "@/assets/bg-crystal-kingdom.png.asset.json";
 import crystalKingdomBurnedBg from "@/assets/bg-crystal-kingdom-burned.png.asset.json";
 import eiffelBg from "@/assets/bg-eiffel.jpg.asset.json";

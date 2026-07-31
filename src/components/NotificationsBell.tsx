@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
 import { getProfilesPublic, type PublicProfile } from "@/lib/profiles-public";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 
 
 type Notif = {
@@ -123,14 +124,11 @@ export function NotificationsBell() {
         sound.play("click");
       }
     };
-    // Split into two server-filtered subscriptions so Realtime only forwards
-    // rows meant for this user (personal or broadcast) instead of every
-    // notification insert in the game. Same behavior, tiny fraction of WAL.
-    const ch = supabase
-      .channel(`notifs:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, onInsert)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, onInsert)
-      .subscribe();
+    // Shared bus: one socket per player instead of a dedicated channel here.
+    // Delivers the exact same personal + broadcast INSERT payloads, at the same
+    // instant, in the same order — only the transport is de-duplicated.
+    const onBus = (p: any) => { if (p.eventType === "INSERT") onInsert(p); };
+    const unsub = subscribeNotifBus(user.id, { onPersonal: onBus, onBroadcast: onBus });
     // Realtime (above) + visibility/focus handlers below are primary.
     // Safety-net poll is very slow (2 min) — only needed if realtime drops on mobile.
     // Previously this fired every 15s and caused ~16M redundant notification queries.
@@ -139,7 +137,7 @@ export function NotificationsBell() {
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
     return () => {
-      supabase.removeChannel(ch);
+      unsub();
       clearInterval(poll);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("focus", onVis);
@@ -259,7 +257,7 @@ export function NotificationsBell() {
                             {actor ? (
                               <Link to="/p/$id" params={{ id: actor.id }} onClick={() => setOpen(false)} className="shrink-0 relative">
                                 {actor.avatar_url ? (
-                                  <img src={actor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-red-500/70" />
+                                  <img decoding="async" src={actor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-red-500/70" />
                                 ) : (
                                   <div className="w-12 h-12 rounded-full bg-red-900/60 border-2 border-red-500/70 flex items-center justify-center text-2xl">
                                     {actor.avatar_emoji || "🏴‍☠️"}
@@ -336,7 +334,7 @@ export function NotificationsBell() {
                               className="shrink-0"
                             >
                               {actor.avatar_url ? (
-                                <img src={actor.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/70" />
+                                <img decoding="async" src={actor.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/70" />
                               ) : (
                                 <div className="w-10 h-10 rounded-full bg-amber-900/60 border-2 border-amber-500/70 flex items-center justify-center text-xl">
                                   {actor.avatar_emoji || "🏴‍☠️"}

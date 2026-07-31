@@ -238,7 +238,7 @@ function AdminTicketsPage() {
 
                 {t.image_path && signedUrls[t.image_path] && (
                   <a href={signedUrls[t.image_path]} target="_blank" rel="noreferrer">
-                    <img src={signedUrls[t.image_path]} alt="مرفق" className="mb-3 max-h-56 rounded border border-slate-700" />
+                    <img decoding="async" src={signedUrls[t.image_path]} alt="مرفق" className="mb-3 max-h-56 rounded border border-slate-700" />
                   </a>
                 )}
 

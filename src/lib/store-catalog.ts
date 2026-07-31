@@ -1,15 +1,15 @@
 // Canonical catalog of packs. The pack `id` is also the Paddle price
 // `external_id` — checkout resolves it server-side (never trust client price).
 
-import shipPhoenixImg from "@/assets/ships/ship-phoenix.png";
-import shipDragonRedImg from "@/assets/ships/ship-dragon-red.png";
-import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.png";
-import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.png";
-import gemIcon from "@/assets/icon-gem-3d.png";
-import rocketLargeImg from "@/assets/weapons/rocket-large.png";
-import rocketMediumImg from "@/assets/weapons/rocket-medium.png";
-import nukeImg from "@/assets/weapons/nuke.png";
-import adBombImg from "@/assets/weapons/ad-bomb.png";
+import shipPhoenixImg from "@/assets/ships/ship-phoenix.webp";
+import shipDragonRedImg from "@/assets/ships/ship-dragon-red.webp";
+import shipDragonSilverImg from "@/assets/ships/ship-dragon-silver.webp";
+import shipDragonGoldImg from "@/assets/ships/ship-dragon-gold.webp";
+import gemIcon from "@/assets/icon-gem-3d.webp";
+import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
+import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
+import nukeImg from "@/assets/weapons/nuke.webp";
+import adBombImg from "@/assets/weapons/ad-bomb.webp";
 
 export type PackCategory = "offers" | "bundle" | "vip" | "gems" | "shield" | "weapon" | "coins" | "crew";
 

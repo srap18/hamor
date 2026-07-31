@@ -848,7 +848,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         <div className="bg-slate-900 rounded-2xl border border-slate-700 max-w-3xl w-full my-4 md:my-8 flex flex-col max-h-[92vh] shadow-2xl" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-3 p-4 md:p-5 border-b border-slate-800 sticky top-0 bg-slate-900 rounded-t-2xl z-10">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
+              <img decoding="async" src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-700" />
             ) : (
               <span className="text-3xl">{player.avatar_emoji}</span>
             )}
@@ -931,7 +931,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               {linkedData.linked.map((acc) => (
                 <div key={acc.user_id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2 flex items-center gap-2">
                   {acc.avatar_url ? (
-                    <img src={acc.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-600 shrink-0" />
+                    <img decoding="async" src={acc.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-600 shrink-0" />
                   ) : (
                     <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-sm shrink-0">👤</div>
                   )}

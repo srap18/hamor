@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import explosionReal from "@/assets/fx/explosion-real.png";
-import nukeReal from "@/assets/fx/nuke-real.png";
-import smokeReal from "@/assets/fx/smoke-real.png";
+import explosionReal from "@/assets/fx/explosion-real.webp";
+import nukeReal from "@/assets/fx/nuke-real.webp";
+import smokeReal from "@/assets/fx/smoke-real.webp";
 
 
 
@@ -86,7 +86,7 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
     <div className="fixed inset-0 pointer-events-none z-[70]" style={{ perspective: "1200px" }}>
       {/* Realistic smoke trail puffs (image-based) */}
       {fx.phase === "fly" && !fx.friendly && puffs.map((p) => (
-        <img
+        <img decoding="async"
           key={p.id}
           src={smokeReal}
           alt=""
@@ -250,7 +250,7 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
 
           {/* Outer realistic smoke puffs flying outward */}
           {smokeRing.map((s) => (
-            <img
+            <img decoding="async"
               key={`sm-${s.key}`}
               src={smokeReal}
               alt=""
@@ -272,7 +272,7 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
           ))}
 
           {/* Core realistic explosion render */}
-          <img
+          <img decoding="async"
             src={isNuke ? nukeReal : explosionReal}
             alt=""
             aria-hidden

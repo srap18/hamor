@@ -290,7 +290,7 @@ function TribeEventsPage() {
                                         {mi === 0 ? "🥇" : mi === 1 ? "🥈" : mi === 2 ? "🥉" : `#${mi+1}`}
                                       </span>
                                       {m.avatar_url ? (
-                                        <img src={m.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0 border border-slate-700"/>
+                                        <img decoding="async" src={m.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0 border border-slate-700"/>
                                       ) : (
                                         <span className="w-6 h-6 rounded-full bg-slate-800 grid place-items-center text-[10px] shrink-0">👤</span>
                                       )}

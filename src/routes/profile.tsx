@@ -320,13 +320,13 @@ function ProfilePage() {
               {/* Avatar sits centered and smaller so the frame's ring surrounds it without covering the picture */}
               <div className={`relative z-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                  <img decoding="async" src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-secondary text-3xl">{avatarEmoji}</div>
                 )}
               </div>
               {equippedAvatarFrame?.imageUrl && (
-                <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
+                <img decoding="async" src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${equippedAvatarFrame.animClass ?? ""}`} />
               )}
             </div>
             <div className="flex-1">
@@ -520,7 +520,7 @@ function ProfilePage() {
                   flash("تم تحديث الصورة");
                 }}
                   className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all active:scale-95 ${isSelected ? "border-amber-300 ring-2 ring-amber-300/60" : "border-border"}`}>
-                  <img src={src} alt={`avatar ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img decoding="async" src={src} alt={`avatar ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                 </button>
               );
             })}
@@ -610,7 +610,7 @@ function FrameSection({ title, kind, frames, owned, selected, onSelect }: {
                 f.imageUrl ? (
                   <div className="relative w-14 h-14 flex items-center justify-center">
                     <div className="absolute w-9 h-9 rounded-full bg-stone-700 flex items-center justify-center text-base">👤</div>
-                    <img src={f.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${f.animClass ?? ""}`} loading="lazy" />
+                    <img decoding="async" src={f.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${f.animClass ?? ""}`} loading="lazy" />
                   </div>
                 ) : (
                   <div className={`w-12 h-12 rounded-full bg-stone-700 flex items-center justify-center text-xl ${f.ring ?? ""}`}>👤</div>

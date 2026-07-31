@@ -144,12 +144,12 @@ function UserProfilePage() {
           const tier = getTribeBanner(tribe.level || 1);
           return (
             <section className="relative w-full h-28 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-[0_0_30px_rgba(251,191,36,0.35)]">
-              <img src={tier.url} alt={`بنر ${tier.name}`} className="absolute inset-0 w-full h-full object-cover" />
+              <img decoding="async" src={tier.url} alt={`بنر ${tier.name}`} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute inset-0 flex items-center gap-3 px-4">
                 <div className="relative w-16 h-16 shrink-0">
-                  <img src={tier.emblemUrl} alt="" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
-                  <img src={tier.frameUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                  <img decoding="async" src={tier.emblemUrl} alt="" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+                  <img decoding="async" src={tier.frameUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-amber-100 font-extrabold text-base truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">🏴‍☠️ {tribe.name}</div>
@@ -170,13 +170,13 @@ function UserProfilePage() {
               <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt={`Player avatar — ${profile.display_name ?? profile.username}`} className="w-full h-full object-cover" />
+                    <img decoding="async" src={profile.avatar_url} alt={`Player avatar — ${profile.display_name ?? profile.username}`} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-secondary text-4xl">{profile.avatar_emoji ?? "🧙"}</div>
                   )}
                 </div>
                 {equippedAvatarFrame?.imageUrl && (
-                  <img src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${equippedAvatarFrame.animClass ?? ""}`} />
+                  <img decoding="async" src={equippedAvatarFrame.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${equippedAvatarFrame.animClass ?? ""}`} />
                 )}
               </div>
               <div className="flex-1 min-w-0">

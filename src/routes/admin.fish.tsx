@@ -122,7 +122,7 @@ function AdminFishPrices() {
         {shipBlocks.map(({ lvl, ship, fishIds }) => (
           <section key={lvl} className="rounded-xl border border-slate-800 bg-slate-900/60 overflow-hidden">
             <header className="flex items-center gap-3 p-3 border-b border-slate-800 bg-slate-900">
-              <img
+              <img decoding="async"
                 src={ship.image}
                 alt={ship.name}
                 className="w-16 h-16 object-contain shrink-0"
@@ -141,7 +141,7 @@ function AdminFishPrices() {
                 return (
                   <div key={fid} className="p-3 flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2 min-w-[140px]">
-                      <img src={f.img} alt={f.name} className="w-10 h-10 object-contain" />
+                      <img decoding="async" src={f.img} alt={f.name} className="w-10 h-10 object-contain" />
                       <div>
                         <div className="text-sm font-medium text-slate-100">{f.name}</div>
                         <div className="text-[10px] text-slate-500">{fid}</div>

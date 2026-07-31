@@ -150,7 +150,7 @@ function DragonPage() {
         {/* Stage badge */}
         <div className="text-center mb-2">
           <div className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-600/30 via-rose-600/30 to-amber-600/30 border border-amber-400/50">
-            <img src={stage.image} alt={stage.name} className="inline-block w-8 h-8 object-contain me-2 align-middle" loading="lazy" />
+            <img decoding="async" src={stage.image} alt={stage.name} className="inline-block w-8 h-8 object-contain me-2 align-middle" loading="lazy" />
             <span className="text-amber-100 font-extrabold text-lg">{stage.name}</span>
             <span className="text-amber-300/70 text-xs ms-2">الشكل {d.stage}/{DRAGON_STAGES.length}</span>
           </div>
@@ -235,7 +235,7 @@ function DragonPage() {
                       : "bg-stone-900/40 border border-stone-700/40 opacity-60"
                   }`}
                 >
-                  <img src={s.image} alt={s.name} className="w-9 h-9 object-contain shrink-0" loading="lazy" />
+                  <img decoding="async" src={s.image} alt={s.name} className="w-9 h-9 object-contain shrink-0" loading="lazy" />
                   <div className="flex-1">
                     <div className={`text-sm font-bold ${current ? "text-amber-100" : reached ? "text-emerald-200" : "text-stone-400"}`}>
                       {s.name}

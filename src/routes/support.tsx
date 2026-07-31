@@ -213,7 +213,7 @@ function SupportPage() {
             />
             {preview && (
               <div className="mt-2 relative inline-block">
-                <img src={preview} alt="معاينة" className="max-h-40 rounded-lg border border-slate-700" />
+                <img decoding="async" src={preview} alt="معاينة" className="max-h-40 rounded-lg border border-slate-700" />
                 <button
                   type="button"
                   onClick={() => onPickFile(null)}
@@ -257,7 +257,7 @@ function SupportPage() {
                     <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">{t.message}</div>
                     {t.image_path && signedUrls[t.image_path] && (
                       <a href={signedUrls[t.image_path]} target="_blank" rel="noreferrer">
-                        <img src={signedUrls[t.image_path]} alt="مرفق" className="mt-2 max-h-40 rounded border border-slate-700" />
+                        <img decoding="async" src={signedUrls[t.image_path]} alt="مرفق" className="mt-2 max-h-40 rounded border border-slate-700" />
                       </a>
                     )}
                     {t.admin_note && (

@@ -2,18 +2,19 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { memo, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { loadDmUnreadMap, markAllDmRead } from "@/lib/dm-unread";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 
 
-import iconBattle from "@/assets/nav-icon-battle.png";
-import iconArena from "@/assets/nav-icon-arena.png";
-import iconFriends from "@/assets/nav-icon-friends.png";
-import iconInventory from "@/assets/nav-icon-inventory.png";
-import iconShop from "@/assets/nav-icon-shop.png";
-import iconChat from "@/assets/nav-icon-chat.png";
-import iconSettings from "@/assets/nav-icon-settings.png";
+import iconBattle from "@/assets/nav-icon-battle.webp";
+import iconArena from "@/assets/nav-icon-arena.webp";
+import iconFriends from "@/assets/nav-icon-friends.webp";
+import iconInventory from "@/assets/nav-icon-inventory.webp";
+import iconShop from "@/assets/nav-icon-shop.webp";
+import iconChat from "@/assets/nav-icon-chat.webp";
+import iconSettings from "@/assets/nav-icon-settings.webp";
 
 const items = [
   { src: iconBattle, label: "تحدي", to: "/battle" as const },
@@ -56,7 +57,7 @@ const NavIconButton = memo(function NavIconButton({
             : "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
         }}
       >
-        <img
+        <img decoding="async"
           src={src}
           alt={`أيقونة ${label}`}
           loading="lazy"
@@ -143,16 +144,30 @@ export function BottomNav({ active }: { active?: string }) {
     loadNotifs();
     loadDm();
 
-    const ch = supabase
-      .channel(`bottom-nav:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` }, loadNotifs)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=is.null` }, loadNotifs)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `recipient_id=eq.${user.id}` }, () => { loadDm(true); })
-      .subscribe();
+    // Coalesce badge recounts. Global broadcast notifications (lucky-box
+    // winners, etc.) arrive in bursts, and each one previously fired 4 badge
+    // queries on EVERY connected device — a large share of the top DB queries
+    // and of mobile radio wakeups. A 3s trailing window collapses a burst into
+    // one recount; the badge value it produces is exactly the same.
+    let recountTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRecount = () => {
+      if (recountTimer) return;
+      recountTimer = setTimeout(() => { recountTimer = null; loadNotifs(); }, 3000);
+    };
+
+    // Shared notification bus (one socket per player, see lib/notif-bus).
+    // Same three subscriptions as before, same payloads, same timing.
+    const onNotif = (p: any) => { if (p.eventType === "INSERT") scheduleRecount(); };
+    const unsub = subscribeNotifBus(user.id, {
+      onPersonal: onNotif,
+      onBroadcast: onNotif,
+      onDmMessage: (p: any) => { if (p.eventType === "INSERT") loadDm(true); },
+    });
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(ch);
+      if (recountTimer) clearTimeout(recountTimer);
+      unsub();
     };
   }, [user]);
 

@@ -176,7 +176,7 @@ function SeasonPage() {
               <section className="rounded-2xl p-3 bg-white/5 border border-amber-400/30 flex items-center gap-3">
                 <SeasonFrameRing frame={frameForDamage(myRow?.damage_total || 0)} size={56}>
                   {profs[me]?.avatar_url ? (
-                    <img src={profs[me]!.avatar_url!} alt="" className="w-full h-full object-cover" />
+                    <img decoding="async" src={profs[me]!.avatar_url!} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-xl bg-slate-700">{profs[me]?.avatar_emoji || "🏴‍☠️"}</div>
                   )}
@@ -203,7 +203,7 @@ function SeasonPage() {
                     <div className="w-8 text-center font-black text-amber-300">#{rank}</div>
                     <SeasonFrameRing frame={frame} size={48} showCrown={false}>
                       {p?.avatar_url ? (
-                        <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-lg bg-slate-700">{p?.avatar_emoji || "🏴‍☠️"}</div>
                       )}
@@ -296,7 +296,7 @@ function PodiumCard({ row, p, rank, isMe, tall, onOpen }: { row: Row; p?: Profil
       {rank === 1 && <div className="absolute -top-2 text-3xl z-30" style={{ filter: "drop-shadow(0 0 10px gold)" }}>👑</div>}
       <SeasonFrameRing frame={frame} size={size} intense={rank===1}>
         {p?.avatar_url ? (
-          <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+          <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-3xl bg-slate-800">{p?.avatar_emoji || "🏴‍☠️"}</div>
         )}

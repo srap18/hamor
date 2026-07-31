@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { syncServerTime, serverTodayKey } from "@/lib/server-time";
-import iconCoins from "@/assets/icons/icon-coins.png";
-import iconGems from "@/assets/icons/icon-gems.png";
+import iconCoins from "@/assets/icons/icon-coins.webp";
+import iconGems from "@/assets/icons/icon-gems.webp";
 
 type Reward = {
   item_type: "crew" | "weapon" | "coins" | "gems";
@@ -43,10 +43,10 @@ const daysBetween = (a: string, b: string) =>
 
 function RewardIcon({ r, size }: { r: Reward; size: number }) {
   if (r.item_type === "coins") {
-    return <img src={iconCoins} alt="مكافأة الذهب اليومية" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+    return <img decoding="async" src={iconCoins} alt="مكافأة الذهب اليومية" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
   if (r.item_type === "gems") {
-    return <img src={iconGems} alt="أيقونة الجواهر الزرقاء" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+    return <img decoding="async" src={iconGems} alt="أيقونة الجواهر الزرقاء" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
   return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
 }

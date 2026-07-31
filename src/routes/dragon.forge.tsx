@@ -241,7 +241,7 @@ function ItemCard({ item, action }: { item: EquipmentItem; action?: React.ReactN
 
       <div className="flex items-center gap-3">
         <div className="w-16 h-16 rounded-xl bg-stone-950/60 border border-stone-700/50 flex items-center justify-center overflow-hidden flex-shrink-0">
-          <img src={SLOT_IMG[item.slot]} alt={item.name} className="w-full h-full object-contain"
+          <img decoding="async" src={SLOT_IMG[item.slot]} alt={item.name} className="w-full h-full object-contain"
             style={{ animation: "shimmer 2.5s ease-in-out infinite" }} loading="lazy" />
         </div>
         <div className="flex-1 min-w-0">
@@ -348,7 +348,7 @@ function ShopTab({ onBuy, busy }: { onBuy: (s: Slot, r: Rarity, c: "coins" | "ge
               style={{ ["--g" as string]: c.glow } as React.CSSProperties}>
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-lg bg-stone-950/70 border border-stone-700/50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  <img src={SLOT_IMG[o.slot]} alt={o.rarity} className="w-full h-full object-contain"
+                  <img decoding="async" src={SLOT_IMG[o.slot]} alt={o.rarity} className="w-full h-full object-contain"
                     style={{ animation: "shimmer 2.5s ease-in-out infinite" }} loading="lazy" />
                 </div>
                 <div className="flex-1">
@@ -384,7 +384,7 @@ function ShopTab({ onBuy, busy }: { onBuy: (s: Slot, r: Rarity, c: "coins" | "ge
               style={{ ["--g" as string]: c.glow } as React.CSSProperties}>
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-lg bg-stone-950/70 border border-red-700/60 flex items-center justify-center overflow-hidden flex-shrink-0 grayscale-[30%]">
-                  <img src={SLOT_IMG[s]} alt="fatak" className="w-full h-full object-contain"
+                  <img decoding="async" src={SLOT_IMG[s]} alt="fatak" className="w-full h-full object-contain"
                     style={{ animation: "shimmer 2.5s ease-in-out infinite" }} loading="lazy" />
                 </div>
                 <div className="flex-1">
@@ -511,7 +511,7 @@ function SmeltTab({ items, onSmelt, gems, busy }:
             }`}>
               {it ? (
                 <div className="text-center px-2">
-                  <img src={SLOT_IMG[it.slot]} alt="" className="w-10 h-10 mx-auto opacity-90" />
+                  <img decoding="async" src={SLOT_IMG[it.slot]} alt="" className="w-10 h-10 mx-auto opacity-90" />
                   <div className={`text-[11px] font-bold ${c!.text}`}>{RARITY_LABEL[it.rarity]}</div>
                 </div>
               ) : (
@@ -567,7 +567,7 @@ function SmeltTab({ items, onSmelt, gems, busy }:
                 <button key={it.id} onClick={() => toggle(it.id)}
                   className={`p-2 rounded-xl border-2 text-end ${selected ? "border-amber-300 bg-amber-500/10" : c.ring + " bg-gradient-to-br " + c.bg}`}>
                   <div className="flex items-center gap-2">
-                    <img src={SLOT_IMG[it.slot]} alt="" className="w-8 h-8" />
+                    <img decoding="async" src={SLOT_IMG[it.slot]} alt="" className="w-8 h-8" />
                     <div className="flex-1 min-w-0">
                       <div className={`text-[11px] font-extrabold ${c.text} truncate`}>{RARITY_LABEL[it.rarity]}</div>
                       <div className="text-stone-400 text-[9px] truncate">{it.name}</div>

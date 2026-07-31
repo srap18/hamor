@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { toast } from "sonner";
 
 type Rarity = "common" | "rare" | "legendary";
@@ -329,25 +330,22 @@ export function LuckyBoxGlobalBanner() {
   const [items, setItems] = useState<Array<{ id: string; title: string; body: string; kind: string }>>([]);
 
   useEffect(() => {
-    const ch = supabase
-      .channel("lucky-box-global")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: "recipient_id=is.null" },
-        (payload) => {
-          const n = payload.new as { id: string; title: string; body: string; kind: string };
-          if (n.kind !== "lucky_rare" && n.kind !== "lucky_legendary") return;
-          // Skip empty payloads (no title AND no body) — otherwise we render blank dark bars on screen.
-          if (!n.title?.trim() && !n.body?.trim()) return;
-          // Only show the latest one at a time to avoid stacked/duplicate banners.
-          setItems([n]);
-          window.setTimeout(() => {
-            setItems((prev) => prev.filter((x) => x.id !== n.id));
-          }, 6000);
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    // Broadcast-only listener on the shared bus (works signed out too).
+    const unsub = subscribeNotifBus(null, {
+      onBroadcast: (payload) => {
+        if (payload.eventType !== "INSERT") return;
+        const n = payload.new as { id: string; title: string; body: string; kind: string };
+        if (n.kind !== "lucky_rare" && n.kind !== "lucky_legendary") return;
+        // Skip empty payloads (no title AND no body) — otherwise we render blank dark bars on screen.
+        if (!n.title?.trim() && !n.body?.trim()) return;
+        // Only show the latest one at a time to avoid stacked/duplicate banners.
+        setItems([n]);
+        window.setTimeout(() => {
+          setItems((prev) => prev.filter((x) => x.id !== n.id));
+        }, 6000);
+      },
+    });
+    return () => { unsub(); };
   }, []);
 
   if (items.length === 0) return null;

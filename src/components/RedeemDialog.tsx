@@ -77,7 +77,7 @@ function ItemLine({ code, type, qty }: { code: string | null | undefined; type: 
       <span className="font-bold">{meta.name}</span>
       {qty > 1 && <span className="text-amber-300">× {qty}</span>}
       {meta.image ? (
-        <img src={meta.image} alt={`صورة عنصر ${meta.name}`} className="w-8 h-8 object-contain rounded" />
+        <img decoding="async" src={meta.image} alt={`صورة عنصر ${meta.name}`} className="w-8 h-8 object-contain rounded" />
       ) : (
         <span className="text-xl">{meta.emoji ?? "📦"}</span>
       )}

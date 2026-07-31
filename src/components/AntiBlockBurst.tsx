@@ -1,25 +1,26 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 
 
 // Dragon stage images (1..15)
-import dragon1 from "@/assets/dragon-stage-1.png";
-import dragon2 from "@/assets/dragon-stage-2.png";
-import dragon3 from "@/assets/dragon-stage-3.png";
-import dragon4 from "@/assets/dragon-stage-4.png";
-import dragon5 from "@/assets/dragon-stage-5.png";
-import dragon6 from "@/assets/dragon-stage-6.png";
-import dragon7 from "@/assets/dragon-stage-7.png";
-import dragon8 from "@/assets/dragon-stage-8.png";
-import dragon9 from "@/assets/dragon-stage-9.png";
-import dragon10 from "@/assets/dragon-stage-10.png";
-import dragon11 from "@/assets/dragon-stage-11.png";
-import dragon12 from "@/assets/dragon-stage-12.png";
-import dragon13 from "@/assets/dragon-stage-13.png";
-import dragon14 from "@/assets/dragon-stage-14.png";
-import dragon15 from "@/assets/dragon-stage-15.png";
+import dragon1 from "@/assets/dragon-stage-1.webp";
+import dragon2 from "@/assets/dragon-stage-2.webp";
+import dragon3 from "@/assets/dragon-stage-3.webp";
+import dragon4 from "@/assets/dragon-stage-4.webp";
+import dragon5 from "@/assets/dragon-stage-5.webp";
+import dragon6 from "@/assets/dragon-stage-6.webp";
+import dragon7 from "@/assets/dragon-stage-7.webp";
+import dragon8 from "@/assets/dragon-stage-8.webp";
+import dragon9 from "@/assets/dragon-stage-9.webp";
+import dragon10 from "@/assets/dragon-stage-10.webp";
+import dragon11 from "@/assets/dragon-stage-11.webp";
+import dragon12 from "@/assets/dragon-stage-12.webp";
+import dragon13 from "@/assets/dragon-stage-13.webp";
+import dragon14 from "@/assets/dragon-stage-14.webp";
+import dragon15 from "@/assets/dragon-stage-15.webp";
 
 const DRAGON_IMAGES = [
   dragon1, dragon2, dragon3, dragon4, dragon5,
@@ -133,7 +134,7 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
           ))}
 
           {/* dragon swoops in — ALWAYS in front of shield rings & block effect */}
-          <img
+          <img decoding="async"
             src={dragonImg!}
             alt="Guardian Dragon"
             className="relative z-[10] h-80 w-80 object-contain drop-shadow-[0_0_40px_rgba(251,146,60,0.95)] animate-[dragonSwoop_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
@@ -197,12 +198,10 @@ export function AttackerAntiBlockBurst() {
     if (!uid) return;
     const seen = new Set<string>();
 
-    const ch = supabase
-      .channel(`anti-burst-attacker:${uid}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `recipient_id=eq.${uid}` },
-        async (payload) => {
+    // Shared bus carries personal INSERT *and* UPDATE rows, matching the
+    // previous `event: "*"` subscription exactly.
+    const unsub = subscribeNotifBus(uid, {
+      onPersonal: (async (payload: any) => {
           const row = (payload.new ?? payload.old) as {
             id: string; kind: string; recipient_id: string; created_by: string | null; created_at: string;
             title?: string | null; body?: string | null; meta?: Record<string, unknown> | null;
@@ -243,11 +242,10 @@ export function AttackerAntiBlockBurst() {
           });
           try { sound.play("click"); } catch { /* noop */ }
           window.setTimeout(() => setBurst((b) => (b && b.id === key ? null : b)), 3000);
-        },
-      )
-      .subscribe();
+        }) as any,
+    });
 
-    return () => { void supabase.removeChannel(ch); };
+    return () => { unsub(); };
   }, [user?.id]);
 
   if (!burst) return null;
@@ -266,7 +264,7 @@ export function AttackerAntiBlockBurst() {
       {hasGuardian && (
         <>
           <div className={`absolute z-[2] h-[28rem] w-[28rem] rounded-full blur-3xl animate-pulse ${isHighTier ? "bg-red-600/40" : "bg-orange-500/25"}`} />
-          <img
+          <img decoding="async"
             src={dragonImg!}
             alt="Enemy Guardian Dragon"
             className="relative z-[10] h-80 w-80 object-contain drop-shadow-[0_0_40px_rgba(239,68,68,0.95)] animate-[dragonSwoopAtk_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"

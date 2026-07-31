@@ -221,7 +221,7 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
                       <button key={p.id} disabled={busy} onClick={() => addEnemyPlayer(p)}
                         className="w-full flex items-center gap-2 p-2 text-right hover:bg-stone-900">
                         {p.avatar_url
-                          ? <img src={p.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                          ? <img decoding="async" src={p.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
                           : <span className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-base">{p.avatar_emoji || "🏴‍☠️"}</span>}
                         <span className="flex-1 text-sm text-amber-100 truncate">{p.display_name || p.username || "لاعب"}</span>
                         <span className="text-[10px] text-amber-300/70">⭐ {p.level ?? 1}</span>
@@ -239,7 +239,7 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
                 {ePlayers.map(e => (
                   <div key={e.id} className="flex items-center gap-2 p-2 rounded-lg bg-red-900/20 border border-red-700/30">
                     {e.profile?.avatar_url
-                      ? <img src={e.profile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-red-500/50" />
+                      ? <img decoding="async" src={e.profile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-red-500/50" />
                       : <span className="w-9 h-9 rounded-full bg-stone-800 border border-red-500/50 flex items-center justify-center text-lg">{e.profile?.avatar_emoji || "🏴‍☠️"}</span>}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-red-100 truncate">{e.profile?.display_name || "لاعب"}</div>
@@ -294,12 +294,12 @@ export function TribeFeatures({ tribeId, canManage }: { tribeId: string; canMana
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
                       {meAvatar
-                        ? <img src={meAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        ? <img decoding="async" src={meAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
                         : <span className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-sm">{meEmoji || "🏴‍☠️"}</span>}
                       <span className="text-xs text-amber-100 font-bold truncate">{meName}</span>
                       <span className="text-amber-300/70 text-sm">{isOut ? "⟵" : "⟶"}</span>
                       {otherAvatar
-                        ? <img src={otherAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
+                        ? <img decoding="async" src={otherAvatar} alt="" className="w-7 h-7 rounded-full object-cover" />
                         : <span className="w-7 h-7 rounded-full bg-stone-800 flex items-center justify-center text-sm">{otherEmoji || "🏴‍☠️"}</span>}
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-amber-100 font-bold truncate">{otherName}</div>

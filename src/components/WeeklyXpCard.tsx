@@ -149,7 +149,7 @@ export function WeeklyXpCard() {
                   }`}>
                     <div className="w-10 text-center font-black text-sm">{medal}</div>
                     {r.avatar_url
-                      ? <img src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-700" />
+                      ? <img decoding="async" src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-700" />
                       : <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-lg">{r.avatar_emoji || "🧑‍✈️"}</div>}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold truncate">{r.display_name}</div>

@@ -606,7 +606,7 @@ function FishMarket() {
   return (
     <div className="fixed inset-0 overflow-hidden text-white" dir="rtl">
       {/* Pirate background */}
-      <img
+      <img decoding="async"
         src={piratesBg}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
@@ -715,7 +715,7 @@ function SellResultModal({ result, onClose }: { result: SellResult; onClose: () 
         </div>
         <div className="p-3 flex flex-col items-center gap-3">
           <div className="w-full rounded-xl overflow-hidden border-2 border-amber-900/40 bg-white/40 flex items-center justify-center">
-            <img src={info.img} alt={info.label} className="w-full h-auto object-contain" />
+            <img decoding="async" src={info.img} alt={info.label} className="w-full h-auto object-contain" />
           </div>
 
           <div className="w-full text-right text-amber-950 font-bold space-y-1 text-sm">
@@ -852,7 +852,7 @@ function StorageView({
                 X{f.qty.toLocaleString()}
               </div>
               <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-inner overflow-hidden`}>
-                <img src={FISH[f.id]?.img} alt={f.name} loading="lazy" width={56} height={56} className="max-h-14 max-w-full object-contain drop-shadow" />
+                <img decoding="async" src={FISH[f.id]?.img} alt={f.name} loading="lazy" width={56} height={56} className="max-h-14 max-w-full object-contain drop-shadow" />
               </div>
               <div className="text-[10px] font-bold mt-1 text-white text-glow">
                 {f.name}
@@ -1072,7 +1072,7 @@ function SellView({
       <div className="absolute top-32 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
         <div className="relative w-24 h-28 rounded-xl bg-gradient-to-b from-emerald-300 to-emerald-600 border-2 border-emerald-200 shadow-xl p-2 flex flex-col items-center">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-emerald-200 rotate-45 border-r-2 border-b-2 border-emerald-100" />
-          <img src={FISH[fish.id]?.img} alt={fish.name} loading="lazy" width={56} height={56} className="mt-2 h-14 w-14 object-contain drop-shadow" />
+          <img decoding="async" src={FISH[fish.id]?.img} alt={fish.name} loading="lazy" width={56} height={56} className="mt-2 h-14 w-14 object-contain drop-shadow" />
           <div className="text-[11px] font-bold text-white text-glow mt-1">{fish.name}</div>
         </div>
       </div>

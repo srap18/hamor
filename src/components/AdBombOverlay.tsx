@@ -4,7 +4,7 @@ import { getAdVideo } from "@/lib/ad-videos";
 import { sound } from "@/lib/sound";
 import { serverNow, serverNowMs } from "@/lib/server-time";
 import { useServerTick } from "@/lib/use-server-tick";
-import nukeReal from "@/assets/fx/nuke-real.png";
+import nukeReal from "@/assets/fx/nuke-real.webp";
 import { ReportMessageButton } from "@/components/ReportMessageButton";
 import { DraggableActionButton } from "@/components/DraggableActionButton";
 
@@ -271,7 +271,7 @@ export function AdBombOverlay({
               mixBlendMode: "screen",
             }}
           />
-          <img
+          <img decoding="async"
             src={nukeReal}
             alt=""
             aria-hidden

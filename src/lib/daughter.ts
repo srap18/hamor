@@ -1,11 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
-import stage1Img from "@/assets/daughter-stage1.png";
-import stage2Img from "@/assets/daughter-stage2.png";
-import stage3Img from "@/assets/daughter-stage3.png";
-import outfitSailor from "@/assets/daughter-outfit-sailor.png";
-import outfitSummer from "@/assets/daughter-outfit-summer.png";
-import outfitCaptain from "@/assets/daughter-outfit-captain.png";
-import outfitBeach from "@/assets/daughter-outfit-beach.png";
+import stage1Img from "@/assets/daughter-stage1.webp";
+import stage2Img from "@/assets/daughter-stage2.webp";
+import stage3Img from "@/assets/daughter-stage3.webp";
+import outfitSailor from "@/assets/daughter-outfit-sailor.webp";
+import outfitSummer from "@/assets/daughter-outfit-summer.webp";
+import outfitCaptain from "@/assets/daughter-outfit-captain.webp";
+import outfitBeach from "@/assets/daughter-outfit-beach.webp";
 import { serverTodayKey } from "@/lib/server-time";
 
 export type Daughter = {

@@ -157,7 +157,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
                 onClick={() => setViewer(m)}
                 className="relative aspect-square rounded-lg overflow-hidden bg-stone-800 border border-border active:scale-95"
               >
-                {thumb && <img src={thumb} alt="" loading="lazy" className="w-full h-full object-cover" />}
+                {thumb && <img decoding="async" src={thumb} alt="" loading="lazy" className="w-full h-full object-cover" />}
                 {m.media_type === "video" && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white text-lg">▶</div>
@@ -180,7 +180,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
           >×</button>
           <div className="max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
             {viewer.media_type === "image" ? (
-              <img src={viewer.signedUrl} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+              <img decoding="async" src={viewer.signedUrl} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg" />
             ) : (
               <video src={viewer.signedUrl} controls autoPlay playsInline className="max-w-full max-h-[80vh] rounded-lg" />
             )}

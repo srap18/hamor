@@ -11,7 +11,7 @@ export function Landing() {
       {/* Live sea background */}
       <div className="fixed inset-0 -z-10 bg-stone-950">
         {bgPaused ? (
-          <img
+          <img decoding="async"
             src={harborBg}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"

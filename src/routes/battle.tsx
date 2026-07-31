@@ -349,7 +349,7 @@ function BattlePage() {
           }}>
             {me && (
               <div className="w-full h-full" style={{ transform: "scaleX(-1)" }}>
-                <img src={myStageImg} alt="me" draggable={false}
+                <img decoding="async" src={myStageImg} alt="me" draggable={false}
                   className="w-full h-full object-contain"
                   style={{
                     filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(255,140,40,0.5))",
@@ -364,7 +364,7 @@ function BattlePage() {
             animation: `hov 2.4s ease-in-out infinite${shake === "op" ? ", shk 0.2s" : ""}`,
           }}>
             {op && (
-              <img src={opStageImg} alt="op" draggable={false}
+              <img decoding="async" src={opStageImg} alt="op" draggable={false}
                 className="w-full h-full object-contain"
                 style={{
                   filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.7)) drop-shadow(0 0 14px rgba(34,211,238,0.5))",
@@ -542,7 +542,7 @@ function FighterCard({ f, pct, side }: { f: Fighter | null; pct: number; side: "
         <div className="w-10 h-10 rounded-lg overflow-hidden bg-black/60 border-2 border-amber-500/70 flex items-center justify-center text-xl shrink-0"
           style={{ boxShadow: "0 0 8px rgba(251,191,36,0.5)" }}>
           {f?.avatar
-            ? <img src={f.avatar} alt={f.name} className="w-full h-full object-cover" />
+            ? <img decoding="async" src={f.avatar} alt={f.name} className="w-full h-full object-cover" />
             : <span>{avatarFallback(f?.emoji ?? "")}</span>}
         </div>
         <div className={`flex-1 min-w-0 ${align}`}>

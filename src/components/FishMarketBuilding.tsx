@@ -2,17 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { sound } from "@/lib/sound";
 import { serverNowMs } from "@/lib/server-time";
-import t1 from "@/assets/buildings/fishmarket-t1.png";
-import t2 from "@/assets/buildings/fishmarket-t2.png";
-import t3 from "@/assets/buildings/fishmarket-t3.png";
-import t4 from "@/assets/buildings/fishmarket-t4.png";
-import t5 from "@/assets/buildings/fishmarket-t5.png";
-import t6 from "@/assets/buildings/fishmarket-t6.png";
-import t7 from "@/assets/buildings/fishmarket-t7.png";
-import t8 from "@/assets/buildings/fishmarket-t8.png";
-import t9 from "@/assets/buildings/fishmarket-t9.png";
-import t10 from "@/assets/buildings/fishmarket-t10.png";
-import burnedImg from "@/assets/buildings/fishmarket-burned.png";
+import t1 from "@/assets/buildings/fishmarket-t1.webp";
+import t2 from "@/assets/buildings/fishmarket-t2.webp";
+import t3 from "@/assets/buildings/fishmarket-t3.webp";
+import t4 from "@/assets/buildings/fishmarket-t4.webp";
+import t5 from "@/assets/buildings/fishmarket-t5.webp";
+import t6 from "@/assets/buildings/fishmarket-t6.webp";
+import t7 from "@/assets/buildings/fishmarket-t7.webp";
+import t8 from "@/assets/buildings/fishmarket-t8.webp";
+import t9 from "@/assets/buildings/fishmarket-t9.webp";
+import t10 from "@/assets/buildings/fishmarket-t10.webp";
+import burnedImg from "@/assets/buildings/fishmarket-burned.webp";
 
 const FISHMARKET_TIERS = [t1, t2, t3, t4, t5, t6, t7, t8, t9, t10];
 function tierImage(level: number): string {

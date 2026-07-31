@@ -1,15 +1,15 @@
 // Crew catalog — new specialized roles
-import luckImg from "@/assets/crews/luck.png";
-import guideImg from "@/assets/crews/guide.png";
-import thiefImg from "@/assets/crews/thief.png";
-import sailorImg from "@/assets/crews/sailor.png";
-import traderImg from "@/assets/crews/trader.png";
-import policeImg from "@/assets/crews/police.png";
-import fixer1Img from "@/assets/crews/fixer1.png";
-import fixer2Img from "@/assets/crews/fixer2.png";
-import fixer3Img from "@/assets/crews/fixer3.png";
-import fixer4Img from "@/assets/crews/fixer4.png";
-import goldenFisherImg from "@/assets/crews/golden-fisher.png";
+import luckImg from "@/assets/crews/luck.webp";
+import guideImg from "@/assets/crews/guide.webp";
+import thiefImg from "@/assets/crews/thief.webp";
+import sailorImg from "@/assets/crews/sailor.webp";
+import traderImg from "@/assets/crews/trader.webp";
+import policeImg from "@/assets/crews/police.webp";
+import fixer1Img from "@/assets/crews/fixer1.webp";
+import fixer2Img from "@/assets/crews/fixer2.webp";
+import fixer3Img from "@/assets/crews/fixer3.webp";
+import fixer4Img from "@/assets/crews/fixer4.webp";
+import goldenFisherImg from "@/assets/crews/golden-fisher.webp";
 import marketExpertAsset from "@/assets/crews/market-expert.png.asset.json";
 
 export type Crew = {
