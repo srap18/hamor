@@ -648,7 +648,11 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
+  /* Do NOT also set `right: 0`: with an explicit width the box becomes
+     over-constrained, and in an RTL document the browser drops `left`, which
+     anchored the UI to the right edge and left a blank band on the left
+     (seen on OnePlus Pad and other Android tablets). */
+  right: auto;
   /* Fallback chain for older Android/Huawei browsers that don't support dvh/svh */
   height: 100vh;
   height: 100dvh;
@@ -656,6 +660,9 @@ html, body {
   min-height: 0;
   width: 100%;
   width: var(--app-width, 100%);
+  /* Always span the full screen whatever the aspect ratio — a stale or bogus
+     --app-width can never shrink or overflow the frame. */
+  min-width: 100%;
   max-width: 100%;
   background: #050b10;
   /* Respect notch / curved-edge safe areas so content isn't cut on the left/right
