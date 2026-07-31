@@ -1530,12 +1530,14 @@ function Index() {
           // sailor bonus accumulated since assignment. Dividing again would
           // halve the remaining time instantly when sailor is assigned mid-trip.
           const timeLeft = Math.max(0, s.duration - elapsed);
-          if (!sailMoving && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
+          if (!sailMoving && !hpChanged && progress === s.progress && Math.abs(timeLeft - s.timeLeft) < 0.25) {
             return s;
           }
 
           dirty = true;
-          return { ...s, sail, progress, timeLeft };
+          return hpChanged
+            ? { ...s, sail, progress, timeLeft, hp: liveHp }
+            : { ...s, sail, progress, timeLeft };
         });
         return dirty ? next : curr;
       });
