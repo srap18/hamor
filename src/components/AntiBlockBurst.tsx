@@ -242,11 +242,10 @@ export function AttackerAntiBlockBurst() {
           });
           try { sound.play("click"); } catch { /* noop */ }
           window.setTimeout(() => setBurst((b) => (b && b.id === key ? null : b)), 3000);
-        },
-      )
-      .subscribe();
+        }) as any,
+    });
 
-    return () => { void supabase.removeChannel(ch); };
+    return () => { unsub(); };
   }, [user?.id]);
 
   if (!burst) return null;
