@@ -1733,6 +1733,10 @@ function PlayerPage() {
               <>
                 <div className="text-amber-200 text-xs font-bold">اختر سفينة للإغارة:</div>
                 {myShips.length === 0 && <div className="text-amber-300/60 text-xs text-center py-3">ما عندك سفن</div>}
+                {myShips.length > 0 && myShips.every((s) => s.at_sea || !!s.destroyed_at || !!(s.repair_ends_at && new Date(s.repair_ends_at).getTime() > serverNowMs()) || !!s.stealing_target_user_id) && (
+                  <div className="text-[11px] text-rose-200 bg-rose-900/40 border border-rose-700/40 rounded-lg py-2 px-2 text-center">كل سفنك مشغولة — تحتاج سفينة راسية بالميناء (مو تصيد ولا تحت الإصلاح) عشان تسرق</div>
+                )}
+
                 {myShips.map((ms) => {
                   const img = ms.catalog_code ? getShipByCode(ms.catalog_code).image : getShipByMarketLevel(ms.template_id || 1).image;
                   const isDestroyed = !!ms.destroyed_at;
