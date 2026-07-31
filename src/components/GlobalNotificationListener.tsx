@@ -87,20 +87,17 @@ export function GlobalNotificationListener() {
       try { sound.play("click"); } catch { /* noop */ }
     };
 
-    // Realtime = instant. Server-side filter keeps this user's rows only.
-    const channel = supabase
-      .channel(`global-notifs:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `recipient_id=eq.${user.id}` },
-        (payload) => {
-          const n = payload.new as Notif;
-          if (!n) return;
-          showToast(n);
-          if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
-        },
-      )
-      .subscribe();
+    // Realtime = instant. Shared bus delivers this user's personal rows only —
+    // identical payloads to the previous dedicated channel, one socket less.
+    const unsubNotif = subscribeNotifBus(user.id, {
+      onPersonal: (payload) => {
+        if (payload.eventType !== "INSERT") return;
+        const n = payload.new as Notif;
+        if (!n) return;
+        showToast(n);
+        if (n.created_at > baselineRef.current) baselineRef.current = n.created_at;
+      },
+    });
 
     // Safety-net poll: only runs if realtime drops (mobile background, network flap).
     const poll = async () => {
