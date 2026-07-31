@@ -183,6 +183,27 @@ function repairProgress(destroyedAt?: string | null, repairEndsAt?: string | nul
   if (total <= 0) return 1;
   return Math.max(0, Math.min(1, (now - start) / total));
 }
+
+// Live HP derived from the server repair window: HP rises linearly from the
+// snapshot taken when the ship was hit (repairFromHp at repairFromAt) up to
+// max HP exactly at repairEndsAt. Mirrors the server formula so the bar and
+// the timer always agree; the server stays authoritative (this only fills the
+// gap between DB syncs and never lowers HP).
+function liveRepairHp(ship: Pick<Ship, "hp" | "maxHp" | "repairFromAt" | "repairFromHp" | "repairEndsAt">): number | undefined {
+  const maxHp = ship.maxHp;
+  if (!maxHp || maxHp <= 0) return ship.hp;
+  const stored = Math.max(0, ship.hp ?? maxHp);
+  if (!ship.repairFromAt || !ship.repairEndsAt) return stored;
+  const start = new Date(ship.repairFromAt).getTime();
+  const end = new Date(ship.repairEndsAt).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return stored;
+  const now = serverNowMs();
+  if (now >= end) return maxHp;
+  const fromHp = Math.max(0, Math.min(maxHp, ship.repairFromHp ?? stored));
+  const ratio = Math.max(0, Math.min(1, (now - start) / (end - start)));
+  const computed = fromHp + Math.floor((maxHp - fromHp) * ratio);
+  return Math.max(stored, Math.min(maxHp, computed));
+}
 // A ship is "blocked from fishing" only while current HP is below 30% of max.
 // Past that point it can sail and fish (capacity scales with HP on the server),
 // even if a repair timer is still ticking in the background.
