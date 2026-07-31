@@ -144,9 +144,20 @@ export function BottomNav({ active }: { active?: string }) {
     loadNotifs();
     loadDm();
 
+    // Coalesce badge recounts. Global broadcast notifications (lucky-box
+    // winners, etc.) arrive in bursts, and each one previously fired 4 badge
+    // queries on EVERY connected device — a large share of the top DB queries
+    // and of mobile radio wakeups. A 3s trailing window collapses a burst into
+    // one recount; the badge value it produces is exactly the same.
+    let recountTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRecount = () => {
+      if (recountTimer) return;
+      recountTimer = setTimeout(() => { recountTimer = null; loadNotifs(); }, 3000);
+    };
+
     // Shared notification bus (one socket per player, see lib/notif-bus).
     // Same three subscriptions as before, same payloads, same timing.
-    const onNotif = (p: any) => { if (p.eventType === "INSERT") loadNotifs(); };
+    const onNotif = (p: any) => { if (p.eventType === "INSERT") scheduleRecount(); };
     const unsub = subscribeNotifBus(user.id, {
       onPersonal: onNotif,
       onBroadcast: onNotif,
@@ -155,6 +166,7 @@ export function BottomNav({ active }: { active?: string }) {
 
     return () => {
       cancelled = true;
+      if (recountTimer) clearTimeout(recountTimer);
       unsub();
     };
   }, [user]);
