@@ -84,7 +84,7 @@ function PodiumCard({ item, slot }: { item: PodiumItem; slot: Slot }) {
         <div className="flex justify-center mb-1">
           <div className={`w-14 h-14 rounded-full overflow-hidden ring-2 ${slot.ringColor} bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-2xl shadow-lg`}>
             {item.avatarUrl ? (
-              <img src={item.avatarUrl} alt="" className="w-full h-full object-cover" />
+              <img decoding="async" src={item.avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : (
               <span>{item.avatarEmoji || "🧑‍✈️"}</span>
             )}

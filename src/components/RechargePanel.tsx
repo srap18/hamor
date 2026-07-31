@@ -288,13 +288,13 @@ export function RechargePanel() {
               <div className="flex items-center gap-2.5">
                 {p.images?.length ? (
                   <div className="relative w-20 h-20 shrink-0 rounded-xl bg-gradient-to-b from-amber-900/40 to-stone-950/70 border border-amber-400/40 overflow-hidden flex items-center justify-center">
-                    <img
+                    <img decoding="async"
                       src={p.images[0]}
                       alt={p.label}
                       className="w-full h-full object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
                     />
                     {p.images[1] && (
-                      <img
+                      <img decoding="async"
                         src={p.images[1]}
                         alt=""
                         className="absolute bottom-0 left-0 w-8 h-8 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"

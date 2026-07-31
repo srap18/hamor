@@ -978,7 +978,7 @@ function AdminCodesPage() {
                       return (
                         <span className="inline-flex items-center gap-1.5">
                           {meta.image ? (
-                            <img src={meta.image} alt="" className="w-5 h-5 rounded object-cover border border-slate-700" />
+                            <img decoding="async" src={meta.image} alt="" className="w-5 h-5 rounded object-cover border border-slate-700" />
                           ) : (
                             <span>{meta.emoji ?? (c.reward_type === "ship" ? "⛵" : "📦")}</span>
                           )}
@@ -1009,7 +1009,7 @@ function AdminCodesPage() {
                         return (
                           <span key={idx} className="px-1.5 py-0.5 rounded bg-fuchsia-900/40 border border-fuchsia-800 inline-flex items-center gap-1">
                             {meta.image ? (
-                              <img src={meta.image} alt="" className="w-4 h-4 rounded object-cover border border-fuchsia-800/60" />
+                              <img decoding="async" src={meta.image} alt="" className="w-4 h-4 rounded object-cover border border-fuchsia-800/60" />
                             ) : (
                               <span>{meta.emoji ?? (r.type === "ship" ? "⛵" : "📦")}</span>
                             )}
@@ -1401,7 +1401,7 @@ function EliteVipCodeCreator({ onCreated }: { onCreated: () => void }) {
       {tier && (
         <div className="text-[11px] text-fuchsia-100/90 bg-black/40 rounded-lg p-2 border border-fuchsia-900/60">
           <div className="font-bold mb-1 flex items-center gap-2">
-            <img src={tier.badge} alt="" className="w-8 h-8 object-contain" />
+            <img decoding="async" src={tier.badge} alt="" className="w-8 h-8 object-contain" />
             {tier.emoji} Elite VIP {tier.level} — {tier.nameAr} ({formatSarFromUsd(tier.monthlyPriceUsd)}/شهر)
           </div>
           <ul className="space-y-0.5 pr-3">
@@ -1765,7 +1765,7 @@ function RecentChatSendersPanel({ codes }: { codes: CodeRow[] }) {
             >
               <div className="w-6 text-center text-[11px] font-black text-cyan-300">#{idx + 1}</div>
               {r.avatar_url ? (
-                <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-cyan-700" />
+                <img decoding="async" src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover border border-cyan-700" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-slate-700 grid place-items-center text-sm">⚓</div>
               )}

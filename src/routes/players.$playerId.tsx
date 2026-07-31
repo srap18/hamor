@@ -1021,7 +1021,7 @@ function PlayerPage() {
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
           <div className="w-24 h-24 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-5xl overflow-hidden border-4 border-amber-400/60 shadow-2xl">
-            {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
+            {p?.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
           </div>
           <div className="text-2xl font-extrabold text-amber-200">{p?.display_name ?? "—"}</div>
           <div className="text-[11px] text-amber-300/70">حساب خاص</div>
@@ -1088,7 +1088,7 @@ function PlayerPage() {
             playbackRate={0.7}
           />
         ) : (
-          <img
+          <img decoding="async"
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
@@ -1236,7 +1236,7 @@ function PlayerPage() {
               className="active:scale-95"
             >
               <div className="relative">
-                <img src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
+                <img decoding="async" src={img} alt="" className="object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" style={{ width: `${88 * raiderScale}px`, height: `${88 * raiderScale}px` }} />
                 <div className="absolute -top-1 -right-1 text-2xl drop-shadow">🏴‍☠️</div>
                 {isMine && (
                   <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500/95 border border-amber-200 text-[11px] text-stone-900 font-extrabold whitespace-nowrap shadow">
@@ -1274,10 +1274,10 @@ function PlayerPage() {
         <div className={`flex-1 glass-hud rounded-xl px-3 py-2 flex items-center gap-2 border border-amber-400/50 ${frameById(p?.profile_frame)?.kind === "profile" ? frameById(p?.profile_frame)?.profileClass : ""} ${frameById(p?.profile_frame)?.animClass ?? ""}`}>
           <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
             <div className="w-10 h-10 rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden">
-              {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
+              {p?.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : (p?.avatar_emoji ?? "🧑‍✈️")}
             </div>
             {frameById(p?.avatar_frame)?.imageUrl && (
-              <img src={frameById(p?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p?.avatar_frame)?.animClass ?? ""}`} />
+              <img decoding="async" src={frameById(p?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p?.avatar_frame)?.animClass ?? ""}`} />
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -1362,11 +1362,11 @@ function PlayerPage() {
           aria-label="رسائل المفجّرين"
         >
           <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
-            <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+            <img decoding="async" src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
             <div className="absolute" style={{ top: "26%", left: "50%", transform: "translateX(-50%)", width: "46%", aspectRatio: "1 / 1" }}>
               <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-950 shadow-md bg-amber-100">
                 {destroyerAvatar ? (
-                  <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
+                  <img decoding="async" src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[10px]">{destroyerEmoji || "🧙"}</div>
                 )}
@@ -1566,7 +1566,7 @@ function PlayerPage() {
                     <div key={w.id} className="flex items-stretch gap-2">
                       <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
                         className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 disabled:opacity-40 text-right">
-                        {w.image ? <img src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
+                        {w.image ? <img decoding="async" src={w.image} alt={w.name} className="w-10 h-10 object-contain drop-shadow" /> : <span className="text-3xl">{w.emoji}</span>}
                         <div className="flex-1 min-w-0">
                           <div className="text-amber-200 font-bold text-sm">{w.name}</div>
                           <div className="text-[10px] text-amber-300/70">
@@ -1726,7 +1726,7 @@ function PlayerPage() {
                   return (
                     <button key={ms.id} disabled={busy || isBusy} onClick={() => stealWithShip(ms.id)}
                       className="flex items-center gap-3 p-2 rounded-xl bg-stone-800/80 border border-amber-700/40 active:scale-95 text-right disabled:opacity-40">
-                      <img src={img} alt="" className="w-14 h-14 object-contain" />
+                      <img decoding="async" src={img} alt="" className="w-14 h-14 object-contain" />
                       <div className="flex-1 min-w-0">
                         <div className="text-amber-200 font-bold text-sm">سفينة مستوى {ms.template_id}</div>
                         <div className="text-[10px] text-amber-300/70">❤️ {ms.hp ?? "-"}/{ms.max_hp ?? "-"} {label && <span className="ms-1 text-rose-300">{label}</span>}</div>
@@ -1764,7 +1764,7 @@ function PlayerPage() {
                             onClick={() => setSelectedShip(sh)}
                             className={`relative flex flex-col items-center gap-0.5 min-w-[70px] p-2 rounded-xl border-2 active:scale-95 transition-all ${isActive ? "border-amber-400 bg-amber-500/25 shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "border-stone-700 bg-stone-800/60 opacity-70"}`}
                           >
-                            <img src={img} alt="" className="w-12 h-12 object-contain" />
+                            <img decoding="async" src={img} alt="" className="w-12 h-12 object-contain" />
                             <span className={`text-[10px] font-bold ${isActive ? "text-amber-200" : "text-amber-300/60"}`}>سفينة {idx + 1}</span>
                             {shCrewCount > 0 && (
                               <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5 shadow">👥 {shCrewCount}</span>
@@ -1940,7 +1940,7 @@ function CrewSendRow({ crew, qty, busy, badge, disabled, onBlocked, onSend, onBu
       <div className="flex items-center gap-3">
         <div className="relative shrink-0">
           {crew.image ? (
-            <img src={crew.image} alt={crew.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/40 p-0.5" />
+            <img decoding="async" src={crew.image} alt={crew.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/40 p-0.5" />
           ) : (
             <span className="grid w-11 h-11 place-items-center text-2xl rounded-xl bg-slate-950/60 border border-amber-600/40">{crew.emoji}</span>
           )}
@@ -2098,7 +2098,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
               title={c.name}
             >
               {c.image ? (
-                <img src={c.image} alt={c.name} className="w-full h-auto object-contain" draggable={false} />
+                <img decoding="async" src={c.image} alt={c.name} className="w-full h-auto object-contain" draggable={false} />
               ) : (
                 <div className="w-full text-center text-2xl">{c.emoji}</div>
               )}
@@ -2134,7 +2134,7 @@ function VisitorShip({ img, top, left, scale, atSea, idx, hp, maxHp, destroyed, 
           opacity: destroyed ? 0.75 : 1,
         }}
       >
-        <img src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
+        <img decoding="async" src={img} alt="" className="w-full block select-none" style={{ transform: `scaleX(${(atSea ? (seaSide === "right" ? 1 : -1) : (seaSide === "right" ? -1 : 1)) === 1 ? -1 : 1})` }} draggable={false} />
         {/* Flag (hide when destroyed) */}
         {!destroyed && (
           <div className="absolute pointer-events-none" style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}>

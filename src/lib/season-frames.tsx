@@ -109,7 +109,7 @@ export function SeasonFrameRing({
       </div>
 
       {/* Premium frame image on top with luxury animation */}
-      <img
+      <img decoding="async"
         src={frame.imageUrl}
         alt=""
         aria-hidden

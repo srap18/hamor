@@ -338,7 +338,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
           }}
         />
 
-        <img
+        <img decoding="async"
           src={nestImg}
           alt=""
           draggable={false}
@@ -557,7 +557,7 @@ export function DragonShoreCreature({ userId, interactive = true }: Props = {}) 
                               className={`rounded-xl border-2 ${c.ring} bg-gradient-to-b ${c.bg} px-2 py-2 text-center`}
                               style={{ boxShadow: `0 0 14px ${c.glow}` }}
                             >
-                              <img src={SLOT_IMG[slot]} alt="" className="w-9 h-9 mx-auto object-contain" />
+                              <img decoding="async" src={SLOT_IMG[slot]} alt="" className="w-9 h-9 mx-auto object-contain" />
                               <div className={`text-[10px] font-bold mt-1 ${c.text}`}>{RARITY_LABEL[it.rarity]}</div>
                               <div className="text-[10px] text-stone-300 truncate">{SLOT_LABEL[slot]}</div>
                             </div>

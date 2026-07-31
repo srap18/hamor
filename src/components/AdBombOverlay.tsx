@@ -271,7 +271,7 @@ export function AdBombOverlay({
               mixBlendMode: "screen",
             }}
           />
-          <img
+          <img decoding="async"
             src={nukeReal}
             alt=""
             aria-hidden

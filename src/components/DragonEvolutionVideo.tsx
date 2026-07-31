@@ -188,7 +188,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
         style={{ ...style, display: "block", position: "relative" }}
         data-dragon-stage={stageKind}
       >
-        <img
+        <img decoding="async"
           src={dragonEgg}
           alt="بيضة التنين"
           draggable={false}

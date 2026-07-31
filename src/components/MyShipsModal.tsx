@@ -352,7 +352,7 @@ function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: numbe
     <div className={`relative rounded-xl border-2 p-2 flex items-center gap-3 mb-2 ${rarityClass} ${dim ? "opacity-80" : ""}`}>
       <div className="absolute top-1 left-1 text-[9px] font-black text-amber-300/70 bg-black/40 rounded px-1">#{idx}</div>
       <div className="w-20 h-20 rounded-lg bg-gradient-to-b from-amber-900/60 to-black/60 border border-amber-700/40 flex items-center justify-center overflow-hidden shrink-0">
-        <img src={image} alt={def.title} className="w-full h-full object-contain drop-shadow" draggable={false} />
+        <img decoding="async" src={image} alt={def.title} className="w-full h-full object-contain drop-shadow" draggable={false} />
       </div>
       <div className="flex-1 min-w-0 text-right">
         <div className="text-amber-100 font-black text-sm truncate drop-shadow">{def.title}</div>

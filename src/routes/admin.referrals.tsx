@@ -211,7 +211,7 @@ function AdminReferralsPage() {
                   <td className="p-2">
                     <div className="flex items-center gap-2">
                       {r.avatar_url ? (
-                        <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                        <img decoding="async" src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                       ) : (
                         <span className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
                           {r.avatar_emoji || "🧑‍✈️"}

@@ -507,7 +507,7 @@ function AdminCompetitions() {
             </label>
             {targetFish && FISH[targetFish] && (
               <div className="md:col-span-2 flex items-center gap-3 p-2 rounded bg-slate-900">
-                <img src={FISH[targetFish].img} alt="" className="w-12 h-12 object-contain"/>
+                <img decoding="async" src={FISH[targetFish].img} alt="" className="w-12 h-12 object-contain"/>
                 <div>
                   <div className="font-bold">{FISH[targetFish].name}</div>
                   <div className="text-xs text-slate-400">سيظهر للاعبين عند انتهاء الفعالية فقط (إذا فعّلت الإخفاء)</div>
@@ -632,7 +632,7 @@ function AdminCompetitions() {
                         <li key={p.user_id} className="flex items-center gap-2 px-2 py-1 rounded bg-slate-950/60 border border-slate-800">
                           <span className="w-8 text-center text-xs font-black">{medal}</span>
                           {p.avatar_url ? (
-                            <img src={p.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover"/>
+                            <img decoding="async" src={p.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover"/>
                           ) : (
                             <span className="text-base">{p.avatar_emoji || "🧑‍✈️"}</span>
                           )}

@@ -207,11 +207,11 @@ export function BackgroundsPanel() {
                 className="relative block w-full aspect-[16/9] rounded-lg overflow-hidden border border-white/30 bg-black active:scale-95"
               >
                 <div className="absolute inset-y-0 right-0 w-1/2 overflow-hidden border-r border-white/20">
-                  <img src={b.image} alt={b.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover animate-bg-drift" />
+                  <img decoding="async" src={b.image} alt={b.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover animate-bg-drift" />
                   <div className="absolute right-1 bottom-1 px-1.5 py-0.5 rounded bg-emerald-700/90 border border-emerald-200 text-[9px] font-bold">سليمة</div>
                 </div>
                 <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
-                  <img src={b.burnedImage} alt={b.burnedName} loading="lazy" className="absolute inset-0 h-full w-full object-cover animate-bg-drift animate-bg-burned-pulse" />
+                  <img decoding="async" src={b.burnedImage} alt={b.burnedName} loading="lazy" className="absolute inset-0 h-full w-full object-cover animate-bg-drift animate-bg-burned-pulse" />
                   <div className="absolute left-1 bottom-1 px-1.5 py-0.5 rounded bg-rose-700/90 border border-rose-200 text-[9px] font-bold">محترقة</div>
                 </div>
                 {b.animated && (
@@ -298,7 +298,7 @@ export function BackgroundsPanel() {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : (
-                  <img src={img} alt={b.name} className="absolute inset-0 h-full w-full object-cover" />
+                  <img decoding="async" src={img} alt={b.name} className="absolute inset-0 h-full w-full object-cover" />
                 )}
               </div>
 

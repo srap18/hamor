@@ -43,7 +43,7 @@ function BannerUI({ opts, onDone }: { opts: BannerOptions; onDone: () => void })
       >
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-3xl shadow-inner overflow-hidden">
           {opts.image ? (
-            <img src={opts.image} alt="" className="h-12 w-12 object-cover" />
+            <img decoding="async" src={opts.image} alt="" className="h-12 w-12 object-cover" />
           ) : (
             <span>{opts.emoji ?? "✨"}</span>
           )}

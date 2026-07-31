@@ -398,7 +398,7 @@ function Shop() {
           <div className="flex items-center gap-3">
             <div className="relative w-16 h-16 rounded-lg bg-gradient-to-b from-rose-800 to-stone-900 border border-rose-500/40 flex items-center justify-center text-3xl overflow-hidden">
               {selected.image ? (
-                <img src={selected.image} alt={selected.name} className="w-full h-full object-contain" />
+                <img decoding="async" src={selected.image} alt={selected.name} className="w-full h-full object-contain" />
               ) : (
                 selected.emoji
               )}
@@ -419,7 +419,7 @@ function Shop() {
 
           <div className="mt-2 flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-700 border border-emerald-200 px-3 py-1.5 flex items-center gap-1">
-              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img src={coinIcon} alt="أيقونة الذهب" className="w-5 h-5 object-contain" />}</span>
+              <span className="text-base inline-flex items-center">{selected.currency === "gem" ? "💎" : <img decoding="async" src={coinIcon} alt="أيقونة الذهب" className="w-5 h-5 object-contain" />}</span>
               <span className="text-sm font-extrabold text-white">{(selected.price * qty).toLocaleString()}</span>
             </div>
 
@@ -509,7 +509,7 @@ function ShopCard({
       </div>
       <div className="w-full aspect-[3/4] rounded-md bg-black/25 border border-white/20 flex items-center justify-center text-4xl shadow-inner overflow-hidden">
         {item.image ? (
-          <img
+          <img decoding="async"
             src={item.image}
             alt={item.name}
             loading="lazy"
@@ -523,7 +523,7 @@ function ShopCard({
       </div>
       <div className="mt-1 px-3 py-1 rounded bg-gradient-to-b from-amber-300 to-amber-500 border border-amber-200 flex items-center gap-1 shadow text-amber-950 text-[11px] font-extrabold">
         {item.price.toLocaleString()}
-        <span className="inline-flex items-center">{item.currency === "gem" ? "💎" : <img src={coinIcon} alt="أيقونة الذهب" className="w-4 h-4 object-contain" />}</span>
+        <span className="inline-flex items-center">{item.currency === "gem" ? "💎" : <img decoding="async" src={coinIcon} alt="أيقونة الذهب" className="w-4 h-4 object-contain" />}</span>
       </div>
     </button>
   );
@@ -532,7 +532,7 @@ function ShopCard({
 function ResChip({ icon, v, color, plus }: { icon: string; v: number; color: string; plus?: boolean }) {
   return (
     <div className="glass-hud rounded-lg px-2 py-1 flex items-center gap-1 border border-accent/30">
-      <img src={icon} alt="" className="w-5 h-5 object-contain drop-shadow" />
+      <img decoding="async" src={icon} alt="" className="w-5 h-5 object-contain drop-shadow" />
       <span className={`text-[11px] font-bold tabular-nums ${color}`}>{v.toLocaleString()}</span>
       {plus && (
         <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">+</span>
@@ -589,7 +589,7 @@ function VipPanel() {
                       : "bg-gradient-to-r from-orange-950/80 to-rose-950/80 border-amber-700/50"
             } active:scale-95`}
           >
-            <img src={t.badge} alt={`VIP ${t.level}`} className="w-14 h-14 object-contain shrink-0" />
+            <img decoding="async" src={t.badge} alt={`VIP ${t.level}`} className="w-14 h-14 object-contain shrink-0" />
             <div className="flex-1 text-right">
               <div className="text-[10px] font-bold text-amber-300/80 tracking-widest">
                 ELITE VIP {t.level}
@@ -753,12 +753,12 @@ function ShipsPanel({
           <div className="relative shrink-0 w-24 h-24 rounded-xl bg-black/40 border border-white/10 overflow-hidden flex items-center justify-center">
             {p.count === 3 ? (
               <div className="w-full h-full relative">
-                <img src={p.image} alt="" className="absolute w-14 h-14 object-contain left-0 top-1 opacity-90 drop-shadow" />
-                <img src={p.image} alt="" className="absolute w-14 h-14 object-contain right-0 top-1 opacity-90 drop-shadow" />
-                <img src={p.image} alt={p.name} className="absolute w-16 h-16 object-contain left-1/2 -translate-x-1/2 bottom-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
+                <img decoding="async" src={p.image} alt="" className="absolute w-14 h-14 object-contain left-0 top-1 opacity-90 drop-shadow" />
+                <img decoding="async" src={p.image} alt="" className="absolute w-14 h-14 object-contain right-0 top-1 opacity-90 drop-shadow" />
+                <img decoding="async" src={p.image} alt={p.name} className="absolute w-16 h-16 object-contain left-1/2 -translate-x-1/2 bottom-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
               </div>
             ) : (
-              <img src={p.image} alt={p.name} className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
+              <img decoding="async" src={p.image} alt={p.name} className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)]" />
             )}
             <span className="absolute top-1 left-1 text-[10px] font-extrabold bg-black/70 text-amber-200 rounded-md px-1.5 py-0.5">{p.count}×</span>
           </div>
@@ -800,12 +800,12 @@ function ShipsPanel({
               <div className="relative shrink-0 w-28 h-28 rounded-xl bg-black/50 border border-white/10 overflow-hidden flex items-center justify-center">
                 {selected.count === 3 ? (
                   <div className="w-full h-full relative">
-                    <img src={selected.image} alt="" className="absolute w-16 h-16 object-contain left-0 top-1 opacity-90" />
-                    <img src={selected.image} alt="" className="absolute w-16 h-16 object-contain right-0 top-1 opacity-90" />
-                    <img src={selected.image} alt={selected.name} className="absolute w-20 h-20 object-contain left-1/2 -translate-x-1/2 bottom-0" />
+                    <img decoding="async" src={selected.image} alt="" className="absolute w-16 h-16 object-contain left-0 top-1 opacity-90" />
+                    <img decoding="async" src={selected.image} alt="" className="absolute w-16 h-16 object-contain right-0 top-1 opacity-90" />
+                    <img decoding="async" src={selected.image} alt={selected.name} className="absolute w-20 h-20 object-contain left-1/2 -translate-x-1/2 bottom-0" />
                   </div>
                 ) : (
-                  <img src={selected.image} alt={selected.name} className="w-full h-full object-contain" />
+                  <img decoding="async" src={selected.image} alt={selected.name} className="w-full h-full object-contain" />
                 )}
                 <span className="absolute top-1 left-1 text-xs font-extrabold bg-black/70 text-amber-200 rounded-md px-1.5 py-0.5">{selected.count}×</span>
               </div>

@@ -1880,7 +1880,7 @@ function Index() {
             playbackRate={0.7}
           />
         ) : (
-          <img
+          <img decoding="async"
             key={`${scene.id}-${scene.burned ? "burned" : "clean"}`}
             src={scene.displayImage}
             alt={scene.displayName}
@@ -2266,13 +2266,13 @@ function Index() {
               <div className="relative w-20 h-20 flex items-center justify-center">
                 <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
                   {(profile as any)?.avatar_url ? (
-                    <img src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img decoding="async" src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-3xl">{profile?.avatar_emoji || "🧑‍✈️"}</div>
                   )}
                 </div>
                 {frameById((profile as any)?.avatar_frame)?.imageUrl && (
-                  <img src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
+                  <img decoding="async" src={frameById((profile as any)?.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById((profile as any)?.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 10px rgba(252,191,73,0.8)) saturate(1.4) contrast(1.15)" }} />
                 )}
               </div>
               <div className={`inline-flex max-w-[120px] px-2 py-0.5 rounded-md text-[12px] font-black truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${frameById((profile as any)?.name_frame)?.kind === "name" ? `${frameById((profile as any)?.name_frame)?.nameClass} ${frameById((profile as any)?.name_frame)?.animClass ?? ""}` : "text-amber-100"}`}>
@@ -2640,7 +2640,7 @@ function Index() {
                 transition: "transform 0.2s ease-out",
               }}
             >
-              <img src={img} alt="raider" className="w-full block select-none animate-sail-flap" draggable={false} />
+              <img decoding="async" src={img} alt="raider" className="w-full block select-none animate-sail-flap" draggable={false} />
               <div
                 className="absolute pointer-events-none"
                 style={{ left: "50%", top: "-2%", width: "14%", height: "10%" }}
@@ -2874,7 +2874,7 @@ function Index() {
                         }
                       }}
                     >
-                      {f.img ? <img src={f.img} alt={f.name} className="h-7 w-7 object-contain" loading="lazy" /> : <span className="text-xl">{f.emoji}</span>}
+                      {f.img ? <img decoding="async" src={f.img} alt={f.name} className="h-7 w-7 object-contain" loading="lazy" /> : <span className="text-xl">{f.emoji}</span>}
                       <span>{f.name}</span>
                     </button>
 
@@ -3375,7 +3375,7 @@ function Index() {
                         <div key={r.id} className="relative rounded-2xl bg-gradient-to-br from-emerald-950/40 to-emerald-900/10 border border-emerald-500/30 p-3 flex items-center gap-3 shadow-[inset_0_0_20px_rgba(16,185,129,0.08)]">
                           <div className="relative shrink-0">
                             {c.image ? (
-                              <img src={c.image} alt={c.name} className="w-12 h-12 object-contain rounded-xl bg-emerald-950/60 border-2 border-emerald-400/50 p-0.5 shadow-[0_0_15px_rgba(16,185,129,0.25)]" />
+                              <img decoding="async" src={c.image} alt={c.name} className="w-12 h-12 object-contain rounded-xl bg-emerald-950/60 border-2 border-emerald-400/50 p-0.5 shadow-[0_0_15px_rgba(16,185,129,0.25)]" />
                             ) : (
                               <span className="grid w-12 h-12 place-items-center text-2xl rounded-xl bg-emerald-950/60 border-2 border-emerald-400/50">{c.emoji}</span>
                             )}
@@ -3502,7 +3502,7 @@ function Index() {
                           <div className="flex items-center gap-3">
                             <div className="relative shrink-0">
                               {c.image ? (
-                                <img src={c.image} alt={c.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/30 p-0.5" />
+                                <img decoding="async" src={c.image} alt={c.name} className="w-11 h-11 object-contain rounded-xl bg-slate-950/60 border border-amber-600/30 p-0.5" />
                               ) : (
                                 <span className="grid w-11 h-11 place-items-center text-xl rounded-xl bg-slate-950/60 border border-amber-600/30">{c.emoji}</span>
                               )}
@@ -3643,7 +3643,7 @@ function Index() {
                     className="relative flex size-[48px] xs:size-[52px] items-center justify-center"
                   style={{ filter: "drop-shadow(0 5px 9px rgba(0,0,0,0.72)) drop-shadow(0 0 8px rgba(241,190,82,0.18))" }}
                 >
-                  <img
+                  <img decoding="async"
                     src={it.src}
                     alt={it.label}
                     loading="lazy"
@@ -3736,7 +3736,7 @@ function Index() {
             <div className="text-xs font-black text-cyan-200 mb-2">🎣 نتيجة الصيد</div>
             <div className="mx-auto w-24 h-24 rounded-2xl bg-white/15 border-2 border-cyan-200/40 flex items-center justify-center overflow-hidden shadow-inner">
               {catchResult.img ? (
-                <img src={catchResult.img} alt={catchResult.name} className="w-full h-full object-contain p-1 drop-shadow" />
+                <img decoding="async" src={catchResult.img} alt={catchResult.name} className="w-full h-full object-contain p-1 drop-shadow" />
               ) : (
                 <span className="text-5xl">{catchResult.emoji}</span>
               )}
@@ -3781,7 +3781,7 @@ function Index() {
                   {stealResult.items.map((it) => (
                     <div key={it.id} className="rounded-xl bg-white/10 border border-rose-200/40 p-2 flex flex-col items-center">
                       <div className="w-12 h-12 flex items-center justify-center">
-                        {it.img ? <img src={it.img} alt={it.name} className="w-full h-full object-contain" /> : <span className="text-3xl">{it.emoji}</span>}
+                        {it.img ? <img decoding="async" src={it.img} alt={it.name} className="w-full h-full object-contain" /> : <span className="text-3xl">{it.emoji}</span>}
                       </div>
                       <div className="text-[10px] text-white font-bold truncate w-full">{it.name}</div>
                       <div className="text-[11px] font-black text-amber-300">×{it.qty}</div>
@@ -4293,7 +4293,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                                   <div key={r.user_id} className={`flex items-center gap-2 p-1.5 rounded ${isMe ? "bg-amber-500/20 border border-amber-400/50" : "bg-secondary/60 border border-accent/20"}`}>
                                     <span className="w-7 text-center text-xs font-black">{medal}</span>
                                     {r.avatar_url ? (
-                                      <img src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
+                                      <img decoding="async" src={r.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover"/>
                                     ) : (
                                       <span className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-sm">{r.avatar_emoji || "🧑‍✈️"}</span>
                                     )}
@@ -4337,7 +4337,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                       className={`w-full text-right relative overflow-hidden flex items-center gap-3 px-2 py-2 rounded-xl border-2 ${medal.bg} active:scale-[0.98] transition shadow-[0_2px_0_rgba(0,0,0,0.4)]`}
                     >
                       {/* Banner watermark */}
-                      <img src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
+                      <img decoding="async" src={tier.url} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
 
                       {/* Rank number */}
                       <div className={`relative w-10 text-center text-2xl font-black tabular-nums ${medal.num} ${medal.glow}`}>
@@ -4346,8 +4346,8 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
 
                       {/* Emblem badge */}
                       <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-                        <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
-                        <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                        <img decoding="async" src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+                        <img decoding="async" src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
                       </div>
 
                       {/* Name + meta */}
@@ -4408,10 +4408,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
                     <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
                       style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
-                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                      {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
                     {hasAvatarFrame && (
-                      <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
+                      <img decoding="async" src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -4466,10 +4466,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
                     <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
                       style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
-                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                      {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
                     {hasAvatarFrame && (
-                      <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
+                      <img decoding="async" src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -4554,10 +4554,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               <div className="relative w-[72px] h-[72px] shrink-0 flex items-center justify-center">
                 <div className={`w-[50px] h-[50px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden shadow-[0_0_10px_rgba(252,191,73,0.5)] ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
                   style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
-                  {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
+                  {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                 </div>
                 {hasAvatarFrame && (
-                  <img src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />
+                  <img decoding="async" src={frameById(p.avatar_frame)?.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frameById(p.avatar_frame)?.animClass ?? ""}`} style={{ filter: "drop-shadow(0 0 8px rgba(252,191,73,0.7)) saturate(1.35) contrast(1.1)" }} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -4677,12 +4677,12 @@ function TribeDetailModal({ tribeId, onClose, onBeforePlayerOpen }: { tribeId: s
               const tier = getTribeBanner(info.level);
               return (
                 <div className="relative w-full h-28 mb-2 rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 border border-accent/40">
-                  <img src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.4)]" />
+                  <img decoding="async" src={tier.url} alt={`بنر مستوى ${info.level}`} loading="lazy" className="absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_18px_rgba(251,191,36,0.4)]" />
                   <button onClick={onClose} className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded bg-black/70 text-accent text-sm">✕</button>
                   <div className="absolute inset-x-0 bottom-1 z-10 flex flex-col items-center">
                     <div className="relative w-14 h-14 -mb-1">
-                      <img src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
-                      <img src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                      <img decoding="async" src={tier.emblemUrl} alt="" loading="lazy" className="absolute inset-[14%] w-[72%] h-[72%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]" />
+                      <img decoding="async" src={tier.frameUrl} alt="" aria-hidden loading="lazy" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
                     </div>
                     <div className="text-base font-extrabold text-accent drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] truncate px-10">{info.name}</div>
                     <div className="text-[10px] text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">⭐ المستوى {info.level} · {tier.name} · ⚡ {totalPower.toLocaleString()}</div>
@@ -5011,7 +5011,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
               title={c.name}
             >
               {c.image ? (
-                <img
+                <img decoding="async"
                   src={c.image}
                   alt={c.name}
                   className="w-full h-auto object-contain"
@@ -5059,7 +5059,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
         <div className="relative w-full">
           {/* Mirror reflection of the ship on the water */}
           {!destroyed && !isHeavyFxDisabled && (
-            <img
+            <img decoding="async"
               src={ship.img}
               alt=""
               aria-hidden

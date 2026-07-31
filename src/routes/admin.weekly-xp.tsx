@@ -346,7 +346,7 @@ function WeeklyXpAdmin() {
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                 </div>
                 {r.avatar_url
-                  ? <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                  ? <img decoding="async" src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                   : <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">{r.avatar_emoji || "🧑‍✈️"}</div>}
                 <div className="flex-1 min-w-0">
                   <div className="truncate">{r.display_name}</div>

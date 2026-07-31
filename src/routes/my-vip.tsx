@@ -151,7 +151,7 @@ function MyVipPage() {
             <div className="absolute top-3 left-3 text-amber-300 text-xl animate-pulse" style={{ animationDelay: "0.5s" }}>✦</div>
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              <img
+              <img decoding="async"
                 src={tier.badge}
                 alt={`Elite VIP ${tier.level}`}
                 className="w-40 h-40 object-contain drop-shadow-[0_10px_30px_rgba(251,191,36,0.7)]"

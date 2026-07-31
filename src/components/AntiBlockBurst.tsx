@@ -134,7 +134,7 @@ export function AntiBlockBurst({ defenderId }: { defenderId: string | null | und
           ))}
 
           {/* dragon swoops in — ALWAYS in front of shield rings & block effect */}
-          <img
+          <img decoding="async"
             src={dragonImg!}
             alt="Guardian Dragon"
             className="relative z-[10] h-80 w-80 object-contain drop-shadow-[0_0_40px_rgba(251,146,60,0.95)] animate-[dragonSwoop_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"
@@ -264,7 +264,7 @@ export function AttackerAntiBlockBurst() {
       {hasGuardian && (
         <>
           <div className={`absolute z-[2] h-[28rem] w-[28rem] rounded-full blur-3xl animate-pulse ${isHighTier ? "bg-red-600/40" : "bg-orange-500/25"}`} />
-          <img
+          <img decoding="async"
             src={dragonImg!}
             alt="Enemy Guardian Dragon"
             className="relative z-[10] h-80 w-80 object-contain drop-shadow-[0_0_40px_rgba(239,68,68,0.95)] animate-[dragonSwoopAtk_0.7s_cubic-bezier(0.34,1.56,0.64,1)_forwards]"

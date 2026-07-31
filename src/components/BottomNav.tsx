@@ -57,7 +57,7 @@ const NavIconButton = memo(function NavIconButton({
             : "drop-shadow(0 4px 8px rgba(0,0,0,0.6))",
         }}
       >
-        <img
+        <img decoding="async"
           src={src}
           alt={`أيقونة ${label}`}
           loading="lazy"

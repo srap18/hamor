@@ -256,7 +256,7 @@ function InvitePage() {
                       {medal}
                     </div>
                     {r.avatar_url ? (
-                      <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      <img decoding="async" src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center text-sm">
                         {r.avatar_emoji || "🧑‍✈️"}

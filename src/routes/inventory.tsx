@@ -271,7 +271,7 @@ function InventoryPage() {
                 <div key={c.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-emerald-400/60":"border-border/40 opacity-60"}`}>
                   <div className="h-16 flex items-center justify-center">
                     {c.image ? (
-                      <img src={c.image} alt={c.name} className="max-h-16 max-w-full object-contain drop-shadow-lg" />
+                      <img decoding="async" src={c.image} alt={c.name} className="max-h-16 max-w-full object-contain drop-shadow-lg" />
                     ) : (
                       <div className="text-4xl">{c.emoji}</div>
                     )}
@@ -322,7 +322,7 @@ function InventoryPage() {
                 <div key={w.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-rose-400/60":"border-border/40 opacity-60"}`}>
                   <div className="h-16 flex items-center justify-center">
                     {w.image ? (
-                      <img src={w.image} alt={w.name} className="max-h-16 max-w-full object-contain drop-shadow-lg" />
+                      <img decoding="async" src={w.image} alt={w.name} className="max-h-16 max-w-full object-contain drop-shadow-lg" />
                     ) : (
                       <div className="text-4xl">{w.emoji}</div>
                     )}
@@ -547,10 +547,10 @@ function InventoryPage() {
                   <div key={f.id} className={`glass-hud rounded-xl p-2 border ${discovered?"border-sky-400/60":"border-border/40 opacity-60"}`}>
                     <div className="h-16 flex items-center justify-center">
                       {discovered ? (
-                        <img src={f.img} alt={f.name} loading="lazy" width={64} height={64}
+                        <img decoding="async" src={f.img} alt={f.name} loading="lazy" width={64} height={64}
                           className="max-h-16 max-w-full object-contain drop-shadow-lg" />
                       ) : (
-                        <img src={f.img} alt={f.name} loading="lazy" width={64} height={64}
+                        <img decoding="async" src={f.img} alt={f.name} loading="lazy" width={64} height={64}
                           className="max-h-16 max-w-full object-contain grayscale opacity-40" />
                       )}
                     </div>
@@ -580,7 +580,7 @@ function InventoryPage() {
                   const def = getShipByCode(ship.catalog_code);
                   return (
                     <button key={ship.id} onClick={() => useCrew(pickedCrew.id, ship.id)} disabled={!!usingCrew} className="w-full rounded-xl border border-border bg-secondary/50 p-3 flex items-center gap-3 text-right active:scale-95 disabled:opacity-60">
-                      {def?.image && <img src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}
+                      {def?.image && <img decoding="async" src={def.image} alt={def.title} className="w-16 h-12 object-contain" />}
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-bold truncate">{def?.title ?? ship.catalog_code ?? "سفينة"}</div>
                         <div className="text-[11px] text-muted-foreground">HP {ship.hp.toLocaleString()} / {ship.max_hp.toLocaleString()} • نشطة</div>

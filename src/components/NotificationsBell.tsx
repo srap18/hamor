@@ -257,7 +257,7 @@ export function NotificationsBell() {
                             {actor ? (
                               <Link to="/p/$id" params={{ id: actor.id }} onClick={() => setOpen(false)} className="shrink-0 relative">
                                 {actor.avatar_url ? (
-                                  <img src={actor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-red-500/70" />
+                                  <img decoding="async" src={actor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-red-500/70" />
                                 ) : (
                                   <div className="w-12 h-12 rounded-full bg-red-900/60 border-2 border-red-500/70 flex items-center justify-center text-2xl">
                                     {actor.avatar_emoji || "🏴‍☠️"}
@@ -334,7 +334,7 @@ export function NotificationsBell() {
                               className="shrink-0"
                             >
                               {actor.avatar_url ? (
-                                <img src={actor.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/70" />
+                                <img decoding="async" src={actor.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/70" />
                               ) : (
                                 <div className="w-10 h-10 rounded-full bg-amber-900/60 border-2 border-amber-500/70 flex items-center justify-center text-xl">
                                   {actor.avatar_emoji || "🏴‍☠️"}

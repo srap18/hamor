@@ -196,7 +196,7 @@ export function SupportTicketChat({ ticketId, currentUserId, asAdmin, ticketOwne
                   {imgPath && (
                     url ? (
                       <a href={url} target="_blank" rel="noreferrer" className="block">
-                        <img src={url} alt="مرفق" className="rounded-lg border border-slate-700 max-h-64 mb-1" />
+                        <img decoding="async" src={url} alt="مرفق" className="rounded-lg border border-slate-700 max-h-64 mb-1" />
                       </a>
                     ) : (
                       <div className="text-[10px] italic opacity-70 mb-1">📎 جاري تحميل الصورة...</div>

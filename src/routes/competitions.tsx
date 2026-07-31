@@ -376,7 +376,7 @@ function CompetitionsPage() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <img src={fish.img} alt={fish.name} className="w-16 h-16 object-contain drop-shadow-lg"/>
+                        <img decoding="async" src={fish.img} alt={fish.name} className="w-16 h-16 object-contain drop-shadow-lg"/>
                         <div>
                           <div className="font-bold text-base">{fish.name}</div>
                           <div className="text-xs text-slate-400">اصطدها أكبر عدد ممكن!</div>
@@ -415,7 +415,7 @@ function CompetitionsPage() {
                           }`}>
                             <div className="w-10 text-center font-black text-sm">{medal}</div>
                             {r.avatar_url ? (
-                              <img src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-700"/>
+                              <img decoding="async" src={r.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-slate-700"/>
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-lg">{r.avatar_emoji || "🧑‍✈️"}</div>
                             )}

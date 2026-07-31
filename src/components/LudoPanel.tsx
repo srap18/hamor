@@ -398,7 +398,7 @@ function PlayerCard({
         <div className="relative shrink-0 w-11 h-11 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle,${COLOR_HEX[color || "green"]}55,transparent 65%)` }} />
           {prof?.avatar_url ? (
-            <img src={prof.avatar_url} alt="" loading="lazy"
+            <img decoding="async" src={prof.avatar_url} alt="" loading="lazy"
               className={`w-[70%] h-[70%] rounded-full object-cover ring-2 ${ringCls}`}
               style={{ boxShadow: `0 0 8px ${COLOR_HEX[color || "green"]}88` }} />
           ) : (
@@ -408,7 +408,7 @@ function PlayerCard({
             </div>
           )}
           {frame?.imageUrl && (
-            <img src={frame.imageUrl} alt="" loading="lazy"
+            <img decoding="async" src={frame.imageUrl} alt="" loading="lazy"
               className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${frame.animClass ?? ""}`}
               style={{ filter: "drop-shadow(0 0 4px rgba(252,191,73,0.4))" }} />
           )}

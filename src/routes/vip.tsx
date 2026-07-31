@@ -135,7 +135,7 @@ function VipPage() {
               )}
 
               <div className="flex justify-center mb-3">
-                <img
+                <img decoding="async"
                   src={t.badge}
                   alt={`Elite VIP ${t.level}`}
                   loading="lazy"

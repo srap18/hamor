@@ -793,7 +793,7 @@ function ClientItemPricesTable() {
                 {/* Preview */}
                 <div className="shrink-0">
                   {it.preview.kind === "image" && (
-                    <img src={it.preview.src} alt="" className="w-20 h-20 rounded-lg object-cover" />
+                    <img decoding="async" src={it.preview.src} alt="" className="w-20 h-20 rounded-lg object-cover" />
                   )}
                   {it.preview.kind === "ring" && (
                     <div className={`w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-2xl ${it.preview.ring}`}>🧑‍✈️</div>

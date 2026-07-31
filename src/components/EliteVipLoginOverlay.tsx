@@ -104,7 +104,7 @@ export function EliteVipLoginOverlay() {
       >
         <div onClick={() => setCurrent(null)} className={`vip-slide-in-bottom pointer-events-auto cursor-pointer relative w-full max-w-[260px] rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg`}>
           <div className="relative flex items-center gap-2 px-2 py-1.5" dir="rtl">
-            <img
+            <img decoding="async"
               src={tier.badge}
               alt=""
               className="w-8 h-8 object-contain shrink-0 drop-shadow"

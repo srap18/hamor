@@ -155,11 +155,11 @@ export function DestroyerSign({ playerId, destroyerAvatar, destroyerEmoji, bgId,
         aria-label="رسائل المفجّرين"
       >
         <div className="relative w-full" style={{ aspectRatio: "1024 / 1536" }}>
-          <img src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
+          <img decoding="async" src={woodenSignAsset.url} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none" draggable={false} />
           <div className="absolute" style={{ top: "26%", left: "50%", transform: "translateX(-50%)", width: "46%", aspectRatio: "1 / 1" }}>
             <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-amber-950 shadow-md bg-amber-100">
               {destroyerAvatar ? (
-                <img src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
+                <img decoding="async" src={destroyerAvatar} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px]">{destroyerEmoji || "🧙"}</div>
               )}
