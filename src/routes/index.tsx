@@ -153,6 +153,11 @@ interface Ship {
   maxHp?: number;
   destroyedAt?: string | null;
   repairEndsAt?: string | null;
+  // Server-authoritative repair window start (destroyed_at or last_damaged_at)
+  // and the HP snapshot at that moment — used to interpolate live HP locally
+  // with exactly the same formula the server uses.
+  repairFromAt?: string | null;
+  repairFromHp?: number | null;
   stealingEndsAt?: string | null;
   stealingTargetUserId?: string | null;
   stealingStartedAt?: string | null;
