@@ -1315,7 +1315,14 @@ function PlayerPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setCancelRaiderId(null)}>
           <div className="w-full max-w-xs glass-hud rounded-2xl border-2 border-rose-400/60 p-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
             <div className="text-center text-amber-100 font-bold">إيقاف السرقة؟</div>
-            <div className="text-center text-amber-300/70 text-xs">سترجع سفينة اللص بالغنيمة الحالية فقط</div>
+            <div className="text-center text-amber-300/70 text-xs">
+              {stealPreview[cancelRaiderId]
+                ? (stealPreview[cancelRaiderId].count > 0
+                    ? `سترجع سفينتك ومعها ${stealPreview[cancelRaiderId].count} سمكة الآن`
+                    : `⚠️ ${stealReasonText(stealPreview[cancelRaiderId].reason)}`)
+                : "سترجع سفينة اللص بالغنيمة الحالية فقط"}
+            </div>
+
             <div className="flex gap-2">
               <button onClick={() => setCancelRaiderId(null)} className="flex-1 py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">رجوع</button>
               <button onClick={() => stopRaid(cancelRaiderId)} className="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold">🛑 أوقف</button>
