@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";

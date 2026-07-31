@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth, refreshProfile } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
 import { CREWS } from "@/lib/crews";
