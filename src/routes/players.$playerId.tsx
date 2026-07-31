@@ -1560,7 +1560,7 @@ function PlayerPage() {
                   disabled={busy}
                   onClick={() => { if (stealReason) { sound.play("error"); flash(stealReason); return; } setMode("myship"); }}
                   className={`py-3 rounded-xl bg-gradient-to-b from-amber-500 to-amber-700 text-amber-50 font-bold active:scale-95 disabled:opacity-40 ${stealReason ? "opacity-70" : ""}`}
-                >🗡️ سرقة {stealReason && !blockReason && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : "لازم تكون تصيد"})</span>}</button>
+                >🗡️ سرقة {stealReason && !stealBlock && <span className="text-[10px] opacity-80">({targetDead ? "مدمّرة" : !targetFishing ? "لازم تكون تصيد" : "سفنك مشغولة"})</span>}</button>
 
                 <button aria-label="دعم وإصلاح سفينة اللاعب" disabled={busy} onClick={() => setMode("support")} className="py-3 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 text-white font-bold active:scale-95">🛠️ دعم / إصلاح</button>
                 <button aria-label="إلغاء وإغلاق القائمة" onClick={closeMenu} className="py-2 rounded-xl bg-stone-700 text-stone-200 text-sm">إلغاء</button>
