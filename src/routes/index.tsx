@@ -572,7 +572,7 @@ function Index() {
           const sailorAtStart = sameTrip
             ? (!!s.sailorAtStart || hasSailorNow)
             : (fishing ? hasSailorNow : false);
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, repairFromAt: row.destroyed_at ?? row.last_damaged_at, repairFromHp: row.destroyed_at ? 0 : row.repair_started_hp, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
