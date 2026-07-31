@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
