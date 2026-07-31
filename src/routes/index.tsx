@@ -1401,6 +1401,16 @@ function Index() {
       last = ts;
 
       const now = serverNowMs();
+      // Fast path: nothing is fishing and no hull is mid-transition → skip the
+      // state update entirely (no array allocation, no reducer run) and idle.
+      // Pure CPU/battery saving; the produced state is identical.
+      const snapshot = shipsRef.current;
+      let anyWork = false;
+      for (let i = 0; i < snapshot.length; i++) {
+        const s = snapshot[i];
+        if (s.fishing || Math.abs((s.fishing ? 1 : 0) - s.sail) > EPS) { anyWork = true; break; }
+      }
+      if (!anyWork) { schedule(IDLE_MS); return; }
       let dirty = false;
       let sailBusy = false;
       let progressBusy = false;

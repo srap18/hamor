@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,9 +64,16 @@ export function NotificationsBell() {
   };
 
 
+  // Perf: keep a ref mirror of `actors` so `loadActors` (and therefore `load`
+  // and the realtime effect below) stay referentially stable. Previously every
+  // resolved actor changed `loadActors` → changed `load` → re-ran the effect,
+  // which tore down and re-subscribed the Supabase realtime channel and fired
+  // a full notifications reload each time. Same data, far fewer round-trips.
+  const actorsRef = useRef(actors);
+  actorsRef.current = actors;
   const loadActors = useCallback(async (notifs: Notif[]) => {
     const ids = Array.from(new Set(notifs.map(n => n.created_by).filter((x): x is string => !!x)));
-    const missing = ids.filter(id => !actors[id]);
+    const missing = ids.filter(id => !actorsRef.current[id]);
     if (!missing.length) return;
     const profs = await getProfilesPublic(missing);
     setActors(prev => {
@@ -74,7 +81,7 @@ export function NotificationsBell() {
       for (const p of profs) next[p.id] = p;
       return next;
     });
-  }, [actors]);
+  }, []);
 
   const load = useCallback(async () => {
     if (!user) return;

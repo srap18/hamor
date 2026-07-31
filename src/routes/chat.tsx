@@ -399,8 +399,8 @@ function ChatPage() {
       if (!active) return;
       ch = supabase.channel(`msgs-${tab}-${dmWith || ""}-${Date.now()}`, {
         config: { broadcast: { self: false }, presence: { key: "" } },
-      })
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, async (payload) => {
+      });
+      const onInsert = async (payload: any) => {
           const m = payload.new as Msg;
           let ok = false;
           if (tab === "public" && m.channel === "public") ok = true;
@@ -415,7 +415,25 @@ function ChatPage() {
             });
             return prev;
           });
-        })
+      };
+      // Perf: server-side filters so Realtime only forwards rows this tab can
+      // display. Previously every message inserted anywhere in the game (all
+      // DMs of all players) was pushed to every open client and discarded in
+      // JS — pure battery/network/CPU waste. The client-side `ok` check above
+      // is unchanged, so behavior is identical.
+      const insertFilters: string[] =
+        tab === "public" ? ["channel=eq.public"]
+        : tab === "tribe" && profile?.tribe_id ? [`tribe_id=eq.${profile.tribe_id}`]
+        : tab === "dm" && dmWith ? [`recipient_id=eq.${user.id}`, `recipient_id=eq.${dmWith}`]
+        : [];
+      if (insertFilters.length) {
+        for (const filter of insertFilters) {
+          ch = ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter }, onInsert);
+        }
+      } else {
+        ch = ch.on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, onInsert);
+      }
+      ch = ch
         .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
           const oldId = (payload.old as any)?.id;
           if (!oldId) return;
