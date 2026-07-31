@@ -288,6 +288,18 @@ function PlayerPage() {
   // which had nothing to do with the real transferable amount.
   const [stealPreview, setStealPreview] = useState<Record<string, { count: number; reason: string | null }>>({});
 
+  const stealReasonText = (reason: string | null | undefined) => {
+    switch (reason) {
+      case "hold_full": return "مخزن سفينتك ممتلئ — فرّغ السمك وحاول مرة ثانية";
+      case "market_full": return "سوق السمك عندك ممتلئ — بِع السمك عشان تستقبل الغنيمة";
+      case "target_empty": return "سفينة الخصم ما فيها سمك حاليًا";
+      case "target_gone": return "سفينة الخصم اختفت من الميناء";
+      case "too_early": return "الوقت لسه بدري — كمّل المهمة عشان تحصل غنيمة";
+      default: return "ما فيه غنيمة متاحة الآن";
+    }
+  };
+
+
   // Load raiders currently stealing FROM this player (their ships visible in this harbor)
 
   const loadRaiders = async () => {
