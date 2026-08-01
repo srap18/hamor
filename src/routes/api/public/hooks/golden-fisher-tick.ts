@@ -1,14 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // apikey auth (matches the pg_cron / trigger convention used by the
+        // other hooks). Without it, anyone could drive global fishing ticks.
+        const expected = process.env["SUPABASE_PUBLISHABLE_KEY"] || process.env["SUPABASE_ANON_KEY"];
+        const provided = request.headers.get("apikey");
+        if (!expected || !provided || provided !== expected) {
+          return new Response("unauthorized", { status: 401 });
+        }
+
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
         // Global cleanup: remove any expired crew assignments from inventory
         // so ships free up their crew slots automatically even while owners are offline.
         const { error: sweepErr } = await supabaseAdmin.rpc("sweep_expired_crews");
         if (sweepErr) console.error("[golden-fisher-tick] sweep_expired_crews failed", sweepErr);
+
 
         // Find all users with active Golden Fisher, whether it was activated
         // globally or is still stored as an assigned crew row from the old flow.
