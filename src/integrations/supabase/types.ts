@@ -5641,6 +5641,15 @@ export type Database = {
         Args: { _owner: string; _ship_id: string }
         Returns: number
       }
+      _ship_pending_catch: {
+        Args: { _owner: string; _ship_id: string }
+        Returns: {
+          capacity: number
+          duration: number
+          fish_id: string
+          qty: number
+        }[]
+      }
       _ship_repair_ratio: {
         Args: { _destroyed_at: string; _repair_ends_at: string }
         Returns: number
