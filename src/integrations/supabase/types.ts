@@ -3189,9 +3189,7 @@ export type Database = {
       profiles: {
         Row: {
           active_session_id: string | null
-          active_session_ip: string | null
           active_session_started_at: string | null
-          active_session_ua: string | null
           album_privacy: string
           armor_last_bought_at: string | null
           avatar_emoji: string
@@ -3264,9 +3262,7 @@ export type Database = {
         }
         Insert: {
           active_session_id?: string | null
-          active_session_ip?: string | null
           active_session_started_at?: string | null
-          active_session_ua?: string | null
           album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
@@ -3339,9 +3335,7 @@ export type Database = {
         }
         Update: {
           active_session_id?: string | null
-          active_session_ip?: string | null
           active_session_started_at?: string | null
-          active_session_ua?: string | null
           album_privacy?: string
           armor_last_bought_at?: string | null
           avatar_emoji?: string
