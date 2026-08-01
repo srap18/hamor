@@ -3045,6 +3045,30 @@ export type Database = {
         }
         Relationships: []
       }
+      player_sessions: {
+        Row: {
+          ip: string | null
+          started_at: string
+          ua: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ip?: string | null
+          started_at?: string
+          ua?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ip?: string | null
+          started_at?: string
+          ua?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       polar_purchases: {
         Row: {
           amount_cents: number
