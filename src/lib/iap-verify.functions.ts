@@ -129,16 +129,18 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
 
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
-    if (!alreadyGranted && reward.items?.length) {
-      for (const it of reward.items) {
-        await supabaseAdmin.rpc("grant_inventory_item" as never, {
-          _user: userId,
-          _item_type: it.itemType,
-          _item_id: it.itemId,
-          _qty: it.qty,
-        } as never);
-      }
+    // Items — always run; idempotent per (txn, item_type, item_id) via the
+    // paddle_purchase_items ledger. Never gate on `alreadyGranted`: a retry
+    // after a partial failure must still be able to deliver missing items.
+    if (reward.items?.length) {
+      const { error: itemsErr } = await supabaseAdmin.rpc("grant_pack_items" as never, {
+        _txn_id: data.transactionId,
+        _user: userId,
+        _items: reward.items,
+      } as never);
+      if (itemsErr) throw new Error(`grant_pack_items failed: ${itemsErr.message}`);
     }
+
 
     // Ships — idempotent per txn.
     if (
