@@ -37,13 +37,26 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       throw new Error(`unknown product: ${data.productId}`);
     }
 
-    // 1) Idempotency — bail if this receipt was already processed.
+    // 1) Idempotency — this receipt was already processed. Still re-run the
+    //    item grant (idempotent via the ledger) so a previous partial delivery
+    //    heals itself instead of leaving the buyer without their items.
     const { data: existing } = await supabaseAdmin
       .from("paddle_purchases")
       .select("id")
       .eq("paddle_transaction_id", data.transactionId)
       .maybeSingle();
-    if (existing) return { ok: true, alreadyGranted: true, productId: data.productId };
+    if (existing) {
+      if (pack?.reward?.items?.length) {
+        const { error: healErr } = await supabaseAdmin.rpc("grant_pack_items" as never, {
+          _txn_id: data.transactionId,
+          _user: userId,
+          _items: pack.reward.items,
+        } as never);
+        if (healErr) throw new Error(`grant_pack_items failed: ${healErr.message}`);
+      }
+      return { ok: true, alreadyGranted: true, productId: data.productId };
+    }
+
 
     // 2) Server-side receipt verification with the store.
     //    Android: Google Play Developer API. iOS: TODO (App Store Server API).
