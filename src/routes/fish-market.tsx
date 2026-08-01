@@ -487,7 +487,7 @@ function FishMarket() {
 
 
   // Rot helpers: -1% per hour from oldest catch, floor 50%.
-  // Freeze pauses the rot clock; after freeze expires rot resumes from where it paused.
+  // Freeze pauses the rot clock ONLY inside its own window (matches the server).
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
@@ -499,11 +499,11 @@ function FishMarket() {
     if (fStart > 0 && fUntil > fStart) {
       frozenSec = Math.max(0, (Math.min(fUntil, now) - Math.max(fStart, caughtAt)) / 1000);
     }
-    const offsetSec = Math.max(0, marketState.rot_freeze_offset_seconds || 0);
-    const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - offsetSec - frozenSec);
+    const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - frozenSec);
     const hours = elapsedSec / 3600;
     return Math.max(0.5, 1 - 0.01 * hours);
   };
+
 
   // Only show fish the player owns (qty > 0)
   const fish: Fish[] = Object.entries(qtyMap)
