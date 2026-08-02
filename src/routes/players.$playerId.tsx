@@ -1583,7 +1583,13 @@ function PlayerPage() {
                     : targetProtected
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                       : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
-              const attackDisabled = busy || targetDead || !!blockReason;
+              const attackReason = blockReason
+                ? blockReason
+                : targetDead
+                  ? "💥 سفينة الخصم مدمّرة — انتظر إصلاحها"
+                  : null;
+              const attackDisabled = busy;
+
               // Steal is NOT part of the PvP bracket system (6–15 / 16+) and does not
               // require a PvP fleet — only shields, market level 6, target fishing,
               // and having one of MY ships docked (not fishing / repairing / raiding).
