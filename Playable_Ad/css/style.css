@@ -5,14 +5,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04121f;
 #game{position:absolute;inset:0;width:100%;height:100%;display:block}
 
 /* ---------- HUD ---------- */
-#hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;
+#hud{position:absolute;top:0;left:0;right:0;direction:ltr;display:flex;gap:8px;align-items:center;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;z-index:5;pointer-events:none}
 .hud-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
   background:rgba(4,18,31,.55);border:1px solid rgba(255,214,120,.35);
   color:#ffe9b0;font-size:15px;font-weight:700;letter-spacing:.5px;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   text-shadow:0 1px 4px rgba(0,0,0,.6)}
-.hud-ico{font-size:14px}
+.hud-ico{font-size:12px;opacity:.85}
 #timeBox{margin-inline-start:auto}
 .hud-btn{pointer-events:auto;cursor:pointer;font-size:16px;line-height:1}
 #scoreBox.pop{animation:pop .28s ease}
