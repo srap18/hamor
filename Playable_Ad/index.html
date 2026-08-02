@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>ملوك القراصنة — العب الآن</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-pill" id="scoreBox"><span class="hud-ico">💥</span><span id="score">0</span></div>
+      <div class="hud-pill" id="timeBox"><span class="hud-ico">⏱</span><span id="time">25</span></div>
+      <button id="muteBtn" class="hud-pill hud-btn" aria-label="كتم الصوت">🔊</button>
+    </div>
+
+    <!-- Tutorial -->
+    <div id="tutorial">
+      <div class="tut-text">اسحب لتوجيه المدفع</div>
+      <div class="tut-text tut-sub">اضغط لإطلاق النار</div>
+      <div id="hand">👆</div>
+      <div id="arrow">➤</div>
+    </div>
+
+    <!-- End card -->
+    <div id="endcard">
+      <div class="ec-inner">
+        <div class="ec-logo">
+          <span class="ec-skull">☠️</span>
+          <div class="ec-title">ملوك القراصنة</div>
+          <div class="ec-sub">PIRATE KINGS</div>
+        </div>
+        <div class="ec-score">دمّرت <b id="ecScore">0</b> سفينة!</div>
+        <div class="ec-tag">ابدأ مغامرتك الآن وكن أقوى قرصان!</div>
+        <a id="ctaBtn" href="#" target="_blank" rel="noopener">حمل اللعبة الآن واستمتع!</a>
+        <button id="replayBtn">إعادة اللعب ↺</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
