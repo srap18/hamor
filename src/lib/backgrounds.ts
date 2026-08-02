@@ -54,6 +54,10 @@ import ahliBg from "@/assets/bg-ahli.jpg.asset.json";
 import ahliBurnedBg from "@/assets/bg-ahli-burned.jpg.asset.json";
 import ahliVideo from "@/assets/bg-ahli.mp4.asset.json";
 import ahliBurnedVideo from "@/assets/bg-ahli-burned.mp4.asset.json";
+import madagascarBg from "@/assets/bg-madagascar.jpg.asset.json";
+import madagascarBurnedBg from "@/assets/bg-madagascar-burned.jpg.asset.json";
+import madagascarVideo from "@/assets/bg-madagascar.mp4.asset.json";
+import madagascarBurnedVideo from "@/assets/bg-madagascar-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -388,6 +392,27 @@ export const BACKGROUNDS: SceneBg[] = [
     burnedImage: ahliBurnedBg.url,
     video: ahliVideo.url,
     burnedVideo: ahliBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 7,
+  },
+  {
+    id: "madagascar",
+    name: "قرية مدغشقر ✨",
+    burnedName: "قرية مدغشقر المحترقة 🔥",
+    price: 4000,
+    currency: "gems",
+    rarity: "legendary",
+    image: madagascarBg.url,
+    burnedImage: madagascarBurnedBg.url,
+    video: madagascarVideo.url,
+    burnedVideo: madagascarBurnedVideo.url,
     animated: true,
     objectPosition: "center center",
     seaSide: "right",
