@@ -1583,7 +1583,13 @@ function PlayerPage() {
                     : targetProtected
                       ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                       : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
-              const attackDisabled = busy || targetDead || !!blockReason;
+              const attackReason = blockReason
+                ? blockReason
+                : targetDead
+                  ? "💥 سفينة الخصم مدمّرة — انتظر إصلاحها"
+                  : null;
+              const attackDisabled = busy;
+
               // Steal is NOT part of the PvP bracket system (6–15 / 16+) and does not
               // require a PvP fleet — only shields, market level 6, target fishing,
               // and having one of MY ships docked (not fishing / repairing / raiding).
@@ -1616,7 +1622,13 @@ function PlayerPage() {
                 {blockReason && (
                   <div className="text-center text-[11px] text-rose-200 bg-rose-900/40 border border-rose-700/40 rounded-lg py-2 px-2">{blockReason}</div>
                 )}
-                <button aria-label="هجوم على سفينة اللاعب" disabled={attackDisabled} onClick={() => setMode("weapon")} className="py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95 disabled:opacity-40">⚔️ هجوم {targetDead && <span className="text-[10px] opacity-80">(مدمّرة)</span>}</button>
+                <button
+                  aria-label="هجوم على سفينة اللاعب"
+                  disabled={attackDisabled}
+                  onClick={() => { if (attackReason) { sound.play("error"); flash(attackReason); return; } setMode("weapon"); }}
+                  className={`py-3 rounded-xl bg-gradient-to-b from-red-500 to-red-700 text-white font-bold active:scale-95 disabled:opacity-40 ${attackReason ? "opacity-70" : ""}`}
+                >⚔️ هجوم {targetDead && <span className="text-[10px] opacity-80">(مدمّرة)</span>}{!targetDead && blockReason && <span className="text-[10px] opacity-80">(غير متاح)</span>}</button>
+
                 <button
                   aria-label="سرقة سفينة اللاعب"
                   disabled={busy}

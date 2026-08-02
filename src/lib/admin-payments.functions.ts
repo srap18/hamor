@@ -41,13 +41,13 @@ export const adminReconcilePaddleForUser = createServerFn({ method: "POST" })
     const email = au?.user?.email;
     if (!email) return { ok: false, reason: "no_email", grantedCount: 0 };
 
-    const custRes = await gatewayFetch(
-      data.environment,
-      `/customers?email=${encodeURIComponent(email)}`,
-    );
-    if (!custRes.ok) return { ok: false, reason: `customer_lookup_${custRes.status}`, grantedCount: 0 };
-    const custBody = await custRes.json();
-    const customers: any[] = custBody?.data ?? [];
+    const { findPaddleCustomers } = await import("@/lib/paddle-customers.server");
+    const lookup = await findPaddleCustomers(data.environment, email);
+    const customers: any[] = lookup.customers;
+    if (customers.length === 0) {
+      return { ok: false, reason: lookup.reason ?? "no_customer", grantedCount: 0, email };
+    }
+
 
     let grantedCount = 0;
     const granted: string[] = [];

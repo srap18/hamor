@@ -66,9 +66,16 @@ function AdminTicketsPage() {
         skipped?: { id: string; reason: string }[];
         email?: string;
       };
+      const REASONS: Record<string, string> = {
+        no_email: "لا يوجد بريد إلكتروني لهذا الحساب",
+        invalid_email: "بريد الحساب غير صالح للبحث في بوابة الدفع",
+        no_customer: "لا يوجد عميل بهذا البريد في بوابة الدفع",
+      };
       const lines: string[] = [];
       lines.push(`📧 البريد: ${res?.email ?? "(غير معروف)"}`);
-      lines.push(`الحالة: ${res?.ok === false ? `فشل — ${res.reason ?? "غير معروف"}` : "تم الفحص"}`);
+      const reason = res?.reason ? (REASONS[res.reason] ?? res.reason) : null;
+      lines.push(`الحالة: ${res?.ok === false ? `فشل — ${reason ?? "غير معروف"}` : `تم الفحص${reason ? ` — ${reason}` : ""}`}`);
+
       lines.push(`تم الصرف: ${res?.grantedCount ?? 0}`);
       if (res?.granted?.length) lines.push(`المنتجات: ${res.granted.join(", ")}`);
       if (res?.skipped?.length) {

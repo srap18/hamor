@@ -38,15 +38,14 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
       (claims as { email?: string } | undefined)?.email ?? undefined;
     if (!email) return { ok: false, reason: "no_email", grantedCount: 0 };
 
-    // 1) Look up the Paddle customer by email.
-    const custRes = await gatewayFetch(
-      data.environment,
-      `/customers?email=${encodeURIComponent(email)}`,
-    );
-    if (!custRes.ok) return { ok: false, reason: `customer_lookup_${custRes.status}`, grantedCount: 0 };
-    const custBody = await custRes.json();
-    const customers: any[] = custBody?.data ?? [];
-    if (customers.length === 0) return { ok: true, grantedCount: 0, reason: "no_customer" };
+    // 1) Look up the Paddle customer by email (tolerant to odd/invalid addresses).
+    const { findPaddleCustomers } = await import("@/lib/paddle-customers.server");
+    const lookup = await findPaddleCustomers(data.environment, email);
+    const customers: any[] = lookup.customers;
+    if (customers.length === 0) {
+      return { ok: true, grantedCount: 0, reason: lookup.reason ?? "no_customer", email };
+    }
+
 
     let grantedCount = 0;
     const granted: string[] = [];
