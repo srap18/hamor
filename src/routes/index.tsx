@@ -2212,6 +2212,23 @@ function Index() {
           />
         </>
 
+      ) : scene.id === "madagascar" ? (
+        <>
+          {/* Madagascar background: painted "مخزن سمك" and "سوق سفن" — fixed tap zones only */}
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "0%", top: "24%", width: "42%", height: "14%" }}
+          />
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "44%", top: "22%", width: "28%", height: "13%" }}
+          />
+        </>
+
       ) : scene.id === "ahli" ? (
         <>
           {/* Al-Ahli background: painted "سوق الزعيم" and "مخزن الزعيم" — fixed tap zones only */}
