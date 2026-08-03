@@ -343,6 +343,14 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           await handleWebhook(request, env);
           return Response.json({ received: true });
         } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          // Unsigned/forged calls are hitting this public endpoint constantly.
+          // Reject them cheaply and silently: no logging, and a 401 so the
+          // caller stops retrying. Only genuine, signed events are logged and
+          // answered with 400 so Paddle retries them.
+          if (msg.includes("signature")) {
+            return new Response("unauthorized", { status: 401 });
+          }
           console.error("Webhook error:", e);
           return new Response("Webhook error", { status: 400 });
         }
@@ -350,3 +358,4 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
     },
   },
 });
+
