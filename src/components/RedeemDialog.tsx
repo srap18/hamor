@@ -39,6 +39,7 @@ type RedeemResult = {
 
 const ERR_MSG: Record<string, string> = {
   not_authenticated: "يجب تسجيل الدخول",
+  user_muted: "أنت مكتوم — لا تستطيع استعمال الأكواد",
   invalid_code: "الكود غير صحيح",
   code_disabled: "هذا الكود معطل",
   code_expired: "انتهت صلاحية الكود",
