@@ -10,6 +10,7 @@ import { TRADE_GROUPS, tradeItemLabel, type TradeItemType } from "@/lib/trade-ca
 const MAX_PER_ITEM = 10;
 const MAX_SIDE_TOTAL = 20;
 const MAX_WANT_RATIO = 3;
+const TRADE_FEE_GEMS = 50;
 
 
 export const Route = createFileRoute("/trade")({
@@ -67,13 +68,14 @@ function basketTotal(b: Basket) {
 }
 
 function BasketPicker({
-  title, basket, setBasket, owned, maxTotal,
+  title, basket, setBasket, owned, maxTotal, excludeIds,
 }: {
   title: string;
   basket: Basket;
   setBasket: (b: Basket) => void;
   owned?: Record<string, number>;
   maxTotal?: number;
+  excludeIds?: Set<string>;
 }) {
   const [group, setGroup] = useState<TradeItemType>("crew");
   const items = TRADE_GROUPS.find((g) => g.type === group)?.items ?? [];
@@ -114,13 +116,16 @@ function BasketPicker({
           const key = `${it.type}:${it.id}`;
           const n = basket[key]?.qty ?? 0;
           const have = owned ? owned[key] ?? 0 : null;
-          const disabled = have !== null && have <= 0;
+          const blocked = excludeIds?.has(it.id) ?? false;
+          const disabled = blocked || (have !== null && have <= 0);
           return (
             <div key={key} className={`rounded-lg border p-1.5 flex items-center gap-1.5 ${disabled ? "opacity-40" : ""} ${n > 0 ? "border-amber-400 bg-amber-500/10" : "border-border bg-background/30"}`}>
               {it.image ? <img src={it.image} alt={it.name} className="w-6 h-6 object-contain" loading="lazy" /> : <span className="text-base">{it.emoji}</span>}
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-bold truncate">{it.name}</div>
-                {have !== null && <div className="text-[9px] text-muted-foreground">عندك {have}</div>}
+                {blocked
+                  ? <div className="text-[9px] text-rose-300">تقدّمه أصلاً</div>
+                  : have !== null && <div className="text-[9px] text-muted-foreground">عندك {have}</div>}
               </div>
               <div className="flex items-center gap-1">
                 <button disabled={disabled} onClick={() => bump(it.type, it.id, -1)} className="w-5 h-5 rounded bg-secondary/70 text-xs font-bold active:scale-90">−</button>
@@ -245,10 +250,15 @@ function TradePage() {
       toast.error(`طلب غير معقول: الحد الأقصى ${maxWant} قطعة مقابل ما تقدّمه`);
       return;
     }
+    const dup = g.find((x) => w.some((y) => y.item_id === x.item_id));
+    if (dup) {
+      toast.error(`لا يمكنك طلب نفس العنصر الذي تقدّمه (${tradeItemLabel(dup.item_type, dup.item_id).name})`);
+      return;
+    }
     const ok = await confirmDialog({
       title: "تأكيد نشر المقايضة",
-      message: `ستقدّم:\n${listItems(g)}\n\nوتطلب:\n${listItems(w)}\n\nسيتم حجز عناصرك فوراً حتى القبول أو الإلغاء.`,
-      confirmText: "نشر العرض",
+      message: `ستقدّم:\n${listItems(g)}\n\nوتطلب:\n${listItems(w)}\n\nسيتم حجز عناصرك فوراً حتى القبول أو الإلغاء.\n\n💎 رسوم النشر: ${TRADE_FEE_GEMS} جوهرة (غير مستردة حتى لو ألغيت العرض).`,
+      confirmText: `نشر العرض (${TRADE_FEE_GEMS} 💎)`,
     });
     if (!ok) return;
     setBusy("create");
@@ -264,7 +274,7 @@ function TradePage() {
     if (busy) return;
     const ok = await confirmDialog({
       title: "إلغاء العرض",
-      message: "سيتم إلغاء العرض وإرجاع عناصرك المحجوزة إلى المخزن.",
+      message: `سيتم إلغاء العرض وإرجاع عناصرك المحجوزة إلى المخزن.\n\n⚠️ رسوم النشر (${TRADE_FEE_GEMS} 💎) لن تُسترد.`,
       confirmText: "إلغاء العرض",
       cancelText: "تراجع",
       danger: true,
@@ -282,8 +292,8 @@ function TradePage() {
     if (busy) return;
     const ok = await confirmDialog({
       title: "تأكيد المقايضة",
-      message: `ستدفع من مخزنك:\n${listItems(o.want)}\n\nوستحصل على:\n${listItems(o.give)}\n\nالعملية نهائية ولا يمكن التراجع عنها.`,
-      confirmText: "نعم، قايض",
+      message: `ستدفع من مخزنك:\n${listItems(o.want)}\n\nوستحصل على:\n${listItems(o.give)}\n\n💎 رسوم المقايضة: ${TRADE_FEE_GEMS} جوهرة (غير مستردة).\n\nالعملية نهائية ولا يمكن التراجع عنها.`,
+      confirmText: `نعم، قايض (${TRADE_FEE_GEMS} 💎)`,
     });
     if (!ok) return;
     setBusy(o.id);
@@ -325,13 +335,16 @@ function TradePage() {
             {!creating ? (
               <button onClick={() => setCreating(true)}
                 className="w-full py-3 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-bold active:scale-95">
-                ➕ إنشاء عرض مقايضة
+                ➕ إنشاء عرض مقايضة <span className="text-[11px]">({TRADE_FEE_GEMS} 💎)</span>
               </button>
             ) : (
               <div className="rounded-2xl border border-accent/30 glass-hud p-3 space-y-3">
-                <BasketPicker title="أقدّم (سيتم حجزه فوراً)" basket={give} setBasket={setGive} owned={owned} />
-                <BasketPicker title="أطلب مقابله" basket={want} setBasket={setWant} maxTotal={Math.max(3, basketTotal(give) * MAX_WANT_RATIO)} />
-                <div className="text-[10px] text-muted-foreground">⚖️ الحد: 10 قطع لكل عنصر، و20 قطعة لكل جهة، ولا يمكن طلب أكثر من 3 أضعاف ما تقدّمه.</div>
+                <BasketPicker title="أقدّم (سيتم حجزه فوراً)" basket={give} setBasket={setGive} owned={owned}
+                  excludeIds={new Set(Object.values(want).map((v) => v.id))} />
+                <BasketPicker title="أطلب مقابله" basket={want} setBasket={setWant} maxTotal={Math.max(3, basketTotal(give) * MAX_WANT_RATIO)}
+                  excludeIds={new Set(Object.values(give).map((v) => v.id))} />
+                <div className="text-[10px] text-muted-foreground">⚖️ الحد: 10 قطع لكل عنصر، و20 قطعة لكل جهة، ولا يمكن طلب أكثر من 3 أضعاف ما تقدّمه، ولا يمكن طلب نفس العنصر الذي تقدّمه.</div>
+                <div className="text-[10px] font-bold text-amber-200">💎 رسوم نشر العرض {TRADE_FEE_GEMS} جوهرة، وغير مستردة عند الإلغاء أو انتهاء المدة.</div>
                 <div className="flex gap-1 flex-wrap items-center">
                   <span className="text-[11px] text-muted-foreground">مدة العرض:</span>
                   {HOURS.map((h) => (
@@ -390,7 +403,7 @@ function TradePage() {
                 ) : (
                   <button disabled={busy === o.id || !!blockedReason} onClick={() => acceptOffer(o)}
                     className="w-full py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
-                    {busy === o.id ? "..." : "قبول المقايضة"}
+                    {busy === o.id ? "..." : `قبول المقايضة (${TRADE_FEE_GEMS} 💎)`}
                   </button>
                 )}
               </div>
