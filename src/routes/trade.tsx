@@ -288,8 +288,8 @@ function TradePage() {
     if (busy) return;
     const ok = await confirmDialog({
       title: "تأكيد المقايضة",
-      message: `ستدفع من مخزنك:\n${listItems(o.want)}\n\nوستحصل على:\n${listItems(o.give)}\n\nالعملية نهائية ولا يمكن التراجع عنها.`,
-      confirmText: "نعم، قايض",
+      message: `ستدفع من مخزنك:\n${listItems(o.want)}\n\nوستحصل على:\n${listItems(o.give)}\n\n💎 رسوم المقايضة: ${TRADE_FEE_GEMS} جوهرة (غير مستردة).\n\nالعملية نهائية ولا يمكن التراجع عنها.`,
+      confirmText: `نعم، قايض (${TRADE_FEE_GEMS} 💎)`,
     });
     if (!ok) return;
     setBusy(o.id);
