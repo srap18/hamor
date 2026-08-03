@@ -26,9 +26,6 @@ const COLLISION_THRESHOLD = 5;
 /** Minimum length for an id to be considered a real fingerprint. */
 const MIN_ID_LEN = 32;
 
-/** Minimum hit count required on device_history before we trust a match. */
-const MIN_HITS = 2;
-
 function isRealId(id: string | null | undefined): id is string {
   if (!id) return false;
   const s = String(id).trim().toLowerCase();
@@ -72,16 +69,15 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
     );
 
     // ------------------------------------------------------------------
-    // SECONDARY SOURCE: device_history device_id, but only entries with
-    // meaningful hit counts (drops one-shot / preflight noise).
+    // SECONDARY SOURCE: exact device_history device_id matches. A one-shot
+    // account is still relevant here because automated account creation often
+    // records every throwaway account only once.
     // ------------------------------------------------------------------
     const { data: myDevicesRaw } = await supabaseAdmin
       .from("device_history")
       .select("device_id, first_seen, last_seen, hits")
       .eq("user_id", data.userId);
-    const myDevices = (myDevicesRaw ?? []).filter(
-      (d) => isRealId(d.device_id) && (d.hits ?? 0) >= MIN_HITS,
-    );
+    const myDevices = (myDevicesRaw ?? []).filter((d) => isRealId(d.device_id));
     const myDeviceIds = Array.from(new Set(myDevices.map((d) => d.device_id!)));
 
     // IPs — displayed in the "self" panel only, NEVER used to link accounts.
@@ -115,7 +111,8 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       }
     }
 
-    // 2) Match on device_history device_id (hits >= MIN_HITS on BOTH sides)
+    // 2) Match on exact device_history device_id. Do not discard an identifier
+    // merely because many accounts used it: that is a key abuse signal.
     if (myDeviceIds.length > 0) {
       const { data: others } = await supabaseAdmin
         .from("device_history")
@@ -125,16 +122,12 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       const usersPerDevice = new Map<string, Set<string>>();
       for (const r of others ?? []) {
         if (!isRealId(r.device_id)) continue;
-        if ((r.hits ?? 0) < MIN_HITS) continue;
         if (!usersPerDevice.has(r.device_id)) usersPerDevice.set(r.device_id, new Set());
         usersPerDevice.get(r.device_id)!.add(r.user_id);
       }
       for (const r of others ?? []) {
         if (r.user_id === data.userId) continue;
         if (!isRealId(r.device_id)) continue;
-        if ((r.hits ?? 0) < MIN_HITS) continue;
-        const distinct = usersPerDevice.get(r.device_id)?.size ?? 0;
-        if (distinct > COLLISION_THRESHOLD) continue;
         if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
         deviceMap.get(r.user_id)!.add(r.device_id);
       }
