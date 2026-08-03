@@ -76,7 +76,7 @@ export const deviceMigrateChoose = createServerFn({ method: "POST" })
       _hardware_hash: data.hardwareHash,
       _user_a: data.userA,
       _user_b: data.userB,
-      _fingerprint_version: FINGERPRINT_VERSION,
+      _fingerprint_version: 1,
     });
     if (error) return { ok: false, error: error.message };
     return res as any;
@@ -89,7 +89,8 @@ export const deviceSubmitAppeal = createServerFn({ method: "POST" })
     message: (i?.message ?? "").trim().slice(0, 2000),
   }))
   .handler(async ({ data }) => {
-    const sb = svc();
+    const { getDeviceSlotServiceClient } = await import("./device-slots.server");
+    const sb = getDeviceSlotServiceClient();
     const { data: res, error } = await sb.rpc("device_submit_appeal", {
       _hardware_hash: data.hardwareHash,
       _email: data.email,
@@ -105,7 +106,8 @@ export const adminListDeviceAppeals = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { data: isPriv } = await context.supabase.rpc("device_is_privileged", { _uid: context.userId });
     if (!isPriv) return { appeals: [], error: "forbidden" };
-    const sb = svc();
+    const { getDeviceSlotServiceClient } = await import("./device-slots.server");
+    const sb = getDeviceSlotServiceClient();
     const { data: appeals } = await sb
       .from("device_appeals")
       .select("*")
@@ -149,7 +151,8 @@ export const adminListDeviceAuditLog = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: isPriv } = await context.supabase.rpc("device_is_privileged", { _uid: context.userId });
     if (!isPriv) return { entries: [], error: "forbidden" };
-    const sb = svc();
+    const { getDeviceSlotServiceClient } = await import("./device-slots.server");
+    const sb = getDeviceSlotServiceClient();
     let q = sb.from("device_slot_audit").select("*").order("created_at", { ascending: false }).limit(data.limit);
     if (data.hardwareHash) q = q.eq("hardware_hash", data.hardwareHash);
     const { data: entries, error } = await q;
