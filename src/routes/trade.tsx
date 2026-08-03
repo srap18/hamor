@@ -147,8 +147,11 @@ function TradePage() {
   const [hours, setHours] = useState(24);
   const [note, setNote] = useState("");
   const [, setTick] = useState(0);
+  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
+  const [pulse, setPulse] = useState(false);
+  const knownIds = useRef<Set<string> | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     try {
       const [st, ls, { data: u }] = await Promise.all([
         (supabase as never as { rpc: (n: string) => Promise<{ data: unknown }> }).rpc("trade_my_status"),
