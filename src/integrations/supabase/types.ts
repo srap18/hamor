@@ -7807,6 +7807,7 @@ export type Database = {
         Returns: string
       }
       trade_expire_sweep: { Args: never; Returns: number }
+      trade_globally_disabled: { Args: never; Returns: boolean }
       trade_list: { Args: never; Returns: Json }
       trade_my_status: { Args: never; Returns: Json }
       trader_snapshot_anchor: { Args: never; Returns: string }

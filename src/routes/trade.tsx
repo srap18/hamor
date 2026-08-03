@@ -141,7 +141,7 @@ function BasketPicker({
 }
 
 function TradePage() {
-  const [status, setStatus] = useState<{ eligible: boolean; trade_allowed: boolean; market_level: number } | null>(null);
+  const [status, setStatus] = useState<{ eligible: boolean; trade_allowed: boolean; market_level: number; system_disabled?: boolean } | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [owned, setOwned] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -228,6 +228,7 @@ function TradePage() {
 
   const blockedReason = useMemo(() => {
     if (!status) return null;
+    if (status.system_disabled) return "🚫 تم ايقاف المقايضة مؤقتاً من قبل الإدارة.";
     if (!status.trade_allowed) return "🚫 المقايضة معطّلة على حسابك من قبل الإدارة.";
     if ((status.market_level ?? 1) < 28) return "🔒 يجب ترقية سوق السفن إلى المستوى 28 لفتح نظام المقايضة.";
     return null;
