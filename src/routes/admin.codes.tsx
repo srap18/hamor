@@ -916,7 +916,17 @@ function AdminCodesPage() {
             onChange={(d, h) => { setExpD(d); setExpH(h); }}
             allowZero zeroLabel="بدون انتهاء" />
 
+          <NumField
+            label="🚢 أدنى مستوى سوق السفن (0 = بدون شرط)"
+            value={minMarketLevel}
+            onChange={setMinMarketLevel}
+            min={0}
+          />
         </div>
+        <div className="text-[11px] text-slate-500 -mt-1">
+          يُطبَّق على كل الأكواد التي تنشئها الآن (سريع/مجمّع/عادي). مثال: 12 = لازم سوق السفن 12 فأعلى.
+        </div>
+
 
         <label className="block text-xs text-slate-400 space-y-1">
           <span>ملاحظة داخلية (تظهر للمشرف فقط)</span>
