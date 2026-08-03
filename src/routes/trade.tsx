@@ -3,7 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ConfirmDialog";
 import { TRADE_GROUPS, tradeItemLabel, type TradeItemType } from "@/lib/trade-catalog";
+
+// Fairness limits — mirrored server-side in public.trade_create
+const MAX_PER_ITEM = 10;
+const MAX_SIDE_TOTAL = 20;
+const MAX_WANT_RATIO = 3;
+
 
 export const Route = createFileRoute("/trade")({
   head: () => ({
