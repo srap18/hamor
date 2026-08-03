@@ -78,7 +78,10 @@ export function ForumTopics({ userId }: { userId: string }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [marketLevel, setMarketLevel] = useState<number | null>(null);
+  const canPost = (marketLevel ?? 0) >= 18;
+
   const canPost = (marketLevel ?? 0) >= 18;
 
   useEffect(() => {
