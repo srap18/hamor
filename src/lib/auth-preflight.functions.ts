@@ -114,24 +114,9 @@ export const authPreflight = createServerFn({ method: "POST" })
         .in("device_id", ids)
         .limit(10);
       if (rows && rows.length > 0) {
-        // Verify none of the matched ids is a shared/collision fingerprint.
-        const matchedIds = rows.map((r: any) => r.device_id).filter(isRealId);
-        if (matchedIds.length) {
-          const { data: usage } = await sb
-            .from("device_history")
-            .select("device_id, user_id")
-            .in("device_id", matchedIds);
-          const perId = new Map<string, Set<string>>();
-          for (const r of usage ?? []) {
-            const set = perId.get((r as any).device_id) ?? new Set<string>();
-            set.add((r as any).user_id);
-            perId.set((r as any).device_id, set);
-          }
-          const trusted = matchedIds.filter((id) => (perId.get(id)?.size ?? 1) <= COLLISION_THRESHOLD);
-          if (trusted.length > 0) {
-            return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
-          }
-        }
+        // An explicit admin device ban is authoritative. High account usage is
+        // evidence of ban evasion here, not a reason to ignore the ban.
+        return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
       }
 
       // Also check: has any BANNED user ever used any of these device ids?
