@@ -82,8 +82,6 @@ export function ForumTopics({ userId }: { userId: string }) {
   const [marketLevel, setMarketLevel] = useState<number | null>(null);
   const canPost = (marketLevel ?? 0) >= 18;
 
-  const canPost = (marketLevel ?? 0) >= 18;
-
   useEffect(() => {
     if (!userId) return;
     let alive = true;
