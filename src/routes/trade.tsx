@@ -245,10 +245,15 @@ function TradePage() {
       toast.error(`طلب غير معقول: الحد الأقصى ${maxWant} قطعة مقابل ما تقدّمه`);
       return;
     }
+    const dup = g.find((x) => w.some((y) => y.item_id === x.item_id));
+    if (dup) {
+      toast.error(`لا يمكنك طلب نفس العنصر الذي تقدّمه (${tradeItemLabel(dup.item_type, dup.item_id).name})`);
+      return;
+    }
     const ok = await confirmDialog({
       title: "تأكيد نشر المقايضة",
-      message: `ستقدّم:\n${listItems(g)}\n\nوتطلب:\n${listItems(w)}\n\nسيتم حجز عناصرك فوراً حتى القبول أو الإلغاء.`,
-      confirmText: "نشر العرض",
+      message: `ستقدّم:\n${listItems(g)}\n\nوتطلب:\n${listItems(w)}\n\nسيتم حجز عناصرك فوراً حتى القبول أو الإلغاء.\n\n💎 رسوم النشر: ${TRADE_FEE_GEMS} جوهرة (غير مستردة حتى لو ألغيت العرض).`,
+      confirmText: `نشر العرض (${TRADE_FEE_GEMS} 💎)`,
     });
     if (!ok) return;
     setBusy("create");
