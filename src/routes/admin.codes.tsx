@@ -548,6 +548,18 @@ function AdminCodesPage() {
           </label>
         </div>
 
+        <div className="rounded-lg border border-sky-600/60 bg-sky-950/40 p-2 space-y-1">
+          <NumField
+            label="🚢 أدنى مستوى سوق السفن (0 = بدون شرط)"
+            value={minMarketLevel}
+            onChange={setMinMarketLevel}
+            min={0}
+          />
+          <div className="text-[11px] text-sky-300/80">
+            يُطبَّق على كل كود تنشئه الآن (سريع / مجمّع / مفصّل). مثال: 12 = لازم سوق السفن 12 فأعلى.
+          </div>
+        </div>
+
         <div className="space-y-1">
           <div className="text-[11px] text-emerald-300/80">💰 باقات الذهب والجواهر والخبرة</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
