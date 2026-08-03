@@ -149,7 +149,7 @@ function TradePage() {
   const [creating, setCreating] = useState(false);
   const [give, setGive] = useState<Basket>({});
   const [want, setWant] = useState<Basket>({});
-  const [hours, setHours] = useState(24);
+  const [hours, setHours] = useState(12);
   const [note, setNote] = useState("");
   const [, setTick] = useState(0);
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
