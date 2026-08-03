@@ -44,11 +44,7 @@ function SignupPage() {
         setRefCode(code);
         localStorage.setItem("pending_referral_code", code);
       }
-    } catch {
-      setLoading(false);
-      setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
-      return;
-    }
+    } catch {}
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -65,7 +61,11 @@ function SignupPage() {
         setErr(pre.reason || "ممنوع إنشاء حساب");
         return;
       }
-    } catch {}
+    } catch {
+      setLoading(false);
+      setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
+      return;
+    }
     // No display_name passed: DB generates a unique placeholder ("قبطانXXXXXX").
     // The user picks their real name later from inside the app (profile page).
     const { data, error } = await supabase.auth.signUp({
