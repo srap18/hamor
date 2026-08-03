@@ -6803,6 +6803,7 @@ export type Database = {
       drop_my_protection: { Args: never; Returns: undefined }
       effective_market_level: { Args: { _user_id: string }; Returns: number }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      email_has_existing_account: { Args: { _email: string }; Returns: boolean }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
