@@ -10,6 +10,7 @@ import {
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
 import { SeasonAchievements } from "@/components/SeasonAchievements";
+import { frameForDamage } from "@/lib/season-frames";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
