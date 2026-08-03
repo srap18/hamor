@@ -189,13 +189,71 @@ async function collectSignals(): Promise<DeviceSignals> {
   };
 }
 
+/** Keys used for the legacy composite hash. Frozen — never add keys here,
+ *  otherwise every existing device hash (slots, bans) would change. */
+const LEGACY_HASH_KEYS = [
+  "audio","canvas","cores","dpr","fonts","lang","langs","media","memory",
+  "platform","screen","touch","tz","tzOffset","ua","webglParams",
+  "webglRenderer","webglVendor",
+] as const;
+
 function signalsToString(s: DeviceSignals): string {
-  return Object.keys(s).sort().map((k) => `${k}=${(s as any)[k]}`).join("|");
+  return LEGACY_HASH_KEYS.map((k) => `${k}=${(s as any)[k] ?? ""}`).join("|");
+}
+
+/**
+ * STABLE hardware key — only deterministic, hardware-bound signals.
+ * Excludes user-agent, language, timezone, media permissions and anything
+ * that changes between browser tabs / PWA instances / app updates.
+ * NOT unique on its own (two identical phone models produce the same value),
+ * so it is never used alone for linking or banning.
+ */
+function stableKeySource(s: DeviceSignals): string {
+  return [
+    s.webglVendor, s.webglRenderer, s.webglParams,
+    s.platform, s.cores, s.memory, s.touch, s.screen, s.dpr, s.fonts,
+  ].map((v) => String(v ?? "")).join("|");
+}
+
+/** Per-device rendering noise (Canvas + Audio). High entropy, deterministic. */
+function noiseKeySource(s: DeviceSignals): string {
+  return `${s.canvas ?? ""}|${s.audio ?? ""}`;
+}
+
+/** Native, OS-provided device id (Capacitor). Empty on the web. */
+async function nativeDeviceId(): Promise<string> {
+  try {
+    const { isNativeApp } = await import("./platform");
+    if (!isNativeApp()) return "";
+    const mod: any = await import("@capacitor/device");
+    const res = await mod.Device.getId();
+    const id = String(res?.identifier ?? res?.uuid ?? "").trim();
+    return id.length >= 8 ? id : "";
+  } catch {
+    return "";
+  }
+}
+
+export interface DeviceIdentity {
+  hash: string;
+  signals: DeviceSignals;
+  /** Hardware-only key (shared by identical models — never used alone). */
+  stableKey: string;
+  /** Canvas+Audio entropy key. */
+  noiseKey: string;
+  /** OS device id inside the native app, "" on web. */
+  nativeId: string;
+  /** true when the collected signals are rich enough to be trusted at all. */
+  strong: boolean;
+}
+
+function isWeak(v: string | undefined): boolean {
+  if (!v) return true;
+  return ["nw","ew","nc","ec","na","ea","ta","nm","em","tm","ef",""].includes(v);
 }
 
 /**
  * Legacy shim — returns just the hardware hash (composite SHA-256).
- * Prefer getDeviceFingerprint() when you also need the raw signals.
  */
 export async function getHardwareFingerprint(): Promise<string> {
   const r = await getDeviceFingerprint();
@@ -203,23 +261,44 @@ export async function getHardwareFingerprint(): Promise<string> {
 }
 
 /**
- * Returns { hash, signals }. Cached in localStorage for speed.
+ * Returns the full device identity. Cached in localStorage for speed, but the
+ * native id is always re-read (it survives storage wipes and PWA re-installs).
  */
-export async function getDeviceFingerprint(): Promise<{ hash: string; signals: DeviceSignals }> {
+export async function getDeviceFingerprint(): Promise<DeviceIdentity> {
+  let signals: DeviceSignals | null = null;
+  let hash = "";
   try {
     const cachedHash = localStorage.getItem(CACHE_KEY);
     const cachedSigs = localStorage.getItem(SIGNALS_CACHE_KEY);
     if (cachedHash && cachedHash.length >= 32 && cachedSigs) {
-      return { hash: cachedHash, signals: JSON.parse(cachedSigs) };
+      hash = cachedHash;
+      signals = JSON.parse(cachedSigs) as DeviceSignals;
     }
   } catch {}
-  let signals: DeviceSignals;
-  try { signals = await collectSignals(); }
-  catch { signals = {} as DeviceSignals; }
-  const hash = await sha256Hex(signalsToString(signals));
-  try {
-    localStorage.setItem(CACHE_KEY, hash);
-    localStorage.setItem(SIGNALS_CACHE_KEY, JSON.stringify(signals));
-  } catch {}
-  return { hash, signals };
+
+  if (!signals) {
+    try { signals = await collectSignals(); }
+    catch { signals = {} as DeviceSignals; }
+    hash = await sha256Hex(signalsToString(signals));
+    try {
+      localStorage.setItem(CACHE_KEY, hash);
+      localStorage.setItem(SIGNALS_CACHE_KEY, JSON.stringify(signals));
+    } catch {}
+  }
+
+  const [stableKey, noiseKey, nativeId] = await Promise.all([
+    sha256Hex("sk|" + stableKeySource(signals)),
+    sha256Hex("nk|" + noiseKeySource(signals)),
+    withTimeout(nativeDeviceId(), "", 1500),
+  ]);
+
+  // "strong" = the GPU signature plus at least one of Canvas/Audio was really
+  // collected. Anything less can never link or ban an account.
+  const strong =
+    !isWeak(signals.webglRenderer) &&
+    !isWeak(signals.webglParams) &&
+    (!isWeak(signals.canvas) || !isWeak(signals.audio));
+
+  return { hash, signals, stableKey, noiseKey, nativeId, strong };
 }
+

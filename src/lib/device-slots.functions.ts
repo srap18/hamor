@@ -17,18 +17,45 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const deviceSlotCheck = createServerFn({ method: "POST" })
-  .inputValidator((i: { hardwareHash: string; signals?: Record<string, any>; userId?: string | null; email?: string | null }) => ({
+  .inputValidator((i: {
+    hardwareHash: string;
+    signals?: Record<string, any>;
+    userId?: string | null;
+    email?: string | null;
+    stableKey?: string | null;
+    noiseKey?: string | null;
+    nativeId?: string | null;
+    strong?: boolean;
+  }) => ({
     hardwareHash: (i?.hardwareHash ?? "").trim(),
     signals: i?.signals || {},
     userId: i?.userId ?? null,
     email: i?.email ?? null,
+    stableKey: i?.stableKey ?? null,
+    noiseKey: i?.noiseKey ?? null,
+    nativeId: i?.nativeId ?? null,
+    strong: !!i?.strong,
   }))
   .handler(async ({ data }) => {
-    const { getDeviceSlotServiceClient, resolveDeviceHash } = await import("./device-slots.server");
+    const { getDeviceSlotServiceClient, resolveDeviceHash, resolveDeviceIdentity } =
+      await import("./device-slots.server");
     const fingerprintVersion = 1;
     if (!data.hardwareHash) return { action: "allowed", reason: "no_fingerprint", canonicalHash: null };
     const sb = getDeviceSlotServiceClient();
     const canonicalHash = await resolveDeviceHash(data.hardwareHash, data.signals, fingerprintVersion);
+    // Record the high-precision hardware identity for this account (accuracy
+    // first: weak fingerprints are ignored and nothing network-based is used).
+    try {
+      await resolveDeviceIdentity({
+        stableKey: data.stableKey,
+        noiseKey: data.noiseKey,
+        nativeId: data.nativeId,
+        signals: data.signals,
+        strong: data.strong,
+        hardwareHash: canonicalHash,
+        userId: data.userId,
+      });
+    } catch {}
     const { data: res, error } = await sb.rpc("device_slot_check", {
       _hardware_hash: canonicalHash,
       _user_id: data.userId,
@@ -38,6 +65,7 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
     if (error) return { action: "allowed", reason: "check_error", canonicalHash, error: error.message };
     return { ...(res as any), canonicalHash };
   });
+
 
 export const deviceAssignSlot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

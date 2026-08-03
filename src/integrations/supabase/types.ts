@@ -998,6 +998,74 @@ export type Database = {
         }
         Relationships: []
       }
+      device_identities: {
+        Row: {
+          first_seen: string
+          id: string
+          is_generic: boolean
+          last_seen: string
+          native_id: string | null
+          noise_key: string | null
+          signals: Json
+          stable_key: string
+        }
+        Insert: {
+          first_seen?: string
+          id?: string
+          is_generic?: boolean
+          last_seen?: string
+          native_id?: string | null
+          noise_key?: string | null
+          signals?: Json
+          stable_key: string
+        }
+        Update: {
+          first_seen?: string
+          id?: string
+          is_generic?: boolean
+          last_seen?: string
+          native_id?: string | null
+          noise_key?: string | null
+          signals?: Json
+          stable_key?: string
+        }
+        Relationships: []
+      }
+      device_identity_users: {
+        Row: {
+          confidence: number
+          first_seen: string
+          hardware_hash: string | null
+          identity_id: string
+          last_seen: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number
+          first_seen?: string
+          hardware_hash?: string | null
+          identity_id: string
+          last_seen?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number
+          first_seen?: string
+          hardware_hash?: string | null
+          identity_id?: string
+          last_seen?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_identity_users_identity_id_fkey"
+            columns: ["identity_id"]
+            isOneToOne: false
+            referencedRelation: "device_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_slot_audit: {
         Row: {
           actor_id: string | null
@@ -6644,6 +6712,18 @@ export type Database = {
         Returns: undefined
       }
       device_id_is_collision: { Args: { _device_id: string }; Returns: boolean }
+      device_identity_is_banned: {
+        Args: { _identity: string }
+        Returns: boolean
+      }
+      device_identity_linked_users: {
+        Args: { _uid: string }
+        Returns: {
+          confidence: number
+          identity_id: string
+          user_id: string
+        }[]
+      }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
       device_migrate_choose:
         | {

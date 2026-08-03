@@ -94,3 +94,115 @@ export async function resolveDeviceHash(
 export function getDeviceSlotServiceClient() {
   return serviceClient();
 }
+
+/* ------------------------------------------------------------------ *
+ * High-precision device identity
+ * ------------------------------------------------------------------
+ * Accuracy first: an identity is created/matched ONLY from hardware-bound
+ * signals. IP address, network and any shared/environmental data are never
+ * used. Two accounts are considered the same physical device only when:
+ *   - the native OS device id matches (confidence 100), or
+ *   - the hardware key AND the Canvas/Audio entropy key both match
+ *     (confidence 96).
+ * Anything below 95 is stored for reference but never triggers a ban.
+ * ------------------------------------------------------------------ */
+
+export interface IdentityInput {
+  stableKey?: string | null;
+  noiseKey?: string | null;
+  nativeId?: string | null;
+  signals?: Record<string, unknown>;
+  strong?: boolean;
+  hardwareHash?: string | null;
+  userId?: string | null;
+}
+
+export interface IdentityResult {
+  identityId: string | null;
+  confidence: number;
+  generic: boolean;
+}
+
+const clean = (v: unknown, min = 16) => {
+  const s = String(v ?? "").trim();
+  return s.length >= min ? s : "";
+};
+
+export async function resolveDeviceIdentity(input: IdentityInput): Promise<IdentityResult> {
+  const none: IdentityResult = { identityId: null, confidence: 0, generic: false };
+  const stableKey = clean(input.stableKey, 32);
+  const noiseKey = clean(input.noiseKey, 32);
+  const nativeId = clean(input.nativeId, 8);
+
+  // Weak / incomplete fingerprints must never link or ban anyone.
+  if (!input.strong || !stableKey || (!noiseKey && !nativeId)) return none;
+
+  const sb = serviceClient();
+  const now = new Date().toISOString();
+  const signals = input.signals ?? {};
+
+  let row: { id: string; is_generic: boolean } | null = null;
+  let confidence = 0;
+
+  if (nativeId) {
+    confidence = 100;
+    const { data: found } = await sb
+      .from("device_identities")
+      .select("id, is_generic")
+      .eq("native_id", nativeId)
+      .maybeSingle();
+    row = (found as any) ?? null;
+    if (!row) {
+      const { data: created } = await sb
+        .from("device_identities")
+        .insert({ stable_key: stableKey, noise_key: noiseKey || null, native_id: nativeId, signals })
+        .select("id, is_generic")
+        .maybeSingle();
+      row = (created as any) ?? null;
+    }
+  } else {
+    confidence = 96;
+    const { data: found } = await sb
+      .from("device_identities")
+      .select("id, is_generic")
+      .eq("stable_key", stableKey)
+      .eq("noise_key", noiseKey)
+      .is("native_id", null)
+      .maybeSingle();
+    row = (found as any) ?? null;
+    if (!row) {
+      const { data: created } = await sb
+        .from("device_identities")
+        .insert({ stable_key: stableKey, noise_key: noiseKey, signals })
+        .select("id, is_generic")
+        .maybeSingle();
+      row = (created as any) ?? null;
+    }
+  }
+
+  if (!row) return none;
+
+  void sb.from("device_identities").update({ last_seen: now, signals }).eq("id", row.id);
+
+  if (input.userId) {
+    await sb.from("device_identity_users").upsert(
+      {
+        identity_id: row.id,
+        user_id: input.userId,
+        confidence,
+        hardware_hash: input.hardwareHash ?? null,
+        last_seen: now,
+      },
+      { onConflict: "identity_id,user_id" },
+    );
+  }
+
+  return { identityId: row.id, confidence, generic: !!row.is_generic };
+}
+
+/** True only when a confirmed (>=95) account on this exact identity is banned. */
+export async function identityIsBanned(identityId: string): Promise<boolean> {
+  const sb = serviceClient();
+  const { data } = await sb.rpc("device_identity_is_banned", { _identity: identityId });
+  return data === true;
+}
