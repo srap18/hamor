@@ -68,13 +68,14 @@ function basketTotal(b: Basket) {
 }
 
 function BasketPicker({
-  title, basket, setBasket, owned, maxTotal,
+  title, basket, setBasket, owned, maxTotal, excludeIds,
 }: {
   title: string;
   basket: Basket;
   setBasket: (b: Basket) => void;
   owned?: Record<string, number>;
   maxTotal?: number;
+  excludeIds?: Set<string>;
 }) {
   const [group, setGroup] = useState<TradeItemType>("crew");
   const items = TRADE_GROUPS.find((g) => g.type === group)?.items ?? [];
