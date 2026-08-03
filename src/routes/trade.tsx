@@ -43,7 +43,7 @@ interface Offer {
 interface InvRow { item_type: string; item_id: string; quantity: number; meta: unknown }
 type Basket = Record<string, { type: TradeItemType; id: string; qty: number }>;
 
-const HOURS = [6, 12, 24, 48];
+const HOURS = [6, 12];
 
 function ItemChip({ it }: { it: OfferItem }) {
   const meta = tradeItemLabel(it.item_type, it.item_id);
@@ -149,7 +149,7 @@ function TradePage() {
   const [creating, setCreating] = useState(false);
   const [give, setGive] = useState<Basket>({});
   const [want, setWant] = useState<Basket>({});
-  const [hours, setHours] = useState(24);
+  const [hours, setHours] = useState(12);
   const [note, setNote] = useState("");
   const [, setTick] = useState(0);
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
