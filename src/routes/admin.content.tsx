@@ -439,7 +439,7 @@ type ShipOverrideRow = {
 
 
 function EconomyTab() {
-  const [sub, setSub] = useState<"ships" | "fishmarket" | "prices">("ships");
+  const [sub, setSub] = useState<"ships" | "fishmarket" | "prices" | "trade">("ships");
   return (
     <div>
       <div className="flex gap-2 mb-4">
@@ -447,6 +447,7 @@ function EconomyTab() {
           { k: "ships", l: "⛵ السفن (لكل مستوى)" },
           { k: "fishmarket", l: "🐟 سعة سوق السمك" },
           { k: "prices", l: "💵 أسعار الكتالوج العامة" },
+          { k: "trade", l: "🔁 نظام المقايضة" },
         ].map((t) => (
           <button
             key={t.k}
@@ -458,6 +459,54 @@ function EconomyTab() {
       {sub === "ships" && <ShipOverridesTable />}
       {sub === "fishmarket" && <FishMarketTable />}
       {sub === "prices" && <ClientItemPricesTable />}
+      {sub === "trade" && <TradeSystemToggle />}
+    </div>
+  );
+}
+
+function TradeSystemToggle() {
+  const [disabled, setDisabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("economy_settings").select("value").eq("key", "trade_system").maybeSingle();
+      setDisabled(Boolean((data?.value as { disabled?: boolean } | null)?.disabled));
+    })();
+  }, []);
+
+  const toggle = async () => {
+    if (disabled === null) return;
+    const next = !disabled;
+    setSaving(true);
+    const { error } = await supabase.from("economy_settings").upsert({ key: "trade_system", value: { disabled: next } } as never);
+    setSaving(false);
+    if (error) { setMsg("✗ " + error.message); setTimeout(() => setMsg(""), 3000); return; }
+    setDisabled(next);
+    setMsg(next ? "✓ تم إيقاف المقايضة لجميع اللاعبين" : "✓ تم تشغيل المقايضة");
+    setTimeout(() => setMsg(""), 2500);
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 space-y-3 max-w-xl">
+      <div className="font-bold text-slate-100">حالة نظام المقايضة</div>
+      <p className="text-xs text-slate-400">
+        عند الإيقاف يظهر للاعبين «تم ايقاف المقايضة» ويرفض السيرفر إنشاء أو قبول أي عرض.
+      </p>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggle}
+          disabled={saving || disabled === null}
+          className={`px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-40 ${disabled ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-600 hover:bg-rose-500"}`}
+        >
+          {disabled === null ? "..." : disabled ? "▶ تشغيل المقايضة" : "⛔ إيقاف المقايضة"}
+        </button>
+        <span className={`text-xs font-bold ${disabled ? "text-rose-400" : "text-emerald-400"}`}>
+          {disabled === null ? "" : disabled ? "الحالة: موقوفة" : "الحالة: تعمل"}
+        </span>
+        {msg && <span className="text-xs text-slate-300">{msg}</span>}
+      </div>
     </div>
   );
 }
