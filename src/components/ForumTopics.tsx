@@ -57,6 +57,7 @@ function validateReply(body: string): string | null {
 }
 
 function translateErr(msg: string): string {
+  if (msg.includes("MARKET_LEVEL_18")) return "🔒 يجب أن يكون مستوى سوق السفن ١٨ أو أعلى لنشر موضوع";
   if (msg.includes("NO_LINKS")) return "ممنوع وضع روابط";
   if (msg.includes("ARABIC_ONLY")) return "اكتب باللغة العربية فقط";
   if (msg.includes("PROFANITY")) return "الكلام يحتوي على ألفاظ غير لائقة";
