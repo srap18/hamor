@@ -171,28 +171,50 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
 
       {viewer && (
         <div
-          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
           onClick={() => setViewer(null)}
         >
-          <button
-            onClick={(e) => { e.stopPropagation(); setViewer(null); }}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white text-lg"
-          >×</button>
-          <div className="max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
-            {viewer.media_type === "image" ? (
-              <img decoding="async" src={viewer.signedUrl} alt="" className="max-w-full max-h-[80vh] object-contain rounded-lg" />
-            ) : (
-              <video src={viewer.signedUrl} controls autoPlay playsInline className="max-w-full max-h-[80vh] rounded-lg" />
-            )}
-            {viewer.caption && <div className="text-white text-sm mt-2 text-center">{viewer.caption}</div>}
+          {/* Sticky top bar so the close button is always reachable */}
+          <div
+            className="sticky top-0 z-10 flex items-center justify-between px-4 bg-gradient-to-b from-black/90 to-transparent"
+            style={{ paddingTop: "max(12px, env(safe-area-inset-top))", paddingBottom: 12 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setViewer(null)}
+              className="w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none active:scale-95"
+              aria-label="إغلاق"
+            >×</button>
             {(isOwner || isAdmin) && (
-              <div className="mt-3 flex justify-center">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setConfirmDelete(viewer); }}
-                  className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-bold active:scale-95"
-                >🗑️ حذف</button>
-              </div>
+              <button
+                onClick={() => setConfirmDelete(viewer)}
+                className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-bold active:scale-95"
+              >🗑️ حذف</button>
             )}
+          </div>
+
+          <div
+            className="px-3 pb-[calc(40px+env(safe-area-inset-bottom))] flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {viewer.media_type === "image" ? (
+              <img
+                decoding="async"
+                src={viewer.signedUrl}
+                alt=""
+                className="w-full h-auto max-w-[900px] object-contain rounded-lg select-none"
+              />
+            ) : (
+              <video
+                src={viewer.signedUrl}
+                controls
+                autoPlay
+                playsInline
+                className="w-full max-w-[900px] max-h-[75vh] rounded-lg"
+              />
+            )}
+            {viewer.caption && <div className="text-white text-sm mt-3 text-center">{viewer.caption}</div>}
           </div>
         </div>
       )}
