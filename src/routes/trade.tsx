@@ -62,22 +62,33 @@ function remaining(expires: string) {
   return h > 0 ? `${h}س ${m}د` : `${m}د`;
 }
 
+function basketTotal(b: Basket) {
+  return Object.values(b).reduce((s, v) => s + v.qty, 0);
+}
+
 function BasketPicker({
-  title, basket, setBasket, owned,
+  title, basket, setBasket, owned, maxTotal,
 }: {
   title: string;
   basket: Basket;
   setBasket: (b: Basket) => void;
   owned?: Record<string, number>;
+  maxTotal?: number;
 }) {
   const [group, setGroup] = useState<TradeItemType>("crew");
   const items = TRADE_GROUPS.find((g) => g.type === group)?.items ?? [];
+  const total = basketTotal(basket);
+  const cap = Math.min(MAX_SIDE_TOTAL, maxTotal ?? MAX_SIDE_TOTAL);
   const bump = (type: TradeItemType, id: string, delta: number) => {
     const key = `${type}:${id}`;
     const cur = basket[key]?.qty ?? 0;
     let next = cur + delta;
     if (owned) next = Math.min(next, owned[key] ?? 0);
-    next = Math.max(0, Math.min(999, next));
+    next = Math.max(0, Math.min(MAX_PER_ITEM, next));
+    if (delta > 0 && total - cur + next > cap) {
+      toast.error(`الحد الأقصى ${cap} قطعة في هذه الجهة`);
+      return;
+    }
     const copy = { ...basket };
     if (next <= 0) delete copy[key];
     else copy[key] = { type, id, qty: next };
@@ -85,7 +96,11 @@ function BasketPicker({
   };
   return (
     <div className="rounded-xl border border-border bg-secondary/20 p-2">
-      <div className="text-xs font-bold mb-2">{title}</div>
+      <div className="text-xs font-bold mb-2 flex items-center justify-between">
+        <span>{title}</span>
+        <span className="text-[10px] text-muted-foreground">{total}/{cap}</span>
+      </div>
+
       <div className="flex gap-1 mb-2 flex-wrap">
         {TRADE_GROUPS.map((g) => (
           <button key={g.type} onClick={() => setGroup(g.type)}
