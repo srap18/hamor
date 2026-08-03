@@ -253,6 +253,7 @@ function AdminCodesPage() {
       max_uses: payload.max_uses,
       expires_at: payload.expires_at,
       note: payload.note,
+      min_market_level: Math.max(0, minMarketLevel || 0),
       extra_rewards: payload.extra_rewards ?? [],
       created_by: user?.id,
     });
