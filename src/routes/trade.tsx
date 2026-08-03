@@ -10,6 +10,7 @@ import { TRADE_GROUPS, tradeItemLabel, type TradeItemType } from "@/lib/trade-ca
 const MAX_PER_ITEM = 10;
 const MAX_SIDE_TOTAL = 20;
 const MAX_WANT_RATIO = 3;
+const TRADE_FEE_GEMS = 50;
 
 
 export const Route = createFileRoute("/trade")({
