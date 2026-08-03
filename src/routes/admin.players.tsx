@@ -1027,6 +1027,22 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${audioUploadAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-slate-700/60 hover:bg-slate-700/80 text-slate-100"}`}>
               {savingAudioUpload ? "..." : audioUploadAllowed ? "🎤 مسموح — رفع ملف صوت في الشات (ضغط مطوّل على الميكرفون)" : "🎤 السماح برفع ملف صوت كأنه تسجيل"}
             </button>
+            <button
+              disabled={savingTrade}
+              onClick={async () => {
+                const next = !tradeAllowed;
+                setSavingTrade(true);
+                const { error } = await (supabase as any).rpc("admin_set_trade_allowed", { _user: player.id, _allowed: next });
+                setSavingTrade(false);
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                setTradeAllowed(next);
+                await logAudit(next ? "grant_trade" : "revoke_trade", player.id, {});
+                toast.success(next ? "🤝 سُمح للاعب بالمقايضة" : "🚫 تم منع اللاعب من المقايضة");
+              }}
+              className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${tradeAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-rose-700/60 hover:bg-rose-700/80 text-rose-100"}`}>
+              {savingTrade ? "..." : tradeAllowed ? "🤝 السماح بالمقايضة — مفعّل (اضغط للمنع)" : "🚫 المقايضة ممنوعة على هذا الحساب (اضغط للسماح)"}
+            </button>
+
           </div>
         </div>
 
