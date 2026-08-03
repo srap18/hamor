@@ -783,7 +783,14 @@ function AdminCodesPage() {
           {bundleDist === "limited" && (
             <NumField label="عدد الاستخدامات الإجمالي" value={bundleMaxUses} onChange={setBundleMaxUses} min={1} />
           )}
+          <NumField
+            label="🚢 أدنى مستوى سوق السفن (0 = بدون شرط)"
+            value={minMarketLevel}
+            onChange={setMinMarketLevel}
+            min={0}
+          />
         </div>
+
 
         <label className="block text-xs text-fuchsia-200 space-y-1">
           <span>ملاحظة (اختيارية)</span>
