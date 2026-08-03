@@ -10,6 +10,7 @@ import {
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
 import { SeasonAchievements } from "@/components/SeasonAchievements";
+import { frameForDamage } from "@/lib/season-frames";
 
 export const Route = createFileRoute("/profile")({
   ssr: false,
@@ -123,6 +124,22 @@ function ProfilePage() {
         const t = Number(r?.frame_tier || 0);
         if (t >= 1 && t <= 10) { earnedSeason.add(`sf_${t}`); validIds.add(`sf_${t}`); }
       });
+      // Live season: unlock the frame the player already reached this season,
+      // plus every lower tier, so it is usable during the season (not just displayed).
+      try {
+        const { data: cur } = await (supabase.rpc as any)("current_season");
+        const s: any = Array.isArray(cur) ? cur[0] : cur;
+        if (s?.id) {
+          const { data: mine } = await supabase
+            .from("season_damage")
+            .select("damage_total")
+            .eq("season_id", s.id)
+            .eq("user_id", u.user.id)
+            .maybeSingle();
+          const liveTier = frameForDamage(Number((mine as any)?.damage_total || 0))?.tier ?? 0;
+          for (let t = 1; t <= liveTier; t++) { earnedSeason.add(`sf_${t}`); validIds.add(`sf_${t}`); }
+        }
+      } catch {}
       setSeasonFrameIds(earnedSeason);
       setOwnedFrameIds(validIds);
       setLoading(false);
