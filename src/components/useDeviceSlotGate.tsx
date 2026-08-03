@@ -25,7 +25,7 @@ export function useDeviceSlotGate() {
     try {
       const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
       const { hash, signals } = await getDeviceFingerprint();
-      if (!hash) return true;
+      if (!hash) return false;
 
       const { deviceSlotCheck, deviceMigrationCandidates } = await import("@/lib/device-slots.functions");
       const res: any = await deviceSlotCheck({ data: { hardwareHash: hash, signals, userId, email } });
@@ -58,7 +58,7 @@ export function useDeviceSlotGate() {
         });
       }
 
-      if (res.action === "blocked") {
+      if (res.action === "blocked" || res.action === "rate_limited") {
         // Sign out immediately so a blocked user isn't logged in
         try { await supabase.auth.signOut(); } catch {}
         setState({
@@ -69,8 +69,10 @@ export function useDeviceSlotGate() {
         });
         return false;
       }
-    } catch { /* fail open on unexpected errors */ }
-    return true;
+    } catch {
+      try { await supabase.auth.signOut(); } catch {}
+    }
+    return false;
   }
 
   const node = (() => {
@@ -86,8 +88,17 @@ export function useDeviceSlotGate() {
           onConfirm={async () => {
             try {
               const { deviceAssignSlot } = await import("@/lib/device-slots.functions");
-              await deviceAssignSlot({ data: { hardwareHash: state.hardwareHash } });
-            } catch {}
+              const assigned: any = await deviceAssignSlot({ data: { hardwareHash: state.hardwareHash } });
+              if (!assigned?.ok) {
+                await supabase.auth.signOut();
+                setState({ kind: "blocked", hardwareHash: state.hardwareHash, hasPendingAppeal: false, cooldownUntil: null });
+                return;
+              }
+            } catch {
+              try { await supabase.auth.signOut(); } catch {}
+              setState({ kind: "blocked", hardwareHash: state.hardwareHash, hasPendingAppeal: false, cooldownUntil: null });
+              return;
+            }
             state.onDone();
           }}
         />
@@ -107,8 +118,17 @@ export function useDeviceSlotGate() {
             // After migration, current user should now own a slot; assign explicitly just in case
             try {
               const { deviceAssignSlot } = await import("@/lib/device-slots.functions");
-              await deviceAssignSlot({ data: { hardwareHash: state.hardwareHash } });
-            } catch {}
+              const assigned: any = await deviceAssignSlot({ data: { hardwareHash: state.hardwareHash } });
+              if (!assigned?.ok) {
+                await supabase.auth.signOut();
+                setState({ kind: "blocked", hardwareHash: state.hardwareHash, hasPendingAppeal: false, cooldownUntil: null });
+                return;
+              }
+            } catch {
+              try { await supabase.auth.signOut(); } catch {}
+              setState({ kind: "blocked", hardwareHash: state.hardwareHash, hasPendingAppeal: false, cooldownUntil: null });
+              return;
+            }
             state.onDone();
           }}
         />

@@ -44,7 +44,11 @@ function SignupPage() {
         setRefCode(code);
         localStorage.setItem("pending_referral_code", code);
       }
-    } catch {}
+    } catch {
+      setLoading(false);
+      setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
+      return;
+    }
   }, []);
 
   const submit = async (e: React.FormEvent) => {

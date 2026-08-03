@@ -42,6 +42,7 @@ const DISPOSABLE_DOMAINS = new Set<string>([
   "no-spam.ws","noclickemail.com","nogmailspam.info","nomail.xl.cx","nomail2me.com","nomorespamemails.com",
   "nospam.ze.tc","nospammail.net","notmailinator.com","nowhere.org","nowmymail.com","ny7.me",
   "objectmail.com","oneoffemail.com","onewaymail.com","onlatedotcom.info","opayq.com","ordinaryamerican.net",
+  "emailinbo.live",
 ]);
 
 function emailDomain(email: string): string | null {

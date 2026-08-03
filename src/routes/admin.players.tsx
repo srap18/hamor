@@ -910,10 +910,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </button>
         </div>
 
-        {/* Linked accounts (same device / same IP) */}
+        {/* Linked accounts (verified device fingerprints only) */}
         <div className="space-y-3 mb-4 pb-4 border-b border-slate-800">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-sm font-semibold text-slate-300">🔗 الحسابات المرتبطة (نفس الجهاز / IP)</div>
+            <div className="text-sm font-semibold text-slate-300">🔗 الحسابات المرتبطة ببصمة الجهاز</div>
             <button onClick={loadLinked} className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs">🔄 تحديث</button>
           </div>
           {linkedData?.self?.email && (
@@ -922,7 +922,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             </div>
           )}
           <div className="text-[11px] text-slate-500">
-            عدد الأجهزة: {linkedData?.self.devices.length ?? 0} • عدد عناوين الـ IP: {linkedData?.self.ips.length ?? 0}
+            بصمات موثوقة: {linkedData?.self.devices.length ?? 0} • الحسابات المكتشفة: {linkedData?.linked.length ?? 0}
           </div>
           {linkedLoading ? (
             <div className="text-xs text-slate-500 py-3 text-center">جاري التحميل...</div>
@@ -932,7 +932,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب آخر يشارك نفس الجهاز أو IP</div>
+              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب آخر ببصمة جهاز مطابقة — لا يعتمد الفحص على IP</div>
               {linkedData.linked.map((acc) => (
                 <div key={acc.user_id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2 flex items-center gap-2">
                   {acc.avatar_url ? (
@@ -1253,10 +1253,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
         {/* Danger zone */}
         <div className="mt-4 pt-4 border-t border-red-900/50 space-y-2">
           <div className="text-sm font-semibold text-red-300">⚠️ منطقة الخطر</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={blockLogin} className="px-3 py-2 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 text-sm">🚷 منع الدخول</button>
-            <button onClick={unblockLogin} className="px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع المنع</button>
-          </div>
+          <button onClick={unblockLogin} className="w-full px-3 py-2 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-sm">✅ رفع جميع أنواع الحظر عن الحساب</button>
           <div className="rounded-lg border border-orange-900/50 bg-orange-950/20 p-2 space-y-2">
             <div className="text-xs font-semibold text-orange-200">🔒 حظر الحساب فقط (لمدة محددة)</div>
             <div className="flex gap-2 items-center">
@@ -1286,8 +1283,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             </button>
             <div className="text-[10px] text-slate-500">هذا الحساب فقط — لا يحظر الجهاز ولا البريد ولا الحسابات المرتبطة.</div>
           </div>
-          <button onClick={permanentBan} className="w-full px-3 py-2 rounded-lg bg-red-600/40 hover:bg-red-600/60 text-red-100 text-sm font-bold">⛔ حظر نهائي (هذا الحساب فقط)</button>
-          <button onClick={hardBan} className="w-full px-3 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-extrabold">🛡️ حظر قوي شامل — يمنع حساب ثاني وتغيير الاتصال</button>
+          <button onClick={hardBan} className="w-full px-3 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-white text-sm font-extrabold">🛡️ حظر شامل — الحساب والبريد وكل بصمات الجهاز</button>
           <button onClick={reconcilePayments} className="w-full px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold">💰 استرجاع مشتريات Paddle المعلقة</button>
           <button onClick={deleteAccount} className="w-full px-3 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm font-semibold">🗑️ حذف الحساب نهائياً</button>
         </div>
