@@ -303,7 +303,15 @@ function TradePage() {
           <h1 className="text-lg font-bold text-glow">🤝 المقايضة</h1>
           <p className="text-[10px] text-muted-foreground">بادل الطواقم والأسلحة والدروع والمضادات</p>
         </div>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-all duration-500 ${pulse ? "border-emerald-300 bg-emerald-500/25 text-emerald-100 shadow-[0_0_18px_rgba(16,185,129,0.55)] scale-105" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300/80"}`}>
+          <span className="relative flex w-1.5 h-1.5">
+            <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          </span>
+          مباشر
+        </div>
       </header>
+      <style>{`@keyframes tradeIn{0%{opacity:0;transform:translateY(-10px) scale(.97)}60%{transform:translateY(2px) scale(1.01)}100%{opacity:1;transform:none}}.trade-in{animation:tradeIn .45s cubic-bezier(.22,1,.36,1) both}`}</style>
 
       <div className="p-3 pb-8 space-y-3">
         {loading && <div className="text-center text-muted-foreground py-12">جاري التحميل…</div>}
