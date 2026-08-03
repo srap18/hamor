@@ -78,7 +78,18 @@ export function ForumTopics({ userId }: { userId: string }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [err, setErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [marketLevel, setMarketLevel] = useState<number | null>(null);
+  const canPost = (marketLevel ?? 0) >= 18;
+
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    supabase.from("user_market").select("level").eq("user_id", userId).maybeSingle().then(({ data }) => {
+      if (alive) setMarketLevel((data as any)?.level ?? 1);
+    });
+    return () => { alive = false; };
+  }, [userId]);
+
 
   const [openTopicId, setOpenTopicId] = useState<string | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
