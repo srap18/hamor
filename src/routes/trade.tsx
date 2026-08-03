@@ -335,7 +335,7 @@ function TradePage() {
             {!creating ? (
               <button onClick={() => setCreating(true)}
                 className="w-full py-3 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 font-bold active:scale-95">
-                ➕ إنشاء عرض مقايضة
+                ➕ إنشاء عرض مقايضة <span className="text-[11px]">({TRADE_FEE_GEMS} 💎)</span>
               </button>
             ) : (
               <div className="rounded-2xl border border-accent/30 glass-hud p-3 space-y-3">
