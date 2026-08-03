@@ -57,6 +57,7 @@ function validateReply(body: string): string | null {
 }
 
 function translateErr(msg: string): string {
+  if (msg.includes("MARKET_LEVEL_18")) return "🔒 يجب أن يكون مستوى سوق السفن ١٨ أو أعلى لنشر موضوع";
   if (msg.includes("NO_LINKS")) return "ممنوع وضع روابط";
   if (msg.includes("ARABIC_ONLY")) return "اكتب باللغة العربية فقط";
   if (msg.includes("PROFANITY")) return "الكلام يحتوي على ألفاظ غير لائقة";
@@ -78,6 +79,18 @@ export function ForumTopics({ userId }: { userId: string }) {
   const [body, setBody] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [marketLevel, setMarketLevel] = useState<number | null>(null);
+  const canPost = (marketLevel ?? 0) >= 18;
+
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    supabase.from("user_market").select("level").eq("user_id", userId).maybeSingle().then(({ data }) => {
+      if (alive) setMarketLevel((data as any)?.level ?? 1);
+    });
+    return () => { alive = false; };
+  }, [userId]);
+
 
   const [openTopicId, setOpenTopicId] = useState<string | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
@@ -237,12 +250,24 @@ export function ForumTopics({ userId }: { userId: string }) {
         <div className="text-sm font-extrabold text-amber-200 tracking-wide">المواضيع والاقتراحات</div>
         <div className="flex-1 h-px bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
         <button
-          onClick={() => { setShowForm(s => !s); setErr(null); }}
-          className="text-[11px] font-black px-3 py-1 rounded-full bg-amber-500 text-amber-950 border-2 border-amber-200 active:scale-95"
+          onClick={() => {
+            if (!canPost) {
+              setShowForm(false);
+              setErr(`🔒 يجب أن يكون مستوى سوق السفن ١٨ أو أعلى لنشر موضوع (مستواك: ${marketLevel ?? "..."})`);
+              return;
+            }
+            setShowForm(s => !s); setErr(null);
+          }}
+          className={`text-[11px] font-black px-3 py-1 rounded-full border-2 active:scale-95 ${
+            canPost ? "bg-amber-500 text-amber-950 border-amber-200" : "bg-stone-700 text-amber-200/70 border-amber-800/60"
+          }`}
         >
-          {showForm ? "إلغاء" : "+ موضوع جديد"}
+          {showForm ? "إلغاء" : canPost ? "+ موضوع جديد" : "🔒 موضوع جديد"}
         </button>
       </div>
+
+      {!showForm && err && <div className="text-[12px] text-red-300 font-bold px-1">{err}</div>}
+
 
       {showForm && (
         <div className="rounded-xl bg-stone-900/80 border-2 border-amber-700/60 p-3 space-y-2">
