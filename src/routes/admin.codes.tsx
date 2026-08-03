@@ -120,6 +120,7 @@ type CodeRow = {
   expires_at: string | null;
   active: boolean;
   note: string;
+  min_market_level?: number | null;
   created_at: string;
   extra_rewards: ExtraReward[] | null;
   archived_at?: string | null;
