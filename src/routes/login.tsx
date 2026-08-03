@@ -90,7 +90,7 @@ function LoginPage() {
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
       const ok = await waitAtMost(
         slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),
-        8000,
+        20000,
         "device_check_timeout",
       ).catch(() => false);
       if (!ok) {
