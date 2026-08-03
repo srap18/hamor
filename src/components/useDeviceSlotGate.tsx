@@ -24,11 +24,11 @@ export function useDeviceSlotGate() {
   async function checkAndProceed(userId: string, email: string | null): Promise<boolean> {
     try {
       const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
-      const { hash, signals } = await getDeviceFingerprint();
+      const { hash, signals, stableKey, noiseKey, nativeId, strong } = await getDeviceFingerprint();
       if (!hash) return false;
 
       const { deviceSlotCheck, deviceMigrationCandidates } = await import("@/lib/device-slots.functions");
-      const res: any = await deviceSlotCheck({ data: { hardwareHash: hash, signals, userId, email } });
+      const res: any = await deviceSlotCheck({ data: { hardwareHash: hash, signals, userId, email, stableKey, noiseKey, nativeId, strong } });
       const canonicalHash = res.canonicalHash || hash;
 
       if (res.action === "allowed") return true;
