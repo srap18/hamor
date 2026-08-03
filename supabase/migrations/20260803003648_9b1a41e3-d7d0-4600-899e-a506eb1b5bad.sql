@@ -1,0 +1,14 @@
+REVOKE ALL ON FUNCTION public.trade_create(jsonb, jsonb, integer, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.trade_cancel(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.trade_accept(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.trade_list() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.trade_my_status() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.trade_expire_sweep() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_set_trade_allowed(uuid, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.trade_create(jsonb, jsonb, integer, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.trade_cancel(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.trade_accept(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.trade_list() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.trade_my_status() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.trade_expire_sweep() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_trade_allowed(uuid, boolean) TO authenticated;
