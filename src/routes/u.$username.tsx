@@ -69,7 +69,12 @@ function UserProfilePage() {
       if (p) {
         const { data: pr } = await supabase.from("profiles").select("album_privacy").eq("id", p.id).maybeSingle();
         setAlbumPrivacy(((pr as any)?.album_privacy === "friends" ? "friends" : "public"));
-      }
+        try {
+          const { data: staff } = await (supabase as any).rpc("is_staff", { _user_id: p.id });
+          setIsStaff(staff === true);
+        } catch { setIsStaff(false); }
+      } else setIsStaff(false);
+
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
         else {
