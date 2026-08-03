@@ -60,7 +60,7 @@ function LoginPage() {
       const pre = await waitAtMost(authPreflight({ data: {
         email, deviceId, hardwareId,
         stableKey: fp.stableKey, noiseKey: fp.noiseKey, nativeId: fp.nativeId,
-        signals: fp.signals, strong: fp.strong,
+        signals: fp.signals as unknown as Record<string, unknown>, strong: fp.strong,
       } }), 8000, "preflight_timeout");
       if (pre.blocked) {
         setLoading(false);
