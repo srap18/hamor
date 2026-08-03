@@ -7778,7 +7778,7 @@ export type Database = {
       trade_accept: { Args: { _offer_id: string }; Returns: Json }
       trade_cancel: { Args: { _offer_id: string }; Returns: undefined }
       trade_create: {
-        Args: { _give: Json; _hours?: number; _note?: string; _want: Json }
+        Args: { _give: Json; _hours: number; _note?: string; _want: Json }
         Returns: string
       }
       trade_expire_sweep: { Args: never; Returns: number }
