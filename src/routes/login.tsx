@@ -62,7 +62,11 @@ function LoginPage() {
         setErr(pre.reason || "ممنوع تسجيل الدخول");
         return;
       }
-    } catch {}
+    } catch {
+      setLoading(false);
+      setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
+      return;
+    }
     try {
       const signInOnce = () => supabase.auth.signInWithPassword({ email, password });
       let result: Awaited<ReturnType<typeof signInOnce>>;
@@ -88,7 +92,12 @@ function LoginPage() {
         slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),
         8000,
         "device_check_timeout",
-      ).catch(() => true);
+      ).catch(() => false);
+      if (!ok) {
+        try { await supabase.auth.signOut(); } catch {}
+        setErr("تعذر التحقق من صلاحية هذا الجهاز. حاول مجددًا");
+        return;
+      }
       if (ok) nav({ to: "/" });
     } catch (error) {
       setErr(error instanceof Error ? error.message : "تعذر تسجيل الدخول، حاول مرة أخرى");
