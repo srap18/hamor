@@ -62,10 +62,24 @@ function emailDomain(email: string): string | null {
  * specific device fingerprint and the user account, not to the connection.
  */
 export const authPreflight = createServerFn({ method: "POST" })
-  .inputValidator((input: { email?: string | null; deviceId?: string | null; hardwareId?: string | null }) => ({
+  .inputValidator((input: {
+    email?: string | null;
+    deviceId?: string | null;
+    hardwareId?: string | null;
+    stableKey?: string | null;
+    noiseKey?: string | null;
+    nativeId?: string | null;
+    signals?: Record<string, unknown>;
+    strong?: boolean;
+  }) => ({
     email: (input?.email ?? "").trim().toLowerCase().slice(0, 255) || null,
     deviceId: (input?.deviceId ?? "").trim().slice(0, 160) || null,
     hardwareId: (input?.hardwareId ?? "").trim().slice(0, 160) || null,
+    stableKey: (input?.stableKey ?? "").trim().slice(0, 200) || null,
+    noiseKey: (input?.noiseKey ?? "").trim().slice(0, 200) || null,
+    nativeId: (input?.nativeId ?? "").trim().slice(0, 200) || null,
+    signals: input?.signals ?? {},
+    strong: !!input?.strong,
   }))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
@@ -74,6 +88,27 @@ export const authPreflight = createServerFn({ method: "POST" })
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
+
+    // High-precision hardware identity: blocks PWA/app re-installs of the SAME
+    // physical device, and ONLY when confidence is 95+ on a non-generic
+    // identity. Never uses IP or any shared network data.
+    try {
+      const { resolveDeviceIdentity, identityIsBanned } = await import("./device-slots.server");
+      const ident = await resolveDeviceIdentity({
+        stableKey: data.stableKey,
+        noiseKey: data.noiseKey,
+        nativeId: data.nativeId,
+        signals: data.signals,
+        strong: data.strong,
+        hardwareHash: data.hardwareId,
+      });
+      if (ident.identityId && !ident.generic && ident.confidence >= 95) {
+        if (await identityIsBanned(ident.identityId)) {
+          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        }
+      }
+    } catch {}
+
 
     // Disposable email domain block (signup/login)
     if (data.email) {
