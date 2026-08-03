@@ -111,8 +111,11 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       }
     }
 
-    // 2) Match on exact device_history device_id. Do not discard an identifier
-    // merely because many accounts used it: that is a key abuse signal.
+    // 2) Match on exact device_history device_id — but ONLY for identifiers that
+    // behave like a real, private device. An id shared by more than
+    // COLLISION_THRESHOLD distinct accounts is a broken/colliding fingerprint
+    // (webview / privacy browser producing the same hash for everyone) and must
+    // never be used to link accounts, otherwise unrelated players show up here.
     if (myDeviceIds.length > 0) {
       const { data: others } = await supabaseAdmin
         .from("device_history")
@@ -128,10 +131,13 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       for (const r of others ?? []) {
         if (r.user_id === data.userId) continue;
         if (!isRealId(r.device_id)) continue;
+        const distinct = usersPerDevice.get(r.device_id)?.size ?? 0;
+        if (distinct > COLLISION_THRESHOLD) continue;
         if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
         deviceMap.get(r.user_id)!.add(r.device_id);
       }
     }
+
 
 
     const userIds = Array.from(deviceMap.keys());

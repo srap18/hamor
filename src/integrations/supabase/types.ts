@@ -6643,6 +6643,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      device_id_is_collision: { Args: { _device_id: string }; Returns: boolean }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
       device_migrate_choose:
         | {
