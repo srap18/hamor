@@ -110,16 +110,25 @@ export const authPreflight = createServerFn({ method: "POST" })
     } catch {}
 
 
-    // Disposable email domain block (signup/login)
+    // Disposable email domain block — NEW accounts only.
+    // Existing (old) accounts keep working even if their mailbox is disposable.
     if (data.email) {
       const dom = emailDomain(data.email);
       if (!dom || !dom.includes(".")) {
         return { blocked: true, reason: "صيغة البريد الإلكتروني غير صحيحة" };
       }
       if (DISPOSABLE_DOMAINS.has(dom)) {
-        return { blocked: true, reason: "البريد المؤقت/الوهمي غير مسموح. استخدم بريداً حقيقياً (Gmail، Outlook، iCloud…)" };
+        let existing = false;
+        try {
+          const { data: has } = await sb.rpc("email_has_existing_account", { _email: data.email });
+          existing = has === true;
+        } catch { existing = false; }
+        if (!existing) {
+          return { blocked: true, reason: "البريد المؤقت/الوهمي غير مسموح. استخدم بريداً حقيقياً (Gmail، Outlook، iCloud…)" };
+        }
       }
     }
+
 
     // Email ban
     if (data.email) {
