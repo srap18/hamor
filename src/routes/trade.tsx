@@ -341,7 +341,7 @@ function TradePage() {
                     {busy === o.id ? "..." : "إلغاء العرض واسترجاع العناصر"}
                   </button>
                 ) : (
-                  <button disabled={busy === o.id || !!blockedReason} onClick={() => acceptOffer(o.id)}
+                  <button disabled={busy === o.id || !!blockedReason} onClick={() => acceptOffer(o)}
                     className="w-full py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold active:scale-95 disabled:opacity-50">
                     {busy === o.id ? "..." : "قبول المقايضة"}
                   </button>
