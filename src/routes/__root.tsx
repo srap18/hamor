@@ -30,6 +30,8 @@ import { installServerClock, syncServerTime } from "@/lib/server-time";
 import { SoftProtection } from "@/components/SoftProtection";
 import { I18nProvider } from "@/lib/i18n";
 import { NetworkRecovery } from "@/components/NetworkRecovery";
+import { installAuthUserCache } from "@/lib/auth-user-cache";
+
 import { OfflineOverlay } from "@/components/OfflineOverlay";
 import { installNativeShell } from "@/lib/native-shell";
 import { installToastSanitizer } from "@/lib/sanitize-toast";
@@ -445,8 +447,10 @@ function RootComponent() {
   const [splashMounted, setSplashMounted] = useState(true);
 
   useEffect(() => {
+    installAuthUserCache();
     loadEconomyOverrides();
     installNativeShell();
+
     // Track player session + online heartbeat for accurate admin online count.
     let disposed = false;
     let cleanupSessionTracking: (() => void) | undefined;
