@@ -340,6 +340,9 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [mediaBanned, setMediaBanned] = useState(false);
   const [audioUploadAllowed, setAudioUploadAllowed] = useState(false);
   const [savingAudioUpload, setSavingAudioUpload] = useState(false);
+  const [tradeAllowed, setTradeAllowed] = useState(true);
+  const [savingTrade, setSavingTrade] = useState(false);
+
   const [savingUsername, setSavingUsername] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [saving, setSaving] = useState(false);
