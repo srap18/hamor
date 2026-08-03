@@ -359,8 +359,11 @@ function TradePage() {
           <div className="space-y-2">
             <div className="text-xs font-bold text-muted-foreground">العروض النشطة ({offers.length})</div>
             {offers.length === 0 && <div className="text-center text-muted-foreground text-xs py-8">لا توجد عروض حالياً</div>}
-            {offers.map((o) => (
-              <div key={o.id} className={`rounded-2xl border p-3 space-y-2 ${o.mine ? "border-amber-400/50 bg-amber-500/5" : "border-border bg-secondary/20"}`}>
+            {offers.map((o) => {
+              const isNew = freshIds.has(o.id);
+              return (
+              <div key={o.id} className={`relative rounded-2xl border p-3 space-y-2 transition-all duration-500 ${isNew ? "trade-in border-emerald-400/70 bg-emerald-500/10 shadow-[0_0_22px_rgba(16,185,129,0.35)]" : o.mine ? "border-amber-400/50 bg-amber-500/5" : "border-border bg-secondary/20"}`}>
+                {isNew && <span className="absolute -top-2 left-3 px-2 py-0.5 rounded-full bg-emerald-500 text-[9px] font-bold text-emerald-950 shadow">جديد</span>}
                 <div className="flex items-center gap-2">
                   {o.creator_avatar
                     ? <img src={o.creator_avatar} alt={o.creator_name ?? "لاعب"} className="w-7 h-7 rounded-full object-cover" loading="lazy" />
