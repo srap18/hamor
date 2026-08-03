@@ -394,7 +394,8 @@ function TradePage() {
                   </button>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
