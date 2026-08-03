@@ -287,7 +287,8 @@ function TradePage() {
             ) : (
               <div className="rounded-2xl border border-accent/30 glass-hud p-3 space-y-3">
                 <BasketPicker title="أقدّم (سيتم حجزه فوراً)" basket={give} setBasket={setGive} owned={owned} />
-                <BasketPicker title="أطلب مقابله" basket={want} setBasket={setWant} />
+                <BasketPicker title="أطلب مقابله" basket={want} setBasket={setWant} maxTotal={Math.max(3, basketTotal(give) * MAX_WANT_RATIO)} />
+                <div className="text-[10px] text-muted-foreground">⚖️ الحد: 10 قطع لكل عنصر، و20 قطعة لكل جهة، ولا يمكن طلب أكثر من 3 أضعاف ما تقدّمه.</div>
                 <div className="flex gap-1 flex-wrap items-center">
                   <span className="text-[11px] text-muted-foreground">مدة العرض:</span>
                   {HOURS.map((h) => (
