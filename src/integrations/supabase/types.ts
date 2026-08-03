@@ -3643,6 +3643,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rocket_daily_purchases: {
+        Row: {
+          day: string
+          qty: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          qty?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          day?: string
+          qty?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       royal_box_claims: {
         Row: {
           claim_date: string
@@ -5699,6 +5720,10 @@ export type Database = {
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
+      _consume_rocket_quota: {
+        Args: { _count: number; _item_id: string; _uid: string }
+        Returns: undefined
+      }
       _cosmetic_expiry_days: {
         Args: { _item_id: string; _item_type: string }
         Returns: number

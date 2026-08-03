@@ -258,7 +258,19 @@ function Shop() {
       const { error } = selected.currency === "gem"
         ? await buyWithGems(selected.id, itemType, selected.price, undefined, qty)
         : await buyWithCoins(selected.id, itemType, selected.price, undefined, qty);
-      if (error) { setBusy(false); flash("فشل الشراء: " + error.message, 2000); return; }
+      if (error) {
+        setBusy(false);
+        const msg = String(error.message || "");
+        if (msg.includes("rocket_daily_limit")) {
+          const left = Number(msg.split("rocket_daily_limit:")[1]?.match(/\d+/)?.[0] ?? 0);
+          flash(left > 0
+            ? `الحد اليومي للصواريخ 30 — متبقي لك ${left} فقط اليوم`
+            : "وصلت للحد اليومي للصواريخ (30 صاروخ) — جرّب غداً", 2600);
+          return;
+        }
+        flash("فشل الشراء: " + msg, 2000);
+        return;
+      }
       setBusy(false);
     }
 
