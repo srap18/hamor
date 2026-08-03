@@ -274,7 +274,7 @@ function TradePage() {
     if (busy) return;
     const ok = await confirmDialog({
       title: "إلغاء العرض",
-      message: "سيتم إلغاء العرض وإرجاع عناصرك المحجوزة إلى المخزن.",
+      message: `سيتم إلغاء العرض وإرجاع عناصرك المحجوزة إلى المخزن.\n\n⚠️ رسوم النشر (${TRADE_FEE_GEMS} 💎) لن تُسترد.`,
       confirmText: "إلغاء العرض",
       cancelText: "تراجع",
       danger: true,
