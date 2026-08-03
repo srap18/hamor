@@ -156,6 +156,7 @@ function AdminCodesPage() {
   const [expD, setExpD] = useState(0);
   const [expH, setExpH] = useState(0);
   const [note, setNote] = useState("");
+  const [minMarketLevel, setMinMarketLevel] = useState(0);
   const [saving, setSaving] = useState(false);
 
   // كميات الإنشاء السريع
