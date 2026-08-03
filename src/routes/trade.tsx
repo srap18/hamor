@@ -159,7 +159,24 @@ function TradePage() {
         supabase.auth.getUser(),
       ]);
       setStatus(st.data as never);
-      setOffers((ls.data as Offer[]) ?? []);
+      const list = (ls.data as Offer[]) ?? [];
+      const ids = new Set(list.map((o) => o.id));
+      const prev = knownIds.current;
+      if (prev) {
+        const added = list.filter((o) => !prev.has(o.id)).map((o) => o.id);
+        if (added.length) {
+          setFreshIds((s) => new Set([...s, ...added]));
+          setPulse(true);
+          setTimeout(() => setPulse(false), 1400);
+          setTimeout(() => setFreshIds((s) => {
+            const n = new Set(s);
+            for (const id of added) n.delete(id);
+            return n;
+          }), 3500);
+        }
+      }
+      knownIds.current = ids;
+      setOffers(list);
       if (u.user) {
         const { data: inv } = await supabase
           .from("inventory")
@@ -174,13 +191,28 @@ function TradePage() {
         setOwned(map);
       }
     } catch (e) {
-      console.error("[trade] load failed", e);
+      if (!silent) console.error("[trade] load failed", e);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Live refresh: silent poll every 8s (paused when tab hidden) + instant refresh on focus.
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      load(true);
+    }, 8_000);
+    const onVis = () => { if (!document.hidden) load(true); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+    };
+  }, [load]);
   useEffect(() => {
     const t = setInterval(() => setTick((x) => x + 1), 30_000);
     return () => clearInterval(t);
