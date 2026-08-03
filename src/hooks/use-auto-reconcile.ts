@@ -33,8 +33,11 @@ export function useAutoReconcile() {
       if (runningRef.current) return;
       runningRef.current = true;
       try {
-        const { data: u } = await supabase.auth.getUser();
-        const uid = u?.user?.id;
+        // Read the session from local storage — never hit the auth API here.
+        // This used to call auth.getUser() on every focus/visibility change,
+        // which flooded the auth server from every open tab.
+        const { data: s } = await supabase.auth.getSession();
+        const uid = s?.session?.user?.id;
         if (!uid) return;
 
         const key = `${STORAGE_PREFIX}${uid}`;
@@ -46,6 +49,7 @@ export function useAutoReconcile() {
 
         const r = await reconcile({ data: { environment: getPaddleEnvironment() } });
         try { localStorage.setItem(key, String(now)); } catch { /* noop */ }
+
 
         // Cleanup expired cosmetics (backgrounds/frames) on every reconcile pass.
         // Runs on boot, tab focus, and every 6h — ensures expired items are

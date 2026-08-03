@@ -20,9 +20,16 @@ export function NetworkRecovery() {
   const hiddenSinceRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Full recovery is expensive (realtime reconnect + refetch of every query).
+    // It must only run when the connection was really lost or the tab was
+    // hidden long enough for the socket to die — never on every focus event,
+    // which on mobile fires constantly and freezes the app.
+    const MIN_GAP_MS = 30_000;
+    const LONG_HIDE_MS = 60_000;
+
     const recover = async (reason: string, force = false) => {
       const now = Date.now();
-      if (!force && now - lastRecoverRef.current < 3000) return;
+      if (!force && now - lastRecoverRef.current < MIN_GAP_MS) return;
       lastRecoverRef.current = now;
       try { syncServerTime(true); } catch {}
       // Kick supabase realtime back up — channels die silently when the tab
@@ -42,7 +49,9 @@ export function NetworkRecovery() {
           } catch {}
         }
       } catch {}
-      try { await queryClient.invalidateQueries(); } catch {}
+      // Only refetch what is actually mounted; a blanket invalidate refetched
+      // every cached query at once and stalled the UI.
+      try { await queryClient.invalidateQueries({ refetchType: "active" }); } catch {}
       try { await router.invalidate(); } catch {}
       try { console.info("[NetworkRecovery] recovered:", reason); } catch {}
     };
@@ -67,32 +76,24 @@ export function NetworkRecovery() {
         : 0;
       hiddenSinceRef.current = null;
 
-      // If the tab was hidden for a long time (>60s), the WebSocket is almost
-      // certainly dead and cached queries are stale — force a full refresh
-      // that bypasses the 3s throttle, so the page never feels "frozen".
-      if (wasOfflineRef.current || hiddenFor > 60_000) {
+      // Only a real disconnect or a long background pause justifies a refresh.
+      if (wasOfflineRef.current || hiddenFor > LONG_HIDE_MS) {
         wasOfflineRef.current = false;
-        recover("visible-after-long-hide", true);
-      } else {
-        recover("visible");
+        recover("visible-after-long-hide");
       }
-    };
-    const onFocus = () => {
-      if (navigator.onLine) recover("focus");
     };
 
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
 
     return () => {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
       document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
     };
   }, [queryClient, router]);
+
 
   return null;
 }
