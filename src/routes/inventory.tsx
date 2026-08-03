@@ -235,7 +235,11 @@ function InventoryPage() {
           <h1 className="text-lg font-bold text-glow flex items-center gap-2">📦 المخزن</h1>
           <p className="text-[10px] text-muted-foreground">طواقمك وأسلحتك وأسماكك</p>
         </div>
+        <Link to="/trade" className="px-3 py-2 rounded-xl bg-gradient-to-b from-amber-400 to-amber-700 border-2 border-amber-200 text-amber-950 text-xs font-bold active:scale-95">
+          🤝 مقايضة
+        </Link>
       </header>
+
 
       <div className="px-3 pt-3 flex gap-2 justify-center flex-wrap">
         {([
