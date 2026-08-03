@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.trade_create(jsonb, jsonb, integer, text) FROM anon, PUBLIC;
+GRANT EXECUTE ON FUNCTION public.trade_create(jsonb, jsonb, integer, text) TO authenticated, service_role;
