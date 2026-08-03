@@ -196,11 +196,26 @@ function TradePage() {
   const rpc = async (name: string, args: Record<string, unknown>) =>
     (supabase as never as { rpc: (n: string, a: unknown) => Promise<{ data: unknown; error: { message: string } | null }> }).rpc(name, args);
 
+  const listItems = (arr: { item_type: string; item_id: string; quantity: number }[]) =>
+    arr.map((i) => `• ${tradeItemLabel(i.item_type, i.item_id).name} ×${i.quantity}`).join("\n");
+
   const createOffer = async () => {
     if (busy) return;
     const g = toPayload(give); const w = toPayload(want);
     if (!g.length) { toast.error("اختر العناصر التي ستقدمها"); return; }
     if (!w.length) { toast.error("اختر العناصر التي تريدها"); return; }
+    const gt = basketTotal(give); const wt = basketTotal(want);
+    const maxWant = Math.max(3, gt * MAX_WANT_RATIO);
+    if (wt > maxWant) {
+      toast.error(`طلب غير معقول: الحد الأقصى ${maxWant} قطعة مقابل ما تقدّمه`);
+      return;
+    }
+    const ok = await confirmDialog({
+      title: "تأكيد نشر المقايضة",
+      message: `ستقدّم:\n${listItems(g)}\n\nوتطلب:\n${listItems(w)}\n\nسيتم حجز عناصرك فوراً حتى القبول أو الإلغاء.`,
+      confirmText: "نشر العرض",
+    });
+    if (!ok) return;
     setBusy("create");
     const { error } = await rpc("trade_create", { _give: g, _want: w, _hours: hours, _note: note || null });
     setBusy(null);
@@ -212,6 +227,14 @@ function TradePage() {
 
   const cancelOffer = async (id: string) => {
     if (busy) return;
+    const ok = await confirmDialog({
+      title: "إلغاء العرض",
+      message: "سيتم إلغاء العرض وإرجاع عناصرك المحجوزة إلى المخزن.",
+      confirmText: "إلغاء العرض",
+      cancelText: "تراجع",
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(id);
     const { error } = await rpc("trade_cancel", { _offer_id: id });
     setBusy(null);
@@ -220,15 +243,22 @@ function TradePage() {
     load();
   };
 
-  const acceptOffer = async (id: string) => {
+  const acceptOffer = async (o: Offer) => {
     if (busy) return;
-    setBusy(id);
-    const { error } = await rpc("trade_accept", { _offer_id: id });
+    const ok = await confirmDialog({
+      title: "تأكيد المقايضة",
+      message: `ستدفع من مخزنك:\n${listItems(o.want)}\n\nوستحصل على:\n${listItems(o.give)}\n\nالعملية نهائية ولا يمكن التراجع عنها.`,
+      confirmText: "نعم، قايض",
+    });
+    if (!ok) return;
+    setBusy(o.id);
+    const { error } = await rpc("trade_accept", { _offer_id: o.id });
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     toast.success("🤝 تمت المقايضة بنجاح");
     load();
   };
+
 
   return (
     <div className="min-h-screen" dir="rtl" style={{ background: "radial-gradient(ellipse at top, oklch(0.30 0.10 250) 0%, oklch(0.12 0.06 245) 100%)" }}>
