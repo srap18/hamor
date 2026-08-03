@@ -120,6 +120,7 @@ type CodeRow = {
   expires_at: string | null;
   active: boolean;
   note: string;
+  min_market_level?: number | null;
   created_at: string;
   extra_rewards: ExtraReward[] | null;
   archived_at?: string | null;
@@ -155,6 +156,7 @@ function AdminCodesPage() {
   const [expD, setExpD] = useState(0);
   const [expH, setExpH] = useState(0);
   const [note, setNote] = useState("");
+  const [minMarketLevel, setMinMarketLevel] = useState(0);
   const [saving, setSaving] = useState(false);
 
   // كميات الإنشاء السريع
@@ -251,6 +253,7 @@ function AdminCodesPage() {
       max_uses: payload.max_uses,
       expires_at: payload.expires_at,
       note: payload.note,
+      min_market_level: Math.max(0, minMarketLevel || 0),
       extra_rewards: payload.extra_rewards ?? [],
       created_by: user?.id,
     });
@@ -913,7 +916,17 @@ function AdminCodesPage() {
             onChange={(d, h) => { setExpD(d); setExpH(h); }}
             allowZero zeroLabel="بدون انتهاء" />
 
+          <NumField
+            label="🚢 أدنى مستوى سوق السفن (0 = بدون شرط)"
+            value={minMarketLevel}
+            onChange={setMinMarketLevel}
+            min={0}
+          />
         </div>
+        <div className="text-[11px] text-slate-500 -mt-1">
+          يُطبَّق على كل الأكواد التي تنشئها الآن (سريع/مجمّع/عادي). مثال: 12 = لازم سوق السفن 12 فأعلى.
+        </div>
+
 
         <label className="block text-xs text-slate-400 space-y-1">
           <span>ملاحظة داخلية (تظهر للمشرف فقط)</span>
@@ -966,6 +979,9 @@ function AdminCodesPage() {
                       <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-900/50 text-emerald-200 font-bold">🌍 للجميع</span>
                     )}
                     {!c.active && <span className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 text-red-200">معطل</span>}
+                    {(c.min_market_level ?? 0) > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-sky-900/50 text-sky-200 font-bold">🚢 سوق السفن {c.min_market_level}+</span>
+                    )}
                     {c.expires_at && new Date(c.expires_at) < new Date() && (
                       <span className="text-[10px] px-2 py-0.5 rounded bg-stone-700 text-stone-200">منتهي</span>
                     )}

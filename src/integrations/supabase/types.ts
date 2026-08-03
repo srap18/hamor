@@ -3586,6 +3586,7 @@ export type Database = {
           item_id: string | null
           item_kind: string | null
           max_uses: number
+          min_market_level: number
           note: string
           quantity: number
           reward_coins: number
@@ -3610,6 +3611,7 @@ export type Database = {
           item_id?: string | null
           item_kind?: string | null
           max_uses?: number
+          min_market_level?: number
           note?: string
           quantity?: number
           reward_coins?: number
@@ -3634,6 +3636,7 @@ export type Database = {
           item_id?: string | null
           item_kind?: string | null
           max_uses?: number
+          min_market_level?: number
           note?: string
           quantity?: number
           reward_coins?: number
@@ -6001,6 +6004,7 @@ export type Database = {
           item_id: string | null
           item_kind: string | null
           max_uses: number
+          min_market_level: number
           note: string
           quantity: number
           reward_coins: number

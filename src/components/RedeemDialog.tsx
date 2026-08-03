@@ -123,6 +123,11 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
+      const lvlMatch = parts.match(/market_level_required_(\d+)/);
+      if (lvlMatch) {
+        toast.error(`هذا الكود يتطلب مستوى سوق السفن ${lvlMatch[1]} فأعلى`);
+        return;
+      }
       const matched = Object.keys(ERR_MSG).find((k) => parts.includes(k));
       if (matched) {
         toast.error(ERR_MSG[matched]);
