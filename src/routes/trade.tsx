@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -147,8 +147,11 @@ function TradePage() {
   const [hours, setHours] = useState(24);
   const [note, setNote] = useState("");
   const [, setTick] = useState(0);
+  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
+  const [pulse, setPulse] = useState(false);
+  const knownIds = useRef<Set<string> | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     try {
       const [st, ls, { data: u }] = await Promise.all([
         (supabase as never as { rpc: (n: string) => Promise<{ data: unknown }> }).rpc("trade_my_status"),
@@ -156,7 +159,24 @@ function TradePage() {
         supabase.auth.getUser(),
       ]);
       setStatus(st.data as never);
-      setOffers((ls.data as Offer[]) ?? []);
+      const list = (ls.data as Offer[]) ?? [];
+      const ids = new Set(list.map((o) => o.id));
+      const prev = knownIds.current;
+      if (prev) {
+        const added = list.filter((o) => !prev.has(o.id)).map((o) => o.id);
+        if (added.length) {
+          setFreshIds((s) => new Set([...s, ...added]));
+          setPulse(true);
+          setTimeout(() => setPulse(false), 1400);
+          setTimeout(() => setFreshIds((s) => {
+            const n = new Set(s);
+            for (const id of added) n.delete(id);
+            return n;
+          }), 3500);
+        }
+      }
+      knownIds.current = ids;
+      setOffers(list);
       if (u.user) {
         const { data: inv } = await supabase
           .from("inventory")
@@ -171,13 +191,28 @@ function TradePage() {
         setOwned(map);
       }
     } catch (e) {
-      console.error("[trade] load failed", e);
+      if (!silent) console.error("[trade] load failed", e);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Live refresh: silent poll every 8s (paused when tab hidden) + instant refresh on focus.
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      load(true);
+    }, 8_000);
+    const onVis = () => { if (!document.hidden) load(true); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+    };
+  }, [load]);
   useEffect(() => {
     const t = setInterval(() => setTick((x) => x + 1), 30_000);
     return () => clearInterval(t);
@@ -268,7 +303,15 @@ function TradePage() {
           <h1 className="text-lg font-bold text-glow">🤝 المقايضة</h1>
           <p className="text-[10px] text-muted-foreground">بادل الطواقم والأسلحة والدروع والمضادات</p>
         </div>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-all duration-500 ${pulse ? "border-emerald-300 bg-emerald-500/25 text-emerald-100 shadow-[0_0_18px_rgba(16,185,129,0.55)] scale-105" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300/80"}`}>
+          <span className="relative flex w-1.5 h-1.5">
+            <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+            <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          </span>
+          مباشر
+        </div>
       </header>
+      <style>{`@keyframes tradeIn{0%{opacity:0;transform:translateY(-10px) scale(.97)}60%{transform:translateY(2px) scale(1.01)}100%{opacity:1;transform:none}}.trade-in{animation:tradeIn .45s cubic-bezier(.22,1,.36,1) both}`}</style>
 
       <div className="p-3 pb-8 space-y-3">
         {loading && <div className="text-center text-muted-foreground py-12">جاري التحميل…</div>}
@@ -316,8 +359,11 @@ function TradePage() {
           <div className="space-y-2">
             <div className="text-xs font-bold text-muted-foreground">العروض النشطة ({offers.length})</div>
             {offers.length === 0 && <div className="text-center text-muted-foreground text-xs py-8">لا توجد عروض حالياً</div>}
-            {offers.map((o) => (
-              <div key={o.id} className={`rounded-2xl border p-3 space-y-2 ${o.mine ? "border-amber-400/50 bg-amber-500/5" : "border-border bg-secondary/20"}`}>
+            {offers.map((o) => {
+              const isNew = freshIds.has(o.id);
+              return (
+              <div key={o.id} className={`relative rounded-2xl border p-3 space-y-2 transition-all duration-500 ${isNew ? "trade-in border-emerald-400/70 bg-emerald-500/10 shadow-[0_0_22px_rgba(16,185,129,0.35)]" : o.mine ? "border-amber-400/50 bg-amber-500/5" : "border-border bg-secondary/20"}`}>
+                {isNew && <span className="absolute -top-2 left-3 px-2 py-0.5 rounded-full bg-emerald-500 text-[9px] font-bold text-emerald-950 shadow">جديد</span>}
                 <div className="flex items-center gap-2">
                   {o.creator_avatar
                     ? <img src={o.creator_avatar} alt={o.creator_name ?? "لاعب"} className="w-7 h-7 rounded-full object-cover" loading="lazy" />
@@ -348,7 +394,8 @@ function TradePage() {
                   </button>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
