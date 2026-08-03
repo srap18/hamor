@@ -979,6 +979,9 @@ function AdminCodesPage() {
                       <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-900/50 text-emerald-200 font-bold">🌍 للجميع</span>
                     )}
                     {!c.active && <span className="text-[10px] px-2 py-0.5 rounded bg-red-900/40 text-red-200">معطل</span>}
+                    {(c.min_market_level ?? 0) > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-sky-900/50 text-sky-200 font-bold">🚢 سوق السفن {c.min_market_level}+</span>
+                    )}
                     {c.expires_at && new Date(c.expires_at) < new Date() && (
                       <span className="text-[10px] px-2 py-0.5 rounded bg-stone-700 text-stone-200">منتهي</span>
                     )}
