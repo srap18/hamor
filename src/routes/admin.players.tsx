@@ -340,6 +340,9 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [mediaBanned, setMediaBanned] = useState(false);
   const [audioUploadAllowed, setAudioUploadAllowed] = useState(false);
   const [savingAudioUpload, setSavingAudioUpload] = useState(false);
+  const [tradeAllowed, setTradeAllowed] = useState(true);
+  const [savingTrade, setSavingTrade] = useState(false);
+
   const [savingUsername, setSavingUsername] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -447,7 +450,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       const [{ data: bans }, { data: mutes }, { data: prof }, { data: fish }, { data: um }, { data: ufm }, { data: dragonRow }, { data: pad }, { data: stp }, { data: pol }] = await Promise.all([
         supabase.from("bans").select("reason,expires_at,active,created_at:banned_at").eq("user_id", player.id).order("banned_at", { ascending: false }).limit(20),
         supabase.from("chat_mutes").select("reason,expires_at,active,created_at").eq("user_id", player.id).order("created_at", { ascending: false }).limit(20),
-        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name,chat_audio_upload_allowed").eq("id", player.id).maybeSingle(),
+        supabase.from("profiles").select("avatar_url,username,bio,media_banned,coins,gems,rubies,xp,level,display_name,chat_audio_upload_allowed,trade_allowed").eq("id", player.id).maybeSingle(),
         (supabase as any).rpc("admin_get_player_fish", { _player: player.id }),
         (supabase as any).from("user_market").select("level").eq("user_id", player.id).maybeSingle(),
         (supabase as any).from("user_fish_market").select("level").eq("user_id", player.id).maybeSingle(),
@@ -478,6 +481,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
       setBio((p.bio ?? "") as string);
       setMediaBanned(Boolean(p.media_banned));
       setAudioUploadAllowed(Boolean(p.chat_audio_upload_allowed));
+      setTradeAllowed(p.trade_allowed !== false);
+
       // تحديث الحقول الحيّة من قاعدة البيانات (قائمة الأب قد تكون قديمة)
       if (p.coins != null) setCoins(String(p.coins));
       if (p.gems != null) setGems(String(p.gems));
@@ -1022,6 +1027,22 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
               className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${audioUploadAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-slate-700/60 hover:bg-slate-700/80 text-slate-100"}`}>
               {savingAudioUpload ? "..." : audioUploadAllowed ? "🎤 مسموح — رفع ملف صوت في الشات (ضغط مطوّل على الميكرفون)" : "🎤 السماح برفع ملف صوت كأنه تسجيل"}
             </button>
+            <button
+              disabled={savingTrade}
+              onClick={async () => {
+                const next = !tradeAllowed;
+                setSavingTrade(true);
+                const { error } = await (supabase as any).rpc("admin_set_trade_allowed", { _user: player.id, _allowed: next });
+                setSavingTrade(false);
+                if (error) { toast.error("خطأ: " + error.message); return; }
+                setTradeAllowed(next);
+                await logAudit(next ? "grant_trade" : "revoke_trade", player.id, {});
+                toast.success(next ? "🤝 سُمح للاعب بالمقايضة" : "🚫 تم منع اللاعب من المقايضة");
+              }}
+              className={`col-span-2 px-3 py-2 rounded-lg text-xs font-bold ${tradeAllowed ? "bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-100" : "bg-rose-700/60 hover:bg-rose-700/80 text-rose-100"}`}>
+              {savingTrade ? "..." : tradeAllowed ? "🤝 السماح بالمقايضة — مفعّل (اضغط للمنع)" : "🚫 المقايضة ممنوعة على هذا الحساب (اضغط للسماح)"}
+            </button>
+
           </div>
         </div>
 

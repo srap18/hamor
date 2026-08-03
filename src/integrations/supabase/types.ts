@@ -2784,6 +2784,30 @@ export type Database = {
         }
         Relationships: []
       }
+      paddle_purchase_ships: {
+        Row: {
+          created_at: string
+          paddle_transaction_id: string
+          qty: number
+          template_id: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          paddle_transaction_id: string
+          qty: number
+          template_id: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          paddle_transaction_id?: string
+          qty?: number
+          template_id?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       paddle_purchases: {
         Row: {
           amount_cents: number
@@ -3246,6 +3270,7 @@ export type Database = {
           steal_blocked_until: string | null
           storage_capacity: number
           total_damage_dealt: number
+          trade_allowed: boolean
           tribe_gems: number
           tribe_id: string | null
           tutorial_completed: boolean
@@ -3319,6 +3344,7 @@ export type Database = {
           steal_blocked_until?: string | null
           storage_capacity?: number
           total_damage_dealt?: number
+          trade_allowed?: boolean
           tribe_gems?: number
           tribe_id?: string | null
           tutorial_completed?: boolean
@@ -3392,6 +3418,7 @@ export type Database = {
           steal_blocked_until?: string | null
           storage_capacity?: number
           total_damage_dealt?: number
+          trade_allowed?: boolean
           tribe_gems?: number
           tribe_id?: string | null
           tutorial_completed?: boolean
@@ -4435,6 +4462,125 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      trade_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          counterparty_id: string | null
+          created_at: string
+          detail: Json
+          device: string | null
+          id: string
+          ip: string | null
+          offer_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          counterparty_id?: string | null
+          created_at?: string
+          detail?: Json
+          device?: string | null
+          id?: string
+          ip?: string | null
+          offer_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          counterparty_id?: string | null
+          created_at?: string
+          detail?: Json
+          device?: string | null
+          id?: string
+          ip?: string | null
+          offer_id?: string | null
+        }
+        Relationships: []
+      }
+      trade_offer_items: {
+        Row: {
+          id: string
+          item_id: string
+          item_type: string
+          offer_id: string
+          quantity: number
+          side: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          item_type: string
+          offer_id: string
+          quantity: number
+          side: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          item_type?: string
+          offer_id?: string
+          quantity?: number
+          side?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_offer_items_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "trade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_offers: {
+        Row: {
+          accepted_by: string | null
+          acceptor_device: string | null
+          acceptor_ip: string | null
+          completed_at: string | null
+          created_at: string
+          creator_device: string | null
+          creator_id: string
+          creator_ip: string | null
+          expires_at: string
+          id: string
+          note: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_by?: string | null
+          acceptor_device?: string | null
+          acceptor_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          creator_device?: string | null
+          creator_id: string
+          creator_ip?: string | null
+          expires_at: string
+          id?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_by?: string | null
+          acceptor_device?: string | null
+          acceptor_ip?: string | null
+          completed_at?: string | null
+          created_at?: string
+          creator_device?: string | null
+          creator_id?: string
+          creator_ip?: string | null
+          expires_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5686,6 +5832,23 @@ export type Database = {
         Args: { _cat: Database["public"]["Tables"]["ship_catalog"]["Row"] }
         Returns: number
       }
+      _trade_assert_eligible: {
+        Args: { _uid: string; _who: string }
+        Returns: undefined
+      }
+      _trade_give_back: {
+        Args: { _offer: string; _side: string; _uid: string }
+        Returns: undefined
+      }
+      _trade_norm_items: {
+        Args: { _items: Json }
+        Returns: {
+          item_id: string
+          item_type: string
+          quantity: number
+        }[]
+      }
+      _trade_take: { Args: { _items: Json; _uid: string }; Returns: undefined }
       _try_anti_block: {
         Args: { _anti_id: string; _defender: string; _pct: number }
         Returns: boolean
@@ -6077,6 +6240,10 @@ export type Database = {
       }
       admin_set_staff_role: {
         Args: { _role: string; _uid: string }
+        Returns: undefined
+      }
+      admin_set_trade_allowed: {
+        Args: { _allowed: boolean; _user: string }
         Returns: undefined
       }
       admin_set_tribe_points: {
@@ -7608,6 +7775,15 @@ export type Database = {
         Args: { _device_id: string; _ip: string }
         Returns: undefined
       }
+      trade_accept: { Args: { _offer_id: string }; Returns: Json }
+      trade_cancel: { Args: { _offer_id: string }; Returns: undefined }
+      trade_create: {
+        Args: { _give: Json; _hours?: number; _note?: string; _want: Json }
+        Returns: string
+      }
+      trade_expire_sweep: { Args: never; Returns: number }
+      trade_list: { Args: never; Returns: Json }
+      trade_my_status: { Args: never; Returns: Json }
       trader_snapshot_anchor: { Args: never; Returns: string }
       transfer_tribe_ownership: { Args: { _target: string }; Returns: Json }
       tribe_fish_event_leaderboard: {

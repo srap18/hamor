@@ -13,6 +13,7 @@ import { Route as VipRouteImport } from './routes/vip'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as TribeEventsRouteImport } from './routes/tribe-events'
 import { Route as TribeRouteImport } from './routes/tribe'
+import { Route as TradeRouteImport } from './routes/trade'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -104,6 +105,11 @@ const TribeEventsRoute = TribeEventsRouteImport.update({
 const TribeRoute = TribeRouteImport.update({
   id: '/tribe',
   path: '/tribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TradeRoute = TradeRouteImport.update({
+  id: '/trade',
+  path: '/trade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trade': typeof TradeRoute
   '/tribe': typeof TribeRoute
   '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
@@ -586,6 +593,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trade': typeof TradeRoute
   '/tribe': typeof TribeRoute
   '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
@@ -665,6 +673,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/trade': typeof TradeRoute
   '/tribe': typeof TribeRoute
   '/tribe-events': typeof TribeEventsRoute
   '/updates': typeof UpdatesRoute
@@ -745,6 +754,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/trade'
     | '/tribe'
     | '/tribe-events'
     | '/updates'
@@ -822,6 +832,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/trade'
     | '/tribe'
     | '/tribe-events'
     | '/updates'
@@ -900,6 +911,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/support'
     | '/terms'
+    | '/trade'
     | '/tribe'
     | '/tribe-events'
     | '/updates'
@@ -979,6 +991,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  TradeRoute: typeof TradeRoute
   TribeRoute: typeof TribeRoute
   TribeEventsRoute: typeof TribeEventsRoute
   UpdatesRoute: typeof UpdatesRoute
@@ -1026,6 +1039,13 @@ declare module '@tanstack/react-router' {
       path: '/tribe'
       fullPath: '/tribe'
       preLoaderRoute: typeof TribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trade': {
+      id: '/trade'
+      path: '/trade'
+      fullPath: '/trade'
+      preLoaderRoute: typeof TradeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1634,6 +1654,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  TradeRoute: TradeRoute,
   TribeRoute: TribeRoute,
   TribeEventsRoute: TribeEventsRoute,
   UpdatesRoute: UpdatesRoute,
