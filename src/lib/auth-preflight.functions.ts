@@ -107,17 +107,33 @@ export const authPreflight = createServerFn({ method: "POST" })
       return true;
     };
     const ids = [data.deviceId, data.hardwareId].filter(isRealId);
+
+    // A device id used by a huge number of distinct accounts is a broken /
+    // colliding fingerprint (webview or privacy browser returning the same
+    // hash for everyone). Such an id must never block anyone.
+    const isCollisionId = async (id: string) => {
+      const { count } = await sb
+        .from("device_history")
+        .select("user_id", { count: "exact", head: true })
+        .eq("device_id", id);
+      return (count ?? 0) > COLLISION_THRESHOLD;
+    };
+
     if (ids.length) {
-      const { data: rows } = await sb
-        .from("banned_devices")
-        .select("device_id")
-        .in("device_id", ids)
-        .limit(10);
-      if (rows && rows.length > 0) {
-        // An explicit admin device ban is authoritative. High account usage is
-        // evidence of ban evasion here, not a reason to ignore the ban.
-        return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+      const collisionFlags = await Promise.all(ids.map(isCollisionId));
+      const uniqueIds = ids.filter((_, i) => !collisionFlags[i]);
+
+      if (uniqueIds.length) {
+        const { data: rows } = await sb
+          .from("banned_devices")
+          .select("device_id")
+          .in("device_id", uniqueIds)
+          .limit(10);
+        if (rows && rows.length > 0) {
+          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        }
       }
+
 
       // Also check: has any BANNED user ever used any of these device ids?
       // Only trust device_ids not shared by many accounts (collision filter).
