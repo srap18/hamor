@@ -116,13 +116,16 @@ function BasketPicker({
           const key = `${it.type}:${it.id}`;
           const n = basket[key]?.qty ?? 0;
           const have = owned ? owned[key] ?? 0 : null;
-          const disabled = have !== null && have <= 0;
+          const blocked = excludeIds?.has(it.id) ?? false;
+          const disabled = blocked || (have !== null && have <= 0);
           return (
             <div key={key} className={`rounded-lg border p-1.5 flex items-center gap-1.5 ${disabled ? "opacity-40" : ""} ${n > 0 ? "border-amber-400 bg-amber-500/10" : "border-border bg-background/30"}`}>
               {it.image ? <img src={it.image} alt={it.name} className="w-6 h-6 object-contain" loading="lazy" /> : <span className="text-base">{it.emoji}</span>}
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-bold truncate">{it.name}</div>
-                {have !== null && <div className="text-[9px] text-muted-foreground">عندك {have}</div>}
+                {blocked
+                  ? <div className="text-[9px] text-rose-300">تقدّمه أصلاً</div>
+                  : have !== null && <div className="text-[9px] text-muted-foreground">عندك {have}</div>}
               </div>
               <div className="flex items-center gap-1">
                 <button disabled={disabled} onClick={() => bump(it.type, it.id, -1)} className="w-5 h-5 rounded bg-secondary/70 text-xs font-bold active:scale-90">−</button>
