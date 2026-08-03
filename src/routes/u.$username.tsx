@@ -212,13 +212,16 @@ function UserProfilePage() {
         {/* Action buttons — placed BEFORE bio so they're visible without scrolling */}
         {!isSelf && (
           <section className="grid grid-cols-3 gap-2">
-            <Link
-              to="/players/$playerId"
-              params={{ playerId: profile.id }}
-              className="rounded-xl p-3 bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white text-xs font-bold text-center active:scale-95 shadow"
-            >
-              🌊 زيارة المحيط
-            </Link>
+            {!isStaff && (
+              <Link
+                to="/players/$playerId"
+                params={{ playerId: profile.id }}
+                className="rounded-xl p-3 bg-gradient-to-b from-sky-400 to-sky-700 border-2 border-sky-200 text-white text-xs font-bold text-center active:scale-95 shadow"
+              >
+                🌊 زيارة المحيط
+              </Link>
+            )}
+
             <button
               onClick={() => { if (!me) { flash("سجّل الدخول أولاً"); return; } openDM(); }}
               className="rounded-xl p-3 bg-gradient-to-b from-emerald-400 to-emerald-700 border-2 border-emerald-200 text-white text-xs font-bold active:scale-95 shadow"
