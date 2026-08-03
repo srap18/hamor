@@ -53,10 +53,15 @@ function LoginPage() {
     setErr(null); setResendMsg(null); setNeedsConfirm(false); setLoading(true);
     try {
       const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
-      const { getHardwareFingerprint } = await import("@/lib/device-fingerprint");
-      const hardwareId = await waitAtMost(getHardwareFingerprint(), 2500, "fingerprint_timeout");
+      const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
+      const fp = await waitAtMost(getDeviceFingerprint(), 4000, "fingerprint_timeout");
+      const hardwareId = fp.hash;
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
-      const pre = await waitAtMost(authPreflight({ data: { email, deviceId, hardwareId } }), 5000, "preflight_timeout");
+      const pre = await waitAtMost(authPreflight({ data: {
+        email, deviceId, hardwareId,
+        stableKey: fp.stableKey, noiseKey: fp.noiseKey, nativeId: fp.nativeId,
+        signals: fp.signals as unknown as Record<string, unknown>, strong: fp.strong,
+      } }), 8000, "preflight_timeout");
       if (pre.blocked) {
         setLoading(false);
         setErr(pre.reason || "ممنوع تسجيل الدخول");

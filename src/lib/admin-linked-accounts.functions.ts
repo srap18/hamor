@@ -138,6 +138,36 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       }
     }
 
+    // 3) High-precision hardware identities (confidence >= 95, non-generic).
+    // This catches two PWA installs / two app copies on the SAME phone, and
+    // never links accounts that merely share a network or a weak fingerprint.
+    {
+      const { data: mine } = await supabaseAdmin
+        .from("device_identity_users")
+        .select("identity_id, confidence")
+        .eq("user_id", data.userId)
+        .gte("confidence", 95);
+      const identityIds = Array.from(new Set((mine ?? []).map((r) => r.identity_id)));
+      if (identityIds.length) {
+        const { data: idents } = await supabaseAdmin
+          .from("device_identities")
+          .select("id, is_generic")
+          .in("id", identityIds);
+        const good = (idents ?? []).filter((i) => !i.is_generic).map((i) => i.id);
+        if (good.length) {
+          const { data: peers } = await supabaseAdmin
+            .from("device_identity_users")
+            .select("identity_id, user_id, hardware_hash, confidence")
+            .in("identity_id", good)
+            .gte("confidence", 95);
+          for (const r of peers ?? []) {
+            if (r.user_id === data.userId) continue;
+            if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
+            deviceMap.get(r.user_id)!.add(r.hardware_hash || r.identity_id);
+          }
+        }
+      }
+    }
 
 
     const userIds = Array.from(deviceMap.keys());
