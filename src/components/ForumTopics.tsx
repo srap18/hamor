@@ -250,12 +250,24 @@ export function ForumTopics({ userId }: { userId: string }) {
         <div className="text-sm font-extrabold text-amber-200 tracking-wide">المواضيع والاقتراحات</div>
         <div className="flex-1 h-px bg-gradient-to-l from-transparent via-amber-500/40 to-transparent" />
         <button
-          onClick={() => { setShowForm(s => !s); setErr(null); }}
-          className="text-[11px] font-black px-3 py-1 rounded-full bg-amber-500 text-amber-950 border-2 border-amber-200 active:scale-95"
+          onClick={() => {
+            if (!canPost) {
+              setShowForm(false);
+              setErr(`🔒 يجب أن يكون مستوى سوق السفن ١٨ أو أعلى لنشر موضوع (مستواك: ${marketLevel ?? "..."})`);
+              return;
+            }
+            setShowForm(s => !s); setErr(null);
+          }}
+          className={`text-[11px] font-black px-3 py-1 rounded-full border-2 active:scale-95 ${
+            canPost ? "bg-amber-500 text-amber-950 border-amber-200" : "bg-stone-700 text-amber-200/70 border-amber-800/60"
+          }`}
         >
-          {showForm ? "إلغاء" : "+ موضوع جديد"}
+          {showForm ? "إلغاء" : canPost ? "+ موضوع جديد" : "🔒 موضوع جديد"}
         </button>
       </div>
+
+      {!showForm && err && <div className="text-[12px] text-red-300 font-bold px-1">{err}</div>}
+
 
       {showForm && (
         <div className="rounded-xl bg-stone-900/80 border-2 border-amber-700/60 p-3 space-y-2">
