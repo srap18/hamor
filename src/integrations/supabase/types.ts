@@ -5456,6 +5456,7 @@ export type Database = {
         Row: {
           freeze_started_at: string | null
           freeze_until: string | null
+          freeze_windows: Json
           frozen_prices: Json
           rot_freeze_offset_seconds: number
           trader_anchor: string | null
@@ -5467,6 +5468,7 @@ export type Database = {
         Insert: {
           freeze_started_at?: string | null
           freeze_until?: string | null
+          freeze_windows?: Json
           frozen_prices?: Json
           rot_freeze_offset_seconds?: number
           trader_anchor?: string | null
@@ -5478,6 +5480,7 @@ export type Database = {
         Update: {
           freeze_started_at?: string | null
           freeze_until?: string | null
+          freeze_windows?: Json
           frozen_prices?: Json
           rot_freeze_offset_seconds?: number
           trader_anchor?: string | null
@@ -5888,6 +5891,10 @@ export type Database = {
       }
       _require_market_level: { Args: { _min: number }; Returns: undefined }
       _require_ship_at_sea: { Args: { _uid: string }; Returns: undefined }
+      _rot_frozen_seconds: {
+        Args: { _caught: string; _now: string; _uid: string }
+        Returns: number
+      }
       _settle_steal_mission: {
         Args: { _attacker_ship_id: string; _reason: string }
         Returns: {
