@@ -1583,6 +1583,14 @@ function Index() {
         if (error) throw error;
         // onSuccess
         clearSeaOverrideSoon(dbIdToSync);
+        // Stopping now harvests atomically on the server. Invalidate every
+        // stock view immediately so the saved catch is visible without
+        // closing/reopening the app or waiting for Realtime delivery.
+        if (!nextAtSea) {
+          try { invalidateFishStock(profile?.id); } catch {}
+          try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+          try { localStorage.setItem("fish-stock-ping", String(Date.now())); } catch {}
+        }
       })
       .catch(() => {
         // ── onError: Rollback to snapshot ─────────────────────────────
@@ -1763,10 +1771,9 @@ function Index() {
     delete collectingRef.current[s.dbId];
     // Lock UI to "docked" so realtime echoes can't briefly flip it back to fishing.
     setSeaOverride(s.dbId, false);
-    // Force-dock on server so any stale at_sea=true row can't bounce the ship
-    // back into fishing right after collect (this was causing the "stops then
-    // suddenly re-starts" hang). Fire-and-forget; override already locks UI.
-    setShipAtSea(s.dbId, false).catch(() => {});
+    // collect_fishing_reward already docks the locked ship in the same DB
+    // transaction. A second stop RPC is both redundant and can race automatic
+    // fishing, so rely on the authoritative collect result + fleet re-sync.
 
     const row = Array.isArray(data) ? data[0] : data;
     const caughtId = row?.fish_id as string | undefined;
