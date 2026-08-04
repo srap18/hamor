@@ -490,17 +490,26 @@ function FishMarket() {
 
 
   // Rot helpers: -1% per hour from oldest catch, floor 50%.
-  // Freeze pauses the rot clock ONLY inside its own window (matches the server).
+  // Freeze pauses the rot clock during EVERY freeze window the player paid for
+  // (past archived windows + the currently active one) — matches the server.
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
     const caughtAt = new Date(t).getTime();
     const now = serverNowMs();
+    const windows: Array<[number, number]> = [];
+    for (const w of marketState.freeze_windows ?? []) {
+      const s = w?.s ? new Date(w.s).getTime() : 0;
+      const e = w?.e ? new Date(w.e).getTime() : 0;
+      if (s > 0 && e > s) windows.push([s, e]);
+    }
     const fStart = marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
     const fUntil = marketState.freeze_until ? new Date(marketState.freeze_until).getTime() : 0;
+    if (fStart > 0 && fUntil > fStart) windows.push([fStart, fUntil]);
+
     let frozenSec = 0;
-    if (fStart > 0 && fUntil > fStart) {
-      frozenSec = Math.max(0, (Math.min(fUntil, now) - Math.max(fStart, caughtAt)) / 1000);
+    for (const [s, e] of windows) {
+      frozenSec += Math.max(0, (Math.min(e, now) - Math.max(s, caughtAt)) / 1000);
     }
     const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - frozenSec);
     const hours = elapsedSec / 3600;
