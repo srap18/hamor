@@ -123,11 +123,13 @@ function priceHistory(fish: Fish): number[] {
   return out;
 }
 
+type FreezeWindow = { s: string; e: string };
 type MarketState = {
   trader_until: string | null;
   freeze_until: string | null;
   freeze_started_at: string | null;
   rot_freeze_offset_seconds: number;
+  freeze_windows: FreezeWindow[];
   frozen_prices: Record<string, { current: number; min: number; max: number; forecast: number[] }>;
 };
 
@@ -163,7 +165,7 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
-  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} });
+  const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, freeze_windows: [], frozen_prices: {} });
 
   const showUpToast = (m: string) => {
     setUpToast(m);
@@ -178,7 +180,7 @@ function FishMarket() {
     const cacheKey = `fish-market:state:${user.id}`;
     const { data } = await (supabase as any)
       .from("user_market_state")
-      .select("trader_until, freeze_until, freeze_started_at, rot_freeze_offset_seconds, frozen_prices")
+      .select("trader_until, freeze_until, freeze_started_at, rot_freeze_offset_seconds, freeze_windows, frozen_prices")
       .eq("user_id", user.id)
       .maybeSingle();
     let nextState: MarketState;
@@ -188,10 +190,11 @@ function FishMarket() {
         freeze_until: data.freeze_until,
         freeze_started_at: data.freeze_started_at,
         rot_freeze_offset_seconds: Number(data.rot_freeze_offset_seconds ?? 0),
+        freeze_windows: Array.isArray(data.freeze_windows) ? (data.freeze_windows as FreezeWindow[]) : [],
         frozen_prices: (data.frozen_prices as MarketState["frozen_prices"]) ?? {},
       };
     } else {
-      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, frozen_prices: {} };
+      nextState = { trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, freeze_windows: [], frozen_prices: {} };
     }
     setMarketState(nextState);
     setCached(cacheKey, nextState);
@@ -487,17 +490,26 @@ function FishMarket() {
 
 
   // Rot helpers: -1% per hour from oldest catch, floor 50%.
-  // Freeze pauses the rot clock ONLY inside its own window (matches the server).
+  // Freeze pauses the rot clock during EVERY freeze window the player paid for
+  // (past archived windows + the currently active one) — matches the server.
   const rotMult = (fishId: string): number => {
     const t = ageMap[fishId];
     if (!t) return 1;
     const caughtAt = new Date(t).getTime();
     const now = serverNowMs();
+    const windows: Array<[number, number]> = [];
+    for (const w of marketState.freeze_windows ?? []) {
+      const s = w?.s ? new Date(w.s).getTime() : 0;
+      const e = w?.e ? new Date(w.e).getTime() : 0;
+      if (s > 0 && e > s) windows.push([s, e]);
+    }
     const fStart = marketState.freeze_started_at ? new Date(marketState.freeze_started_at).getTime() : 0;
     const fUntil = marketState.freeze_until ? new Date(marketState.freeze_until).getTime() : 0;
+    if (fStart > 0 && fUntil > fStart) windows.push([fStart, fUntil]);
+
     let frozenSec = 0;
-    if (fStart > 0 && fUntil > fStart) {
-      frozenSec = Math.max(0, (Math.min(fUntil, now) - Math.max(fStart, caughtAt)) / 1000);
+    for (const [s, e] of windows) {
+      frozenSec += Math.max(0, (Math.min(e, now) - Math.max(s, caughtAt)) / 1000);
     }
     const elapsedSec = Math.max(0, (now - caughtAt) / 1000 - frozenSec);
     const hours = elapsedSec / 3600;
