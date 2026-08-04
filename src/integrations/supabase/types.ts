@@ -7294,17 +7294,29 @@ export type Database = {
         Args: { _items: Json; _txn_id: string; _user: string }
         Returns: Json
       }
-      grant_pack_ships: {
-        Args: {
-          _dragon_t1: number
-          _dragon_t2: number
-          _dragon_t3: number
-          _phoenix: number
-          _txn_id: string
-          _user: string
-        }
-        Returns: Json
-      }
+      grant_pack_ships:
+        | {
+            Args: {
+              _dragon_t1: number
+              _dragon_t2: number
+              _dragon_t3: number
+              _phoenix: number
+              _txn_id: string
+              _user: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _dragon_t1?: number
+              _dragon_t2?: number
+              _dragon_t3?: number
+              _phoenix?: number
+              _txn_id: string
+              _user: string
+            }
+            Returns: Json
+          }
       grant_paddle_purchase: {
         Args: {
           _amount_cents: number
