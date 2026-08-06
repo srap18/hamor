@@ -686,9 +686,6 @@ function FishMarket() {
         />
       )}
 
-      {/* Bottom nav */}
-      <BottomNav />
-
       {upToast && (
         <div className="fixed left-1/2 top-6 z-50 -translate-x-1/2 rounded-xl border border-accent/30 bg-card px-4 py-3 text-sm font-bold text-foreground shadow-2xl">
           {upToast}
@@ -1275,24 +1272,3 @@ function ResChip({ icon, v, color }: { icon: ReactNode; v: number; color: string
   );
 }
 
-function BottomNav() {
-  const items = [
-    { e: "✉️", l: "البريد" },
-    { e: "🏛️", l: "المتجر" },
-    { e: "⚔️", l: "القبائل" },
-    { e: "🎉", l: "الفعاليات" },
-    { e: "📜", l: "المهام" },
-  ];
-  return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 glass-hud border-t border-accent/30 px-2 py-1.5 flex items-center justify-around">
-      {items.map((it, i) => (
-        <button key={i} className="flex flex-col items-center gap-0.5 px-2 active:scale-95">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-b from-amber-700/80 to-amber-900/80 border border-accent/60 flex items-center justify-center text-sm">
-            {it.e}
-          </div>
-          <span className="text-[8px] text-accent/90 font-medium">{it.l}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
