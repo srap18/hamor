@@ -55,7 +55,7 @@ export function EliteVipLoginOverlay() {
         .order("created_at", { ascending: true });
       if (cancelled || !data) return;
       const rows = (data as LoginBroadcast[]).filter(
-        (r) => !user || r.user_id !== user.id,
+        (r) => (!user || r.user_id !== user.id) && shouldShow(r),
       );
       if (rows.length) setQueue((q) => [...q, ...rows]);
     })();
@@ -68,6 +68,7 @@ export function EliteVipLoginOverlay() {
         (payload) => {
           const row = payload.new as LoginBroadcast;
           if (user && row.user_id === user.id) return;
+          if (!shouldShow(row)) return;
           setQueue((q) => (q.some((r) => r.id === row.id) ? q : [...q, row]));
         },
       )
