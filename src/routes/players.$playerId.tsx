@@ -1567,9 +1567,8 @@ function PlayerPage() {
               // "dead" = ship still in early repair (<30%) — past 30% it's fishing and attackable
               const targetDead = isShipStillDown(selectedShip.destroyed_at, selectedShip.repair_ends_at, (selectedShip as any).hp, (selectedShip as any).max_hp);
               const targetFishing = selectedShip.at_sea && !targetDead;
-              const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
-              const myPvpReady = myPvpCount >= 3;
-              const targetProtected = !targetMarketUnlocked;
+              // Immunity system: the server decides (ship market 15+ AND 3 sailing
+              // ships level 15+, plus target not immune). We only mirror its reason.
               const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
               const targetShielded = targetShieldedUntil > serverNowMs();
               const myShieldUntilMs = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
@@ -1578,11 +1577,8 @@ function PlayerPage() {
                 ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل الهجوم"
                 : targetShielded
                   ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
-                  : !myPvpReady
-                    ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
-                    : targetProtected
-                      ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
-                      : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
+                  : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
+
               const attackReason = blockReason
                 ? blockReason
                 : targetDead
