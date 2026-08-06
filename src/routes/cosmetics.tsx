@@ -8,6 +8,8 @@ import {
 import { buyWithGems } from "@/lib/economy";
 import { showBanner } from "@/components/Banner";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { BackButton } from "@/components/BackButton";
+
 
 export const Route = createFileRoute("/cosmetics")({
   ssr: false,
