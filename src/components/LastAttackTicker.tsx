@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { useShipMarketLevel } from "@/hooks/use-ship-market-level";
+
+/** Accounts below this ship-market level never see the global attack ticker. */
+const TICKER_MIN_MARKET_LEVEL = 6;
+
 
 type FeedRow = {
   id: string;
@@ -23,14 +28,18 @@ function timeAgo(iso: string): string {
 }
 
 export function LastAttackTicker() {
+  const marketLevel = useShipMarketLevel();
   const [rows, setRows] = useState<FeedRow[]>([]);
   const [hidden, setHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
+  // Collapsed by default so the ticker never covers the top HUD (avatar, name,
+  // coins, gems). Users can expand it and the choice is remembered.
   const [minimized, setMinimized] = useState<boolean>(() => {
-    try { return localStorage.getItem("death-banner-min") === "1"; } catch { return false; }
+    try { return localStorage.getItem("death-banner-min") !== "0"; } catch { return true; }
   });
   const [, force] = useState(0);
+
 
   // tick every 15s so timeAgo refreshes
   useEffect(() => {
@@ -76,6 +85,8 @@ export function LastAttackTicker() {
   }, []);
 
   if (hidden || rows.length === 0) return null;
+  // Brand-new accounts (ship market under level 6) never see attack spam.
+  if (marketLevel < TICKER_MIN_MARKET_LEVEL) return null;
 
   if (minimized) {
     return (
@@ -84,7 +95,7 @@ export function LastAttackTicker() {
         <button
           onClick={() => {
             setMinimized(false);
-            try { localStorage.removeItem("death-banner-min"); } catch { /* noop */ }
+            try { localStorage.setItem("death-banner-min", "0"); } catch { /* noop */ }
           }}
           className="pointer-events-auto px-2 py-0.5 rounded-full bg-black/70 border border-red-400/40 text-red-100/90 text-[10px] font-bold shadow active:scale-95"
           title="إظهار قائمة الهجمات"
@@ -98,7 +109,8 @@ export function LastAttackTicker() {
   return (
     <div
       className="fixed top-0 inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
-      style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 200px)" }}
+
     >
       <div className="pointer-events-auto relative max-w-md w-full rounded-2xl bg-gradient-to-b from-black/80 via-red-950/70 to-black/80 border border-red-400/30 shadow-[0_6px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm">
         <div className="flex items-center justify-between px-3 py-1 border-b border-red-400/20 bg-gradient-to-r from-red-950/60 via-red-900/40 to-red-950/60">
