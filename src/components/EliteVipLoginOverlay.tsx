@@ -14,6 +14,21 @@ type LoginBroadcast = {
   created_at: string;
 };
 
+// Remembers which broadcast rows / users we already showed in this session so
+// a player who logs in and out repeatedly doesn't spam the same toast.
+const SEEN_ROW_IDS = new Set<string>();
+const SHOWN_USER_AT = new Map<string, number>();
+const USER_REPEAT_MS = 30 * 60_000;
+
+function shouldShow(row: LoginBroadcast): boolean {
+  if (SEEN_ROW_IDS.has(row.id)) return false;
+  SEEN_ROW_IDS.add(row.id);
+  const last = SHOWN_USER_AT.get(row.user_id);
+  if (last && Date.now() - last < USER_REPEAT_MS) return false;
+  SHOWN_USER_AT.set(row.user_id, Date.now());
+  return true;
+}
+
 /**
  * Small, dismissible toast for VIP 3+ logins.
  */
@@ -21,6 +36,7 @@ export function EliteVipLoginOverlay() {
   const { user, loading } = useAuth();
   const [queue, setQueue] = useState<LoginBroadcast[]>([]);
   const [current, setCurrent] = useState<LoginBroadcast | null>(null);
+
 
   useEffect(() => {
     if (loading || !user) return;
