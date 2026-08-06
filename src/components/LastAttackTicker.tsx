@@ -33,11 +33,9 @@ export function LastAttackTicker() {
   const [hidden, setHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
-  // Collapsed by default so the ticker never covers the top HUD (avatar, name,
-  // coins, gems). Users can expand it and the choice is remembered.
-  const [minimized, setMinimized] = useState<boolean>(() => {
-    try { return localStorage.getItem("death-banner-min") !== "0"; } catch { return true; }
-  });
+  // Always starts collapsed on every load so the ticker never covers the HUD
+  // or the middle of the screen. Expanding is a per-session choice only.
+  const [minimized, setMinimized] = useState<boolean>(true);
   const [, force] = useState(0);
 
 
