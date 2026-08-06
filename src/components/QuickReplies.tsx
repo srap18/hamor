@@ -16,7 +16,7 @@ export function QuickReplies({ onSend, disabled }: { onSend: (text: string) => v
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         type="button"
         onClick={() => { sound.play("click"); setOpen(o => !o); }}
