@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { useShipMarketLevel } from "@/hooks/use-ship-market-level";
+
+/** Accounts below this ship-market level never see the global attack ticker. */
+const TICKER_MIN_MARKET_LEVEL = 6;
+
 
 type FeedRow = {
   id: string;
