@@ -113,10 +113,7 @@ export function LastAttackTicker() {
             <span>سجل هجمات القنابل</span>
           </div>
           <button
-            onClick={() => {
-              setMinimized(true);
-              try { localStorage.setItem("death-banner-min", "1"); } catch { /* noop */ }
-            }}
+            onClick={() => setMinimized(true)}
             className="w-4 h-4 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white/80 text-[9px] leading-none flex items-center justify-center active:scale-90"
             title="تصغير"
           >
