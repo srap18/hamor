@@ -2096,7 +2096,8 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
           <button type="button" onClick={onClearReply} className="px-2 text-amber-300 hover:text-white font-black">✕</button>
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-nowrap items-center gap-2 w-full min-w-0">
+
       {recording ? (
         <>
           <div className={`flex-1 px-3 py-2 rounded-lg border text-sm text-white flex items-center gap-2 ${elapsed >= MAX_REC_SECONDS - 5 ? "bg-red-900/80 border-red-400/80" : "bg-red-900/60 border-red-500/60"}`}>
