@@ -104,7 +104,7 @@ export function LastAttackTicker() {
   return (
     <div
       className="fixed inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
-      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 6.5rem)" }}
+      style={{ top: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}
     >
       <div className="pointer-events-auto relative max-w-md w-full rounded-2xl bg-gradient-to-b from-black/80 via-red-950/70 to-black/80 border border-red-400/30 shadow-[0_6px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm">
         <div className="flex items-center justify-between px-3 py-1 border-b border-red-400/20 bg-gradient-to-r from-red-950/60 via-red-900/40 to-red-950/60">
