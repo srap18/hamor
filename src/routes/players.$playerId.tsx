@@ -108,7 +108,7 @@ function PlayerPage() {
   const [nukeSending, setNukeSending] = useState(false);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
-  // Server-authoritative PvP bracket check (6-15 vs 16+) — identical rules to the RPCs.
+  // Server-authoritative attack check (immunity + ship market 15 requirements).
   const [pvpCheck, setPvpCheck] = useState<{ ok: boolean; reason: string | null } | null>(null);
   const [destroyerAvatar, setDestroyerAvatar] = useState<string | null>(null);
   const [destroyerEmoji, setDestroyerEmoji] = useState<string | null>(null);
@@ -988,7 +988,7 @@ function PlayerPage() {
         else if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
         else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
         else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
-        else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
+        else if (msg.includes("sender needs pvp fleet")) flash("🚫 لا يمكنك إرسال الدعم لهذا اللاعب");
         else if (msg.includes("recipient is a new player")) flash("🛡️ هذا اللاعب جديد — ما يقدر يستقبل دعم");
         else if (msg.includes("same device")) flash("🚫 ما تقدر ترسل دعم لحساب على نفس الجهاز");
         else if (msg.includes("target ship does not belong")) flash("السفينة المختارة مو لهذا اللاعب");
@@ -1567,9 +1567,8 @@ function PlayerPage() {
               // "dead" = ship still in early repair (<30%) — past 30% it's fishing and attackable
               const targetDead = isShipStillDown(selectedShip.destroyed_at, selectedShip.repair_ends_at, (selectedShip as any).hp, (selectedShip as any).max_hp);
               const targetFishing = selectedShip.at_sea && !targetDead;
-              const myPvpCount = myShips.filter((s) => (s.template_id ?? 0) >= 6).length;
-              const myPvpReady = myPvpCount >= 3;
-              const targetProtected = !targetMarketUnlocked;
+              // Immunity system: the server decides (ship market 15+ AND 3 sailing
+              // ships level 15+, plus target not immune). We only mirror its reason.
               const targetShieldedUntil = (p as any)?.protection_until ? new Date((p as any).protection_until).getTime() : 0;
               const targetShielded = targetShieldedUntil > serverNowMs();
               const myShieldUntilMs = myProtectionUntil ? new Date(myProtectionUntil).getTime() : 0;
@@ -1578,11 +1577,8 @@ function PlayerPage() {
                 ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل الهجوم"
                 : targetShielded
                   ? "🛡️ الخصم محمي بدرع — لا يمكن الهجوم"
-                  : !myPvpReady
-                    ? `🚫 تحتاج 3 سفن مستوى 6+ (${myPvpCount}/3)`
-                    : targetProtected
-                      ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
-                      : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
+                  : (pvpCheck && !pvpCheck.ok ? (pvpCheck.reason ?? "🚫 لا يمكنك مهاجمة هذا اللاعب") : null);
+
               const attackReason = blockReason
                 ? blockReason
                 : targetDead
@@ -1590,7 +1586,7 @@ function PlayerPage() {
                   : null;
               const attackDisabled = busy;
 
-              // Steal is NOT part of the PvP bracket system (6–15 / 16+) and does not
+              // Steal is NOT part of the attack/immunity system and does not
               // require a PvP fleet — only shields, market level 6, target fishing,
               // and having one of MY ships docked (not fishing / repairing / raiding).
               const myIdleShip = myShips.some(
@@ -1601,9 +1597,10 @@ function PlayerPage() {
                 ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل السرقة"
                 : targetShielded
                   ? "🛡️ الخصم محمي بدرع — لا يمكن السرقة"
-                  : targetProtected
+                  : !targetMarketUnlocked
                     ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                     : null;
+
               // Steal must never look "dead" without telling the player why:
               // the button stays tappable and flashes the exact blocking reason.
               const stealReason = stealBlock
