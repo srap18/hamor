@@ -988,7 +988,7 @@ function PlayerPage() {
         else if (msg.includes("no such crew") || msg.includes("sender has no such crew")) flash("ما عندك من هذا الطاقم — اضغط شراء وإرسال");
         else if (msg.includes("already has this crew")) flash("سفينته فيها نفس الطاقم بالفعل");
         else if (msg.includes("already has active trader")) flash("💰 عنده تاجر نشط — انتظر ينتهي");
-        else if (msg.includes("sender needs pvp fleet")) flash("🚫 تحتاج 3 سفن مستوى 6+ علشان ترسل دعم");
+        else if (msg.includes("sender needs pvp fleet")) flash("🚫 لا يمكنك إرسال الدعم لهذا اللاعب");
         else if (msg.includes("recipient is a new player")) flash("🛡️ هذا اللاعب جديد — ما يقدر يستقبل دعم");
         else if (msg.includes("same device")) flash("🚫 ما تقدر ترسل دعم لحساب على نفس الجهاز");
         else if (msg.includes("target ship does not belong")) flash("السفينة المختارة مو لهذا اللاعب");
@@ -1586,7 +1586,7 @@ function PlayerPage() {
                   : null;
               const attackDisabled = busy;
 
-              // Steal is NOT part of the PvP bracket system (6–15 / 16+) and does not
+              // Steal is NOT part of the attack/immunity system and does not
               // require a PvP fleet — only shields, market level 6, target fishing,
               // and having one of MY ships docked (not fishing / repairing / raiding).
               const myIdleShip = myShips.some(
