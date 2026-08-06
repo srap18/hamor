@@ -1597,9 +1597,10 @@ function PlayerPage() {
                 ? "🛡️ درعك مفعّل — أزله من الشاشة الرئيسية قبل السرقة"
                 : targetShielded
                   ? "🛡️ الخصم محمي بدرع — لا يمكن السرقة"
-                  : targetProtected
+                  : !targetMarketUnlocked
                     ? "🛡️ الخصم محمي — سوقه أقل من المستوى 6"
                     : null;
+
               // Steal must never look "dead" without telling the player why:
               // the button stays tappable and flashes the exact blocking reason.
               const stealReason = stealBlock
