@@ -63,6 +63,7 @@ function SeasonPage() {
         const { data: r } = await supabase.from("season_damage")
           .select("user_id, damage_total, first_reached_at")
           .eq("season_id", s.id)
+          .gt("damage_total", 0)
           .order("damage_total", { ascending: false })
           .order("first_reached_at", { ascending: true })
           .limit(100);

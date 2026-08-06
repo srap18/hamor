@@ -33,11 +33,9 @@ export function LastAttackTicker() {
   const [hidden, setHidden] = useState<boolean>(() => {
     try { return localStorage.getItem("death-banner-hidden") === "1"; } catch { return false; }
   });
-  // Collapsed by default so the ticker never covers the top HUD (avatar, name,
-  // coins, gems). Users can expand it and the choice is remembered.
-  const [minimized, setMinimized] = useState<boolean>(() => {
-    try { return localStorage.getItem("death-banner-min") !== "0"; } catch { return true; }
-  });
+  // Always starts collapsed on every load so the ticker never covers the HUD
+  // or the middle of the screen. Expanding is a per-session choice only.
+  const [minimized, setMinimized] = useState<boolean>(true);
   const [, force] = useState(0);
 
 
@@ -93,10 +91,7 @@ export function LastAttackTicker() {
       <div className="fixed top-0 inset-x-0 z-[90] flex justify-center pointer-events-none"
         style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 0.15rem))" }}>
         <button
-          onClick={() => {
-            setMinimized(false);
-            try { localStorage.setItem("death-banner-min", "0"); } catch { /* noop */ }
-          }}
+          onClick={() => setMinimized(false)}
           className="pointer-events-auto px-2 py-0.5 rounded-full bg-black/70 border border-red-400/40 text-red-100/90 text-[10px] font-bold shadow active:scale-95"
           title="إظهار قائمة الهجمات"
         >
@@ -108,9 +103,8 @@ export function LastAttackTicker() {
 
   return (
     <div
-      className="fixed top-0 inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 200px)" }}
-
+      className="fixed inset-x-0 z-[90] flex justify-center px-2 pointer-events-none"
+      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 6.5rem)" }}
     >
       <div className="pointer-events-auto relative max-w-md w-full rounded-2xl bg-gradient-to-b from-black/80 via-red-950/70 to-black/80 border border-red-400/30 shadow-[0_6px_20px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-sm">
         <div className="flex items-center justify-between px-3 py-1 border-b border-red-400/20 bg-gradient-to-r from-red-950/60 via-red-900/40 to-red-950/60">
@@ -119,10 +113,7 @@ export function LastAttackTicker() {
             <span>سجل هجمات القنابل</span>
           </div>
           <button
-            onClick={() => {
-              setMinimized(true);
-              try { localStorage.setItem("death-banner-min", "1"); } catch { /* noop */ }
-            }}
+            onClick={() => setMinimized(true)}
             className="w-4 h-4 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 text-white/80 text-[9px] leading-none flex items-center justify-center active:scale-90"
             title="تصغير"
           >
