@@ -2096,15 +2096,16 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
           <button type="button" onClick={onClearReply} className="px-2 text-amber-300 hover:text-white font-black">✕</button>
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-nowrap items-center gap-2 w-full min-w-0">
+
       {recording ? (
         <>
           <div className={`flex-1 px-3 py-2 rounded-lg border text-sm text-white flex items-center gap-2 ${elapsed >= MAX_REC_SECONDS - 5 ? "bg-red-900/80 border-red-400/80" : "bg-red-900/60 border-red-500/60"}`}>
             <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
             🎤 جاري التسجيل... {elapsed}ث / {MAX_REC_SECONDS}ث
           </div>
-          <button type="button" onClick={() => stopRec(true)} className="px-3 rounded-lg bg-stone-700 text-white font-bold">إلغاء</button>
-          <button type="button" onClick={() => stopRec(false)} className="px-4 rounded-lg bg-emerald-500 text-emerald-950 font-bold">إرسال</button>
+          <button type="button" onClick={() => stopRec(true)} className="shrink-0 px-3 py-2 rounded-lg bg-stone-700 text-white font-bold">إلغاء</button>
+          <button type="button" onClick={() => stopRec(false)} className="shrink-0 px-4 py-2 rounded-lg bg-emerald-500 text-emerald-950 font-bold">إرسال</button>
         </>
       ) : (
         <>
@@ -2115,7 +2116,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
             autoComplete="off"
             disabled={disabled || uploading}
             placeholder={uploading ? "جاري رفع التسجيل..." : "اكتب رساله..."}
-            className="flex-1 px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-sm text-white disabled:opacity-50"
+            className="flex-1 min-w-0 w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-sm text-white disabled:opacity-50"
           />
           {canUploadAudio && (
             <input
@@ -2131,7 +2132,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
               }}
             />
           )}
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => {
@@ -2139,7 +2140,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
                 startRec();
               }}
               disabled={disabled || uploading}
-              className="px-3 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50"
+              className="shrink-0 px-3 py-2 rounded-lg bg-red-600 text-white font-bold disabled:opacity-50"
               title="صوتي"
             >🎤</button>
             {canUploadAudio && micMenuOpen && (
@@ -2160,7 +2161,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
               </>
             )}
           </div>
-          <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="px-4 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
+          <button type="submit" disabled={disabled || uploading || sending || !text.trim()} className="shrink-0 px-4 py-2 rounded-lg bg-amber-500 text-amber-950 font-bold disabled:opacity-50">{sending ? "..." : "إرسال"}</button>
         </>
       )}
       </div>

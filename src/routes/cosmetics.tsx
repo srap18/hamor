@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -8,6 +8,8 @@ import {
 import { buyWithGems } from "@/lib/economy";
 import { showBanner } from "@/components/Banner";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { BackButton } from "@/components/BackButton";
+
 
 export const Route = createFileRoute("/cosmetics")({
   ssr: false,
@@ -145,7 +147,7 @@ function CosmeticsShop() {
       }}
     >
       <header className="sticky top-0 z-20 backdrop-blur-xl bg-black/40 border-b border-fuchsia-400/20 px-3 py-3 flex items-center gap-2">
-        <Link to="/profile" className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg active:scale-95">←</Link>
+        <BackButton fallback="/profile" className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg active:scale-95">←</BackButton>
         <h1 className="flex-1 text-base font-extrabold tracking-tight">
           <span className="bg-gradient-to-r from-fuchsia-300 via-pink-200 to-amber-200 bg-clip-text text-transparent">
             ✨ متجر الإطارات
