@@ -3321,6 +3321,7 @@ export type Database = {
           profile_frame: string | null
           protection_until: string | null
           purchases_blocked: boolean
+          pvp_immunity_lifted_at: string | null
           referral_code: string | null
           referral_locked_at: string | null
           referred_by: string | null
@@ -3395,6 +3396,7 @@ export type Database = {
           profile_frame?: string | null
           protection_until?: string | null
           purchases_blocked?: boolean
+          pvp_immunity_lifted_at?: string | null
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
@@ -3469,6 +3471,7 @@ export type Database = {
           profile_frame?: string | null
           protection_until?: string | null
           purchases_blocked?: boolean
+          pvp_immunity_lifted_at?: string | null
           referral_code?: string | null
           referral_locked_at?: string | null
           referred_by?: string | null
@@ -7547,8 +7550,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      pvp_attack_bracket: { Args: { _user_id: string }; Returns: number }
       pvp_attack_check: { Args: { _defender: string }; Returns: Json }
+      pvp_attack_ready_error: { Args: { _user_id: string }; Returns: string }
       pvp_attacker_requirement_error: {
         Args: { _user_id: string }
         Returns: string
@@ -7557,17 +7560,13 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
-      pvp_defense_bracket: { Args: { _user_id: string }; Returns: number }
       pvp_eligible_ship_count: {
         Args: { _min_level: number; _user_id: string }
         Returns: number
       }
       pvp_engaged: { Args: { _x: string; _y: string }; Returns: boolean }
       pvp_fleet_count: { Args: { _user_id: string }; Returns: number }
-      pvp_level_gap_error: {
-        Args: { _attacker: string; _defender: string }
-        Returns: string
-      }
+      pvp_is_immune: { Args: { _user_id: string }; Returns: boolean }
       pvp_max_ship_level: { Args: { _user_id: string }; Returns: number }
       pvp_min_eligible_ship_level: {
         Args: { _user_id: string }
@@ -7576,6 +7575,10 @@ export type Database = {
       pvp_owned_ship_count: {
         Args: { _min_level: number; _user_id: string }
         Returns: number
+      }
+      pvp_pair_block_error: {
+        Args: { _attacker: string; _defender: string }
+        Returns: string
       }
       pvp_requirement_error: {
         Args: { _actor_label?: string; _user_id: string }
@@ -7589,8 +7592,8 @@ export type Database = {
         Args: { _actor_label?: string; _user_id: string }
         Returns: string
       }
-      pvp_support_requirement_error: {
-        Args: { _actor_label?: string; _user_id: string }
+      pvp_support_pair_error: {
+        Args: { _recipient: string; _sender: string }
         Returns: string
       }
       qa_award: {
