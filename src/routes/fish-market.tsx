@@ -554,9 +554,12 @@ function FishMarket() {
     if (!user || renting) return;
     const pack = RENT_PACKS.find((p) => p.id === packId);
     if (!pack) return;
+    const stacking = rentActive && rentedCapacity >= pack.capacity;
     const ok = await confirmDialog({
       title: "استئجار سعة",
-      message: `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟`,
+      message: stacking
+        ? `لديك سعة مستأجرة سارية (+${rentedCapacity.toLocaleString()}). الشراء الآن سيمدد المدة 24 ساعة إضافية فقط — السعة لا تتراكم. المقابل ${pack.price.toLocaleString()} جوهرة؟`
+        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (ستُرفع سعتك الحالية لهذه الباقة وتُمدد المدة 24 ساعة)" : ""}`,
       confirmText: "استأجر",
     });
     if (!ok) return;
@@ -762,7 +765,7 @@ function FishMarket() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-1 text-base font-extrabold text-fuchsia-200">📦 استئجار سعة إضافية</div>
-            <div className="text-center text-[11px] text-slate-300 mb-3">كل باقة تضيف سعة مؤقتة لمدة 24 ساعة</div>
+            <div className="text-center text-[11px] text-slate-300 mb-3">السعة لا تتراكم — الشراء مجددًا يمدد المدة 24 ساعة فقط (وتُعتمد أعلى باقة)</div>
             {rentActive && (
               <div className="mb-3 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-2 text-center text-[11px] font-bold text-fuchsia-100 tabular-nums">
                 سعة مستأجرة سارية: +{rentedCapacity.toLocaleString()} · تنتهي بعد {formatHHMMSS(rentMsLeft)}
