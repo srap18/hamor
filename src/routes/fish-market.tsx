@@ -746,6 +746,46 @@ function FishMarket() {
         <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
       )}
 
+      {rentOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={() => setRentOpen(false)}>
+          <div
+            className="w-full max-w-sm rounded-2xl border-2 border-fuchsia-300/70 bg-gradient-to-b from-slate-900 to-slate-950 p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-1 text-base font-extrabold text-fuchsia-200">📦 استئجار سعة إضافية</div>
+            <div className="text-center text-[11px] text-slate-300 mb-3">كل باقة تضيف سعة مؤقتة لمدة 24 ساعة</div>
+            {rentActive && (
+              <div className="mb-3 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-2 text-center text-[11px] font-bold text-fuchsia-100 tabular-nums">
+                سعة مستأجرة سارية: +{rentedCapacity.toLocaleString()} · تنتهي بعد {formatHHMMSS(rentMsLeft)}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              {RENT_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => rentCapacity(p.id)}
+                  disabled={!!renting || gems < p.price}
+                  className="flex items-center justify-between rounded-xl border-2 border-fuchsia-300/50 bg-gradient-to-b from-fuchsia-600/40 to-fuchsia-900/40 px-3 py-3 active:scale-95 disabled:opacity-50"
+                >
+                  <div className="text-right">
+                    <div className="text-sm font-extrabold text-white">{p.label}</div>
+                    <div className="text-[11px] text-fuchsia-100">+{(p.capacity / 1_000_000).toLocaleString()} مليون · 24 ساعة</div>
+                  </div>
+                  <div className="text-sm font-extrabold text-rose-200">💎 {p.price.toLocaleString()}</div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setRentOpen(false)}
+              className="mt-3 w-full rounded-xl border border-slate-600 bg-slate-800 py-2 text-sm font-bold text-slate-200 active:scale-95"
+            >
+              إغلاق
+            </button>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 }
