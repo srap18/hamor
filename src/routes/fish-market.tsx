@@ -698,6 +698,10 @@ function FishMarket() {
           onUpgrade={startFishUpgrade}
           onBoost={finishFishUpgrade}
           onPick={setSelected}
+          rentActive={rentActive}
+          rentMsLeft={rentMsLeft}
+          rentedCapacity={rentedCapacity}
+          onOpenRent={() => setRentOpen(true)}
         />
       )}
 
