@@ -346,14 +346,16 @@ function FishMarket() {
     await supabase.rpc("finalize_fish_market_upgrades" as never);
     const { data } = await supabase
       .from("user_fish_market" as never)
-      .select("level, upgrading_to, upgrade_ends_at")
+      .select("level, upgrading_to, upgrade_ends_at, rented_capacity, rented_until")
       .eq("user_id", user.id)
       .maybeSingle();
-    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null);
+    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null; rented_capacity?: number | null; rented_until?: string | null } | null);
     const lvlVal = row?.level ?? 1;
     setLvl(lvlVal);
     setUpgradingTo(row?.upgrading_to ?? null);
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+    setRentedCapacity(Number(row?.rented_capacity ?? 0));
+    setRentedUntil(row?.rented_until ?? null);
     setCached(cacheKey, { level: lvlVal, upgradingTo: row?.upgrading_to ?? null, upgradeEndsAt: row?.upgrade_ends_at ?? null });
     try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
