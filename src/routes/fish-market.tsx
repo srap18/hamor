@@ -539,7 +539,31 @@ function FishMarket() {
     .sort((a, b) => b.basePrice - a.basePrice);
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
-  const capMax = fishMarketCapacity(lvl);
+  const rentMsLeft = rentedUntil ? Math.max(0, new Date(rentedUntil).getTime() - tickNow) : 0;
+  const rentActive = rentMsLeft > 0 && rentedCapacity > 0;
+  const capMax = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0);
+
+  const rentCapacity = async (packId: string) => {
+    if (!user || renting) return;
+    const pack = RENT_PACKS.find((p) => p.id === packId);
+    if (!pack) return;
+    const ok = await confirmDialog({
+      title: "استئجار سعة",
+      message: `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟`,
+      confirmText: "استأجر",
+    });
+    if (!ok) return;
+    setRenting(packId);
+    const { error } = await supabase.rpc("rent_market_capacity" as never, { _pack: packId } as never);
+    setRenting(null);
+    if (error) { showUpToast(error.message || "تعذر الاستئجار"); return; }
+    applyOptimisticProfileDelta({ gems: -pack.price });
+    await Promise.all([loadMarket(), refreshProfile()]);
+    setRentOpen(false);
+    showUpToast("تم استئجار السعة ✅");
+  };
+
+
   
 
   const sel = fish.find((f) => f.id === selected) || null;
