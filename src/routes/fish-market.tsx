@@ -563,7 +563,16 @@ function FishMarket() {
     setRenting(packId);
     const { error } = await supabase.rpc("rent_market_capacity" as never, { _pack: packId } as never);
     setRenting(null);
-    if (error) { showUpToast(error.message || "تعذر الاستئجار"); return; }
+    if (error) {
+      const raw = error.message || "";
+      const msg = /insufficient gems/i.test(raw)
+        ? "جواهرك غير كافية"
+        : /unauthorized/i.test(raw)
+          ? "سجّل الدخول أولاً"
+          : raw || "تعذر الاستئجار";
+      showUpToast(msg);
+      return;
+    }
     applyOptimisticProfileDelta({ gems: -pack.price });
     await Promise.all([loadMarket(), refreshProfile()]);
     setRentOpen(false);
