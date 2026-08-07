@@ -144,6 +144,13 @@ type FishStockCache = { qty: Record<string, number>; ages: Record<string, string
 type SaleQuote = { sold: number; total_amount: number; effective_unit_price: number; current_price: number; rot: number };
 const FISH_MARKET_CLIENT_VERSION = "fish-market-v20260626-force-update-1";
 
+type RentPack = { id: string; label: string; capacity: number; price: number };
+const RENT_PACKS: RentPack[] = [
+  { id: "small", label: "باقة صغيرة", capacity: 10_000_000, price: 500 },
+  { id: "medium", label: "باقة متوسطة", capacity: 25_000_000, price: 1500 },
+  { id: "large", label: "باقة كبيرة", capacity: 50_000_000, price: 3000 },
+];
+
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
   const [ageMap, setAgeMap] = useState<Record<string, string>>({});
