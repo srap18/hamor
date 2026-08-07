@@ -144,6 +144,13 @@ type FishStockCache = { qty: Record<string, number>; ages: Record<string, string
 type SaleQuote = { sold: number; total_amount: number; effective_unit_price: number; current_price: number; rot: number };
 const FISH_MARKET_CLIENT_VERSION = "fish-market-v20260626-force-update-1";
 
+type RentPack = { id: string; label: string; capacity: number; price: number };
+const RENT_PACKS: RentPack[] = [
+  { id: "small", label: "باقة صغيرة", capacity: 10_000_000, price: 500 },
+  { id: "medium", label: "باقة متوسطة", capacity: 25_000_000, price: 1500 },
+  { id: "large", label: "باقة كبيرة", capacity: 50_000_000, price: 3000 },
+];
+
 function FishMarket() {
   const [qtyMap, setQtyMap] = useState<Record<string, number>>({});
   const [ageMap, setAgeMap] = useState<Record<string, string>>({});
@@ -163,6 +170,10 @@ function FishMarket() {
   const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
+  const [rentedCapacity, setRentedCapacity] = useState(0);
+  const [rentedUntil, setRentedUntil] = useState<string | null>(null);
+  const [rentOpen, setRentOpen] = useState(false);
+  const [renting, setRenting] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, freeze_windows: [], frozen_prices: {} });
@@ -342,14 +353,16 @@ function FishMarket() {
     await supabase.rpc("finalize_fish_market_upgrades" as never);
     const { data } = await supabase
       .from("user_fish_market" as never)
-      .select("level, upgrading_to, upgrade_ends_at")
+      .select("level, upgrading_to, upgrade_ends_at, rented_capacity, rented_until")
       .eq("user_id", user.id)
       .maybeSingle();
-    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null);
+    const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null; rented_capacity?: number | null; rented_until?: string | null } | null);
     const lvlVal = row?.level ?? 1;
     setLvl(lvlVal);
     setUpgradingTo(row?.upgrading_to ?? null);
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
+    setRentedCapacity(Number(row?.rented_capacity ?? 0));
+    setRentedUntil(row?.rented_until ?? null);
     setCached(cacheKey, { level: lvlVal, upgradingTo: row?.upgrading_to ?? null, upgradeEndsAt: row?.upgrade_ends_at ?? null });
     try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
@@ -533,7 +546,31 @@ function FishMarket() {
     .sort((a, b) => b.basePrice - a.basePrice);
 
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
-  const capMax = fishMarketCapacity(lvl);
+  const rentMsLeft = rentedUntil ? Math.max(0, new Date(rentedUntil).getTime() - tickNow) : 0;
+  const rentActive = rentMsLeft > 0 && rentedCapacity > 0;
+  const capMax = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0);
+
+  const rentCapacity = async (packId: string) => {
+    if (!user || renting) return;
+    const pack = RENT_PACKS.find((p) => p.id === packId);
+    if (!pack) return;
+    const ok = await confirmDialog({
+      title: "استئجار سعة",
+      message: `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟`,
+      confirmText: "استأجر",
+    });
+    if (!ok) return;
+    setRenting(packId);
+    const { error } = await supabase.rpc("rent_market_capacity" as never, { _pack: packId } as never);
+    setRenting(null);
+    if (error) { showUpToast(error.message || "تعذر الاستئجار"); return; }
+    applyOptimisticProfileDelta({ gems: -pack.price });
+    await Promise.all([loadMarket(), refreshProfile()]);
+    setRentOpen(false);
+    showUpToast("تم استئجار السعة ✅");
+  };
+
+
   
 
   const sel = fish.find((f) => f.id === selected) || null;
@@ -661,6 +698,10 @@ function FishMarket() {
           onUpgrade={startFishUpgrade}
           onBoost={finishFishUpgrade}
           onPick={setSelected}
+          rentActive={rentActive}
+          rentMsLeft={rentMsLeft}
+          rentedCapacity={rentedCapacity}
+          onOpenRent={() => setRentOpen(true)}
         />
       )}
 
@@ -704,6 +745,46 @@ function FishMarket() {
       {sellResult && (
         <SellResultModal result={sellResult} onClose={() => { setSellResult(null); setSelected(null); }} />
       )}
+
+      {rentOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" dir="rtl" onClick={() => setRentOpen(false)}>
+          <div
+            className="w-full max-w-sm rounded-2xl border-2 border-fuchsia-300/70 bg-gradient-to-b from-slate-900 to-slate-950 p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-1 text-base font-extrabold text-fuchsia-200">📦 استئجار سعة إضافية</div>
+            <div className="text-center text-[11px] text-slate-300 mb-3">كل باقة تضيف سعة مؤقتة لمدة 24 ساعة</div>
+            {rentActive && (
+              <div className="mb-3 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-2 text-center text-[11px] font-bold text-fuchsia-100 tabular-nums">
+                سعة مستأجرة سارية: +{rentedCapacity.toLocaleString()} · تنتهي بعد {formatHHMMSS(rentMsLeft)}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              {RENT_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => rentCapacity(p.id)}
+                  disabled={!!renting || gems < p.price}
+                  className="flex items-center justify-between rounded-xl border-2 border-fuchsia-300/50 bg-gradient-to-b from-fuchsia-600/40 to-fuchsia-900/40 px-3 py-3 active:scale-95 disabled:opacity-50"
+                >
+                  <div className="text-right">
+                    <div className="text-sm font-extrabold text-white">{p.label}</div>
+                    <div className="text-[11px] text-fuchsia-100">+{(p.capacity / 1_000_000).toLocaleString()} مليون · 24 ساعة</div>
+                  </div>
+                  <div className="text-sm font-extrabold text-rose-200">💎 {p.price.toLocaleString()}</div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setRentOpen(false)}
+              className="mt-3 w-full rounded-xl border border-slate-600 bg-slate-800 py-2 text-sm font-bold text-slate-200 active:scale-95"
+            >
+              إغلاق
+            </button>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );
@@ -802,6 +883,10 @@ function StorageView({
   onUpgrade,
   onBoost,
   onPick,
+  rentActive,
+  rentMsLeft,
+  rentedCapacity,
+  onOpenRent,
 }: {
   fish: Fish[];
   capUsed: number;
@@ -815,6 +900,10 @@ function StorageView({
   onUpgrade: () => void;
   onBoost: () => void;
   onPick: (id: string) => void;
+  rentActive: boolean;
+  rentMsLeft: number;
+  rentedCapacity: number;
+  onOpenRent: () => void;
 }) {
   const pct = (capUsed / capMax) * 100;
   return (
@@ -833,7 +922,23 @@ function StorageView({
           <span className="text-amber-200">{capUsed.toLocaleString()}</span>
           <span className="opacity-80">/{capMax.toLocaleString()} السعة</span>
         </div>
+        {lvl >= 30 && (
+          <div className="mt-1 flex flex-col items-center gap-1">
+            <button
+              onClick={onOpenRent}
+              className="px-3 py-1 rounded-lg bg-gradient-to-b from-fuchsia-400 to-fuchsia-700 border-2 border-fuchsia-200 text-white text-[11px] font-extrabold shadow-lg active:scale-95"
+            >
+              📦 استئجار سعة
+            </button>
+            {rentActive && (
+              <div className="text-[10px] font-bold text-fuchsia-100 text-glow tabular-nums">
+                +{(rentedCapacity / 1_000_000).toLocaleString()}م · {formatHHMMSS(rentMsLeft)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
 
       {/* Fish storage panel */}
       <div className="absolute top-52 left-2 right-2 bottom-40 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
