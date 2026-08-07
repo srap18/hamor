@@ -163,6 +163,10 @@ function FishMarket() {
   const [upPreview, setUpPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
   const [upBusy, setUpBusy] = useState<null | "start" | "boost">(null);
   const [upToast, setUpToast] = useState<string | null>(null);
+  const [rentedCapacity, setRentedCapacity] = useState(0);
+  const [rentedUntil, setRentedUntil] = useState<string | null>(null);
+  const [rentOpen, setRentOpen] = useState(false);
+  const [renting, setRenting] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
   const [sellResult, setSellResult] = useState<SellResult | null>(null);
   const [marketState, setMarketState] = useState<MarketState>({ trader_until: null, freeze_until: null, freeze_started_at: null, rot_freeze_offset_seconds: 0, freeze_windows: [], frozen_prices: {} });
