@@ -3165,7 +3165,7 @@ function Index() {
             return;
           }
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
-          // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=+70000 on all damaged ships.
+          // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=+140000 on all damaged ships.
           if (itemId.startsWith("fixer_")) {
             if (!s.dbId) {
               sound.play("error");
@@ -3214,7 +3214,7 @@ function Index() {
                   const maxHp = x.maxHp ?? 100;
                   const damaged = (x.hp ?? 0) < maxHp || x.destroyedAt || x.repairEndsAt;
                   if (!damaged) return x;
-                  const newHp = Math.min(maxHp, (x.hp ?? 0) + 70000);
+                  const newHp = Math.min(maxHp, (x.hp ?? 0) + 140000);
                   return newHp >= maxHp
                     ? { ...x, hp: maxHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
                     : { ...x, hp: newHp };
@@ -3223,7 +3223,7 @@ function Index() {
                 try {
                   const result = await repairOnServer(s, itemId);
                   const count = Number(result?.repaired_count ?? needRepair.length);
-                  setToast(`🏆 تم إضافة 70,000 دم لـ ${count} سفن`);
+                  setToast(`🏆 تم إضافة 140,000 دم لـ ${count} سفن`);
                   sound.play("success");
                 } catch (e: any) {
                   setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
