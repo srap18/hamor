@@ -5369,6 +5369,8 @@ export type Database = {
         Row: {
           created_at: string
           level: number
+          rented_capacity: number
+          rented_until: string | null
           updated_at: string
           upgrade_cost_coins: number | null
           upgrade_ends_at: string | null
@@ -5379,6 +5381,8 @@ export type Database = {
         Insert: {
           created_at?: string
           level?: number
+          rented_capacity?: number
+          rented_until?: string | null
           updated_at?: string
           upgrade_cost_coins?: number | null
           upgrade_ends_at?: string | null
@@ -5389,6 +5393,8 @@ export type Database = {
         Update: {
           created_at?: string
           level?: number
+          rented_capacity?: number
+          rented_until?: string | null
           updated_at?: string
           upgrade_cost_coins?: number | null
           upgrade_ends_at?: string | null
@@ -7668,6 +7674,7 @@ export type Database = {
         Args: { _new_name: string; _tribe_id: string }
         Returns: Json
       }
+      rent_market_capacity: { Args: { _pack: string }; Returns: Json }
       repair_burned_bg: { Args: never; Returns: boolean }
       repair_ship_instant: {
         Args: { _gems_cost: number; _ship_id: string }
@@ -7992,6 +7999,7 @@ export type Database = {
         Returns: Json
       }
       use_shield_from_inventory: { Args: { _item_id: string }; Returns: Json }
+      user_market_capacity: { Args: { _uid: string }; Returns: number }
       user_market_remaining: { Args: { _uid: string }; Returns: number }
       users_same_device: { Args: { _a: string; _b: string }; Returns: boolean }
       validate_display_name: { Args: { p_name: string }; Returns: string }
