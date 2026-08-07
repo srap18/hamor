@@ -3208,19 +3208,22 @@ function Index() {
                   sound.play("error");
                   return;
                 }
-                // Optimistic UI: close modal + fill all ships immediately
+                // Optimistic UI: close modal + add 70k HP to each damaged ship
                 setShips((arr) => arr.map((x) => {
                   if (!x.dbId) return x;
-                  const wasBlocked = !!(x.destroyedAt || x.repairEndsAt);
-                  return wasBlocked
-                    ? { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
-                    : { ...x, hp: x.maxHp ?? 100, destroyedAt: null, repairEndsAt: null };
+                  const maxHp = x.maxHp ?? 100;
+                  const damaged = (x.hp ?? 0) < maxHp || x.destroyedAt || x.repairEndsAt;
+                  if (!damaged) return x;
+                  const newHp = Math.min(maxHp, (x.hp ?? 0) + 70000);
+                  return newHp >= maxHp
+                    ? { ...x, hp: maxHp, destroyedAt: null, repairEndsAt: null, fishing: false, startedAt: undefined, sail: 0, progress: 0 }
+                    : { ...x, hp: newHp };
                 }));
                 setModal(null);
                 try {
                   const result = await repairOnServer(s, itemId);
                   const count = Number(result?.repaired_count ?? needRepair.length);
-                  setToast(`🏆 تم إصلاح ${count} سفن بالكامل`);
+                  setToast(`🏆 تم إضافة 70,000 دم لـ ${count} سفن`);
                   sound.play("success");
                 } catch (e: any) {
                   setToast(`❌ فشل الإصلاح: ${e?.message ?? "خطأ"}`);
