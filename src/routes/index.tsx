@@ -3165,7 +3165,7 @@ function Index() {
             return;
           }
           // Fixer crews: heal a fixed HP amount on ANY ship (capped at maxHp).
-          // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=full repair on all 3 fleet ships.
+          // fixer_1=+1000, fixer_2=+5000, fixer_3=+70000, fixer_4=+70000 on all damaged ships.
           if (itemId.startsWith("fixer_")) {
             if (!s.dbId) {
               sound.play("error");
