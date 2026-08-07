@@ -554,9 +554,12 @@ function FishMarket() {
     if (!user || renting) return;
     const pack = RENT_PACKS.find((p) => p.id === packId);
     if (!pack) return;
+    const stacking = rentActive && rentedCapacity >= pack.capacity;
     const ok = await confirmDialog({
       title: "استئجار سعة",
-      message: `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟`,
+      message: stacking
+        ? `لديك سعة مستأجرة سارية (+${rentedCapacity.toLocaleString()}). الشراء الآن سيمدد المدة 24 ساعة إضافية فقط — السعة لا تتراكم. المقابل ${pack.price.toLocaleString()} جوهرة؟`
+        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (ستُرفع سعتك الحالية لهذه الباقة وتُمدد المدة 24 ساعة)" : ""}`,
       confirmText: "استأجر",
     });
     if (!ok) return;
