@@ -28,7 +28,7 @@ export const FIXER_HEAL: Record<string, number> = {
   fixer_1: 1000,
   fixer_2: 5000,
   fixer_3: 70000,
-  // fixer_4 = legendary → +70,000 HP on every damaged ship
+  // fixer_4 = legendary → +140,000 HP on every damaged ship
 };
 
 export const CREWS: Crew[] = [
@@ -41,7 +41,7 @@ export const CREWS: Crew[] = [
   { id: "fixer_1", name: "مصلح صغير",       emoji: "🔧", image: fixer1Img, price: 200000,  currency: "coins", bonus: "يصلح فوراً 1,000 من دم أي سفينة",      rarity: "common" },
   { id: "fixer_2", name: "مصلح متوسط",      emoji: "🛠️", image: fixer2Img, price: 700000,  currency: "coins", bonus: "يصلح فوراً 5,000 من دم أي سفينة",      rarity: "rare" },
   { id: "fixer_3", name: "مصلح كبير",       emoji: "⚒️", image: fixer3Img, price: 3500000, currency: "coins", bonus: "يصلح فوراً 70,000 من دم أي سفينة",     rarity: "epic" },
-  { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 130,     currency: "gems",  bonus: "يضيف 70,000 دم لكل سفينة من سفنك فوراً", rarity: "legendary" },
+  { id: "fixer_4", name: "مصلح أسطوري",     emoji: "🏆", image: fixer4Img, price: 130,     currency: "gems",  bonus: "يضيف 140,000 دم لكل سفينة من سفنك فوراً", rarity: "legendary" },
   { id: "golden_fisher", name: "الصياد الذهبي", emoji: "🏅", image: goldenFisherImg, price: 1500, currency: "gems", bonus: "يصيد تلقائياً على كل سفنك حتى وأنت أوف لاين لمدة 24 ساعة.", rarity: "legendary" },
   { id: "market_expert", name: "خبير الأسواق", emoji: "📈", image: marketExpertAsset.url, price: 1000, currency: "gems", bonus: "عند التفعيل (3 ساعات): يبيع كل سمكة بأعلى سعر محدد لها بغض النظر عن سعر السوق الحالي.", rarity: "legendary" },
 ];
