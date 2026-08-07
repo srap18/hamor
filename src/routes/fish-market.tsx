@@ -843,6 +843,10 @@ function StorageView({
   onUpgrade,
   onBoost,
   onPick,
+  rentActive,
+  rentMsLeft,
+  rentedCapacity,
+  onOpenRent,
 }: {
   fish: Fish[];
   capUsed: number;
@@ -856,6 +860,10 @@ function StorageView({
   onUpgrade: () => void;
   onBoost: () => void;
   onPick: (id: string) => void;
+  rentActive: boolean;
+  rentMsLeft: number;
+  rentedCapacity: number;
+  onOpenRent: () => void;
 }) {
   const pct = (capUsed / capMax) * 100;
   return (
@@ -874,7 +882,23 @@ function StorageView({
           <span className="text-amber-200">{capUsed.toLocaleString()}</span>
           <span className="opacity-80">/{capMax.toLocaleString()} السعة</span>
         </div>
+        {lvl >= 30 && (
+          <div className="mt-1 flex flex-col items-center gap-1">
+            <button
+              onClick={onOpenRent}
+              className="px-3 py-1 rounded-lg bg-gradient-to-b from-fuchsia-400 to-fuchsia-700 border-2 border-fuchsia-200 text-white text-[11px] font-extrabold shadow-lg active:scale-95"
+            >
+              📦 استئجار سعة
+            </button>
+            {rentActive && (
+              <div className="text-[10px] font-bold text-fuchsia-100 text-glow tabular-nums">
+                +{(rentedCapacity / 1_000_000).toLocaleString()}م · {formatHHMMSS(rentMsLeft)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
 
       {/* Fish storage panel */}
       <div className="absolute top-52 left-2 right-2 bottom-40 z-10 rounded-2xl bg-gradient-to-b from-sky-700/85 to-sky-900/85 border-2 border-cyan-300/70 shadow-2xl p-3 overflow-y-auto">
