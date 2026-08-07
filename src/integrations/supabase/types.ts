@@ -2284,6 +2284,27 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_fixer4_credits: {
+        Row: {
+          created_at: string
+          remaining: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          remaining?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          remaining?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       level_xp_table: {
         Row: {
           cumulative_xp: number
