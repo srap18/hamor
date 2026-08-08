@@ -73,8 +73,11 @@ function AuthConfirmPage() {
 
       setDone(true);
       setStatus("تم تأكيد الرابط بنجاح ✓");
+      // Email is now really verified → release any pending referral reward.
+      try { await (supabase as any).rpc("check_my_referral_award"); } catch { /* noop */ }
       const next = safeNext(params.next, "/");
       window.setTimeout(() => nav({ to: next as any }), 1200);
+
     } catch {
       setFailed(true);
       setStatus("الرابط غير صالح أو انتهت مدته. اطلب رابطاً جديداً.");
