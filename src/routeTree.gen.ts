@@ -68,6 +68,7 @@ import { Route as AdminReferralsRouteImport } from './routes/admin.referrals'
 import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminPlayProductsRouteImport } from './routes/admin.play-products'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminDeviceAppealsRouteImport } from './routes/admin.device-appeals'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
@@ -382,6 +383,11 @@ const AdminLuckyBoxRoute = AdminLuckyBoxRouteImport.update({
   path: '/lucky-box',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFishRoute = AdminFishRouteImport.update({
   id: '/fish',
   path: '/fish',
@@ -530,6 +536,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -608,6 +615,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -688,6 +696,7 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
   '/admin/players': typeof AdminPlayersRoute
@@ -769,6 +778,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/device-appeals'
     | '/admin/fish'
+    | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
     | '/admin/players'
@@ -847,6 +857,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/device-appeals'
     | '/admin/fish'
+    | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
     | '/admin/players'
@@ -926,6 +937,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/device-appeals'
     | '/admin/fish'
+    | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
     | '/admin/players'
@@ -1426,6 +1438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLuckyBoxRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fish': {
       id: '/admin/fish'
       path: '/fish'
@@ -1566,6 +1585,7 @@ interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
   AdminDeviceAppealsRoute: typeof AdminDeviceAppealsRoute
   AdminFishRoute: typeof AdminFishRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
   AdminPlayProductsRoute: typeof AdminPlayProductsRoute
   AdminPlayersRoute: typeof AdminPlayersRoute
@@ -1590,6 +1610,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
   AdminDeviceAppealsRoute: AdminDeviceAppealsRoute,
   AdminFishRoute: AdminFishRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
   AdminPlayProductsRoute: AdminPlayProductsRoute,
   AdminPlayersRoute: AdminPlayersRoute,
@@ -1676,13 +1697,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
