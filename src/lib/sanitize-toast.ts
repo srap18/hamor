@@ -40,8 +40,23 @@ function looksTechnical(msg: string): boolean {
   return HARD_TECH_PATTERNS.some((re) => re.test(msg));
 }
 
+const FRIENDLY: Array<[RegExp, string]> = [
+  [/email_not_verified/i, "📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"],
+];
+
 function sanitize(input: unknown): string {
+  const raw =
+    typeof input === "string"
+      ? input
+      : input instanceof Error
+        ? input.message
+        : input && typeof input === "object"
+          ? String((input as Record<string, unknown>).message ?? "")
+          : "";
+  for (const [re, friendly] of FRIENDLY) if (re.test(raw)) return friendly;
+
   // Plain strings: pass through unless they clearly look like a raw error.
+
   if (typeof input === "string") {
     const msg = input.trim();
     if (!msg) return GENERIC;
