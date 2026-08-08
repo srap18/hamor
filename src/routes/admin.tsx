@@ -49,6 +49,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin/weekly-xp", label: "مسابقة XP الأسبوعية", icon: "⭐" },
   { to: "/admin/community", label: "القبائل والغرف", icon: "🏴‍☠️" },
   { to: "/admin/referrals", label: "الدعوات", icon: "🎁" },
+  { to: "/admin/inventory", label: "أكبر مالكي المنتجات", icon: "📦" },
   { to: "/admin/play-products", label: "منتجات Play", icon: "🛒" },
 
   { to: "/admin/device-appeals", label: "طعون الأجهزة", icon: "📱" },

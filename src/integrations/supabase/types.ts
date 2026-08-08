@@ -6388,6 +6388,19 @@ export type Database = {
         Args: { _new: string; _target: string }
         Returns: Json
       }
+      admin_top_inventory_holders: {
+        Args: { _item_id?: string; _item_type?: string; _limit?: number }
+        Returns: {
+          avatar_emoji: string
+          avatar_url: string
+          breakdown: Json
+          display_name: string
+          ship_market_level: number
+          total_qty: number
+          user_id: string
+          username: string
+        }[]
+      }
       admin_unhard_ban: {
         Args: { _admin?: string; _uid: string }
         Returns: Json
