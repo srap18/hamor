@@ -6605,6 +6605,7 @@ export type Database = {
         }[]
       }
       change_username: { Args: { _new: string }; Returns: Json }
+      check_my_referral_award: { Args: never; Returns: boolean }
       check_profanity: { Args: { _body: string }; Returns: string }
       claim_achievement: { Args: { _ach_id: string }; Returns: Json }
       claim_daily_dragon_rockets: { Args: never; Returns: Json }
@@ -7435,6 +7436,7 @@ export type Database = {
         Returns: boolean
       }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
+      is_email_verified: { Args: { _uid: string }; Returns: boolean }
       is_ip_banned: { Args: { _ip: string }; Returns: boolean }
       is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
