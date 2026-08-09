@@ -688,12 +688,24 @@ function PlayerPage() {
       setInv((arr) => arr
         .map((x) => x.item_id === "kraken_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
         .filter((x) => x.quantity > 0));
-      const res = (kres || {}) as { blocked?: boolean; looted_qty?: number };
+      const res = (kres || {}) as {
+        blocked?: boolean; looted_qty?: number; looted_value?: number; ships_hit?: number;
+        ships_destroyed?: number; total_damage?: number; free_space_before?: number;
+        victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
+      };
       sound.play("nuke");
       burnTargetBg(playerId).catch(() => {});
       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+      // Kraken deals 70k damage — it does NOT always destroy. Show the real
+      // server state instead of assuming every ship died.
       const kNowIso = serverNow().toISOString();
-      setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? kNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false })));
+      setShips((arr) => arr.map((s) => {
+        const hp = Math.max((s.hp ?? s.max_hp ?? 0) - 70000, 0);
+        return hp <= 0
+          ? { ...s, hp: 0, destroyed_at: s.destroyed_at ?? kNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false }
+          : { ...s, hp };
+      }));
+      reloadShipsRef.current().catch(() => {});
       setShake("shake-lg");
       setTimeout(() => sound.play("explosion"), 600);
       setTimeout(() => setShake(""), 1800);
@@ -702,14 +714,15 @@ function PlayerPage() {
         showErr(`🛡️ مضاد الكراكن صدّ النهب — بس الانفجار وقع على سفنه!`);
       } else if ((res.looted_qty ?? 0) > 0) {
         sound.play("success");
-        const msg = `🐙 الكراكن ابتلع ${Number(res.looted_qty).toLocaleString("en-US")} سمكة من مخزنه!`;
-        flash(msg); sonnerToast.success(msg, { duration: 5000 });
+        flash(`🐙 الكراكن ابتلع ${Number(res.looted_qty).toLocaleString("en-US")} سمكة!`);
       } else {
         flash("🐙 انفجر الكراكن — لكن مخزنه فاضي أو مخزنك ممتلئ");
       }
+      setKrakenResult(res);
       setBusy(false);
       return;
     }
+
 
 
 
