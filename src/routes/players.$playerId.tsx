@@ -106,6 +106,11 @@ function PlayerPage() {
   const [nukeMsgOpen, setNukeMsgOpen] = useState(false);
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
+  const [krakenResult, setKrakenResult] = useState<{
+    blocked?: boolean; looted_qty?: number; looted_value?: number; ships_hit?: number;
+    ships_destroyed?: number; total_damage?: number; free_space_before?: number;
+    victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
+  } | null>(null);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   // Server-authoritative attack check (immunity + ship market 15 requirements).
