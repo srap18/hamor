@@ -19,8 +19,11 @@ export function VerificationStatus() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     setEmail(u.user.email ?? "");
-    setEmailVerified(!!u.user.email_confirmed_at);
+    // Server-side truth: auto-confirmed signups don't count as verified.
+    const { data: ver } = await (supabase as any).rpc("is_email_verified", { _uid: u.user.id });
+    setEmailVerified(ver !== false);
   };
+
 
   useEffect(() => { void refresh(); }, []);
 
