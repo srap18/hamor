@@ -3,6 +3,7 @@ import { BackButton } from "@/components/BackButton";
 import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
+import { FISH } from "@/lib/fish";
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
@@ -106,6 +107,11 @@ function PlayerPage() {
   const [nukeMsgOpen, setNukeMsgOpen] = useState(false);
   const [nukeMsg, setNukeMsg] = useState("");
   const [nukeSending, setNukeSending] = useState(false);
+  const [krakenResult, setKrakenResult] = useState<{
+    blocked?: boolean; looted_qty?: number; looted_value?: number; ships_hit?: number;
+    ships_destroyed?: number; total_damage?: number; free_space_before?: number;
+    victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
+  } | null>(null);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   // Server-authoritative attack check (immunity + ship market 15 requirements).
@@ -688,12 +694,24 @@ function PlayerPage() {
       setInv((arr) => arr
         .map((x) => x.item_id === "kraken_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
         .filter((x) => x.quantity > 0));
-      const res = (kres || {}) as { blocked?: boolean; looted_qty?: number };
+      const res = (kres || {}) as {
+        blocked?: boolean; looted_qty?: number; looted_value?: number; ships_hit?: number;
+        ships_destroyed?: number; total_damage?: number; free_space_before?: number;
+        victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
+      };
       sound.play("nuke");
       burnTargetBg(playerId).catch(() => {});
       setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+      // Kraken deals 70k damage — it does NOT always destroy. Show the real
+      // server state instead of assuming every ship died.
       const kNowIso = serverNow().toISOString();
-      setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? kNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false })));
+      setShips((arr) => arr.map((s) => {
+        const hp = Math.max((s.hp ?? s.max_hp ?? 0) - 70000, 0);
+        return hp <= 0
+          ? { ...s, hp: 0, destroyed_at: s.destroyed_at ?? kNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false }
+          : { ...s, hp };
+      }));
+      reloadShipsRef.current().catch(() => {});
       setShake("shake-lg");
       setTimeout(() => sound.play("explosion"), 600);
       setTimeout(() => setShake(""), 1800);
@@ -702,14 +720,15 @@ function PlayerPage() {
         showErr(`🛡️ مضاد الكراكن صدّ النهب — بس الانفجار وقع على سفنه!`);
       } else if ((res.looted_qty ?? 0) > 0) {
         sound.play("success");
-        const msg = `🐙 الكراكن ابتلع ${Number(res.looted_qty).toLocaleString("en-US")} سمكة من مخزنه!`;
-        flash(msg); sonnerToast.success(msg, { duration: 5000 });
+        flash(`🐙 الكراكن ابتلع ${Number(res.looted_qty).toLocaleString("en-US")} سمكة!`);
       } else {
         flash("🐙 انفجر الكراكن — لكن مخزنه فاضي أو مخزنك ممتلئ");
       }
+      setKrakenResult(res);
       setBusy(false);
       return;
     }
+
 
 
 
@@ -2009,6 +2028,58 @@ function PlayerPage() {
 
 
 
+      {/* Kraken bomb — full result report */}
+      {krakenResult && (
+        <div className="fixed inset-0 z-[85] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl">
+          <div className="w-full max-w-sm rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-cyan-500/60 shadow-[0_0_40px_rgba(0,200,255,0.35)] p-5 flex flex-col gap-3 max-h-[80vh] overflow-y-auto">
+            <div className="text-center">
+              <div className="text-5xl mb-1">🐙</div>
+              <div className="text-lg font-extrabold text-cyan-200">نتيجة قنبلة الكراكن</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <KStat label="سفن تضررت" value={String(krakenResult.ships_hit ?? 0)} />
+              <KStat label="سفن دُمّرت" value={String(krakenResult.ships_destroyed ?? 0)} />
+              <KStat label="إجمالي الضرر" value={Number(krakenResult.total_damage ?? 0).toLocaleString("en-US")} />
+              <KStat label="مساحتك الفاضية" value={Number(krakenResult.free_space_before ?? 0).toLocaleString("en-US")} />
+              <KStat label="مخزن الخصم" value={Number(krakenResult.victim_stock_before ?? 0).toLocaleString("en-US")} />
+              <KStat label="السمك المنهوب" value={Number(krakenResult.looted_qty ?? 0).toLocaleString("en-US")} />
+            </div>
+            {krakenResult.blocked ? (
+              <div className="rounded-lg bg-amber-900/30 border border-amber-500/40 p-2 text-center text-amber-200 text-xs">
+                🛡️ مضاد الكراكن صدّ النهب — الانفجار وقع لكن ما سحبت أي سمكة
+              </div>
+            ) : (krakenResult.loot_details?.length ?? 0) > 0 ? (
+              <div className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 space-y-1">
+                <div className="text-[11px] text-slate-400 mb-1">تفصيل الغنيمة</div>
+                {(krakenResult.loot_details || []).map((d, i) => (
+                  <div key={`${d.fish_id}-${i}`} className="flex items-center gap-2 text-xs">
+                    {FISH[d.fish_id]?.img && <img src={FISH[d.fish_id]!.img} alt={FISH[d.fish_id]!.name} className="w-6 h-6 object-contain" />}
+                    <span className="flex-1 text-slate-200 truncate">{FISH[d.fish_id]?.name || d.fish_id}</span>
+                    <span className="text-cyan-300 font-bold tabular-nums">×{Number(d.qty).toLocaleString("en-US")}</span>
+                    <span className="text-amber-300 tabular-nums">{Number(d.value).toLocaleString("en-US")} 🪙</span>
+                  </div>
+                ))}
+                <div className="pt-1 mt-1 border-t border-slate-700 flex justify-between text-xs">
+                  <span className="text-slate-300">القيمة التقريبية</span>
+                  <span className="text-amber-300 font-bold">{Number(krakenResult.looted_value ?? 0).toLocaleString("en-US")} 🪙</span>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 text-center text-slate-300 text-xs">
+                ما فيه نهب — {Number(krakenResult.free_space_before ?? 0) <= 0 ? "مخزنك ممتلئ" : "مخزن الخصم فاضي"}
+              </div>
+            )}
+            <div className="text-[10px] text-slate-500 text-center">+700 خبرة · الحد اليومي 3 قنابل · تبريد 6 ساعات على نفس اللاعب</div>
+            <button
+              onClick={() => setKrakenResult(null)}
+              className="w-full py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm"
+            >
+              تمام
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Post-nuke broadcast message modal */}
       {nukeMsgOpen && (
         <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl">
@@ -2378,3 +2449,12 @@ function VisitorNet() {
 }
 
 // ProjectileFx moved to src/components/ProjectileFx.tsx and imported above
+
+function KStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-800/60 border border-slate-700 px-2 py-1.5">
+      <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="text-sm font-bold text-slate-100 tabular-nums">{value}</div>
+    </div>
+  );
+}
