@@ -73,6 +73,7 @@ import rocketSmallImg from "@/assets/weapons/rocket-small.webp";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
 import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
 import nukeImg from "@/assets/weapons/nuke.webp";
+import krakenBombImg from "@/assets/weapons/kraken-bomb.png";
 import coinIcon from "@/assets/icons/icon-coins.webp";
 import gemIcon from "@/assets/icons/icon-gems.webp";
 import phoenixShipImg from "@/assets/ships/ship-phoenix.webp";
@@ -88,6 +89,7 @@ const WEAPON_IMAGES: Record<string, string> = {
   rocket_medium: rocketMediumImg,
   rocket_large: rocketLargeImg,
   nuke: nukeImg,
+  kraken_bomb: krakenBombImg,
 };
 
 // Armor cooldown is enforced server-side in buy_protection.
