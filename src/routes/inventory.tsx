@@ -463,6 +463,7 @@ function InventoryPage() {
                 { id: "disabler_rocket",  name: "تعطيل مضاد الصواريخ",   emoji: "⚡", target: "🚀" },
                 { id: "disabler_nuke",    name: "تعطيل مضاد الذري",      emoji: "⚡", target: "☢️" },
                 { id: "disabler_ad_bomb", name: "تعطيل مضاد الإعلانية",  emoji: "⚡", target: "📺" },
+                { id: "disabler_kraken",  name: "تعطيل مضاد الكراكن",    emoji: "⚡", target: "🐙" },
               ] as const).map((d) => {
                 const n = qty("disabler", d.id);
                 const fire = async () => {
