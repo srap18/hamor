@@ -59,6 +59,8 @@ function LoginPage() {
       const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
       const fp = await waitAtMost(getDeviceFingerprint(), 4000, "fingerprint_timeout");
       const hardwareId = fp.hash;
+      guardDeviceRef.current = (fp.stableKey || hardwareId || deviceId || "").slice(0, 200);
+
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
       const pre = await waitAtMost(authPreflight({ data: {
         email, deviceId, hardwareId,
