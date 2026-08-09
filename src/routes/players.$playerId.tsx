@@ -1745,6 +1745,7 @@ function PlayerPage() {
                   { id: "disabler_rocket",  name: "صاروخ تعطيل مضاد الصواريخ",   target: "🚀", desc: "يعطّل مضاد الصواريخ 10 دقائق" },
                   { id: "disabler_nuke",    name: "صاروخ تعطيل مضاد الذري",      target: "☢️", desc: "يعطّل مضاد القنبلة الذرية 10 دقائق" },
                   { id: "disabler_ad_bomb", name: "صاروخ تعطيل مضاد الإعلانية",  target: "📺", desc: "يعطّل مضاد القنبلة الإعلانية 10 دقائق" },
+                  { id: "disabler_kraken",  name: "صاروخ تعطيل مضاد الكراكن",    target: "🐙", desc: "يعطّل مضاد قنبلة الكراكن 10 دقائق" },
                 ].map((d) => {
                   const q = inv.find((x) => x.item_id === d.id && x.item_type === "disabler")?.quantity ?? 0;
                   const canFire = q > 0;
