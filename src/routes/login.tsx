@@ -33,6 +33,9 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [needsMfa, setNeedsMfa] = useState(false);
   const slotGate = useDeviceSlotGate();
+  // Stable device key used by the anti-guessing throttle (set during preflight).
+  const guardDeviceRef = useRef<string>("");
+
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
     Promise.race([
