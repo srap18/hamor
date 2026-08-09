@@ -184,7 +184,7 @@ function ArenaPage() {
             <div className="text-amber-300/80 text-xs font-bold mt-1">ادخل الأرينا من مستوى تنين ٣ وفوق</div>
           </div>
         ) : (
-          <Link to="/battle"
+          <Link to="/battle" search={{ vs: undefined }}
             className="block mb-3 py-4 rounded-2xl text-center font-black text-lg text-white shadow-2xl active:scale-95"
             style={{
               background: "linear-gradient(180deg,#ff8a00 0%,#ff2d00 100%)",

@@ -666,6 +666,53 @@ function PlayerPage() {
       return;
     }
 
+    // ─── KRAKEN BOMB: 70k AOE + loots the target's fish-market storage ───
+    if (weaponId === "kraken_bomb") {
+      const { data: kres, error: kerr } = await (supabase as any).rpc("launch_kraken", { _target_id: playerId });
+      const showErr = (msg: string) => { flash(msg); sonnerToast.error(msg, { duration: 4000 }); };
+      if (kerr) {
+        const m = String(kerr.message || "");
+        setBusy(false);
+        sound.play("error");
+        if (m.includes("email_not_verified")) { showErr("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"); return; }
+        if (m.includes("kraken_daily_limit")) { showErr("🐙 وصلت الحد اليومي — 3 قنابل كراكن كل 24 ساعة"); return; }
+        if (m.includes("kraken_target_cooldown")) { showErr("⏳ لا يمكن ضرب نفس اللاعب بالكراكن إلا كل 6 ساعات"); return; }
+        if (m.includes("no kraken_bomb")) { showErr("🐙 ما عندك قنبلة كراكن"); return; }
+        if (m.includes("attacker market level under 6")) { showErr("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
+        if (m.includes("attacker has destroyed ship")) { showErr("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+        if (m.includes("attacker needs pvp fleet")) { showErr("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
+        if (m.includes("attacker needs fishing ship")) { showErr("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
+        if (m.includes("protected") || m.includes("staff account")) { showErr("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        showErr(`تعذّر الإطلاق: ${m.slice(0, 80)}`); return;
+      }
+      setInv((arr) => arr
+        .map((x) => x.item_id === "kraken_bomb" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+        .filter((x) => x.quantity > 0));
+      const res = (kres || {}) as { blocked?: boolean; looted_qty?: number };
+      sound.play("nuke");
+      burnTargetBg(playerId).catch(() => {});
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+      const kNowIso = serverNow().toISOString();
+      setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? kNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false })));
+      setShake("shake-lg");
+      setTimeout(() => sound.play("explosion"), 600);
+      setTimeout(() => setShake(""), 1800);
+      window.dispatchEvent(new Event("fish-stock-changed"));
+      if (res.blocked) {
+        showErr(`🛡️ مضاد الكراكن صدّ النهب — بس الانفجار وقع على سفنه!`);
+      } else if ((res.looted_qty ?? 0) > 0) {
+        sound.play("success");
+        const msg = `🐙 الكراكن ابتلع ${Number(res.looted_qty).toLocaleString("en-US")} سمكة من مخزنه!`;
+        flash(msg); sonnerToast.success(msg, { duration: 5000 });
+      } else {
+        flash("🐙 انفجر الكراكن — لكن مخزنه فاضي أو مخزنك ممتلئ");
+      }
+      setBusy(false);
+      return;
+    }
+
+
+
 
     // Single-target weapons (non-nuke). الخصم يجوز مهاجمته سواء كانت السفينة راسية أو في البحر.
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
@@ -1698,6 +1745,7 @@ function PlayerPage() {
                   { id: "disabler_rocket",  name: "صاروخ تعطيل مضاد الصواريخ",   target: "🚀", desc: "يعطّل مضاد الصواريخ 10 دقائق" },
                   { id: "disabler_nuke",    name: "صاروخ تعطيل مضاد الذري",      target: "☢️", desc: "يعطّل مضاد القنبلة الذرية 10 دقائق" },
                   { id: "disabler_ad_bomb", name: "صاروخ تعطيل مضاد الإعلانية",  target: "📺", desc: "يعطّل مضاد القنبلة الإعلانية 10 دقائق" },
+                  { id: "disabler_kraken",  name: "صاروخ تعطيل مضاد الكراكن",    target: "🐙", desc: "يعطّل مضاد قنبلة الكراكن 10 دقائق" },
                 ].map((d) => {
                   const q = inv.find((x) => x.item_id === d.id && x.item_type === "disabler")?.quantity ?? 0;
                   const canFire = q > 0;

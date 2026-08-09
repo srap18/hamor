@@ -73,6 +73,7 @@ import rocketSmallImg from "@/assets/weapons/rocket-small.webp";
 import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
 import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
 import nukeImg from "@/assets/weapons/nuke.webp";
+import krakenBombImg from "@/assets/weapons/kraken-bomb.png";
 import coinIcon from "@/assets/icons/icon-coins.webp";
 import gemIcon from "@/assets/icons/icon-gems.webp";
 import phoenixShipImg from "@/assets/ships/ship-phoenix.webp";
@@ -88,6 +89,7 @@ const WEAPON_IMAGES: Record<string, string> = {
   rocket_medium: rocketMediumImg,
   rocket_large: rocketLargeImg,
   nuke: nukeImg,
+  kraken_bomb: krakenBombImg,
 };
 
 // Armor cooldown is enforced server-side in buy_protection.
@@ -113,6 +115,8 @@ const PROTECTION: Item[] = [
   { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", price: 50, currency: "gem", desc: "استخدام واحد • نسبة صد 60% لأي صاروخ قادم", rarity: "rare" },
   { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", price: 120, currency: "gem", desc: "استخدام واحد • نسبة صد 75% للقنبلة الذرية", rarity: "epic" },
   { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", price: 210, currency: "gem", desc: "استخدام واحد • نسبة صد 70% للقنبلة الإعلانية", rarity: "epic" },
+  { id: "anti_kraken", name: "مضاد قنبلة الكراكن", emoji: "🐙", price: 600, currency: "gem", desc: "استخدام واحد • نسبة صد 70% لنهب مخزن سمكك", rarity: "legendary" },
+  { id: "disabler_kraken", name: "معطّل مضاد الكراكن", emoji: "⚡", price: 1000, currency: "gem", desc: "يعطّل مضاد الكراكن لدى الخصم 10 دقائق", rarity: "legendary" },
 ];
 
 

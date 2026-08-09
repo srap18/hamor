@@ -416,6 +416,7 @@ function InventoryPage() {
             { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", pct: 60, desc: "يصد أي صاروخ قادم" },
             { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", pct: 75, desc: "يصد القنبلة الذرية" },
             { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", pct: 70, desc: "يصد القنبلة الإعلانية" },
+            { id: "anti_kraken", name: "مضاد قنبلة الكراكن", emoji: "🐙", pct: 70, desc: "يمنع نهب مخزن سمكك" },
           ];
           return (
             <>
@@ -462,6 +463,7 @@ function InventoryPage() {
                 { id: "disabler_rocket",  name: "تعطيل مضاد الصواريخ",   emoji: "⚡", target: "🚀" },
                 { id: "disabler_nuke",    name: "تعطيل مضاد الذري",      emoji: "⚡", target: "☢️" },
                 { id: "disabler_ad_bomb", name: "تعطيل مضاد الإعلانية",  emoji: "⚡", target: "📺" },
+                { id: "disabler_kraken",  name: "تعطيل مضاد الكراكن",    emoji: "⚡", target: "🐙" },
               ] as const).map((d) => {
                 const n = qty("disabler", d.id);
                 const fire = async () => {
