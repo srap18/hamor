@@ -1,0 +1,1 @@
+UPDATE public.profiles SET gems = COALESCE(gems,0) + 29000 WHERE id = '1b0701bd-d595-4e9b-b25e-54f730df9807';
