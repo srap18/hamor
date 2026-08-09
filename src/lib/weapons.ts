@@ -89,5 +89,18 @@ export const WEAPONS: Weapon[] = [
     desc: "تدمّر جميع سفن الخصم فوراً + إعلان ساعة على محيطه. 500 خبرة.",
 
   },
+  {
+    id: "kraken_bomb",
+    name: "قنبلة الكراكن",
+    emoji: "🐙",
+    image: krakenBombImg,
+    price: 2000,
+    currency: "gems",
+    damage: 70_000,
+    xp: 700,
+    rarity: "legendary",
+    aoe: true,
+    desc: "70,000 ضرر على كل سفن الخصم + تسحب سمك مخزنه بحد مساحتك الفاضية. 700 خبرة · 3 يومياً.",
+  },
 ];
 
