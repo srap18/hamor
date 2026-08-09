@@ -26,12 +26,8 @@ function cooldownSeconds(fails: number): number {
   return 600;
 }
 
-function admin() {
-  const { createClient } = require("@supabase/supabase-js");
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
-}
+
+
 
 const norm = (input: { email?: string | null; device?: string | null }) => ({
   email: (input?.email ?? "").trim().toLowerCase().slice(0, 255),
