@@ -94,7 +94,7 @@ export const WEAPONS: Weapon[] = [
     name: "قنبلة الكراكن",
     emoji: "🐙",
     image: krakenBombImg,
-    price: 2000,
+    price: 10000,
     currency: "gems",
     damage: 70_000,
     xp: 700,
