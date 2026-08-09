@@ -117,4 +117,27 @@ export function installServerClock(): void {
     setInterval(() => { syncServerTime(false); }, 5 * 60_000);
   } catch {}
 
+  // Re-anchor whenever the app could have been suspended (screen off, app in
+  // background, network drop). performance.now() can be frozen by the OS and
+  // the user may change the device clock while we're away, so a forced resync
+  // on resume keeps every timer on server time only.
+  try {
+    const resync = () => { syncServerTime(true); };
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") resync();
+    });
+    window.addEventListener("focus", resync);
+    window.addEventListener("online", resync);
+    window.addEventListener("pageshow", resync);
+    // Detect a device-clock jump relative to our monotonic anchor and re-anchor.
+    let lastWall = _origDateNow();
+    let lastPerf = perfNow();
+    setInterval(() => {
+      const wall = _origDateNow();
+      const perf = perfNow();
+      if (Math.abs((wall - lastWall) - (perf - lastPerf)) > 2000) resync();
+      lastWall = wall; lastPerf = perf;
+    }, 15_000);
+  } catch {}
 }
+
