@@ -2260,6 +2260,36 @@ export type Database = {
         }
         Relationships: []
       }
+      kraken_launches: {
+        Row: {
+          attacker_id: string
+          blocked: boolean
+          created_at: string
+          id: string
+          looted_qty: number
+          looted_value: number
+          target_id: string
+        }
+        Insert: {
+          attacker_id: string
+          blocked?: boolean
+          created_at?: string
+          id?: string
+          looted_qty?: number
+          looted_value?: number
+          target_id: string
+        }
+        Update: {
+          attacker_id?: string
+          blocked?: boolean
+          created_at?: string
+          id?: string
+          looted_qty?: number
+          looted_value?: number
+          target_id?: string
+        }
+        Relationships: []
+      }
       legacy_cosmetics: {
         Row: {
           created_at: string
@@ -7511,6 +7541,8 @@ export type Database = {
         Args: { _target_id: string; _video_key: string }
         Returns: string
       }
+      launch_kraken: { Args: { _target_id: string }; Returns: Json }
+      launch_kraken_impl: { Args: { _target_id: string }; Returns: Json }
       launch_nuke: { Args: { _target_id: string }; Returns: string }
       launch_nuke_impl: { Args: { _target_id: string }; Returns: string }
       leave_tribe: { Args: { _tribe_id: string }; Returns: Json }

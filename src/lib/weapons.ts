@@ -6,6 +6,7 @@ import rocketMediumImg from "@/assets/weapons/rocket-medium.webp";
 import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
 import nukeImg from "@/assets/weapons/nuke.webp";
 import adBombImg from "@/assets/weapons/ad-bomb.webp";
+import krakenBombImg from "@/assets/weapons/kraken-bomb.png";
 
 export type Weapon = {
   id: string;
