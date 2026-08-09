@@ -416,7 +416,7 @@ function InventoryPage() {
             { id: "anti_rocket", name: "مضاد صواريخ", emoji: "🚀", pct: 60, desc: "يصد أي صاروخ قادم" },
             { id: "anti_nuke", name: "مضاد قنبلة ذرية", emoji: "☢️", pct: 75, desc: "يصد القنبلة الذرية" },
             { id: "anti_ad_bomb", name: "مضاد قنبلة إعلانية", emoji: "📺", pct: 70, desc: "يصد القنبلة الإعلانية" },
-            { id: "anti_kraken", name: "مضاد قنبلة الكراكن", emoji: "🐙", pct: 70, desc: "يمنع نهب مخزن سمكك" },
+            { id: "anti_kraken", name: "مضاد قنبلة الكراكن", emoji: "🐙", pct: 100, desc: "يمنع نهب مخزن سمكك" },
           ];
           return (
             <>
