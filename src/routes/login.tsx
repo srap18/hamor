@@ -1,6 +1,6 @@
 import { siteUrl } from "@/lib/site-url";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { LegalFooter } from "@/components/LegalFooter";
@@ -33,6 +33,9 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [needsMfa, setNeedsMfa] = useState(false);
   const slotGate = useDeviceSlotGate();
+  // Stable device key used by the anti-guessing throttle (set during preflight).
+  const guardDeviceRef = useRef<string>("");
+
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
     Promise.race([
@@ -56,6 +59,8 @@ function LoginPage() {
       const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
       const fp = await waitAtMost(getDeviceFingerprint(), 4000, "fingerprint_timeout");
       const hardwareId = fp.hash;
+      guardDeviceRef.current = (fp.stableKey || hardwareId || deviceId || "").slice(0, 200);
+
       const { authPreflight } = await import("@/lib/auth-preflight.functions");
       const pre = await waitAtMost(authPreflight({ data: {
         email, deviceId, hardwareId,
@@ -72,6 +77,23 @@ function LoginPage() {
       setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
       return;
     }
+    // Anti-guessing throttle: 5 free tries, then a short growing cooldown.
+    const guardKey = { email: email.trim().toLowerCase(), device: guardDeviceRef.current };
+    try {
+      const { loginGuardCheck } = await import("@/lib/login-guard.functions");
+      const g = await waitAtMost(loginGuardCheck({ data: guardKey }), 6000, "guard_timeout");
+      if (g.blocked) {
+        setLoading(false);
+        const mins = Math.ceil(g.retryAfterSec / 60);
+        setErr(
+          g.retryAfterSec >= 60
+            ? `محاولات دخول كثيرة خاطئة — حاول بعد ${mins} دقيقة`
+            : `محاولات دخول كثيرة خاطئة — حاول بعد ${g.retryAfterSec} ثانية`,
+        );
+        return;
+      }
+    } catch { /* guard is best-effort; never block a real player on infra error */ }
+
     try {
       const signInOnce = () => supabase.auth.signInWithPassword({ email, password });
       let result: Awaited<ReturnType<typeof signInOnce>>;
@@ -83,6 +105,13 @@ function LoginPage() {
       }
       const { data, error } = result;
 
+      const record = async (success: boolean) => {
+        try {
+          const { loginGuardRecord } = await import("@/lib/login-guard.functions");
+          return await loginGuardRecord({ data: { ...guardKey, success } });
+        } catch { return { retryAfterSec: 0 }; }
+      };
+
       if (error) {
         const msg = (error.message || "").toLowerCase();
         if (msg.includes("not confirmed") || msg.includes("email not confirmed") || (error as any).code === "email_not_confirmed") {
@@ -90,8 +119,21 @@ function LoginPage() {
           setErr("يرجى تأكيد حسابك عبر الرابط المرسل إلى بريدك الإلكتروني");
           return;
         }
+        const bad = msg.includes("invalid login") || msg.includes("invalid credentials") || (error as any).code === "invalid_credentials";
+        if (bad) {
+          const r = await record(false);
+          // Generic message on purpose: never reveal whether the email exists.
+          setErr(
+            r.retryAfterSec > 0
+              ? `البريد الإلكتروني أو كلمة المرور غير صحيحة — انتظر ${r.retryAfterSec >= 60 ? Math.ceil(r.retryAfterSec / 60) + " دقيقة" : r.retryAfterSec + " ثانية"} قبل المحاولة`
+              : "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+          );
+          return;
+        }
         setErr(error.message); return;
       }
+      void record(true);
+
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
       const ok = await waitAtMost(
         slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),

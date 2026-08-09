@@ -2323,6 +2323,42 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          device: string
+          email: string
+          fails: number
+          first_fail_at: string
+          id: string
+          last_fail_at: string
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device?: string
+          email: string
+          fails?: number
+          first_fail_at?: string
+          id?: string
+          last_fail_at?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device?: string
+          email?: string
+          fails?: number
+          first_fail_at?: string
+          id?: string
+          last_fail_at?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lootbox_owned: {
         Row: {
           acquired_at: string
