@@ -3,6 +3,7 @@ import { BackButton } from "@/components/BackButton";
 import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
+import { FISH } from "@/lib/fish";
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
@@ -2036,12 +2037,12 @@ function PlayerPage() {
               <div className="text-lg font-extrabold text-cyan-200">نتيجة قنبلة الكراكن</div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <Stat label="سفن تضررت" value={String(krakenResult.ships_hit ?? 0)} />
-              <Stat label="سفن دُمّرت" value={String(krakenResult.ships_destroyed ?? 0)} />
-              <Stat label="إجمالي الضرر" value={Number(krakenResult.total_damage ?? 0).toLocaleString("en-US")} />
-              <Stat label="مساحتك الفاضية" value={Number(krakenResult.free_space_before ?? 0).toLocaleString("en-US")} />
-              <Stat label="مخزن الخصم" value={Number(krakenResult.victim_stock_before ?? 0).toLocaleString("en-US")} />
-              <Stat label="السمك المنهوب" value={Number(krakenResult.looted_qty ?? 0).toLocaleString("en-US")} />
+              <KStat label="سفن تضررت" value={String(krakenResult.ships_hit ?? 0)} />
+              <KStat label="سفن دُمّرت" value={String(krakenResult.ships_destroyed ?? 0)} />
+              <KStat label="إجمالي الضرر" value={Number(krakenResult.total_damage ?? 0).toLocaleString("en-US")} />
+              <KStat label="مساحتك الفاضية" value={Number(krakenResult.free_space_before ?? 0).toLocaleString("en-US")} />
+              <KStat label="مخزن الخصم" value={Number(krakenResult.victim_stock_before ?? 0).toLocaleString("en-US")} />
+              <KStat label="السمك المنهوب" value={Number(krakenResult.looted_qty ?? 0).toLocaleString("en-US")} />
             </div>
             {krakenResult.blocked ? (
               <div className="rounded-lg bg-amber-900/30 border border-amber-500/40 p-2 text-center text-amber-200 text-xs">
@@ -2448,3 +2449,12 @@ function VisitorNet() {
 }
 
 // ProjectileFx moved to src/components/ProjectileFx.tsx and imported above
+
+function KStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-800/60 border border-slate-700 px-2 py-1.5">
+      <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="text-sm font-bold text-slate-100 tabular-nums">{value}</div>
+    </div>
+  );
+}
