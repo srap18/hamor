@@ -1024,7 +1024,15 @@ function ChatPage() {
               {myMute.expires_at && <div className="text-[10px] mt-0.5 text-amber-300/70">ينتهي: {new Date(myMute.expires_at).toLocaleString("ar")}</div>}
             </div>
           </div>
+        ) : emailVerified === false ? (
+          <div className="absolute left-2 right-2 z-40" style={{ bottom: "calc(12px + var(--keyboard-inset, 0px))" }}>
+            <Link to="/profile" className="block rounded-2xl bg-rose-950/80 border-2 border-rose-400/70 text-rose-100 px-3 py-2 text-xs text-center hover:bg-rose-900/80 backdrop-blur shadow-lg">
+              📧 الكتابة في الشات مغلقة — <b className="text-amber-300">وثّق بريدك الإلكتروني</b> أولاً
+              <div className="text-[11px] mt-0.5 text-rose-200/80">اضغط هنا للذهاب للبروفايل وإرسال رابط التأكيد (أو تغيير البريد لبريد حقيقي)</div>
+            </Link>
+          </div>
         ) : !canChat ? (
+
           <div className="absolute left-2 right-2 z-40" style={{ bottom: "calc(12px + var(--keyboard-inset, 0px))" }}>
             <Link to="/ship-market" className="block rounded-2xl bg-sky-900/70 border-2 border-amber-400/70 text-amber-100 px-3 py-2 text-xs text-center hover:bg-sky-900/80 backdrop-blur shadow-lg">
               🔒 الكتابة في الشات مغلقة — تحتاج <b className="text-amber-300">سوق السفن مستوى {SHIP_MARKET_MIN}</b>
