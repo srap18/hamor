@@ -290,8 +290,11 @@ function VipPage() {
                 className={`w-full py-3 rounded-xl font-extrabold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed ${
                   isCurrent
                     ? "bg-emerald-700 text-white cursor-default"
-                    : t.level === 5
+                    : t.level === 6
+                      ? "bg-gradient-to-r from-cyan-300 via-white to-sky-300 text-slate-900 hover:brightness-110 shadow-lg"
+                      : t.level === 5
                       ? "bg-gradient-to-r from-fuchsia-500 via-amber-400 to-fuchsia-500 text-slate-900 hover:brightness-110 shadow-lg"
+
                       : "bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 hover:brightness-110 shadow-lg"
                 }`}
               >
