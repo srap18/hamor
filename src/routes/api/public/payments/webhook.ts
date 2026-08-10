@@ -37,7 +37,7 @@ function getPackIdFromTransaction(data: any): string | undefined {
 // Map Paddle price_id → elite_vip_level. Single source of truth on the server.
 function eliteLevelFromPriceId(priceId: string | undefined): number | null {
   if (!priceId) return null;
-  const m = priceId.match(/^elite_vip_([1-5])_monthly$/);
+  const m = priceId.match(/^elite_vip_([1-6])_monthly$/);
   return m ? Number(m[1]) : null;
 }
 
