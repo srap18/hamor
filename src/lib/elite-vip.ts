@@ -9,9 +9,10 @@ import elite2 from "@/assets/elite-vip-2.webp";
 import elite3 from "@/assets/elite-vip-3.webp";
 import elite4 from "@/assets/elite-vip-4.webp";
 import elite5 from "@/assets/elite-vip-5.webp";
+import elite6 from "@/assets/elite-vip-6.png";
 
 export type EliteVipTier = {
-  level: 1 | 2 | 3 | 4 | 5;
+  level: 1 | 2 | 3 | 4 | 5 | 6;
   nameAr: string;
   emoji: string;
   monthlyPriceUsd: number;
@@ -19,6 +20,7 @@ export type EliteVipTier = {
   combatBonusPct: number;
   shopDiscountPct: number;
   dailyGems: number;
+
   badge: string;
   ringClass: string;
   nameColorClass: string;
