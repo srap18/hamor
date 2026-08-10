@@ -112,6 +112,7 @@ const PRICE_ID_OVERRIDES: Record<string, string> = {
   bd_dragon_t1: "pri_01kx5m93rkzf61mfr5y3ezh4qx",
   bd_dragon_t2: "pri_01kx5mcty33q8dzgaa6j2mz0p1",
   bd_dragon_t3: "pri_01kx5mf4vjk68myw5pwzz49zrq",
+  elite_vip_6_monthly: "pri_01kzpwhabh7f12pqgdh1gr4mgb",
 };
 
 export async function getPaddlePriceId(priceId: string): Promise<string> {

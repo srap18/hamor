@@ -76,7 +76,7 @@ export const claimPaddleTransaction = createServerFn({ method: "POST" })
     if (!packId) throw new Error("missing price external_id");
 
     const pack = STORE_PACKS.find((p) => p.id === packId);
-    const isEliteVip = /^elite_vip_[1-5]_monthly$/.test(packId);
+    const isEliteVip = /^elite_vip_[1-6]_monthly$/.test(packId);
     if (!pack && !isEliteVip) throw new Error(`unknown pack id: ${packId}`);
     const reward = pack?.reward ?? {};
     const amountCents = Number(txn.details?.totals?.total ?? 0);
