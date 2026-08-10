@@ -56,7 +56,6 @@ export function RechargePanel() {
   const [sub, setSub] = useState<PackCategory>("offers");
   const [shieldsThisWeek, setShieldsThisWeek] = useState(0);
   const [shieldLimit, setShieldLimit] = useState(2);
-  const [boughtStarter, setBoughtStarter] = useState(false);
   const [reward, setReward] = useState<StorePack | null>(null);
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
@@ -97,7 +96,6 @@ export function RechargePanel() {
         const status = await getStatus({ data: {} });
         setShieldsThisWeek(status.shieldsThisWeek);
         setShieldLimit(status.shieldWeeklyLimit);
-        setBoughtStarter(status.hasBoughtStarter);
       } catch {
         /* non-fatal */
       }
@@ -112,7 +110,6 @@ export function RechargePanel() {
       getStatus({ data: {} })
         .then((s) => {
           setShieldsThisWeek(s.shieldsThisWeek);
-          setBoughtStarter(s.hasBoughtStarter);
         })
         .catch(() => {});
     };
