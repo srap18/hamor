@@ -72,7 +72,10 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     item?.price?.importMeta?.externalId ??
     item?.price?.import_meta?.external_id ??
     item?.price?.externalId ??
-    item?.price?.external_id;
+    item?.price?.external_id ??
+    item?.price?.customData?.externalId ??
+    item?.price?.custom_data?.externalId ??
+    item?.price?.name;
   const productId =
     item?.product?.importMeta?.externalId ??
     item?.product?.import_meta?.external_id ??
@@ -125,7 +128,10 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     item?.price?.importMeta?.externalId ??
     item?.price?.import_meta?.external_id ??
     item?.price?.externalId ??
-    item?.price?.external_id;
+    item?.price?.external_id ??
+    item?.price?.customData?.externalId ??
+    item?.price?.custom_data?.externalId ??
+    item?.price?.name;
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && userId) {
     const active = data.status === "active" || data.status === "trialing";
