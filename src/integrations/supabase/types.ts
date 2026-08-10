@@ -248,6 +248,24 @@ export type Database = {
         }
         Relationships: []
       }
+      attack_cadence: {
+        Row: {
+          samples: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          samples?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          samples?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attacks: {
         Row: {
           attacker_id: string
@@ -5948,6 +5966,7 @@ export type Database = {
         Args: { _catalog_code: string; _uid: string }
         Returns: string
       }
+      _guard_attack_cadence: { Args: { _action?: string }; Returns: undefined }
       _log_payment_delivery: {
         Args: {
           _detail: Json
