@@ -172,6 +172,7 @@ function FishMarket() {
   const [upToast, setUpToast] = useState<string | null>(null);
   const [rentedCapacity, setRentedCapacity] = useState(0);
   const [rentedUntil, setRentedUntil] = useState<string | null>(null);
+  const [effectiveCapacity, setEffectiveCapacity] = useState<number | null>(null);
   const [rentOpen, setRentOpen] = useState(false);
   const [renting, setRenting] = useState<string | null>(null);
   const [selling, setSelling] = useState(false);
@@ -348,14 +349,17 @@ function FishMarket() {
 
 
   const loadMarket = async () => {
-    if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); return; }
+    if (!user) { setLvl(1); setUpgradingTo(null); setUpgradeEndsAt(null); setEffectiveCapacity(null); return; }
     const cacheKey = `fish-market:level:${user.id}`;
     await supabase.rpc("finalize_fish_market_upgrades" as never);
-    const { data } = await supabase
-      .from("user_fish_market" as never)
-      .select("level, upgrading_to, upgrade_ends_at, rented_capacity, rented_until")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const [{ data }, { data: capacityData, error: capacityError }] = await Promise.all([
+      supabase
+        .from("user_fish_market" as never)
+        .select("level, upgrading_to, upgrade_ends_at, rented_capacity, rented_until")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase.rpc("user_market_capacity" as never, { _uid: user.id } as never),
+    ]);
     const row = (data as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null; rented_capacity?: number | null; rented_until?: string | null } | null);
     const lvlVal = row?.level ?? 1;
     setLvl(lvlVal);
@@ -363,6 +367,7 @@ function FishMarket() {
     setUpgradeEndsAt(row?.upgrade_ends_at ?? null);
     setRentedCapacity(Number(row?.rented_capacity ?? 0));
     setRentedUntil(row?.rented_until ?? null);
+    setEffectiveCapacity(capacityError ? null : Number(capacityData ?? 0));
     setCached(cacheKey, { level: lvlVal, upgradingTo: row?.upgrading_to ?? null, upgradeEndsAt: row?.upgrade_ends_at ?? null });
     try { window.localStorage.setItem("ocean.fishMarketLevel", String(Math.max(1, Math.min(30, lvlVal)))); } catch {}
   };
@@ -553,7 +558,12 @@ function FishMarket() {
   const rentMsLeft = rentedUntil ? Math.max(0, new Date(rentedUntil).getTime() - tickNow) : 0;
   const rentActive = rentMsLeft > 0 && rentedCapacity > 0;
   const eliteVipCapacity = eliteVip6Active ? 50_000_000 : 0;
-  const capMax = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0) + eliteVipCapacity;
+  const locallyCalculatedCapacity = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0) + eliteVipCapacity;
+  // The backend is authoritative for VIP 6 and rented capacity. This avoids a
+  // stale profile cache briefly hiding the free +50M allowance in the market.
+  const capMax = effectiveCapacity && effectiveCapacity > 0
+    ? effectiveCapacity
+    : locallyCalculatedCapacity;
 
   const rentCapacity = async (packId: string) => {
     if (!user || renting) return;
