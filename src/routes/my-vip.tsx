@@ -257,7 +257,7 @@ function MyVipPage() {
 
 
           {/* Upgrade CTA */}
-          {tier.level < 5 && (
+          {tier.level < 6 && (
             <Link to="/vip" className="block mt-4 text-center py-4 rounded-2xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition">
               ⬆️ ترقية لمستوى أعلى
             </Link>
