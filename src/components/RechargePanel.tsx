@@ -253,11 +253,9 @@ export function RechargePanel() {
           const r = p.reward;
           const disabled =
             !!busy ||
-            (p.category === "shield" && shieldsThisWeek >= shieldLimit) ||
-            (p.oneTime && boughtStarter);
-          const disabledLabel = p.oneTime && boughtStarter
-            ? "تم الاستلام"
-            : p.category === "shield" && shieldsThisWeek >= shieldLimit
+            (p.category === "shield" && shieldsThisWeek >= shieldLimit);
+          const disabledLabel =
+            p.category === "shield" && shieldsThisWeek >= shieldLimit
               ? "وصلت الحد"
               : null;
 
