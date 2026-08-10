@@ -174,6 +174,8 @@ function VipPage() {
           <div className="w-8" />
         </div>
         <NativePurchaseBlock productIds={ELITE_VIP_TIERS.map((t) => t.paddlePriceId)} />
+        <AutoRenewCard />
+
       </div>
     );
   }
