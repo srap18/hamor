@@ -571,7 +571,9 @@ function VipPanel() {
             key={t.level}
             to="/vip"
             className={`flex items-center gap-3 rounded-xl p-2 border-2 ${
-              t.level === 5
+              t.level === 6
+                ? "bg-gradient-to-r from-cyan-950/80 to-sky-950/80 border-cyan-300/70"
+                : t.level === 5
                 ? "bg-gradient-to-r from-purple-950/80 to-fuchsia-950/80 border-fuchsia-400/60"
                 : t.level === 4
                   ? "bg-gradient-to-r from-indigo-950/80 to-sky-950/80 border-sky-400/50"

@@ -9,9 +9,10 @@ import elite2 from "@/assets/elite-vip-2.webp";
 import elite3 from "@/assets/elite-vip-3.webp";
 import elite4 from "@/assets/elite-vip-4.webp";
 import elite5 from "@/assets/elite-vip-5.webp";
+import elite6 from "@/assets/elite-vip-6.png";
 
 export type EliteVipTier = {
-  level: 1 | 2 | 3 | 4 | 5;
+  level: 1 | 2 | 3 | 4 | 5 | 6;
   nameAr: string;
   emoji: string;
   monthlyPriceUsd: number;
@@ -19,6 +20,7 @@ export type EliteVipTier = {
   combatBonusPct: number;
   shopDiscountPct: number;
   dailyGems: number;
+
   badge: string;
   ringClass: string;
   nameColorClass: string;
@@ -132,10 +134,42 @@ export const ELITE_VIP_TIERS: EliteVipTier[] = [
       "👑 جميع المميزات السابقة",
     ],
   },
+  {
+    level: 6,
+    nameAr: "إمبراطور المحيط",
+    emoji: "🔱",
+    monthlyPriceUsd: 400,
+    paddlePriceId: "elite_vip_6_monthly",
+    combatBonusPct: 40,
+    shopDiscountPct: 35,
+    dailyGems: 1500,
+    badge: elite6,
+    ringClass:
+      "ring-cyan-300 shadow-[0_0_65px_rgba(34,211,238,0.95)] animate-pulse",
+    // VIP 6 → diamond/ocean animated name
+    nameColorClass:
+      "bg-gradient-to-r from-cyan-200 via-white via-sky-300 to-cyan-100 bg-clip-text text-transparent font-black drop-shadow-[0_0_14px_rgba(34,211,238,0.9)]",
+    perks: [
+      "⚔️ هجوم/دفاع +40% (الأقوى في اللعبة)",
+      "🛒 خصم متجر 35% على كل المنتجات",
+      "💎 1500 جوهرة يومياً",
+      "🧊 تجميد دائم للسمك — سمكك لا يتعفن أبداً طوال الاشتراك",
+      "🏪 +50 مليون سعة سوق سمك مجاناً (بدون استئجار)",
+      "🎣 الصياد الذهبي مفعّل دائماً بدون شراء",
+      "🚀 حد الصواريخ اليومي 45 بدل 30",
+      "🤝 مقايضة مجانية بدون رسوم 50 جوهرة",
+      "✏️ تغيير الاسم كل 3 أيام بدل 14 يوم",
+      "💰 كاش باك 35% عند الترقية",
+      "🔱 شارة إمبراطور المحيط الماسية الحصرية",
+      "🌊 تراكب دخول عالمي ملحمي",
+      "💠 اسم ماسي متوهج في الشات",
+    ],
+  },
 ];
 
 export function getEliteVipTier(level: number | null | undefined): EliteVipTier | null {
   if (!level || level < 1) return null;
-  const lv = Math.max(1, Math.min(5, Math.floor(level)));
+  const lv = Math.max(1, Math.min(6, Math.floor(level)));
   return ELITE_VIP_TIERS[lv - 1];
 }
+

@@ -199,7 +199,7 @@ function VipPage() {
           نظام Elite VIP
         </h2>
         <p className="text-sm text-amber-200/80 mt-2 max-w-md mx-auto">
-          5 مستويات حصرية للاشتراك الشهري فقط — لا تُمنح عن طريق اللعب أو عملات اللعبة.
+          6 مستويات حصرية للاشتراك الشهري فقط — لا تُمنح عن طريق اللعب أو عملات اللعبة.
           امتيازات قتالية، خصومات متجر، شارات فاخرة، وأسماء متوهجة.
         </p>
         {currentTier && (
@@ -226,7 +226,9 @@ function VipPage() {
               className={`relative rounded-2xl border-2 p-4 flex flex-col transition ${
                 isCurrent
                   ? "bg-gradient-to-b from-emerald-900/40 to-slate-900 border-emerald-400/70 shadow-[0_0_30px_rgba(52,211,153,0.4)]"
-                  : t.level === 5
+                  : t.level === 6
+                    ? "bg-gradient-to-b from-cyan-950/80 to-slate-950 border-cyan-300/70 shadow-[0_0_40px_rgba(34,211,238,0.45)]"
+                    : t.level === 5
                     ? "bg-gradient-to-b from-purple-950/70 to-slate-950 border-fuchsia-400/60 shadow-[0_0_25px_rgba(232,121,249,0.35)]"
                     : t.level === 4
                       ? "bg-gradient-to-b from-indigo-950/70 to-slate-950 border-sky-400/50"
@@ -242,11 +244,12 @@ function VipPage() {
                   مستواك الحالي
                 </span>
               )}
-              {t.level === 5 && !isCurrent && (
-                <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-amber-400 text-white font-bold">
+              {t.level === 6 && !isCurrent && (
+                <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-cyan-400 to-sky-300 text-slate-900 font-bold">
                   أعلى مستوى
                 </span>
               )}
+
 
               <div className="flex justify-center mb-3">
                 <img decoding="async"
@@ -287,8 +290,11 @@ function VipPage() {
                 className={`w-full py-3 rounded-xl font-extrabold text-sm transition disabled:opacity-50 disabled:cursor-not-allowed ${
                   isCurrent
                     ? "bg-emerald-700 text-white cursor-default"
-                    : t.level === 5
+                    : t.level === 6
+                      ? "bg-gradient-to-r from-cyan-300 via-white to-sky-300 text-slate-900 hover:brightness-110 shadow-lg"
+                      : t.level === 5
                       ? "bg-gradient-to-r from-fuchsia-500 via-amber-400 to-fuchsia-500 text-slate-900 hover:brightness-110 shadow-lg"
+
                       : "bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 hover:brightness-110 shadow-lg"
                 }`}
               >

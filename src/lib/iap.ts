@@ -57,7 +57,7 @@ export const IAP_CATALOG: IapCatalogItem[] = [
     category: "vip",
     subscription: true,
     emoji: t.emoji,
-    tag: t.level === 5 ? "أعلى مستوى" : undefined,
+    tag: t.level === 6 ? "أعلى مستوى" : undefined,
     popular: t.level === 3,
   })),
 ];
