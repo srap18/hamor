@@ -34,6 +34,7 @@ interface InventoryCache {
   ships: OwnedShip[];
   goldenFisherUntil: string | null;
   marketExpertUntil: string | null;
+  eliteVip6Active: boolean;
 }
 
 function InventoryPage() {
@@ -44,6 +45,7 @@ function InventoryPage() {
   const [priceMap, setPriceMap] = useState<Record<string, number>>({});
   const [goldenFisherUntil, setGoldenFisherUntil] = useState<string | null>(null);
   const [marketExpertUntil, setMarketExpertUntil] = useState<string | null>(null);
+  const [eliteVip6Active, setEliteVip6Active] = useState(false);
   const [crewToUse, setCrewToUse] = useState<string | null>(null);
   const [usingCrew, setUsingCrew] = useState<string | null>(null);
   const usingCrewRef = useRef(false);
@@ -59,12 +61,16 @@ function InventoryPage() {
         supabase.from("inventory").select("id,item_type,item_id,quantity,meta").eq("user_id", u.user.id),
         supabase.from("fish_caught").select("fish_id,quantity,total_caught").eq("user_id", u.user.id),
         supabase.from("ships_owned").select("id,catalog_code,hp,max_hp,in_storage").eq("user_id", u.user.id).order("acquired_at", { ascending: false }),
-        supabase.from("profiles").select("golden_fisher_until, market_expert_until").eq("id", u.user.id).maybeSingle(),
+        supabase.from("profiles").select("golden_fisher_until, market_expert_until, elite_vip_level, elite_vip_expires_at").eq("id", u.user.id).maybeSingle(),
       ]);
       const gfu = ((p as any)?.golden_fisher_until as string | null) ?? null;
       const meu = ((p as any)?.market_expert_until as string | null) ?? null;
+      const eliteExpiry = ((p as any)?.elite_vip_expires_at as string | null) ?? null;
+      const vip6 = Number((p as any)?.elite_vip_level ?? 0) >= 6
+        && (!eliteExpiry || new Date(eliteExpiry).getTime() > Date.now());
       setGoldenFisherUntil(gfu);
       setMarketExpertUntil(meu);
+      setEliteVip6Active(vip6);
       let stockQty: Record<string, number> = {};
       try {
         const summaryRows = await getFishStockSummary(u.user.id);
@@ -94,6 +100,7 @@ function InventoryPage() {
         ships: shipsNext,
         goldenFisherUntil: gfu,
         marketExpertUntil: meu,
+        eliteVip6Active: vip6,
       });
     } catch (e) {
       console.error("[inventory] load failed", e);
@@ -118,6 +125,7 @@ function InventoryPage() {
           setShips(cached.ships);
           setGoldenFisherUntil(cached.goldenFisherUntil);
           setMarketExpertUntil(cached.marketExpertUntil);
+          setEliteVip6Active(cached.eliteVip6Active ?? false);
           setLoading(false);
         }
         load(!cached);
@@ -269,7 +277,7 @@ function InventoryPage() {
           <div className="grid grid-cols-2 gap-2">
             {CREWS.map(c => {
               const n = qty("crew", c.id);
-              const gfActive = !!goldenFisherUntil && new Date(goldenFisherUntil).getTime() > Date.now();
+              const gfActive = eliteVip6Active || (!!goldenFisherUntil && new Date(goldenFisherUntil).getTime() > Date.now());
               const isGoldenLocked = c.id === "golden_fisher" && gfActive;
               return (
                 <div key={c.id} className={`glass-hud rounded-xl p-3 border ${n>0?"border-emerald-400/60":"border-border/40 opacity-60"}`}>
@@ -286,7 +294,7 @@ function InventoryPage() {
                     {n > 0 ? <span className="text-emerald-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>
                   {isGoldenLocked && (
-                    <div className="text-[10px] text-amber-300 text-center mt-1">🏅 مفعّل حالياً على حسابك</div>
+                    <div className="text-[10px] text-amber-300 text-center mt-1">🏅 {eliteVip6Active ? "مفعّل دائماً مع VIP 6" : "مفعّل حالياً على حسابك"}</div>
                   )}
                   {c.id === "market_expert" && marketExpertUntil && new Date(marketExpertUntil).getTime() > Date.now() && (
                     <div className="text-[10px] text-emerald-300 text-center mt-1">📈 مفعّل — ينتهي {new Date(marketExpertUntil).toLocaleString("ar")}</div>
