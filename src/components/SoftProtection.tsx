@@ -12,10 +12,65 @@ import { reportCheat } from "@/lib/rate-limit";
  * The real protection is server-side (RLS, rl_guard, verify_session_integrity).
  */
 export function SoftProtection() {
+  // Anti-script layer: userscripts (Tampermonkey) hook window.fetch / XHR to
+  // replay game RPCs in bursts. We keep a pristine copy of the native network
+  // APIs from a same-origin iframe and restore them whenever they get patched.
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    let frame: HTMLIFrameElement | null = null;
+    const getPristine = () => {
+      try {
+        if (!frame || !frame.isConnected) {
+          frame = document.createElement("iframe");
+          frame.style.display = "none";
+          document.documentElement.appendChild(frame);
+        }
+        return (frame.contentWindow ?? null) as any;
+      } catch {
+        return null;
+      }
+    };
+
+    const isNative = (fn: unknown) => {
+      try {
+        return typeof fn === "function" && /\{\s*\[native code\]\s*\}/.test(Function.prototype.toString.call(fn));
+      } catch {
+        return false;
+      }
+    };
+
+    let reported = false;
+    const restore = () => {
+      try {
+        const hookedFetch = !isNative(window.fetch);
+        const hookedXhr =
+          !isNative(XMLHttpRequest.prototype.open) || !isNative(XMLHttpRequest.prototype.send);
+        if (!hookedFetch && !hookedXhr) return;
+
+        const w = getPristine();
+        if (w) {
+          if (hookedFetch && typeof w.fetch === "function") {
+            window.fetch = w.fetch.bind(window);
+          }
+          if (hookedXhr && w.XMLHttpRequest) {
+            XMLHttpRequest.prototype.open = w.XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.send = w.XMLHttpRequest.prototype.send;
+          }
+        }
+        if (!reported) {
+          reported = true;
+          reportCheat("network_api_hooked", { fetch: hookedFetch, xhr: hookedXhr });
+        }
+      } catch {}
+    };
+
+    restore();
+    const guardTimer = window.setInterval(restore, 2000);
+
     const isTouch = matchMedia?.("(pointer: coarse)").matches ?? "ontouchstart" in window;
-    if (isTouch) return; // Skip everything on mobile/tablet
+    if (isTouch) return () => window.clearInterval(guardTimer); // Skip desktop-only bits on mobile
+
 
     // 1) Disable right-click
     const onCtx = (e: MouseEvent) => { e.preventDefault(); };
