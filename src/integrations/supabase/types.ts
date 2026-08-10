@@ -6237,6 +6237,22 @@ export type Database = {
         Args: { p_id: string; p_kind: string }
         Returns: Json
       }
+      admin_list_elite_vips: {
+        Args: never
+        Returns: {
+          avatar_emoji: string
+          avatar_url: string
+          days_left: number
+          display_name: string
+          elite_vip_expires_at: string
+          elite_vip_level: number
+          last_code_at: string
+          last_purchase_at: string
+          source: string
+          user_id: string
+          username: string
+        }[]
+      }
       admin_list_redemptions: {
         Args: { _code_id: string }
         Returns: {
@@ -6350,6 +6366,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_revoke_elite_vip: { Args: { _user_id: string }; Returns: undefined }
       admin_revoke_redemption:
         | { Args: { _code_id: string; _user_id: string }; Returns: Json }
         | {
@@ -6400,6 +6417,13 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_set_elite_vip: {
+        Args: { _days: number; _level: number; _user_id: string }
+        Returns: {
+          elite_vip_expires_at: string
+          elite_vip_level: number
+        }[]
       }
       admin_set_inventory_quantity: {
         Args: { _quantity: number; _row_id: string }
