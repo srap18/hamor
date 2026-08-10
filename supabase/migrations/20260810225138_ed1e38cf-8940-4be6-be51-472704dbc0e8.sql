@@ -1,0 +1,2 @@
+ALTER TABLE public.redemption_codes DROP CONSTRAINT IF EXISTS redemption_codes_elite_vip_level_check;
+ALTER TABLE public.redemption_codes ADD CONSTRAINT redemption_codes_elite_vip_level_check CHECK (reward_elite_vip_level >= 0 AND reward_elite_vip_level <= 6);
