@@ -1007,7 +1007,10 @@ function Index() {
   const goldenFisherUntilRef = useRef<number>(0);
   useEffect(() => {
     const t = (profile as any)?.golden_fisher_until;
-    goldenFisherUntilRef.current = t ? new Date(t).getTime() : 0;
+    const eliteExpiry = (profile as any)?.elite_vip_expires_at;
+    const elite6Active = Number((profile as any)?.elite_vip_level ?? 0) >= 6
+      && (!eliteExpiry || new Date(eliteExpiry).getTime() > now);
+    goldenFisherUntilRef.current = elite6Active ? Number.POSITIVE_INFINITY : (t ? new Date(t).getTime() : 0);
   }, [profile]);
   const lastGfTickRef = useRef<number>(0);
   const gfTickInFlightRef = useRef(false);
@@ -2362,17 +2365,20 @@ function Index() {
             <div className="flex items-center gap-1.5">
               {(() => {
                 const gfUntilProf = (profile as any)?.golden_fisher_until ? new Date((profile as any).golden_fisher_until).getTime() : 0;
+                const eliteExpiry = (profile as any)?.elite_vip_expires_at;
+                const elite6Active = Number((profile as any)?.elite_vip_level ?? 0) >= 6
+                  && (!eliteExpiry || new Date(eliteExpiry).getTime() > now);
                 const gfUntilCrew = crewRows.find(
                   (r) => r.item_id === "golden_fisher" && r.meta?.expires_at && new Date(r.meta.expires_at).getTime() > now,
                 )?.meta?.expires_at;
                 const gfUntilCrewMs = gfUntilCrew ? new Date(gfUntilCrew).getTime() : 0;
-                const gfUntilMs = Math.max(gfUntilProf, gfUntilCrewMs);
+                const gfUntilMs = elite6Active ? Number.POSITIVE_INFINITY : Math.max(gfUntilProf, gfUntilCrewMs);
                 if (gfUntilMs <= now) return null;
                 const remain = Math.max(0, gfUntilMs - now);
                 const h = Math.floor(remain / 3600000);
                 const m = Math.floor((remain % 3600000) / 60000);
                 const s = Math.floor((remain % 60000) / 1000);
-                const timeText = h > 0
+                const timeText = elite6Active ? "دائم" : h > 0
                   ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
                   : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
                 return (
@@ -3467,8 +3473,10 @@ function Index() {
                       const alreadyOnShip = assignedRows.some((r) => r.item_id === cid);
                       const nowMs = serverNowMs();
                       const goldenFisherActive =
-                        !!(profile as any)?.golden_fisher_until &&
-                        new Date((profile as any).golden_fisher_until).getTime() > nowMs;
+                        (Number((profile as any)?.elite_vip_level ?? 0) >= 6
+                          && (!(profile as any)?.elite_vip_expires_at || new Date((profile as any).elite_vip_expires_at).getTime() > nowMs))
+                        || (!!(profile as any)?.golden_fisher_until
+                          && new Date((profile as any).golden_fisher_until).getTime() > nowMs);
                       const globallyActive = isGlobalCrew && (
                         (cid === "golden_fisher" && goldenFisherActive) ||
                         crewRows.some(

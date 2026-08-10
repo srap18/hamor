@@ -109,10 +109,20 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
 }
 
 async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
+  const item = data.items?.[0];
+  const priceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id ??
+    item?.price?.customData?.externalId ??
+    item?.price?.custom_data?.externalId ??
+    item?.price?.name;
   await getSupabase()
     .from("subscriptions")
     .update({
       status: data.status,
+      ...(priceId ? { price_id: priceId } : {}),
       current_period_start: data.currentBillingPeriod?.startsAt,
       current_period_end: data.currentBillingPeriod?.endsAt,
       cancel_at_period_end: data.scheduledChange?.action === "cancel",
@@ -123,15 +133,6 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
 
   // Sync elite_vip_level — if status drops to canceled/past_due/paused, revoke.
   const userId = data.customData?.userId ?? data.custom_data?.userId;
-  const item = data.items?.[0];
-  const priceId =
-    item?.price?.importMeta?.externalId ??
-    item?.price?.import_meta?.external_id ??
-    item?.price?.externalId ??
-    item?.price?.external_id ??
-    item?.price?.customData?.externalId ??
-    item?.price?.custom_data?.externalId ??
-    item?.price?.name;
   const eliteLevel = eliteLevelFromPriceId(priceId);
   if (eliteLevel && userId) {
     const active = data.status === "active" || data.status === "trialing";
@@ -141,6 +142,15 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
 
 async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   const supabase = getSupabase();
+  const item = data.items?.[0];
+  const eventPriceId =
+    item?.price?.importMeta?.externalId ??
+    item?.price?.import_meta?.external_id ??
+    item?.price?.externalId ??
+    item?.price?.external_id ??
+    item?.price?.customData?.externalId ??
+    item?.price?.custom_data?.externalId ??
+    item?.price?.name;
   await supabase
     .from("subscriptions")
     .update({ status: "canceled", updated_at: new Date().toISOString() })
@@ -158,7 +168,7 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   }
   // Revoke Elite VIP level on cancel (immediate per business rule).
   if (sub) {
-    const eliteLevel = eliteLevelFromPriceId((sub as any).price_id);
+    const eliteLevel = eliteLevelFromPriceId(eventPriceId ?? (sub as any).price_id);
     if (eliteLevel) {
       await setEliteVipLevel((sub as any).user_id, 0, null);
     }

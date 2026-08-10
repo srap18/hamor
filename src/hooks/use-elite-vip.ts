@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Returns the current user's authoritative elite_vip_level (0-5).
+ * Returns the current user's authoritative elite_vip_level (0-6).
  * The value comes directly from the profiles table (server-side managed,
  * never client-writable). Use this for UI display only — combat/shop
  * effects are computed server-side.

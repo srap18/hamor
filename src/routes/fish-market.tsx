@@ -392,6 +392,9 @@ function FishMarket() {
   const marketExpertUntil = (profile as any)?.market_expert_until as string | null | undefined;
   const marketExpertMs = marketExpertUntil ? Math.max(0, new Date(marketExpertUntil).getTime() - tickNow) : 0;
   const marketExpertActive = marketExpertMs > 0;
+  const eliteVipLevel = Number((profile as any)?.elite_vip_level ?? 0);
+  const eliteVipExpiresAt = (profile as any)?.elite_vip_expires_at as string | null | undefined;
+  const eliteVip6Active = eliteVipLevel >= 6 && (!eliteVipExpiresAt || new Date(eliteVipExpiresAt).getTime() > tickNow);
   useEffect(() => {
     if (!upgradeEndsAt) { setSecondsLeft(0); return; }
     const diff = Math.max(0, Math.ceil((new Date(upgradeEndsAt).getTime() - tickNow) / 1000));
@@ -506,6 +509,7 @@ function FishMarket() {
   // Freeze pauses the rot clock during EVERY freeze window the player paid for
   // (past archived windows + the currently active one) — matches the server.
   const rotMult = (fishId: string): number => {
+    if (eliteVip6Active) return 1;
     const t = ageMap[fishId];
     if (!t) return 1;
     const caughtAt = new Date(t).getTime();
@@ -548,7 +552,8 @@ function FishMarket() {
   const capUsed = fish.reduce((s, f) => s + f.qty, 0);
   const rentMsLeft = rentedUntil ? Math.max(0, new Date(rentedUntil).getTime() - tickNow) : 0;
   const rentActive = rentMsLeft > 0 && rentedCapacity > 0;
-  const capMax = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0);
+  const eliteVipCapacity = eliteVip6Active ? 50_000_000 : 0;
+  const capMax = fishMarketCapacity(lvl) + (rentActive ? rentedCapacity : 0) + eliteVipCapacity;
 
   const rentCapacity = async (packId: string) => {
     if (!user || renting) return;

@@ -25,8 +25,8 @@ export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
         const nowIso = new Date().toISOString();
         const { data: activeProfiles, error } = await supabaseAdmin
           .from("profiles")
-          .select("id")
-          .gt("golden_fisher_until", nowIso);
+          .select("id,golden_fisher_until,elite_vip_level,elite_vip_expires_at")
+          .or(`golden_fisher_until.gt.${nowIso},elite_vip_level.gte.6`);
 
         if (error) {
           console.error("[golden-fisher-tick] select failed", error);
@@ -52,7 +52,14 @@ export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
 
         let totalCycles = 0;
         let totalShips = 0;
-        const userIds = new Set<string>((activeProfiles ?? []).map((u: { id: string }) => u.id));
+        const userIds = new Set<string>((activeProfiles ?? [])
+          .filter((u: { golden_fisher_until?: string | null; elite_vip_level?: number | null; elite_vip_expires_at?: string | null }) => {
+            const regularActive = !!u.golden_fisher_until && new Date(u.golden_fisher_until).getTime() > Date.now();
+            const eliteActive = Number(u.elite_vip_level ?? 0) >= 6
+              && (!u.elite_vip_expires_at || new Date(u.elite_vip_expires_at).getTime() > Date.now());
+            return regularActive || eliteActive;
+          })
+          .map((u: { id: string }) => u.id));
         for (const row of activeInventory ?? []) {
           const expiresAt = (row.meta as { expires_at?: string } | null)?.expires_at;
           if (expiresAt && new Date(expiresAt).getTime() > Date.now()) userIds.add(row.user_id as string);
