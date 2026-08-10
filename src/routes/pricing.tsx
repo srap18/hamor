@@ -83,7 +83,7 @@ function PricingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-amber-300 mb-2">الأسعار</h1>
           <p className="text-amber-100/80 text-sm max-w-2xl mx-auto">
-            جميع الأسعار بالريال السعودي وتشمل الضرائب المعمول بها. تتم معالجة المدفوعات بأمان عبر
+            جميع الأسعار بالدولار الأمريكي وتشمل الضرائب المعمول بها. تتم معالجة المدفوعات بأمان عبر
             شريكنا Paddle.
           </p>
         </div>
