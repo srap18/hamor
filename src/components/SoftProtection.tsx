@@ -110,7 +110,9 @@ export function SoftProtection() {
       document.removeEventListener("contextmenu", onCtx);
       document.removeEventListener("keydown", onKey);
       window.clearInterval(interval);
+      window.clearInterval(guardTimer);
     };
+
   }, []);
 
   return null;
