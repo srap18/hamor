@@ -95,7 +95,7 @@ export const reconcileMyPaddlePurchases = createServerFn({ method: "POST" })
         }
 
         const pack = STORE_PACKS.find((p) => p.id === packId);
-        const isEliteVip = /^elite_vip_[1-5]_monthly$/.test(packId);
+        const isEliteVip = /^elite_vip_[1-6]_monthly$/.test(packId);
         if (!pack && !isEliteVip) {
           skipped.push({ id: txn.id, reason: `unknown_pack_id:${packId}` });
           continue;
