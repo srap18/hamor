@@ -50,11 +50,7 @@ export const checkPackEligibility = createServerFn({ method: "POST" })
         );
       }
     }
-    if (pack.oneTime) {
-      const { data: bought } = await supabaseAdmin.rpc("has_bought_starter", {
-        _user: userId,
-      });
-      if (bought) throw new Error("هذي الباقة لمرة وحدة فقط وقد اشتريتها.");
-    }
+    // One-time purchase locks were removed: every pack/offer stays buyable.
+
     return { ok: true };
   });
