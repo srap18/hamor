@@ -8151,6 +8151,10 @@ export type Database = {
         Args: { _attacker_ship_id: string }
         Returns: Json
       }
+      steal_release_stale: {
+        Args: { _older_than?: string; _user?: string }
+        Returns: number
+      }
       submarine_capacity_for_stars: {
         Args: { _stars: number }
         Returns: number
