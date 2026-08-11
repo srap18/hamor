@@ -4447,6 +4447,69 @@ export type Database = {
         }
         Relationships: []
       }
+      steal_log: {
+        Row: {
+          attacker_ship_id: string | null
+          created_at: string
+          device_id: string | null
+          fish_id: string | null
+          hardware_hash: string | null
+          id: string
+          ip: string | null
+          link_reason: string | null
+          meta: Json
+          quantity: number
+          reject_reason: string | null
+          result: string
+          target_ship_id: string | null
+          thief_id: string
+          total_value: number
+          updated_at: string
+          user_agent: string | null
+          victim_id: string
+        }
+        Insert: {
+          attacker_ship_id?: string | null
+          created_at?: string
+          device_id?: string | null
+          fish_id?: string | null
+          hardware_hash?: string | null
+          id?: string
+          ip?: string | null
+          link_reason?: string | null
+          meta?: Json
+          quantity?: number
+          reject_reason?: string | null
+          result: string
+          target_ship_id?: string | null
+          thief_id: string
+          total_value?: number
+          updated_at?: string
+          user_agent?: string | null
+          victim_id: string
+        }
+        Update: {
+          attacker_ship_id?: string | null
+          created_at?: string
+          device_id?: string | null
+          fish_id?: string | null
+          hardware_hash?: string | null
+          id?: string
+          ip?: string | null
+          link_reason?: string | null
+          meta?: Json
+          quantity?: number
+          reject_reason?: string | null
+          result?: string
+          target_ship_id?: string | null
+          thief_id?: string
+          total_value?: number
+          updated_at?: string
+          user_agent?: string | null
+          victim_id?: string
+        }
+        Relationships: []
+      }
       stripe_purchases: {
         Row: {
           amount_cents: number
@@ -6046,6 +6109,30 @@ export type Database = {
         }
         Returns: number
       }
+      _steal_log_settle: {
+        Args: {
+          _attacker_ship: string
+          _fish: string
+          _qty: number
+          _reason: string
+          _thief: string
+          _value: number
+        }
+        Returns: undefined
+      }
+      _steal_log_write: {
+        Args: {
+          _attacker_ship: string
+          _link: string
+          _meta?: Json
+          _reject: string
+          _result: string
+          _target_ship: string
+          _thief: string
+          _victim: string
+        }
+        Returns: string
+      }
       _steal_seconds_for: {
         Args: { _cat: Database["public"]["Tables"]["ship_catalog"]["Row"] }
         Returns: number
@@ -6496,6 +6583,38 @@ export type Database = {
       admin_set_username: {
         Args: { _new: string; _target: string }
         Returns: Json
+      }
+      admin_steal_alerts: {
+        Args: { _hours?: number }
+        Returns: {
+          detail: string
+          hits: number
+          kind: string
+          thief_id: string
+          thief_name: string
+          victim_id: string
+          victim_name: string
+        }[]
+      }
+      admin_steal_log: {
+        Args: { _limit?: number; _thief?: string; _victim?: string }
+        Returns: {
+          created_at: string
+          device_id: string
+          fish_id: string
+          hardware_hash: string
+          id: string
+          ip: string
+          link_reason: string
+          quantity: number
+          reject_reason: string
+          result: string
+          thief_id: string
+          thief_name: string
+          total_value: number
+          victim_id: string
+          victim_name: string
+        }[]
       }
       admin_top_inventory_holders: {
         Args: { _item_id?: string; _item_type?: string; _limit?: number }
@@ -8021,6 +8140,11 @@ export type Database = {
           total_value: number
         }[]
       }
+      steal_guard_reason: {
+        Args: { _thief: string; _victim: string }
+        Returns: Record<string, unknown>
+      }
+      steal_link_reason: { Args: { _a: string; _b: string }; Returns: string }
       steal_mission_preview: {
         Args: { _attacker_ship_id: string }
         Returns: Json

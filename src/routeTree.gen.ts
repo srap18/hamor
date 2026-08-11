@@ -62,6 +62,7 @@ import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminVipRouteImport } from './routes/admin.vip'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
+import { Route as AdminStealRouteImport } from './routes/admin.steal'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -354,6 +355,11 @@ const AdminTicketsRoute = AdminTicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStealRoute = AdminStealRouteImport.update({
+  id: '/steal',
+  path: '/steal',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStaffRoute = AdminStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -550,6 +556,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/admin/steal': typeof AdminStealRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -630,6 +637,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/admin/steal': typeof AdminStealRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -712,6 +720,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
+  '/admin/steal': typeof AdminStealRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -795,6 +804,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/staff'
+    | '/admin/steal'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -875,6 +885,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/staff'
+    | '/admin/steal'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -956,6 +967,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/sanctions'
     | '/admin/staff'
+    | '/admin/steal'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -1408,6 +1420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTicketsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/steal': {
+      id: '/admin/steal'
+      path: '/steal'
+      fullPath: '/admin/steal'
+      preLoaderRoute: typeof AdminStealRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/staff': {
       id: '/admin/staff'
       path: '/staff'
@@ -1612,6 +1631,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminStaffRoute: typeof AdminStaffRoute
+  AdminStealRoute: typeof AdminStealRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminTribeEventsRoute: typeof AdminTribeEventsRoute
   AdminVipRoute: typeof AdminVipRoute
@@ -1638,6 +1658,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminStaffRoute: AdminStaffRoute,
+  AdminStealRoute: AdminStealRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminTribeEventsRoute: AdminTribeEventsRoute,
   AdminVipRoute: AdminVipRoute,
