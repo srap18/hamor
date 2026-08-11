@@ -1000,8 +1000,16 @@ function PlayerPage() {
       else flash(`تعذّر بدء السرقة: ${msg.slice(0, 60)}`);
     } else {
       console.log("[steal] success", missionRes);
-      const ends = Array.isArray(missionRes) && missionRes[0]?.ends_at ? new Date(missionRes[0].ends_at) : null;
+      const row = Array.isArray(missionRes) ? missionRes[0] : missionRes;
+      if (row?.reject_reason) {
+        sound.play("error");
+        flash(`🚫 ${row.message || "السرقة غير مسموحة حاليًا"}`);
+        setBusy(false); closeMenu();
+        return;
+      }
+      const ends = row?.ends_at ? new Date(row.ends_at) : null;
       const secs = ends ? Math.max(0, Math.round((ends.getTime() - serverNowMs()) / 1000)) : 0;
+
       sound.play("success");
       flash(`🏴‍☠️ سفينتك وصلت محيطه وبدأت السرقة — ${secs}ث`);
       setShips((arr) => arr.map((s) => s.id === targetShipId ? { ...s, at_sea: false } : s));
