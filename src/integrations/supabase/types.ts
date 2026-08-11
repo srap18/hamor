@@ -8116,6 +8116,8 @@ export type Database = {
         }
         Returns: {
           ends_at: string
+          message: string
+          reject_reason: string
         }[]
       }
       start_steal_mission_impl: {
