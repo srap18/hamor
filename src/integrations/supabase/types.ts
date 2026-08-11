@@ -269,33 +269,39 @@ export type Database = {
       attacks: {
         Row: {
           attacker_id: string
+          attacker_tribe_id: string | null
           attacker_won: boolean | null
           created_at: string
           damage: number
           damage_dealt: number
           defender_id: string
+          defender_tribe_id: string | null
           id: string
           loot_coins: number
           target_ship_id: string | null
         }
         Insert: {
           attacker_id: string
+          attacker_tribe_id?: string | null
           attacker_won?: boolean | null
           created_at?: string
           damage?: number
           damage_dealt?: number
           defender_id: string
+          defender_tribe_id?: string | null
           id?: string
           loot_coins?: number
           target_ship_id?: string | null
         }
         Update: {
           attacker_id?: string
+          attacker_tribe_id?: string | null
           attacker_won?: boolean | null
           created_at?: string
           damage?: number
           damage_dealt?: number
           defender_id?: string
+          defender_tribe_id?: string | null
           id?: string
           loot_coins?: number
           target_ship_id?: string | null

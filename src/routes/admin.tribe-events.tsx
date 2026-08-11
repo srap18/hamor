@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/tribe-events")({
 });
 
 type Tier = { rank: number; gems: number; tribe_points: number };
-type Metric = "fish" | "gold";
+type Metric = "fish" | "gold" | "damage" | "destroy";
 type Row = {
   id: string;
   title: string;
@@ -27,8 +27,8 @@ type Row = {
   prizes_distributed_at: string | null;
   created_at: string;
 };
-const METRIC_LABEL: Record<Metric, string> = { fish: "🐟 صيد سمك", gold: "💰 جمع ذهب" };
-const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
+const METRIC_LABEL: Record<Metric, string> = { fish: "🐟 صيد سمك", gold: "💰 جمع ذهب", damage: "💥 ضرر هجوم", destroy: "☢️ تفجير سفن" };
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰", damage: "💥", destroy: "☢️" };
 
 type LbRow = {
   tribe_id: string;
@@ -203,9 +203,9 @@ function AdminTribeEvents() {
     const firstGems = cleanTiers.find((t) => t.rank === 1)?.gems ?? 0;
     const firstPts = cleanTiers.find((t) => t.rank === 1)?.tribe_points ?? 0;
     const { error } = await supabase.from("tribe_fish_events" as never).insert({
-      title: title.trim() || (metric === "gold" ? "فعالية جمع الذهب" : "فعالية صيد القبائل"),
+      title: title.trim() || (metric === "gold" ? "فعالية جمع الذهب" : metric === "damage" ? "فعالية هجوم القبائل" : metric === "destroy" ? "فعالية تفجير القبائل" : "فعالية صيد القبائل"),
       description: desc.trim(),
-      banner_emoji: emoji || (metric === "gold" ? "💰" : "🎣"),
+      banner_emoji: emoji || (metric === "gold" ? "💰" : metric === "damage" ? "💥" : metric === "destroy" ? "☢️" : "🎣"),
       banner_theme: theme,
       metric,
       starts_at: s.toISOString(),
@@ -330,8 +330,8 @@ function AdminTribeEvents() {
 
         <div>
           <div className="text-xs text-slate-400 mb-1">نوع الفعالية</div>
-          <div className="flex gap-2">
-            {(["fish","gold"] as Metric[]).map(m => (
+          <div className="grid grid-cols-2 gap-2">
+            {(["fish","gold","damage","destroy"] as Metric[]).map(m => (
               <button key={m} type="button" onClick={()=>setMetric(m)}
                 className={`flex-1 px-3 py-2 rounded-lg border text-sm font-bold ${metric===m ? "bg-cyan-600 border-cyan-400 text-white" : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"}`}>
                 {METRIC_LABEL[m]}
@@ -341,6 +341,10 @@ function AdminTribeEvents() {
           <div className="text-[11px] text-slate-500 mt-1">
             {metric === "gold"
               ? "يُحسب مجموع الذهب اللي تبرّع فيه كل عضو لقبيلته خلال مدة الفعالية."
+              : metric === "damage"
+              ? "يُحسب مجموع الضرر اللي سبّبه أعضاء القبيلة على سفن الخصوم خلال مدة الفعالية (الهجوم على أعضاء نفس القبيلة لا يُحتسب)."
+              : metric === "destroy"
+              ? "يُحسب عدد سفن الخصوم اللي دمّرها أعضاء القبيلة خلال مدة الفعالية (سفن نفس القبيلة لا تُحتسب)."
               : "يُحسب مجموع السمك اللي اصطاده أعضاء القبيلة خلال مدة الفعالية."}
           </div>
         </div>

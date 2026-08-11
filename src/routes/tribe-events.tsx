@@ -6,10 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/tribe-events")({
   component: TribeEventsPage,
   ssr: false,
-  head: () => ({ meta: [{ title: "فعاليات صيد القبائل" }] }),
+  head: () => ({ meta: [{ title: "فعاليات القبائل" }] }),
 });
 
-type Metric = "fish" | "gold";
+type Metric = "fish" | "gold" | "damage" | "destroy";
 type Event = {
   id: string;
   title: string;
@@ -34,8 +34,10 @@ type LbRow = {
   total_fish: number;
 };
 
-const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰" };
-const METRIC_NOUN: Record<Metric, string> = { fish: "سمكة", gold: "ذهب" };
+const METRIC_UNIT: Record<Metric, string> = { fish: "🐟", gold: "💰", damage: "💥", destroy: "☢️" };
+const METRIC_NOUN: Record<Metric, string> = { fish: "سمكة", gold: "ذهب", damage: "ضرر", destroy: "سفينة مدمّرة" };
+const METRIC_BADGE: Record<Metric, string> = { fish: "🐟 صيد سمك", gold: "💰 جمع ذهب", damage: "💥 ضرر هجوم", destroy: "☢️ تفجير سفن" };
+const METRIC_MEMBERS_TITLE: Record<Metric, string> = { fish: "🎣 أكثر الأعضاء صيداً", gold: "💰 أكثر الأعضاء تبرعاً بالذهب", damage: "💥 أكثر الأعضاء ضرراً", destroy: "☢️ أكثر الأعضاء تفجيراً" };
 
 const THEME_CLASS: Record<string, string> = {
   ocean: "from-cyan-500 via-blue-500 to-indigo-600 shadow-cyan-500/40",
@@ -159,7 +161,7 @@ function TribeEventsPage() {
         </div>
 
         <div className="rounded-xl border border-cyan-500/30 bg-slate-900/60 p-3 text-sm text-slate-300 leading-relaxed">
-          كل نشاط يقوم به أعضاء قبيلتك (صيد سمك أو تبرّع بالذهب حسب نوع الفعالية) خلال مدتها يُحسب لرصيد القبيلة.
+          كل نشاط يقوم به أعضاء قبيلتك (صيد سمك، تبرّع بالذهب، ضرر هجوم، أو تفجير سفن حسب نوع الفعالية) خلال مدتها يُحسب لرصيد القبيلة.
           القبيلة الأولى تربح <span className="text-emerald-300 font-bold">💎 جواهر</span> تتوزع بالتساوي على جميع أعضائها.
         </div>
 
@@ -192,7 +194,7 @@ function TribeEventsPage() {
                       <div className="text-lg md:text-xl font-black text-white drop-shadow flex items-center gap-2 flex-wrap">
                         <span>{ev.title}</span>
                         <span className="px-1.5 py-0.5 rounded bg-black/30 text-[10px] font-bold">
-                          {ev.metric === "gold" ? "💰 جمع ذهب" : "🐟 صيد سمك"}
+                          {METRIC_BADGE[ev.metric ?? "fish"]}
                         </span>
                       </div>
                       <div className="text-xs text-white/80 mt-0.5">⏳ {started ? `يتبقى ${timeLeft(ev.ends_at)}` : `يبدأ خلال ${timeUntil(ev.starts_at)}`}</div>
@@ -272,8 +274,8 @@ function TribeEventsPage() {
                           {isOpen && (
                             <div className="mt-1 mb-2 mr-7 rounded-lg border border-slate-700/70 bg-slate-950/70 p-2.5 space-y-1.5">
                               <div className="text-[11px] font-bold text-slate-400 mb-1 flex items-center justify-between">
-                                <span>{ev.metric === "gold" ? "💰 أكثر الأعضاء تبرعاً بالذهب" : "🎣 أكثر الأعضاء صيداً"}</span>
-                                {ev.metric !== "gold" && <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>}
+                                <span>{METRIC_MEMBERS_TITLE[ev.metric ?? "fish"]}</span>
+                                {ev.metric === "fish" && <span className="text-[9px] text-slate-500">الصياد الذهبي غير محسوب</span>}
                               </div>
                               {membersLoading === key && (
                                 <div className="text-xs text-slate-500 py-2 text-center">جاري التحميل…</div>
