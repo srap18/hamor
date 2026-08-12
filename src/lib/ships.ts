@@ -65,7 +65,7 @@ export const ROYAL_WHALE_STAR_CAPACITY: Record<number, number> = {
 export const ROYAL_WHALE_SUCCESS_PCT: Record<number, number> = {
   1: 60, 2: 50, 3: 40, 4: 25,
 };
-export const ROYAL_WHALE_COST = 50_000_000_000;
+export const ROYAL_WHALE_COST = 2_000_000_000;
 
 // Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
 import subStar1Asset from "@/assets/ships/sub-star-1.png.asset.json";
