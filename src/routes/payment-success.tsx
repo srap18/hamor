@@ -88,9 +88,11 @@ function PaymentSuccess() {
         }
       }
 
-      // 2) No txn id (or claim failed) → auto-reconcile by email, retrying
-      // for ~60s to handle webhook delay and slow PayPal settlements.
-      for (let i = 0; i < 12 && !cancelled; i++) {
+      // 2) No txn id (or claim failed) → auto-reconcile by email.
+      // Fast first attempts, then backoff (still ~60s total) so the common
+      // case (webhook already landed) resolves in under a second.
+      const delays = [600, 900, 1200, 1800, 2500, 3500, 5000, 5000, 5000, 5000, 5000, 5000];
+      for (let i = 0; i < delays.length && !cancelled; i++) {
         try {
           const r = await reconcile({ data: { environment: env } });
           if (r?.grantedCount && r.grantedCount > 0) {
@@ -108,7 +110,8 @@ function PaymentSuccess() {
         } catch (e) {
           console.error("[payment-success] reconcile attempt failed", e);
         }
-        await new Promise((res) => setTimeout(res, 5000));
+        if (i >= 2 && !cancelled) setSlow(true);
+        await new Promise((res) => setTimeout(res, delays[i]));
       }
 
       // 3) Give up waiting — keep wording honest and provide manual recovery.
