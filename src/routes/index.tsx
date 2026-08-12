@@ -4,7 +4,7 @@ import { type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 
 import { markRepairDone } from "@/lib/anti-cheat-cooldown";
-import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, getUpgradeSubImage, UPGRADE_SUB_STAR_CAPACITY, UPGRADE_SUB_SUCCESS_PCT, UPGRADE_SUB_COST } from "@/lib/ships";
+import { getShipByMarketLevel, getShipByCode, catchPerTrip, shipBowFacesRight, getUpgradeSubImage, getRoyalWhaleImage, UPGRADE_SUB_STAR_CAPACITY, UPGRADE_SUB_SUCCESS_PCT, UPGRADE_SUB_COST, ROYAL_WHALE_STAR_CAPACITY, ROYAL_WHALE_SUCCESS_PCT, ROYAL_WHALE_COST } from "@/lib/ships";
 import { ProjectileFx } from "@/components/ProjectileFx";
 import { getSceneVisual, getSelectedBgId } from "@/lib/backgrounds";
 import { FISH, FISH_TOTAL, fishForShip } from "@/lib/fish";
@@ -290,10 +290,15 @@ function loadFleet(): Ship[] {
     if (slots.some((s) => s.level >= 31 && !s.catalogCode)) return INITIAL_SHIPS;
     return slots.slice(0, MAX_FLEET).map((s, i) => {
       const slot = SLOTS[i % SLOTS.length];
-      const isUpSub = s.catalogCode === "upgrade-sub";
+      const isUpSub = s.catalogCode === "upgrade-sub" || s.catalogCode === "royal-whale";
       const def = s.catalogCode ? getShipByCode(s.catalogCode) : getShipByMarketLevel(s.level);
       const realMax = catchAmountForShip({ level: def.marketLevel, catalogCode: s.catalogCode, maxHp: s.maxHp });
       const realDuration = def.fishingSeconds;
+      const image = s.catalogCode === "upgrade-sub"
+        ? getUpgradeSubImage(s.stars ?? 1)
+        : s.catalogCode === "royal-whale"
+        ? getRoyalWhaleImage(s.stars ?? 1)
+        : def.image;
       return {
         id: s.id, dbId: s.dbId, catalogCode: s.catalogCode ?? null, level: def.marketLevel,
         max: realMax,
@@ -301,7 +306,7 @@ function loadFleet(): Ship[] {
         duration: realDuration,
         startedAt: s.startedAt,
         scale: slot.scale, top: slot.top, dockLeft: slot.dockLeft,
-        img: isUpSub ? getUpgradeSubImage(s.stars ?? 1) : def.image,
+        img: image,
         progress: Math.min(s.progress ?? 0, realMax),
         fishing: s.fishing ?? false,
         sail: s.sail ?? (s.fishing ? 1 : 0),
@@ -333,7 +338,7 @@ function saveFleet(ships: Ship[]) {
 // max capacity (server enforces the same — see collect_fishing_reward).
 function catchAmountForShip(ship: Pick<Ship, "level" | "catalogCode" | "maxHp"> & { hp?: number | null }): number {
   let base: number;
-  if ((ship.catalogCode === "submarine" || ship.catalogCode === "upgrade-sub" || ship.level === 32 || ship.level === 33) && ship.maxHp && ship.maxHp > 0) {
+  if ((ship.catalogCode === "submarine" || ship.catalogCode === "upgrade-sub" || ship.catalogCode === "royal-whale" || ship.level === 32 || ship.level === 33) && ship.maxHp && ship.maxHp > 0) {
     base = ship.maxHp;
   } else {
     base = catchPerTrip(ship.catalogCode ? getShipByCode(ship.catalogCode) : getShipByMarketLevel(ship.level));
@@ -555,7 +560,7 @@ function Index() {
               setShipAtSea(s.dbId!, false).catch(() => {});
             }
           }
-          const isUpSub = row.catalog_code === "upgrade-sub";
+          const isUpSub = row.catalog_code === "upgrade-sub" || row.catalog_code === "royal-whale";
           const subStars = row.stars ?? 1;
           const catalogCode = row.catalog_code ?? s.catalogCode ?? null;
           const shipDef = catalogCode ? getShipByCode(catalogCode) : getShipByMarketLevel(row.template_id ?? s.level);
@@ -563,7 +568,11 @@ function Index() {
           const max = catchAmountForShip({ level: resolvedLevel, catalogCode, maxHp: row.max_hp ?? s.maxHp, hp: row.hp ?? s.hp });
           const duration = shipDef.fishingSeconds;
           const imgFromCode = row.catalog_code
-            ? (isUpSub ? getUpgradeSubImage(subStars) : getShipByCode(row.catalog_code).image)
+            ? (row.catalog_code === "upgrade-sub"
+              ? getUpgradeSubImage(subStars)
+              : row.catalog_code === "royal-whale"
+              ? getRoyalWhaleImage(subStars)
+              : getShipByCode(row.catalog_code).image)
             : s.img;
           const sameTrip = !!s.fishing && !!fishing && s.startedAt === startedAt;
           const hasSailorNow = crewRowsRef.current.some(
@@ -602,7 +611,7 @@ function Index() {
           isFishing = seaOverride.atSea;
           startedAt = seaOverride.atSea ? (seaOverride.startedAt ?? startedAt ?? serverNowMs()) : undefined;
         }
-        const isUpSub = dbShip.catalog_code === "upgrade-sub";
+        const isUpSub = dbShip.catalog_code === "upgrade-sub" || dbShip.catalog_code === "royal-whale";
         const subStars = dbShip.stars ?? 1;
         // Preserve `sailorAtStart` across re-syncs of the same active trip.
         // If we don't know (fresh row), default to whether sailor is currently
@@ -616,12 +625,17 @@ function Index() {
         const sailorAtStart = prevSameTrip
           ? !!prevSameTrip.sailorAtStart
           : (isFishing ? hasSailorNow : false);
+        const newShipImage = dbShip.catalog_code === "upgrade-sub"
+          ? getUpgradeSubImage(subStars)
+          : dbShip.catalog_code === "royal-whale"
+          ? getRoyalWhaleImage(subStars)
+          : shipDef.image;
         newShips.push({
           id: nextId,
           dbId: dbShip.id,
           catalogCode: dbShip.catalog_code,
           level: resolvedLevel,
-          img: isUpSub ? getUpgradeSubImage(subStars) : shipDef.image,
+          img: newShipImage,
           progress: 0,
           max: maxProg,
           timeLeft: duration,
@@ -2809,7 +2823,7 @@ function Index() {
                         label="طاقم"
                         onClick={() => { setMenuShipId(null); reloadCrews(); refreshProfile(); setModal({ kind: "crew", shipId: s.id }); }}
                       />
-                      {s.catalogCode === "upgrade-sub" && (s.stars ?? 1) < 5 && (
+                      {(s.catalogCode === "upgrade-sub" || s.catalogCode === "royal-whale") && (s.stars ?? 1) < 5 && (
                         <ActionBtn
                           emoji="⭐"
                           label={`ترقية ${"★".repeat(s.stars ?? 1)}`}
@@ -2924,15 +2938,19 @@ function Index() {
       })()}
 
 
-      {/* Submarine upgrade dialog */}
+      {/* Submarine / Royal Whale upgrade dialog */}
       {upgradeSubShipId !== null && (() => {
         const s = ships.find((x) => x.id === upgradeSubShipId);
         if (!s || !s.dbId) return null;
+        const isWhale = s.catalogCode === "royal-whale";
+        const STAR_CAPACITY = isWhale ? ROYAL_WHALE_STAR_CAPACITY : UPGRADE_SUB_STAR_CAPACITY;
+        const SUCCESS_PCT = isWhale ? ROYAL_WHALE_SUCCESS_PCT : UPGRADE_SUB_SUCCESS_PCT;
+        const UPGRADE_COST = isWhale ? ROYAL_WHALE_COST : UPGRADE_SUB_COST;
         const curStars = s.stars ?? 1;
         const nextStars = Math.min(5, curStars + 1);
-        const chance = UPGRADE_SUB_SUCCESS_PCT[curStars] ?? 0;
-        const curCap = UPGRADE_SUB_STAR_CAPACITY[curStars] ?? 350000;
-        const nextCap = UPGRADE_SUB_STAR_CAPACITY[nextStars] ?? 350000;
+        const chance = SUCCESS_PCT[curStars] ?? 0;
+        const curCap = STAR_CAPACITY[curStars] ?? (isWhale ? 400000 : 350000);
+        const nextCap = STAR_CAPACITY[nextStars] ?? (isWhale ? 400000 : 350000);
         const isRedNext = nextStars >= 5;
         const closeDlg = () => {
           if (upgradeSubBusy) return;
@@ -2946,7 +2964,7 @@ function Index() {
         return (
           <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={closeDlg}>
             <div className="glass-hud rounded-2xl border-2 border-amber-400/60 p-5 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
-              <div className="text-3xl mb-1">⭐ ترقية الغواصة</div>
+              <div className="text-3xl mb-1">⭐ ترقية {isWhale ? "الحوت الأرجواني" : "الغواصة"}</div>
               <div className="flex items-center justify-around my-3">
                 <div className="flex flex-col items-center gap-1">
                   <div className="text-xs text-cyan-200/80">الحالي</div>
@@ -2967,8 +2985,8 @@ function Index() {
                   </div>
                   <div className="text-xs text-cyan-100 mt-1">
                     {upgradeSubResult.success
-                      ? `الغواصة الآن ${upgradeSubResult.stars >= 5 ? "نجمة حمراء ★" : "★".repeat(upgradeSubResult.stars)}`
-                      : `الغواصة رجعت إلى ${"★".repeat(upgradeSubResult.stars)}`}
+                      ? `${isWhale ? "الحوت" : "الغواصة"} الآن ${upgradeSubResult.stars >= 5 ? "نجمة حمراء ★" : "★".repeat(upgradeSubResult.stars)}`
+                      : `${isWhale ? "الحوت" : "الغواصة"} رجع إلى ${"★".repeat(upgradeSubResult.stars)}`}
                   </div>
                 </div>
               ) : (
@@ -2978,7 +2996,7 @@ function Index() {
                   </div>
                   {chance < 100 && (
                     <div className="text-[11px] text-rose-300/90 mb-2">
-                      ⚠️ عند الفشل ترجع الغواصة لنجمة أدنى
+                      ⚠️ عند الفشل يرجع {isWhale ? "الحوت" : "الغواصة"} لنجمة أدنى
                     </div>
                   )}
                   {isRedNext && (
@@ -2987,7 +3005,7 @@ function Index() {
                     </div>
                   )}
                   <div className="text-amber-200 font-extrabold text-base mb-3">
-                    💰 التكلفة: {UPGRADE_SUB_COST.toLocaleString()} ذهب
+                    💰 التكلفة: {UPGRADE_COST.toLocaleString()} ذهب
                   </div>
                 </>
               )}
@@ -3008,14 +3026,16 @@ function Index() {
                         if (!s.dbId) return;
                         setUpgradeSubBusy(true);
                         try {
-                          const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
+                          const rpcName = isWhale ? "upgrade_royal_whale" : "upgrade_submarine";
+                          const { data, error } = await (supabase as any).rpc(rpcName, { _ship_id: s.dbId });
                           if (error) {
                             const msg = error.message || "";
+                            const costLabel = isWhale ? "50 مليار" : "مليار";
                             showToast(
-                              /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
+                              /insufficient|coins|currency/i.test(msg) ? `ذهب غير كافٍ (تحتاج ${costLabel})` :
                               /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
-                              /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
-                              /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
+                              /max_rank|already_max/i.test(msg) ? `${isWhale ? "الحوت" : "الغواصة"} في أعلى مستوى` :
+                              /not_upgradeable|not_(royal_whale|submarine)/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
                               /destroyed/i.test(msg) ? "السفينة مدمّرة" :
                               "تعذّر تنفيذ الترقية"
                             );
@@ -3027,7 +3047,7 @@ function Index() {
                           refreshProfile?.();
                         } catch (e: any) {
                           showToast("تعذّر الاتصال — حاول مرة أخرى");
-                          console.error("upgrade_submarine failed", e);
+                          console.error(`${isWhale ? "upgrade_royal_whale" : "upgrade_submarine"} failed`, e);
                         } finally {
                           setUpgradeSubBusy(false);
                         }

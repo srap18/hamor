@@ -43,6 +43,30 @@ import shipDragonRed from "@/assets/ships/ship-dragon-red.webp";
 import shipDragonSilver from "@/assets/ships/ship-dragon-silver.webp";
 import shipDragonGold from "@/assets/ships/ship-dragon-gold.webp";
 
+// Royal Purple Whale — upgradeable ship (5 stars)
+import whaleStar1Asset from "@/assets/ships/whale-star-1.png.asset.json";
+import whaleStar2Asset from "@/assets/ships/whale-star-2.png.asset.json";
+import whaleStar3Asset from "@/assets/ships/whale-star-3.png.asset.json";
+import whaleStar4Asset from "@/assets/ships/whale-star-4.png.asset.json";
+import whaleStar5Asset from "@/assets/ships/whale-star-5.png.asset.json";
+const WHALE_STAR_IMAGES: Record<number, string> = {
+  1: whaleStar1Asset.url,
+  2: whaleStar2Asset.url,
+  3: whaleStar3Asset.url,
+  4: whaleStar4Asset.url,
+  5: whaleStar5Asset.url,
+};
+export function getRoyalWhaleImage(stars: number): string {
+  return WHALE_STAR_IMAGES[Math.max(1, Math.min(5, stars || 1))];
+}
+export const ROYAL_WHALE_STAR_CAPACITY: Record<number, number> = {
+  1: 400000, 2: 900000, 3: 1500000, 4: 2200000, 5: 3000000,
+};
+export const ROYAL_WHALE_SUCCESS_PCT: Record<number, number> = {
+  1: 60, 2: 50, 3: 40, 4: 25,
+};
+export const ROYAL_WHALE_COST = 50_000_000_000;
+
 // Upgradeable submarine — 5 tiers (1★ yellow → 4★ yellow → red ★)
 import subStar1Asset from "@/assets/ships/sub-star-1.png.asset.json";
 import subStar2Asset from "@/assets/ships/sub-star-2.png.asset.json";
@@ -163,6 +187,7 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   34: { ar: "سفينة التنين الدموي",      rarity: "Legendary", flavor: "سفينة تنين حمراء أسطورية — دم 20,000 وسعة 20,000 وصيد كل 20 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 20000, price: 0, fishingMinutes: 20, fishPool: ["black_dragon"] },
   35: { ar: "سفينة التنين الفضي",       rarity: "Legendary", flavor: "سفينة تنين فضية أسطورية — دم 40,000 وسعة 40,000 وصيد كل 30 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 40000, price: 0, fishingMinutes: 30, fishPool: ["black_dragon"] },
   36: { ar: "سفينة التنين الذهبي",      rarity: "Mythic",    flavor: "سفينة تنين ذهبية ملكية خرافية — دم 60,000 وسعة 60,000 وصيد كل 40 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 60000, price: 0, fishingMinutes: 40, fishPool: ["black_dragon"] },
+  37: { ar: "الحوت الأرجواني",           rarity: "Mythic",    flavor: "غواصة-حوت أرجوانية ملكية قابلة للترقية بنظام النجوم. تبدأ بسعة 400 ألف وتصل إلى 3 مليون عند النجمة الحمراء. كل محاولة ترقية بـ 50 مليار ذهب — نسب النجاح: 60/50/40/25%. عند الفشل ترجع نجمة أقل. تصيد الأروانا الفضية وشبح المرجان النادرَين.", storage: 400000, price: 1000000000000, fishingMinutes: 50, fishPool: ["silver_arowana","coral_phantom"] },
 };
 
 function buildShip(level: number): ShipDef {
@@ -230,6 +255,26 @@ function buildShip(level: number): ShipDef {
       flavor: d.flavor,
     };
   }
+  // Royal Purple Whale (level 37 internally) — upgradeable star ship, appears at market level 32.
+  if (level === 37) {
+    return {
+      code: "royal-whale",
+      name: d.ar,
+      title: d.ar,
+      image: WHALE_STAR_IMAGES[1],
+      price: d.price,
+      marketLevel: 32,
+      rarity: d.rarity,
+      maxHp: 400000,
+      armor: 145,
+      speed: 88,
+      storage: 400000,
+      repairSeconds: 14400,
+      fishingSeconds: Math.round(d.fishingMinutes * 60),
+      fishPool: d.fishPool,
+      flavor: d.flavor,
+    };
+  }
   // Dragon ships (levels 34/35/36) — Paddle-shop exclusive, catch black_dragon fish.
   if (level >= 34 && level <= 36) {
     const codeMap: Record<number, string> = { 34: "dragon-t1", 35: "dragon-t2", 36: "dragon-t3" };
@@ -280,20 +325,22 @@ function buildShip(level: number): ShipDef {
   };
 }
 
-// Regular ships in the market: 1..30 plus level 33 (upgradeable submarine).
-// Level 31 (phoenix) and 32 (VIP submarine) stay shop-exclusive.
-export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
-export const SHIPS: ShipDef[] = [
-  ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
-  UPGRADE_SUB_SHIP,
-];
-
 // Special shop-exclusive ships (not in ship market, not sold for coins).
 export const PHOENIX_SHIP: ShipDef = buildShip(31);
 export const SUBMARINE_SHIP: ShipDef = buildShip(32);
+export const UPGRADE_SUB_SHIP: ShipDef = buildShip(33);
 export const DRAGON_T1_SHIP: ShipDef = buildShip(34);
 export const DRAGON_T2_SHIP: ShipDef = buildShip(35);
 export const DRAGON_T3_SHIP: ShipDef = buildShip(36);
+export const ROYAL_WHALE_SHIP: ShipDef = buildShip(37);
+
+// Regular ships in the market: 1..30, 31 (الغواصة الترقيةّة — تعرض كـ 31), 32 (الحوت الأرجواني).
+// Level 31 (phoenix) وغواصة VIP (داخلي 32) تبقى حصرية للمتجر.
+export const SHIPS: ShipDef[] = [
+  ...Array.from({ length: 30 }, (_, i) => buildShip(i + 1)),
+  UPGRADE_SUB_SHIP,
+  ROYAL_WHALE_SHIP,
+];
 
 const ALL_SHIPS: ShipDef[] = [...SHIPS, PHOENIX_SHIP, SUBMARINE_SHIP, DRAGON_T1_SHIP, DRAGON_T2_SHIP, DRAGON_T3_SHIP];
 
@@ -312,13 +359,15 @@ export function getShipByCode(code: string | null | undefined): ShipDef {
 }
 
 // Map a market level to the ship definition.
-// 31 = phoenix, 32 = VIP submarine, 33 = upgradeable submarine, 34-36 = dragon ships.
+// 31 = phoenix, 32 = Royal Purple Whale (regular upgradeable ship), 33 = upgradeable submarine, 34-36 = dragon ships.
+// The VIP submarine (internal 32) is shop-exclusive and resolved by its catalog_code "submarine" via getShipByCode.
 export function getShipByMarketLevel(level: number): ShipDef {
+  if (level >= 37) return ROYAL_WHALE_SHIP;
   if (level >= 36) return DRAGON_T3_SHIP;
   if (level >= 35) return DRAGON_T2_SHIP;
   if (level >= 34) return DRAGON_T1_SHIP;
   if (level >= 33) return UPGRADE_SUB_SHIP;
-  if (level >= 32) return SUBMARINE_SHIP;
+  if (level >= 32) return ROYAL_WHALE_SHIP; // Royal Purple Whale at market level 32
   if (level >= 31) return PHOENIX_SHIP;
   const clamped = Math.max(1, Math.min(30, Math.round(level)));
   return SHIPS[clamped - 1];
@@ -338,11 +387,11 @@ export function catchPerTrip(ship: ShipDef): number {
 // L1 = 10000. +10000 لكل مستوى حتى 10، +30000 من 11 إلى 20، +100000 من 21 فما فوق.
 // يمكن لمسؤول النظام تجاوز أي مستوى عبر economy_settings.
 export function fishMarketCapacity(level: number): number {
-  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  const lvl = Math.max(1, Math.min(32, Math.round(level || 1)));
   const overrides = (globalThis as { __FM_CAP_OVERRIDES__?: Record<number, number> }).__FM_CAP_OVERRIDES__;
   if (overrides && overrides[lvl] != null) return overrides[lvl];
   const landmarks: Record<number, number> = {
-    26: 6000000, 27: 11000000, 28: 17000000, 29: 23000000, 30: 30000000,
+    26: 6000000, 27: 11000000, 28: 17000000, 29: 23000000, 30: 30000000, 31: 36000000, 32: 42000000,
   };
   if (landmarks[lvl] != null) return landmarks[lvl];
   let cap = 10000;
@@ -375,7 +424,7 @@ const SM_INCREMENTS: number[] = [
 ];
 
 export function shipMarketCapacity(level: number): number {
-  const lvl = Math.max(1, Math.min(30, Math.round(level || 1)));
+  const lvl = Math.max(1, Math.min(32, Math.round(level || 1)));
   let cap = 10000;
   for (let l = 2; l <= lvl; l++) {
     if (l <= 15) cap += SM_INCREMENTS[l - 2];

@@ -8243,6 +8243,7 @@ export type Database = {
       }
       upgrade_daughter_with_gems: { Args: never; Returns: Json }
       upgrade_dragon_item: { Args: { p_item_id: string }; Returns: Json }
+      upgrade_royal_whale: { Args: { _ship_id: string }; Returns: Json }
       upgrade_ship_storage: { Args: never; Returns: Json }
       upgrade_submarine: { Args: { _ship_id: string }; Returns: Json }
       use_crew_from_inventory: {
