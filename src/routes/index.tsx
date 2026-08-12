@@ -2938,15 +2938,19 @@ function Index() {
       })()}
 
 
-      {/* Submarine upgrade dialog */}
+      {/* Submarine / Royal Whale upgrade dialog */}
       {upgradeSubShipId !== null && (() => {
         const s = ships.find((x) => x.id === upgradeSubShipId);
         if (!s || !s.dbId) return null;
+        const isWhale = s.catalogCode === "royal-whale";
+        const STAR_CAPACITY = isWhale ? ROYAL_WHALE_STAR_CAPACITY : UPGRADE_SUB_STAR_CAPACITY;
+        const SUCCESS_PCT = isWhale ? ROYAL_WHALE_SUCCESS_PCT : UPGRADE_SUB_SUCCESS_PCT;
+        const UPGRADE_COST = isWhale ? ROYAL_WHALE_COST : UPGRADE_SUB_COST;
         const curStars = s.stars ?? 1;
         const nextStars = Math.min(5, curStars + 1);
-        const chance = UPGRADE_SUB_SUCCESS_PCT[curStars] ?? 0;
-        const curCap = UPGRADE_SUB_STAR_CAPACITY[curStars] ?? 350000;
-        const nextCap = UPGRADE_SUB_STAR_CAPACITY[nextStars] ?? 350000;
+        const chance = SUCCESS_PCT[curStars] ?? 0;
+        const curCap = STAR_CAPACITY[curStars] ?? (isWhale ? 400000 : 350000);
+        const nextCap = STAR_CAPACITY[nextStars] ?? (isWhale ? 400000 : 350000);
         const isRedNext = nextStars >= 5;
         const closeDlg = () => {
           if (upgradeSubBusy) return;
@@ -2960,7 +2964,7 @@ function Index() {
         return (
           <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={closeDlg}>
             <div className="glass-hud rounded-2xl border-2 border-amber-400/60 p-5 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
-              <div className="text-3xl mb-1">⭐ ترقية الغواصة</div>
+              <div className="text-3xl mb-1">⭐ ترقية {isWhale ? "الحوت الأرجواني" : "الغواصة"}</div>
               <div className="flex items-center justify-around my-3">
                 <div className="flex flex-col items-center gap-1">
                   <div className="text-xs text-cyan-200/80">الحالي</div>
@@ -2981,8 +2985,8 @@ function Index() {
                   </div>
                   <div className="text-xs text-cyan-100 mt-1">
                     {upgradeSubResult.success
-                      ? `الغواصة الآن ${upgradeSubResult.stars >= 5 ? "نجمة حمراء ★" : "★".repeat(upgradeSubResult.stars)}`
-                      : `الغواصة رجعت إلى ${"★".repeat(upgradeSubResult.stars)}`}
+                      ? `${isWhale ? "الحوت" : "الغواصة"} الآن ${upgradeSubResult.stars >= 5 ? "نجمة حمراء ★" : "★".repeat(upgradeSubResult.stars)}`
+                      : `${isWhale ? "الحوت" : "الغواصة"} رجع إلى ${"★".repeat(upgradeSubResult.stars)}`}
                   </div>
                 </div>
               ) : (
@@ -2992,7 +2996,7 @@ function Index() {
                   </div>
                   {chance < 100 && (
                     <div className="text-[11px] text-rose-300/90 mb-2">
-                      ⚠️ عند الفشل ترجع الغواصة لنجمة أدنى
+                      ⚠️ عند الفشل يرجع {isWhale ? "الحوت" : "الغواصة"} لنجمة أدنى
                     </div>
                   )}
                   {isRedNext && (
@@ -3001,7 +3005,7 @@ function Index() {
                     </div>
                   )}
                   <div className="text-amber-200 font-extrabold text-base mb-3">
-                    💰 التكلفة: {UPGRADE_SUB_COST.toLocaleString()} ذهب
+                    💰 التكلفة: {UPGRADE_COST.toLocaleString()} ذهب
                   </div>
                 </>
               )}
@@ -3022,14 +3026,16 @@ function Index() {
                         if (!s.dbId) return;
                         setUpgradeSubBusy(true);
                         try {
-                          const { data, error } = await (supabase as any).rpc("upgrade_submarine", { _ship_id: s.dbId });
+                          const rpcName = isWhale ? "upgrade_royal_whale" : "upgrade_submarine";
+                          const { data, error } = await (supabase as any).rpc(rpcName, { _ship_id: s.dbId });
                           if (error) {
                             const msg = error.message || "";
+                            const costLabel = isWhale ? "50 مليار" : "مليار";
                             showToast(
-                              /insufficient|coins|currency/i.test(msg) ? "ذهب غير كافٍ (تحتاج مليار)" :
+                              /insufficient|coins|currency/i.test(msg) ? `ذهب غير كافٍ (تحتاج ${costLabel})` :
                               /at_sea/i.test(msg) ? "أعد السفينة من البحر أولاً" :
-                              /max_rank/i.test(msg) ? "الغواصة في أعلى مستوى" :
-                              /not_upgradeable/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
+                              /max_rank|already_max/i.test(msg) ? `${isWhale ? "الحوت" : "الغواصة"} في أعلى مستوى` :
+                              /not_upgradeable|not_(royal_whale|submarine)/i.test(msg) ? "هذه السفينة غير قابلة للترقية" :
                               /destroyed/i.test(msg) ? "السفينة مدمّرة" :
                               "تعذّر تنفيذ الترقية"
                             );
@@ -3041,7 +3047,7 @@ function Index() {
                           refreshProfile?.();
                         } catch (e: any) {
                           showToast("تعذّر الاتصال — حاول مرة أخرى");
-                          console.error("upgrade_submarine failed", e);
+                          console.error(`${isWhale ? "upgrade_royal_whale" : "upgrade_submarine"} failed`, e);
                         } finally {
                           setUpgradeSubBusy(false);
                         }
