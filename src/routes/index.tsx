@@ -1814,6 +1814,14 @@ function Index() {
     }
     setFish((f) => f + fishGained);
 
+    // Royal Purple Whale: 1-3 gems awarded by the server on a FULL trip only.
+    const gemsAwarded = Number(row?.gems_awarded ?? 0);
+    if (gemsAwarded > 0) {
+      showToast(`💎 مكافأة امتلاء الحوت الأرجواني: +${gemsAwarded} ${gemsAwarded === 1 ? "جوهرة" : "جواهر"}`);
+      try { refreshProfile(); } catch {}
+    }
+
+
     sound.play("splash");
     setTimeout(() => sound.play("coin"), 180);
     setTimeout(() => sound.play("catch"), 320);
