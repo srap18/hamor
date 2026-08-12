@@ -6915,6 +6915,7 @@ export type Database = {
           elapsed_seconds: number
           fish_id: string
           fish_qty: number
+          gems_awarded: number
           luck_bonus: number
           xp_awarded: number
         }[]
