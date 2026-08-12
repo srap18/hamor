@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useProfile, refreshProfile } from "@/hooks/use-auth";
-import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage } from "@/lib/ships";
+import { getShipByCode, getShipByMarketLevel, getUpgradeSubImage, getWhaleImage } from "@/lib/ships";
 import { sound } from "@/lib/sound";
 import { sellShip } from "@/lib/economy";
 
@@ -345,8 +345,10 @@ function SectionTitle({ icon, label, hint }: { icon: string; label: string; hint
 
 function ShipCard({ ship, idx, primaryAction, dim }: { ship: ShipRow; idx: number; primaryAction: React.ReactNode; dim?: boolean }) {
   const def = ship.catalog_code ? getShipByCode(ship.catalog_code) : getShipByMarketLevel(ship.template_id ?? 1);
-  const image = ship.catalog_code === "upgrade-sub" ? getUpgradeSubImage(ship.stars ?? 1) : def.image;
-  const storage = (ship.catalog_code === "upgrade-sub" || ship.catalog_code === "submarine") && ship.max_hp ? ship.max_hp : def.storage;
+  const image = ship.catalog_code === "upgrade-sub" ? getUpgradeSubImage(ship.stars ?? 1) :
+                ship.catalog_code === "royal-whale" ? getWhaleImage(ship.stars ?? 1) :
+                def.image;
+  const storage = (ship.catalog_code === "upgrade-sub" || ship.catalog_code === "submarine" || ship.catalog_code === "royal-whale") && ship.max_hp ? ship.max_hp : def.storage;
   const rarityClass = rarityColors[def.rarity] || rarityColors.Common;
   return (
     <div className={`relative rounded-xl border-2 p-2 flex items-center gap-3 mb-2 ${rarityClass} ${dim ? "opacity-80" : ""}`}>
