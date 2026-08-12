@@ -26,6 +26,7 @@ function PaymentSuccess() {
   const [reward, setReward] = useState<StorePack | null>(null);
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
+  const [slow, setSlow] = useState(false);
 
   const notifyVipRefresh = () => {
     try { window.dispatchEvent(new Event("paddle-purchase-completed")); } catch { /* noop */ }
