@@ -26,6 +26,7 @@ function PaymentSuccess() {
   const [reward, setReward] = useState<StorePack | null>(null);
   const [recovering, setRecovering] = useState(false);
   const [recoverMsg, setRecoverMsg] = useState<string | null>(null);
+  const [slow, setSlow] = useState(false);
 
   const notifyVipRefresh = () => {
     try { window.dispatchEvent(new Event("paddle-purchase-completed")); } catch { /* noop */ }
@@ -88,9 +89,11 @@ function PaymentSuccess() {
         }
       }
 
-      // 2) No txn id (or claim failed) → auto-reconcile by email, retrying
-      // for ~60s to handle webhook delay and slow PayPal settlements.
-      for (let i = 0; i < 12 && !cancelled; i++) {
+      // 2) No txn id (or claim failed) → auto-reconcile by email.
+      // Fast first attempts, then backoff (still ~60s total) so the common
+      // case (webhook already landed) resolves in under a second.
+      const delays = [600, 900, 1200, 1800, 2500, 3500, 5000, 5000, 5000, 5000, 5000, 5000];
+      for (let i = 0; i < delays.length && !cancelled; i++) {
         try {
           const r = await reconcile({ data: { environment: env } });
           if (r?.grantedCount && r.grantedCount > 0) {
@@ -108,7 +111,8 @@ function PaymentSuccess() {
         } catch (e) {
           console.error("[payment-success] reconcile attempt failed", e);
         }
-        await new Promise((res) => setTimeout(res, 5000));
+        if (i >= 2 && !cancelled) setSlow(true);
+        await new Promise((res) => setTimeout(res, delays[i]));
       }
 
       // 3) Give up waiting — keep wording honest and provide manual recovery.
@@ -137,6 +141,14 @@ function PaymentSuccess() {
             <div className="text-6xl mb-3 animate-pulse">⏳</div>
             <h1 className="text-xl font-extrabold mb-1">جاري إضافة المكافآت...</h1>
             <p className="text-sm text-stone-300">لحظات من فضلك</p>
+            {slow && (
+              <button
+                onClick={() => nav({ to: "/" })}
+                className="w-full py-2.5 mt-4 rounded-xl bg-stone-800 border border-stone-600 text-sm font-bold active:scale-95"
+              >
+                تخطي والعودة للعبة (التسليم يكمل تلقائياً)
+              </button>
+            )}
           </>
         ) : (
           <>
