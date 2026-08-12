@@ -187,7 +187,7 @@ const SHIP_DATA: Record<number, ShipOverride> = {
   34: { ar: "سفينة التنين الدموي",      rarity: "Legendary", flavor: "سفينة تنين حمراء أسطورية — دم 20,000 وسعة 20,000 وصيد كل 20 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 20000, price: 0, fishingMinutes: 20, fishPool: ["black_dragon"] },
   35: { ar: "سفينة التنين الفضي",       rarity: "Legendary", flavor: "سفينة تنين فضية أسطورية — دم 40,000 وسعة 40,000 وصيد كل 30 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 40000, price: 0, fishingMinutes: 30, fishPool: ["black_dragon"] },
   36: { ar: "سفينة التنين الذهبي",      rarity: "Mythic",    flavor: "سفينة تنين ذهبية ملكية خرافية — دم 60,000 وسعة 60,000 وصيد كل 40 دقيقة. تصيد التنين الأسود الأسطوري النادر 🐉.", storage: 60000, price: 0, fishingMinutes: 40, fishPool: ["black_dragon"] },
-  37: { ar: "الحوت الأرجواني",           rarity: "Mythic",    flavor: "غواصة-حوت أرجوانية ملكية قابلة للترقية بنظام النجوم. تبدأ بسعة 400 ألف وتصل إلى 3 مليون عند النجمة الحمراء. كل محاولة ترقية بـ 50 مليار ذهب — نسب النجاح: 60/50/40/25%. عند الفشل ترجع نجمة أقل. تصيد الأروانا الفضية وشبح المرجان النادرَين.", storage: 400000, price: 1000000000000, fishingMinutes: 50, fishPool: ["silver_arowana","coral_phantom"] },
+  37: { ar: "الحوت الأرجواني",           rarity: "Mythic",    flavor: "غواصة-حوت أرجوانية ملكية قابلة للترقية بنظام النجوم. تبدأ بسعة 400 ألف وتصل إلى 3 مليون عند النجمة الحمراء. كل محاولة ترقية بـ 50 مليار ذهب — نسب النجاح: 60/50/40/25%. عند الفشل ترجع نجمة أقل. تصيد ثلاثة أنواع فاخرة حصرية: قمرية الإمبراطور 👑، مانتا الألماس 💎، الجمشت الملكي 🔮.", storage: 400000, price: 1000000000000, fishingMinutes: 50, fishPool: ["imperial_moonfish","diamond_manta","royal_amethyst"] },
 };
 
 function buildShip(level: number): ShipDef {

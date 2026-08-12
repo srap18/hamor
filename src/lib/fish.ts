@@ -50,6 +50,9 @@ import abyss_titan from "@/assets/fish/abyss_titan.webp";
 import black_dragon from "@/assets/fish/black_dragon.webp";
 import silver_arowana from "@/assets/fish/silver_arowana.webp";
 import coral_phantom from "@/assets/fish/coral_phantom.webp";
+import imperial_moonfish from "@/assets/fish/imperial_moonfish.png";
+import diamond_manta from "@/assets/fish/diamond_manta.png";
+import royal_amethyst from "@/assets/fish/royal_amethyst.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
@@ -60,6 +63,7 @@ export const FISH_IMG: Record<string, string> = {
   kraken, leviathan, megalodon, sea_dragon, poseidon, black_pearl, golden_koi,
   phoenix, abyss_titan, black_dragon,
   silver_arowana, coral_phantom,
+  imperial_moonfish, diamond_manta, royal_amethyst,
 };
 
 export type Fish = {
@@ -145,6 +149,11 @@ const FISH_DEFS: Record<string, FishDef> = {
   // ========== EXCLUSIVE — حصرية للغواصة (المستوى 32) ==========
   silver_arowana:{ id: "silver_arowana", name: "الأروانا الفضية", emoji: "🐟", price: 30, tier: 6, rarity: "mythic" },
   coral_phantom: { id: "coral_phantom",  name: "شبح المرجان",     emoji: "🪸", price: 30, tier: 6, rarity: "mythic" },
+
+  // ========== EXCLUSIVE — حصرية للحوت الأرجواني (الترقية 32) ==========
+  imperial_moonfish: { id: "imperial_moonfish", name: "قمرية الإمبراطور", emoji: "👑", price: 45, tier: 6, rarity: "mythic" },
+  diamond_manta:     { id: "diamond_manta",     name: "مانتا الألماس",    emoji: "💎", price: 48, tier: 6, rarity: "mythic" },
+  royal_amethyst:    { id: "royal_amethyst",    name: "الجمشت الملكي",    emoji: "🔮", price: 50, tier: 6, rarity: "mythic" },
 };
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
@@ -158,12 +167,13 @@ export const FISH_TOTAL = FISH_LIST.length;
 // Each ship tier catches 2 fish from its tier (rotated based on ship id).
 // Phoenix ship (level 31) is exclusive — only catches phoenix fish.
 export function fishForShip(shipLevel: number, shipId: number): string[] {
+  if (shipLevel >= 37) return ["imperial_moonfish", "diamond_manta", "royal_amethyst"];
   if (shipLevel >= 34) return ["black_dragon"];
   if (shipLevel >= 33) return ["kraken", "leviathan", "poseidon"];
   if (shipLevel >= 32) return ["silver_arowana", "coral_phantom"];
   if (shipLevel >= 31) return ["phoenix"];
   const tier = Math.min(6, Math.max(1, Math.ceil(shipLevel / 5))) as 1|2|3|4|5|6;
-  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon" && f.id !== "silver_arowana" && f.id !== "coral_phantom");
+  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon" && f.id !== "silver_arowana" && f.id !== "coral_phantom" && f.id !== "imperial_moonfish" && f.id !== "diamond_manta" && f.id !== "royal_amethyst");
   if (pool.length === 0) return [];
   const a = pool[shipId % pool.length].id;
   const b = pool[(shipId + 3) % pool.length].id;
