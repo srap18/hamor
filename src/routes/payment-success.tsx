@@ -141,6 +141,14 @@ function PaymentSuccess() {
             <div className="text-6xl mb-3 animate-pulse">⏳</div>
             <h1 className="text-xl font-extrabold mb-1">جاري إضافة المكافآت...</h1>
             <p className="text-sm text-stone-300">لحظات من فضلك</p>
+            {slow && (
+              <button
+                onClick={() => nav({ to: "/" })}
+                className="w-full py-2.5 mt-4 rounded-xl bg-stone-800 border border-stone-600 text-sm font-bold active:scale-95"
+              >
+                تخطي والعودة للعبة (التسليم يكمل تلقائياً)
+              </button>
+            )}
           </>
         ) : (
           <>
