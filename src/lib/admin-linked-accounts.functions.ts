@@ -284,10 +284,13 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
         shared_devices: devs,
         shared_ips: [],
         link_via: devs.length ? ["device"] : [],
-      };
+        confidence: scoreMap.get(p.id) ?? 0,
+        evidence: Array.from(evidenceMap.get(p.id) ?? []),
+      } as LinkedAccount;
     });
 
-    linked.sort((a, b) => b.shared_devices.length - a.shared_devices.length);
+    linked.sort((a, b) => b.confidence - a.confidence || b.shared_devices.length - a.shared_devices.length);
+
 
     return {
       self: {
