@@ -172,10 +172,29 @@ function ShipyardPage() {
   const startUpgrade = async () => {
     if (!user || !profile || !market || market.upgrading_to) return;
     const req = requiredFishLevel(marketLevel + 1);
-    if (req > 0 && fishLevel < req) {
-      showToast(`لازم توصل سوق السمك للمستوى ${req} قبل ترقية سوق السفن للمستوى ${marketLevel + 1}`);
-      return;
+    if (req > 0) {
+      // Always re-check the fish-market level against the server (a just-finished
+      // fish upgrade must unlock the ship upgrade immediately, no stale cache).
+      await supabase.rpc("finalize_fish_market_upgrades" as never);
+      const { data: fishRow } = await supabase
+        .from("user_fish_market")
+        .select("level, upgrading_to, upgrade_ends_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fr = fishRow as { level?: number; upgrading_to?: number | null; upgrade_ends_at?: string | null } | null;
+      const freshFish = Math.max(1, Number(fr?.level ?? 1));
+      setFishLevel(freshFish);
+      if (freshFish < req) {
+        if (fr?.upgrading_to && fr.upgrading_to >= req && fr.upgrade_ends_at) {
+          const mins = Math.max(1, Math.ceil((new Date(fr.upgrade_ends_at).getTime() - serverNowMs()) / 60000));
+          showToast(`ترقية سوق السمك للمستوى ${req} قيد التنفيذ (باقي ${mins} دقيقة)`);
+        } else {
+          showToast(`لازم توصل سوق السمك للمستوى ${req} (مستواك ${freshFish}) قبل ترقية سوق السفن للمستوى ${marketLevel + 1}`);
+        }
+        return;
+      }
     }
+
     const preview = await nextUpgradePreview();
     const ok = await confirmDialog({
       title: "ترقية سوق السفن",
