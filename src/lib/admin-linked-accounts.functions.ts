@@ -96,8 +96,40 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       .eq("user_id", data.userId);
 
     const deviceMap = new Map<string, Set<string>>();
+    // per-user best confidence + human-readable evidence
+    const scoreMap = new Map<string, number>();
+    const evidenceMap = new Map<string, Set<string>>();
+    const bump = (uid: string, score: number, label: string, ev?: string | null) => {
+      scoreMap.set(uid, Math.max(scoreMap.get(uid) ?? 0, score));
+      if (!evidenceMap.has(uid)) evidenceMap.set(uid, new Set());
+      evidenceMap.get(uid)!.add(label);
+      if (ev) {
+        if (!deviceMap.has(uid)) deviceMap.set(uid, new Set());
+        deviceMap.get(uid)!.add(ev);
+      }
+    };
 
-    // 1) Match on device_slots hardware_hash
+    // Hardware hashes that are known model-collisions (attached to a "generic"
+    // identity) must never link accounts.
+    const genericHashes = new Set<string>();
+    {
+      const { data: genericIdents } = await supabaseAdmin
+        .from("device_identities")
+        .select("id")
+        .eq("is_generic", true);
+      const gIds = (genericIdents ?? []).map((r) => r.id);
+      if (gIds.length) {
+        for (let i = 0; i < gIds.length; i += 200) {
+          const { data: rows } = await supabaseAdmin
+            .from("device_identity_users")
+            .select("hardware_hash")
+            .in("identity_id", gIds.slice(i, i + 200));
+          for (const r of rows ?? []) if (r.hardware_hash) genericHashes.add(r.hardware_hash);
+        }
+      }
+    }
+
+    // 1) device_slots hardware_hash — a real seating on that hardware.
     if (myHardwareHashes.length > 0) {
       const { data: slotOthers } = await supabaseAdmin
         .from("device_slots")
@@ -113,18 +145,14 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       for (const r of slotOthers ?? []) {
         if (r.user_id === data.userId) continue;
         if (!isRealId(r.hardware_hash)) continue;
+        if (genericHashes.has(r.hardware_hash)) continue;
         const distinct = usersPerHash.get(r.hardware_hash)?.size ?? 0;
         if (distinct > COLLISION_THRESHOLD) continue;
-        if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
-        deviceMap.get(r.user_id)!.add(r.hardware_hash);
+        bump(r.user_id, 85, "بصمة عتاد مطابقة (خانة جهاز)", r.hardware_hash);
       }
     }
 
-    // 2) Match on exact device_history device_id — but ONLY for identifiers that
-    // behave like a real, private device. An id shared by more than
-    // COLLISION_THRESHOLD distinct accounts is a broken/colliding fingerprint
-    // (webview / privacy browser producing the same hash for everyone) and must
-    // never be used to link accounts, otherwise unrelated players show up here.
+    // 2) exact device_history device_id (same browser/app storage).
     if (myDeviceIds.length > 0) {
       const { data: others } = await supabaseAdmin
         .from("device_history")
@@ -142,41 +170,67 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
         if (!isRealId(r.device_id)) continue;
         const distinct = usersPerDevice.get(r.device_id)?.size ?? 0;
         if (distinct > COLLISION_THRESHOLD) continue;
-        if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
-        deviceMap.get(r.user_id)!.add(r.device_id);
+        bump(r.user_id, 90, "نفس معرّف التطبيق/المتصفح على الجهاز", r.device_id);
       }
     }
 
-    // 3) High-precision hardware identities (confidence >= 95, non-generic).
-    // This catches two PWA installs / two app copies on the SAME phone, and
-    // never links accounts that merely share a network or a weak fingerprint.
+    // 3) Hardware identities. native_id match = certain (same physical phone);
+    // stable+noise match = strong but only when the identity isn't generic and
+    // isn't shared by a crowd (model lookalikes on the same network).
     {
       const { data: mine } = await supabaseAdmin
         .from("device_identity_users")
         .select("identity_id, confidence")
         .eq("user_id", data.userId)
-        .gte("confidence", 95);
+        .gte("confidence", 96);
       const identityIds = Array.from(new Set((mine ?? []).map((r) => r.identity_id)));
       if (identityIds.length) {
         const { data: idents } = await supabaseAdmin
           .from("device_identities")
-          .select("id, is_generic")
+          .select("id, is_generic, native_id")
           .in("id", identityIds);
-        const good = (idents ?? []).filter((i) => !i.is_generic).map((i) => i.id);
+        const good = (idents ?? []).filter((i) => !i.is_generic);
+        const nativeById = new Map(good.map((i) => [i.id, !!i.native_id]));
         if (good.length) {
           const { data: peers } = await supabaseAdmin
             .from("device_identity_users")
             .select("identity_id, user_id, hardware_hash, confidence")
-            .in("identity_id", good)
-            .gte("confidence", 95);
+            .in("identity_id", good.map((i) => i.id))
+            .gte("confidence", 96);
+
+          const usersPerIdentity = new Map<string, Set<string>>();
+          for (const r of peers ?? []) {
+            if (!usersPerIdentity.has(r.identity_id)) usersPerIdentity.set(r.identity_id, new Set());
+            usersPerIdentity.get(r.identity_id)!.add(r.user_id);
+          }
           for (const r of peers ?? []) {
             if (r.user_id === data.userId) continue;
-            if (!deviceMap.has(r.user_id)) deviceMap.set(r.user_id, new Set());
-            deviceMap.get(r.user_id)!.add(r.hardware_hash || r.identity_id);
+            const isNative = nativeById.get(r.identity_id) === true;
+            const distinct = usersPerIdentity.get(r.identity_id)?.size ?? 0;
+            // native id can legitimately hold several accounts (same phone);
+            // fuzzy identities above the threshold are model collisions.
+            if (!isNative && distinct > COLLISION_THRESHOLD) continue;
+            bump(
+              r.user_id,
+              isNative ? 100 : 92,
+              isNative ? "معرّف الجهاز من نظام التشغيل (مطابقة مؤكدة)" : "بصمة عتاد + بصمة رسم/صوت متطابقة",
+              r.hardware_hash || r.identity_id,
+            );
           }
         }
       }
     }
+
+    // Drop everything below the confidence floor — those are network / same
+    // phone-model lookalikes, not the same physical device.
+    for (const uid of Array.from(deviceMap.keys())) {
+      if ((scoreMap.get(uid) ?? 0) < MIN_CONFIDENCE) {
+        deviceMap.delete(uid);
+        scoreMap.delete(uid);
+        evidenceMap.delete(uid);
+      }
+    }
+
 
 
     const userIds = Array.from(deviceMap.keys());
