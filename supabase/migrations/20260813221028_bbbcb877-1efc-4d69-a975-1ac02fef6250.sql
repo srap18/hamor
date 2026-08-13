@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ALTER COLUMN gems SET DEFAULT 100;
