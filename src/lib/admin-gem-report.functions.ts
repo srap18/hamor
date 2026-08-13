@@ -567,27 +567,49 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       }
 
       let kind: GemReportEvent["kind"] = delta < 0 ? "spend" : "other_gain";
-      let label = delta < 0 ? "صرف داخل اللعبة" : "إضافة غير مصنّفة";
+      let label = delta < 0 ? "صرف داخل اللعبة (سجل قديم بدون تتبع)" : "إضافة قديمة بدون تتبع";
       let product_label: string | undefined;
       let product_id: string | undefined;
       let amount_usd: number | undefined;
       let detail: string | undefined;
+      let exact = false;
 
-      // Recorded source in economy_audit wins over heuristic match
+      // 1) Exact source recorded by the database (highest trust)
       const srcKey = (a.source as string | null) ?? null;
+      const fnSrc = srcKey ? resolveFnSource(srcKey) : null;
       if (srcKey && SOURCE_LABELS_AR[srcKey]) {
         const s = SOURCE_LABELS_AR[srcKey];
         kind = s.kind;
         label = s.label;
         detail = a.reason || undefined;
-      } else if (match) {
+        exact = true;
+      } else if (fnSrc) {
+        kind = fnSrc.kind;
+        label = fnSrc.label;
+        detail = a.reason || `العملية: ${fnSrc.fn}`;
+        exact = true;
+      } else if (srcKey) {
+        kind = delta < 0 ? "spend" : "other_gain";
+        label = `مصدر مسجّل: ${srcKey}`;
+        detail = a.reason || undefined;
+        exact = true;
+      }
+
+      // 2) Correlated event (older rows recorded before exact tracking)
+      if (!exact && match) {
         kind = match.kind;
-        label = match.label_ar;
+        label = `${match.label_ar} (مطابقة زمنية)`;
         product_label = match.product_label;
         product_id = match.product_id;
         amount_usd = match.amount_usd;
         detail = match.detail;
+      } else if (exact && match) {
+        // keep exact label but enrich with product/price info
+        product_label = product_label ?? match.product_label;
+        product_id = product_id ?? match.product_id;
+        amount_usd = amount_usd ?? match.amount_usd;
       }
+
 
 
       // Summary
