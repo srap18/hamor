@@ -356,7 +356,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [linkedLoading, setLinkedLoading] = useState(false);
   const [linkedData, setLinkedData] = useState<{
     self: { user_id: string; email: string | null; devices: { device_id: string; created_at: string; updated_at: string }[]; ips: { ip: string; first_seen: string; last_seen: string; hits: number }[] };
-    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[] }>;
+    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[]; confidence: number; evidence: string[] }>;
   } | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteBanEmail, setDeleteBanEmail] = useState(true);
