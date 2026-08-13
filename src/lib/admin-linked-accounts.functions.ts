@@ -13,15 +13,24 @@ export type LinkedAccount = {
   shared_devices: string[];
   shared_ips: string[]; // kept for schema compatibility; always empty now
   link_via: ("device" | "ip")[]; // always ["device"] now
+  /** 0-100 — how certain we are it's literally the same physical device. */
+  confidence: number;
+  /** Human evidence labels (Arabic) describing WHY it matched. */
+  evidence: string[];
 };
 
 /**
- * A hardware_hash / device_id shared by MORE than this many distinct users
- * is considered a fallback/collision fingerprint (webview/incognito where the
- * fingerprint APIs are blocked and everyone produces the same hash) and is
- * NEVER used to link accounts.
+ * A hardware_hash / device_id shared by MORE than this many distinct users is
+ * a model-collision fingerprint (identical phone models produce the same
+ * canvas/audio/webgl signature, and blocked webviews produce a shared fallback
+ * hash). The device-slot policy allows 2 accounts per device, so anything
+ * above 3 users on one identifier is noise and is NEVER used to link accounts.
  */
-const COLLISION_THRESHOLD = 5;
+const COLLISION_THRESHOLD = 3;
+
+/** Matches weaker than this are dropped entirely (network / model lookalikes). */
+const MIN_CONFIDENCE = 80;
+
 
 /** Minimum length for an id to be considered a real fingerprint. */
 const MIN_ID_LEN = 32;
