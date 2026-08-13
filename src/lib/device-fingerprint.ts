@@ -7,6 +7,11 @@
 
 const CACHE_KEY = "hamor_hdid_v3";
 const SIGNALS_CACHE_KEY = "hamor_hdid_signals_v3";
+const CACHE_TS_KEY = "hamor_hdid_ts_v3";
+/** Re-collect the raw signals periodically so the fingerprint stays accurate
+ *  (OS/browser updates, GPU driver changes, new fonts...). */
+const CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
 
 function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1200): Promise<T> {
   return Promise.race([
@@ -267,10 +272,13 @@ export async function getHardwareFingerprint(): Promise<string> {
 export async function getDeviceFingerprint(): Promise<DeviceIdentity> {
   let signals: DeviceSignals | null = null;
   let hash = "";
+  let stale = false;
   try {
     const cachedHash = localStorage.getItem(CACHE_KEY);
     const cachedSigs = localStorage.getItem(SIGNALS_CACHE_KEY);
-    if (cachedHash && cachedHash.length >= 32 && cachedSigs) {
+    const ts = Number(localStorage.getItem(CACHE_TS_KEY) || 0);
+    stale = !ts || Date.now() - ts > CACHE_TTL_MS;
+    if (cachedHash && cachedHash.length >= 32 && cachedSigs && !stale) {
       hash = cachedHash;
       signals = JSON.parse(cachedSigs) as DeviceSignals;
     }
@@ -283,8 +291,10 @@ export async function getDeviceFingerprint(): Promise<DeviceIdentity> {
     try {
       localStorage.setItem(CACHE_KEY, hash);
       localStorage.setItem(SIGNALS_CACHE_KEY, JSON.stringify(signals));
+      localStorage.setItem(CACHE_TS_KEY, String(Date.now()));
     } catch {}
   }
+
 
   const [stableKey, noiseKey, nativeId] = await Promise.all([
     sha256Hex("sk|" + stableKeySource(signals)),

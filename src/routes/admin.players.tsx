@@ -356,7 +356,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
   const [linkedLoading, setLinkedLoading] = useState(false);
   const [linkedData, setLinkedData] = useState<{
     self: { user_id: string; email: string | null; devices: { device_id: string; created_at: string; updated_at: string }[]; ips: { ip: string; first_seen: string; last_seen: string; hits: number }[] };
-    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[] }>;
+    linked: Array<{ user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; email: string | null; level: number | null; coins: number | null; created_at: string | null; shared_devices: string[]; shared_ips: string[]; link_via: ("device" | "ip")[]; confidence: number; evidence: string[] }>;
   } | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteBanEmail, setDeleteBanEmail] = useState(true);
@@ -932,7 +932,7 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب آخر ببصمة جهاز مطابقة — لا يعتمد الفحص على IP</div>
+              <div className="text-[11px] text-amber-300">⚠️ تم العثور على {linkedData.linked.length} حساب ببصمة جهاز مؤكدة (دقة 80%+) — لا يعتمد الفحص على IP ولا على تشابه نوع الجهاز</div>
               {linkedData.linked.map((acc) => (
                 <div key={acc.user_id} className="rounded-lg bg-slate-800/70 border border-slate-700 p-2 flex items-center gap-2">
                   {acc.avatar_url ? (
@@ -949,18 +949,20 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                       {acc.email ?? "—"} · L{acc.level ?? 0} · 🪙{(acc.coins ?? 0).toLocaleString()}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] ${(acc.confidence ?? 0) >= 100 ? "bg-rose-600/40 text-rose-100" : (acc.confidence ?? 0) >= 90 ? "bg-orange-600/30 text-orange-200" : "bg-amber-600/25 text-amber-200"}`}>
+                        🎯 دقة المطابقة {acc.confidence ?? 0}%
+                      </span>
                       {acc.shared_devices.length > 0 && (
                         <span className="px-1.5 py-0.5 rounded bg-rose-600/30 text-rose-200 text-[10px]">
                           📱 نفس الجهاز ({acc.shared_devices.length})
                         </span>
                       )}
-                      {acc.shared_ips.length > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-600/30 text-amber-200 text-[10px]">
-                          🌐 نفس IP ({acc.shared_ips.length})
-                        </span>
-                      )}
+                      {(acc.evidence ?? []).map((e) => (
+                        <span key={e} className="px-1.5 py-0.5 rounded bg-slate-700/70 text-slate-300 text-[10px]">🔎 {e}</span>
+                      ))}
                     </div>
                   </div>
+
                   <a
                     href={`/p/${acc.user_id}`}
                     target="_blank"
