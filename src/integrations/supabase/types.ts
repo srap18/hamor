@@ -5972,6 +5972,7 @@ export type Database = {
         Args: { _won: boolean }
         Returns: undefined
       }
+      _audit_caller_source: { Args: never; Returns: string }
       _audit_current_reason: { Args: never; Returns: string }
       _audit_current_source: { Args: never; Returns: string }
       _client_ip: { Args: never; Returns: string }
