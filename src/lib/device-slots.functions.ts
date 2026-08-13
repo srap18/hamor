@@ -66,6 +66,46 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
     return { ...(res as any), canonicalHash };
   });
 
+/**
+ * Re-registers the physical device identity for an already signed-in account.
+ * Needed so device-wide moderation (mute/ban) also covers accounts that stay
+ * logged in and never pass through the login/signup slot check again.
+ */
+export const deviceIdentityTouch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: {
+    hardwareHash?: string | null;
+    signals?: Record<string, any>;
+    stableKey?: string | null;
+    noiseKey?: string | null;
+    nativeId?: string | null;
+    strong?: boolean;
+  }) => ({
+    hardwareHash: (i?.hardwareHash ?? "").trim() || null,
+    signals: i?.signals || {},
+    stableKey: i?.stableKey ?? null,
+    noiseKey: i?.noiseKey ?? null,
+    nativeId: i?.nativeId ?? null,
+    strong: !!i?.strong,
+  }))
+  .handler(async ({ data, context }) => {
+    try {
+      const { resolveDeviceIdentity } = await import("./device-slots.server");
+      const res = await resolveDeviceIdentity({
+        stableKey: data.stableKey,
+        noiseKey: data.noiseKey,
+        nativeId: data.nativeId,
+        signals: data.signals,
+        strong: data.strong,
+        hardwareHash: data.hardwareHash,
+        userId: context.userId,
+      });
+      return { ok: true, ...res };
+    } catch {
+      return { ok: false };
+    }
+  });
+
 
 export const deviceAssignSlot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
