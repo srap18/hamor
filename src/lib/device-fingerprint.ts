@@ -7,6 +7,11 @@
 
 const CACHE_KEY = "hamor_hdid_v3";
 const SIGNALS_CACHE_KEY = "hamor_hdid_signals_v3";
+const CACHE_TS_KEY = "hamor_hdid_ts_v3";
+/** Re-collect the raw signals periodically so the fingerprint stays accurate
+ *  (OS/browser updates, GPU driver changes, new fonts...). */
+const CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
 
 function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1200): Promise<T> {
   return Promise.race([
