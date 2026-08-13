@@ -1885,6 +1885,8 @@ function Index() {
       shipLevel: s.level,
       baseCount: baseFish,
       luckBonus: luckBonus,
+      gems: gemsAwarded,
+
     });
 
 
