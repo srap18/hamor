@@ -3430,7 +3430,36 @@ function Index() {
                 </div>
               </div>
 
+              {/* Ship switcher — jump between your ships without closing */}
+              {ships.length > 1 && (
+                <div className="px-3 pt-3">
+                  <div className="rounded-2xl border border-amber-700/30 bg-slate-950/50 p-2">
+                    <div className="flex gap-2 overflow-x-auto pb-1 px-0.5">
+                      {ships.map((sh, idx) => {
+                        const isActive = sh.id === s.id;
+                        const cnt = crewRows.filter((r) => isCrewActiveOnShip(r.meta, sh, now)).length;
+                        return (
+                          <button
+                            key={sh.id}
+                            type="button"
+                            onClick={() => setModal({ kind: "crew", shipId: sh.id })}
+                            className={`relative shrink-0 flex flex-col items-center gap-0.5 min-w-[68px] p-1.5 rounded-xl border-2 active:scale-95 transition-all ${isActive ? "border-amber-400 bg-amber-500/20 shadow-[0_0_12px_rgba(251,191,36,0.35)]" : "border-slate-700 bg-slate-800/50 opacity-70"}`}
+                          >
+                            <img decoding="async" src={sh.img} alt="" className="w-11 h-11 object-contain" draggable={false} />
+                            <span className={`text-[10px] font-bold ${isActive ? "text-amber-200" : "text-amber-300/60"}`}>سفينة {idx + 1}</span>
+                            {cnt > 0 && (
+                              <span className="absolute -top-1 -left-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full px-1.5 shadow">👥 {cnt}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-y-auto max-h-[calc(90vh-110px)] px-4 pt-4 pb-5 space-y-5 relative">
+
                 {/* Active crews */}
                 <section>
                   <div className="flex items-center gap-2 mb-2 px-1">
