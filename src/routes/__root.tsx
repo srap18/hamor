@@ -483,6 +483,28 @@ function RootComponent() {
               hardwareId = await getHardwareFingerprint();
             } catch {}
             await recordSession({ data: { deviceId: ensureDeviceId(), hardwareId } });
+            // Refresh the high-precision hardware identity for this signed-in
+            // account (max once per 6h) so device-wide moderation stays accurate.
+            try {
+              const k = "hamor_identity_touch";
+              const last = Number(localStorage.getItem(k) || 0);
+              if (Date.now() - last > 6 * 3600_000) {
+                const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
+                const fp = await getDeviceFingerprint();
+                const { deviceIdentityTouch } = await import("@/lib/device-slots.functions");
+                await deviceIdentityTouch({
+                  data: {
+                    hardwareHash: fp.hash,
+                    signals: fp.signals,
+                    stableKey: fp.stableKey,
+                    noiseKey: fp.noiseKey,
+                    nativeId: fp.nativeId,
+                    strong: fp.strong,
+                  },
+                });
+                localStorage.setItem(k, String(Date.now()));
+              }
+            } catch {}
           } catch {}
           finally { inFlight = false; }
         };
