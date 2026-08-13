@@ -70,6 +70,7 @@ function ShipyardPage() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<null | "upgrade" | "boost" | string>(null);
+  const [fishLevel, setFishLevel] = useState<number>(1);
   const [toast, setToast] = useState<string | null>(null);
   const [storageOpen, setStorageOpen] = useState(false);
 
@@ -112,10 +113,12 @@ function ShipyardPage() {
     const cacheKey = `ship-market:${user.id}`;
     if (showSpinner && !getCached<ShipMarketCache>(cacheKey)) setLoading(true);
     await supabase.rpc("finalize_market_upgrades");
-    const [{ data: marketRow }, { data: ownedRows }] = await Promise.all([
+    const [{ data: marketRow }, { data: ownedRows }, { data: fishRow }] = await Promise.all([
       supabase.from("user_market").select("level, upgrading_to, upgrade_ends_at, upgrade_started_at, upgrade_cost_coins").eq("user_id", user.id).maybeSingle(),
       supabase.from("ships_owned").select("id, catalog_code, hp, max_hp, in_storage").eq("user_id", user.id).order("acquired_at", { ascending: false }),
+      supabase.from("user_fish_market").select("level").eq("user_id", user.id).maybeSingle(),
     ]);
+    setFishLevel(((fishRow as { level: number } | null)?.level) ?? 1);
     const mr = (marketRow as MarketState | null) ?? { level: 1, upgrading_to: null, upgrade_ends_at: null, upgrade_started_at: null, upgrade_cost_coins: null };
     const ownedNext = (ownedRows as OwnedShip[] | null) ?? [];
     setMarket(mr);
@@ -168,6 +171,11 @@ function ShipyardPage() {
 
   const startUpgrade = async () => {
     if (!user || !profile || !market || market.upgrading_to) return;
+    const req = requiredFishLevel(marketLevel + 1);
+    if (req > 0 && fishLevel < req) {
+      showToast(`لازم توصل سوق السمك للمستوى ${req} قبل ترقية سوق السفن للمستوى ${marketLevel + 1}`);
+      return;
+    }
     const preview = await nextUpgradePreview();
     const ok = await confirmDialog({
       title: "ترقية سوق السفن",
@@ -344,7 +352,7 @@ function ShipyardPage() {
                   <div className="text-[11px] text-muted-foreground">المعادلة المستخدمة: ceil(seconds_remaining / 60)</div>
                 </div>
               ) : (
-                <UpgradePanel level={marketLevel} onStart={startUpgrade} busy={busy === "upgrade"} />
+                <UpgradePanel level={marketLevel} fishLevel={fishLevel} onStart={startUpgrade} busy={busy === "upgrade"} />
               )}
             </div>
 
@@ -445,7 +453,15 @@ function ShipyardPage() {
   );
 }
 
-function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => void; busy: boolean }) {
+function requiredFishLevel(target: number): number {
+  if (target === 11) return 10;
+  if (target === 15) return 14;
+  return 0;
+}
+
+function UpgradePanel({ level, fishLevel, onStart, busy }: { level: number; fishLevel: number; onStart: () => void; busy: boolean }) {
+  const req = requiredFishLevel(Math.min(32, level + 1));
+  const locked = req > 0 && fishLevel < req;
   const [preview, setPreview] = useState<{ cost_coins: number; seconds: number } | null>(null);
 
   useEffect(() => {
@@ -476,9 +492,15 @@ function UpgradePanel({ level, onStart, busy }: { level: number; onStart: () => 
         <span>المدة</span>
         <span className="font-black">{preview ? formatDuration(preview.seconds) : "..."}</span>
       </div>
-      <button onClick={onStart} disabled={busy || level >= 32} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
+      {req > 0 && (
+        <div className={`flex items-center justify-between rounded-lg border px-2 py-1.5 text-[11px] font-bold ${locked ? "border-destructive/40 bg-destructive/10 text-destructive" : "border-primary/30 bg-primary/10 text-primary"}`}>
+          <span>يتطلب سوق السمك مستوى {req}</span>
+          <span>مستواك: {fishLevel}</span>
+        </div>
+      )}
+      <button onClick={onStart} disabled={busy || level >= 32 || locked} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground disabled:opacity-50">
         <img decoding="async" src={iconTimer} alt="أيقونة المؤقت" className="h-5 w-5" width={512} height={512} loading="lazy" />
-        {level >= 32 ? "وصلت الحد الأقصى" : busy ? "جارٍ البدء..." : "بدء الترقية"}
+        {level >= 32 ? "وصلت الحد الأقصى" : locked ? `ارفع سوق السمك للمستوى ${req} أولاً` : busy ? "جارٍ البدء..." : "بدء الترقية"}
       </button>
     </div>
   );
