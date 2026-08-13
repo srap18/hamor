@@ -920,7 +920,7 @@ function Index() {
   }, [user]);
   const [pop, setPop] = useState<{ id: number; x: number; y: number; v: string } | null>(null);
   const [repairBtnOpen, setRepairBtnOpen] = useState(true);
-  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number } | null>(null);
+  const [catchResult, setCatchResult] = useState<{ img?: string; emoji: string; name: string; count: number; shipId: number; shipLevel: number; luckBonus?: number; baseCount?: number; gems?: number } | null>(null);
   const [stealResult, setStealResult] = useState<{ count: number; value: number; items: { id: string; name: string; emoji: string; img?: string; qty: number }[]; cancelled?: boolean } | null>(null);
   const presentStealResult = (data: unknown, cancelled = false) => {
     const row = Array.isArray(data) && (data as unknown[])[0] ? (data as { stolen_count?: number; total_value?: number; fish_summary?: { fish_id: string; value: number; qty?: number }[] }[])[0] : null;
@@ -1885,6 +1885,8 @@ function Index() {
       shipLevel: s.level,
       baseCount: baseFish,
       luckBonus: luckBonus,
+      gems: gemsAwarded,
+
     });
 
 
@@ -3859,7 +3861,13 @@ function Index() {
                 🍀 طاقم الحظ دبّل الصيد! ({catchResult.baseCount} ×2 = {catchResult.count})
               </div>
             ) : null}
+            {catchResult.gems && catchResult.gems > 0 ? (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-violet-600 border border-fuchsia-200 text-[11px] font-black text-white shadow">
+                <GemIcon size={14} /> الحوت الأرجواني استخرج +{catchResult.gems} {catchResult.gems === 1 ? "جوهرة" : "جواهر"}
+              </div>
+            ) : null}
             <div className="mt-1 text-[11px] font-bold text-cyan-100/80">سفينة #{catchResult.shipId} • مستوى {catchResult.shipLevel}</div>
+
             <button
               onClick={() => setCatchResult(null)}
               className="mt-4 w-full rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-700 border-2 border-emerald-200 py-2.5 text-sm font-black text-white active:scale-95 shadow-lg"
