@@ -8093,6 +8093,10 @@ export type Database = {
         Args: { _owner: string; _ship_id: string }
         Returns: boolean
       }
+      ship_market_required_fish_level: {
+        Args: { _target: number }
+        Returns: number
+      }
       ship_to_storage: { Args: { p_ship_id: string }; Returns: Json }
       signup_block_reason: {
         Args: { _device_id: string; _email: string }
