@@ -116,6 +116,117 @@ const SOURCE_LABELS_AR: Record<string, { label: string; kind: GemReportEvent["ki
   ship_storage_refund_reversal: { label: "عكس تعويض تخزين السفن", kind: "admin_edit" },
 };
 
+/**
+ * Precise map for the auto-captured DB source (`fn:<name>` / `rpc:<name>`).
+ * Every gem movement now records the exact database operation that caused it,
+ * so the report never needs to guess.
+ */
+const FN_SOURCE_LABELS: Record<string, { label: string; kind: GemReportEvent["kind"] }> = {
+  // ==== شحن حقيقي ====
+  grant_paddle_purchase: { label: "شحن مدفوع (Paddle)", kind: "recharge_paddle" },
+  grant_stripe_purchase: { label: "شحن مدفوع (Stripe)", kind: "recharge_stripe" },
+  grant_polar_purchase: { label: "شحن مدفوع (Polar)", kind: "recharge_polar" },
+  revoke_paddle_purchase: { label: "سحب شحن (استرجاع Paddle)", kind: "admin_edit" },
+  daughter_apply_purchase_bonus: { label: "كاش باك الابنة على الشحن", kind: "other_gain" },
+  award_vip_cashback: { label: "كاش باك ترقية VIP", kind: "other_gain" },
+
+  // ==== أكواد ====
+  redeem_code: { label: "استبدال كود", kind: "code_redeem" },
+  admin_redeem_code_for: { label: "استبدال كود بواسطة الإدارة", kind: "code_redeem" },
+  admin_redeem_code_for_legacy_20260717: { label: "استبدال كود (إداري - قديم)", kind: "code_redeem" },
+  admin_revoke_redemption: { label: "إلغاء كود من الإدارة", kind: "admin_edit" },
+
+  // ==== إدارة ====
+  admin_set_player_currency: { label: "تعديل رصيد يدوي من الإدارة", kind: "admin_edit" },
+  admin_set_player_full: { label: "تعديل بيانات اللاعب من الإدارة", kind: "admin_edit" },
+  admin_mass_gift: { label: "هدية جماعية من الإدارة", kind: "admin_gift" },
+  admin_grant_referral_gift: { label: "هدية دعوات من الإدارة", kind: "admin_gift" },
+  admin_revert_economy_window: { label: "تراجع اقتصادي من الإدارة", kind: "admin_edit" },
+  admin_wipe_exploit: { label: "سحب أرباح استغلال (الإدارة)", kind: "admin_edit" },
+  reset_player_to_ledger: { label: "إعادة ضبط الرصيد للسجل", kind: "admin_edit" },
+  refund_ban_user: { label: "استرداد عند الحظر", kind: "admin_edit" },
+  qa_award: { label: "منحة اختبار/دعم", kind: "admin_gift" },
+  gift_gold: { label: "إهداء ذهب لاعب آخر", kind: "spend" },
+
+  // ==== مكافآت اللعب ====
+  claim_vip_daily: { label: "مكافأة VIP اليومية", kind: "vip_daily" },
+  claim_elite_vip_daily_gems: { label: "مكافأة Elite VIP اليومية", kind: "elite_vip_daily" },
+  claim_daily_login: { label: "مكافأة الدخول اليومي", kind: "other_gain" },
+  claim_daily_login_pirate: { label: "مكافأة الدخول اليومي (القراصنة)", kind: "other_gain" },
+  claim_quest: { label: "مكافأة مهمة يومية", kind: "other_gain" },
+  claim_daily_quest: { label: "مكافأة مهمة يومية", kind: "other_gain" },
+  claim_achievement: { label: "مكافأة إنجاز", kind: "other_gain" },
+  claim_phone_verification_reward: { label: "مكافأة توثيق الجوال", kind: "other_gain" },
+  collect_fishing_reward: { label: "ناتج رحلة صيد (جواهر الحوت الأرجواني)", kind: "other_gain" },
+  finalize_competition: { label: "جائزة فعالية صيد", kind: "other_gain" },
+  distribute_tribe_fish_event_prizes: { label: "جائزة فعالية القبائل", kind: "other_gain" },
+  distribute_weekly_xp_prizes: { label: "جائزة الخبرة الأسبوعية", kind: "other_gain" },
+  close_season: { label: "جائزة نهاية الموسم", kind: "other_gain" },
+  attack_grant_tribe_gems: { label: "جواهر نشاط القبيلة (هجوم)", kind: "tribe_daily_gem" },
+  tribe_donation_grant_gems: { label: "جواهر تبرعات القبيلة", kind: "tribe_daily_gem" },
+  grant_referral_bonus: { label: "مكافأة دعوة صديق", kind: "referral" },
+  award_pending_referral_if_qualified: { label: "مكافأة دعوة صديق (بعد التأهل)", kind: "referral" },
+  arena_attack_request: { label: "ساحة التنين (رسوم/جائزة)", kind: "other_gain" },
+  refresh_boss_attacks: { label: "شراء محاولات زعيم إضافية", kind: "spend" },
+  open_lucky_box: { label: "فتح صندوق الحظ", kind: "spend_lucky_box" },
+  open_lootbox: { label: "فتح صندوق", kind: "spend_lootbox" },
+
+  // ==== مصاريف ====
+  buy_with_gems: { label: "شراء بالجواهر (متجر)", kind: "spend_item" },
+  buy_with_coins: { label: "شراء بالكوينز (خصم جواهر احتياطي)", kind: "spend_item" },
+  buy_catalog_item: { label: "شراء عنصر من الكتالوج", kind: "spend_item" },
+  buy_anti_to_inventory: { label: "شراء مضاد", kind: "spend_item" },
+  buy_disabler_to_inventory: { label: "شراء معطّل", kind: "spend_item" },
+  buy_shield_to_inventory: { label: "شراء درع", kind: "spend_item" },
+  buy_protection: { label: "شراء حماية", kind: "spend_item" },
+  buy_lootbox: { label: "شراء صندوق", kind: "spend_lootbox" },
+  buy_background: { label: "شراء خلفية", kind: "spend_item" },
+  buy_background_gems: { label: "شراء خلفية بالجواهر", kind: "spend_item" },
+  buy_dragon_equipment: { label: "سحب/شراء معدة تنين", kind: "spend_dragon_draw" },
+  upgrade_dragon_item: { label: "ترقية معدة تنين", kind: "spend_dragon_upgrade" },
+  smelt_dragon_items: { label: "صهر معدات تنين", kind: "spend_dragon_smelt" },
+  buy_market_freeze: { label: "تجميد أسعار السوق", kind: "spend_item" },
+  buy_trader_unlock: { label: "فتح التاجر", kind: "spend_item" },
+  buy_phoenix_pack_1: { label: "شراء باقة العنقاء 1", kind: "spend_item" },
+  buy_phoenix_pack_3: { label: "شراء باقة العنقاء 3", kind: "spend_item" },
+  buy_ship_by_code: { label: "شراء سفينة", kind: "spend_item" },
+  sell_ship: { label: "بيع سفينة", kind: "other_gain" },
+  upgrade_ship_storage: { label: "ترقية تخزين السفينة", kind: "spend_item" },
+  repair_ship_instant: { label: "إصلاح فوري للسفينة", kind: "spend_item" },
+  repair_burned_bg: { label: "إصلاح الخلفية المحروقة", kind: "spend_item" },
+  repair_target_burned_bg: { label: "إصلاح خلفية لاعب آخر", kind: "spend_item" },
+  remove_ad_bombs: { label: "إزالة القنابل الإعلانية", kind: "spend_item" },
+  skip_shield_type_cooldown: { label: "تخطي انتظار الدرع", kind: "spend_item" },
+  rent_market_capacity: { label: "استئجار سعة سوق السمك", kind: "spend_item" },
+  market_start_upgrade: { label: "بدء ترقية السوق", kind: "spend_item" },
+  market_finish_upgrade_with_gems: { label: "إنهاء ترقية السوق بالجواهر", kind: "spend_item" },
+  fish_market_start_upgrade: { label: "بدء ترقية سوق السمك", kind: "spend_item" },
+  fish_market_finish_upgrade_with_gems: { label: "إنهاء ترقية سوق السمك بالجواهر", kind: "spend_item" },
+  upgrade_daughter_with_gems: { label: "ترقية الابنة بالجواهر", kind: "spend_item" },
+  rename_tribe: { label: "تغيير اسم القبيلة", kind: "spend_item" },
+  trade_create: { label: "رسوم إنشاء مقايضة", kind: "spend_item" },
+  trade_accept: { label: "رسوم قبول مقايضة", kind: "spend_item" },
+  sell_fish: { label: "بيع سمك", kind: "other_gain" },
+  sell_fish_by_qty: { label: "بيع سمك", kind: "other_gain" },
+  add_xp: { label: "مكافأة خبرة/مستوى", kind: "other_gain" },
+};
+
+function resolveFnSource(src: string): { label: string; kind: GemReportEvent["kind"]; fn: string } | null {
+  const m = /^(fn|rpc):(.+)$/.exec(src);
+  if (!m) return null;
+  const fn = m[2]!;
+  const hit = FN_SOURCE_LABELS[fn];
+  if (hit) return { ...hit, fn };
+  // Unknown but still exact: show the real operation name instead of "غير مصنّف"
+  const isAdmin = fn.startsWith("admin_");
+  return {
+    label: isAdmin ? `عملية إدارية: ${fn}` : `عملية داخل اللعبة: ${fn}`,
+    kind: isAdmin ? "admin_edit" : "other_gain",
+    fn,
+  };
+}
+
+
 function packLabelById(id: string | null | undefined): { label: string; gems?: number; usd?: number } {
   if (!id) return { label: "منتج غير معروف" };
   const p = STORE_PACKS.find((x) => x.id === id);
