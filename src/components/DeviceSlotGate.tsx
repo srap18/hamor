@@ -18,10 +18,11 @@ export function SlotWarningModal(props: {
           هل أنت متأكد من تسجيل هذا الحساب على هذا الجهاز؟
         </div>
         <div className="text-sm text-amber-100/90 leading-6 space-y-2 mb-4">
-          <p>• كل جهاز مسموح له بحسابين فقط.</p>
-          <p>• سيتم قفل هذا الحساب على هذا الجهاز لمدة <b className="text-amber-300">{props.lockDays} يوم</b>.</p>
-          <p>• لن تستطيع استبداله بحساب آخر إلا بعد انتهاء المدة.</p>
+          <p>• كل جهاز مسموح فيه بإنشاء حسابين جدد فقط.</p>
+          <p>• سيتم ربط هذا الحساب بالجهاز لمدة <b className="text-amber-300">{props.lockDays} يوم</b>.</p>
+          <p>• تسجيل الدخول بحساباتك القديمة على أي جهاز يبقى مفتوح دائماً وبدون قيود.</p>
           <p>• الأماكن المتبقية على هذا الجهاز: <b>{props.freeSlots}</b></p>
+
         </div>
         <div className="flex gap-2">
           <button onClick={props.onCancel}
@@ -77,11 +78,14 @@ export function DeviceBlockedModal(props: {
       <div className="w-full max-w-md rounded-2xl bg-stone-950 border-2 border-red-600 p-5 text-white shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="text-center text-4xl mb-2">🚫</div>
         <div className="text-lg font-extrabold text-red-300 text-center mb-2">
-          الجهاز ممتلئ
+          لا يمكن إنشاء حساب جديد على هذا الجهاز
         </div>
         <div className="text-sm text-red-100/90 leading-6 mb-4 text-center">
-          هذا الجهاز مربوط بحسابين مقفولين بالفعل. لا يمكن تسجيل الدخول بحساب ثالث حتى ينتهي القفل أو يوافق الأدمن على طعنك.
+          هذا الجهاز مربوط بحسابين جديدين بالفعل.
+          <br />
+          <b className="text-emerald-300">تقدر تسجّل الدخول بأي حساب قديم لك على هذا الجهاز بدون أي قيود</b> — القيد فقط على إنشاء حساب جديد.
         </div>
+
 
         {props.hasPendingAppeal ? (
           <div className="p-3 rounded-lg bg-amber-900/40 border border-amber-700/50 text-center text-amber-100 text-sm">
