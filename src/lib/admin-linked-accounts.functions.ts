@@ -221,6 +221,79 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
       }
     }
 
+    // 4) Same server-issued install identity (signed HttpOnly cookie / native
+    // app id). One install = one physical browser/app install — certain match.
+    {
+      const { data: myInstalls } = await supabaseAdmin
+        .from("device_install_ids")
+        .select("install_id")
+        .eq("user_id", data.userId);
+      const ids = Array.from(new Set((myInstalls ?? []).map((r) => r.install_id).filter(Boolean)));
+      if (ids.length) {
+        const { data: peers } = await supabaseAdmin
+          .from("device_install_ids")
+          .select("install_id, user_id")
+          .in("install_id", ids);
+        for (const r of peers ?? []) {
+          if (r.user_id === data.userId) continue;
+          bump(r.user_id, 100, "نفس تثبيت التطبيق/المتصفح على الجهاز", r.install_id);
+        }
+      }
+    }
+
+    // 5) Corroborated match: the hardware fingerprint is shared by many users
+    // (identical phone models produce the same hash) so it can't link alone —
+    // but the SAME hash + repeated co-presence on the same networks over time
+    // is the same physical phone in practice.
+    const weakCandidates = new Set<string>();
+    {
+      const allHashes = new Set<string>(myHardwareHashes);
+      const { data: myAcc } = await supabaseAdmin
+        .from("device_accounts")
+        .select("hardware_hash")
+        .eq("user_id", data.userId);
+      for (const r of myAcc ?? []) if (isRealId(r.hardware_hash)) allHashes.add(r.hardware_hash!);
+      const { data: myIdent } = await supabaseAdmin
+        .from("device_identity_users")
+        .select("hardware_hash")
+        .eq("user_id", data.userId);
+      for (const r of myIdent ?? []) if (isRealId(r.hardware_hash)) allHashes.add(r.hardware_hash!);
+
+      const hashList = Array.from(allHashes);
+      if (hashList.length) {
+        const { data: peers } = await supabaseAdmin
+          .from("device_accounts")
+          .select("user_id, hardware_hash")
+          .in("hardware_hash", hashList);
+        for (const r of peers ?? []) {
+          if (r.user_id === data.userId) continue;
+          if ((scoreMap.get(r.user_id) ?? 0) >= MIN_CONFIDENCE) continue;
+          weakCandidates.add(r.user_id);
+        }
+      }
+
+      if (weakCandidates.size > 0) {
+        const ipList = Array.from(new Set((myIps ?? []).map((r) => r.ip))).slice(0, 300);
+        if (ipList.length) {
+          const cands = Array.from(weakCandidates).slice(0, 200);
+          const { data: sharedIps } = await supabaseAdmin
+            .from("user_ips")
+            .select("user_id, ip")
+            .in("user_id", cands)
+            .in("ip", ipList);
+          const perUser = new Map<string, Set<string>>();
+          for (const r of sharedIps ?? []) {
+            if (!perUser.has(r.user_id)) perUser.set(r.user_id, new Set());
+            perUser.get(r.user_id)!.add(r.ip);
+          }
+          for (const [uid, ips] of perUser) {
+            if (ips.size < 3) continue; // one shared network can be a café/home guest
+            bump(uid, 88, `بصمة عتاد مطابقة + ${ips.size} شبكات مشتركة`, Array.from(ips)[0]);
+          }
+        }
+      }
+    }
+
     // Drop everything below the confidence floor — those are network / same
     // phone-model lookalikes, not the same physical device.
     for (const uid of Array.from(deviceMap.keys())) {
@@ -230,6 +303,7 @@ export const adminGetLinkedAccounts = createServerFn({ method: "POST" })
         evidenceMap.delete(uid);
       }
     }
+
 
 
 
