@@ -6993,6 +6993,7 @@ export type Database = {
       cleanup_expired_cosmetics: { Args: never; Returns: undefined }
       cleanup_expired_sanctions: { Args: never; Returns: undefined }
       cleanup_global_banners: { Args: never; Returns: undefined }
+      cleanup_golden_fisher_rewards: { Args: never; Returns: number }
       cleanup_my_expired_cosmetics: { Args: never; Returns: undefined }
       cleanup_old_competition_catches: { Args: never; Returns: undefined }
       cleanup_old_notifications_batch: { Args: never; Returns: number }
