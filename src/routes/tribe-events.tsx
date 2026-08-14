@@ -83,9 +83,11 @@ function formatStart(iso: string) {
 type MemberRow = {
   user_id: string;
   username: string;
+  display_name?: string | null;
   avatar_url: string | null;
   total_fish: number;
 };
+
 
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -109,8 +111,16 @@ function TribeEventsPage() {
         "tribe_fish_event_member_leaderboard" as never,
         { p_event_id: eventId, p_tribe_id: tribeId } as never
       );
-      setMembers(prev => ({ ...prev, [key]: ((data ?? []) as MemberRow[]) }));
+      let rows = ((data ?? []) as MemberRow[]);
+      const ids = rows.map(r => r.user_id);
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,display_name").in("id", ids);
+        const nameMap = new Map(((profs ?? []) as Array<{ id: string; display_name: string | null }>).map(p => [p.id, p.display_name]));
+        rows = rows.map(r => ({ ...r, display_name: nameMap.get(r.user_id) ?? null }));
+      }
+      setMembers(prev => ({ ...prev, [key]: rows }));
       setMembersLoading(null);
+
     }
   };
 
@@ -299,7 +309,7 @@ function TribeEventsPage() {
                                       <Link to="/u/$username" params={{ username: m.username }}
                                             onClick={(e) => e.stopPropagation()}
                                             className="flex-1 min-w-0 truncate text-xs font-bold text-slate-200 hover:text-cyan-300">
-                                        {m.username}
+                                        {m.display_name || m.username}
                                       </Link>
                                       <span className="text-xs font-black text-cyan-300 shrink-0">{Number(m.total_fish).toLocaleString()} {METRIC_UNIT[ev.metric ?? "fish"]}</span>
                                     </li>
