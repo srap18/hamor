@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { RulesModal } from "@/components/RulesModal";
+
 import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
 import { setPowerSaver, usePowerSaver } from "@/lib/power-saver";
 
@@ -31,6 +33,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -303,6 +307,15 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         )}
 
         <button
+          onClick={() => { sound.play("click"); setShowRules(true); }}
+          className="w-full py-2.5 mb-2 rounded-lg bg-gradient-to-b from-rose-600 to-rose-800 text-white text-xs font-bold active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span>📜</span>
+          <span>بنود الحظر والكتم</span>
+        </button>
+
+        <button
+
           onClick={() => {
             sound.play("click");
             window.open("https://whatsapp.com/channel/0029Vb8lnG647Xe7EE3yWr3G", "_blank", "noopener,noreferrer");
@@ -440,7 +453,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           className="mt-4 w-full py-2.5 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-bold active:scale-95"
           onClick={() => { sound.play("click"); onClose(); }}
         >{t("common.close")}</button>
+
+        {showRules && <RulesModal onClose={() => setShowRules(false)} />}
       </div>
+
     </div>
   );
 }
