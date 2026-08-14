@@ -1513,7 +1513,20 @@ function Index() {
                       Number(res?.launched ?? 0) > 0 ||
                       Number(res?.cycles ?? 0) > 0 ||
                       (wasFull && !isFull);
-                    if (shipsTouched) syncFleetFromDb();
+                    if (shipsTouched) {
+                      syncFleetFromDb();
+                    } else if (res?.ok === true) {
+                      // Server says nothing was harvested even though the client
+                      // thinks the trip finished → our local trip data is ahead
+                      // of the DB (timers were re-based by an earlier server
+                      // tick). Re-sync so the ship stops showing a fake "✅ جاهز"
+                      // and resumes its real countdown. Throttled to 5s.
+                      const t = Date.now();
+                      if (t - lastReadyResyncRef.current > 5000) {
+                        lastReadyResyncRef.current = t;
+                        syncFleetFromDb();
+                      }
+                    }
                   })
                   .catch(() => {})
                   .finally(() => { gfTickInFlightRef.current = false; });
@@ -1523,11 +1536,12 @@ function Index() {
 
             // Safety net: a ship stuck at "ready" for a while usually means the
             // background (cron) tick already harvested it and our local trip
-            // data is stale. Re-sync from the DB at most once every 20s.
-            if (now - lastReadyResyncRef.current > 20000) {
+            // data is stale. Re-sync from the DB at most once every 8s.
+            if (now - lastReadyResyncRef.current > 8000) {
               lastReadyResyncRef.current = now;
               syncFleetFromDb();
             }
+
           }
 
           // Same fishing trip should never visually go backwards. On reopen the
