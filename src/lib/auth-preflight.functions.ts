@@ -109,6 +109,19 @@ export const authPreflight = createServerFn({ method: "POST" })
       }
     } catch {}
 
+    // Hardware-hash ban (same rule used by device-wide mutes): blocks brand-new
+    // accounts created on a device whose hardware hash belongs to a banned user.
+    try {
+      const hh = (data.hardwareId ?? "").trim();
+      if (hh.length >= 16) {
+        const { data: hwBanned } = await sb.rpc("is_hardware_banned", { _hash: hh });
+        if (hwBanned === true) {
+          return { blocked: true, reason: "هذا الجهاز محظور نهائياً — لا يمكن إنشاء أو دخول أي حساب منه" };
+        }
+      }
+    } catch {}
+
+
 
     // Disposable email domain block — NEW accounts only.
     // Existing (old) accounts keep working even if their mailbox is disposable.

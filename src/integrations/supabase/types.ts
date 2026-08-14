@@ -7002,6 +7002,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      device_hardware_linked_users: {
+        Args: { _uid: string }
+        Returns: {
+          user_id: string
+        }[]
+      }
       device_id_is_collision: { Args: { _device_id: string }; Returns: boolean }
       device_identity_is_banned: {
         Args: { _identity: string }
@@ -7676,6 +7682,7 @@ export type Database = {
       }
       is_email_banned: { Args: { _email: string }; Returns: boolean }
       is_email_verified: { Args: { _uid: string }; Returns: boolean }
+      is_hardware_banned: { Args: { _hash: string }; Returns: boolean }
       is_ip_banned: { Args: { _ip: string }; Returns: boolean }
       is_market_pvp_unlocked: { Args: { _user_id: string }; Returns: boolean }
       is_muted: { Args: { _user: string }; Returns: boolean }
