@@ -18,7 +18,7 @@ export const Route = createFileRoute("/invite")({
 function InviteDisabledPage() {
   return (
     <div className="min-h-screen p-4 text-white" dir="rtl">
-      <BackButton />
+      <BackButton>رجوع</BackButton>
       <div className="max-w-md mx-auto mt-16 rounded-2xl border-2 border-stone-700 bg-stone-900/80 p-6 text-center">
         <div className="text-5xl mb-3">🚫</div>
         <h1 className="text-xl font-black text-amber-300 mb-2">نظام الدعوات متوقف</h1>
