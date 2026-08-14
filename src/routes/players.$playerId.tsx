@@ -113,6 +113,8 @@ function PlayerPage() {
     victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
   } | null>(null);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [tribe, setTribe] = useState<{ id: string; name: string; emblem: string | null; level: number } | null>(null);
+
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   // Server-authoritative attack check (immunity + ship market 15 requirements).
   const [pvpCheck, setPvpCheck] = useState<{ ok: boolean; reason: string | null } | null>(null);
@@ -255,6 +257,14 @@ function PlayerPage() {
         (supabase as any).rpc("is_market_pvp_unlocked", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
+      {
+        const tid = (prof as any)?.tribe_id as string | null | undefined;
+        if (tid) {
+          const { data: tr } = await supabase.from("tribes").select("id,name,emblem,level").eq("id", tid).maybeSingle();
+          setTribe((tr as any) || null);
+        } else setTribe(null);
+      }
+
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
       setTargetMarketUnlocked(marketUnlocked !== false);
@@ -1434,6 +1444,14 @@ function PlayerPage() {
               })()}
             </div>
             <div className="text-[10px] text-amber-300/70">المستوى {p?.level ?? "—"} · ⚓ {ships.length} سفن</div>
+            {tribe && (
+              <Link to="/t/$tribeId" params={{ tribeId: tribe.id }}
+                className="mt-0.5 inline-flex items-center gap-1 max-w-full px-2 py-0.5 rounded-lg bg-amber-900/60 border border-amber-500/50 text-[10px] font-bold text-amber-100 active:scale-95">
+                <span className="truncate">{tribe.emblem || "🏴‍☠️"} {tribe.name}</span>
+                <span className="text-amber-300/80">⭐{tribe.level}</span>
+              </Link>
+            )}
+
           </div>
         </div>
       </div>
