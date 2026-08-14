@@ -83,9 +83,11 @@ function formatStart(iso: string) {
 type MemberRow = {
   user_id: string;
   username: string;
+  display_name?: string | null;
   avatar_url: string | null;
   total_fish: number;
 };
+
 
 function TribeEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
