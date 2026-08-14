@@ -293,7 +293,7 @@ export async function upsertInAppProduct(row: PlayProductRow): Promise<{ ok: tru
     const params = new URLSearchParams({
       updateMask: PRODUCT_UPDATE_MASK,
       allowMissing: "true",
-      "regionsVersion.version": "2022/02",
+      "regionsVersion.version": "2025/03",
       latencyTolerance: LATENCY_TOLERANT,
     });
     const url =
@@ -407,7 +407,7 @@ export async function batchSyncPlayProducts(
       requests: chunk.map((row, idx) => ({
         oneTimeProduct: buildOneTimeProductBody(pkg, row, existingByChunkIndex[idx]),
         updateMask: PRODUCT_UPDATE_MASK,
-        regionsVersion: { version: "2022/02" },
+        regionsVersion: { version: "2025/03" },
         allowMissing: true,
         latencyTolerance: LATENCY_TOLERANT,
       })),
@@ -657,7 +657,7 @@ export async function upsertSubscription(
     const subParams = new URLSearchParams({
       updateMask: SUB_UPDATE_MASK,
       allowMissing: "true",
-      "regionsVersion.version": "2022/02",
+      "regionsVersion.version": "2025/03",
       latencyTolerance: LATENCY_TOLERANT,
     });
     const subUrl =
