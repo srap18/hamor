@@ -453,7 +453,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           className="mt-4 w-full py-2.5 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-bold active:scale-95"
           onClick={() => { sound.play("click"); onClose(); }}
         >{t("common.close")}</button>
+
+        {showRules && <RulesModal onClose={() => setShowRules(false)} />}
       </div>
+
     </div>
   );
 }
