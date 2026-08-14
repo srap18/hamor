@@ -7149,10 +7149,10 @@ export type Database = {
       }
       device_slot_check: {
         Args: {
-          _email: string
+          _email?: string
           _fingerprint_version?: number
           _hardware_hash: string
-          _user_id: string
+          _user_id?: string
         }
         Returns: Json
       }
