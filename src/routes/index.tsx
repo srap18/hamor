@@ -1032,6 +1032,8 @@ function Index() {
   // Used to release the ratio clamp when the tick stalls (RPC failure, permission
   // denied, throttle) so ships don't freeze at 99% forever.
   const lastGfAdvanceAtRef = useRef<number>(0);
+  const lastReadyResyncRef = useRef<number>(0);
+
   // Safety: reset any stuck busy flag whenever the crew modal opens/closes
   useEffect(() => {
     crewBusyRef.current = false;
@@ -1478,11 +1480,15 @@ function Index() {
             if (gfActive && !gfMarketFullRef.current && tickIsFresh) {
               ratio = 0.99;
             }
-            if (gfActive && !gfMarketFullRef.current) {
+            if (gfActive) {
               // Throttle to ~once per 1.5s. The old 200ms cadence made every
               // ready-ship frame fire an RPC + full fleet re-sync, which
               // stacked into a heavy loop that visibly slowed the game.
-              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 1500) {
+              // When the market was reported full we keep retrying, just at a
+              // much slower cadence (10s) so fishing resumes by itself as soon
+              // as the player frees up space — instead of freezing forever.
+              const minGap = gfMarketFullRef.current ? 10000 : 1500;
+              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > minGap) {
                 lastGfTickRef.current = now;
                 gfTickInFlightRef.current = true;
                 tickGoldenFisher({ data: {} })
@@ -1498,10 +1504,15 @@ function Index() {
                       setTimeout(() => setToast(null), 3500);
                       try { sound.play("error"); } catch {}
                     }
-                    // Only re-sync from DB when the server actually advanced
-                    // fishing timers or launched ships — otherwise this fires
-                    // several times per second for nothing and lags the UI.
-                    const shipsTouched = Number(res?.ships ?? 0) > 0 || Number(res?.launched ?? 0) > 0 || Number(res?.cycles ?? 0) > 0;
+                    // Re-sync from DB when the server actually advanced fishing
+                    // timers / launched ships, and also when the market just
+                    // freed up (full → not full) so stale "ready" ships reset.
+                    const shipsTouched =
+                      Number(res?.ships ?? 0) > 0 ||
+                      Number(res?.ships_processed ?? 0) > 0 ||
+                      Number(res?.launched ?? 0) > 0 ||
+                      Number(res?.cycles ?? 0) > 0 ||
+                      (wasFull && !isFull);
                     if (shipsTouched) syncFleetFromDb();
                   })
                   .catch(() => {})
@@ -1510,7 +1521,15 @@ function Index() {
               }
             }
 
+            // Safety net: a ship stuck at "ready" for a while usually means the
+            // background (cron) tick already harvested it and our local trip
+            // data is stale. Re-sync from the DB at most once every 20s.
+            if (now - lastReadyResyncRef.current > 20000) {
+              lastReadyResyncRef.current = now;
+              syncFleetFromDb();
+            }
           }
+
           // Same fishing trip should never visually go backwards. On reopen the
           // fleet snapshot may show 13,000 before crew history finishes loading;
           // keep that full value instead of dropping to the unboosted ~6,000.
