@@ -111,8 +111,16 @@ function TribeEventsPage() {
         "tribe_fish_event_member_leaderboard" as never,
         { p_event_id: eventId, p_tribe_id: tribeId } as never
       );
-      setMembers(prev => ({ ...prev, [key]: ((data ?? []) as MemberRow[]) }));
+      let rows = ((data ?? []) as MemberRow[]);
+      const ids = rows.map(r => r.user_id);
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,display_name").in("id", ids);
+        const nameMap = new Map(((profs ?? []) as Array<{ id: string; display_name: string | null }>).map(p => [p.id, p.display_name]));
+        rows = rows.map(r => ({ ...r, display_name: nameMap.get(r.user_id) ?? null }));
+      }
+      setMembers(prev => ({ ...prev, [key]: rows }));
       setMembersLoading(null);
+
     }
   };
 
