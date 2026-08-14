@@ -6820,6 +6820,10 @@ export type Database = {
         Args: { _gold_spent: number; _source?: string; _uid: string }
         Returns: number
       }
+      award_vip_cashback_gems: {
+        Args: { _gems_spent: number; _source?: string; _uid: string }
+        Returns: number
+      }
       boss_attack_status: { Args: never; Returns: Json }
       boss_award_pearls: { Args: { _boss_id: string }; Returns: Json }
       boss_hit_my_ship: { Args: { p_ship_id: string }; Returns: Json }
