@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.device_slot_check(text, uuid, text);
