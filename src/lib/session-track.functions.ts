@@ -62,7 +62,7 @@ export const recordSession = createServerFn({ method: "POST" })
       try {
         await context.supabase.rpc("device_link_register", {
           _device_id: (deviceId ?? hardwareId) as string,
-          _hardware_hash: hardwareId,
+          _hardware_hash: hardwareId ?? undefined,
         });
       } catch {}
     }
