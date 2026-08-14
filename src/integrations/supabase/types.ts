@@ -7054,20 +7054,15 @@ export type Database = {
         Args: { _hardware_hash: string }
         Returns: Json
       }
-      device_slot_check:
-        | {
-            Args: { _email?: string; _hardware_hash: string; _user_id?: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _email: string
-              _fingerprint_version?: number
-              _hardware_hash: string
-              _user_id: string
-            }
-            Returns: Json
-          }
+      device_slot_check: {
+        Args: {
+          _email: string
+          _fingerprint_version?: number
+          _hardware_hash: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       device_slot_metrics: { Args: { _days?: number }; Returns: Json }
       device_submit_appeal: {
         Args: { _email: string; _hardware_hash: string; _message: string }
