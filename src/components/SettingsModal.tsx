@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { RulesModal } from "@/components/RulesModal";
+
 import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
 import { setPowerSaver, usePowerSaver } from "@/lib/power-saver";
 
