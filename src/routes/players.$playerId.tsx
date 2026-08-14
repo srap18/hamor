@@ -113,6 +113,8 @@ function PlayerPage() {
     victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
   } | null>(null);
   const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [tribe, setTribe] = useState<{ id: string; name: string; emblem: string | null; level: number } | null>(null);
+
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
   // Server-authoritative attack check (immunity + ship market 15 requirements).
   const [pvpCheck, setPvpCheck] = useState<{ ok: boolean; reason: string | null } | null>(null);
