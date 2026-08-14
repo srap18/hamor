@@ -388,6 +388,7 @@ export type Database = {
           expires_at: string | null
           id: string
           reason: string
+          scope: string
           user_id: string
         }
         Insert: {
@@ -397,6 +398,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           reason?: string
+          scope?: string
           user_id: string
         }
         Update: {
@@ -406,6 +408,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           reason?: string
+          scope?: string
           user_id?: string
         }
         Relationships: []
@@ -590,6 +593,7 @@ export type Database = {
           id: string
           muted_by: string | null
           reason: string
+          scope: string
           user_id: string
         }
         Insert: {
@@ -599,6 +603,7 @@ export type Database = {
           id?: string
           muted_by?: string | null
           reason?: string
+          scope?: string
           user_id: string
         }
         Update: {
@@ -608,6 +613,7 @@ export type Database = {
           id?: string
           muted_by?: string | null
           reason?: string
+          scope?: string
           user_id?: string
         }
         Relationships: []
@@ -918,18 +924,21 @@ export type Database = {
         Row: {
           created_at: string
           device_id: string
+          hardware_hash: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           device_id: string
+          hardware_hash?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           device_id?: string
+          hardware_hash?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -6972,24 +6981,14 @@ export type Database = {
         Args: { _appeal_id: string }
         Returns: Json
       }
-      device_assign_slot:
-        | { Args: { _hardware_hash: string; _user_id: string }; Returns: Json }
-        | {
-            Args: {
-              _fingerprint_version?: number
-              _hardware_hash: string
-              _user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _fingerprint_version?: number
-              _hardware_hash: string
-              _user_id: string
-            }
-            Returns: Json
-          }
+      device_assign_slot: {
+        Args: {
+          _fingerprint_version?: number
+          _hardware_hash: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       device_audit_log: {
         Args: {
           _actor: string
@@ -7008,7 +7007,12 @@ export type Database = {
           user_id: string
         }[]
       }
+      device_hash_collision: { Args: { _hash: string }; Returns: boolean }
       device_id_is_collision: { Args: { _device_id: string }; Returns: boolean }
+      device_identity_collision: {
+        Args: { _identity: string }
+        Returns: boolean
+      }
       device_identity_is_banned: {
         Args: { _identity: string }
         Returns: boolean
@@ -7022,23 +7026,29 @@ export type Database = {
         }[]
       }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
-      device_migrate_choose:
-        | {
-            Args: { _hardware_hash: string; _user_a: string; _user_b: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _fingerprint_version?: number
-              _hardware_hash: string
-              _user_a: string
-              _user_b: string
-            }
-            Returns: Json
-          }
+      device_link_register: {
+        Args: { _device_id: string; _hardware_hash?: string }
+        Returns: Json
+      }
+      device_match_score: { Args: { _a: string; _b: string }; Returns: Json }
+      device_migrate_choose: {
+        Args: {
+          _fingerprint_version?: number
+          _hardware_hash: string
+          _user_a: string
+          _user_b: string
+        }
+        Returns: Json
+      }
       device_migration_candidates: {
         Args: { _hardware_hash: string }
         Returns: Json
+      }
+      device_peer_candidates: {
+        Args: { _uid: string }
+        Returns: {
+          other_id: string
+        }[]
       }
       device_rate_limit_check: {
         Args: { _hardware_hash: string }
@@ -7047,15 +7057,6 @@ export type Database = {
       device_slot_check:
         | {
             Args: { _email?: string; _hardware_hash: string; _user_id?: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _email?: string
-              _fingerprint_version?: number
-              _hardware_hash: string
-              _user_id?: string
-            }
             Returns: Json
           }
         | {
