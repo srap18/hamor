@@ -22,10 +22,20 @@ type Row = {
   player_emoji?: string;
 };
 
+type BlockRow = {
+  kind: "email" | "device" | "ip";
+  key: string;
+  reason: string | null;
+  created_at: string;
+  user_id: string | null;
+  player_name?: string;
+};
+
 function AdminSanctions() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [blocks, setBlocks] = useState<BlockRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "ban" | "mute">("all");
+  const [filter, setFilter] = useState<"all" | "ban" | "mute" | "email" | "device" | "ip">("all");
 
   const load = useCallback(async () => {
     setLoading(true);
