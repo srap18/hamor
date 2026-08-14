@@ -1519,8 +1519,15 @@ function Index() {
               }
             }
 
-
+            // Safety net: a ship stuck at "ready" for a while usually means the
+            // background (cron) tick already harvested it and our local trip
+            // data is stale. Re-sync from the DB at most once every 20s.
+            if (now - lastReadyResyncRef.current > 20000) {
+              lastReadyResyncRef.current = now;
+              syncFleetFromDb();
+            }
           }
+
           // Same fishing trip should never visually go backwards. On reopen the
           // fleet snapshot may show 13,000 before crew history finishes loading;
           // keep that full value instead of dropping to the unboosted ~6,000.
