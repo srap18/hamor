@@ -173,13 +173,10 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     const checkActiveSession = async () => {
       if (cancelled || kicked) return;
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("active_session_id")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (cancelled || error || !data) return;
-        const remote = (data as any).active_session_id as string | null;
+        const { data, error } = await (supabase as any).rpc("get_my_active_session_id");
+        if (cancelled || error) return;
+        const remote = (data as string | null) ?? null;
+
         if (remote && remote !== localToken) {
           kicked = true;
           setBlock({
