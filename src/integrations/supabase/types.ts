@@ -7243,6 +7243,7 @@ export type Database = {
           qty: number
         }[]
       }
+      get_my_active_session_id: { Args: never; Returns: string }
       get_my_daughter: {
         Args: never
         Returns: {
