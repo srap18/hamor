@@ -7044,6 +7044,7 @@ export type Database = {
         Args: { _hardware_hash: string }
         Returns: Json
       }
+      device_noise_collision: { Args: { _noise: string }; Returns: boolean }
       device_peer_candidates: {
         Args: { _uid: string }
         Returns: {
