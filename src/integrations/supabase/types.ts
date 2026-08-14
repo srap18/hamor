@@ -6785,7 +6785,6 @@ export type Database = {
           inventory_id: string
         }[]
       }
-      attack_boss: { Args: { p_use_free?: boolean }; Returns: Json }
       attack_boss_with: { Args: { p_weapon: string }; Returns: Json }
       attacker_has_destroyed_ship: {
         Args: { _user_id: string }
