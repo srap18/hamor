@@ -142,16 +142,16 @@ function AdminSanctions() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold">العقوبات النشطة</h1>
-          <p className="text-slate-400 text-xs md:text-sm mt-1">{filtered.length} عقوبة معروضة</p>
+          <p className="text-slate-400 text-xs md:text-sm mt-1">{filtered.length + filteredBlocks.length} عقوبة معروضة</p>
         </div>
-        <div className="flex gap-2">
-          {(["all", "ban", "mute"] as const).map((k) => (
+        <div className="flex gap-2 flex-wrap">
+          {(["all", "ban", "mute", "email", "device", "ip"] as const).map((k) => (
             <button
               key={k}
               onClick={() => setFilter(k)}
               className={`px-3 py-1.5 rounded-lg text-xs ${filter === k ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
             >
-              {k === "all" ? "الكل" : k === "ban" ? "🚫 حظر" : "🔇 كتم"}
+              {k === "all" ? "الكل" : k === "ban" ? "🚫 حظر" : k === "mute" ? "🔇 كتم" : k === "email" ? "📧 إيميل" : k === "device" ? "📱 جهاز" : "🌐 آيبي"}
             </button>
           ))}
           <button onClick={load} className="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700">🔄</button>
