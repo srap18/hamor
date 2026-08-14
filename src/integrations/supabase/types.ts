@@ -6061,6 +6061,7 @@ export type Database = {
         Args: { _item_id: string; _item_type: string }
         Returns: number
       }
+      _crew_return_to_pool: { Args: { _ship_id: string }; Returns: number }
       _daughter_cashback_pct: { Args: { _stage: number }; Returns: number }
       _daughter_stage_for: { Args: { _fed: number }; Returns: number }
       _detect_bot_and_ban: {
@@ -7026,6 +7027,7 @@ export type Database = {
         Args: { _count?: number; _item_id: string; _item_type: string }
         Returns: undefined
       }
+      crew_cleanup: { Args: never; Returns: Json }
       cron_close_expired_seasons: { Args: never; Returns: number }
       current_season: {
         Args: never
