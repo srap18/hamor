@@ -1444,6 +1444,14 @@ function PlayerPage() {
               })()}
             </div>
             <div className="text-[10px] text-amber-300/70">المستوى {p?.level ?? "—"} · ⚓ {ships.length} سفن</div>
+            {tribe && (
+              <Link to="/t/$tribeId" params={{ tribeId: tribe.id }}
+                className="mt-0.5 inline-flex items-center gap-1 max-w-full px-2 py-0.5 rounded-lg bg-amber-900/60 border border-amber-500/50 text-[10px] font-bold text-amber-100 active:scale-95">
+                <span className="truncate">{tribe.emblem || "🏴‍☠️"} {tribe.name}</span>
+                <span className="text-amber-300/80">⭐{tribe.level}</span>
+              </Link>
+            )}
+
           </div>
         </div>
       </div>
