@@ -122,7 +122,9 @@ function AdminSanctions() {
   };
 
 
-  const filtered = filter === "all" ? rows : rows.filter((r) => r.kind === filter);
+  const isBlockFilter = filter === "email" || filter === "device" || filter === "ip";
+  const filtered = filter === "all" ? rows : isBlockFilter ? [] : rows.filter((r) => r.kind === filter);
+  const filteredBlocks = filter === "all" ? blocks : isBlockFilter ? blocks.filter((b) => b.kind === filter) : [];
 
   const fmtRemaining = (iso: string | null) => {
     if (!iso) return "دائم";
