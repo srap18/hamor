@@ -1710,6 +1710,11 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
                     <div className="font-bold">{m.display_name} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}</div>
                     <div className="text-[10px] text-amber-300/70">المستوى {m.level} • {m.role === "owner" ? "المالك" : m.role === "moderator" ? "مشرف" : "عضو"} • 🤝 تبرّع: {m.donation_coins.toLocaleString()} 🪙</div>
                   </div>
+                  {m.user_id !== userId && (
+                    <Link to="/players/$playerId" params={{ playerId: m.user_id }} onClick={onClose}
+                      className="px-2 py-1 rounded-lg bg-gradient-to-b from-sky-400 to-sky-700 border border-sky-200 text-white text-[10px] font-bold">🌊 محيطه</Link>
+                  )}
+
                   {isOwner && m.user_id !== userId && m.role !== "owner" && (
                     <>
                       <button disabled={busy} onClick={() => promote(m)} className="px-2 py-1 rounded bg-sky-600 text-xs font-bold">
