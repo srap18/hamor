@@ -53,6 +53,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
+import { Route as TTribeIdRouteImport } from './routes/t.$tribeId'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
@@ -308,6 +309,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const UUsernameRoute = UUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TTribeIdRoute = TTribeIdRouteImport.update({
+  id: '/t/$tribeId',
+  path: '/t/$tribeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayersPlayerIdRoute = PlayersPlayerIdRouteImport.update({
@@ -566,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/t/$tribeId': typeof TTribeIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/t/$tribeId': typeof TTribeIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
@@ -730,6 +738,7 @@ export interface FileRoutesById {
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
+  '/t/$tribeId': typeof TTribeIdRoute
   '/u/$username': typeof UUsernameRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
@@ -814,6 +823,7 @@ export interface FileRouteTypes {
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
+    | '/t/$tribeId'
     | '/u/$username'
     | '/admin/'
     | '/api/public/admin/run-play-sync'
@@ -895,6 +905,7 @@ export interface FileRouteTypes {
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
+    | '/t/$tribeId'
     | '/u/$username'
     | '/admin'
     | '/api/public/admin/run-play-sync'
@@ -977,6 +988,7 @@ export interface FileRouteTypes {
     | '/guide/legacy-players'
     | '/p/$id'
     | '/players/$playerId'
+    | '/t/$tribeId'
     | '/u/$username'
     | '/admin/'
     | '/api/public/admin/run-play-sync'
@@ -1036,6 +1048,7 @@ export interface RootRouteChildren {
   GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
+  TTribeIdRoute: typeof TTribeIdRoute
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicAdminRunPlaySyncRoute: typeof ApiPublicAdminRunPlaySyncRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
@@ -1355,6 +1368,13 @@ declare module '@tanstack/react-router' {
       path: '/u/$username'
       fullPath: '/u/$username'
       preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$tribeId': {
+      id: '/t/$tribeId'
+      path: '/t/$tribeId'
+      fullPath: '/t/$tribeId'
+      preLoaderRoute: typeof TTribeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/players/$playerId': {
@@ -1726,6 +1746,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
+  TTribeIdRoute: TTribeIdRoute,
   UUsernameRoute: UUsernameRoute,
   ApiPublicAdminRunPlaySyncRoute: ApiPublicAdminRunPlaySyncRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
