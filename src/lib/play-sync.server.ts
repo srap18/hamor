@@ -193,19 +193,31 @@ function buildOneTimeProductBody(
   const eurPriceForAutoConvert = microsToMoney(row.price_micros, "EUR");
   const canAutoConvert = currency === "USD";
 
+  // Google rejects any update that drops a region that already exists on the
+  // product ("Cannot remove region once it has been added"). So we always start
+  // from the regions Play already has and only override the base region price.
+  const mergeRegions = (existingConfigs: any[] | undefined | null) => {
+    const byRegion = new Map<string, any>();
+    for (const cfg of existingConfigs ?? []) {
+      if (cfg?.regionCode) byRegion.set(cfg.regionCode, { ...cfg });
+    }
+    byRegion.set(region, { regionCode: region, price, availability: "AVAILABLE" });
+    return Array.from(byRegion.values());
+  };
+
+  const existingDefault = (existingPurchaseOptions ?? []).find(
+    (opt) => opt?.purchaseOptionId === "default",
+  );
+
   const defaultOption: any = {
     purchaseOptionId: "default",
     buyOption: {
       legacyCompatible: true,
       multiQuantityEnabled: false,
     },
-    regionalPricingAndAvailabilityConfigs: [
-      {
-        regionCode: region,
-        price,
-        availability: "AVAILABLE",
-      },
-    ],
+    regionalPricingAndAvailabilityConfigs: mergeRegions(
+      existingDefault?.regionalPricingAndAvailabilityConfigs,
+    ),
     taxAndComplianceSettings: {
       withdrawalRightType: "WITHDRAWAL_RIGHT_DIGITAL_CONTENT",
     },
@@ -216,6 +228,8 @@ function buildOneTimeProductBody(
       usdPrice: usdPriceForAutoConvert,
       eurPrice: eurPriceForAutoConvert,
     };
+  } else if (existingDefault?.newRegionsConfig) {
+    defaultOption.newRegionsConfig = existingDefault.newRegionsConfig;
   }
 
   const preserved = (existingPurchaseOptions ?? [])
@@ -228,20 +242,19 @@ function buildOneTimeProductBody(
       if (cleaned.rentOption) {
         cleaned.rentOption = { ...cleaned.rentOption, legacyCompatible: false };
       }
-      cleaned.regionalPricingAndAvailabilityConfigs = [
-        { regionCode: region, price, availability: "AVAILABLE" },
-      ];
+      cleaned.regionalPricingAndAvailabilityConfigs = mergeRegions(
+        opt.regionalPricingAndAvailabilityConfigs,
+      );
       if (canAutoConvert) {
         cleaned.newRegionsConfig = {
           availability: "AVAILABLE",
           usdPrice: usdPriceForAutoConvert,
           eurPrice: eurPriceForAutoConvert,
         };
-      } else {
-        delete cleaned.newRegionsConfig;
       }
       return cleaned;
     });
+
 
 
   return {
