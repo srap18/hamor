@@ -106,8 +106,6 @@ function SignupPage() {
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
             <input type="password" required minLength={6} placeholder="كلمه المرور (6+ أحرف)" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm" />
-            <input type="text" placeholder="🎁 كود دعوة (اختياري)" value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase().slice(0, 12))}
-              className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-emerald-700/40 text-emerald-200 text-sm tracking-widest text-center" />
             <div className="text-[11px] text-amber-100/70 text-center bg-amber-950/40 border border-amber-700/40 rounded-lg p-2">
               💡 تقدر تختار اسمك من داخل اللعبة بعد التسجيل من صفحة «الملف الشخصي».
             </div>
