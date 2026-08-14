@@ -36,6 +36,7 @@ const NAV: Array<{ to: string; label: string; icon: string; exact?: boolean }> =
   { to: "/admin", label: "نظرة عامة", icon: "📊", exact: true },
   { to: "/admin/players", label: "اللاعبون", icon: "👥" },
   { to: "/admin/sanctions", label: "العقوبات", icon: "🚫" },
+  { to: "/admin/suspected-devices", label: "أجهزة مشتبه بها", icon: "🕵️" },
   { to: "/admin/tickets", label: "تذاكر الدعم", icon: "🛟" },
   { to: "/admin/reports", label: "بلاغات الرسائل", icon: "🚩" },
   { to: "/admin/broadcasts", label: "الإشعارات", icon: "📢" },

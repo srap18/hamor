@@ -1099,6 +1099,27 @@ export type Database = {
           },
         ]
       }
+      device_install_ids: {
+        Row: {
+          first_seen: string
+          install_id: string
+          last_seen: string
+          user_id: string
+        }
+        Insert: {
+          first_seen?: string
+          install_id: string
+          last_seen?: string
+          user_id: string
+        }
+        Update: {
+          first_seen?: string
+          install_id?: string
+          last_seen?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       device_slot_audit: {
         Row: {
           actor_id: string | null
@@ -4743,6 +4764,51 @@ export type Database = {
         }
         Relationships: []
       }
+      suspected_device_matches: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: string
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number
+          signals: number
+          source_user_id: string
+          status: string
+          suspect_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          signals?: number
+          source_user_id: string
+          status?: string
+          suspect_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          signals?: number
+          source_user_id?: string
+          status?: string
+          suspect_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trade_audit: {
         Row: {
           action: string
@@ -6376,6 +6442,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_suspected_matches: {
+        Args: { _limit?: number; _status?: string }
+        Returns: {
+          created_at: string
+          detail: Json
+          id: string
+          score: number
+          signals: number
+          source_name: string
+          source_user_id: string
+          status: string
+          suspect_name: string
+          suspect_user_id: string
+        }[]
+      }
       admin_mass_gift: {
         Args: { _coins: number; _gems: number; _xp: number }
         Returns: number
@@ -6453,6 +6534,10 @@ export type Database = {
         Returns: Json
       }
       admin_remove_email_ban: { Args: { p_email: string }; Returns: Json }
+      admin_resolve_suspected_match: {
+        Args: { _action: string; _id: string }
+        Returns: Json
+      }
       admin_revert_economy_window: {
         Args: { _from: string; _reason?: string; _source: string; _to: string }
         Returns: {
@@ -7001,6 +7086,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      device_ban_propagates: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
       device_hardware_linked_users: {
         Args: { _uid: string }
         Returns: {
@@ -7025,6 +7114,8 @@ export type Database = {
           user_id: string
         }[]
       }
+      device_install_collision: { Args: { _install: string }; Returns: boolean }
+      device_install_register: { Args: { _install_id: string }; Returns: Json }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
       device_link_register: {
         Args: { _device_id: string; _hardware_hash?: string }
@@ -7044,6 +7135,7 @@ export type Database = {
         Args: { _hardware_hash: string }
         Returns: Json
       }
+      device_native_id_invalid: { Args: { _native: string }; Returns: boolean }
       device_noise_collision: { Args: { _noise: string }; Returns: boolean }
       device_peer_candidates: {
         Args: { _uid: string }
@@ -7065,6 +7157,7 @@ export type Database = {
         Returns: Json
       }
       device_slot_metrics: { Args: { _days?: number }; Returns: Json }
+      device_strong_link: { Args: { _a: string; _b: string }; Returns: Json }
       device_submit_appeal: {
         Args: { _email: string; _hardware_hash: string; _message: string }
         Returns: Json

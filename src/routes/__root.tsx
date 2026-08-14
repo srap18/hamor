@@ -483,6 +483,24 @@ function RootComponent() {
               hardwareId = await getHardwareFingerprint();
             } catch {}
             await recordSession({ data: { deviceId: ensureDeviceId(), hardwareId } });
+            // Server-issued install identity (signed HttpOnly cookie, or the
+            // native app id when running inside the mobile app). Survives
+            // localStorage wipes, IP/VPN/network changes and new accounts.
+            try {
+              const k = "hamor_install_touch";
+              const last = Number(localStorage.getItem(k) || 0);
+              if (Date.now() - last > 6 * 3600_000) {
+                let nativeId: string | null = null;
+                try {
+                  const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
+                  const fp = await getDeviceFingerprint();
+                  nativeId = fp?.nativeId && fp.nativeId.length >= 16 ? fp.nativeId : null;
+                } catch {}
+                const { registerInstallIdentity } = await import("@/lib/device-install.functions");
+                await registerInstallIdentity({ data: { nativeId } });
+                localStorage.setItem(k, String(Date.now()));
+              }
+            } catch {}
             // Refresh the high-precision hardware identity for this signed-in
             // account (max once per 6h) so device-wide moderation stays accurate.
             try {
