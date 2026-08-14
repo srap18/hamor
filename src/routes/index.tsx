@@ -575,13 +575,14 @@ function Index() {
               : getShipByCode(row.catalog_code).image)
             : s.img;
           const sameTrip = !!s.fishing && !!fishing && s.startedAt === startedAt;
+          const keepTripProgress = sameTrip && !resetStaleGoldenProgressRef.current;
           const hasSailorNow = crewRowsRef.current.some(
             (r) => r.item_id === "sailor" && isCrewAssignedToShip(r.meta, { id: s.id, dbId: s.dbId }),
           );
           const sailorAtStart = sameTrip
             ? (!!s.sailorAtStart || hasSailorNow)
             : (fishing ? hasSailorNow : false);
-          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: sameTrip ? Math.min(s.timeLeft, duration) : duration, progress: sameTrip ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, repairFromAt: row.destroyed_at ?? row.last_damaged_at, repairFromHp: row.destroyed_at ? 0 : row.repair_started_hp, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
+          return { ...s, catalogCode, level: resolvedLevel, img: imgFromCode, max, duration, timeLeft: keepTripProgress ? Math.min(s.timeLeft, duration) : duration, progress: keepTripProgress ? Math.min(s.progress, max) : 0, hp: row.hp ?? s.hp, maxHp: row.max_hp ?? s.maxHp, destroyedAt: row.destroyed_at, repairEndsAt: row.repair_ends_at ?? row.passive_repair_ends_at, repairFromAt: row.destroyed_at ?? row.last_damaged_at, repairFromHp: row.destroyed_at ? 0 : row.repair_started_hp, fishing, startedAt, stealingEndsAt: row.stealing_ends_at, stealingTargetUserId: row.stealing_target_user_id, stealingStartedAt: row.stealing_started_at, stars: row.stars ?? s.stars, maxStars: row.max_stars ?? s.maxStars, sailorAtStart };
         });
       const keptDbIds = new Set(keptDb.map((s) => s.dbId!));
 
@@ -1019,6 +1020,12 @@ function Index() {
   // Track golden_fisher_until from profile so the per-frame ship loop can detect
   // GF activation even when no inventory crew row exists (activate consumes it).
   const goldenFisherUntilRef = useRef<number>(0);
+  // Set when the client showed a completed trip but the authoritative Golden
+  // Fisher tick reported zero completed cycles. The next fleet snapshot must
+  // discard cached visual progress for that same trip; otherwise `sameTrip`
+  // preserves the stale 100% value forever and the ship remains "ready" even
+  // though the server timer is still running.
+  const resetStaleGoldenProgressRef = useRef(false);
   useEffect(() => {
     const t = (profile as any)?.golden_fisher_until;
     const eliteExpiry = (profile as any)?.elite_vip_expires_at;
@@ -1361,7 +1368,8 @@ function Index() {
         setStealTargetNames((prev) => {
           const next = { ...prev };
           for (const p of data as any[]) next[p.id] = { name: p.display_name || "لاعب", emoji: p.avatar_emoji || "🧑‍✈️" };
-          return next;
+      resetStaleGoldenProgressRef.current = false;
+      return next;
         });
       }
     })();
@@ -1524,6 +1532,7 @@ function Index() {
                       const t = Date.now();
                       if (t - lastReadyResyncRef.current > 5000) {
                         lastReadyResyncRef.current = t;
+                        resetStaleGoldenProgressRef.current = true;
                         syncFleetFromDb();
                       }
                     }
