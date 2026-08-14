@@ -188,6 +188,8 @@ function AdminPlayers() {
       toast.success(`أُلغي كتم ${p.display_name}`);
     } else {
       const reason = prompt("سبب الكتم:", "إساءة في الدردشة") ?? "";
+      const scopeStr = prompt("نطاق الكتم:\n1 = الحساب فقط\n2 = الجهاز فقط\n3 = الحساب والجهاز", "3") ?? "3";
+      const scope = scopeStr.trim() === "1" ? "account" : scopeStr.trim() === "2" ? "device" : "both";
       const daysStr = prompt("مدة الكتم — كم يوم؟ (اتركه فارغ للدائم):", "1");
       const hoursStr = prompt("مدة الكتم — كم ساعة إضافية؟", "0");
       const days = daysStr ? Math.max(0, Number(daysStr) | 0) : 0;
@@ -195,7 +197,8 @@ function AdminPlayers() {
       const totalH = days * 24 + hours;
       const expires_at = totalH > 0 ? new Date(Date.now() + totalH * 3600_000).toISOString() : null;
       const { data: userData } = await supabase.auth.getUser();
-      await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at });
+      await supabase.from("chat_mutes").insert({ user_id: p.id, reason, muted_by: userData.user?.id, expires_at, scope });
+
       await logAudit("mute_user", p.id, { name: p.display_name, reason, days, hours, permanent: totalH === 0 });
       const dur = totalH > 0 ? `لمدة ${days ? `${days}ي ` : ""}${hours ? `${hours}س` : ""}`.trim() : "نهائياً";
       await notify(p.id, "🔇 تم كتمك في الدردشة", `لا يمكنك الكتابة ${dur}. السبب: ${reason || "غير محدد"}`);
