@@ -1098,8 +1098,14 @@ function Index() {
     for (const row of crewRowsRef.current) {
       if (row.item_id !== "sailor" || !isCrewAssignedToShip(row.meta, ship)) continue;
       sawSailorRow = true;
-      const assignedAt = row.meta?.assigned_at ? new Date(row.meta.assigned_at).getTime() : ship.startedAt;
       const expiresAt = row.meta?.expires_at ? new Date(row.meta.expires_at).getTime() : Infinity;
+      // Mirror the server: when assigned_at is missing, derive it from the
+      // 24h crew window instead of crediting the whole trip retroactively.
+      const assignedAt = row.meta?.assigned_at
+        ? new Date(row.meta.assigned_at).getTime()
+        : Number.isFinite(expiresAt)
+          ? expiresAt - 24 * 60 * 60 * 1000
+          : ship.startedAt;
       if (expiresAt <= ship.startedAt || assignedAt > nowMs) continue;
       const boostStart = Math.max(ship.startedAt, assignedAt || ship.startedAt);
       const boostEnd = Math.min(nowMs, expiresAt);
