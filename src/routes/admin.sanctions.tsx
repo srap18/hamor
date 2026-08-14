@@ -40,10 +40,18 @@ function AdminSanctions() {
   const load = useCallback(async () => {
     setLoading(true);
     const nowIso = new Date().toISOString();
-    const [{ data: bans }, { data: mutes }] = await Promise.all([
+    const [{ data: bans }, { data: mutes }, { data: bEmails }, { data: bDevices }, { data: bIps }] = await Promise.all([
       supabase.from("bans").select("id,user_id,reason,expires_at,created_at:banned_at").eq("active", true),
       supabase.from("chat_mutes").select("id,user_id,reason,expires_at,created_at").eq("active", true),
+      supabase.from("banned_emails").select("email,reason,created_at").order("created_at", { ascending: false }),
+      supabase.from("banned_devices").select("device_id,user_id,reason,created_at").order("created_at", { ascending: false }),
+      supabase.from("banned_ips").select("ip,user_id,reason,created_at").order("created_at", { ascending: false }),
     ]);
+    const blockRows: BlockRow[] = [
+      ...((bEmails ?? []) as any[]).map((r) => ({ kind: "email" as const, key: r.email, reason: r.reason, created_at: r.created_at, user_id: null })),
+      ...((bDevices ?? []) as any[]).map((r) => ({ kind: "device" as const, key: r.device_id, reason: r.reason, created_at: r.created_at, user_id: r.user_id })),
+      ...((bIps ?? []) as any[]).map((r) => ({ kind: "ip" as const, key: r.ip, reason: r.reason, created_at: r.created_at, user_id: r.user_id })),
+    ];
     const all: Row[] = [
       ...((bans ?? []) as any[]).map((b) => ({ ...b, kind: "ban" as const })),
       ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
