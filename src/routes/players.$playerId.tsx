@@ -255,6 +255,14 @@ function PlayerPage() {
         (supabase as any).rpc("is_market_pvp_unlocked", { _user_id: playerId }),
       ]);
       setP((prof as Profile) || null);
+      {
+        const tid = (prof as any)?.tribe_id as string | null | undefined;
+        if (tid) {
+          const { data: tr } = await supabase.from("tribes").select("id,name,emblem,level").eq("id", tid).maybeSingle();
+          setTribe((tr as any) || null);
+        } else setTribe(null);
+      }
+
       setShips((sh as Ship[]) || []);
       setTargetIsStaff(!!staffRes);
       setTargetMarketUnlocked(marketUnlocked !== false);
