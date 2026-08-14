@@ -18,10 +18,11 @@ export function SlotWarningModal(props: {
           هل أنت متأكد من تسجيل هذا الحساب على هذا الجهاز؟
         </div>
         <div className="text-sm text-amber-100/90 leading-6 space-y-2 mb-4">
-          <p>• كل جهاز مسموح له بحسابين فقط.</p>
-          <p>• سيتم قفل هذا الحساب على هذا الجهاز لمدة <b className="text-amber-300">{props.lockDays} يوم</b>.</p>
-          <p>• لن تستطيع استبداله بحساب آخر إلا بعد انتهاء المدة.</p>
+          <p>• كل جهاز مسموح فيه بإنشاء حسابين جدد فقط.</p>
+          <p>• سيتم ربط هذا الحساب بالجهاز لمدة <b className="text-amber-300">{props.lockDays} يوم</b>.</p>
+          <p>• تسجيل الدخول بحساباتك القديمة على أي جهاز يبقى مفتوح دائماً وبدون قيود.</p>
           <p>• الأماكن المتبقية على هذا الجهاز: <b>{props.freeSlots}</b></p>
+
         </div>
         <div className="flex gap-2">
           <button onClick={props.onCancel}
