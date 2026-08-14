@@ -55,6 +55,19 @@ export const recordSession = createServerFn({ method: "POST" })
       } catch {}
     }
 
+    // Durable device <-> account link. Survives cookie/localStorage wipes,
+    // incognito and browser changes because it is keyed on the hardware
+    // fingerprint, and it feeds the multi-signal device match score.
+    if (deviceId || hardwareId) {
+      try {
+        await context.supabase.rpc("device_link_register", {
+          _device_id: (deviceId ?? hardwareId) as string,
+          _hardware_hash: hardwareId,
+        });
+      } catch {}
+    }
+
+
     if (error) {
       return { ok: false, ip, error: error.message };
     }
