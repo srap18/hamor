@@ -204,6 +204,47 @@ function AdminSanctions() {
           </tbody>
         </table>
       </div>
+
+      {(filter === "all" || isBlockFilter) && (
+        <div className="mt-6">
+          <h2 className="text-lg font-bold mb-2">حظر الإيميلات / الأجهزة / الآيبي ({filteredBlocks.length})</h2>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
+              <thead className="bg-slate-800/60 text-slate-300">
+                <tr>
+                  <th className="text-right p-3">النوع</th>
+                  <th className="text-right p-3">القيمة</th>
+                  <th className="text-right p-3">اللاعب</th>
+                  <th className="text-right p-3">السبب</th>
+                  <th className="text-right p-3">منذ</th>
+                  <th className="text-right p-3">إجراء</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!loading && filteredBlocks.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا يوجد</td></tr>}
+                {filteredBlocks.map((b) => (
+                  <tr key={`${b.kind}-${b.key}`} className="border-t border-slate-800/50">
+                    <td className="p-3">
+                      <span className="px-2 py-1 rounded text-xs bg-red-600/20 text-red-200 border border-red-500/30">
+                        {b.kind === "email" ? "📧 إيميل" : b.kind === "device" ? "📱 جهاز" : "🌐 آيبي"}
+                      </span>
+                    </td>
+                    <td className="p-3 font-mono text-xs max-w-[220px] truncate" title={b.key}>{b.key}</td>
+                    <td className="p-3 text-slate-300 text-xs">{b.player_name ?? (b.user_id ? b.user_id.slice(0, 8) : "—")}</td>
+                    <td className="p-3 text-slate-300 max-w-xs truncate" title={b.reason ?? ""}>{b.reason || "—"}</td>
+                    <td className="p-3 text-xs text-slate-400">{new Date(b.created_at).toLocaleString("ar")}</td>
+                    <td className="p-3">
+                      <button onClick={() => removeBlock(b)} className="px-2 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 text-xs">
+                        رفع الحظر
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
