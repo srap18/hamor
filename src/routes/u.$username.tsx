@@ -150,7 +150,7 @@ function UserProfilePage() {
         {tribe && (() => {
           const tier = getTribeBanner(tribe.level || 1);
           return (
-            <section className="relative w-full h-28 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-[0_0_30px_rgba(251,191,36,0.35)]">
+            <Link to="/t/$tribeId" params={{ tribeId: tribe.id }} className="block relative w-full h-28 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-[0_0_30px_rgba(251,191,36,0.35)] active:scale-[0.99]">
               <img decoding="async" src={tier.url} alt={`بنر ${tier.name}`} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute inset-0 flex items-center gap-3 px-4">
@@ -162,8 +162,10 @@ function UserProfilePage() {
                   <div className="text-amber-100 font-extrabold text-base truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">🏴‍☠️ {tribe.name}</div>
                   <div className="text-[11px] text-amber-200/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">⭐ مستوى {tribe.level} · {tier.name}</div>
                 </div>
+                <span className="shrink-0 px-2 py-1 rounded-lg bg-amber-500 text-amber-950 text-[10px] font-extrabold">🏴‍☠️ عرض القبيلة</span>
               </div>
-            </section>
+            </Link>
+
           );
         })()}
 
