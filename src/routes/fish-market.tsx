@@ -696,24 +696,26 @@ function FishMarket() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
       {/* TOP HUD */}
-      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] mt-10 flex items-center gap-2">
-        <Link to="/" className="w-10 h-10 rounded-xl glass-hud border border-accent/40 flex items-center justify-center text-lg active:scale-95">
-          ←
-        </Link>
-        <div className="flex-1 glass-hud rounded-xl px-3 py-1.5 flex items-center justify-around gap-2">
-          <ResChip icon="💎" v={gems} color="text-rose-300" />
-          <ResChip icon="🔷" v={rubies} color="text-cyan-200" />
-          <ResChip icon={<CoinIcon size={16} />} v={coins} color="text-amber-300" />
-      </div>
-
-      {marketExpertActive && (
-        <div className="mt-1.5 mx-0 rounded-xl border-2 border-emerald-300/70 bg-gradient-to-b from-emerald-600/95 to-emerald-900/95 px-3 py-1 text-center shadow-xl flex items-center justify-center gap-2 pointer-events-none">
-          <span className="text-[11px] font-extrabold text-emerald-100">📈 خبير الأسواق مفعّل</span>
-          <span className="text-[11px] font-bold text-amber-200 tabular-nums">{formatHHMMSS(marketExpertMs)}</span>
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] mt-10 flex flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="w-10 h-10 rounded-xl glass-hud border border-accent/40 flex items-center justify-center text-lg active:scale-95">
+            ←
+          </Link>
+          <div className="flex-1 glass-hud rounded-xl px-3 py-1.5 flex items-center justify-around gap-2">
+            <ResChip icon="💎" v={gems} color="text-rose-300" />
+            <ResChip icon="🔷" v={rubies} color="text-cyan-200" />
+            <ResChip icon={<CoinIcon size={16} />} v={coins} color="text-amber-300" />
+          </div>
         </div>
-      )}
 
+        {marketExpertActive && (
+          <div className="rounded-xl border-2 border-emerald-300/70 bg-gradient-to-b from-emerald-600/95 to-emerald-900/95 px-3 py-1 text-center shadow-xl flex items-center justify-center gap-2 pointer-events-none">
+            <span className="text-[11px] font-extrabold text-emerald-100">📈 خبير الأسواق مفعّل</span>
+            <span className="text-[11px] font-bold text-amber-200 tabular-nums">{formatHHMMSS(marketExpertMs)}</span>
+          </div>
+        )}
       </div>
+
 
       {/* MAIN CONTENT — Storage view */}
       {!sel && (
