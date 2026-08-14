@@ -33,18 +33,9 @@ function SignupPage() {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const slotGate = useDeviceSlotGate();
 
-  // Capture ?ref=CODE from URL or localStorage
+  // نظام الدعوات ملغى نهائياً: لا يتم التقاط أي كود دعوة.
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const fromUrl = params.get("ref") || params.get("invite");
-      const stored = localStorage.getItem("pending_referral_code");
-      const code = (fromUrl || stored || "").toUpperCase().trim();
-      if (code) {
-        setRefCode(code);
-        localStorage.setItem("pending_referral_code", code);
-      }
-    } catch {}
+    try { localStorage.removeItem("pending_referral_code"); } catch {}
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -77,33 +68,11 @@ function SignupPage() {
       email, password,
       options: {
         emailRedirectTo: `${siteUrl()}/auth/confirm?type=signup&next=/`,
-        data: { referral_code: refCode || null },
       },
     });
     setLoading(false);
     if (error) { setErr(error.message); return; }
     if (!data.session) { setPendingEmail(email); return; }
-    if (refCode) {
-      try {
-        let dev: string | null = null;
-        try { dev = await getHardwareFingerprint(); } catch {}
-        const { data: r } = await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
-        if (r && (r as any).ok === false) {
-          const reason = (r as any).reason;
-          const msg =
-            reason === "same_device" || reason === "device_already_used" ? "لا تُحسب الدعوة: نفس الجهاز" :
-            reason === "linked_account" ? "لا تُحسب الدعوة: حسابات مرتبطة" :
-            reason === "self_referral" ? "لا يمكن استخدام كودك الشخصي" :
-            reason === "already_referred" ? "تم استخدام كود دعوة سابقاً" :
-            reason === "code_not_found" ? "كود دعوة غير موجود" :
-            reason === "lifetime_cap_reached" ? "الداعي وصل الحد الأقصى للدعوات" :
-            reason === "daily_cap_reached" ? "الداعي وصل الحد اليومي للدعوات" :
-            reason === "device_required" ? "تعذّر التحقق من الجهاز" : null;
-          if (msg) setErr(msg);
-        }
-        localStorage.removeItem("pending_referral_code");
-      } catch {}
-    }
     const uid = data.session?.user.id;
     if (uid) {
       const ok = await slotGate.checkAndProceed(uid, data.session?.user.email || null);
@@ -174,14 +143,6 @@ function VerifyLinkNotice({ email, refCode, onVerified }: { email: string; refCo
     const { data, error } = await supabase.auth.refreshSession();
     setBusy(false);
     if (error || !data.user?.email_confirmed_at) { setErr("لم يتم تأكيد الرابط بعد"); return; }
-    if (refCode) {
-      try {
-        let dev: string | null = null;
-        try { dev = await getHardwareFingerprint(); } catch {}
-        await (supabase as any).rpc("apply_referral_code", { p_code: refCode, p_device_id: dev });
-        localStorage.removeItem("pending_referral_code");
-      } catch {}
-    }
     onVerified();
   };
 
