@@ -7989,6 +7989,10 @@ export type Database = {
           xp: number
         }[]
       }
+      season_frame_earned: {
+        Args: { _frame_id: string; _uid: string }
+        Returns: boolean
+      }
       season_frame_tier: { Args: { _damage: number }; Returns: number }
       sell_fish: { Args: { _fish_stock_ids: string[] }; Returns: number }
       sell_fish_by_qty:
