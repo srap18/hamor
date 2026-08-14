@@ -1478,11 +1478,15 @@ function Index() {
             if (gfActive && !gfMarketFullRef.current && tickIsFresh) {
               ratio = 0.99;
             }
-            if (gfActive && !gfMarketFullRef.current) {
+            if (gfActive) {
               // Throttle to ~once per 1.5s. The old 200ms cadence made every
               // ready-ship frame fire an RPC + full fleet re-sync, which
               // stacked into a heavy loop that visibly slowed the game.
-              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > 1500) {
+              // When the market was reported full we keep retrying, just at a
+              // much slower cadence (10s) so fishing resumes by itself as soon
+              // as the player frees up space — instead of freezing forever.
+              const minGap = gfMarketFullRef.current ? 10000 : 1500;
+              if (!gfTickInFlightRef.current && now - lastGfTickRef.current > minGap) {
                 lastGfTickRef.current = now;
                 gfTickInFlightRef.current = true;
                 tickGoldenFisher({ data: {} })
@@ -1498,10 +1502,15 @@ function Index() {
                       setTimeout(() => setToast(null), 3500);
                       try { sound.play("error"); } catch {}
                     }
-                    // Only re-sync from DB when the server actually advanced
-                    // fishing timers or launched ships — otherwise this fires
-                    // several times per second for nothing and lags the UI.
-                    const shipsTouched = Number(res?.ships ?? 0) > 0 || Number(res?.launched ?? 0) > 0 || Number(res?.cycles ?? 0) > 0;
+                    // Re-sync from DB when the server actually advanced fishing
+                    // timers / launched ships, and also when the market just
+                    // freed up (full → not full) so stale "ready" ships reset.
+                    const shipsTouched =
+                      Number(res?.ships ?? 0) > 0 ||
+                      Number(res?.ships_processed ?? 0) > 0 ||
+                      Number(res?.launched ?? 0) > 0 ||
+                      Number(res?.cycles ?? 0) > 0 ||
+                      (wasFull && !isFull);
                     if (shipsTouched) syncFleetFromDb();
                   })
                   .catch(() => {})
@@ -1509,6 +1518,7 @@ function Index() {
 
               }
             }
+
 
           }
           // Same fishing trip should never visually go backwards. On reopen the
