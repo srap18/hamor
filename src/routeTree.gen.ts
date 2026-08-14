@@ -63,6 +63,7 @@ import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminVipRouteImport } from './routes/admin.vip'
 import { Route as AdminTribeEventsRouteImport } from './routes/admin.tribe-events'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
+import { Route as AdminSuspectedDevicesRouteImport } from './routes/admin.suspected-devices'
 import { Route as AdminStealRouteImport } from './routes/admin.steal'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminSanctionsRouteImport } from './routes/admin.sanctions'
@@ -361,6 +362,11 @@ const AdminTicketsRoute = AdminTicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSuspectedDevicesRoute = AdminSuspectedDevicesRouteImport.update({
+  id: '/suspected-devices',
+  path: '/suspected-devices',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminStealRoute = AdminStealRouteImport.update({
   id: '/steal',
   path: '/steal',
@@ -563,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/steal': typeof AdminStealRoute
+  '/admin/suspected-devices': typeof AdminSuspectedDevicesRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -645,6 +652,7 @@ export interface FileRoutesByTo {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/steal': typeof AdminStealRoute
+  '/admin/suspected-devices': typeof AdminSuspectedDevicesRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -729,6 +737,7 @@ export interface FileRoutesById {
   '/admin/sanctions': typeof AdminSanctionsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/steal': typeof AdminStealRoute
+  '/admin/suspected-devices': typeof AdminSuspectedDevicesRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/admin/tribe-events': typeof AdminTribeEventsRoute
   '/admin/vip': typeof AdminVipRoute
@@ -814,6 +823,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/staff'
     | '/admin/steal'
+    | '/admin/suspected-devices'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -896,6 +906,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/staff'
     | '/admin/steal'
+    | '/admin/suspected-devices'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -979,6 +990,7 @@ export interface FileRouteTypes {
     | '/admin/sanctions'
     | '/admin/staff'
     | '/admin/steal'
+    | '/admin/suspected-devices'
     | '/admin/tickets'
     | '/admin/tribe-events'
     | '/admin/vip'
@@ -1440,6 +1452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTicketsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/suspected-devices': {
+      id: '/admin/suspected-devices'
+      path: '/suspected-devices'
+      fullPath: '/admin/suspected-devices'
+      preLoaderRoute: typeof AdminSuspectedDevicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/steal': {
       id: '/admin/steal'
       path: '/steal'
@@ -1652,6 +1671,7 @@ interface AdminRouteChildren {
   AdminSanctionsRoute: typeof AdminSanctionsRoute
   AdminStaffRoute: typeof AdminStaffRoute
   AdminStealRoute: typeof AdminStealRoute
+  AdminSuspectedDevicesRoute: typeof AdminSuspectedDevicesRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminTribeEventsRoute: typeof AdminTribeEventsRoute
   AdminVipRoute: typeof AdminVipRoute
@@ -1679,6 +1699,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSanctionsRoute: AdminSanctionsRoute,
   AdminStaffRoute: AdminStaffRoute,
   AdminStealRoute: AdminStealRoute,
+  AdminSuspectedDevicesRoute: AdminSuspectedDevicesRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminTribeEventsRoute: AdminTribeEventsRoute,
   AdminVipRoute: AdminVipRoute,
