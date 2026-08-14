@@ -57,7 +57,7 @@ function AdminSanctions() {
       ...((mutes ?? []) as any[]).map((m) => ({ ...m, kind: "mute" as const })),
     ].filter((r) => !r.expires_at || r.expires_at > nowIso);
 
-    const ids = Array.from(new Set(all.map((r) => r.user_id)));
+    const ids = Array.from(new Set([...all.map((r) => r.user_id), ...blockRows.map((b) => b.user_id)].filter(Boolean) as string[]));
     if (ids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,display_name,avatar_emoji").in("id", ids);
       const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
@@ -66,11 +66,32 @@ function AdminSanctions() {
         r.player_name = p?.display_name ?? "غير معروف";
         r.player_emoji = p?.avatar_emoji ?? "👤";
       });
+      blockRows.forEach((b) => {
+        if (b.user_id) b.player_name = map.get(b.user_id)?.display_name ?? undefined;
+      });
     }
     all.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    blockRows.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     setRows(all);
+    setBlocks(blockRows);
     setLoading(false);
   }, []);
+
+  const removeBlock = async (b: BlockRow) => {
+    const label = b.kind === "email" ? "الإيميل" : b.kind === "device" ? "الجهاز" : "الآيبي";
+    if (!confirm(`رفع حظر ${label}: ${b.key}؟`)) return;
+    const q =
+      b.kind === "email"
+        ? supabase.from("banned_emails").delete().eq("email", b.key)
+        : b.kind === "device"
+          ? supabase.from("banned_devices").delete().eq("device_id", b.key)
+          : supabase.from("banned_ips").delete().eq("ip", b.key);
+    const { error } = await q;
+    if (error) { toast.error(`فشل الرفع: ${error.message}`); return; }
+    await logAudit(`unban_${b.kind}`, b.user_id, { key: b.key, via: "sanctions_page" });
+    toast.success("تم الرفع");
+    load();
+  };
 
   useEffect(() => { load(); }, [load]);
 
