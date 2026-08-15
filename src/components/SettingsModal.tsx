@@ -14,6 +14,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { useT, type Lang } from "@/lib/i18n";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
+import { forceUpdateApp } from "@/lib/force-update";
+
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const nav = useNavigate();
