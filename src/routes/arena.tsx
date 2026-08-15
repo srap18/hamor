@@ -3,6 +3,8 @@ import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { overallLevel, type Dragon } from "@/lib/dragon";
+import { MyRankBar } from "@/components/MyRankBar";
+
 
 export const Route = createFileRoute("/arena")({
   ssr: false,
@@ -238,7 +240,9 @@ function ArenaPage() {
               })}
             </div>
           )}
+          <MyRankBar kind="arena" unit="نقطة" extraUnit="انتصار" deps={[rows]} emptyText="ما سجلت نقاط أرينا هذا الأسبوع بعد" />
         </div>
+
       </div>
     </div>
   );
