@@ -65,7 +65,7 @@ export function VerificationStatus() {
     try {
       const { error } = await supabase.auth.updateUser(
         { email: e },
-        { emailRedirectTo: `${window.location.origin}/auth/confirm` },
+        { emailRedirectTo: `${siteUrl()}/auth/confirm?type=email_change` },
       );
       if (error) throw error;
       flash("✅ تم إرسال رابط التأكيد إلى البريد الجديد. افتحه لتفعيله.");
