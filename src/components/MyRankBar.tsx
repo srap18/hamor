@@ -21,24 +21,27 @@ export function useMyRank(kind: MyRankKind, refId?: string | null, deps: unknown
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
+      // wait for the session so auth.uid() is available server-side
+      const { data: s } = await supabase.auth.getSession();
+      if (!s.session) { if (!cancelled) setStat(null); return; }
       const { data } = await (supabase as never as {
         rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
       }).rpc("my_leaderboard_rank", { _kind: kind, _ref: refId ?? null });
       if (cancelled) return;
       const row = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
-      setStat(
-        row
-          ? {
-              rank: Number(row.rank ?? 0),
-              score: Number(row.score ?? 0),
-              extra: Number(row.extra ?? 0),
-              total: Number(row.total ?? 0),
-            }
-          : null,
-      );
-    })();
-    return () => { cancelled = true; };
+      setStat({
+        rank: Number(row?.rank ?? 0),
+        score: Number(row?.score ?? 0),
+        extra: Number(row?.extra ?? 0),
+        total: Number(row?.total ?? 0),
+      });
+    };
+    void load();
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) void load();
+    });
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, refId, ...deps]);
 
