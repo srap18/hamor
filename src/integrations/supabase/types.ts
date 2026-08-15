@@ -7875,6 +7875,15 @@ export type Database = {
         }
         Returns: number
       }
+      my_leaderboard_rank: {
+        Args: { _kind: string; _ref?: string }
+        Returns: {
+          extra: number
+          rank: number
+          score: number
+          total: number
+        }[]
+      }
       my_verification_status: {
         Args: never
         Returns: {
