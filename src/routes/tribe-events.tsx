@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
+import { MyRankBar } from "@/components/MyRankBar";
+
 
 export const Route = createFileRoute("/tribe-events")({
   component: TribeEventsPage,
@@ -323,7 +325,16 @@ function TribeEventsPage() {
                     })}
                   </ol>
                 )}
+                <MyRankBar
+                  kind="tribe_event"
+                  refId={ev.id}
+                  unit={METRIC_NOUN[ev.metric ?? "fish"]}
+                  label="ترتيبك بقبيلتك"
+                  emptyText={`ما ساهمت بأي ${METRIC_NOUN[ev.metric ?? "fish"]} في هذي الفعالية بعد`}
+                  deps={[boards[ev.id]]}
+                />
               </div>
+
             </div>
           );
         })}
