@@ -61,6 +61,7 @@ function AuthConfirmPage() {
         } catch { /* noop */ }
         setDone(true);
         setStatus("تم تأكيد هذا الرابط ✓");
+        try { await (supabase as any).rpc("mark_email_verified"); } catch { /* noop */ }
         return;
       }
 
