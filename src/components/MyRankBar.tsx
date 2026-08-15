@@ -86,7 +86,9 @@ export function MyRankBar({
         {has ? (
           <>
             أنت في المركز <span className="text-amber-300">#{stat.rank}</span>
+            {label !== "ترتيبك" ? <span className="text-amber-200/70"> — {label}</span> : null}
           </>
+
         ) : (
           <span className="text-amber-200/70">{emptyText}</span>
         )}

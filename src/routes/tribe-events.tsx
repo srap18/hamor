@@ -325,14 +325,38 @@ function TribeEventsPage() {
                     })}
                   </ol>
                 )}
+                {myTribeId && (
+                  <div className="mt-2 rounded-xl border border-cyan-400/50 bg-gradient-to-l from-cyan-500/20 via-cyan-500/10 to-transparent p-2.5 flex items-center gap-3">
+                    <div className="shrink-0 w-12 text-center">
+                      <div className="text-lg font-black text-cyan-200 leading-none">
+                        {myRank >= 0 ? (myRank === 0 ? "🥇" : myRank === 1 ? "🥈" : myRank === 2 ? "🥉" : `#${myRank + 1}`) : "—"}
+                      </div>
+                      <div className="text-[9px] text-cyan-200/60 mt-0.5">ترتيب قبيلتك</div>
+                    </div>
+                    <div className="flex-1 min-w-0 text-xs text-cyan-100/90 font-bold truncate">
+                      {myRank >= 0 ? (
+                        <>قبيلتك في المركز <span className="text-cyan-300">#{myRank + 1}</span> بين القبائل</>
+                      ) : (
+                        <span className="text-cyan-200/70">قبيلتك خارج أفضل 20 قبيلة</span>
+                      )}
+                    </div>
+                    {myRank >= 0 && (
+                      <div className="text-end shrink-0">
+                        <div className="text-base font-black text-cyan-300 tabular-nums">{Number(lb[myRank].total_fish).toLocaleString()}</div>
+                        <div className="text-[9px] text-cyan-200/60">{METRIC_NOUN[ev.metric ?? "fish"]} للقبيلة</div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <MyRankBar
                   kind="tribe_event"
                   refId={ev.id}
                   unit={METRIC_NOUN[ev.metric ?? "fish"]}
-                  label="ترتيبك بقبيلتك"
+                  label="ترتيبك داخل قبيلتك"
                   emptyText={`ما ساهمت بأي ${METRIC_NOUN[ev.metric ?? "fish"]} في هذي الفعالية بعد`}
                   deps={[boards[ev.id]]}
                 />
+
               </div>
 
             </div>
