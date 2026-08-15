@@ -1865,6 +1865,7 @@ function PlayerPage() {
                         if (m.includes("no ad_bomb")) { sound.play("error"); flash("🎟️ ما عندك قنبلة إعلانية — احصل عليها بكود شحن"); return; }
                         if (m.includes("market level under 6")) { sound.play("error"); flash("🛡️ اللاعب محمي — سوق سفنه أقل من المستوى 6"); return; }
                         if (m.includes("protected")) { sound.play("error"); flash("🛡️ الخصم محمي بالدرع"); return; }
+                        if (m.includes("cannot attack an account on the same device") || m.includes("same device")) { sound.play("error"); flash("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز — هذا الحساب محظور عليك"); return; }
                         if (m.includes("cannot target self")) { sound.play("error"); flash("❌ لا يمكن استهداف نفسك"); return; }
                         sound.play("error"); flash(`تعذّر الإطلاق: ${m.slice(0, 60)}`); return;
                       }
