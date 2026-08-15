@@ -274,19 +274,6 @@ export const STORE_PACKS: StorePack[] = [
   },
 
 
-  // ───── VIP Subscription ───────────────────────────────────
-  {
-    id: "vip_monthly",
-    category: "vip",
-    label: "👑 VIP شهري",
-    emoji: "👑",
-    priceUSD: 9.99,
-    subscription: true,
-    popular: true,
-    description: "6,000 💎 + عضوية VIP شهر (كاش باك على كل شراء)",
-    reward: { gems: 6_000, vipDays: 30 },
-  },
-
   // ───── Gems ───────────────────────────────────────────────
   {
     id: "gp_100",
