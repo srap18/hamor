@@ -41,6 +41,8 @@ function AdminEventPoints() {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<PlayerHit[]>([]);
   const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [parts, setParts] = useState<PlayerHit[]>([]);
+  const [partsLoading, setPartsLoading] = useState(false);
 
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -48,20 +50,29 @@ function AdminEventPoints() {
   const [busy, setBusy] = useState(false);
   const [logs, setLogs] = useState<LogRow[]>([]);
 
+
   const isEventKind = kind === "competition" || kind === "tribe_event";
   const usesTribe = kind === "tribe_points" || (kind === "tribe_event" && target === "tribe");
 
-  // load event lists
+  // load event lists (active only)
   useEffect(() => {
-    setEventId(""); setCurrent(null); setAmount("");
+    setEventId(""); setCurrent(null); setAmount(""); setParts([]);
     if (kind === "competition") {
       supabase.from("competitions").select("id,title,active,metric,starts_at,ends_at")
-        .order("starts_at", { ascending: false }).limit(50)
-        .then(({ data }) => setEvents((data ?? []) as EventRow[]));
+        .eq("active", true).order("starts_at", { ascending: false }).limit(50)
+        .then(({ data }) => {
+          const rows = (data ?? []) as EventRow[];
+          setEvents(rows);
+          if (rows.length === 1) setEventId(rows[0].id);
+        });
     } else if (kind === "tribe_event") {
       supabase.from("tribe_fish_events").select("id,title,active,metric,starts_at,ends_at")
-        .order("starts_at", { ascending: false }).limit(50)
-        .then(({ data }) => setEvents((data ?? []) as EventRow[]));
+        .eq("active", true).order("starts_at", { ascending: false }).limit(50)
+        .then(({ data }) => {
+          const rows = (data ?? []) as EventRow[];
+          setEvents(rows);
+          if (rows.length === 1) setEventId(rows[0].id);
+        });
     } else {
       setEvents([]);
     }
@@ -71,6 +82,43 @@ function AdminEventPoints() {
     }
     if (kind !== "tribe_event") setTarget("player");
   }, [kind]);
+
+  // participants of the selected event (no need to search by name)
+  useEffect(() => {
+    let cancel = false;
+    const run = async () => {
+      if (!isEventKind || !eventId || usesTribe) { setParts([]); return; }
+      setPartsLoading(true);
+      let ids: { id: string; name: string }[] = [];
+      if (kind === "competition") {
+        const { data } = await supabase.rpc("get_competition_leaderboard" as never,
+          { _competition_id: eventId } as never);
+        ids = ((data ?? []) as { user_id: string; display_name: string }[])
+          .map((r) => ({ id: r.user_id, name: r.display_name }));
+      } else if (tribeId) {
+        const { data } = await supabase.rpc("tribe_fish_event_member_leaderboard" as never,
+          { p_event_id: eventId, p_tribe_id: tribeId } as never);
+        ids = ((data ?? []) as { user_id: string; username: string }[])
+          .map((r) => ({ id: r.user_id, name: r.username }));
+      }
+      if (cancel) return;
+      const list = ids.slice(0, 200);
+      let rows: PlayerHit[] = list.map((r) => ({
+        id: r.id, display_name: r.name, username: null, avatar_emoji: null,
+      }));
+      if (list.length) {
+        const { data: profs } = await supabase.from("profiles")
+          .select("id,display_name,username,avatar_emoji").in("id", list.map((r) => r.id));
+        const map = new Map(((profs ?? []) as PlayerHit[]).map((p) => [p.id, p]));
+        rows = list.map((r) => map.get(r.id) ?? {
+          id: r.id, display_name: r.name, username: null, avatar_emoji: null,
+        });
+      }
+      if (!cancel) { setParts(rows); setPartsLoading(false); }
+    };
+    run().finally(() => { if (!cancel) setPartsLoading(false); });
+    return () => { cancel = true; };
+  }, [kind, eventId, tribeId, isEventKind, usesTribe]);
 
   // player search
   useEffect(() => {
@@ -86,6 +134,7 @@ function AdminEventPoints() {
     }, 250);
     return () => { cancel = true; clearTimeout(t); };
   }, [query]);
+
 
   const weekStartISO = () => {
     const d = new Date();
@@ -301,6 +350,36 @@ function AdminEventPoints() {
             )}
           </div>
         )}
+
+        {/* participants list */}
+        {isEventKind && !usesTribe && eventId && (
+          <div className="space-y-2">
+            {kind === "tribe_event" && (
+              <select value={tribeId} onChange={(e) => { setTribeId(e.target.value); setSelected(null); }}
+                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm">
+                <option value="">— اختر قبيلة لعرض أعضائها —</option>
+                {tribes.map((t) => <option key={t.id} value={t.id}>{t.emblem} {t.name}</option>)}
+              </select>
+            )}
+            <div className="text-xs text-slate-400">المشاركون في الفعالية {partsLoading ? "…" : `(${parts.length})`}</div>
+            <div className="max-h-64 overflow-auto rounded-lg border border-slate-700 divide-y divide-slate-800">
+              {parts.length === 0 && !partsLoading && (
+                <div className="px-3 py-2 text-xs text-slate-500">لا يوجد مشاركون — استخدم البحث بالأعلى.</div>
+              )}
+              {parts.map((p) => (
+                <button key={p.id} type="button"
+                  onClick={() => { setSelected(p); setQuery(""); setHits([]); }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-start ${
+                    selected?.id === p.id ? "bg-cyan-800/40" : "hover:bg-slate-800"}`}>
+                  <span className="text-lg">{p.avatar_emoji ?? "🧑‍✈️"}</span>
+                  <span className="flex-1 truncate">{p.display_name}</span>
+                  {p.username && <span className="text-xs text-slate-400">@{p.username}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
 
         <div className="flex items-center justify-between text-sm bg-slate-900/60 rounded px-3 py-2 border border-slate-700">
           <span className="text-slate-300">النقاط الحالية:</span>
