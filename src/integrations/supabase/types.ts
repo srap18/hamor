@@ -1645,6 +1645,42 @@ export type Database = {
         }
         Relationships: []
       }
+      event_score_adjustments: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          delta: number
+          event_id: string
+          event_kind: string
+          id: string
+          reason: string | null
+          tribe_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          delta: number
+          event_id: string
+          event_kind: string
+          id?: string
+          reason?: string | null
+          tribe_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          delta?: number
+          event_id?: string
+          event_kind?: string
+          id?: string
+          reason?: string | null
+          tribe_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           active: boolean
@@ -6099,6 +6135,14 @@ export type Database = {
         Args: { _action: string; _min_ms: number }
         Returns: undefined
       }
+      _evt_base_tribe: {
+        Args: { _event_id: string; _tribe: string }
+        Returns: number
+      }
+      _evt_base_user: {
+        Args: { _event_id: string; _kind: string; _user: string }
+        Returns: number
+      }
       _extend_ship_crew_timers: {
         Args: { _seconds: number; _ship_id: string }
         Returns: undefined
@@ -6266,6 +6310,17 @@ export type Database = {
       add_xp: { Args: { _uid: string; _xp: number }; Returns: undefined }
       admin_adjust_arena_score: {
         Args: { _delta: number; _user_id: string }
+        Returns: number
+      }
+      admin_adjust_event_points: {
+        Args: {
+          _delta: number
+          _event_id: string
+          _kind: string
+          _reason?: string
+          _tribe_id?: string
+          _user_id?: string
+        }
         Returns: number
       }
       admin_adjust_tribe_points:
@@ -6740,6 +6795,16 @@ export type Database = {
       }
       admin_wipe_exploit: { Args: { _user_id: string }; Returns: Json }
       admin_wipe_profile: { Args: { _target: string }; Returns: Json }
+      admin_zero_event_points: {
+        Args: {
+          _event_id: string
+          _kind: string
+          _reason?: string
+          _tribe_id?: string
+          _user_id?: string
+        }
+        Returns: number
+      }
       allocate_skill_point: { Args: { _stat: string }; Returns: Json }
       apply_referral_code: {
         Args: { p_code: string; p_device_id?: string }
@@ -7207,6 +7272,15 @@ export type Database = {
         Returns: number
       }
       equip_dragon_item: { Args: { p_item_id: string }; Returns: Json }
+      event_score_total: {
+        Args: {
+          _event_id: string
+          _kind: string
+          _tribe?: string
+          _user?: string
+        }
+        Returns: number
+      }
       feed_daughter: { Args: { _fish_stock_ids: string[] }; Returns: Json }
       feed_daughter_caught: { Args: { _fish_ids: string[] }; Returns: Json }
       finalize_competition: {
