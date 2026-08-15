@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { FISH } from "@/lib/fish";
 import { CoinIcon } from "@/components/CurrencyIcon";
 import { syncServerTime, serverNow } from "@/lib/server-time";
+import { MyRankBar } from "@/components/MyRankBar";
+
 
 
 export const Route = createFileRoute("/competitions")({
@@ -435,7 +437,9 @@ function CompetitionsPage() {
                       })}
                     </ol>
                   )}
+                  <MyRankBar kind="competition" refId={c.id} unit={meta.unit} deps={[board]} />
                 </div>
+
               </div>
             </article>
           );
