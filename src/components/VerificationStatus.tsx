@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { siteUrl } from "@/lib/site-url";
 
 export function VerificationStatus() {
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
@@ -31,26 +32,29 @@ export function VerificationStatus() {
     if (!email) return;
     setBusy(true);
     try {
-      const redirect = `${window.location.origin}/auth/confirm?next=/profile`;
-      const { error } = await supabase.auth.resend({
-        type: "signup",
+      const redirect = `${siteUrl()}/auth/confirm?type=magiclink&next=/profile`;
+      // Signups are auto-confirmed on this project, so `resend({type:'signup'})`
+      // silently sends nothing. A magic link is the reliable path: it proves
+      // inbox ownership and /auth/confirm marks the account verified.
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: redirect },
+        options: { shouldCreateUser: false, emailRedirectTo: redirect },
       });
       if (error) {
-        // Accounts auto-confirmed at signup can't use the signup resend —
-        // fall back to a magic link, which also proves ownership of the inbox.
-        const { error: otpErr } = await supabase.auth.signInWithOtp({
+        const { error: resendErr } = await supabase.auth.resend({
+          type: "signup",
           email,
-          options: { shouldCreateUser: false, emailRedirectTo: redirect },
+          options: { emailRedirectTo: `${siteUrl()}/auth/confirm?next=/profile` },
         });
-        if (otpErr) throw otpErr;
+        if (resendErr) throw error;
       }
-      flash("✅ تم إرسال رابط التأكيد إلى بريدك");
+      flash("✅ تم إرسال رابط التأكيد إلى بريدك (تحقق من صندوق الوارد وSpam)");
     } catch (e: any) {
-      flash(e?.message?.includes("rate") ? "الرجاء الانتظار قليلاً قبل إعادة الإرسال" : "تعذّر الإرسال — حاول لاحقاً");
+      const m = String(e?.message ?? "").toLowerCase();
+      flash(m.includes("rate") || m.includes("29") ? "الرجاء الانتظار دقيقة قبل إعادة الإرسال" : "تعذّر الإرسال — حاول لاحقاً");
     } finally { setBusy(false); }
   };
+
 
 
   const changeEmail = async () => {
