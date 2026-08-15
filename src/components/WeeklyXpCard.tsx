@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CoinIcon } from "@/components/CurrencyIcon";
+import { MyRankBar } from "@/components/MyRankBar";
+
 
 type Tier = { rank: number; coins: number; gems: number; xp: number; text: string };
 type Config = {
@@ -164,7 +166,9 @@ export function WeeklyXpCard() {
               })}
             </ol>
           )}
+          <MyRankBar kind="weekly_xp" unit="XP" deps={[board]} emptyText="ما جمعت XP هذا الأسبوع بعد (تحتاج سوق سفن 16+)" />
         </div>
+
       </div>
     </article>
   );
