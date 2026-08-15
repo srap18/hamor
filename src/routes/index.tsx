@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LeaderboardPodium, type PodiumItem } from "@/components/LeaderboardPodium";
+import { MyRankBar } from "@/components/MyRankBar";
+
 import { type PrizeTier } from "@/components/PrizesModal";
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 
@@ -4470,7 +4472,9 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                             </>
                           );
                         })()}
+                        <MyRankBar kind="competition" refId={c.id} unit={meta.unit || "نقطة"} deps={[board]} />
                       </div>
+
                     </div>
                   );
                 })}
@@ -4749,7 +4753,37 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               </>
             );
           })()}
+          {tab !== "search" && tab !== "comp" && (
+            <MyRankBar
+              kind={
+                tab === "xp" ? "weekly_xp"
+                : tab === "tribes" ? "tribe_damage"
+                : tab === "tribe_donations" ? "tribe_donations"
+                : tab
+              }
+              unit={
+                tab === "xp" ? "XP"
+                : tab === "gems" ? "جوهرة"
+                : tab === "coins" ? "ذهب"
+                : tab === "fish" ? "نوع سمك"
+                : tab === "ships" ? "مستوى سوق"
+                : tab === "tribe_donations" ? "تبرعات"
+                : "ضرر"
+              }
+              extraUnit={tab === "fish" ? "سمكة" : undefined}
+              label={tab === "tribes" || tab === "tribe_donations" ? "ترتيب قبيلتك" : "ترتيبك"}
+              emptyText={
+                tab === "tribes" || tab === "tribe_donations"
+                  ? "ما عندك قبيلة أو ما جمعت نقاط بعد"
+                  : tab === "xp"
+                  ? "ما جمعت XP هذا الأسبوع بعد (تحتاج سوق سفن 16+)"
+                  : "ما عندك نقاط بعد — ابدأ الآن!"
+              }
+              deps={[rows, fishRows, shipRows, tribes, refreshSeq]}
+            />
+          )}
         </div>
+
 
         <button className="mt-2 w-full py-2 rounded-lg bg-secondary/70 text-accent text-xs font-bold active:scale-95"
           onClick={onClose}>إغلاق</button>
