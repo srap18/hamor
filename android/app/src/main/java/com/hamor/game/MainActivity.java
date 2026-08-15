@@ -51,13 +51,20 @@ public class MainActivity extends BridgeActivity {
 
 
 
+        // تشغيل الصوت/الفيديو بدون الحاجة لإيماءة مستخدم (الرسائل الصوتية في الشات).
+        try {
+            bridge.getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+        } catch (Exception ignored) {}
+
         // منح WebView أذونات المايك/الكاميرا عند الطلب فقط.
-        bridge.getWebView().setWebChromeClient(new WebChromeClient() {
+        // نرث BridgeWebChromeClient حتى لا نفقد سلوك Capacitor (اختيار الملفات، الحوارات...).
+        bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(() -> handleWebPermissionRequest(request));
             }
         });
+
 
         // عند انقطاع الاتصال، اعرض صفحة أوفلاين مخصصة بدل صفحة المتصفح الافتراضية.
         bridge.getWebView().setWebViewClient(new BridgeWebViewClient(bridge) {
