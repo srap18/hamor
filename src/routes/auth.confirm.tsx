@@ -61,6 +61,7 @@ function AuthConfirmPage() {
         } catch { /* noop */ }
         setDone(true);
         setStatus("تم تأكيد هذا الرابط ✓");
+        try { await (supabase as any).rpc("mark_email_verified"); } catch { /* noop */ }
         return;
       }
 
@@ -73,6 +74,8 @@ function AuthConfirmPage() {
 
       setDone(true);
       setStatus("تم تأكيد الرابط بنجاح ✓");
+      // Real inbox ownership proven (signup link or magic link) → mark verified.
+      try { await (supabase as any).rpc("mark_email_verified"); } catch { /* noop */ }
       // Email is now really verified → release any pending referral reward.
       try { await (supabase as any).rpc("check_my_referral_award"); } catch { /* noop */ }
       const next = safeNext(params.next, "/");

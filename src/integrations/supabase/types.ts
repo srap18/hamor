@@ -3439,6 +3439,7 @@ export type Database = {
           elite_vip_expires_at: string | null
           elite_vip_level: number
           elite_vip_login_broadcast_enabled: boolean
+          email_verified_at: string | null
           free_name_change_available: boolean
           friend_requests_closed: boolean
           gems: number
@@ -3514,6 +3515,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          email_verified_at?: string | null
           free_name_change_available?: boolean
           friend_requests_closed?: boolean
           gems?: number
@@ -3589,6 +3591,7 @@ export type Database = {
           elite_vip_expires_at?: string | null
           elite_vip_level?: number
           elite_vip_login_broadcast_enabled?: boolean
+          email_verified_at?: string | null
           free_name_change_available?: boolean
           friend_requests_closed?: boolean
           gems?: number
@@ -7848,6 +7851,7 @@ export type Database = {
       ludo_quick_match: { Args: { _players?: number }; Returns: string }
       ludo_roll_dice: { Args: { _room_id: string }; Returns: number }
       ludo_skip_turn: { Args: { _room_id: string }; Returns: undefined }
+      mark_email_verified: { Args: never; Returns: boolean }
       mark_me_offline: { Args: never; Returns: undefined }
       market_finish_upgrade_with_gems: { Args: never; Returns: number }
       market_start_upgrade: {

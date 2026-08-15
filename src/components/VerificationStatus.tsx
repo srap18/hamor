@@ -31,17 +31,27 @@ export function VerificationStatus() {
     if (!email) return;
     setBusy(true);
     try {
+      const redirect = `${window.location.origin}/auth/confirm?next=/profile`;
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
+        options: { emailRedirectTo: redirect },
       });
-      if (error) throw error;
+      if (error) {
+        // Accounts auto-confirmed at signup can't use the signup resend —
+        // fall back to a magic link, which also proves ownership of the inbox.
+        const { error: otpErr } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false, emailRedirectTo: redirect },
+        });
+        if (otpErr) throw otpErr;
+      }
       flash("✅ تم إرسال رابط التأكيد إلى بريدك");
     } catch (e: any) {
       flash(e?.message?.includes("rate") ? "الرجاء الانتظار قليلاً قبل إعادة الإرسال" : "تعذّر الإرسال — حاول لاحقاً");
     } finally { setBusy(false); }
   };
+
 
   const changeEmail = async () => {
     const e = newEmail.trim().toLowerCase();
