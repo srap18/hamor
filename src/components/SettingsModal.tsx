@@ -420,27 +420,17 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         )}
 
         <button
+          disabled={updating}
           onClick={async () => {
             sound.play("click");
-            try {
-              if ("caches" in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map((k) => caches.delete(k)));
-              }
-              if ("serviceWorker" in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                await Promise.all(regs.map((r) => r.unregister()));
-              }
-            } catch { /* noop */ }
-            // Hard reload, bypassing the browser cache.
-            const u = new URL(window.location.href);
-            u.searchParams.set("__v", String(Date.now()));
-            window.location.replace(u.toString());
+            setUpdating(true);
+            await forceUpdateApp();
           }}
-          className="w-full py-2 mt-2 rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-700 text-white text-xs font-bold active:scale-95"
+          className="w-full py-2 mt-2 rounded-lg bg-gradient-to-b from-cyan-500 to-cyan-700 text-white text-xs font-bold active:scale-95 disabled:opacity-60"
         >
-          {t("settings.refresh_game")}
+          {updating ? "⏳ جاري التحديث..." : t("settings.refresh_game")}
         </button>
+
         <div className="mt-1 px-1 text-[10px] text-cyan-300/70 text-center leading-snug">
           {t("settings.refresh_hint")}
         </div>
