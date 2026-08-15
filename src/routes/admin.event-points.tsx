@@ -41,12 +41,15 @@ function AdminEventPoints() {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<PlayerHit[]>([]);
   const [selected, setSelected] = useState<PlayerHit | null>(null);
+  const [parts, setParts] = useState<PlayerHit[]>([]);
+  const [partsLoading, setPartsLoading] = useState(false);
 
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [current, setCurrent] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [logs, setLogs] = useState<LogRow[]>([]);
+
 
   const isEventKind = kind === "competition" || kind === "tribe_event";
   const usesTribe = kind === "tribe_points" || (kind === "tribe_event" && target === "tribe");
