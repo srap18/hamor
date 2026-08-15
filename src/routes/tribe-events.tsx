@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
-import { MyRankBar } from "@/components/MyRankBar";
 
 
 export const Route = createFileRoute("/tribe-events")({
@@ -152,7 +151,7 @@ function TribeEventsPage() {
     setLoading(false);
     const entries = await Promise.all(list.map(async (e) => {
       const { data: lb } = await supabase.rpc("tribe_fish_event_leaderboard" as never, { p_event_id: e.id } as never);
-      return [e.id, ((lb ?? []) as LbRow[]).slice(0, 20)] as const;
+      return [e.id, ((lb ?? []) as LbRow[])] as const;
     }));
     setBoards(Object.fromEntries(entries));
   };
@@ -254,7 +253,7 @@ function TribeEventsPage() {
                   <div className="text-sm text-slate-500 py-4 text-center">لا يوجد مشاركون بعد — كن أول قبيلة تتصدر!</div>
                 ) : (
                   <ol className="space-y-1">
-                    {lb.map((t, i) => {
+                    {lb.slice(0, 20).map((t, i) => {
                       const mine = t.tribe_id === myTribeId;
                       const key = `${ev.id}:${t.tribe_id}`;
                       const isOpen = openTribe?.eventId === ev.id && openTribe?.tribeId === t.tribe_id;
@@ -337,7 +336,7 @@ function TribeEventsPage() {
                       {myRank >= 0 ? (
                         <>قبيلتك في المركز <span className="text-cyan-300">#{myRank + 1}</span> بين القبائل</>
                       ) : (
-                        <span className="text-cyan-200/70">قبيلتك خارج أفضل 20 قبيلة</span>
+                        <span className="text-cyan-200/70">قبيلتك ما جمعت نقاط في هذي الفعالية بعد</span>
                       )}
                     </div>
                     {myRank >= 0 && (
@@ -348,14 +347,6 @@ function TribeEventsPage() {
                     )}
                   </div>
                 )}
-                <MyRankBar
-                  kind="tribe_event"
-                  refId={ev.id}
-                  unit={METRIC_NOUN[ev.metric ?? "fish"]}
-                  label="ترتيبك داخل قبيلتك"
-                  emptyText={`ما ساهمت بأي ${METRIC_NOUN[ev.metric ?? "fish"]} في هذي الفعالية بعد`}
-                  deps={[boards[ev.id]]}
-                />
 
               </div>
 
