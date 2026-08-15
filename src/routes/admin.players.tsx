@@ -811,20 +811,8 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     toast.success(`تم إرسال صندوق "${types[idx].name}"`);
   };
 
-  const grantVip = async () => {
-    const levelStr = prompt("مستوى VIP (1-10):", "1");
-    if (!levelStr) return;
-    const level = Math.max(1, Math.min(10, Number(levelStr) | 0));
-    const daysStr = prompt("المدة بالأيام (0 = دائم):", "30");
-    if (daysStr === null) return;
-    const days = Math.max(0, Number(daysStr) | 0);
-    const { error } = await supabase.rpc("grant_vip" as never, {
-      _user_id: player.id, _level: level, _days: days,
-    } as never);
-    if (error) { toast.error("خطأ: " + error.message); return; }
-    await logAudit("grant_vip", player.id, { name: player.display_name, level, days });
-    toast.success(`👑 تم منح VIP ${level} لـ ${player.display_name} ${days === 0 ? "دائم" : `(${days} يوم)`}`);
-  };
+  // نظام VIP القديم أُلغي بالكامل — استخدم لوحة Elite VIP بدلاً منه.
+
 
 
   const giveCode = async () => {
@@ -1123,10 +1111,10 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
 
 
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2">
           <button onClick={sendBox} className="px-3 py-2 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 text-sm">🎁 إهداء صندوق</button>
-          <button onClick={grantVip} className="px-3 py-2 rounded-lg bg-amber-600/40 hover:bg-amber-600/60 text-amber-100 text-sm font-bold">👑 منح VIP</button>
         </div>
+
         <button onClick={save} disabled={saving} className="w-full mt-2 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-sm font-semibold">
           {saving ? "جاري الحفظ..." : "💾 حفظ العملات والمستوى"}
         </button>
