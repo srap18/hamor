@@ -776,6 +776,7 @@ function PlayerPage() {
       if (m.includes("ship in storage")) { sound.play("error"); flash("📦 سفينة الخصم في المخزن — لا يمكن الهجوم عليها"); setBusy(false); return; }
       if (m.includes("ship not found")) { sound.play("error"); flash("❓ لم يتم العثور على السفينة — حدّث الصفحة"); setBusy(false); return; }
       if (m.includes("cannot attack own ship")) { sound.play("error"); flash("🚫 لا يمكنك مهاجمة سفنك"); setBusy(false); return; }
+      if (m.includes("cannot attack an account on the same device") || m.includes("same device")) { sound.play("error"); flash("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز — هذا الحساب محظور عليك"); setBusy(false); return; }
       if (m.includes("not authenticated")) { sound.play("error"); flash("🔒 انتهت الجلسة — سجّل الدخول مرة أخرى"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
