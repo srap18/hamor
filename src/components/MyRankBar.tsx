@@ -86,7 +86,6 @@ export function MyRankBar({
         {has ? (
           <>
             أنت في المركز <span className="text-amber-300">#{stat.rank}</span>
-            {stat.total > 0 && <span className="text-amber-200/60"> من {stat.total.toLocaleString()}</span>}
           </>
         ) : (
           <span className="text-amber-200/70">{emptyText}</span>
