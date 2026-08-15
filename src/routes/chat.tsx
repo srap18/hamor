@@ -2023,9 +2023,30 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
 
   const stopTimer = () => { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; } };
 
+  // Ref mirror of `recording` — the interval/auto-stop closures captured a stale
+  // `recording === false`, so max-length auto-stop never fired and the recorder
+  // stayed stuck ("الصوت يعلق").
+  const recordingRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const releaseMic = () => {
+    try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch {}
+    streamRef.current = null;
+  };
+
   const startRec = async () => {
-    if (disabled || recording || uploading) return;
+    if (disabled || recordingRef.current || uploading) return;
+    // Stale recorder left over from a previous attempt — clean it up first.
+    if (recRef.current && recRef.current.state !== "inactive") {
+      try { recRef.current.stop(); } catch {}
+    }
+    recRef.current = null;
+    releaseMic();
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alert("المتصفح/التطبيق لا يدعم تسجيل الصوت. حدّث التطبيق أو استخدم متصفح حديث.");
+        return;
+      }
       // High-quality mic capture: 48kHz mono with noise suppression
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -2036,6 +2057,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
           channelCount: 1,
         } as MediaTrackConstraints,
       });
+      streamRef.current = stream;
       // Prefer Opus in WebM for best quality/size ratio
       const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
@@ -2043,26 +2065,47 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
           ? "audio/webm"
           : MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
             ? "audio/mp4;codecs=mp4a.40.2"
-            : "audio/mp4";
-      const rec = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 128000 });
+            : MediaRecorder.isTypeSupported("audio/mp4")
+              ? "audio/mp4"
+              : "";
+      let rec: MediaRecorder;
+      try {
+        rec = mime
+          ? new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 128000 })
+          : new MediaRecorder(stream);
+      } catch {
+        rec = new MediaRecorder(stream);
+      }
+      const outMime = rec.mimeType || mime || "audio/webm";
       chunksRef.current = [];
       cancelledRef.current = false;
-      rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      rec.ondataavailable = (e) => { if (e.data && e.data.size) chunksRef.current.push(e.data); };
+      rec.onerror = () => {
+        stopTimer();
+        recordingRef.current = false;
+        setRecording(false);
+        releaseMic();
+        chunksRef.current = [];
+        alert("توقف التسجيل بسبب خطأ في الميكروفون. حاول مرة أخرى.");
+      };
       rec.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
+        stopTimer();
+        recordingRef.current = false;
+        setRecording(false);
+        releaseMic();
         // If user cancelled, drop the recording entirely — never upload or send
         if (cancelledRef.current) {
           chunksRef.current = [];
           return;
         }
         const duration = Date.now() - startedAtRef.current;
-        const blob = new Blob(chunksRef.current, { type: mime });
+        const blob = new Blob(chunksRef.current, { type: outMime });
         chunksRef.current = [];
-        if (blob.size < 500) return;
+        if (blob.size < 500) { alert("التسجيل قصير جداً أو لم يلتقط صوتاً."); return; }
         setUploading(true);
-        const ext = mime.includes("webm") ? "webm" : "m4a";
+        const ext = outMime.includes("webm") ? "webm" : outMime.includes("ogg") ? "ogg" : "m4a";
         const path = `${userId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: mime, upsert: false });
+        const { error: upErr } = await supabase.storage.from("chat-audio").upload(path, blob, { contentType: outMime, upsert: false });
         if (upErr) { setUploading(false); alert("فشل رفع التسجيل: " + upErr.message); return; }
         const { data: pub } = supabase.storage.from("chat-audio").getPublicUrl(path);
         const row: any = { sender_id: userId, body: "", channel, audio_url: pub.publicUrl, audio_duration_ms: Math.round(Math.min(duration, MAX_REC_SECONDS * 1000)) };
@@ -2076,32 +2119,55 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
       recRef.current = rec;
       startedAtRef.current = Date.now();
       setElapsed(0);
+      stopTimer();
       timerRef.current = window.setInterval(() => {
         const sec = Math.floor((Date.now() - startedAtRef.current) / 1000);
         setElapsed(sec);
-        // Auto-stop & send at the max recording length
-        if (sec >= MAX_REC_SECONDS) {
-          stopRec(false);
-        }
+        // Auto-stop & send at the max recording length (works now via refs)
+        if (sec >= MAX_REC_SECONDS) stopRec(false);
       }, 250);
       // Collect data every 250ms for smoother chunking
       rec.start(250);
+      recordingRef.current = true;
       setRecording(true);
     } catch (e: any) {
-      alert("لا يمكن الوصول إلى الميكروفون: " + (e?.message || ""));
+      releaseMic();
+      recordingRef.current = false;
+      setRecording(false);
+      stopTimer();
+      const name = e?.name || "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        alert("تم رفض إذن الميكروفون. افتح إعدادات الجهاز ← التطبيقات ← ملوك القراصنة ← الأذونات ← الميكروفون واسمح به، ثم أعد المحاولة.");
+      } else if (name === "NotFoundError") {
+        alert("لم يتم العثور على ميكروفون في الجهاز.");
+      } else {
+        alert("لا يمكن الوصول إلى الميكروفون: " + (e?.message || name));
+      }
     }
   };
 
   const stopRec = (cancel = false) => {
-    if (!recording || !recRef.current) return;
+    const rec = recRef.current;
     stopTimer();
+    recordingRef.current = false;
     setRecording(false);
     cancelledRef.current = cancel;
     if (cancel) chunksRef.current = [];
-    try { recRef.current.stop(); } catch {}
+    if (!rec) { releaseMic(); return; }
+    try {
+      if (rec.state !== "inactive") {
+        try { rec.requestData(); } catch {}
+        rec.stop();
+      } else {
+        releaseMic();
+      }
+    } catch { releaseMic(); }
+    // Safety net: if onstop never fires (WebView quirk), free the mic anyway.
+    window.setTimeout(() => { if (!recordingRef.current) releaseMic(); }, 4000);
   };
 
-  useEffect(() => () => stopTimer(), []);
+  useEffect(() => () => { stopTimer(); try { recRef.current?.state !== "inactive" && recRef.current?.stop(); } catch {} releaseMic(); }, []);
+
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))" }}>
