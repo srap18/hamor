@@ -351,6 +351,36 @@ function AdminEventPoints() {
           </div>
         )}
 
+        {/* participants list */}
+        {isEventKind && !usesTribe && eventId && (
+          <div className="space-y-2">
+            {kind === "tribe_event" && (
+              <select value={tribeId} onChange={(e) => { setTribeId(e.target.value); setSelected(null); }}
+                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm">
+                <option value="">— اختر قبيلة لعرض أعضائها —</option>
+                {tribes.map((t) => <option key={t.id} value={t.id}>{t.emblem} {t.name}</option>)}
+              </select>
+            )}
+            <div className="text-xs text-slate-400">المشاركون في الفعالية {partsLoading ? "…" : `(${parts.length})`}</div>
+            <div className="max-h-64 overflow-auto rounded-lg border border-slate-700 divide-y divide-slate-800">
+              {parts.length === 0 && !partsLoading && (
+                <div className="px-3 py-2 text-xs text-slate-500">لا يوجد مشاركون — استخدم البحث بالأعلى.</div>
+              )}
+              {parts.map((p) => (
+                <button key={p.id} type="button"
+                  onClick={() => { setSelected(p); setQuery(""); setHits([]); }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-start ${
+                    selected?.id === p.id ? "bg-cyan-800/40" : "hover:bg-slate-800"}`}>
+                  <span className="text-lg">{p.avatar_emoji ?? "🧑‍✈️"}</span>
+                  <span className="flex-1 truncate">{p.display_name}</span>
+                  {p.username && <span className="text-xs text-slate-400">@{p.username}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         <div className="flex items-center justify-between text-sm bg-slate-900/60 rounded px-3 py-2 border border-slate-700">
           <span className="text-slate-300">النقاط الحالية:</span>
           <span className="font-black text-amber-300 tabular-nums">
