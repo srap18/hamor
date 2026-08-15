@@ -283,8 +283,8 @@ export const STORE_PACKS: StorePack[] = [
     priceUSD: 9.99,
     subscription: true,
     popular: true,
-    description: "6,000 💎 + حماية 30 يوم + شارة VIP ذهبية",
-    reward: { gems: 6_000, vipDays: 30 },
+    description: "6,000 💎 + درع حماية 30 يوم + عضوية VIP شهر (كاش باك على كل شراء)",
+    reward: { gems: 6_000, vipDays: 30, shieldDays: 30 },
   },
 
   // ───── Gems ───────────────────────────────────────────────
