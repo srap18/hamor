@@ -787,7 +787,10 @@ function FishMarket() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-1 text-base font-extrabold text-fuchsia-200">📦 استئجار سعة إضافية</div>
-            <div className="text-center text-[11px] text-slate-300 mb-3">السعة لا تتراكم — التمديد يتطلب باقة بنفس سعتك السارية أو أعلى</div>
+            <div className="text-center text-[11px] text-slate-300 mb-2">السعة لا تتراكم — التمديد يتطلب باقة بنفس سعتك السارية أو أعلى</div>
+            <div className="mb-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-center text-[11px] font-bold text-emerald-100">
+              🔒 عند انتهاء المدة لا يُحذف أي سمك من المخزن — يبقى كما هو، فقط تتوقف الإضافة حتى تنزل الكمية تحت السعة الأساسية
+            </div>
             {rentActive && (
               <div className="mb-3 rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-2 text-center text-[11px] font-bold text-fuchsia-100 tabular-nums">
                 سعة مستأجرة سارية: +{rentedCapacity.toLocaleString()} · تنتهي بعد {formatHHMMSS(rentMsLeft)}
