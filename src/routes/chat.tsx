@@ -2047,17 +2047,38 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
         alert("المتصفح/التطبيق لا يدعم تسجيل الصوت. حدّث التطبيق أو استخدم متصفح حديث.");
         return;
       }
-      // High-quality mic capture: 48kHz mono with noise suppression
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 48000,
-          channelCount: 1,
-        } as MediaTrackConstraints,
-      });
+      // Android WebView often fails with "Could not start audio source" when the
+      // mic is still held by a previous stream/app or when advanced constraints
+      // are unsupported. Try progressively simpler constraints with short waits.
+      const attempts: MediaStreamConstraints[] = [
+        {
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          } as MediaTrackConstraints,
+        },
+        { audio: { echoCancellation: true } as MediaTrackConstraints },
+        { audio: true },
+      ];
+      let stream: MediaStream | null = null;
+      let lastErr: any = null;
+      for (let i = 0; i < attempts.length; i++) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(attempts[i]);
+          break;
+        } catch (err: any) {
+          lastErr = err;
+          const n = err?.name || "";
+          // Permission problems won't be fixed by retrying with other constraints.
+          if (n === "NotAllowedError" || n === "SecurityError") throw err;
+          await new Promise((r) => setTimeout(r, 350));
+        }
+      }
+      if (!stream) throw lastErr || new Error("mic unavailable");
       streamRef.current = stream;
+
       // Prefer Opus in WebM for best quality/size ratio
       const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
