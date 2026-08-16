@@ -148,6 +148,9 @@ const SOURCE_LABELS_AR: Record<string, { label: string; kind: GemReportEvent["ki
   security_fix: { label: "تصحيح أمني من الإدارة", kind: "admin_edit" },
   ship_storage_defect_compensation_v2: { label: "تعويض خلل تخزين السفن", kind: "admin_gift" },
   ship_storage_refund_reversal: { label: "عكس تعويض تخزين السفن", kind: "admin_edit" },
+  ship_storage_upgrade: { label: "ترقية تخزين السفينة", kind: "spend_item" },
+  vip_gem_cashback_backfill: { label: "تعويض كاش باك VIP (جواهر)", kind: "other_gain" },
+  royal_whale_full_catch: { label: "جواهر الحوت الملكي (صيد كامل)", kind: "other_gain" },
 };
 
 /**
