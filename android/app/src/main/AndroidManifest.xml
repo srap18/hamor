@@ -11,6 +11,10 @@
     <!-- الكاميرا/المايك: اختيارية وتُطلب فقط عند الحاجة داخل WebView. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- مطلوب على بعض أجهزة أندرويد حتى يتمكن WebView من فتح مصدر الصوت
+         (خطأ "Could not start audio source" عند التسجيل). -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
 
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
