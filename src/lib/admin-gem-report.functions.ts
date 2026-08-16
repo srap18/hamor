@@ -243,7 +243,39 @@ const FN_SOURCE_LABELS: Record<string, { label: string; kind: GemReportEvent["ki
   sell_fish: { label: "بيع سمك", kind: "other_gain" },
   sell_fish_by_qty: { label: "بيع سمك", kind: "other_gain" },
   add_xp: { label: "مكافأة خبرة/مستوى", kind: "other_gain" },
+  award_vip_cashback_gems: { label: "كاش باك VIP (جواهر)", kind: "other_gain" },
+  claim_daily_login_pirate: { label: "مكافأة الدخول اليومي", kind: "other_gain" },
+  buy_kraken: { label: "شراء قنبلة الكراكن", kind: "spend_item" },
+  market_start_upgrade_ship: { label: "بدء ترقية سوق السفن", kind: "spend_item" },
 };
+
+/** Arabic word map to humanize any unmapped database operation. */
+const WORDS_AR: Record<string, string> = {
+  buy: "شراء", sell: "بيع", upgrade: "ترقية", start: "بدء", finish: "إنهاء", claim: "استلام",
+  grant: "منح", revoke: "سحب", refund: "استرداد", gift: "هدية", open: "فتح", repair: "إصلاح",
+  rent: "استئجار", remove: "إزالة", skip: "تخطي", rename: "تغيير اسم", reset: "إعادة ضبط",
+  redeem: "استبدال", trade: "مقايضة", market: "السوق", fish: "السمك", ship: "السفينة",
+  ships: "السفن", storage: "التخزين", gems: "بالجواهر", coins: "بالكوينز", with: "",
+  code: "كود", daily: "اليومية", login: "الدخول", quest: "مهمة", achievement: "إنجاز",
+  vip: "VIP", elite: "Elite", dragon: "التنين", equipment: "المعدات", smelt: "صهر",
+  lootbox: "صندوق", lucky: "الحظ", box: "صندوق", tribe: "القبيلة", referral: "الدعوات",
+  season: "الموسم", weekly: "الأسبوعية", prizes: "الجوائز", distribute: "توزيع",
+  freeze: "تجميد", capacity: "السعة", shield: "الدرع", cooldown: "الانتظار",
+  admin: "الإدارة", player: "اللاعب", set: "تعديل", full: "الكامل", currency: "الرصيد",
+  bonus: "مكافأة", cashback: "كاش باك", boss: "الزعيم", attacks: "المحاولات",
+  arena: "الساحة", instant: "فوري", background: "الخلفية", burned: "المحروقة",
+  bg: "الخلفية", protection: "الحماية", anti: "مضاد", disabler: "معطّل", inventory: "المخزون",
+  to: "", by: "", for: "", of: "", the: "", and: "", pack: "باقة", phoenix: "العنقاء",
+  award: "منح", pending: "المعلّقة", qualified: "المؤهلة", reward: "مكافأة", fisher: "الصياد",
+  golden: "الذهبي", whale: "الحوت", royal: "الملكي", catch: "صيد", competition: "الفعالية",
+  finalize: "إنهاء", close: "إغلاق", event: "الفعالية", donation: "التبرع", qa: "اختبار",
+};
+
+function humanizeFn(fn: string): string {
+  const parts = fn.split(/[_:]+/).filter(Boolean);
+  const words = parts.map((p) => WORDS_AR[p] ?? WORDS_AR[p.toLowerCase()] ?? "").filter(Boolean);
+  return words.length > 0 ? words.join(" ") : "عملية داخل اللعبة";
+}
 
 function resolveFnSource(src: string): { label: string; kind: GemReportEvent["kind"]; fn: string } | null {
   const m = /^(fn|rpc):(.+)$/.exec(src);
@@ -251,14 +283,16 @@ function resolveFnSource(src: string): { label: string; kind: GemReportEvent["ki
   const fn = m[2]!;
   const hit = FN_SOURCE_LABELS[fn];
   if (hit) return { ...hit, fn };
-  // Unknown but still exact: show the real operation name instead of "غير مصنّف"
+  // Unknown: build a readable Arabic phrase — never show the raw code.
   const isAdmin = fn.startsWith("admin_");
+  const human = humanizeFn(fn);
   return {
-    label: isAdmin ? `عملية إدارية: ${fn}` : `عملية داخل اللعبة: ${fn}`,
+    label: isAdmin ? `عملية إدارية: ${human}` : human,
     kind: isAdmin ? "admin_edit" : "other_gain",
     fn,
   };
 }
+
 
 
 function packLabelById(id: string | null | undefined): { label: string; gems?: number; usd?: number } {
