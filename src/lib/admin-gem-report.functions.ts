@@ -658,11 +658,11 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       } else if (fnSrc) {
         kind = fnSrc.kind;
         label = fnSrc.label;
-        detail = a.reason || `العملية: ${fnSrc.fn}`;
+        detail = a.reason || undefined;
         exact = true;
       } else if (srcKey) {
         kind = delta < 0 ? "spend" : "other_gain";
-        label = `مصدر مسجّل: ${srcKey}`;
+        label = humanizeFn(srcKey);
         detail = a.reason || undefined;
         exact = true;
       }
@@ -670,17 +670,19 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       // 2) Correlated event (older rows recorded before exact tracking)
       if (!exact && match) {
         kind = match.kind;
-        label = `${match.label_ar} (مطابقة زمنية)`;
+        label = match.label_ar;
         product_label = match.product_label;
         product_id = match.product_id;
         amount_usd = match.amount_usd;
         detail = match.detail;
       } else if (exact && match) {
-        // keep exact label but enrich with product/price info
-        product_label = product_label ?? match.product_label;
+        // keep exact label but enrich with the Arabic product/price info
+        product_label = product_label ?? match.product_label ?? match.label_ar;
         product_id = product_id ?? match.product_id;
         amount_usd = amount_usd ?? match.amount_usd;
+        detail = detail ?? match.detail;
       }
+
 
 
 
