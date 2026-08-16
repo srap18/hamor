@@ -414,7 +414,7 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
         .limit(300),
       supabaseAdmin
         .from("inventory")
-        .select("acquired_at,item_type,item_id")
+        .select("acquired_at,item_type,item_id,quantity")
         .eq("user_id", uid)
         .order("acquired_at", { ascending: false })
         .limit(500),
