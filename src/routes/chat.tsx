@@ -2161,7 +2161,10 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
         alert("تم رفض إذن الميكروفون. افتح إعدادات الجهاز ← التطبيقات ← ملوك القراصنة ← الأذونات ← الميكروفون واسمح به، ثم أعد المحاولة.");
       } else if (name === "NotFoundError") {
         alert("لم يتم العثور على ميكروفون في الجهاز.");
+      } else if (name === "NotReadableError" || /audio source/i.test(e?.message || "")) {
+        alert("الميكروفون مشغول بتطبيق آخر (مكالمة أو تسجيل). أغلق التطبيقات الأخرى ثم حاول مجدداً.");
       } else {
+
         alert("لا يمكن الوصول إلى الميكروفون: " + (e?.message || name));
       }
     }
