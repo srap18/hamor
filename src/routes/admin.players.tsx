@@ -1507,7 +1507,7 @@ function GemReportSection({ userId }: { userId: string }) {
                         <td className="p-2 text-slate-200">
                           {e.product_label && <div className="font-semibold">{e.product_label}</div>}
                           {e.amount_usd != null && <div className="text-emerald-300 text-[10px]">💵 ${e.amount_usd.toFixed(2)}</div>}
-                          {e.product_id && <div className="text-slate-500 font-mono text-[10px]">{e.product_id}</div>}
+                          
                           {e.detail && <div className="text-slate-500 text-[10px] break-all">{e.detail}</div>}
                         </td>
                         <td className={`p-2 text-left font-bold ${e.delta > 0 ? "text-emerald-300" : "text-rose-300"}`}>
