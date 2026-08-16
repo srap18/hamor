@@ -51,19 +51,41 @@ export type GemReportSummary = {
 const WINDOW_MS = 120_000;
 const SPEND_WINDOW_MS = 20_000;
 
+const ZODIAC_AR: Record<string, string> = {
+  aries: "الحمل", taurus: "الثور", gemini: "الجوزاء", leo: "الأسد", virgo: "العذراء",
+  pisces: "الحوت", scorpio: "العقرب", phoenix: "العنقاء", imperial: "الإمبراطوري",
+  cosmic_vip: "الكوني VIP", lux_diamond: "الألماس الفاخر", lux_emerald: "الزمرد الفاخر",
+  lux_imperial: "الإمبراطوري الفاخر", lux_obsidian: "الأوبسيديان الفاخر",
+  lux_royal: "الملكي الفاخر", lux_sakura: "الساكورا الفاخر", lux_celestial: "السماوي الفاخر",
+};
+
+const BG_AR: Record<string, string> = {
+  cove: "الخليج", crystal_kingdom: "مملكة الكريستال", eiffel: "إيفل", eiffel_night: "إيفل ليلاً",
+  madagascar: "قرية مدغشقر", onepiece: "ون بيس", worldcup: "كأس العالم",
+};
+
 const ITEM_LABELS_AR: Record<string, string> = {
   nuke: "قنبلة ذرية",
   ad_bomb: "قنبلة إعلانية",
+  kraken_bomb: "قنبلة الكراكن",
   rocket_small: "صاروخ صغير",
   rocket_medium: "صاروخ متوسط",
   rocket_large: "صاروخ كبير",
+  shield_1h: "درع ساعة",
+  shield_4h: "درع 4 ساعات",
   shield_1d: "درع يوم",
   shield_2d: "درع يومين",
   shield_3d: "درع 3 أيام",
   shield_7d: "درع أسبوع",
+  shield_30d: "درع 30 يوم",
   anti_nuke: "مضاد ذري",
   anti_ad_bomb: "مضاد إعلاني",
   anti_rocket: "مضاد صواريخ",
+  anti_kraken: "مضاد الكراكن",
+  disabler_nuke: "معطّل ذري",
+  disabler_ad_bomb: "معطّل إعلاني",
+  disabler_rocket: "معطّل صواريخ",
+  disabler_kraken: "معطّل الكراكن",
   sailor: "بحّار",
   luck: "طاقم الحظ",
   guide: "طاقم المرشد",
@@ -76,7 +98,6 @@ const ITEM_LABELS_AR: Record<string, string> = {
   fixer_2: "مصلّح 2",
   fixer_3: "مصلّح 3",
   fixer_4: "مصلّح 4",
-  af_gold: "إطار ذهبي",
 };
 
 const ITEM_TYPE_LABELS_AR: Record<string, string> = {
@@ -97,11 +118,24 @@ const ITEM_TYPE_LABELS_AR: Record<string, string> = {
   disabler: "معطّل",
 };
 
-function itemLabel(t: string, id: string): string {
-  const n = ITEM_LABELS_AR[id] ?? id;
-  const tt = ITEM_TYPE_LABELS_AR[t] ?? t;
-  return `شراء ${tt}: ${n}`;
+/** Arabic name of any inventory item id (no raw codes). */
+function itemNameAr(t: string, id: string): string {
+  if (ITEM_LABELS_AR[id]) return ITEM_LABELS_AR[id]!;
+  const m = /^(af|nf|bf|pf)_(.+)$/.exec(id);
+  if (m) {
+    const kindAr = m[1] === "af" ? "إطار صورة" : m[1] === "nf" ? "إطار اسم" : m[1] === "bf" ? "إطار فقاعة" : "إطار بروفايل";
+    return `${kindAr}: ${ZODIAC_AR[m[2]!] ?? m[2]!}`;
+  }
+  if (t === "background") return `خلفية: ${BG_AR[id] ?? id}`;
+  return `${ITEM_TYPE_LABELS_AR[t] ?? t}: ${id}`;
 }
+
+function itemLabel(t: string, id: string, qty?: number): string {
+  const n = itemNameAr(t, id);
+  const q = qty && qty > 1 ? ` ×${qty}` : "";
+  return `شراء ${n}${q}`;
+}
+
 
 const SOURCE_LABELS_AR: Record<string, { label: string; kind: GemReportEvent["kind"] }> = {
   dragon_upgrade: { label: "ترقية معدة تنين", kind: "spend_dragon_upgrade" },
