@@ -651,6 +651,8 @@ function PlayerPage() {
         if (m.includes("no nuke")) { showErr("☢️ ما عندك قنبلة نووية"); return; }
         if (m.includes("market level under 6")) { showErr("🛡️ اللاعب محمي — سوقه أقل من المستوى 6"); return; }
         if (m.includes("protected") || m.includes("staff account")) { showErr("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        if (m.includes("same device")) { showErr("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز"); return; }
+        if (m.includes("cannot target self")) { showErr("❌ لا يمكن استهداف نفسك"); return; }
         showErr(`تعذّر الإطلاق: ${m.slice(0, 80)}`); return;
       }
       // Consume the nuke locally (server already consumed it).
@@ -699,6 +701,8 @@ function PlayerPage() {
         if (m.includes("attacker needs pvp fleet")) { showErr("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
         if (m.includes("attacker needs fishing ship")) { showErr("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
         if (m.includes("protected") || m.includes("staff account")) { showErr("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        if (m.includes("same device")) { showErr("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز"); return; }
+        if (m.includes("cannot target self")) { showErr("❌ لا يمكن استهداف نفسك"); return; }
         showErr(`تعذّر الإطلاق: ${m.slice(0, 80)}`); return;
       }
       setInv((arr) => arr
@@ -1803,7 +1807,12 @@ function PlayerPage() {
                         const { error } = await (supabase.rpc as never as (n: string, p: object) => Promise<{ error: { message: string } | null }>)
                           ("fire_disabler", { _target_id: playerId, _disabler_id: d.id });
                         setBusy(false);
-                        if (error) { sound.play("error"); flash(`تعذّر الإطلاق: ${(error.message || "").slice(0, 80)}`); return; }
+                        if (error) {
+                          const em = String(error.message || "");
+                          sound.play("error");
+                          if (em.includes("same device")) { flash("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز"); return; }
+                          flash(`تعذّر الإطلاق: ${em.slice(0, 80)}`); return;
+                        }
                         setInv((arr) => arr.map((x) => x.item_id === d.id && x.item_type === "disabler" ? { ...x, quantity: x.quantity - 1 } : x).filter((x) => x.quantity > 0));
                         sound.play("success");
                         flash(`⚡ تم تعطيل ${d.target} لدى ${p?.display_name || "الخصم"} لمدة 10 دقائق!`);
