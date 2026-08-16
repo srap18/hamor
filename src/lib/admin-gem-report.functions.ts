@@ -591,7 +591,8 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       sources.push({
         at: new Date(it.acquired_at).getTime(),
         kind: "spend_item",
-        label_ar: itemLabel(it.item_type, it.item_id),
+        label_ar: itemLabel(it.item_type, it.item_id, Number(it.quantity ?? 1)),
+        product_label: itemNameAr(it.item_type, it.item_id),
         direction: "out",
       });
     }
