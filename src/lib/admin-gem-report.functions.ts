@@ -244,7 +244,7 @@ const FN_SOURCE_LABELS: Record<string, { label: string; kind: GemReportEvent["ki
   sell_fish_by_qty: { label: "بيع سمك", kind: "other_gain" },
   add_xp: { label: "مكافأة خبرة/مستوى", kind: "other_gain" },
   award_vip_cashback_gems: { label: "كاش باك VIP (جواهر)", kind: "other_gain" },
-  claim_daily_login_pirate: { label: "مكافأة الدخول اليومي", kind: "other_gain" },
+  
   buy_kraken: { label: "شراء قنبلة الكراكن", kind: "spend_item" },
   market_start_upgrade_ship: { label: "بدء ترقية سوق السفن", kind: "spend_item" },
 };
