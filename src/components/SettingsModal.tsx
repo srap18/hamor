@@ -26,6 +26,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [showDeathBanner, setShowDeathBanner] = useState(true);
   const [showAttackBanner, setShowAttackBanner] = useState(true);
   const [showLuckyBanner, setShowLuckyBanner] = useState(true);
+  const [showVipLogin, setShowVipLogin] = useState(true);
   const [showToasts, setShowToasts] = useState(true);
 
   const [email, setEmail] = useState<string | null>(null);
@@ -67,6 +68,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowToasts(localStorage.getItem("toasts-hidden") !== "1"); } catch { /* noop */ }
+    try { setShowVipLogin(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       if (!u) return;
@@ -252,6 +254,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               if (v) localStorage.removeItem("lucky-banner-hidden");
               else localStorage.setItem("lucky-banner-hidden", "1");
               window.dispatchEvent(new Event("lucky-banner-pref"));
+            } catch { /* noop */ }
+          }}
+        />
+        <ToggleRow
+          label="👑 إظهار إشعار دخول VIP"
+          value={showVipLogin}
+          onChange={(v) => {
+            setShowVipLogin(v);
+            try {
+              if (v) localStorage.removeItem("vip-login-hidden");
+              else localStorage.setItem("vip-login-hidden", "1");
+              window.dispatchEvent(new Event("vip-login-pref"));
             } catch { /* noop */ }
           }}
         />

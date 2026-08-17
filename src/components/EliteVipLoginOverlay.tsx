@@ -36,6 +36,17 @@ export function EliteVipLoginOverlay() {
   const { user, loading } = useAuth();
   const [queue, setQueue] = useState<LoginBroadcast[]>([]);
   const [current, setCurrent] = useState<LoginBroadcast | null>(null);
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    const read = () => {
+      try { setEnabled(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
+    };
+    read();
+    window.addEventListener("vip-login-pref", read);
+    return () => window.removeEventListener("vip-login-pref", read);
+  }, []);
+
 
 
   useEffect(() => {
@@ -88,7 +99,7 @@ export function EliteVipLoginOverlay() {
     return () => clearTimeout(t);
   }, [queue, current]);
 
-  if (!current) return null;
+  if (!enabled || !current) return null;
   const tier = getEliteVipTier(current.elite_vip_level);
   if (!tier) return null;
 
