@@ -99,7 +99,7 @@ export function EliteVipLoginOverlay() {
     return () => clearTimeout(t);
   }, [queue, current]);
 
-  if (!current) return null;
+  if (!enabled || !current) return null;
   const tier = getEliteVipTier(current.elite_vip_level);
   if (!tier) return null;
 
