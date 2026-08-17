@@ -1409,6 +1409,7 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   const [desc, setDesc] = useState("");
   const [banner, setBanner] = useState("");
   const [donateAmount, setDonateAmount] = useState<number>(500);
+  const [manageOpen, setManageOpen] = useState(false);
 
   const load = useCallback(async () => {
     const { data: t } = await supabase.from("tribes")
