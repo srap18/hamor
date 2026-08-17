@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { BackButton } from "@/components/BackButton";
+import { TribeRoleBadge } from "@/components/TribeRoleBadge";
 
 export const Route = createFileRoute("/t/$tribeId")({
   head: () => ({
