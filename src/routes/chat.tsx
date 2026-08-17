@@ -656,6 +656,12 @@ function ChatPage() {
         restoreDraftRef.current(body);
         return;
       }
+      if (status === "contact_blocked") {
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        showNotice(data?.message || CONTACT_BLOCK_MESSAGE);
+        restoreDraftRef.current(body);
+        return;
+      }
       if (status === "awaiting_acceptance" || status === "rejected_cooldown" || status === "blocked") {
         setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice("⏳ " + (data?.message || "لا يمكن الإرسال حالياً"));
@@ -663,6 +669,7 @@ function ChatPage() {
         reloadThreads();
         return;
       }
+
       if (status === "request_sent") {
         showNotice("📨 تم إرسال طلب المحادثة — بانتظار قبول الطرف الآخر");
         reloadThreads();
