@@ -109,6 +109,7 @@ function AdminCommunity() {
                     المستوى {t.level} • النقاط {Number(t.points || 0).toLocaleString()} ⭐ • تبرعات {Number(t.total_donations || 0).toLocaleString()} 🪙 • {t.join_mode === "open" ? "🌍 مفتوحة" : "📩 بطلب"}
                   </div>
                 </div>
+                <button onClick={() => openManage(t)} className="px-3 py-1.5 rounded bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold">⚙️ الأعضاء</button>
                 <button onClick={() => deleteTribe(t)} className="px-3 py-1.5 rounded bg-red-700 text-white text-xs font-bold">🗑️ حذف</button>
               </div>
               <div className="flex items-center gap-2">
@@ -127,6 +128,42 @@ function AdminCommunity() {
           ))}
         </div>
       </section>
+
+      {manageTribe && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3" onClick={() => setManageTribe(null)}>
+          <div dir="rtl" onClick={(e) => e.stopPropagation()} className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-950 border border-slate-700 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="font-bold text-amber-300">⚙️ إدارة أعضاء «{manageTribe.name}» ({members.length})</div>
+              <button onClick={() => setManageTribe(null)} className="px-2 py-1 rounded bg-slate-800 text-xs font-bold">إغلاق</button>
+            </div>
+            <div className="text-[11px] text-slate-400">👑 = القائد الحالي • 🏗️ = المؤسس (منشئ القبيلة)</div>
+            {mLoading && <div className="text-slate-400 text-sm">جاري التحميل...</div>}
+            {!mLoading && members.length === 0 && <div className="text-slate-500 text-sm">لا يوجد أعضاء</div>}
+            <div className="space-y-1.5">
+              {members.map(m => (
+                <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-700">
+                  <span className="w-8 h-8 rounded-full bg-sky-800 flex items-center justify-center">{m.avatar_emoji || "🏴‍☠️"}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold truncate">
+                      {m.display_name || "قرصان"} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}{m.is_founder ? " 🏗️" : ""}
+                    </div>
+                    <div className="text-[10px] text-slate-400">
+                      المستوى {m.level ?? 1} • {m.role === "owner" ? "القائد" : m.role === "moderator" ? "مشرف" : "عضو"}{m.is_founder ? " • المؤسس" : ""} • 🤝 {Number(m.donation_coins || 0).toLocaleString()}
+                    </div>
+                  </div>
+                  {m.role !== "owner" && (
+                    <>
+                      <button disabled={busy} onClick={() => setOwner(m)} className="px-2 py-1 rounded bg-amber-600 text-white text-[11px] font-bold disabled:opacity-50">👑 تعيين قائد</button>
+                      <button disabled={busy} onClick={() => kick(m)} className="px-2 py-1 rounded bg-red-700 text-white text-[11px] font-bold disabled:opacity-50">طرد</button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
