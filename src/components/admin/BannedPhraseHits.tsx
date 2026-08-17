@@ -108,7 +108,9 @@ export function BannedPhraseHits() {
                   <tr className="border-t border-slate-800/50 bg-slate-950/60">
                     <td colSpan={6} className="p-3">
                       <div className="text-xs text-slate-400 mb-2">آخر 10 رسائل في نفس المحادثة:</div>
-                      {ctxLoading && !ctx[h.id] ? (
+                      {ctxErr[h.id] ? (
+                        <div className="text-xs text-red-400">تعذر جلب الرسائل: {ctxErr[h.id]}</div>
+                      ) : ctxLoading && !ctx[h.id] ? (
                         <div className="text-xs text-slate-500">جاري التحميل...</div>
                       ) : (ctx[h.id] ?? []).length === 0 ? (
                         <div className="text-xs text-slate-500">لا توجد رسائل</div>
