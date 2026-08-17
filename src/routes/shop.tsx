@@ -450,10 +450,11 @@ function Shop() {
                 >−</button>
                 <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
                 <button
-                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  onClick={() => setQty((q) => Math.min(tab === "weapons" ? 10 : 99, q + 1))}
                   aria-label="زيادة الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >+</button>
+
 
               </div>
             ) : (
