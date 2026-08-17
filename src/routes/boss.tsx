@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BackButton } from "@/components/BackButton";
-import { markRepairDone } from "@/lib/anti-cheat-cooldown";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getShipByCode, getShipByMarketLevel } from "@/lib/ships";
@@ -60,7 +59,6 @@ function BossPage() {
   const [shipHp, setShipHp] = useState(0);          // real HP from DB
   const [shipMaxHp, setShipMaxHp] = useState(1);
   const [shipDestroyed, setShipDestroyed] = useState(false);
-  const [repairing, setRepairing] = useState(false);
   const [rockets, setRockets] = useState<RocketRow[]>([]);
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const [splashes, setSplashes] = useState<Splash[]>([]);
