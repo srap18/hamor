@@ -781,14 +781,18 @@ function PlayerPage() {
       if (m.includes("ship not found")) { sound.play("error"); flash("❓ لم يتم العثور على السفينة — حدّث الصفحة"); setBusy(false); return; }
       if (m.includes("cannot attack own ship")) { sound.play("error"); flash("🚫 لا يمكنك مهاجمة سفنك"); setBusy(false); return; }
       if (m.includes("cannot attack an account on the same device") || m.includes("same device")) { sound.play("error"); flash("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز — هذا الحساب محظور عليك"); setBusy(false); return; }
+      if (m.includes("in inventory")) { sound.play("error"); flash("🚀 ما عندك هذا السلاح في المخزون"); setBusy(false); return; }
       if (m.includes("not authenticated")) { sound.play("error"); flash("🔒 انتهت الجلسة — سجّل الدخول مرة أخرى"); setBusy(false); return; }
       sound.play("error"); flash(`تعذّر الهجوم: ${m.slice(0, 60)}`); setBusy(false); return;
     }
 
-    // The weapon is consumed the moment it is fired — the server accepted the
-    // attack, so it counts as used no matter the outcome (hit, blocked by an
-    // anti-defense, or zero damage). Applies to every weapon in this flow.
-    await consumeItem(weaponId, "weapon");
+    // The server already consumed the weapon atomically with the damage
+    // (apply_ship_damage_v2). Here we only sync the local counter so the UI
+    // matches — no second server-side deduction.
+    setInv((arr) => arr
+      .map((x) => x.item_id === weaponId && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+      .filter((x) => x.quantity > 0));
+
 
     // BLOCKED by an anti-defense: server applied no damage. Stop here — no FX.
     const firstRow: any = Array.isArray(firstRes) && firstRes[0] ? firstRes[0] : null;
