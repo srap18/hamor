@@ -714,7 +714,20 @@ export const getPlayerGemReport = createServerFn({ method: "POST" })
       });
     }
 
+    // Recharge totals come from the purchase tables (all-time source of truth),
+    // not only from the last N audit rows — heavy players push old recharge
+    // movements out of the audit window, which used to show "0 من الشحن".
+    let purchaseGems = 0;
+    let purchaseUsd = 0;
+    for (const p of [...(paddle.data ?? []), ...(stripe.data ?? []), ...(polar.data ?? [])] as any[]) {
+      purchaseGems += packLabelById(p.pack_id).gems ?? 0;
+      purchaseUsd += (p.amount_cents ?? 0) / 100;
+    }
+    summary.recharge_gems = Math.max(summary.recharge_gems, purchaseGems);
+    summary.recharge_usd = Math.max(summary.recharge_usd, purchaseUsd);
+
     summary.net = summary.total_in - summary.total_out;
 
     return { events: rows, summary };
+
   });
