@@ -6869,6 +6869,10 @@ export type Database = {
           username: string
         }[]
       }
+      admin_tribe_kick_member: {
+        Args: { _tribe_id: string; _user_id: string }
+        Returns: undefined
+      }
       admin_tribe_members: {
         Args: { _tribe_id: string }
         Returns: {
@@ -6882,6 +6886,10 @@ export type Database = {
           user_id: string
           username: string
         }[]
+      }
+      admin_tribe_set_owner: {
+        Args: { _tribe_id: string; _user_id: string }
+        Returns: undefined
       }
       admin_unhard_ban: {
         Args: { _admin?: string; _uid: string }
