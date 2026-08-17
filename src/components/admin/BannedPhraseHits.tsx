@@ -115,7 +115,7 @@ export function BannedPhraseHits() {
                 </tr>
                 {openId === h.id && (
                   <tr className="border-t border-slate-800/50 bg-slate-950/60">
-                    <td colSpan={6} className="p-3">
+                    <td colSpan={7} className="p-3">
                       <div className="text-xs text-slate-400 mb-2">آخر 10 رسائل في نفس المحادثة:</div>
                       {ctxErr[h.id] ? (
                         <div className="text-xs text-red-400">تعذر جلب الرسائل: {ctxErr[h.id]}</div>
