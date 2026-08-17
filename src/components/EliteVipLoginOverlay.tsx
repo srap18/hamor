@@ -148,12 +148,28 @@ export function EliteVipLoginOverlay() {
               </div>
             </div>
             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                try {
+                  localStorage.setItem("vip-login-hidden", "1");
+                  window.dispatchEvent(new Event("vip-login-pref"));
+                } catch { /* noop */ }
+                setEnabled(false);
+                setCurrent(null);
+              }}
+              className="shrink-0 px-1.5 h-6 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-[9px] text-amber-200 hover:text-white font-bold transition"
+              aria-label="إيقاف إشعارات VIP"
+            >
+              إيقاف
+            </button>
+            <button
               onClick={() => setCurrent(null)}
               className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-amber-200 hover:text-white text-sm font-bold transition"
               aria-label="إغلاق"
             >
               ✕
             </button>
+
           </div>
         </div>
       </div>
