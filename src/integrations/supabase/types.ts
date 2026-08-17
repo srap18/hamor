@@ -5474,7 +5474,6 @@ export type Database = {
           created_at: string
           description: string
           emblem: string
-          founder_id: string | null
           id: string
           join_mode: string
           level: number
@@ -5491,7 +5490,6 @@ export type Database = {
           created_at?: string
           description?: string
           emblem?: string
-          founder_id?: string | null
           id?: string
           join_mode?: string
           level?: number
@@ -5508,7 +5506,6 @@ export type Database = {
           created_at?: string
           description?: string
           emblem?: string
-          founder_id?: string | null
           id?: string
           join_mode?: string
           level?: number
@@ -6533,10 +6530,6 @@ export type Database = {
         Returns: Json
       }
       admin_hard_delete_user: { Args: { _uid: string }; Returns: undefined }
-      admin_kick_tribe_member: {
-        Args: { _tribe_id: string; _user_id: string }
-        Returns: Json
-      }
       admin_lift_sanction: {
         Args: { p_id: string; p_kind: string }
         Returns: Json
@@ -6812,10 +6805,6 @@ export type Database = {
         Args: { _allowed: boolean; _user: string }
         Returns: undefined
       }
-      admin_set_tribe_owner: {
-        Args: { _tribe_id: string; _user_id: string }
-        Returns: Json
-      }
       admin_set_tribe_points: {
         Args: { p_reason?: string; p_tribe_id: string; p_value: number }
         Returns: Json
@@ -6865,20 +6854,6 @@ export type Database = {
           display_name: string
           ship_market_level: number
           total_qty: number
-          user_id: string
-          username: string
-        }[]
-      }
-      admin_tribe_members: {
-        Args: { _tribe_id: string }
-        Returns: {
-          avatar_emoji: string
-          display_name: string
-          donation_coins: number
-          is_founder: boolean
-          joined_at: string
-          level: number
-          role: string
           user_id: string
           username: string
         }[]

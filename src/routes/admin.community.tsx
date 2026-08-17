@@ -2,66 +2,27 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/components/ConfirmDialog";
-import { TribeRoleBadge } from "@/components/TribeRoleBadge";
 
 export const Route = createFileRoute("/admin/community")({
   component: AdminCommunity,
   head: () => ({ meta: [{ title: "القبائل — Admin" }] }),
 });
 
-type Tribe = { id: string; name: string; emblem: string; owner_id: string; founder_id: string | null; level: number; total_donations: number; points: number; join_mode: string };
-type TMember = { user_id: string; role: string; joined_at: string; donation_coins: number; display_name: string | null; username: string | null; avatar_emoji: string | null; level: number | null; is_founder: boolean };
+type Tribe = { id: string; name: string; emblem: string; owner_id: string; level: number; total_donations: number; points: number; join_mode: string };
 
 function AdminCommunity() {
   const [tribes, setTribes] = useState<Tribe[]>([]);
   const [loading, setLoading] = useState(true);
   const [deltas, setDeltas] = useState<Record<string, string>>({});
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [members, setMembers] = useState<Record<string, TMember[]>>({});
-  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,owner_id,founder_id,level,total_donations,points,join_mode").order("points", { ascending: false });
+    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,owner_id,level,total_donations,points,join_mode").order("points", { ascending: false });
     setTribes((ts || []) as Tribe[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
-
-  const loadMembers = useCallback(async (tribeId: string) => {
-    const { data, error } = await (supabase as any).rpc("admin_tribe_members", { _tribe_id: tribeId });
-    if (error) { alert("فشل تحميل الأعضاء: " + error.message); return; }
-    setMembers((m) => ({ ...m, [tribeId]: (data || []) as TMember[] }));
-  }, []);
-
-  const toggleMembers = async (t: Tribe) => {
-    if (openId === t.id) { setOpenId(null); return; }
-    setOpenId(t.id);
-    if (!members[t.id]) await loadMembers(t.id);
-  };
-
-  const setOwner = async (t: Tribe, m: TMember) => {
-    const ok = await confirmDialog({ title: "تعيين قائد", message: `تعيين "${m.display_name || "قرصان"}" قائداً لقبيلة "${t.name}"؟`, confirmText: "عيّن" });
-    if (!ok) return;
-    setBusy(true);
-    const { error } = await (supabase as any).rpc("admin_set_tribe_owner", { _tribe_id: t.id, _user_id: m.user_id });
-    setBusy(false);
-    if (error) { alert("فشل: " + error.message); return; }
-    await loadMembers(t.id);
-    load();
-  };
-
-  const kickMember = async (t: Tribe, m: TMember) => {
-    const ok = await confirmDialog({ title: "طرد عضو", message: `طرد "${m.display_name || "قرصان"}" من قبيلة "${t.name}"؟`, confirmText: "اطرد", danger: true });
-    if (!ok) return;
-    setBusy(true);
-    const { error } = await (supabase as any).rpc("admin_kick_tribe_member", { _tribe_id: t.id, _user_id: m.user_id });
-    setBusy(false);
-    if (error) { alert("فشل: " + error.message); return; }
-    await loadMembers(t.id);
-    load();
-  };
 
   const deleteTribe = async (t: Tribe) => {
     const ok = await confirmDialog({ title: "حذف القبيلة", message: `هل تريد حذف "${t.name}" وكل أعضائها؟`, confirmText: "احذف", danger: true });
@@ -121,38 +82,6 @@ function AdminCommunity() {
                 <button onClick={() => adjustPoints(t, 1)} className="px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">+ منح</button>
                 <button onClick={() => adjustPoints(t, -1)} className="px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold">− خصم</button>
               </div>
-
-              <button onClick={() => toggleMembers(t)} className="w-full px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs font-bold text-amber-200">
-                {openId === t.id ? "▲ إخفاء الأعضاء" : "▼ إدارة الأعضاء (قائد / طرد)"}
-              </button>
-
-              {openId === t.id && (
-                <div className="space-y-1.5">
-                  {!members[t.id] && <div className="text-xs text-slate-500">جاري التحميل…</div>}
-                  {(members[t.id] || []).map(m => (
-                    <div key={m.user_id} className="flex items-center gap-2 p-2 rounded bg-slate-800 border border-slate-700">
-                      <span className="text-lg">{m.avatar_emoji || "🏴‍☠️"}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold truncate">
-                          {m.display_name || "قرصان"}
-                          <span className="mr-1 align-middle">
-                            {m.role === "owner" && <TribeRoleBadge role="owner" showLabel />}
-                            {m.is_founder && <TribeRoleBadge role="founder" showLabel />}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-400">⭐ {m.level ?? 1} • 🤝 {Number(m.donation_coins || 0).toLocaleString()}</div>
-                      </div>
-                      {m.role !== "owner" && (
-                        <button disabled={busy} onClick={() => setOwner(t, m)} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-[10px] font-bold disabled:opacity-50">
-                          <TribeRoleBadge role="owner" size="sm" /> قائد
-                        </button>
-                      )}
-                      <button disabled={busy} onClick={() => kickMember(t, m)} className="px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-white text-[10px] font-bold disabled:opacity-50">🚪 طرد</button>
-                    </div>
-                  ))}
-                  {members[t.id]?.length === 0 && <div className="text-xs text-slate-500">لا يوجد أعضاء</div>}
-                </div>
-              )}
             </div>
           ))}
         </div>
