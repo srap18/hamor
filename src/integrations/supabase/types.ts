@@ -380,6 +380,45 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_phrase_hits: {
+        Row: {
+          body: string
+          channel: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          muted: boolean
+          peer_id: string | null
+          phrase: string
+          tribe_id: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          channel?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          muted?: boolean
+          peer_id?: string | null
+          phrase: string
+          tribe_id?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          muted?: boolean
+          peer_id?: string | null
+          phrase?: string
+          tribe_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bans: {
         Row: {
           active: boolean
@@ -6334,6 +6373,33 @@ export type Database = {
         Returns: number
       }
       admin_archive_code: { Args: { _code_id: string }; Returns: Json }
+      admin_banned_phrase_context: {
+        Args: { _hit_id: string }
+        Returns: {
+          body: string
+          channel: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_name: string
+        }[]
+      }
+      admin_banned_phrase_hits: {
+        Args: { _limit?: number }
+        Returns: {
+          body: string
+          channel: string
+          created_at: string
+          id: string
+          muted: boolean
+          peer_id: string
+          peer_name: string
+          phrase: string
+          user_emoji: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       admin_count_online: { Args: { _within_minutes: number }; Returns: number }
       admin_delete_dragon_equipment: {
         Args: { _row_id: string }
@@ -6892,6 +6958,7 @@ export type Database = {
         Args: { _gems_spent: number; _source?: string; _uid: string }
         Returns: number
       }
+      banned_phrase_match: { Args: { _body: string }; Returns: string }
       boss_attack_status: { Args: never; Returns: Json }
       boss_award_pearls: { Args: { _boss_id: string }; Returns: Json }
       boss_hit_my_ship: { Args: { p_ship_id: string }; Returns: Json }
