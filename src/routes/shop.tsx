@@ -266,10 +266,12 @@ function Shop() {
         setBusy(false);
         const msg = String(error.message || "");
         if (msg.includes("rocket_daily_limit")) {
-          const left = Number(msg.split("rocket_daily_limit:")[1]?.match(/\d+/)?.[0] ?? 0);
+          const parts = msg.split("rocket_daily_limit:")[1]?.split(":");
+          const left = Number(parts?.[0] ?? 0);
+          const limit = Number(parts?.[1] ?? 30);
           flash(left > 0
-            ? `الحد اليومي للصواريخ 100 — متبقي لك ${left} فقط اليوم`
-            : "وصلت للحد اليومي للصواريخ (100 صاروخ) — جرّب غداً", 2600);
+            ? `الحد اليومي للصواريخ ${limit} — متبقي لك ${left} فقط اليوم`
+            : `وصلت للحد اليومي للصواريخ (${limit} صاروخ) — جرّب غداً`, 2600);
           return;
         }
         flash("فشل الشراء: " + msg, 2000);
