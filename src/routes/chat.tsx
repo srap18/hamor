@@ -543,6 +543,11 @@ function ChatPage() {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
     }
+    if (tab === "dm" && contactMatch(body)) {
+      showNotice(CONTACT_BLOCK_MESSAGE);
+      return;
+    }
+
 
     // AI pre-check before showing the message in chat
     setSending(true);
