@@ -136,7 +136,9 @@ function AdminCommunity() {
               <div className="font-bold text-amber-300">⚙️ إدارة أعضاء «{manageTribe.name}» ({members.length})</div>
               <button onClick={() => setManageTribe(null)} className="px-2 py-1 rounded bg-slate-800 text-xs font-bold">إغلاق</button>
             </div>
-            <div className="text-[11px] text-slate-400">👑 = القائد الحالي • 🏗️ = المؤسس (منشئ القبيلة)</div>
+            <div className="text-[11px] text-slate-400">
+              <span className="text-amber-300 font-bold">القائد</span> • <span className="text-sky-300 font-bold">مشرف</span> • <span className="text-emerald-300 font-bold">المؤسس</span> (منشئ القبيلة)
+            </div>
             {mLoading && <div className="text-slate-400 text-sm">جاري التحميل...</div>}
             {!mLoading && members.length === 0 && <div className="text-slate-500 text-sm">لا يوجد أعضاء</div>}
             <div className="space-y-1.5">
