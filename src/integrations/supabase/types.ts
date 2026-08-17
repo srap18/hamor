@@ -384,6 +384,7 @@ export type Database = {
         Row: {
           body: string
           channel: string | null
+          context_snapshot: Json | null
           created_at: string
           id: string
           message_id: string | null
@@ -396,6 +397,7 @@ export type Database = {
         Insert: {
           body: string
           channel?: string | null
+          context_snapshot?: Json | null
           created_at?: string
           id?: string
           message_id?: string | null
@@ -408,6 +410,7 @@ export type Database = {
         Update: {
           body?: string
           channel?: string | null
+          context_snapshot?: Json | null
           created_at?: string
           id?: string
           message_id?: string | null
