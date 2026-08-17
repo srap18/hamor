@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/hooks/use-admin";
 import { adminBlockLogin } from "@/lib/admin-users.functions";
 import { toast } from "sonner";
+import { BannedPhraseHits } from "@/components/admin/BannedPhraseHits";
 
 export const Route = createFileRoute("/admin/sanctions")({
   component: AdminSanctions,
@@ -245,6 +246,8 @@ function AdminSanctions() {
           </div>
         </div>
       )}
+
+      <BannedPhraseHits />
     </div>
   );
 }
