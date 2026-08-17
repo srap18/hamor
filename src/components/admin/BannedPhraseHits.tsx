@@ -74,11 +74,12 @@ export function BannedPhraseHits() {
               <th className="text-right p-3">الرسالة</th>
               <th className="text-right p-3">الكتم</th>
               <th className="text-right p-3">التاريخ</th>
+              <th className="text-right p-3">المحادثة</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={6} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
-            {!loading && hits.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا توجد حالات</td></tr>}
+            {loading && <tr><td colSpan={7} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
+            {!loading && hits.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد حالات</td></tr>}
             {hits.map((h) => (
               <Fragment key={h.id}>
                 <tr
