@@ -1718,6 +1718,12 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
               </div>
             </div>
           )}
+          {isOfficer && (
+            <button onClick={() => setManageOpen(true)}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 text-white font-bold text-sm">
+              ⚙️ إدارة الأعضاء
+            </button>
+          )}
           <div>
             <div className="text-xs font-bold text-amber-300 mb-2">👥 الأعضاء ({members.length})</div>
             <div className="space-y-1">
