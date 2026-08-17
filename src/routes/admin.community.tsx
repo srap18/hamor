@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { TribeRoleBadge } from "@/components/TribeRoleBadge";
 
 export const Route = createFileRoute("/admin/community")({
   component: AdminCommunity,
