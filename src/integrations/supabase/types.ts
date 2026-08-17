@@ -7314,6 +7314,7 @@ export type Database = {
       dm_accept_request: { Args: { _other: string }; Returns: Json }
       dm_block: { Args: { _other: string }; Returns: Json }
       dm_cancel_request: { Args: { _other: string }; Returns: Json }
+      dm_contact_match: { Args: { _body: string }; Returns: string }
       dm_reject_request: { Args: { _other: string }; Returns: Json }
       dm_unblock: { Args: { _other: string }; Returns: Json }
       donate_to_tribe: {
@@ -8041,6 +8042,7 @@ export type Database = {
         }[]
       }
       normalize_ar: { Args: { p: string }; Returns: string }
+      normalize_contact_text: { Args: { _t: string }; Returns: string }
       normalize_for_profanity: { Args: { _t: string }; Returns: string }
       notify_steal_started: {
         Args: {
