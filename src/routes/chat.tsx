@@ -21,6 +21,8 @@ import { getTribeBanner } from "@/lib/tribe-banners";
 import { TribeFeatures } from "@/components/TribeFeatures";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
+import { contactMatch, CONTACT_BLOCK_MESSAGE } from "@/lib/contact-guard";
+
 import { useServerFn } from "@tanstack/react-start";
 import { moderateChatText } from "@/lib/chat-moderation.functions";
 import { getCached, setCached } from "@/lib/swr-cache";
@@ -543,6 +545,11 @@ function ChatPage() {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
     }
+    if (tab === "dm" && contactMatch(body)) {
+      showNotice(CONTACT_BLOCK_MESSAGE);
+      return;
+    }
+
 
     // AI pre-check before showing the message in chat
     setSending(true);
@@ -601,8 +608,11 @@ function ChatPage() {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
         const emsg = String(error.message || "");
-        if (emsg.includes("email_not_verified")) {
+        if (emsg.includes("dm_contact_blocked")) {
+          showNotice(CONTACT_BLOCK_MESSAGE);
+        } else if (emsg.includes("email_not_verified")) {
           showNotice("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل حتى تقدر ترسل رسائل");
+
         } else {
           showNotice("تعذر الإرسال: " + emsg);
         }
@@ -646,6 +656,12 @@ function ChatPage() {
         restoreDraftRef.current(body);
         return;
       }
+      if (status === "contact_blocked") {
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        showNotice(data?.message || CONTACT_BLOCK_MESSAGE);
+        restoreDraftRef.current(body);
+        return;
+      }
       if (status === "awaiting_acceptance" || status === "rejected_cooldown" || status === "blocked") {
         setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice("⏳ " + (data?.message || "لا يمكن الإرسال حالياً"));
@@ -653,6 +669,7 @@ function ChatPage() {
         reloadThreads();
         return;
       }
+
       if (status === "request_sent") {
         showNotice("📨 تم إرسال طلب المحادثة — بانتظار قبول الطرف الآخر");
         reloadThreads();
