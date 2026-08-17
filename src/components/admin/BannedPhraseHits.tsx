@@ -49,8 +49,9 @@ export function BannedPhraseHits() {
     setOpenId(h.id);
     if (ctx[h.id]) return;
     setCtxLoading(true);
-    const { data } = await supabase.rpc("admin_banned_phrase_context" as never, { _hit_id: h.id } as never);
-    setCtx((p) => ({ ...p, [h.id]: (data ?? []) as CtxMsg[] }));
+    const { data, error } = await supabase.rpc("admin_banned_phrase_context" as never, { _hit_id: h.id } as never);
+    if (error) setCtxErr((p) => ({ ...p, [h.id]: error.message }));
+    else setCtx((p) => ({ ...p, [h.id]: (data ?? []) as CtxMsg[] }));
     setCtxLoading(false);
   };
 
