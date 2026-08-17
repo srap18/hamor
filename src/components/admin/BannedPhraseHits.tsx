@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Hit = {
@@ -78,9 +78,8 @@ export function BannedPhraseHits() {
             {loading && <tr><td colSpan={6} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
             {!loading && hits.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا توجد حالات</td></tr>}
             {hits.map((h) => (
-              <>
+              <Fragment key={h.id}>
                 <tr
-                  key={h.id}
                   onClick={() => toggle(h)}
                   className="border-t border-slate-800/50 cursor-pointer hover:bg-slate-800/40"
                 >
@@ -104,7 +103,7 @@ export function BannedPhraseHits() {
                   <td className="p-3 text-xs text-slate-400">{new Date(h.created_at).toLocaleString("ar")}</td>
                 </tr>
                 {openId === h.id && (
-                  <tr key={`${h.id}-ctx`} className="border-t border-slate-800/50 bg-slate-950/60">
+                  <tr className="border-t border-slate-800/50 bg-slate-950/60">
                     <td colSpan={6} className="p-3">
                       <div className="text-xs text-slate-400 mb-2">آخر 10 رسائل في نفس المحادثة:</div>
                       {ctxLoading && !ctx[h.id] ? (
@@ -133,7 +132,7 @@ export function BannedPhraseHits() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
