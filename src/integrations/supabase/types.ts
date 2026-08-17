@@ -7361,6 +7361,7 @@ export type Database = {
       drop_my_protection: { Args: never; Returns: undefined }
       effective_market_level: { Args: { _user_id: string }; Returns: number }
       effective_vip_level: { Args: { _user: string }; Returns: number }
+      elite_vip_active: { Args: { _uid: string }; Returns: boolean }
       elite_vip6_active: { Args: { _uid: string }; Returns: boolean }
       email_has_existing_account: { Args: { _email: string }; Returns: boolean }
       email_queue_dispatch: { Args: never; Returns: undefined }
