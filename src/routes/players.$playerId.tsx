@@ -189,14 +189,9 @@ function PlayerPage() {
 
   const closeMenu = () => { setSelectedShip(null); setMode(null); };
 
-  // Decrement an inventory item locally + in DB
-  const consumeItem = async (item_id: string, item_type: string) => {
-    if (!me) return;
-    const row = inv.find((x) => x.item_id === item_id && x.item_type === item_type);
-    const next = Math.max(0, (row?.quantity ?? 0) - 1);
-    setInv((arr) => arr.map((x) => x.item_id === item_id && x.item_type === item_type ? { ...x, quantity: next } : x));
-    await supabase.rpc("consume_inventory_item", { _item_id: item_id, _item_type: item_type, _count: 1 });
-  };
+  // NOTE: weapons are consumed on the SERVER (apply_ship_damage_v2 /
+  // launch_nuke / launch_ad_bomb / launch_kraken). No client-side deduction.
+
 
   // Animate a projectile from a starting screen edge toward the target ship, then explode (or sparkle if friendly)
   const playProjectile = (targetId: string, emoji: string, friendly = false, weaponId?: string, silent = false) => new Promise<void>((resolve) => {
