@@ -33,6 +33,7 @@ export function BannedPhraseHits() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [ctx, setCtx] = useState<Record<string, CtxMsg[]>>({});
   const [ctxLoading, setCtxLoading] = useState(false);
+  const [ctxErr, setCtxErr] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
