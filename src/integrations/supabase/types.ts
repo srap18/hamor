@@ -7202,6 +7202,7 @@ export type Database = {
         Returns: boolean
       }
       delete_inventory_rows: { Args: { _ids: string[] }; Returns: number }
+      destyle_latin: { Args: { _t: string }; Returns: string }
       device_admin_approve_appeal: {
         Args: { _appeal_id: string }
         Returns: Json
