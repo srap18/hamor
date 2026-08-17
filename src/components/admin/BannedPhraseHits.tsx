@@ -104,6 +104,14 @@ export function BannedPhraseHits() {
                       : <span className="px-2 py-1 rounded bg-slate-700/40 text-slate-300">مكتوم مسبقاً / مستثنى</span>}
                   </td>
                   <td className="p-3 text-xs text-slate-400">{new Date(h.created_at).toLocaleString("ar")}</td>
+                  <td className="p-3">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggle(h); }}
+                      className="px-2 py-1 rounded bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-100 text-xs whitespace-nowrap"
+                    >
+                      {openId === h.id ? "إخفاء" : "عرض آخر 10 رسائل"}
+                    </button>
+                  </td>
                 </tr>
                 {openId === h.id && (
                   <tr className="border-t border-slate-800/50 bg-slate-950/60">
