@@ -8,21 +8,59 @@ export const Route = createFileRoute("/admin/community")({
   head: () => ({ meta: [{ title: "القبائل — Admin" }] }),
 });
 
-type Tribe = { id: string; name: string; emblem: string; owner_id: string; level: number; total_donations: number; points: number; join_mode: string };
+type Tribe = { id: string; name: string; emblem: string; owner_id: string; founder_id: string | null; level: number; total_donations: number; points: number; join_mode: string };
+type TMember = { user_id: string; role: string; joined_at: string; donation_coins: number; display_name: string | null; username: string | null; avatar_emoji: string | null; level: number | null; is_founder: boolean };
 
 function AdminCommunity() {
   const [tribes, setTribes] = useState<Tribe[]>([]);
   const [loading, setLoading] = useState(true);
   const [deltas, setDeltas] = useState<Record<string, string>>({});
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [members, setMembers] = useState<Record<string, TMember[]>>({});
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,owner_id,level,total_donations,points,join_mode").order("points", { ascending: false });
+    const { data: ts } = await supabase.from("tribes").select("id,name,emblem,owner_id,founder_id,level,total_donations,points,join_mode").order("points", { ascending: false });
     setTribes((ts || []) as Tribe[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const loadMembers = useCallback(async (tribeId: string) => {
+    const { data, error } = await (supabase as any).rpc("admin_tribe_members", { _tribe_id: tribeId });
+    if (error) { alert("فشل تحميل الأعضاء: " + error.message); return; }
+    setMembers((m) => ({ ...m, [tribeId]: (data || []) as TMember[] }));
+  }, []);
+
+  const toggleMembers = async (t: Tribe) => {
+    if (openId === t.id) { setOpenId(null); return; }
+    setOpenId(t.id);
+    if (!members[t.id]) await loadMembers(t.id);
+  };
+
+  const setOwner = async (t: Tribe, m: TMember) => {
+    const ok = await confirmDialog({ title: "تعيين قائد", message: `تعيين "${m.display_name || "قرصان"}" قائداً لقبيلة "${t.name}"؟`, confirmText: "عيّن" });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("admin_set_tribe_owner", { _tribe_id: t.id, _user_id: m.user_id });
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    await loadMembers(t.id);
+    load();
+  };
+
+  const kickMember = async (t: Tribe, m: TMember) => {
+    const ok = await confirmDialog({ title: "طرد عضو", message: `طرد "${m.display_name || "قرصان"}" من قبيلة "${t.name}"؟`, confirmText: "اطرد", danger: true });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await (supabase as any).rpc("admin_kick_tribe_member", { _tribe_id: t.id, _user_id: m.user_id });
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    await loadMembers(t.id);
+    load();
+  };
 
   const deleteTribe = async (t: Tribe) => {
     const ok = await confirmDialog({ title: "حذف القبيلة", message: `هل تريد حذف "${t.name}" وكل أعضائها؟`, confirmText: "احذف", danger: true });
