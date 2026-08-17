@@ -608,8 +608,11 @@ function ChatPage() {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
         const emsg = String(error.message || "");
-        if (emsg.includes("email_not_verified")) {
+        if (emsg.includes("dm_contact_blocked")) {
+          showNotice(CONTACT_BLOCK_MESSAGE);
+        } else if (emsg.includes("email_not_verified")) {
           showNotice("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل حتى تقدر ترسل رسائل");
+
         } else {
           showNotice("تعذر الإرسال: " + emsg);
         }
