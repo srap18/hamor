@@ -120,6 +120,34 @@ function AdminCommunity() {
                 <button onClick={() => adjustPoints(t, 1)} className="px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">+ منح</button>
                 <button onClick={() => adjustPoints(t, -1)} className="px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold">− خصم</button>
               </div>
+
+              <button onClick={() => toggleMembers(t)} className="w-full px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs font-bold text-amber-200">
+                {openId === t.id ? "▲ إخفاء الأعضاء" : "▼ إدارة الأعضاء (قائد / طرد)"}
+              </button>
+
+              {openId === t.id && (
+                <div className="space-y-1.5">
+                  {!members[t.id] && <div className="text-xs text-slate-500">جاري التحميل…</div>}
+                  {(members[t.id] || []).map(m => (
+                    <div key={m.user_id} className="flex items-center gap-2 p-2 rounded bg-slate-800 border border-slate-700">
+                      <span className="text-lg">{m.avatar_emoji || "🏴‍☠️"}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold truncate">
+                          {m.display_name || "قرصان"}
+                          {m.role === "owner" && <span className="text-amber-300"> 👑 القائد</span>}
+                          {m.is_founder && <span className="text-sky-300"> 🏗️ المؤسس</span>}
+                        </div>
+                        <div className="text-[10px] text-slate-400">⭐ {m.level ?? 1} • 🤝 {Number(m.donation_coins || 0).toLocaleString()}</div>
+                      </div>
+                      {m.role !== "owner" && (
+                        <button disabled={busy} onClick={() => setOwner(t, m)} className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-[10px] font-bold disabled:opacity-50">👑 قائد</button>
+                      )}
+                      <button disabled={busy} onClick={() => kickMember(t, m)} className="px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-white text-[10px] font-bold disabled:opacity-50">🚪 طرد</button>
+                    </div>
+                  ))}
+                  {members[t.id]?.length === 0 && <div className="text-xs text-slate-500">لا يوجد أعضاء</div>}
+                </div>
+              )}
             </div>
           ))}
         </div>
