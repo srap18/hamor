@@ -10,10 +10,16 @@ export const Route = createFileRoute("/admin/community")({
 
 type Tribe = { id: string; name: string; emblem: string; owner_id: string; level: number; total_donations: number; points: number; join_mode: string };
 
+type Member = { user_id: string; display_name: string | null; username: string | null; avatar_emoji: string | null; level: number | null; role: string; donation_coins: number; is_founder: boolean };
+
 function AdminCommunity() {
   const [tribes, setTribes] = useState<Tribe[]>([]);
   const [loading, setLoading] = useState(true);
   const [deltas, setDeltas] = useState<Record<string, string>>({});
+  const [manageTribe, setManageTribe] = useState<Tribe | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [mLoading, setMLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -23,6 +29,41 @@ function AdminCommunity() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const loadMembers = useCallback(async (t: Tribe) => {
+    setMLoading(true);
+    const { data, error } = await supabase.rpc("admin_tribe_members" as never, { _tribe_id: t.id } as never);
+    if (error) alert("فشل تحميل الأعضاء: " + error.message);
+    const list = ((data || []) as Member[]).slice().sort((a, b) =>
+      (a.role === "owner" ? -1 : b.role === "owner" ? 1 : (b.donation_coins || 0) - (a.donation_coins || 0)));
+    setMembers(list);
+    setMLoading(false);
+  }, []);
+
+  const openManage = async (t: Tribe) => { setManageTribe(t); setMembers([]); await loadMembers(t); };
+
+  const setOwner = async (m: Member) => {
+    if (!manageTribe) return;
+    const ok = await confirmDialog({ title: "تعيين قائد", message: `تعيين "${m.display_name || "قرصان"}" قائداً لقبيلة "${manageTribe.name}"؟`, confirmText: "تعيين" });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_tribe_set_owner" as never, { _tribe_id: manageTribe.id, _user_id: m.user_id } as never);
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    await loadMembers(manageTribe); load();
+  };
+
+  const kick = async (m: Member) => {
+    if (!manageTribe) return;
+    const ok = await confirmDialog({ title: "طرد عضو", message: `طرد "${m.display_name || "قرصان"}" من "${manageTribe.name}"؟`, confirmText: "اطرد", danger: true });
+    if (!ok) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_tribe_kick_member" as never, { _tribe_id: manageTribe.id, _user_id: m.user_id } as never);
+    setBusy(false);
+    if (error) { alert("فشل: " + error.message); return; }
+    await loadMembers(manageTribe);
+  };
+
 
   const deleteTribe = async (t: Tribe) => {
     const ok = await confirmDialog({ title: "حذف القبيلة", message: `هل تريد حذف "${t.name}" وكل أعضائها؟`, confirmText: "احذف", danger: true });
