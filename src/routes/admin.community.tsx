@@ -146,8 +146,17 @@ function AdminCommunity() {
                 <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-700">
                   <span className="w-8 h-8 rounded-full bg-sky-800 flex items-center justify-center">{m.avatar_emoji || "🏴‍☠️"}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold truncate">
-                      {m.display_name || "قرصان"} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}{m.is_founder ? " 🏗️" : ""}
+                    <div className="text-sm font-bold truncate flex items-center gap-1 flex-wrap">
+                      <span className="truncate">{m.display_name || "قرصان"}</span>
+                      {m.role === "owner" && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">القائد</span>
+                      )}
+                      {m.role === "moderator" && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">مشرف</span>
+                      )}
+                      {m.is_founder && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">المؤسس</span>
+                      )}
                     </div>
                     <div className="text-[10px] text-slate-400">
                       المستوى {m.level ?? 1} • {m.role === "owner" ? "القائد" : m.role === "moderator" ? "مشرف" : "عضو"}{m.is_founder ? " • المؤسس" : ""} • 🤝 {Number(m.donation_coins || 0).toLocaleString()}
