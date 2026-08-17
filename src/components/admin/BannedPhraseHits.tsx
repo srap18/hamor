@@ -33,6 +33,7 @@ export function BannedPhraseHits() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [ctx, setCtx] = useState<Record<string, CtxMsg[]>>({});
   const [ctxLoading, setCtxLoading] = useState(false);
+  const [ctxErr, setCtxErr] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,8 +49,9 @@ export function BannedPhraseHits() {
     setOpenId(h.id);
     if (ctx[h.id]) return;
     setCtxLoading(true);
-    const { data } = await supabase.rpc("admin_banned_phrase_context" as never, { _hit_id: h.id } as never);
-    setCtx((p) => ({ ...p, [h.id]: (data ?? []) as CtxMsg[] }));
+    const { data, error } = await supabase.rpc("admin_banned_phrase_context" as never, { _hit_id: h.id } as never);
+    if (error) setCtxErr((p) => ({ ...p, [h.id]: error.message }));
+    else setCtx((p) => ({ ...p, [h.id]: (data ?? []) as CtxMsg[] }));
     setCtxLoading(false);
   };
 
@@ -72,11 +74,12 @@ export function BannedPhraseHits() {
               <th className="text-right p-3">الرسالة</th>
               <th className="text-right p-3">الكتم</th>
               <th className="text-right p-3">التاريخ</th>
+              <th className="text-right p-3">المحادثة</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={6} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
-            {!loading && hits.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا توجد حالات</td></tr>}
+            {loading && <tr><td colSpan={7} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
+            {!loading && hits.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد حالات</td></tr>}
             {hits.map((h) => (
               <Fragment key={h.id}>
                 <tr
@@ -101,12 +104,22 @@ export function BannedPhraseHits() {
                       : <span className="px-2 py-1 rounded bg-slate-700/40 text-slate-300">مكتوم مسبقاً / مستثنى</span>}
                   </td>
                   <td className="p-3 text-xs text-slate-400">{new Date(h.created_at).toLocaleString("ar")}</td>
+                  <td className="p-3">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggle(h); }}
+                      className="px-2 py-1 rounded bg-indigo-600/40 hover:bg-indigo-600/60 text-indigo-100 text-xs whitespace-nowrap"
+                    >
+                      {openId === h.id ? "إخفاء" : "عرض آخر 10 رسائل"}
+                    </button>
+                  </td>
                 </tr>
                 {openId === h.id && (
                   <tr className="border-t border-slate-800/50 bg-slate-950/60">
-                    <td colSpan={6} className="p-3">
+                    <td colSpan={7} className="p-3">
                       <div className="text-xs text-slate-400 mb-2">آخر 10 رسائل في نفس المحادثة:</div>
-                      {ctxLoading && !ctx[h.id] ? (
+                      {ctxErr[h.id] ? (
+                        <div className="text-xs text-red-400">تعذر جلب الرسائل: {ctxErr[h.id]}</div>
+                      ) : ctxLoading && !ctx[h.id] ? (
                         <div className="text-xs text-slate-500">جاري التحميل...</div>
                       ) : (ctx[h.id] ?? []).length === 0 ? (
                         <div className="text-xs text-slate-500">لا توجد رسائل</div>
