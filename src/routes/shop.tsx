@@ -270,12 +270,17 @@ function Shop() {
           const left = Number(parts?.[0] ?? 0);
           const limit = Number(parts?.[1] ?? 30);
           flash(left > 0
-            ? `الحد اليومي للصواريخ ${limit} — متبقي لك ${left} فقط اليوم`
-            : `وصلت للحد اليومي للصواريخ (${limit} صاروخ) — جرّب غداً`, 2600);
+            ? `الحد اليومي للأسلحة ${limit} — متبقي لك ${left} فقط اليوم`
+            : `وصلت للحد اليومي للأسلحة (${limit} قطعة) — جرّب غداً`, 2600);
+          return;
+        }
+        if (msg.includes("max_per_order")) {
+          flash("أقصى كمية في الطلب الواحد 10 قطع", 2200);
           return;
         }
         flash("فشل الشراء: " + msg, 2000);
         return;
+
       }
       setBusy(false);
     }
