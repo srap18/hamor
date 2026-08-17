@@ -1381,7 +1381,7 @@ function ProfileActionsModal({ me, target, isBlocked, onClose, onBlocksChanged }
 // ===================== Tribe Management Modal =====================
 type Member = { user_id: string; role: string; display_name: string; avatar_emoji: string; level: number; donation_coins: number };
 type JoinReq = { id: string; user_id: string; display_name: string; avatar_emoji: string; level: number };
-type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string };
+type TribeInfo = { name: string; emblem: string; description: string; banner: string; level: number; treasure_coins: number; total_donations: number; join_mode?: string; founder_id?: string | null };
 
 const RENAME_COST_GEMS = 100;
 const EMBLEM_CHOICES = ["🏴‍☠️","⚔️","🛡️","👑","⚓","🦈","🐙","🔱","🏆","🦅","🐉","💀","🌊","⛵","🗡️"];
@@ -1409,10 +1409,11 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
   const [desc, setDesc] = useState("");
   const [banner, setBanner] = useState("");
   const [donateAmount, setDonateAmount] = useState<number>(500);
+  const [manageOpen, setManageOpen] = useState(false);
 
   const load = useCallback(async () => {
     const { data: t } = await supabase.from("tribes")
-      .select("name,emblem,description,banner,level,treasure_coins,total_donations,join_mode")
+      .select("name,emblem,description,banner,level,treasure_coins,total_donations,join_mode,founder_id")
       .eq("id", tribeId).maybeSingle();
     if (t) {
       const ti = t as any as TribeInfo;
@@ -1717,6 +1718,12 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
               </div>
             </div>
           )}
+          {isOfficer && (
+            <button onClick={() => setManageOpen(true)}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-800 border-2 border-amber-300 text-white font-bold text-sm">
+              ⚙️ إدارة الأعضاء
+            </button>
+          )}
           <div>
             <div className="text-xs font-bold text-amber-300 mb-2">👥 الأعضاء ({members.length})</div>
             <div className="space-y-1">
@@ -1754,6 +1761,50 @@ function TribeManageModal({ tribeId, userId, onClose }: { tribeId: string; userI
           )}
         </div>
       </div>
+
+      {manageOpen && (
+        <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-3" onClick={() => setManageOpen(false)}>
+          <div dir="rtl" onClick={e => e.stopPropagation()}
+            className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl bg-stone-950 border-2 border-amber-500/60 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-black text-amber-300">⚙️ إدارة الأعضاء ({members.length})</div>
+              <button onClick={() => setManageOpen(false)} className="px-2 py-1 rounded bg-stone-800 text-amber-200 text-xs font-bold">إغلاق</button>
+            </div>
+            <div className="text-[10px] text-amber-200/70">👑 = القائد الحالي • 🏗️ = مؤسس القبيلة (منشئها)</div>
+            {err && <div className="text-xs text-red-400 text-center">{err}</div>}
+            <div className="space-y-1">
+              {members.map(m => {
+                const isFounder = !!info?.founder_id && info.founder_id === m.user_id;
+                return (
+                  <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-stone-900 border border-amber-700/30">
+                    <div className="w-8 h-8 rounded-full bg-sky-700 flex items-center justify-center">{m.avatar_emoji}</div>
+                    <div className="flex-1 text-sm min-w-0">
+                      <div className="font-bold truncate">
+                        {m.display_name} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}{isFounder ? " 🏗️" : ""}
+                      </div>
+                      <div className="text-[10px] text-amber-300/70">
+                        المستوى {m.level} • {m.role === "owner" ? "القائد" : m.role === "moderator" ? "مشرف" : "عضو"}{isFounder ? " • المؤسس" : ""}
+                      </div>
+                    </div>
+                    {isOwner && m.user_id !== userId && m.role !== "owner" && (
+                      <>
+                        <button disabled={busy} onClick={() => transferOwnership(m)}
+                          className="px-2 py-1 rounded bg-amber-600 text-white text-[11px] font-bold">👑 تعيين قائد</button>
+                        <button disabled={busy} onClick={() => kick(m)}
+                          className="px-2 py-1 rounded bg-red-700 text-white text-[11px] font-bold">طرد</button>
+                      </>
+                    )}
+                    {isOfficer && !isOwner && m.user_id !== userId && m.role === "member" && (
+                      <button disabled={busy} onClick={() => kick(m)}
+                        className="px-2 py-1 rounded bg-red-700 text-white text-[11px] font-bold">طرد</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
