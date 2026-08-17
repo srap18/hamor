@@ -6188,6 +6188,10 @@ export type Database = {
         Args: { _event_id: string; _kind: string; _user: string }
         Returns: number
       }
+      _exploit_full_ban: {
+        Args: { _reason: string; _user: string }
+        Returns: undefined
+      }
       _extend_ship_crew_timers: {
         Args: { _seconds: number; _ship_id: string }
         Returns: undefined
@@ -6198,6 +6202,10 @@ export type Database = {
           max_p: number
           min_p: number
         }[]
+      }
+      _flag_exploit: {
+        Args: { _details: Json; _kind: string; _user: string }
+        Returns: undefined
       }
       _gen_unique_username: { Args: never; Returns: string }
       _grant_ship_with_storage: {
