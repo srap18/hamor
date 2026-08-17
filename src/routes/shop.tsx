@@ -270,12 +270,17 @@ function Shop() {
           const left = Number(parts?.[0] ?? 0);
           const limit = Number(parts?.[1] ?? 30);
           flash(left > 0
-            ? `الحد اليومي للصواريخ ${limit} — متبقي لك ${left} فقط اليوم`
-            : `وصلت للحد اليومي للصواريخ (${limit} صاروخ) — جرّب غداً`, 2600);
+            ? `الحد اليومي للأسلحة ${limit} — متبقي لك ${left} فقط اليوم`
+            : `وصلت للحد اليومي للأسلحة (${limit} قطعة) — جرّب غداً`, 2600);
+          return;
+        }
+        if (msg.includes("max_per_order")) {
+          flash("أقصى كمية في الطلب الواحد 10 قطع", 2200);
           return;
         }
         flash("فشل الشراء: " + msg, 2000);
         return;
+
       }
       setBusy(false);
     }
@@ -450,10 +455,11 @@ function Shop() {
                 >−</button>
                 <div className="min-w-[2.5rem] text-center font-extrabold text-lg">{qty}</div>
                 <button
-                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  onClick={() => setQty((q) => Math.min(tab === "weapons" ? 10 : 99, q + 1))}
                   aria-label="زيادة الكمية"
                   className="w-9 h-9 rounded-full bg-rose-700 border-2 border-rose-300 text-white text-lg font-bold flex items-center justify-center active:scale-95"
                 >+</button>
+
 
               </div>
             ) : (
