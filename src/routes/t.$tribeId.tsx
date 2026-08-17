@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { BackButton } from "@/components/BackButton";
+import { TribeRoleBadge } from "@/components/TribeRoleBadge";
 
 export const Route = createFileRoute("/t/$tribeId")({
   head: () => ({
@@ -123,7 +124,10 @@ function TribePage() {
                 : <span className="w-9 h-9 rounded-full bg-sky-800 flex items-center justify-center text-lg">{m.avatar_emoji || "🏴‍☠️"}</span>}
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-bold text-amber-100 truncate">
-                  {m.display_name || "قرصان"} {m.role === "owner" ? "👑" : m.role === "moderator" ? "🛡️" : ""}
+                  {m.display_name || "قرصان"}
+                  <span className="mr-1 align-middle">
+                    {m.role === "owner" ? <TribeRoleBadge role="owner" /> : m.role === "moderator" ? <TribeRoleBadge role="moderator" /> : null}
+                  </span>
                 </div>
                 <div className="text-[10px] text-amber-300/70">⭐ {m.level ?? 1} · 🤝 {m.donation_coins.toLocaleString()}</div>
               </div>

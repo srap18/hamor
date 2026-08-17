@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import { TribeRoleBadge } from "@/components/TribeRoleBadge";
 
 export const Route = createFileRoute("/admin/community")({
   component: AdminCommunity,
@@ -134,13 +135,17 @@ function AdminCommunity() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-bold truncate">
                           {m.display_name || "قرصان"}
-                          {m.role === "owner" && <span className="text-amber-300"> 👑 القائد</span>}
-                          {m.is_founder && <span className="text-sky-300"> 🏗️ المؤسس</span>}
+                          <span className="mr-1 align-middle">
+                            {m.role === "owner" && <TribeRoleBadge role="owner" showLabel />}
+                            {m.is_founder && <TribeRoleBadge role="founder" showLabel />}
+                          </span>
                         </div>
                         <div className="text-[10px] text-slate-400">⭐ {m.level ?? 1} • 🤝 {Number(m.donation_coins || 0).toLocaleString()}</div>
                       </div>
                       {m.role !== "owner" && (
-                        <button disabled={busy} onClick={() => setOwner(t, m)} className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-[10px] font-bold disabled:opacity-50">👑 قائد</button>
+                        <button disabled={busy} onClick={() => setOwner(t, m)} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white text-[10px] font-bold disabled:opacity-50">
+                          <TribeRoleBadge role="owner" size="sm" /> قائد
+                        </button>
                       )}
                       <button disabled={busy} onClick={() => kickMember(t, m)} className="px-2 py-1 rounded bg-red-700 hover:bg-red-600 text-white text-[10px] font-bold disabled:opacity-50">🚪 طرد</button>
                     </div>
