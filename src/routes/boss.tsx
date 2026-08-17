@@ -222,25 +222,7 @@ function BossPage() {
 
   }, [busy, boss, shipHp, shipDestroyed, rockets, attacksLeft, refreshAttackCost]);
 
-  // Compute gem cost = ceil(missing / 100), min 5 (matches repair_ship_instant)
-  const repairGemCost = (() => {
-    const missing = Math.max(0, shipMaxHp - shipHp);
-    if (missing <= 0) return 0;
-    return Math.max(5, Math.ceil(missing / 100));
-  })();
-
-  const repairShipNow = useCallback(async () => {
-    if (!selectedShip || repairing) return;
-    if (!confirm(`إصلاح ${selectedShip.catalog_code ?? "السفينة"} مقابل ${repairGemCost} 💎؟`)) return;
-    setRepairing(true);
-    const { error } = await rpc("repair_ship_instant", { _ship_id: selectedShip.id, _gems_cost: repairGemCost });
-    setRepairing(false);
-    if (error) return alert(error.message);
-    markRepairDone();
-    setShipHp(shipMaxHp);
-    setShipDestroyed(false);
-    setShips((arr) => arr.map((s) => s.id === selectedShip.id ? { ...s, hp: shipMaxHp, destroyed_at: null } : s));
-  }, [selectedShip, repairing, repairGemCost, shipMaxHp]);
+  // إصلاح السفن يتم بالطاقم فقط — لا يوجد إصلاح بالجواهر (حتى من صفحة التنين).
 
   const refreshAttacks = useCallback(async () => {
     if (refreshingAttacks) return;
@@ -541,10 +523,9 @@ function BossPage() {
                 style={{ width: `${shipMaxHp > 0 ? (shipHp / shipMaxHp) * 100 : 0}%`, boxShadow: "0 0 8px rgba(56,189,248,0.8)" }} />
             </div>
             {shipDestroyed && (
-              <button onClick={repairShipNow} disabled={repairing}
-                className="mt-2 w-full py-2 rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 text-white text-sm font-extrabold border border-amber-300 shadow-lg active:scale-95 disabled:opacity-40">
-                🛠️ إصلاح فوري بطاقم الإصلاح — 💎 {repairGemCost}
-              </button>
+              <div className="mt-2 w-full py-2 rounded-lg bg-stone-950/80 text-amber-200 text-[11px] font-bold border border-amber-700/60 text-center">
+                ⚙️ السفينة مدمّرة — الإصلاح يتم بطاقم الإصلاح من القرية فقط
+              </div>
             )}
             {ships.length > 1 && (
               <div className="flex gap-1.5 mt-2 overflow-x-auto">
