@@ -37,6 +37,25 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       throw new Error(`unknown product: ${data.productId}`);
     }
 
+    const isSubscription = !!eliteTier || !!pack?.subscription;
+
+    /**
+     * Free the Google Play purchase token for consumable products.
+     * Without consuming, Play keeps the SKU "owned" forever and the next
+     * purchase fails with «لقد حصلت على هذا العرض» (You already own this item).
+     * Best-effort: never block the grant on it.
+     */
+    const consumeIfNeeded = async () => {
+      if (data.platform !== "android" || isSubscription) return;
+      try {
+        const { toPlayId } = await import("@/lib/iap-play-ids");
+        const { consumePlayProduct } = await import("@/lib/play-verify.server");
+        await consumePlayProduct(toPlayId(data.productId), data.receipt);
+      } catch (e: any) {
+        console.error("[iap-verify] consume failed", data.productId, e?.message ?? e);
+      }
+    };
+
     // 1) Idempotency — this receipt was already processed. Still re-run the
     //    item grant (idempotent via the ledger) so a previous partial delivery
     //    heals itself instead of leaving the buyer without their items.
@@ -54,8 +73,13 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
         } as never);
         if (healErr) throw new Error(`grant_pack_items failed: ${healErr.message}`);
       }
+      // Already delivered but the token may still be stuck as "owned".
+      await consumeIfNeeded();
       return { ok: true, alreadyGranted: true, productId: data.productId };
     }
+
+
+
 
 
     // 2) Server-side receipt verification with the store.
