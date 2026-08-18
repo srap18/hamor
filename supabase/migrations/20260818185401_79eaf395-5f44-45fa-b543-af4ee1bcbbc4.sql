@@ -1,0 +1,1 @@
+UPDATE public.tribes SET founder_id = owner_id WHERE id = 'e38eee6c-fed5-4a37-b9c1-369d30bc9d9a';
