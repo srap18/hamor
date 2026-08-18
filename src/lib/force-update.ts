@@ -7,7 +7,7 @@ import { PREF_KEYS } from "@/lib/ui-prefs";
 const KEEP_PREFIXES = ["sb-", "supabase."];
 // User settings must survive an update — otherwise every toggle the player
 // switched off comes back on after "تحديث اللعبة".
-const KEEP_EXACT = new Set<string>([...PREF_KEYS, "lang"]);
+const KEEP_EXACT = new Set<string>([...PREF_KEYS, "app-lang"]);
 
 function shouldKeep(key: string) {
   return KEEP_EXACT.has(key) || KEEP_PREFIXES.some((p) => key.startsWith(p));
