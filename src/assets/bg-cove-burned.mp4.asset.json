@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "da6370b9-ae42-4096-b4fe-562cddc7a696",
+  "asset_id": "d1965a96-5498-4dbc-88cf-f75ee3ef0627",
   "project_id": "fc1f387e-db92-4515-a5c6-90044e4e7b7a",
-  "url": "/__l5e/assets-v1/da6370b9-ae42-4096-b4fe-562cddc7a696/bg-cove-burned.mp4",
-  "r2_key": "a/v1/fc1f387e-db92-4515-a5c6-90044e4e7b7a/da6370b9-ae42-4096-b4fe-562cddc7a696/bg-cove-burned.mp4",
-  "original_filename": "bg-cove-burned.mp4",
-  "size": 6019587,
+  "url": "/__l5e/assets-v1/d1965a96-5498-4dbc-88cf-f75ee3ef0627/bg-cove-burned-v2.mp4",
+  "r2_key": "a/v1/fc1f387e-db92-4515-a5c6-90044e4e7b7a/d1965a96-5498-4dbc-88cf-f75ee3ef0627/bg-cove-burned-v2.mp4",
+  "original_filename": "bg-cove-burned-v2.mp4",
+  "size": 8610311,
   "content_type": "video/mp4",
-  "created_at": "2026-07-26T01:53:38Z"
+  "created_at": "2026-08-18T18:05:25Z"
 }
