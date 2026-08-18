@@ -132,7 +132,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       }
     }
 
-    const env = data.platform === "ios" ? "apple_iap" : "google_play";
+    const env = "google_play";
 
     // 2) Elite VIP subscription path — use the same atomic, idempotent grant
     // as web payments so concurrent verification cannot shorten an entitlement.
