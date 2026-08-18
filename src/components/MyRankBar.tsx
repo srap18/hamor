@@ -16,32 +16,56 @@ export type MyRankKind =
 
 type Stat = { rank: number; score: number; extra: number; total: number };
 
+const RANK_CACHE_MS = 30_000;
+const rankCache = new Map<string, { value: Stat; expiresAt: number }>();
+const rankRequests = new Map<string, Promise<Stat>>();
+
+async function fetchMyRank(kind: MyRankKind, refId?: string | null): Promise<Stat> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return { rank: 0, score: 0, extra: 0, total: 0 };
+
+  const key = `${userId}:${kind}:${refId ?? ""}`;
+  const cached = rankCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const pending = rankRequests.get(key);
+  if (pending) return pending;
+
+  const request = (async () => {
+    const { data } = await (supabase as never as {
+      rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+    }).rpc("my_leaderboard_rank", { _kind: kind, _ref: refId ?? null });
+    const row = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
+    const value = {
+      rank: Number(row?.rank ?? 0),
+      score: Number(row?.score ?? 0),
+      extra: Number(row?.extra ?? 0),
+      total: Number(row?.total ?? 0),
+    };
+    rankCache.set(key, { value, expiresAt: Date.now() + RANK_CACHE_MS });
+    return value;
+  })().finally(() => rankRequests.delete(key));
+
+  rankRequests.set(key, request);
+  return request;
+}
+
 export function useMyRank(kind: MyRankKind, refId?: string | null, deps: unknown[] = []) {
   const [stat, setStat] = useState<Stat | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      // wait for the session so auth.uid() is available server-side
-      const { data: s } = await supabase.auth.getSession();
-      if (!s.session) { if (!cancelled) setStat(null); return; }
-      const { data } = await (supabase as never as {
-        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
-      }).rpc("my_leaderboard_rank", { _kind: kind, _ref: refId ?? null });
-      if (cancelled) return;
-      const row = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
-      setStat({
-        rank: Number(row?.rank ?? 0),
-        score: Number(row?.score ?? 0),
-        extra: Number(row?.extra ?? 0),
-        total: Number(row?.total ?? 0),
-      });
+      try {
+        const value = await fetchMyRank(kind, refId);
+        if (!cancelled) setStat(value);
+      } catch {
+        if (!cancelled) setStat(null);
+      }
     };
     void load();
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) void load();
-    });
-    return () => { cancelled = true; sub.subscription.unsubscribe(); };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, refId, ...deps]);
 
