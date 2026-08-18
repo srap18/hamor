@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useState } from "react";
+
 /**
  * Local UI preferences (banners / toasts toggles).
  *
@@ -61,4 +63,39 @@ export function setPrefEnabled(key: string, enabled: boolean): void {
   } catch {
     /* noop */
   }
+}
+
+/**
+ * React hook that always reflects the real stored value: it re-reads on the
+ * dedicated pref event, on cross-tab storage events, and when the tab becomes
+ * visible again. Prevents "I turned it off and it turned itself back on".
+ */
+export function useUiPref(key: string): [boolean, (v: boolean) => void] {
+  const [enabled, setEnabled] = useState<boolean>(() => getPrefEnabled(key));
+
+  useEffect(() => {
+    const read = () => setEnabled(getPrefEnabled(key));
+    read();
+    const evt = EVENTS[key];
+    if (evt) window.addEventListener(evt, read);
+    window.addEventListener("ui-pref-changed", read);
+    window.addEventListener("storage", read);
+    document.addEventListener("visibilitychange", read);
+    return () => {
+      if (evt) window.removeEventListener(evt, read);
+      window.removeEventListener("ui-pref-changed", read);
+      window.removeEventListener("storage", read);
+      document.removeEventListener("visibilitychange", read);
+    };
+  }, [key]);
+
+  const set = useCallback(
+    (v: boolean) => {
+      setPrefEnabled(key, v);
+      setEnabled(getPrefEnabled(key));
+    },
+    [key],
+  );
+
+  return [enabled, set];
 }
