@@ -23,11 +23,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const notifEligible = useNotifEligible();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
-  const [showDeathBanner, setShowDeathBanner] = useState(true);
-  const [showAttackBanner, setShowAttackBanner] = useState(true);
-  const [showLuckyBanner, setShowLuckyBanner] = useState(true);
-  const [showVipLogin, setShowVipLogin] = useState(true);
-  const [showToasts, setShowToasts] = useState(true);
+  const [deathPref, setDeathPref] = useUiPref("death-banner-hidden");
+  const [attackPref, setAttackPref] = useUiPref("attack-banner-hidden");
+  const [luckyPref, setLuckyPref] = useUiPref("lucky-banner-hidden");
+  const [vipPref, setVipPref] = useUiPref("vip-login-hidden");
+  const [toastsPref, setToastsPref] = useUiPref("toasts-hidden");
+
 
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
