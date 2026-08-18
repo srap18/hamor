@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 
 type NukeBannerData = {
   kind: "nuke" | "ad_bomb" | "anti_block";
@@ -50,19 +51,9 @@ export function GlobalBanner() {
   const luckyHidden = useRef<boolean>(false);
 
   useEffect(() => {
-    const readPrefs = () => {
-      try {
-        attackHidden.current = localStorage.getItem("attack-banner-hidden") === "1";
-        luckyHidden.current = localStorage.getItem("lucky-banner-hidden") === "1";
-      } catch { /* noop */ }
-    };
-    readPrefs();
-    window.addEventListener("attack-banner-pref", readPrefs);
-    window.addEventListener("lucky-banner-pref", readPrefs);
-    return () => {
-      window.removeEventListener("attack-banner-pref", readPrefs);
-      window.removeEventListener("lucky-banner-pref", readPrefs);
-    };
+    const offAttack = subscribePrefHidden("attack-banner-hidden", (h) => { attackHidden.current = h; });
+    const offLucky = subscribePrefHidden("lucky-banner-hidden", (h) => { luckyHidden.current = h; });
+    return () => { offAttack(); offLucky(); };
   }, []);
 
   const show = useCallback((state: BannerState, durationMs: number) => {

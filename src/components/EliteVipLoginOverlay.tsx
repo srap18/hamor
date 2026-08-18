@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { broadcastEliteVipLogin } from "@/hooks/use-elite-vip";
 import { getEliteVipTier } from "@/lib/elite-vip";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 
 type LoginBroadcast = {
   id: string;
@@ -39,12 +40,7 @@ export function EliteVipLoginOverlay() {
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
-    const read = () => {
-      try { setEnabled(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
-    };
-    read();
-    window.addEventListener("vip-login-pref", read);
-    return () => window.removeEventListener("vip-login-pref", read);
+    return subscribePrefHidden("vip-login-hidden", (hidden) => setEnabled(!hidden));
   }, []);
 
 

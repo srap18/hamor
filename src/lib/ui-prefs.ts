@@ -99,3 +99,24 @@ export function useUiPref(key: string): [boolean, (v: boolean) => void] {
 
   return [enabled, set];
 }
+
+/**
+ * Imperative live subscription to a pref (for non-React refs / listeners).
+ * Calls `cb(hidden)` immediately and on every change (same tab, other tab,
+ * or after the tab regains visibility). Returns an unsubscribe function.
+ */
+export function subscribePrefHidden(key: string, cb: (hidden: boolean) => void): () => void {
+  const read = () => cb(!getPrefEnabled(key));
+  read();
+  const evt = EVENTS[key];
+  if (evt) window.addEventListener(evt, read);
+  window.addEventListener("ui-pref-changed", read);
+  window.addEventListener("storage", read);
+  document.addEventListener("visibilitychange", read);
+  return () => {
+    if (evt) window.removeEventListener(evt, read);
+    window.removeEventListener("ui-pref-changed", read);
+    window.removeEventListener("storage", read);
+    document.removeEventListener("visibilitychange", read);
+  };
+}

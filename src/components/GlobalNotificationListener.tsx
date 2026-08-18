@@ -5,6 +5,7 @@ import { subscribeNotifBus } from "@/lib/notif-bus";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { sound } from "@/lib/sound";
+import { getPrefEnabled } from "@/lib/ui-prefs";
 
 type Notif = {
   id: string;
@@ -63,7 +64,7 @@ export function GlobalNotificationListener() {
     const showToast = (n: Notif) => {
       if (seenRef.current.has(n.id)) return;
       seenRef.current.add(n.id);
-      try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
+      if (!getPrefEnabled("toasts-hidden")) return;
 
       const title = `${iconFor(n.kind)} ${n.title}`;
       // Reuse a single toast id so every new notification REPLACES the
@@ -139,7 +140,7 @@ export function GlobalNotificationListener() {
     const showDm = async (m: DmMsg) => {
       if (seenDm.has(m.id)) return;
       seenDm.add(m.id);
-      try { if (localStorage.getItem("toasts-hidden") === "1") return; } catch { /* noop */ }
+      if (!getPrefEnabled("toasts-hidden")) return;
       const name = await resolveName(m.sender_id);
       const preview = m.audio_url ? "🎤 رسالة صوتية" : (m.body || "").slice(0, 140);
       const opts: any = {

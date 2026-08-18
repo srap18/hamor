@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 import { BackButton } from "@/components/BackButton";
 import { useEffect, useRef, useState } from "react";
 import { WEAPONS } from "@/lib/weapons";
@@ -148,11 +149,7 @@ function PlayerPage() {
   }, [playerId]);
 
   useEffect(() => {
-    const onPref = () => {
-      try { setDeathBannerHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
-    };
-    window.addEventListener("death-banner-pref", onPref);
-    return () => window.removeEventListener("death-banner-pref", onPref);
+    return subscribePrefHidden("death-banner-hidden", setDeathBannerHidden);
   }, []);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 1800); };

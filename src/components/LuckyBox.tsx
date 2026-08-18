@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeNotifBus } from "@/lib/notif-bus";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 import { toast } from "sonner";
 
 type Rarity = "common" | "rare" | "legendary";
@@ -328,12 +329,22 @@ function LuckyBoxModal({ onClose }: { onClose: () => void }) {
 /** Listens for global rare/legendary openings and shows a top banner for ~6s. */
 export function LuckyBoxGlobalBanner() {
   const [items, setItems] = useState<Array<{ id: string; title: string; body: string; kind: string }>>([]);
+  const hiddenRef = useRef(false);
+
+  // Respect the "إظهار إشعارات الصندوق" setting (live, cross-tab, after reload).
+  useEffect(() => {
+    return subscribePrefHidden("lucky-banner-hidden", (hidden) => {
+      hiddenRef.current = hidden;
+      if (hidden) setItems([]);
+    });
+  }, []);
 
   useEffect(() => {
     // Broadcast-only listener on the shared bus (works signed out too).
     const unsub = subscribeNotifBus(null, {
       onBroadcast: (payload) => {
         if (payload.eventType !== "INSERT") return;
+        if (hiddenRef.current) return;
         const n = payload.new as { id: string; title: string; body: string; kind: string };
         if (n.kind !== "lucky_rare" && n.kind !== "lucky_legendary") return;
         // Skip empty payloads (no title AND no body) — otherwise we render blank dark bars on screen.
