@@ -157,7 +157,7 @@ function LuckyBoxModal({ onClose }: { onClose: () => void }) {
       const msg = error?.message || "";
       if (/insufficient_gems|not_enough_gems/i.test(msg)) toast.error("لا تملك جواهر كافية");
       else if (/lucky_box_disabled/i.test(msg)) toast.error("صندوق الحظ متوقف حاليًا");
-      else if (/market_level_too_low/i.test(msg)) toast.error("يجب أن يكون مستوى السوق ٦ أو أعلى");
+      else if (/market_level_too_low/i.test(msg)) toast.error("يجب أن يكون مستوى السوق ٣ أو أعلى");
       else if (/no_prizes/i.test(msg)) toast.error("لم يتم إعداد جوائز بعد");
       else toast.error("تعذّر فتح الصندوق، حاول مرة أخرى");
       return;

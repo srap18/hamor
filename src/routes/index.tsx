@@ -2578,7 +2578,7 @@ function Index() {
 
       <Suspense fallback={null}><DailyLoginModal open={dailyOpen} onClose={() => setDailyOpen(false)} /></Suspense>
 
-      {marketLevel >= 6 && <Suspense fallback={null}><LuckyBoxButton onChanged={() => refreshProfile()} /></Suspense>}
+      {marketLevel >= 3 && <Suspense fallback={null}><LuckyBoxButton onChanged={() => refreshProfile()} /></Suspense>}
 
 
 
