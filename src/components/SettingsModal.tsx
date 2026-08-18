@@ -192,6 +192,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               ) : (
                 <>
                   <div className="text-sm font-bold text-amber-300 mb-2">{t("settings.not_verified")}</div>
+                  <div className="text-[11px] text-amber-200/80 mb-2 leading-snug">
+                    إذا كان بريدك وهمي أو غير صحيح، غيّره لبريد حقيقي ثم افتح رابط التفعيل.
+                  </div>
                   <button
                     onClick={resend}
                     disabled={sending}
@@ -199,6 +202,41 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                   >
                     {sending ? t("common.sending") : t("settings.send_verify_link")}
                   </button>
+                  {!showEmailForm ? (
+                    <button
+                      onClick={() => setShowEmailForm(true)}
+                      className="mt-2 w-full py-2 rounded-lg bg-gradient-to-b from-sky-500 to-sky-700 text-white text-xs font-bold active:scale-95"
+                    >
+                      {t("settings.change_email")}
+                    </button>
+                  ) : (
+                    <form onSubmit={changeEmail} className="mt-2 space-y-2">
+                      <input
+                        type="email"
+                        dir="ltr"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full px-3 py-2 rounded-lg bg-black/50 border border-accent/30 text-white text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={changingEmail || !newEmail}
+                          className="flex-1 py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-xs font-bold active:scale-95 disabled:opacity-50"
+                        >
+                          {changingEmail ? t("common.sending") : t("settings.change_email")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowEmailForm(false); setNewEmail(""); }}
+                          className="px-3 py-2 rounded-lg bg-stone-700 text-white text-xs font-bold active:scale-95"
+                        >
+                          إلغاء
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </>
               )}
               {msg && <div className="mt-2 text-[11px] text-accent text-center">{msg}</div>}
