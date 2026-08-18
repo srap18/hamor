@@ -109,9 +109,22 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
       }
     } catch { /* noop */ }
 
-    const { data, error } = await supabase.rpc("redeem_code", { p_code: c });
+    // Transient failures (network drop / DB timeout) get one automatic retry.
+    let data: unknown = null;
+    let error: { message?: string } | null = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await supabase.rpc("redeem_code", { p_code: c });
+      data = res.data;
+      error = res.error as { message?: string } | null;
+      if (!error) break;
+      const m = `${error.message ?? ""}`.toLowerCase();
+      const transient = m.includes("statement timeout") || m.includes("load failed") || m.includes("fetch") || m.includes("57014");
+      if (!transient) break;
+      await new Promise((r) => setTimeout(r, 700));
+    }
 
     setLoading(false);
+
     if (error) {
       console.error("[redeem_code] error:", error);
       const parts = [
