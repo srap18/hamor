@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 
 type LuckyWin = {
   id: string;
@@ -22,13 +23,10 @@ export function LuckyWinTicker() {
   const hiddenRef = useRef(false);
 
   useEffect(() => {
-    const readPref = () => {
-      try { hiddenRef.current = localStorage.getItem("lucky-banner-hidden") === "1"; } catch { /* noop */ }
-      if (hiddenRef.current) setQueue([]);
-    };
-    readPref();
-    window.addEventListener("lucky-banner-pref", readPref);
-    window.addEventListener("storage", readPref);
+    const offPref = subscribePrefHidden("lucky-banner-hidden", (hidden) => {
+      hiddenRef.current = hidden;
+      if (hidden) setQueue([]);
+    });
 
     const ch = supabase
       .channel("global:lucky_wins")
@@ -50,8 +48,7 @@ export function LuckyWinTicker() {
       .subscribe();
 
     return () => {
-      window.removeEventListener("lucky-banner-pref", readPref);
-      window.removeEventListener("storage", readPref);
+      offPref();
       void supabase.removeChannel(ch);
     };
   }, []);

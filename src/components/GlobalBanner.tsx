@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 
 type NukeBannerData = {
   kind: "nuke" | "ad_bomb" | "anti_block";
