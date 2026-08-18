@@ -93,7 +93,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
         acknowledgePlaySubscription,
       } = await import("@/lib/play-verify.server");
       const playSku = toPlayId(data.productId);
-      const isSubscription = !!eliteTier || !!pack?.subscription;
+
       try {
         if (isSubscription) {
           const sub = await verifyPlaySubscription(playSku, data.receipt);
