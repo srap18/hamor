@@ -93,6 +93,12 @@ type IapPlugin = {
   getProducts: (opts: { productIdentifiers: string[] }) => Promise<{ products: any[] }>;
   purchase: (opts: { productIdentifier: string }) => Promise<{ transaction: any }>;
   restorePurchases?: () => Promise<{ transactions: any[] }>;
+  // Consumable cleanup — plugin implementations name this differently.
+  consume?: (opts: any) => Promise<any>;
+  consumePurchase?: (opts: any) => Promise<any>;
+  finishTransaction?: (opts: any) => Promise<any>;
+  finishPurchase?: (opts: any) => Promise<any>;
+  acknowledgePurchase?: (opts: any) => Promise<any>;
 };
 
 function getPlugin(): IapPlugin | null {
@@ -167,6 +173,59 @@ export async function purchaseIap(productId: string): Promise<IapPurchase | null
     const message = e instanceof Error ? e.message : String(e ?? "");
     if (/cancel|إلغاء|canceled/i.test(message)) return null;
     throw e;
+  }
+}
+
+/**
+ * True when Google Play refuses the purchase because the previous purchase of
+ * the same consumable SKU was never consumed ("You already own this item" /
+ * «لقد حصلت على هذا العرض», billing response code 7).
+ */
+export function isAlreadyOwnedError(e: unknown): boolean {
+  const msg = (e instanceof Error ? e.message : String(e ?? "")).toLowerCase();
+  const code = (e as any)?.code ?? (e as any)?.responseCode;
+  if (code === 7 || code === "7" || String(code).toUpperCase() === "ITEM_ALREADY_OWNED") return true;
+  return (
+    msg.includes("already own") ||
+    msg.includes("already_owned") ||
+    msg.includes("itemalreadyowned") ||
+    msg.includes("already purchased") ||
+    msg.includes("حصلت على") ||
+    msg.includes("تملك")
+  );
+}
+
+/**
+ * Locally finish/consume a purchase after the server granted it. The server
+ * already consumes the token through the Play Developer API; this is a
+ * best-effort second path for plugins that keep a local pending purchase.
+ */
+export async function finishIapPurchase(purchase: IapPurchase): Promise<void> {
+  const plugin = getPlugin();
+  if (!plugin) return;
+  const playId = toPlayId(purchase.productId);
+  const opts = {
+    productIdentifier: playId,
+    productId: playId,
+    transactionId: purchase.transactionId,
+    purchaseToken: purchase.receipt,
+    token: purchase.receipt,
+    receipt: purchase.receipt,
+  };
+  for (const fn of [
+    plugin.consume,
+    plugin.consumePurchase,
+    plugin.finishTransaction,
+    plugin.finishPurchase,
+    plugin.acknowledgePurchase,
+  ]) {
+    if (typeof fn !== "function") continue;
+    try {
+      await fn.call(plugin, opts);
+      return;
+    } catch (e) {
+      console.warn("[iap] finish/consume attempt failed", e);
+    }
   }
 }
 
