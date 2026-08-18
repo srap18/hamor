@@ -15,6 +15,8 @@ import { confirmDialog } from "@/components/ConfirmDialog";
 import { useT, type Lang } from "@/lib/i18n";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { forceUpdateApp } from "@/lib/force-update";
+import { useUiPref } from "@/lib/ui-prefs";
+
 
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
@@ -23,11 +25,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const notifEligible = useNotifEligible();
   const [sfx, setSfx] = useState(true);
   const [music, setMusic] = useState(true);
-  const [showDeathBanner, setShowDeathBanner] = useState(true);
-  const [showAttackBanner, setShowAttackBanner] = useState(true);
-  const [showLuckyBanner, setShowLuckyBanner] = useState(true);
-  const [showVipLogin, setShowVipLogin] = useState(true);
-  const [showToasts, setShowToasts] = useState(true);
+  const [deathPref, setDeathPref] = useUiPref("death-banner-hidden");
+  const [attackPref, setAttackPref] = useUiPref("attack-banner-hidden");
+  const [luckyPref, setLuckyPref] = useUiPref("lucky-banner-hidden");
+  const [vipPref, setVipPref] = useUiPref("vip-login-hidden");
+  const [toastsPref, setToastsPref] = useUiPref("toasts-hidden");
+
 
   const [email, setEmail] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
@@ -64,11 +67,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
-    try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowToasts(localStorage.getItem("toasts-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowVipLogin(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
     supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
       if (!u) return;
@@ -222,70 +220,36 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <ToggleRow
           label={t("settings.sfx")}
           value={sfx}
-          onChange={(v) => { setSfx(v); sound.setSfx(v); sound.play("click"); }}
+          onChange={(v) => { setSfx(v); sound.setSfx(v); if (v) sound.play("click"); }}
         />
         <ToggleRow
           label={t("settings.death_banners")}
-          value={showDeathBanner}
-          onChange={(v) => {
-            setShowDeathBanner(v);
-            try {
-              if (v) localStorage.removeItem("death-banner-hidden");
-              else localStorage.setItem("death-banner-hidden", "1");
-              window.dispatchEvent(new Event("death-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={deathPref}
+          onChange={setDeathPref}
         />
         <ToggleRow
           label="إظهار إشعارات الهجوم"
-          value={showAttackBanner}
-          onChange={(v) => {
-            setShowAttackBanner(v);
-            try {
-              if (v) localStorage.removeItem("attack-banner-hidden");
-              else localStorage.setItem("attack-banner-hidden", "1");
-              window.dispatchEvent(new Event("attack-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={attackPref}
+          onChange={setAttackPref}
         />
         <ToggleRow
           label="إظهار إشعارات الصندوق"
-          value={showLuckyBanner}
-          onChange={(v) => {
-            setShowLuckyBanner(v);
-            try {
-              if (v) localStorage.removeItem("lucky-banner-hidden");
-              else localStorage.setItem("lucky-banner-hidden", "1");
-              window.dispatchEvent(new Event("lucky-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={luckyPref}
+          onChange={setLuckyPref}
         />
         <ToggleRow
           label="👑 إظهار إشعار دخول VIP"
-          value={showVipLogin}
-          onChange={(v) => {
-            setShowVipLogin(v);
-            try {
-              if (v) localStorage.removeItem("vip-login-hidden");
-              else localStorage.setItem("vip-login-hidden", "1");
-              window.dispatchEvent(new Event("vip-login-pref"));
-            } catch { /* noop */ }
-          }}
+          value={vipPref}
+          onChange={setVipPref}
         />
         {notifEligible && (
           <ToggleRow
             label="🔔 إظهار التنبيهات المنبثقة"
-            value={showToasts}
-            onChange={(v) => {
-              setShowToasts(v);
-              try {
-                if (v) localStorage.removeItem("toasts-hidden");
-                else localStorage.setItem("toasts-hidden", "1");
-                window.dispatchEvent(new Event("toasts-pref"));
-              } catch { /* noop */ }
-            }}
+            value={toastsPref}
+            onChange={setToastsPref}
           />
         )}
+
 
 
         <ToggleRow
