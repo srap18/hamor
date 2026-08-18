@@ -5432,6 +5432,39 @@ export type Database = {
           },
         ]
       }
+      tribe_role_audit: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          new_role: string | null
+          old_role: string | null
+          source: string | null
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          source?: string | null
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          source?: string | null
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tribe_wars: {
         Row: {
           created_at: string
