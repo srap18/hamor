@@ -196,5 +196,10 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       } as never);
     }
 
+    // Everything delivered → release the Play token so the pack (dragon ships
+    // included) can be bought again instead of showing "already owned".
+    await consumeIfNeeded();
+
     return { ok: true, alreadyGranted, productId: data.productId };
+
   });
