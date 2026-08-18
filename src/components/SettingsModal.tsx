@@ -15,6 +15,8 @@ import { confirmDialog } from "@/components/ConfirmDialog";
 import { useT, type Lang } from "@/lib/i18n";
 import { useNotifEligible } from "@/hooks/use-notif-eligible";
 import { forceUpdateApp } from "@/lib/force-update";
+import { useUiPref } from "@/lib/ui-prefs";
+
 
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
