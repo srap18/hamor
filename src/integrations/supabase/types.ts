@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _redeem_test_log: {
-        Row: {
-          at: string | null
-          id: number
-          ms: number | null
-          msg: string | null
-          ok: boolean | null
-        }
-        Insert: {
-          at?: string | null
-          id?: number
-          ms?: number | null
-          msg?: string | null
-          ok?: boolean | null
-        }
-        Update: {
-          at?: string | null
-          id?: number
-          ms?: number | null
-          msg?: string | null
-          ok?: boolean | null
-        }
-        Relationships: []
-      }
       account_links: {
         Row: {
           created_at: string
