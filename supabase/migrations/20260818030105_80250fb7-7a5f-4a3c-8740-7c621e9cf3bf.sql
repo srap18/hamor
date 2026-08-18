@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public._redeem_test_log;
