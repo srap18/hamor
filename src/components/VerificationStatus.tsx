@@ -71,6 +71,7 @@ export function VerificationStatus() {
       flash("✅ تم إرسال رابط التأكيد إلى البريد الجديد. افتحه لتفعيله.");
       setShowChange(false);
       setNewEmail("");
+      await refresh();
     } catch (err: any) {
       const m = String(err?.message ?? "");
       if (m.includes("rate")) flash("الرجاء الانتظار قليلاً قبل المحاولة مجدداً");
