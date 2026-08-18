@@ -69,11 +69,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
     try { setShowToasts(localStorage.getItem("toasts-hidden") !== "1"); } catch { /* noop */ }
     try { setShowVipLogin(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
       if (!u) return;
       setEmail(u.email ?? null);
-      setVerified(!!u.email_confirmed_at || !!(u as any).confirmed_at);
+      // Server-side truth (same source used by chat/profile) so the badge never disagrees.
+      const { data: ver } = await (supabase as any).rpc("is_email_verified", { _uid: u.id });
+      if (typeof ver === "boolean") setVerified(ver);
+      else setVerified(!!u.email_confirmed_at || !!(u as any).confirmed_at);
     });
   }, []);
 
