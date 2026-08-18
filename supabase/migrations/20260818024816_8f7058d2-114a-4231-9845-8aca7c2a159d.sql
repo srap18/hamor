@@ -1,0 +1,232 @@
+CREATE INDEX IF NOT EXISTS idx_redemption_codes_norm
+  ON public.redemption_codes (upper(regexp_replace(code, '[\s-]+', '', 'g')));
+
+CREATE OR REPLACE FUNCTION public.redeem_code(p_code text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_user UUID := auth.uid();
+  v_row public.redemption_codes%ROWTYPE;
+  v_ship UUID;
+  v_vip_pts bigint := 0;
+  v_qty integer;
+  i integer;
+  v_item jsonb;
+  v_iid text;
+  v_iqty integer;
+  v_icoins bigint := 0;
+  v_igems bigint := 0;
+  v_ixp bigint := 0;
+  v_cur_level INTEGER;
+  v_cur_expires TIMESTAMPTZ;
+  v_new_level INTEGER;
+  v_new_expires TIMESTAMPTZ;
+  v_cur_elite INTEGER;
+  v_cur_elite_expires TIMESTAMPTZ;
+  v_new_elite INTEGER;
+  v_new_elite_expires TIMESTAMPTZ;
+  v_norm text;
+  v_used boolean;
+BEGIN
+  IF v_user IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
+
+  PERFORM set_config('lock_timeout', '4000ms', true);
+
+  v_norm := upper(regexp_replace(COALESCE(p_code, ''), '[\s-]+', '', 'g'));
+
+  SELECT * INTO v_row
+  FROM public.redemption_codes
+  WHERE upper(regexp_replace(code, '[\s-]+', '', 'g')) = v_norm
+  FOR UPDATE;
+
+  IF NOT FOUND THEN RAISE EXCEPTION 'invalid_code'; END IF;
+  IF v_row.archived_at IS NOT NULL THEN RAISE EXCEPTION 'invalid_code'; END IF;
+  IF NOT v_row.active THEN RAISE EXCEPTION 'code_disabled'; END IF;
+  IF v_row.expires_at IS NOT NULL AND v_row.expires_at < now() THEN RAISE EXCEPTION 'code_expired'; END IF;
+  IF v_row.max_uses > 0 AND v_row.uses_count >= v_row.max_uses THEN RAISE EXCEPTION 'code_exhausted'; END IF;
+
+  SELECT EXISTS (SELECT 1 FROM public.code_redemptions WHERE code_id = v_row.id) INTO v_used;
+
+  IF v_used AND EXISTS (
+    SELECT 1 FROM public.code_redemptions
+    WHERE code_id = v_row.id AND user_id = v_user
+  ) THEN
+    RAISE EXCEPTION 'already_redeemed';
+  END IF;
+
+  -- Device dedup only matters once somebody already used this code.
+  IF v_row.max_uses = 1 AND v_used THEN
+    IF EXISTS (
+      SELECT 1
+      FROM public.device_slots ds_me
+      JOIN public.device_slots ds_other ON ds_other.hardware_hash = ds_me.hardware_hash
+      JOIN public.code_redemptions cr ON cr.user_id = ds_other.user_id
+      WHERE ds_me.user_id = v_user
+        AND ds_other.user_id <> v_user
+        AND cr.code_id = v_row.id
+    ) THEN
+      RAISE EXCEPTION 'already_redeemed_on_this_device';
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM public.device_history dh_me
+      JOIN public.device_history dh_other ON dh_other.device_id = dh_me.device_id
+      JOIN public.code_redemptions cr ON cr.user_id = dh_other.user_id
+      WHERE dh_me.user_id = v_user
+        AND dh_other.user_id <> v_user
+        AND cr.code_id = v_row.id
+        AND length(dh_me.device_id) >= 32
+        AND length(dh_other.device_id) >= 32
+    ) THEN
+      RAISE EXCEPTION 'already_redeemed_on_this_device';
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM public.device_accounts da_me
+      JOIN public.device_accounts da_other ON da_other.device_id = da_me.device_id
+      JOIN public.code_redemptions cr ON cr.user_id = da_other.user_id
+      WHERE da_me.user_id = v_user
+        AND da_other.user_id <> v_user
+        AND cr.code_id = v_row.id
+    ) THEN
+      RAISE EXCEPTION 'already_redeemed_on_this_device';
+    END IF;
+  END IF;
+
+  PERFORM set_config('app.allow_reward_ship_storage_overflow', 'true', true);
+  PERFORM set_config('app.allow_dragon_equipment_write', 'true', true);
+
+  v_qty := GREATEST(v_row.quantity, 1);
+
+  IF v_row.reward_type = 'bundle' THEN
+    v_icoins := COALESCE(v_row.reward_coins, 0);
+    v_igems := COALESCE(v_row.reward_gems, 0);
+    v_ixp := COALESCE(v_row.reward_xp, 0);
+
+  ELSIF v_row.reward_type = 'item' AND v_row.item_id IS NOT NULL THEN
+    INSERT INTO public.inventory (user_id, item_type, item_id, quantity)
+    VALUES (v_user, COALESCE(v_row.item_kind, 'misc'), v_row.item_id, v_qty)
+    ON CONFLICT (user_id, item_type, item_id)
+      WHERE ((meta IS NULL) OR ((meta ->> 'assigned_ship_id'::text) IS NULL))
+      DO UPDATE SET quantity = public.inventory.quantity + EXCLUDED.quantity;
+
+  ELSIF v_row.reward_type = 'ship' AND v_row.item_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.ship_catalog WHERE code = v_row.item_id) THEN
+      RAISE EXCEPTION 'invalid_ship_code';
+    END IF;
+    FOR i IN 1..v_qty LOOP
+      v_ship := public._grant_ship_with_storage(v_user, v_row.item_id);
+      IF v_ship IS NULL THEN RAISE EXCEPTION 'fleet and storage full'; END IF;
+    END LOOP;
+  END IF;
+
+  IF COALESCE(v_row.reward_vip_level, 0) > 0 THEN
+    SELECT vip_level, vip_expires_at INTO v_cur_level, v_cur_expires
+    FROM public.profiles WHERE id = v_user FOR UPDATE;
+    IF COALESCE(v_cur_level, 0) >= 1 AND (v_cur_expires IS NULL OR v_cur_expires > now()) THEN
+      v_new_level := least(10, v_cur_level + v_row.reward_vip_level);
+    ELSE
+      v_new_level := least(10, v_row.reward_vip_level);
+    END IF;
+    IF v_row.reward_vip_days <= 0 OR (COALESCE(v_cur_level, 0) >= 1 AND v_cur_expires IS NULL) THEN
+      v_new_expires := NULL;
+    ELSE
+      v_new_expires := greatest(COALESCE(v_cur_expires, now()), now()) + make_interval(days => v_row.reward_vip_days);
+    END IF;
+    UPDATE public.profiles
+    SET vip_level = v_new_level, vip_expires_at = v_new_expires
+    WHERE id = v_user;
+  END IF;
+
+  IF COALESCE(v_row.reward_elite_vip_level, 0) > 0 THEN
+    SELECT elite_vip_level, elite_vip_expires_at INTO v_cur_elite, v_cur_elite_expires
+    FROM public.profiles WHERE id = v_user FOR UPDATE;
+    v_new_elite := least(6, greatest(COALESCE(v_cur_elite, 0), v_row.reward_elite_vip_level));
+    IF v_row.reward_elite_vip_days <= 0 OR (COALESCE(v_cur_elite, 0) >= 1 AND v_cur_elite_expires IS NULL) THEN
+      v_new_elite_expires := NULL;
+    ELSE
+      v_new_elite_expires := greatest(COALESCE(v_cur_elite_expires, now()), now()) + make_interval(days => v_row.reward_elite_vip_days);
+    END IF;
+    UPDATE public.profiles
+    SET elite_vip_level = v_new_elite, elite_vip_expires_at = v_new_elite_expires
+    WHERE id = v_user;
+  END IF;
+
+  IF v_row.extra_rewards IS NOT NULL AND jsonb_typeof(v_row.extra_rewards) = 'array' THEN
+    -- currencies: accumulate, applied once below
+    SELECT v_icoins + COALESCE(SUM((e->>'coins')::bigint), 0),
+           v_igems  + COALESCE(SUM((e->>'gems')::bigint), 0),
+           v_ixp    + COALESCE(SUM((e->>'xp')::bigint), 0)
+      INTO v_icoins, v_igems, v_ixp
+    FROM jsonb_array_elements(v_row.extra_rewards) e
+    WHERE COALESCE(e->>'type', '') = 'bundle';
+
+    -- items: single aggregated insert (avoids 1 statement + 2 triggers per item)
+    INSERT INTO public.inventory (user_id, item_type, item_id, quantity)
+    SELECT v_user,
+           COALESCE(e->>'item_kind', 'misc'),
+           e->>'item_id',
+           SUM(GREATEST(COALESCE((e->>'quantity')::int, 1), 1) * v_qty)
+    FROM jsonb_array_elements(v_row.extra_rewards) e
+    WHERE COALESCE(e->>'type', '') = 'item'
+      AND (e->>'item_id') IS NOT NULL
+    GROUP BY COALESCE(e->>'item_kind', 'misc'), e->>'item_id'
+    ON CONFLICT (user_id, item_type, item_id)
+      WHERE ((meta IS NULL) OR ((meta ->> 'assigned_ship_id'::text) IS NULL))
+      DO UPDATE SET quantity = public.inventory.quantity + EXCLUDED.quantity;
+
+    -- ships
+    FOR v_item IN
+      SELECT e FROM jsonb_array_elements(v_row.extra_rewards) e
+      WHERE COALESCE(e->>'type', '') = 'ship'
+    LOOP
+      v_iid := v_item->>'item_id';
+      v_iqty := GREATEST(COALESCE((v_item->>'quantity')::int, 1), 1) * v_qty;
+      IF v_iid IS NOT NULL AND EXISTS (SELECT 1 FROM public.ship_catalog WHERE code = v_iid) THEN
+        FOR i IN 1..v_iqty LOOP
+          v_ship := public._grant_ship_with_storage(v_user, v_iid);
+          IF v_ship IS NULL THEN RAISE EXCEPTION 'fleet and storage full'; END IF;
+        END LOOP;
+      END IF;
+    END LOOP;
+  END IF;
+
+  IF v_icoins <> 0 OR v_igems <> 0 OR v_ixp <> 0 THEN
+    UPDATE public.profiles
+    SET coins = coins + v_icoins,
+        gems = gems + v_igems::int,
+        xp = xp + v_ixp::int
+    WHERE id = v_user;
+    v_vip_pts := (v_igems * 10) + (v_icoins / 100) + (v_ixp / 100);
+  END IF;
+
+  UPDATE public.redemption_codes SET uses_count = uses_count + 1 WHERE id = v_row.id;
+  INSERT INTO public.code_redemptions (code_id, user_id) VALUES (v_row.id, v_user);
+
+  IF v_vip_pts > 0 THEN
+    PERFORM public.add_vip_points(v_user, v_vip_pts::bigint);
+  END IF;
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'code', v_row.code,
+    'reward_type', v_row.reward_type,
+    'item_id', v_row.item_id,
+    'item_kind', v_row.item_kind,
+    'reward_coins', COALESCE(v_row.reward_coins, 0),
+    'reward_gems', COALESCE(v_row.reward_gems, 0),
+    'reward_xp', COALESCE(v_row.reward_xp, 0),
+    'reward_vip_level', COALESCE(v_row.reward_vip_level, 0),
+    'reward_vip_days', COALESCE(v_row.reward_vip_days, 0),
+    'reward_elite_vip_level', COALESCE(v_row.reward_elite_vip_level, 0),
+    'reward_elite_vip_days', COALESCE(v_row.reward_elite_vip_days, 0),
+    'quantity', v_qty,
+    'extra_rewards', COALESCE(v_row.extra_rewards, '[]'::jsonb)
+  );
+END;
+$function$;
