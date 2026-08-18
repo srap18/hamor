@@ -140,7 +140,9 @@ export function RedeemDialog({ onClose }: { onClose: () => void }) {
       if (lvlMatch) {
         toast.error(`هذا الكود يتطلب مستوى سوق السفن ${lvlMatch[1]} فأعلى`);
         return;
+      }
       if (parts.includes("statement timeout") || parts.includes("57014") || parts.includes("load failed")) {
+
         toast.error("📶 الاتصال بطيء — حاول الاستبدال مرة ثانية");
         return;
       }
