@@ -19,6 +19,8 @@ import {
   isIapAvailable,
   purchaseIap,
   restoreIapPurchases,
+  finishIapPurchase,
+  isAlreadyOwnedError,
 } from "@/lib/iap";
 import { verifyIapPurchase } from "@/lib/iap-verify.functions";
 import { formatSarFromUsd } from "@/lib/currency";
@@ -84,18 +86,82 @@ export function NativePurchaseBlock({
     };
   }, [available, allowed]);
 
+  /**
+   * Deliver + release a purchase: verify server-side (which grants the reward
+   * AND consumes the Google Play token) then finish it locally.
+   */
+  const deliver = async (purchase: Awaited<ReturnType<typeof purchaseIap>>) => {
+    if (!purchase) return null;
+    const res = await verify({ data: purchase });
+    await finishIapPurchase(purchase).catch(() => null);
+    return res;
+  };
+
+  /**
+   * Google Play says the SKU is still owned (a previous consumable purchase was
+   * never consumed). Pull the stuck purchases, deliver + consume them, and tell
+   * the caller whether the blocking one was cleared so we can retry.
+   */
+  const clearStuckPurchases = async (productId: string) => {
+    const pending = await restoreIapPurchases().catch(() => []);
+    let cleared = false;
+    for (const p of pending) {
+      const out = await deliver(p).catch(() => null);
+      if (out && p.productId === productId) cleared = true;
+    }
+    return cleared;
+  };
+
+  // On mount: silently deliver + consume any purchase that Google Play still
+  // considers "owned" (interrupted / previously unconsumed consumables), so the
+  // buyer isn't blocked with «لقد حصلت على هذا العرض» on their next tap.
+  useEffect(() => {
+    if (!available) return;
+    let alive = true;
+    (async () => {
+      const pending = await restoreIapPurchases().catch(() => []);
+      if (!alive || pending.length === 0) return;
+      let healed = 0;
+      for (const p of pending) {
+        const out = await deliver(p).catch(() => null);
+        if (out?.ok && !out.alreadyGranted) healed++;
+      }
+      if (alive && healed > 0) toast.success(`تم تسليم ${healed} عملية شراء معلّقة ✓`);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [available]);
+
   const buy = async (item: IapCatalogItem) => {
     if (busy) return;
     setBusy(item.productId);
     try {
-      const purchase = await purchaseIap(item.productId);
+      let purchase: Awaited<ReturnType<typeof purchaseIap>> = null;
+      try {
+        purchase = await purchaseIap(item.productId);
+      } catch (e) {
+        if (!isAlreadyOwnedError(e)) throw e;
+        // Stuck consumable → clear it, then retry the purchase once.
+        toast.info("جاري تجهيز عملية الشراء…");
+        const cleared = await clearStuckPurchases(item.productId);
+        if (cleared) {
+          toast.success("تم تسليم شرائك السابق ✓");
+        }
+        purchase = await purchaseIap(item.productId);
+      }
       if (!purchase) return; // user cancelled
-      const res = await verify({ data: purchase });
-      if (res.ok) {
+      const res = await deliver(purchase);
+      if (res?.ok) {
         toast.success(res.alreadyGranted ? "تم تأكيد الشراء مسبقاً" : "تم الشراء بنجاح ✓");
       }
     } catch (e: any) {
-      toast.error(e?.message ?? "تعذر إتمام الشراء");
+      if (isAlreadyOwnedError(e)) {
+        toast.error("عملية شراء سابقة لم تكتمل. اضغط «استعادة المشتريات السابقة» ثم أعد المحاولة.");
+      } else {
+        toast.error(e?.message ?? "تعذر إتمام الشراء");
+      }
     } finally {
       setBusy(null);
     }
@@ -106,7 +172,7 @@ export function NativePurchaseBlock({
     try {
       const prev = await restoreIapPurchases();
       for (const p of prev) {
-        await verify({ data: p }).catch(() => null);
+        await deliver(p).catch(() => null);
       }
       toast.success(prev.length ? `تم استرجاع ${prev.length} عملية شراء` : "لا توجد مشتريات سابقة");
     } finally {
