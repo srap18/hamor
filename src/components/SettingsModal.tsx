@@ -222,70 +222,36 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <ToggleRow
           label={t("settings.sfx")}
           value={sfx}
-          onChange={(v) => { setSfx(v); sound.setSfx(v); sound.play("click"); }}
+          onChange={(v) => { setSfx(v); sound.setSfx(v); if (v) sound.play("click"); }}
         />
         <ToggleRow
           label={t("settings.death_banners")}
-          value={showDeathBanner}
-          onChange={(v) => {
-            setShowDeathBanner(v);
-            try {
-              if (v) localStorage.removeItem("death-banner-hidden");
-              else localStorage.setItem("death-banner-hidden", "1");
-              window.dispatchEvent(new Event("death-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={deathPref}
+          onChange={setDeathPref}
         />
         <ToggleRow
           label="إظهار إشعارات الهجوم"
-          value={showAttackBanner}
-          onChange={(v) => {
-            setShowAttackBanner(v);
-            try {
-              if (v) localStorage.removeItem("attack-banner-hidden");
-              else localStorage.setItem("attack-banner-hidden", "1");
-              window.dispatchEvent(new Event("attack-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={attackPref}
+          onChange={setAttackPref}
         />
         <ToggleRow
           label="إظهار إشعارات الصندوق"
-          value={showLuckyBanner}
-          onChange={(v) => {
-            setShowLuckyBanner(v);
-            try {
-              if (v) localStorage.removeItem("lucky-banner-hidden");
-              else localStorage.setItem("lucky-banner-hidden", "1");
-              window.dispatchEvent(new Event("lucky-banner-pref"));
-            } catch { /* noop */ }
-          }}
+          value={luckyPref}
+          onChange={setLuckyPref}
         />
         <ToggleRow
           label="👑 إظهار إشعار دخول VIP"
-          value={showVipLogin}
-          onChange={(v) => {
-            setShowVipLogin(v);
-            try {
-              if (v) localStorage.removeItem("vip-login-hidden");
-              else localStorage.setItem("vip-login-hidden", "1");
-              window.dispatchEvent(new Event("vip-login-pref"));
-            } catch { /* noop */ }
-          }}
+          value={vipPref}
+          onChange={setVipPref}
         />
         {notifEligible && (
           <ToggleRow
             label="🔔 إظهار التنبيهات المنبثقة"
-            value={showToasts}
-            onChange={(v) => {
-              setShowToasts(v);
-              try {
-                if (v) localStorage.removeItem("toasts-hidden");
-                else localStorage.setItem("toasts-hidden", "1");
-                window.dispatchEvent(new Event("toasts-pref"));
-              } catch { /* noop */ }
-            }}
+            value={toastsPref}
+            onChange={setToastsPref}
           />
         )}
+
 
 
         <ToggleRow
