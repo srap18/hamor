@@ -30,6 +30,14 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // SECURITY: Apple receipts are not verified server-side yet. Accepting an
+    // unverified iOS receipt would let any signed-in client mint free packs,
+    // so the platform stays closed until App Store Server API checks land.
+    if (data.platform === "ios") {
+      throw new Error("ios purchases are not enabled");
+    }
+
+
     // Resolve product to either a store pack or an Elite VIP tier.
     const pack = STORE_PACKS.find((p) => p.id === data.productId);
     const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === data.productId);
@@ -124,7 +132,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       }
     }
 
-    const env = data.platform === "ios" ? "apple_iap" : "google_play";
+    const env = "google_play";
 
     // 2) Elite VIP subscription path — use the same atomic, idempotent grant
     // as web payments so concurrent verification cannot shorten an entitlement.
