@@ -109,6 +109,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     flash(t("settings.email_change_sent"));
     setShowEmailForm(false);
     setNewEmail("");
+    // Reflect the new address so the "send verification link" button targets it.
+    const { data: fresh } = await supabase.auth.getUser();
+    if (fresh.user?.email) setEmail(fresh.user.email);
   };
 
   const sendReset = async () => {
