@@ -65,11 +65,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSfx(sound.getSfx());
     setMusic(sound.getMusic());
-    try { setShowDeathBanner(localStorage.getItem("death-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowAttackBanner(localStorage.getItem("attack-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowLuckyBanner(localStorage.getItem("lucky-banner-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowToasts(localStorage.getItem("toasts-hidden") !== "1"); } catch { /* noop */ }
-    try { setShowVipLogin(localStorage.getItem("vip-login-hidden") !== "1"); } catch { /* noop */ }
     supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
       if (!u) return;
