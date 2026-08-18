@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sound } from "@/lib/sound";
 import { useShipMarketLevel } from "@/hooks/use-ship-market-level";
+import { subscribePrefHidden } from "@/lib/ui-prefs";
 
 /** Accounts below this ship-market level never see the global attack ticker. */
 const TICKER_MIN_MARKET_LEVEL = 6;
@@ -46,11 +47,7 @@ export function LastAttackTicker() {
   }, []);
 
   useEffect(() => {
-    const onPref = () => {
-      try { setHidden(localStorage.getItem("death-banner-hidden") === "1"); } catch { /* noop */ }
-    };
-    window.addEventListener("death-banner-pref", onPref);
-    return () => window.removeEventListener("death-banner-pref", onPref);
+    return subscribePrefHidden("death-banner-hidden", setHidden);
   }, []);
 
   useEffect(() => {
