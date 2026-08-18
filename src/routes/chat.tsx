@@ -595,7 +595,7 @@ function ChatPage() {
     // composer clears its own draft locally when it calls onSend
     setReplyTo(null);
 
-    (supabase as any).rpc("send_chat_message_safe", {
+    const payload = {
       _channel: tab,
       _body: body,
       _recipient_id: tab === "dm" ? dmWith : null,
@@ -603,7 +603,27 @@ function ChatPage() {
       _reply_to_id: replyTo?.id ?? null,
       _reply_to_body: replyTo?.body?.slice(0, 200) ?? null,
       _reply_to_name: replyTo?.name?.slice(0, 60) ?? null,
-    }).then(({ data, error }: { data: any; error: any }) => {
+    };
+    // شبكة الجوال تقطع الطلب أحياناً (Load failed) أو تنتهي مهلة القاعدة (statement timeout)
+    // — نعيد المحاولة تلقائياً بدل إظهار خطأ للاعب.
+    const isTransient = (m: string) =>
+      /load failed|failed to fetch|networkerror|network request failed|statement timeout|canceling statement|57014|timeout|fetch/i.test(m);
+    const sendWithRetry = async (): Promise<{ data: any; error: any }> => {
+      let lastRes: { data: any; error: any } = { data: null, error: null };
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          lastRes = await (supabase as any).rpc("send_chat_message_safe", payload);
+        } catch (e: any) {
+          lastRes = { data: null, error: { message: String(e?.message || e) } };
+        }
+        if (!lastRes.error) return lastRes;
+        if (!isTransient(String(lastRes.error.message || ""))) return lastRes;
+        await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+      }
+      return lastRes;
+    };
+
+    sendWithRetry().then(({ data, error }: { data: any; error: any }) => {
       if (error) {
         // remove optimistic on failure only — keep it visible while realtime arrives
         setMsgs(s => s.filter(x => x.id !== tempId));
@@ -613,9 +633,12 @@ function ChatPage() {
         } else if (emsg.includes("email_not_verified")) {
           showNotice("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل حتى تقدر ترسل رسائل");
 
+        } else if (isTransient(emsg)) {
+          showNotice("📶 الاتصال ضعيف — حاول الإرسال مرة أخرى");
         } else {
           showNotice("تعذر الإرسال: " + emsg);
         }
+
         restoreDraftRef.current(body);
         return;
       }
