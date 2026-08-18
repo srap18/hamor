@@ -151,3 +151,29 @@ export async function acknowledgePlaySubscription(
   if (!res.ok && res.status !== 409)
     throw new Error(`Play ack (subscription) ${res.status}: ${await res.text()}`);
 }
+
+/**
+ * Consume a one-shot / consumable in-app product so the buyer can purchase it
+ * again. Without this Google Play keeps the item "owned" and every later
+ * purchase attempt fails with "You already own this item"
+ * («لقد حصلت على هذا العرض»).
+ *
+ * Consuming also implicitly acknowledges the purchase.
+ * Docs: purchases.products.consume
+ */
+export async function consumePlayProduct(sku: string, purchaseToken: string): Promise<void> {
+  const pkg = getPlayPackageName();
+  const token = await getAccessToken();
+  const url =
+    `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
+    `${encodeURIComponent(pkg)}/purchases/products/${encodeURIComponent(sku)}` +
+    `/tokens/${encodeURIComponent(purchaseToken)}:consume`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  // 400/410 → already consumed / token no longer valid: nothing left to do.
+  if (!res.ok && res.status !== 400 && res.status !== 409 && res.status !== 410)
+    throw new Error(`Play consume (product) ${res.status}: ${await res.text()}`);
+}
