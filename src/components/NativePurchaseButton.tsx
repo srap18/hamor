@@ -112,6 +112,28 @@ export function NativePurchaseBlock({
     return cleared;
   };
 
+  // On mount: silently deliver + consume any purchase that Google Play still
+  // considers "owned" (interrupted / previously unconsumed consumables), so the
+  // buyer isn't blocked with «لقد حصلت على هذا العرض» on their next tap.
+  useEffect(() => {
+    if (!available) return;
+    let alive = true;
+    (async () => {
+      const pending = await restoreIapPurchases().catch(() => []);
+      if (!alive || pending.length === 0) return;
+      let healed = 0;
+      for (const p of pending) {
+        const out = await deliver(p).catch(() => null);
+        if (out?.ok && !out.alreadyGranted) healed++;
+      }
+      if (alive && healed > 0) toast.success(`تم تسليم ${healed} عملية شراء معلّقة ✓`);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [available]);
+
   const buy = async (item: IapCatalogItem) => {
     if (busy) return;
     setBusy(item.productId);
