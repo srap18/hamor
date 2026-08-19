@@ -545,6 +545,8 @@ function ChatPage() {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
     }
+    // Outside-promo / rival-game wording: silently dropped everywhere.
+    if (promoMatch(body)) return;
     if (tab === "dm" && contactMatch(body)) {
       showNotice(CONTACT_BLOCK_MESSAGE);
       return;
