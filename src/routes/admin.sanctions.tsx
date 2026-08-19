@@ -44,7 +44,7 @@ function AdminSanctions() {
     const nowIso = new Date().toISOString();
     const [{ data: bans }, { data: mutes }, { data: bEmails }, { data: bDevices }, { data: bIps }] = await Promise.all([
       supabase.from("bans").select("id,user_id,reason,expires_at,created_at:banned_at").eq("active", true),
-      supabase.from("chat_mutes").select("id,user_id,reason,expires_at,created_at").eq("active", true),
+      supabase.from("chat_mutes").select("id,user_id,reason,message_body,expires_at,created_at").eq("active", true),
       supabase.from("banned_emails").select("email,reason,created_at").order("created_at", { ascending: false }),
       supabase.from("banned_devices").select("device_id,user_id,reason,created_at").order("created_at", { ascending: false }),
       supabase.from("banned_ips").select("ip,user_id,reason,created_at").order("created_at", { ascending: false }),
