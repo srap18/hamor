@@ -633,6 +633,7 @@ export type Database = {
           created_at: string
           expires_at: string | null
           id: string
+          message_body: string | null
           muted_by: string | null
           reason: string
           scope: string
@@ -643,6 +644,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          message_body?: string | null
           muted_by?: string | null
           reason?: string
           scope?: string
@@ -653,6 +655,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          message_body?: string | null
           muted_by?: string | null
           reason?: string
           scope?: string
