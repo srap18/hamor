@@ -167,6 +167,7 @@ function AdminSanctions() {
               <th className="text-right p-3">النوع</th>
               <th className="text-right p-3">اللاعب</th>
               <th className="text-right p-3">السبب</th>
+              <th className="text-right p-3">الرسالة</th>
               <th className="text-right p-3">المتبقي</th>
               <th className="text-right p-3">منذ</th>
               <th className="text-right p-3">إجراء</th>
