@@ -54,6 +54,10 @@ import madagascarBg from "@/assets/bg-madagascar.jpg.asset.json";
 import madagascarBurnedBg from "@/assets/bg-madagascar-burned.jpg.asset.json";
 import madagascarVideo from "@/assets/bg-madagascar.mp4.asset.json";
 import madagascarBurnedVideo from "@/assets/bg-madagascar-burned.mp4.asset.json";
+import dragonHoardBg from "@/assets/bg-dragonhoard.jpg.asset.json";
+import dragonHoardBurnedBg from "@/assets/bg-dragonhoard-burned.jpg.asset.json";
+import dragonHoardVideo from "@/assets/bg-dragonhoard.mp4.asset.json";
+import dragonHoardBurnedVideo from "@/assets/bg-dragonhoard-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
