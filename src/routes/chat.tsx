@@ -22,6 +22,7 @@ import { TribeFeatures } from "@/components/TribeFeatures";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 import { contactMatch, CONTACT_BLOCK_MESSAGE } from "@/lib/contact-guard";
+import { promoMatch } from "@/lib/promo-guard";
 
 import { useServerFn } from "@tanstack/react-start";
 import { moderateChatText } from "@/lib/chat-moderation.functions";
