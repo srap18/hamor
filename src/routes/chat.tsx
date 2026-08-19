@@ -682,6 +682,11 @@ function ChatPage() {
         restoreDraftRef.current(body);
         return;
       }
+      if (status === "promo_blocked") {
+        // Silently drop: the message never appears anywhere.
+        setMsgs(s => s.filter(x => x.id !== tempId));
+        return;
+      }
       if (status === "contact_blocked") {
         setMsgs(s => s.filter(x => x.id !== tempId));
         showNotice(data?.message || CONTACT_BLOCK_MESSAGE);
