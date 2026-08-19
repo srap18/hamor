@@ -38,7 +38,9 @@ export type IapCatalogItem = {
 
 /** Full native catalog — generated once from the canonical game data. */
 export const IAP_CATALOG: IapCatalogItem[] = [
-  ...STORE_PACKS.map<IapCatalogItem>((p: StorePack) => ({
+  // Disabled packs are not registered on Google Play / App Store — querying
+  // them would make the whole product lookup fail on some store clients.
+  ...STORE_PACKS.filter((p: StorePack) => !p.disabled).map<IapCatalogItem>((p: StorePack) => ({
     productId: p.id,
     title: p.label,
     description: p.description ?? "",
