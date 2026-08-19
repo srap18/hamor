@@ -174,8 +174,8 @@ function AdminSanctions() {
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={6} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
-            {!loading && filtered.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا توجد عقوبات نشطة</td></tr>}
+            {loading && <tr><td colSpan={7} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
+            {!loading && filtered.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد عقوبات نشطة</td></tr>}
             {filtered.map((r) => (
               <tr key={`${r.kind}-${r.id}`} className="border-t border-slate-800/50">
                 <td className="p-3">
