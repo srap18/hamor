@@ -195,6 +195,15 @@ function AdminSanctions() {
                   </div>
                 </td>
                 <td className="p-3 text-slate-300 max-w-xs truncate" title={r.reason}>{r.reason || "—"}</td>
+                <td className="p-3 max-w-xs" title={r.message_body ?? ""}>
+                  {r.kind === "mute" && r.message_body ? (
+                    <span className="block truncate rounded bg-slate-950/70 border border-red-800/40 px-2 py-1 text-xs text-red-200">
+                      {r.message_body}
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 text-xs">—</span>
+                  )}
+                </td>
                 <td className="p-3 text-amber-300">{fmtRemaining(r.expires_at)}</td>
                 <td className="p-3 text-xs text-slate-400">{new Date(r.created_at).toLocaleString("ar")}</td>
                 <td className="p-3">
