@@ -765,7 +765,13 @@ body.paddle-checkout-open .paddle-frame {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   overscroll-behavior-x: none;
-  touch-action: pan-y;
+}
+
+/* Inner scrollers (tables, tab strips) keep their own horizontal panning. */
+.mobile-frame-screen .overflow-x-auto,
+.mobile-frame-screen .overflow-x-scroll {
+  touch-action: pan-x pan-y;
+
 
 }
 
