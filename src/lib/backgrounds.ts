@@ -54,6 +54,10 @@ import madagascarBg from "@/assets/bg-madagascar.jpg.asset.json";
 import madagascarBurnedBg from "@/assets/bg-madagascar-burned.jpg.asset.json";
 import madagascarVideo from "@/assets/bg-madagascar.mp4.asset.json";
 import madagascarBurnedVideo from "@/assets/bg-madagascar-burned.mp4.asset.json";
+import dragonHoardBg from "@/assets/bg-dragonhoard.jpg.asset.json";
+import dragonHoardBurnedBg from "@/assets/bg-dragonhoard-burned.jpg.asset.json";
+import dragonHoardVideo from "@/assets/bg-dragonhoard.mp4.asset.json";
+import dragonHoardBurnedVideo from "@/assets/bg-dragonhoard-burned.mp4.asset.json";
 import { serverNowMs } from "@/lib/server-time";
 
 export type SceneBg = {
@@ -397,6 +401,27 @@ export const BACKGROUNDS: SceneBg[] = [
     shipSlots: [...UNIFIED_SHIP_SLOTS],
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
+  },
+  {
+    id: "dragon_hoard",
+    name: "كنز التنين ✨",
+    burnedName: "كنز التنين المحترق 🔥",
+    price: 40000,
+    currency: "gems",
+    rarity: "legendary",
+    image: dragonHoardBg.url,
+    burnedImage: dragonHoardBurnedBg.url,
+    video: dragonHoardVideo.url,
+    burnedVideo: dragonHoardBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 30,
   },
 
 

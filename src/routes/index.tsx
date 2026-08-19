@@ -2290,6 +2290,23 @@ function Index() {
           />
         </>
 
+      ) : scene.id === "dragon_hoard" ? (
+        <>
+          {/* Dragon Hoard background: painted "سفن" and "مخزن" buildings — fixed tap zones only */}
+          <Link
+            to="/ship-market"
+            aria-label="سوق السفن"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "58%", top: "28%", width: "34%", height: "12%" }}
+          />
+          <Link
+            to="/fish-market"
+            aria-label="سوق السمك"
+            className="absolute z-[12] rounded-[40%] active:bg-white/10"
+            style={{ left: "11%", top: "40%", width: "37%", height: "16%" }}
+          />
+        </>
+
       ) : scene.id === "ahli" ? (
         <>
           {/* Al-Ahli background: painted "سوق الزعيم" and "مخزن الزعيم" — fixed tap zones only */}
