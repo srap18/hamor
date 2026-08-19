@@ -1,5 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
+import { verifyIapPurchase } from "@/lib/iap-verify.functions";
+import {
+  isIapAvailable,
+  purchaseIap,
+  restoreIapPurchases,
+  finishIapPurchase,
+  isAlreadyOwnedError,
+} from "@/lib/iap";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { buyWithCoins, buyWithCoinsGemFallback, buyWithGems } from "@/lib/economy";
