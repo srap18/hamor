@@ -711,6 +711,8 @@ function ShipsPanel({
 }) {
   const [selected, setSelected] = useState<ShipPack | null>(null);
   const [busy, setBusy] = useState(false);
+  const verifyNative = useServerFn(verifyIapPurchase);
+
 
   const buy = async (pack: ShipPack) => {
     if (busy) return;
