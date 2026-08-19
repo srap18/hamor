@@ -402,6 +402,27 @@ export const BACKGROUNDS: SceneBg[] = [
     motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
     durationDays: 7,
   },
+  {
+    id: "dragon_hoard",
+    name: "كنز التنين ✨",
+    burnedName: "كنز التنين المحترق 🔥",
+    price: 40000,
+    currency: "gems",
+    rarity: "legendary",
+    image: dragonHoardBg.url,
+    burnedImage: dragonHoardBurnedBg.url,
+    video: dragonHoardVideo.url,
+    burnedVideo: dragonHoardBurnedVideo.url,
+    animated: true,
+    objectPosition: "center center",
+    seaSide: "right",
+    waterTop: 46,
+    waterLeft: 42,
+    waterRight: 96,
+    shipSlots: [...UNIFIED_SHIP_SLOTS],
+    motion: { scale: 1.18, x: "-1%", y: "-0.8%", duration: "9s" },
+    durationDays: 30,
+  },
 
 
 ];
