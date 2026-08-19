@@ -42,10 +42,16 @@ export function MobileFrame({ children }: { children: ReactNode }) {
         window.innerWidth || 0,
         document.documentElement.clientWidth || 0,
       ].filter((n) => n > 0);
-      const viewportWidth = widthCandidates.length ? Math.floor(Math.max(...widthCandidates)) : 0;
+      // Take the widest reliable measurement, but never wider than the layout
+      // viewport — a larger value made the frame spill off-screen so parts of
+      // the page could only be seen by dragging sideways.
+      const layoutWidth = document.documentElement.clientWidth || window.innerWidth || 0;
+      let viewportWidth = widthCandidates.length ? Math.floor(Math.max(...widthCandidates)) : 0;
+      if (layoutWidth > 0) viewportWidth = Math.min(viewportWidth, layoutWidth);
       if (viewportWidth > 0) {
         document.documentElement.style.setProperty("--app-width", `${viewportWidth}px`);
       }
+
       document.documentElement.style.setProperty(
         "--app-height",
         `${Math.floor(appHeight)}px`,
