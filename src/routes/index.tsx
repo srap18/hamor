@@ -4999,11 +4999,16 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   const tilt = direction * 2.5;
 
   const shipW = 22 * ship.scale;
-  const dockLeft = ship.dockLeft;
+  // Keep every ship (and its HUD above it) fully inside the screen — a slot
+  // sitting at 84% with a 22% wide hull used to spill past the right edge and
+  // got clipped, which made the page look like it needed sideways dragging.
+  const clampLeft = (x: number) => Math.max(1, Math.min(99 - shipW, x));
+  const dockLeft = clampLeft(ship.dockLeft);
   const seaSide = ship.seaSide ?? "right";
   const defaultSeaEdge = seaSide === "right" ? (96 - shipW) : 2;
-  const seaLeftTarget = ship.seaLeft ?? defaultSeaEdge;
+  const seaLeftTarget = clampLeft(ship.seaLeft ?? defaultSeaEdge);
   const computedLeft = dockLeft + ship.sail * (seaLeftTarget - dockLeft);
+
   // Interpolate vertical position too when the admin has set a distinct sea top.
   const dockTopNum = parseFloat(String(ship.top).replace("%", "")) || 0;
   const seaTopTarget = ship.seaTop ?? dockTopNum;
