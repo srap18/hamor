@@ -16,6 +16,7 @@ type Row = {
   id: string;
   user_id: string;
   reason: string;
+  message_body?: string | null;
   expires_at: string | null;
   created_at: string;
   kind: "ban" | "mute";
