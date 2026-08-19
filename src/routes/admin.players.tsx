@@ -182,7 +182,9 @@ function AdminPlayers() {
   const toggleMute = async (p: Player) => {
     const isMuted = muted.has(p.id);
     if (isMuted) {
-      await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
+      // remove the row entirely so lifted mutes never pile up in the sanctions page
+      const { error: delErr } = await supabase.from("chat_mutes").delete().eq("user_id", p.id).eq("active", true);
+      if (delErr) await supabase.from("chat_mutes").update({ active: false }).eq("user_id", p.id).eq("active", true);
       await logAudit("unmute_user", p.id, { name: p.display_name });
       await notify(p.id, "✅ تم رفع الكتم", "يمكنك الآن الكتابة في الدردشة.");
       toast.success(`أُلغي كتم ${p.display_name}`);

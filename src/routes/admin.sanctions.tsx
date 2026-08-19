@@ -16,6 +16,7 @@ type Row = {
   id: string;
   user_id: string;
   reason: string;
+  message_body?: string | null;
   expires_at: string | null;
   created_at: string;
   kind: "ban" | "mute";
@@ -43,7 +44,7 @@ function AdminSanctions() {
     const nowIso = new Date().toISOString();
     const [{ data: bans }, { data: mutes }, { data: bEmails }, { data: bDevices }, { data: bIps }] = await Promise.all([
       supabase.from("bans").select("id,user_id,reason,expires_at,created_at:banned_at").eq("active", true),
-      supabase.from("chat_mutes").select("id,user_id,reason,expires_at,created_at").eq("active", true),
+      supabase.from("chat_mutes").select("id,user_id,reason,message_body,expires_at,created_at").eq("active", true),
       supabase.from("banned_emails").select("email,reason,created_at").order("created_at", { ascending: false }),
       supabase.from("banned_devices").select("device_id,user_id,reason,created_at").order("created_at", { ascending: false }),
       supabase.from("banned_ips").select("ip,user_id,reason,created_at").order("created_at", { ascending: false }),
@@ -166,14 +167,15 @@ function AdminSanctions() {
               <th className="text-right p-3">النوع</th>
               <th className="text-right p-3">اللاعب</th>
               <th className="text-right p-3">السبب</th>
+              <th className="text-right p-3">الرسالة</th>
               <th className="text-right p-3">المتبقي</th>
               <th className="text-right p-3">منذ</th>
               <th className="text-right p-3">إجراء</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={6} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
-            {!loading && filtered.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-slate-500">لا توجد عقوبات نشطة</td></tr>}
+            {loading && <tr><td colSpan={7} className="p-6 text-center text-slate-500">جاري التحميل...</td></tr>}
+            {!loading && filtered.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-slate-500">لا توجد عقوبات نشطة</td></tr>}
             {filtered.map((r) => (
               <tr key={`${r.kind}-${r.id}`} className="border-t border-slate-800/50">
                 <td className="p-3">
@@ -193,6 +195,15 @@ function AdminSanctions() {
                   </div>
                 </td>
                 <td className="p-3 text-slate-300 max-w-xs truncate" title={r.reason}>{r.reason || "—"}</td>
+                <td className="p-3 max-w-xs" title={r.message_body ?? ""}>
+                  {r.kind === "mute" && r.message_body ? (
+                    <span className="block truncate rounded bg-slate-950/70 border border-red-800/40 px-2 py-1 text-xs text-red-200">
+                      {r.message_body}
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 text-xs">—</span>
+                  )}
+                </td>
                 <td className="p-3 text-amber-300">{fmtRemaining(r.expires_at)}</td>
                 <td className="p-3 text-xs text-slate-400">{new Date(r.created_at).toLocaleString("ar")}</td>
                 <td className="p-3">
