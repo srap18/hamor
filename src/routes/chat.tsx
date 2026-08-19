@@ -22,6 +22,7 @@ import { TribeFeatures } from "@/components/TribeFeatures";
 import { loadDmUnreadMap, markDmRead, type DmEntry } from "@/lib/dm-unread";
 import { containsLink, LINK_BLOCK_MESSAGE } from "@/lib/link-guard";
 import { contactMatch, CONTACT_BLOCK_MESSAGE } from "@/lib/contact-guard";
+import { promoMatch } from "@/lib/promo-guard";
 
 import { useServerFn } from "@tanstack/react-start";
 import { moderateChatText } from "@/lib/chat-moderation.functions";
@@ -545,6 +546,8 @@ function ChatPage() {
       showNotice(LINK_BLOCK_MESSAGE);
       return;
     }
+    // Outside-promo / rival-game wording: silently dropped everywhere.
+    if (promoMatch(body)) return;
     if (tab === "dm" && contactMatch(body)) {
       showNotice(CONTACT_BLOCK_MESSAGE);
       return;
@@ -677,6 +680,11 @@ function ChatPage() {
         showNotice(`📣 لا تقدر ترسل إلا بعد وصول سوق السفن للمستوى ${SHIP_MARKET_MIN} (مستواك الحالي ${cur})`);
         setMarketLevel(cur);
         restoreDraftRef.current(body);
+        return;
+      }
+      if (status === "promo_blocked") {
+        // Silently drop: the message never appears anywhere.
+        setMsgs(s => s.filter(x => x.id !== tempId));
         return;
       }
       if (status === "contact_blocked") {

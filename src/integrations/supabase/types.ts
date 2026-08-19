@@ -7163,6 +7163,7 @@ export type Database = {
         }[]
       }
       change_username: { Args: { _new: string }; Returns: Json }
+      chat_promo_match: { Args: { _body: string }; Returns: string }
       check_my_referral_award: { Args: never; Returns: boolean }
       check_profanity: { Args: { _body: string }; Returns: string }
       claim_achievement: { Args: { _ach_id: string }; Returns: Json }

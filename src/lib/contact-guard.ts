@@ -79,3 +79,8 @@ export function contactMatch(input: string): string | null {
 
 export const CONTACT_BLOCK_MESSAGE =
   "🚫 ممنوع مشاركة حسابات التواصل أو اليوزرات أو الأرقام في الخاص";
+
+/** Shared normalizer (destyled, de-diacritized, letter-collapsed). */
+export function normalizeArabicText(input: string): string {
+  return normalize(input);
+}
