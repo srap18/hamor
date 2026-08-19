@@ -653,9 +653,17 @@ export async function upsertSubscription(
     const subscriptionExisted = existing !== null;
 
     // 1) Upsert the subscription "product" (listings + tax settings).
-    const subBody = buildSubscriptionBody(pkg, row);
+    //    A subscription that does not exist yet MUST be created together with
+    //    at least one base plan, otherwise Google answers
+    //    "Subscription must contain at least one base plan" (HTTP 400).
+    const subBody: any = buildSubscriptionBody(pkg, row);
+    let updateMask = SUB_UPDATE_MASK;
+    if (!subscriptionExisted) {
+      subBody.basePlans = [buildBasePlanBody(row, basePlanId)];
+      updateMask = `${SUB_UPDATE_MASK},basePlans`;
+    }
     const subParams = new URLSearchParams({
-      updateMask: SUB_UPDATE_MASK,
+      updateMask,
       allowMissing: "true",
       "regionsVersion.version": "2025/03",
       latencyTolerance: LATENCY_TOLERANT,
@@ -680,28 +688,28 @@ export async function upsertSubscription(
     // 2) Read the current base plan state.
     //
     // Google Play's Monetization API does NOT expose PATCH/CREATE on the
-    // individual `subscriptions/{sku}/basePlans/{id}` resource — that URL
-    // returns an HTML 404 from Google's frontend, not a JSON API error.
-    // Base plans are created inside Play Console (or via the parent
-    // subscription payload with `basePlans` in the updateMask, but that
-    // combination often collides with existing plans). Since our earlier
-    // sync run already created + activated the `monthly` plan for every
-    // subscription, we skip the PATCH and rely on the existing plan.
+    // individual `subscriptions/{sku}/basePlans/{id}` resource. Base plans of
+    // an EXISTING subscription must be edited in Play Console; brand-new
+    // subscriptions get their plan from the create call above.
     // Pricing changes on already-published subscriptions must go through
     // `subscriptions.basePlans.migratePrices` and are not attempted here.
-    const existingBasePlan = (existing?.basePlans ?? []).find(
-      (b: any) => b?.basePlanId === basePlanId,
-    );
+    const createdSub = (() => {
+      try { return JSON.parse(subText || "{}"); } catch { return {}; }
+    })();
+    const existingBasePlan =
+      (existing?.basePlans ?? []).find((b: any) => b?.basePlanId === basePlanId) ??
+      (createdSub?.basePlans ?? []).find((b: any) => b?.basePlanId === basePlanId);
     let currentState: string | undefined = existingBasePlan?.state;
     if (!existingBasePlan) {
       return {
         ok: false, subscriptionExisted, basePlanId,
         error:
           `Base plan "${basePlanId}" is missing on subscription "${playSku}" in Play Console.\n` +
-          `Google's API does not allow creating base plans over REST. Create it manually in Play Console (Monetization → Subscriptions → ${playSku}) as a monthly (P1M) auto-renewing plan, then press "مزامنة الكل" again.\n\n` +
+          `Google's API does not allow creating base plans over REST for an existing subscription. Create it manually in Play Console (Monetization → Subscriptions → ${playSku}) as a monthly (P1M) auto-renewing plan, then press "مزامنة الكل" again.\n\n` +
           `REQUEST BODY (for reference):\n${JSON.stringify(buildBasePlanBody(row, basePlanId), null, 2)}`,
       };
     }
+
 
     // 3) Activate / deactivate.
     const desired = row.status === "active" ? "ACTIVE" : "INACTIVE";
