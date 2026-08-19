@@ -119,13 +119,15 @@ function AdminReports() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const expires_at = hours >= 87600 ? null : new Date(Date.now() + hours * 3600_000).toISOString();
-    await supabase.from("chat_mutes").update({ active: false }).eq("user_id", r.reported_user_id).eq("active", true);
+    const { error: delErr } = await supabase.from("chat_mutes").delete().eq("user_id", r.reported_user_id).eq("active", true);
+    if (delErr) await supabase.from("chat_mutes").update({ active: false }).eq("user_id", r.reported_user_id).eq("active", true);
     const { error } = await supabase.from("chat_mutes").insert({
       user_id: r.reported_user_id,
       reason: `بلاغ #${r.id.slice(0, 8)}: ${r.reason || r.message_body?.slice(0, 60) || ""}`,
+      message_body: (r.message_body || "").slice(0, 500) || null,
       muted_by: u.user.id,
       expires_at,
-    });
+    } as never);
     if (error) { toast.error("فشل الكتم"); return; }
     // Auto-delete the reported message
     const deleted = await deleteReportedContent(r);
