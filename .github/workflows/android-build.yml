@@ -89,7 +89,7 @@ jobs:
         run: |
           cd android
           # تحديث رقم الإصدار تلقائياً
-          sed -i 's/versionCode [0-9]*/versionCode 1009/' app/build.gradle
+          sed -i 's/versionCode [0-9]*/versionCode 1010/' app/build.gradle
           ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
 
       # التحقق النهائي من ملفات DEX داخل الـ AAB. ملفات AAB لا تخزن كلاسات
