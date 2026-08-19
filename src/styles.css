@@ -636,7 +636,9 @@ html, body {
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  touch-action: pan-x pan-y;
+  /* Vertical panning only — no sideways dragging of the whole app. */
+  touch-action: pan-y;
+
   -ms-content-zooming: none;
 }
 
