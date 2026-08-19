@@ -742,11 +742,45 @@ function ShipsPanel({
         setSelected(null);
       } finally { setBusy(false); }
     } else {
-      if (isNativeApp()) { flash("سفن التنين متاحة عبر الشحن في تطبيق الويب فقط", 2400); return; }
+      if (isNativeApp()) {
+        // داخل التطبيق: الشراء عبر متجر التطبيق (Google Play / App Store).
+        if (!isIapAvailable()) { flash("حدّث التطبيق من المتجر لتفعيل الشراء", 2600); return; }
+        setBusy(true);
+        try {
+          const productId = pack.payment.packId;
+          const deliver = async (p: any) => {
+            const res = await verifyNative({ data: p });
+            await finishIapPurchase(p).catch(() => null);
+            return res;
+          };
+          let purchase: any = null;
+          try {
+            purchase = await purchaseIap(productId);
+          } catch (e) {
+            if (!isAlreadyOwnedError(e)) throw e;
+            flash("جاري تجهيز عملية الشراء…", 1800);
+            const pending = await restoreIapPurchases().catch(() => []);
+            for (const p of pending) await deliver(p).catch(() => null);
+            purchase = await purchaseIap(productId);
+          }
+          if (!purchase) return; // ألغى المستخدم
+          const res: any = await deliver(purchase);
+          if (res?.ok) {
+            sound.play("success");
+            flash(res.alreadyGranted ? "تم تأكيد الشراء مسبقاً" : `✓ تم شراء ${pack.name}`, 2200);
+            refreshProfile();
+            setSelected(null);
+          }
+        } catch (e) {
+          flash("تعذر إتمام الشراء: " + ((e as Error).message || ""), 2600);
+        } finally { setBusy(false); }
+        return;
+      }
       setBusy(true);
       try { await buyPackWithPaddle(pack.payment.packId); }
       catch (e) { flash("تعذر فتح الدفع: " + ((e as Error).message || ""), 2400); }
       finally { setBusy(false); }
+
     }
   };
 
