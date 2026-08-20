@@ -40,8 +40,18 @@ const ITEM_TYPES = [
   "crew", "weapon", "anti", "shield",
   "consumable", "decoration", "frame", "background", "name_frame", "bubble_frame", "profile_frame",
 ] as const;
+const ITEM_TYPE_AR: Record<(typeof ITEM_TYPES)[number], string> = {
+  crew: "طاقم", weapon: "سلاح", anti: "مضاد", shield: "درع",
+  consumable: "مستهلك", decoration: "زينة", frame: "إطار", background: "خلفية",
+  name_frame: "إطار الاسم", bubble_frame: "إطار الفقاعة", profile_frame: "إطار الملف",
+};
+const PRIZE_TYPE_AR: Record<PrizeType, string> = {
+  coins: "🪙 عملات", gems: "💎 جواهر", rubies: "❤️ ياقوت", xp: "⭐ نقاط خبرة",
+  item: "🎒 عنصر مخزن", dragon_equipment: "🐉 معدة تنين",
+};
 const DRAGON_SLOTS = ["weapon", "armor", "talisman"] as const;
 const DRAGON_RARITIES = ["common", "rare", "epic", "legendary", "divine", "fatak"] as const;
+
 
 // Mirrors the validation in open_lucky_box() so we never save a prize the
 // server will later refuse to grant.
