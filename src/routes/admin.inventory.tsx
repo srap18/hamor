@@ -25,6 +25,7 @@ const FILTERS: Array<{ key: string; label: string; icon: string; type: string | 
   { key: "nuke", label: "القنبلة الذرية", icon: "☢️", type: "weapon", id: "nuke" },
   { key: "ad_bomb", label: "القنبلة الإعلانية", icon: "📺", type: "weapon", id: "ad_bomb" },
   { key: "kraken_bomb", label: "قنبلة الكراكن", icon: "🐙", type: "weapon", id: "kraken_bomb" },
+  { key: "doom_annihilator", label: "صاعقة الفناء", icon: "☄️", type: "weapon", id: "doom_annihilator" },
   { key: "rocket_small", label: "صاروخ صغير", icon: "🚀", type: "weapon", id: "rocket_small" },
   { key: "rocket_medium", label: "صاروخ متوسط", icon: "🚀", type: "weapon", id: "rocket_medium" },
   { key: "rocket_large", label: "صاروخ كبير", icon: "🚀", type: "weapon", id: "rocket_large" },
