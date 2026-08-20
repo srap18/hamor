@@ -56,22 +56,38 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
   const { user } = useAuth();
   const [streak, setStreak] = useState(0);
   const [lastDate, setLastDate] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !user) return;
+    let alive = true;
+    setLoaded(false);
     (async () => {
-      await syncServerTime(true);
-      const { data } = await supabase
-        .from("daily_login_streaks")
-        .select("current_streak,last_claim_date")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setStreak(data?.current_streak ?? 0);
-      setLastDate(data?.last_claim_date ?? null);
+      // Retry: right after an app update/reconnect the first request can fail,
+      // and a failed load must never render the "day 1 / streak 0" fallback.
+      for (let attempt = 0; attempt < 4 && alive; attempt++) {
+        try {
+          await syncServerTime(true);
+          const { data, error } = await supabase
+            .from("daily_login_streaks")
+            .select("current_streak,last_claim_date")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (error) throw error;
+          if (!alive) return;
+          setStreak(data?.current_streak ?? 0);
+          setLastDate(data?.last_claim_date ?? null);
+          setLoaded(true);
+          return;
+        } catch {
+          await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        }
+      }
     })();
+    return () => { alive = false; };
   }, [open, user]);
 
   if (!open) return null;
@@ -93,7 +109,8 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
 
 
   const claim = async () => {
-    if (!user || busyRef.current || busy || claimedToday) return;
+    if (!user || !loaded || busyRef.current || busy || claimedToday) return;
+
 
     busyRef.current = true;
     setBusy(true);
@@ -152,15 +169,19 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
             هديتك اليومية
           </h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
-            متتالية {streak} يوم — اجمع 15 يوم للحصول على 10 قنابل ذرية ☢️
+            {loaded
+              ? `متتالية ${streak} يوم — اجمع 15 يوم للحصول على 10 قنابل ذرية ☢️`
+              : "جاري تحميل بيانات هديتك..."}
           </div>
+
         </div>
 
         {/* 15 day grid */}
         <div className="p-3 grid grid-cols-5 gap-1.5">
           {REWARDS.map((r, i) => {
-            const isToday = i === nextDayIndex && !claimedToday;
-            const isClaimed = i < nextDayIndex || (claimedToday && i === nextDayIndex);
+            const isToday = loaded && i === nextDayIndex && !claimedToday;
+            const isClaimed = loaded && (i < nextDayIndex || (claimedToday && i === nextDayIndex));
+
             const isFinal = i === 14;
             return (
               <div
@@ -192,23 +213,26 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
         {/* Today reward + claim */}
         <div className="px-4 pb-4">
           <div className="rounded-xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-900/50 via-amber-800/40 to-amber-900/50 p-3 flex items-center gap-3">
-            <div className="shrink-0"><RewardIcon r={todaysReward} size={44} /></div>
+            <div className="shrink-0">{loaded ? <RewardIcon r={todaysReward} size={44} /> : <span style={{ fontSize: 44, lineHeight: 1 }}>🎁</span>}</div>
             <div className="flex-1 text-right">
-              <div className="text-[10px] text-amber-300">هدية اليوم {nextDayIndex + 1}</div>
-              <div className="text-amber-100 font-bold text-sm">{todaysReward.name}</div>
-              <div className="text-amber-300 text-xs">الكمية: ×{todaysReward.qty}</div>
+              <div className="text-[10px] text-amber-300">{loaded ? `هدية اليوم ${nextDayIndex + 1}` : "جاري التحميل..."}</div>
+              <div className="text-amber-100 font-bold text-sm">{loaded ? todaysReward.name : "—"}</div>
+              <div className="text-amber-300 text-xs">{loaded ? `الكمية: ×${todaysReward.qty}` : ""}</div>
             </div>
             <button
               onClick={claim}
-              disabled={claimedToday || busy}
+              disabled={!loaded || claimedToday || busy}
               className={`px-4 py-2 rounded-lg font-black text-sm border-2 ${
-                claimedToday
+                !loaded
+                  ? "bg-black/40 border-amber-700/40 text-amber-200/60"
+                  : claimedToday
                   ? "bg-emerald-900/60 border-emerald-500/40 text-emerald-300"
                   : "bg-gradient-to-b from-amber-300 to-amber-600 border-amber-200 text-amber-950 active:scale-95 shadow-lg"
               }`}
             >
-              {claimedToday ? "✓ تم" : "استلم"}
+              {!loaded ? "..." : claimedToday ? "✓ تم" : "استلم"}
             </button>
+
 
           </div>
           <button
