@@ -57,6 +57,22 @@ public class MainActivity extends BridgeActivity {
             bridge.getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
         } catch (Exception ignored) {}
 
+        // تثبيت مقاس الخط والعرض داخل WebView.
+        // أجهزة سامسونج (مثل Galaxy A71) تطبّق «حجم الخط» و«حجم الشاشة» من إعدادات
+        // النظام على الـ WebView عبر textZoom، فتتضخّم كل النصوص 115–130% وتخرج
+        // عناصر الواجهة (العملات، الأزرار، الشريط السفلي) خارج حواف الشاشة.
+        // تثبيت textZoom على 100 يجعل التطبيق يعرض نفس التخطيط على كل الأجهزة.
+        try {
+            android.webkit.WebSettings s = bridge.getWebView().getSettings();
+            s.setTextZoom(100);
+            s.setUseWideViewPort(true);
+            s.setLoadWithOverviewMode(true);
+            s.setSupportZoom(false);
+            s.setBuiltInZoomControls(false);
+            s.setDisplayZoomControls(false);
+        } catch (Exception ignored) {}
+
+
         // منح WebView أذونات المايك/الكاميرا عند الطلب فقط.
         // نرث BridgeWebChromeClient حتى لا نفقد سلوك Capacitor (اختيار الملفات، الحوارات...).
         bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
