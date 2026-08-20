@@ -134,11 +134,11 @@ async function securityCheck(userId: string, email: string | null): Promise<{ ok
       return { ok: false, reason: "هذا الحساب محظور من الدخول على هذا الجهاز" };
     }
     return { ok: true };
-
-    return { ok: true };
   } catch {
-    return { ok: false, reason: "تعذر التحقق الأمني — حاول مجددًا" };
+    // Infra/network hiccup must never trap the player on one account.
+    return { ok: true };
   }
+
 }
 
 export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogin?: boolean };
