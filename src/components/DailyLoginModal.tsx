@@ -179,8 +179,9 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
         {/* 15 day grid */}
         <div className="p-3 grid grid-cols-5 gap-1.5">
           {REWARDS.map((r, i) => {
-            const isToday = i === nextDayIndex && !claimedToday;
-            const isClaimed = i < nextDayIndex || (claimedToday && i === nextDayIndex);
+            const isToday = loaded && i === nextDayIndex && !claimedToday;
+            const isClaimed = loaded && (i < nextDayIndex || (claimedToday && i === nextDayIndex));
+
             const isFinal = i === 14;
             return (
               <div
