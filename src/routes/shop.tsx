@@ -130,7 +130,7 @@ const PROTECTION: Item[] = [
 ];
 
 
-const WEAPONS: Item[] = LIB_WEAPONS.map((w) => ({
+const WEAPONS: Item[] = LIB_WEAPONS.filter((w) => !w.noShop).map((w) => ({
   id: w.id,
   name: w.name,
   emoji: w.emoji,
