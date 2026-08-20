@@ -739,6 +739,45 @@ function PlayerPage() {
 
 
 
+    // ─── DOOM ANNIHILATOR: unlimited damage, destroys every enemy ship ───
+    if (weaponId === "doom_annihilator") {
+      const { error: dErr } = await (supabase as any).rpc("launch_doom_annihilator", { _target_id: playerId });
+      if (dErr) {
+        const m = String(dErr.message || "");
+        setBusy(false);
+        sound.play("error");
+        const showErr = (msg: string) => { flash(msg); sonnerToast.error(msg, { duration: 4000 }); };
+        if (m.includes("email_not_verified")) { showErr("📧 وثّق بريدك الإلكتروني أولاً من صفحة البروفايل"); return; }
+        if (m.includes("no doom_annihilator")) { showErr("☄️ ما عندك صاعقة الفناء"); return; }
+        if (m.includes("attacker market level under 6")) { showErr("🏪 لازم ترفع سوق سفنك للمستوى 6 قبل الهجوم"); return; }
+        if (m.includes("attacker has destroyed ship")) { showErr("🛠️ عندك سفينة مدمّرة — صلّحها قبل الهجوم"); return; }
+        if (m.includes("attacker needs pvp fleet")) { showErr("🚫 تحتاج 3 سفن من المستوى 6 فأعلى للهجوم"); return; }
+        if (m.includes("attacker needs fishing ship")) { showErr("🎣 لازم سفنك الـ3 كلها تكون في وضع الصيد قبل الهجوم"); return; }
+        if (m.includes("protected") || m.includes("staff account")) { showErr("🛡️ الخصم محمي — لا يمكن الهجوم"); return; }
+        if (m.includes("same device")) { showErr("🚫 لا يمكن مهاجمة حساب مرتبط بنفس الجهاز"); return; }
+        if (m.includes("cannot target self")) { showErr("❌ لا يمكن استهداف نفسك"); return; }
+        showErr(`تعذّر الإطلاق: ${m.slice(0, 80)}`); return;
+      }
+      setInv((arr) => arr
+        .map((x) => x.item_id === "doom_annihilator" && x.item_type === "weapon" ? { ...x, quantity: x.quantity - 1 } : x)
+        .filter((x) => x.quantity > 0));
+      sound.play("nuke");
+      burnTargetBg(playerId).catch(() => {});
+      setP((cur) => cur ? { ...cur, bg_burned_until: new Date(serverNowMs() + 7 * 24 * 3600_000).toISOString() } : cur);
+      const dNowIso = serverNow().toISOString();
+      setShips((arr) => arr.map((s) => ({ ...s, hp: 0, destroyed_at: s.destroyed_at ?? dNowIso, repair_ends_at: s.repair_ends_at ?? new Date(serverNowMs() + 4 * 3600_000).toISOString(), at_sea: false })));
+      reloadShipsRef.current().catch(() => {});
+      setShake("shake-lg");
+      setTimeout(() => sound.play("explosion"), 500);
+      setTimeout(() => sound.play("explosion"), 1000);
+      setTimeout(() => sound.play("explosion"), 1500);
+      setTimeout(() => setShake(""), 2200);
+      sound.play("success");
+      flash(`☄️ صاعقة الفناء محت أسطول ${p?.display_name || "اللاعب"} بالكامل!`);
+      setBusy(false);
+      return;
+    }
+
     // Single-target weapons (non-nuke). الخصم يجوز مهاجمته سواء كانت السفينة راسية أو في البحر.
     const aliveShips = ships.filter((s) => (!s.destroyed_at || (s.repair_ends_at && new Date(s.repair_ends_at).getTime() <= serverNowMs())));
     const singleTarget: Ship | null = selectedShip!;
@@ -1760,6 +1799,23 @@ function PlayerPage() {
                     );
                   }
                   const canFire = q > 0;
+                  if (w.noShop) {
+                    return (
+                      <div key={w.id} className="flex items-stretch gap-2">
+                        <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
+                          className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-red-950/90 to-stone-950/90 border-2 border-red-500/60 shadow-[0_0_22px_rgba(255,60,30,0.35)] active:scale-95 disabled:opacity-40 text-right">
+                          {w.image ? <img decoding="async" src={w.image} alt={w.name} className="w-11 h-11 object-contain drop-shadow-[0_0_10px_rgba(255,80,40,0.9)]" /> : <span className="text-3xl">{w.emoji}</span>}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-red-200 font-extrabold text-sm">{w.name}</div>
+                            <div className="text-[10px] text-amber-300/90">
+                              {canFire ? "تدمير كامل ∞ · يصيب كل السفن" : "🎟️ نادر — يُمنح فقط من الإدارة/المسابقات"}
+                            </div>
+                          </div>
+                          <div className="text-xs text-red-300 font-bold tabular-nums">×{q}</div>
+                        </button>
+                      </div>
+                    );
+                  }
                   return (
                     <div key={w.id} className="flex items-stretch gap-2">
                       <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
@@ -1785,6 +1841,7 @@ function PlayerPage() {
                       )}
                     </div>
                   );
+
                 })}
                 {/* Disabler missiles — disable the matching anti-defense for 10 minutes */}
                 {[

@@ -24,23 +24,27 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
   const [puffs, setPuffs] = useState<Puff[]>([]);
   const startRef = useRef<number>(performance.now());
 
-  const isNuke = fx.weaponId === "nuke" || fx.weaponId === "ad_bomb";
+  const isDoom = fx.weaponId === "doom_annihilator";
+  const isNuke = fx.weaponId === "nuke" || fx.weaponId === "ad_bomb" || isDoom;
   const isLarge = fx.weaponId === "rocket_large";
   const isMed = fx.weaponId === "rocket_medium";
 
-  const flightMs = isNuke ? 1100 : 850;
-  const rocketSize = isNuke ? 64 : isLarge ? 52 : isMed ? 44 : 36;
-  const boomSize = isNuke ? 340 : isLarge ? 240 : isMed ? 180 : 140;
+  const flightMs = isDoom ? 1300 : isNuke ? 1100 : 850;
+  const rocketSize = isDoom ? 78 : isNuke ? 64 : isLarge ? 52 : isMed ? 44 : 36;
+  const boomSize = isDoom ? 420 : isNuke ? 340 : isLarge ? 240 : isMed ? 180 : 140;
 
   const angle = Math.atan2(fx.toY - fx.fromY, fx.toX - fx.fromX) * 180 / Math.PI;
 
-  const trailColor = isNuke
+  const trailColor = isDoom
+    ? "rgba(255,90,40,0.98)"
+    : isNuke
     ? "rgba(180,255,120,0.95)"
     : isLarge
     ? "rgba(255,120,40,0.95)"
     : isMed
     ? "rgba(255,190,80,0.9)"
     : "rgba(255,230,140,0.9)";
+
 
   // Animate rocket flight
   useEffect(() => {
@@ -284,7 +288,9 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
               height: boomSize * (isNuke ? 2.2 : 1.7),
               objectFit: "contain",
               transformOrigin: isNuke ? "50% 80%" : "50% 60%",
-              filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.55))",
+              filter: isDoom
+                ? "drop-shadow(0 8px 18px rgba(0,0,0,0.6)) hue-rotate(-25deg) saturate(1.5) drop-shadow(0 0 40px rgba(255,70,30,0.75))"
+                : "drop-shadow(0 8px 18px rgba(0,0,0,0.55))",
             }}
           />
 

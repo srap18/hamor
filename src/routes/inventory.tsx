@@ -340,7 +340,7 @@ function InventoryPage() {
                     )}
                   </div>
                   <div className="text-sm font-bold text-center mt-1">{w.name}</div>
-                  <div className="text-[10px] text-rose-300 text-center">⚔️ ضرر {w.damage.toLocaleString()}</div>
+                  <div className="text-[10px] text-rose-300 text-center">⚔️ {w.unlimited ? "تدمير كامل ∞" : `ضرر ${w.damage.toLocaleString()}`}</div>
                   <div className="text-center mt-2 text-sm font-bold">
                     {n > 0 ? <span className="text-rose-300">×{n}</span> : <span className="text-muted-foreground">لا تملك</span>}
                   </div>

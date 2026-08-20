@@ -7,6 +7,7 @@ import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
 import nukeImg from "@/assets/weapons/nuke.webp";
 import adBombImg from "@/assets/weapons/ad-bomb.webp";
 import krakenBombImg from "@/assets/weapons/kraken-bomb.png";
+import doomAnnihilatorImg from "@/assets/weapons/doom-annihilator.png";
 
 export type Weapon = {
   id: string;
@@ -19,8 +20,11 @@ export type Weapon = {
   xp: number; // XP awarded to attacker per ship hit
   rarity: "common" | "rare" | "epic" | "legendary";
   aoe?: boolean; // true = hits every ship in the target fleet (nuke)
+  unlimited?: boolean; // true = ignores HP entirely, destroys every ship
+  noShop?: boolean; // true = never sold in the shop / trade (admin-granted only)
   desc?: string;
 };
+
 
 
 export const WEAPONS: Weapon[] = [
@@ -102,5 +106,22 @@ export const WEAPONS: Weapon[] = [
     aoe: true,
     desc: "70,000 ضرر على كل سفن الخصم + تسحب سمك مخزنه بحد مساحتك الفاضية. 700 خبرة · 3 يومياً.",
   },
+  {
+
+    id: "doom_annihilator",
+    name: "صاعقة الفناء ☄️",
+    emoji: "☄️",
+    image: doomAnnihilatorImg,
+    price: 0,
+    currency: "gems",
+    damage: 999_999_999,
+    xp: 1000,
+    rarity: "legendary",
+    aoe: true,
+    unlimited: true,
+    noShop: true,
+    desc: "سلاح أسطوري نادر — تدمير كامل بلا حدود لكل سفن الخصم مهما كان مستواها أو دمها. لا يُباع ولا يُقايض. 1000 خبرة.",
+  },
 ];
+
 

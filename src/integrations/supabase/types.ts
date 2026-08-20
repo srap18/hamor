@@ -8032,6 +8032,11 @@ export type Database = {
         Args: { _target_id: string; _video_key: string }
         Returns: string
       }
+      launch_doom_annihilator: { Args: { _target_id: string }; Returns: string }
+      launch_doom_annihilator_impl: {
+        Args: { _target_id: string }
+        Returns: string
+      }
       launch_kraken: { Args: { _target_id: string }; Returns: Json }
       launch_kraken_impl: { Args: { _target_id: string }; Returns: Json }
       launch_nuke: { Args: { _target_id: string }; Returns: string }
