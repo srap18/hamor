@@ -169,8 +169,11 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
             هديتك اليومية
           </h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
-            متتالية {streak} يوم — اجمع 15 يوم للحصول على 10 قنابل ذرية ☢️
+            {loaded
+              ? `متتالية ${streak} يوم — اجمع 15 يوم للحصول على 10 قنابل ذرية ☢️`
+              : "جاري تحميل بيانات هديتك..."}
           </div>
+
         </div>
 
         {/* 15 day grid */}
