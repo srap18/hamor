@@ -5019,7 +5019,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   // Keep every ship (and its HUD above it) fully inside the screen — a slot
   // sitting at 84% with a 22% wide hull used to spill past the right edge and
   // got clipped, which made the page look like it needed sideways dragging.
-  const clampLeft = (x: number) => Math.max(1, Math.min(99 - shipW, x));
+  const clampLeft = (x: number) => Math.max(2, Math.min(94 - shipW, x));
   const dockLeft = clampLeft(ship.dockLeft);
   const seaSide = ship.seaSide ?? "right";
   const defaultSeaEdge = seaSide === "right" ? (96 - shipW) : 2;
