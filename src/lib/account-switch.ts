@@ -64,8 +64,12 @@ function write(list: StoredAccount[]) {
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.setItem(KEY, JSON.stringify(list.slice(0, MAX_ACCOUNTS)));
-  } catch { /* quota — ignore */ }
-  try { window.dispatchEvent(new CustomEvent("accounts:changed")); } catch {}
+  } catch {
+    /* quota — ignore */
+  }
+  try {
+    window.dispatchEvent(new CustomEvent("accounts:changed"));
+  } catch {}
 }
 
 export function listAccounts(): StoredAccount[] {
@@ -77,12 +81,19 @@ export function removeAccount(userId: string) {
 }
 
 export function clearAccounts() {
-  try { localStorage.removeItem(KEY); } catch {}
-  try { window.dispatchEvent(new CustomEvent("accounts:changed")); } catch {}
+  try {
+    localStorage.removeItem(KEY);
+  } catch {}
+  try {
+    window.dispatchEvent(new CustomEvent("accounts:changed"));
+  } catch {}
 }
 
 /** Persist (or refresh) the refresh token of the currently signed-in account. */
-export function rememberSession(session: Session | null, meta?: { username?: string | null; emoji?: string | null }) {
+export function rememberSession(
+  session: Session | null,
+  meta?: { username?: string | null; emoji?: string | null },
+) {
   if (!session?.refresh_token || !session.user?.id) return;
   const list = read();
   const existing = list.find((a) => a.userId === session.user.id);
@@ -102,21 +113,35 @@ export function rememberSession(session: Session | null, meta?: { username?: str
 /** Fill in the display name once, so the switcher shows a real nickname. */
 export async function refreshAccountMeta(userId: string) {
   try {
-    const { data } = await supabase.from("profiles").select("display_name, avatar_emoji").eq("id", userId).maybeSingle();
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, avatar_emoji")
+      .eq("id", userId)
+      .maybeSingle();
     if (!data) return;
     const list = read();
     const idx = list.findIndex((a) => a.userId === userId);
     if (idx < 0) return;
-    list[idx] = { ...list[idx], username: (data as any).display_name ?? null, emoji: (data as any).avatar_emoji ?? null };
+    list[idx] = {
+      ...list[idx],
+      username: (data as any).display_name ?? null,
+      emoji: (data as any).avatar_emoji ?? null,
+    };
     write(list);
-  } catch { /* best effort */ }
+  } catch {
+    /* best effort */
+  }
 }
 
-async function securityCheck(userId: string, email: string | null): Promise<{ ok: boolean; reason?: string }> {
+async function securityCheck(
+  userId: string,
+  email: string | null,
+): Promise<{ ok: boolean; reason?: string }> {
   try {
     const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
     const fp = await getDeviceFingerprint();
-    const deviceId = (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
+    const deviceId =
+      (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
 
     const { authPreflight } = await import("@/lib/auth-preflight.functions");
     const pre: any = await authPreflight({
@@ -164,7 +189,12 @@ export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogi
 
 async function restore(current: Session | null) {
   if (current?.refresh_token) {
-    await supabase.auth.refreshSession({ refresh_token: current.refresh_token }).catch(() => null);
+    const restored = await supabase.auth
+      .refreshSession({ refresh_token: current.refresh_token })
+      .catch(() => null);
+    if (restored?.data?.session?.user?.id === current.user.id) {
+      rememberSession(restored.data.session);
+    }
   } else {
     await supabase.auth.signOut({ scope: "local" }).catch(() => null);
   }
@@ -181,20 +211,30 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
   if (current?.user?.id === userId) return { ok: true };
 
   // Rotating refresh: the stored token is consumed and replaced on the server.
-  const res = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
+  const res = await supabase.auth
+    .refreshSession({ refresh_token: target.refresh_token })
+    .catch(() => null);
   const session = res?.data?.session ?? null;
 
   if (!session) {
     removeAccount(userId);
     await restore(current);
-    return { ok: false, reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة", needsLogin: true };
+    return {
+      ok: false,
+      reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة",
+      needsLogin: true,
+    };
   }
 
   // The server must have handed us exactly the account we asked for.
   if (session.user?.id !== userId) {
     removeAccount(userId);
     await restore(current);
-    return { ok: false, reason: "تعذر التحقق من هوية الحساب — سجل الدخول يدويًا", needsLogin: true };
+    return {
+      ok: false,
+      reason: "تعذر التحقق من هوية الحساب — سجل الدخول يدويًا",
+      needsLogin: true,
+    };
   }
 
   const check = await securityCheck(userId, session.user.email || target.email);
@@ -211,15 +251,23 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
 
 const PENDING_KEY = "oc_pending_add_from";
 
-/** Keep the current account saved, then drop the local session so /login is usable. */
+/**
+ * Enter add-account mode without signing out the current account.
+ *
+ * Even a `scope: "local"` sign-out revokes the current refresh token on the
+ * auth server. That made the saved first account unusable as soon as the user
+ * tapped "add account". The login page deliberately stays open while this
+ * marker exists, and a successful second sign-in simply replaces the active
+ * browser session while the first account's saved refresh token remains valid.
+ */
 export async function beginAddAccount(): Promise<void> {
   const { data } = await supabase.auth.getSession();
   if (data.session) {
     rememberSession(data.session);
-    try { localStorage.setItem(PENDING_KEY, data.session.user.id); } catch {}
+    try {
+      localStorage.setItem(PENDING_KEY, data.session.user.id);
+    } catch {}
   }
-  // scope "local" keeps the saved refresh token valid on the server.
-  await supabase.auth.signOut({ scope: "local" }).catch(() => null);
 }
 
 /** The account the user came from when tapping "add account" (if any). */
@@ -228,11 +276,15 @@ export function pendingAddOrigin(): StoredAccount | null {
     const id = localStorage.getItem(PENDING_KEY);
     if (!id) return null;
     return read().find((a) => a.userId === id) ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function clearPendingAdd() {
-  try { localStorage.removeItem(PENDING_KEY); } catch {}
+  try {
+    localStorage.removeItem(PENDING_KEY);
+  } catch {}
 }
 
 /**
@@ -243,7 +295,18 @@ export async function cancelAddAccount(): Promise<{ ok: boolean }> {
   const origin = pendingAddOrigin();
   clearPendingAdd();
   if (!origin) return { ok: false };
-  const res = await supabase.auth.refreshSession({ refresh_token: origin.refresh_token }).catch(() => null);
+
+  // The normal add-account path keeps the origin active, so returning should
+  // not rotate its refresh token or make any network request.
+  const { data: current } = await supabase.auth.getSession();
+  if (current.session?.user?.id === origin.userId) {
+    rememberSession(current.session, { username: origin.username, emoji: origin.emoji });
+    return { ok: true };
+  }
+
+  const res = await supabase.auth
+    .refreshSession({ refresh_token: origin.refresh_token })
+    .catch(() => null);
   const session = res?.data?.session ?? null;
   if (!session || session.user?.id !== origin.userId) {
     removeAccount(origin.userId);
@@ -266,7 +329,9 @@ export async function forgetAndSignOut(userId: string) {
   }
   // Not the active account: revoke its tokens without disturbing the current session.
   const current = data.session;
-  const res = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
+  const res = await supabase.auth
+    .refreshSession({ refresh_token: target.refresh_token })
+    .catch(() => null);
   if (res?.data?.session?.user?.id === userId) {
     await supabase.auth.signOut().catch(() => null);
   }

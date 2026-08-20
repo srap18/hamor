@@ -2,8 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  listAccounts, rememberSession, refreshAccountMeta, removeAccount,
-  switchToAccount, beginAddAccount, MAX_ACCOUNTS, type StoredAccount,
+  listAccounts,
+  rememberSession,
+  refreshAccountMeta,
+  removeAccount,
+  switchToAccount,
+  beginAddAccount,
+  MAX_ACCOUNTS,
+  type StoredAccount,
 } from "@/lib/account-switch";
 import { sound } from "@/lib/sound";
 
@@ -32,20 +38,25 @@ export function AccountSwitcher({ onClose }: { onClose?: () => void }) {
     })();
     const onChange = () => reload();
     window.addEventListener("accounts:changed", onChange);
-    return () => { alive = false; window.removeEventListener("accounts:changed", onChange); };
+    return () => {
+      alive = false;
+      window.removeEventListener("accounts:changed", onChange);
+    };
   }, [reload]);
 
   const doSwitch = async (id: string) => {
     if (busy || id === currentId) return;
     sound.play("click");
-    setBusy(id); setMsg(null);
+    setBusy(id);
+    setMsg(null);
     const res = await switchToAccount(id);
     if (res.ok) {
       // Hard reload guarantees no data from the previous account stays in memory/cache.
       window.location.replace("/");
       return;
     }
-    setBusy(null); reload();
+    setBusy(null);
+    reload();
     setMsg(res.reason);
   };
 
@@ -55,7 +66,9 @@ export function AccountSwitcher({ onClose }: { onClose?: () => void }) {
     setBusy("add");
     await beginAddAccount();
     onClose?.();
-    nav({ to: "/login" });
+    // A full navigation is required because /login intentionally permits the
+    // still-active origin session only while add-account mode is pending.
+    window.location.assign("/login");
   };
 
   const forget = (id: string) => {
@@ -81,11 +94,15 @@ export function AccountSwitcher({ onClose }: { onClose?: () => void }) {
             >
               <div className="text-lg shrink-0">{a.emoji || "🏴‍☠️"}</div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate">{a.username || a.email || "حساب"}</div>
+                <div className="text-xs font-bold text-white truncate">
+                  {a.username || a.email || "حساب"}
+                </div>
                 <div className="text-[10px] text-accent/60 truncate">{a.email || ""}</div>
               </div>
               {active ? (
-                <span className="text-[10px] font-bold text-emerald-300 shrink-0">الحساب الحالي</span>
+                <span className="text-[10px] font-bold text-emerald-300 shrink-0">
+                  الحساب الحالي
+                </span>
               ) : (
                 <>
                   <button
