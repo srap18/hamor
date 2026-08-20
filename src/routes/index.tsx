@@ -2579,8 +2579,8 @@ function Index() {
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
           top: "calc(env(safe-area-inset-top, 0px) + 190px)",
-          width: 44,
-          height: 50,
+          width: "clamp(34px, 9.5vw, 44px)",
+          height: "clamp(38px, 11vw, 50px)",
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
           border: "2px solid #ffe9a8",
