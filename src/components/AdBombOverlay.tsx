@@ -259,6 +259,22 @@ export function AdBombOverlay({
           muted={isMuted}
           playsInline
           preload="auto"
+          webkit-playsinline="true"
+          disablePictureInPicture
+          disableRemotePlayback
+          onError={() => {
+            // Decoder hiccup (common on Android when another video was playing):
+            // reload the source and try again shortly.
+            const v = videoRef.current;
+            if (!v) return;
+            window.setTimeout(() => {
+              try { v.load(); void v.play().catch(() => {}); } catch { /* noop */ }
+            }, 800);
+          }}
+          onStalled={() => {
+            const v = videoRef.current;
+            if (v) void v.play().catch(() => {});
+          }}
           onEnded={() => {
             const v = videoRef.current;
             if (!v) return;
