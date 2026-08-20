@@ -1,13 +1,18 @@
 // Curated ad-bomb videos. Hardcoded list so attackers can only pick from
 // pre-approved clips (prevents NSFW uploads).
+import doomAdAsset from "@/assets/doom-annihilator-ad.mp4.asset.json";
+
 export type AdVideo = {
   key: string;
   label: string;
   emoji: string;
   src: string;
+  /** Not selectable in the ad-bomb picker (used by a specific weapon). */
+  hidden?: boolean;
 };
 
 export const AD_VIDEOS: AdVideo[] = [
+
   {
     key: "jack_sparrow",
     label: "جاك سبارو 🏴‍☠️",
