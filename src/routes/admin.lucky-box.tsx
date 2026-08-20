@@ -231,7 +231,7 @@ function AdminLuckyBox() {
                 + إضافة
               </button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {list.length === 0 && <div className="text-slate-500 text-sm">لا توجد جوائز في هذه الخانة بعد.</div>}
               {list.map((p) => (
                 <PrizeRow key={p.id} prize={p} onChange={(patch) => updatePrize(p.id, patch)} onDelete={() => deletePrize(p.id)} />
