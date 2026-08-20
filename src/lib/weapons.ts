@@ -104,7 +104,21 @@ export const WEAPONS: Weapon[] = [
     xp: 700,
     rarity: "legendary",
     aoe: true,
-    desc: "70,000 ضرر على كل سفن الخصم + تسحب سمك مخزنه بحد مساحتك الفاضية. 700 خبرة · 3 يومياً.",
+  {
+    id: "doom_annihilator",
+    name: "صاعقة الفناء ☄️",
+    emoji: "☄️",
+    image: doomAnnihilatorImg,
+    price: 0,
+    currency: "gems",
+    damage: 999_999_999,
+    xp: 1000,
+    rarity: "legendary",
+    aoe: true,
+    unlimited: true,
+    noShop: true,
+    desc: "سلاح أسطوري نادر — تدمير كامل بلا حدود لكل سفن الخصم مهما كان مستواها أو دمها. لا يُباع ولا يُقايض. 1000 خبرة.",
   },
 ];
+
 
