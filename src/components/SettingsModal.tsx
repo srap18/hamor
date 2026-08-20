@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { rateLimit } from "@/lib/rate-limit";
 import { MfaSetupSection } from "@/components/MfaSetupSection";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { AccountSwitcher } from "@/components/AccountSwitcher";
 import { RulesModal } from "@/components/RulesModal";
 
 import { getBgMotionPaused, setBgMotionPaused, useBgMotionPaused } from "@/lib/bg-motion";
@@ -146,6 +147,11 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       danger: true,
     });
     if (!ok) return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      const { removeAccount } = await import("@/lib/account-switch");
+      if (data.session) removeAccount(data.session.user.id);
+    } catch {}
     await supabase.auth.signOut();
     onClose();
     nav({ to: "/login" });
@@ -161,6 +167,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-accent font-bold text-base mb-4 text-center">{t("settings.title")}</div>
+
+        <AccountSwitcher onClose={onClose} />
 
         {/* Language switcher */}
         <div className="mb-4 p-3 rounded-lg bg-black/30 border border-accent/30">
