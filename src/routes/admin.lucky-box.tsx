@@ -487,8 +487,11 @@ function PrizeRow({
               )}
             </div>
           )}
+            </div>
+          </details>
         </div>
       )}
+
     </div>
   );
 }
