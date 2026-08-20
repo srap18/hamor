@@ -37,26 +37,41 @@ function LoginPage() {
   const guardDeviceRef = useRef<string>("");
   const [savedAccounts, setSavedAccounts] = useState<{ userId: string; username: string | null; email: string | null; emoji: string | null }[]>([]);
   const [switching, setSwitching] = useState(false);
+  const [pendingBack, setPendingBack] = useState<{ userId: string; username: string | null; email: string | null; emoji: string | null } | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
-        const { listAccounts } = await import("@/lib/account-switch");
+        const { listAccounts, pendingAddOrigin } = await import("@/lib/account-switch");
         setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
+        const o = pendingAddOrigin();
+        if (o) setPendingBack({ userId: o.userId, username: o.username, email: o.email, emoji: o.emoji });
       } catch {}
     })();
   }, []);
 
+  const cancelAdd = async () => {
+    if (switching) return;
+    setSwitching(true); setErr(null);
+    const { cancelAddAccount } = await import("@/lib/account-switch");
+    const res = await cancelAddAccount();
+    if (res.ok) { window.location.replace("/"); return; }
+    setSwitching(false);
+    setPendingBack(null);
+    setErr("انتهت صلاحية جلسة الحساب السابق — سجل الدخول له مرة واحدة");
+  };
+
   const quickSwitch = async (userId: string) => {
     if (switching) return;
     setSwitching(true); setErr(null);
-    const { switchToAccount, listAccounts } = await import("@/lib/account-switch");
+    const { switchToAccount, listAccounts, clearPendingAdd } = await import("@/lib/account-switch");
     const res = await switchToAccount(userId);
-    if (res.ok) { window.location.replace("/"); return; }
+    if (res.ok) { clearPendingAdd(); window.location.replace("/"); return; }
     setSwitching(false);
     setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
     setErr(res.reason);
   };
+
 
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
