@@ -40,6 +40,7 @@ const ITEM_LABELS: Record<string, string> = {
   nuke: "قنبلة ذرية",
   ad_bomb: "قنبلة إعلانية",
   kraken_bomb: "قنبلة الكراكن",
+  doom_annihilator: "صاعقة الفناء",
   rocket_small: "صاروخ صغير",
   rocket_medium: "صاروخ متوسط",
   rocket_large: "صاروخ كبير",
