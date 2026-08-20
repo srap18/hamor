@@ -7,7 +7,17 @@ import { PREF_KEYS } from "@/lib/ui-prefs";
 const KEEP_PREFIXES = ["sb-", "supabase."];
 // User settings must survive an update — otherwise every toggle the player
 // switched off comes back on after "تحديث اللعبة".
-const KEEP_EXACT = new Set<string>([...PREF_KEYS, "app-lang"]);
+// Identity-critical keys must survive too: wiping the device id makes the
+// device-slot gate treat the player as a brand-new device and sign them out,
+// and wiping the saved accounts list loses fast account switching.
+const KEEP_EXACT = new Set<string>([
+  ...PREF_KEYS,
+  "app-lang",
+  "hamor_device_id",
+  "oc_accounts_v1",
+  "oc_pending_add_from",
+]);
+
 
 function shouldKeep(key: string) {
   return KEEP_EXACT.has(key) || KEEP_PREFIXES.some((p) => key.startsWith(p));
