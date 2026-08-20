@@ -164,10 +164,12 @@ export function AdBombOverlay({
     return () => set(false);
   }, [isActive]);
 
-  // Always start the video muted (so autoplay never gets blocked and the
-  // frames are visible), then try to unmute. If the browser still blocks
-  // unmuted audio, the next user gesture unlocks sound — without remounting
-  // the <video> element.
+  // Android/WebView playback:
+  // - The element stays muted at the DOM level so autoplay is NEVER refused.
+  // - Unmuting is only attempted after a real user gesture (Chrome/Android
+  //   rejects programmatic unmuted playback and the rejection used to leave
+  //   the video paused with a black screen).
+  // - A watchdog re-loads the source if no frames decoded after a few seconds.
   useEffect(() => {
     if (!isActive) return;
     const v = videoRef.current;
@@ -175,33 +177,62 @@ export function AdBombOverlay({
 
     unmuteCleanupRef.current?.();
 
-    v.muted = true;
-    v.volume = 1;
-    void v.play().catch(() => {});
+    const forceAttrs = () => {
+      try {
+        v.muted = true;
+        v.defaultMuted = true;
+        v.setAttribute("muted", "");
+        v.setAttribute("playsinline", "");
+        v.setAttribute("webkit-playsinline", "");
+        v.setAttribute("autoplay", "");
+        v.setAttribute("preload", "auto");
+      } catch { /* noop */ }
+    };
+    forceAttrs();
 
-    const tryUnmute = () => {
-      v.muted = false;
-      const p = v.play();
-      const handle = (ok: boolean) => {
-        if (ok) {
-          setIsMuted(false);
-          unmuteCleanupRef.current?.();
+    const tryPlay = () => { void v.play().catch(() => {}); };
+    tryPlay();
+
+    const onLoaded = () => tryPlay();
+    const onVis = () => { if (document.visibilityState === "visible") tryPlay(); };
+    v.addEventListener("loadeddata", onLoaded);
+    v.addEventListener("canplay", onLoaded);
+    document.addEventListener("visibilitychange", onVis);
+
+    // Watchdog: if nothing decoded, reload the media and retry (max 5 times).
+    let attempts = 0;
+    const watchdog = window.setInterval(() => {
+      if (v.readyState >= 2 && !v.paused && v.currentTime > 0) return;
+      if (attempts++ > 5) return;
+      try {
+        forceAttrs();
+        v.load();
+      } catch { /* noop */ }
+      tryPlay();
+    }, 3000);
+
+    // Unmute only on a genuine user gesture.
+    const onGesture = () => {
+      try {
+        v.muted = false;
+        v.removeAttribute("muted");
+        const p = v.play();
+        if (p && typeof p.then === "function") {
+          p.then(() => setIsMuted(false)).catch(() => {
+            v.muted = true;
+            tryPlay();
+          });
         } else {
-          v.muted = true;
-          void v.play().catch(() => {});
+          setIsMuted(false);
         }
-      };
-      if (p && typeof p.then === "function") {
-        p.then(() => handle(true)).catch(() => handle(false));
-      } else {
-        handle(true);
-      }
+      } catch { /* noop */ }
     };
 
-    tryUnmute();
-
-    const onGesture = () => tryUnmute();
     const cleanup = () => {
+      window.clearInterval(watchdog);
+      v.removeEventListener("loadeddata", onLoaded);
+      v.removeEventListener("canplay", onLoaded);
+      document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("pointerdown", onGesture, true);
       window.removeEventListener("touchstart", onGesture, true);
       window.removeEventListener("keydown", onGesture, true);
@@ -218,6 +249,7 @@ export function AdBombOverlay({
       unmuteCleanupRef.current = null;
     };
   }, [isActive, bomb?.id]);
+
 
   if (!isActive || !bomb) return null;
 
