@@ -37,7 +37,15 @@ export const AD_VIDEOS: AdVideo[] = [
     emoji: "👑",
     src: "/__l5e/assets-v1/ff8d99d4-a6ff-4a3c-baf4-070dbe3be36f/luffy-pirate-king.mp4",
   },
+  {
+    key: "doom_annihilator",
+    label: "صاعقة الفناء ☄️",
+    emoji: "☄️",
+    src: doomAdAsset.url,
+    hidden: true,
+  },
 ];
 
 export const getAdVideo = (key: string): AdVideo | undefined =>
   AD_VIDEOS.find((v) => v.key === key);
+
