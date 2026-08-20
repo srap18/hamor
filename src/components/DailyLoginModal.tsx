@@ -56,22 +56,38 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
   const { user } = useAuth();
   const [streak, setStreak] = useState(0);
   const [lastDate, setLastDate] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !user) return;
+    let alive = true;
+    setLoaded(false);
     (async () => {
-      await syncServerTime(true);
-      const { data } = await supabase
-        .from("daily_login_streaks")
-        .select("current_streak,last_claim_date")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setStreak(data?.current_streak ?? 0);
-      setLastDate(data?.last_claim_date ?? null);
+      // Retry: right after an app update/reconnect the first request can fail,
+      // and a failed load must never render the "day 1 / streak 0" fallback.
+      for (let attempt = 0; attempt < 4 && alive; attempt++) {
+        try {
+          await syncServerTime(true);
+          const { data, error } = await supabase
+            .from("daily_login_streaks")
+            .select("current_streak,last_claim_date")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (error) throw error;
+          if (!alive) return;
+          setStreak(data?.current_streak ?? 0);
+          setLastDate(data?.last_claim_date ?? null);
+          setLoaded(true);
+          return;
+        } catch {
+          await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        }
+      }
     })();
+    return () => { alive = false; };
   }, [open, user]);
 
   if (!open) return null;
@@ -93,7 +109,8 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
 
 
   const claim = async () => {
-    if (!user || busyRef.current || busy || claimedToday) return;
+    if (!user || !loaded || busyRef.current || busy || claimedToday) return;
+
 
     busyRef.current = true;
     setBusy(true);
