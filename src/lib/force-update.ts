@@ -16,7 +16,16 @@ const KEEP_EXACT = new Set<string>([
   "hamor_device_id",
   "oc_accounts_v1",
   "oc_pending_add_from",
+  // Session-ownership token: if it is wiped, the app reclaims the account with
+  // a brand-new token and the single-session watcher can read the old one first
+  // and "kick" the player out of their own account right after an update.
+  "oc_session_token",
+  "oc_device_id",
+  "hamor_hdid_v3",
+  "hamor_hdid_signals_v3",
+  "hamor_hdid_ts_v3",
 ]);
+
 
 
 function shouldKeep(key: string) {

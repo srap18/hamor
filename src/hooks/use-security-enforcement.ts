@@ -155,8 +155,13 @@ export function useSecurityEnforcement(): SecurityBlock | null {
       } catch {}
     };
 
-    (async () => {
+    // Claim this session first. The active-session watcher must not run before
+    // the claim lands, otherwise it reads the previous token and signs the
+    // player out of their own account (e.g. right after a game update).
+    let claimDone = false;
+    const claiming = (async () => {
       const { error: sessErr } = await (supabase as any).rpc("claim_session", { _token: localToken });
+      claimDone = true;
       if (cancelled) return;
       if (sessErr) {
         const msg = sessErr.message || "";
@@ -170,25 +175,35 @@ export function useSecurityEnforcement(): SecurityBlock | null {
     // Poll active_session_id; if another device claimed the account,
     // sign out immediately with a friendly overlay.
     let kicked = false;
+    let mismatches = 0;
     const checkActiveSession = async () => {
       if (cancelled || kicked) return;
       try {
+        await claiming;
+        if (cancelled || kicked || !claimDone) return;
         const { data, error } = await (supabase as any).rpc("get_my_active_session_id");
         if (cancelled || error) return;
         const remote = (data as string | null) ?? null;
 
         if (remote && remote !== localToken) {
+          // Require two consecutive mismatches so a slow/racy read never kicks
+          // a player who is the legitimate owner of the session.
+          mismatches += 1;
+          if (mismatches < 2) return;
           kicked = true;
           setBlock({
             kind: "kicked",
             message: "تم تسجيل الدخول إلى حسابك من جهاز آخر. تم إنهاء الجلسة على هذا الجهاز.",
           });
-          try { await supabase.auth.signOut(); } catch {}
+          try { await supabase.auth.signOut({ scope: "local" }); } catch {}
+        } else {
+          mismatches = 0;
         }
       } catch {}
     };
     checkActiveSession();
     const sessionCheckTimer = window.setInterval(checkActiveSession, 15000);
+
     const onFocusCheck = () => { if (document.visibilityState === "visible") checkActiveSession(); };
     document.addEventListener("visibilitychange", onFocusCheck);
 
