@@ -1,26 +1,30 @@
 /**
  * Multi-account fast switching (max 2 accounts — matches the 2-slots-per-device rule).
  *
- * Security notes:
- *  - We only reuse the Supabase session tokens that supabase-js already persists in
- *    localStorage for the signed-in user. No password is ever stored.
- *  - Switching re-runs the full server-side security stack (ban preflight + device slot
- *    check) before the new session is accepted; on any failure we revert to the previous
- *    session and drop the stored entry.
- *  - Tokens are removed on explicit sign-out, on refresh failure, and on any block.
+ * Security model:
+ *  - Only the *refresh* token is persisted (never the access token, never a password).
+ *    Switching always goes through `refreshSession`, which rotates the token on the
+ *    server, so a token copied out of storage is invalidated by the next switch.
+ *  - Stored entries expire locally after MAX_AGE_MS and are dropped.
+ *  - The session returned by the server must belong to the requested user id,
+ *    otherwise the switch is rejected (guards tampered storage / swapped rows).
+ *  - Switching re-runs the server-side ban preflight + device slot check; a hard
+ *    "blocked" verdict reverts to the previous session.
+ *  - "Forget" performs a global sign-out so the refresh token is revoked server-side.
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
 const KEY = "oc_accounts_v1";
 export const MAX_ACCOUNTS = 2;
+/** Stored refresh tokens are dropped after 14 days of not being used. */
+const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 
 export type StoredAccount = {
   userId: string;
   email: string | null;
   username: string | null;
   emoji: string | null;
-  access_token: string;
   refresh_token: string;
   savedAt: number;
 };
@@ -32,9 +36,25 @@ function read(): StoredAccount[] {
     if (!raw) return [];
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
-    return arr.filter(
-      (a: any) => a && typeof a.userId === "string" && typeof a.refresh_token === "string" && a.refresh_token.length > 10,
-    ) as StoredAccount[];
+    const now = Date.now();
+    return (arr as any[])
+      .filter(
+        (a) =>
+          a &&
+          typeof a.userId === "string" &&
+          typeof a.refresh_token === "string" &&
+          a.refresh_token.length > 10 &&
+          typeof a.savedAt === "number" &&
+          now - a.savedAt < MAX_AGE_MS,
+      )
+      .map((a) => ({
+        userId: a.userId,
+        email: typeof a.email === "string" ? a.email : null,
+        username: typeof a.username === "string" ? a.username : null,
+        emoji: typeof a.emoji === "string" ? a.emoji : null,
+        refresh_token: a.refresh_token,
+        savedAt: a.savedAt,
+      })) as StoredAccount[];
   } catch {
     return [];
   }
@@ -61,7 +81,7 @@ export function clearAccounts() {
   try { window.dispatchEvent(new CustomEvent("accounts:changed")); } catch {}
 }
 
-/** Persist (or refresh) the tokens of the currently signed-in account. */
+/** Persist (or refresh) the refresh token of the currently signed-in account. */
 export function rememberSession(session: Session | null, meta?: { username?: string | null; emoji?: string | null }) {
   if (!session?.refresh_token || !session.user?.id) return;
   const list = read();
@@ -71,7 +91,6 @@ export function rememberSession(session: Session | null, meta?: { username?: str
     email: session.user.email ?? existing?.email ?? null,
     username: meta?.username ?? existing?.username ?? null,
     emoji: meta?.emoji ?? existing?.emoji ?? null,
-    access_token: session.access_token,
     refresh_token: session.refresh_token,
     savedAt: Date.now(),
   };
@@ -136,14 +155,22 @@ async function securityCheck(userId: string, email: string | null): Promise<{ ok
     return { ok: true };
   } catch {
     // Infra/network hiccup must never trap the player on one account.
+    // (Bans are still enforced server-side on every protected call.)
     return { ok: true };
   }
-
 }
 
 export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogin?: boolean };
 
-/** Switch the active session to another stored account. Reloads on success. */
+async function restore(current: Session | null) {
+  if (current?.refresh_token) {
+    await supabase.auth.refreshSession({ refresh_token: current.refresh_token }).catch(() => null);
+  } else {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => null);
+  }
+}
+
+/** Switch the active session to another stored account. */
 export async function switchToAccount(userId: string): Promise<SwitchResult> {
   const target = read().find((a) => a.userId === userId);
   if (!target) return { ok: false, reason: "الحساب غير محفوظ", needsLogin: true };
@@ -153,39 +180,32 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
   if (current) rememberSession(current);
   if (current?.user?.id === userId) return { ok: true };
 
-  let session = null as import("@supabase/supabase-js").Session | null;
-  const first = await supabase.auth.setSession({
-    access_token: target.access_token,
-    refresh_token: target.refresh_token,
-  });
-  session = first.data?.session ?? null;
-  if (!session) {
-    // The stored access token may be expired; force a refresh with the refresh token.
-    const retry = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
-    session = retry?.data?.session ?? null;
-  }
+  // Rotating refresh: the stored token is consumed and replaced on the server.
+  const res = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
+  const session = res?.data?.session ?? null;
+
   if (!session) {
     removeAccount(userId);
-    if (current) {
-      await supabase.auth.setSession({ access_token: current.access_token, refresh_token: current.refresh_token }).catch(() => null);
-    }
+    await restore(current);
     return { ok: false, reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة", needsLogin: true };
   }
-  const data = { session };
 
-  const check = await securityCheck(userId, data.session.user.email || target.email);
+  // The server must have handed us exactly the account we asked for.
+  if (session.user?.id !== userId) {
+    removeAccount(userId);
+    await restore(current);
+    return { ok: false, reason: "تعذر التحقق من هوية الحساب — سجل الدخول يدويًا", needsLogin: true };
+  }
+
+  const check = await securityCheck(userId, session.user.email || target.email);
   if (!check.ok) {
     // Keep the entry saved — a temporary block is not a reason to lose the row.
-    if (current) {
-      await supabase.auth.setSession({ access_token: current.access_token, refresh_token: current.refresh_token }).catch(() => null);
-    } else {
-      await supabase.auth.signOut({ scope: "local" }).catch(() => null);
-    }
+    rememberSession(session, { username: target.username, emoji: target.emoji });
+    await restore(current);
     return { ok: false, reason: check.reason || "تعذر التبديل" };
   }
 
-
-  rememberSession(data.session, { username: target.username, emoji: target.emoji });
+  rememberSession(session, { username: target.username, emoji: target.emoji });
   return { ok: true };
 }
 
@@ -223,21 +243,32 @@ export async function cancelAddAccount(): Promise<{ ok: boolean }> {
   const origin = pendingAddOrigin();
   clearPendingAdd();
   if (!origin) return { ok: false };
-  const { data, error } = await supabase.auth.setSession({
-    access_token: origin.access_token,
-    refresh_token: origin.refresh_token,
-  });
-  if (error || !data.session) {
+  const res = await supabase.auth.refreshSession({ refresh_token: origin.refresh_token }).catch(() => null);
+  const session = res?.data?.session ?? null;
+  if (!session || session.user?.id !== origin.userId) {
     removeAccount(origin.userId);
     return { ok: false };
   }
-  rememberSession(data.session, { username: origin.username, emoji: origin.emoji });
+  rememberSession(session, { username: origin.username, emoji: origin.emoji });
   return { ok: true };
 }
 
-
-/** Full sign-out of one account: revoke + forget. */
+/** Full sign-out of one account: revoke the refresh token server-side + forget it. */
 export async function forgetAndSignOut(userId: string) {
+  const target = read().find((a) => a.userId === userId);
   removeAccount(userId);
-  await supabase.auth.signOut().catch(() => null);
+  const { data } = await supabase.auth.getSession();
+  const activeId = data.session?.user?.id;
+  if (activeId === userId || !target) {
+    // Global scope revokes every refresh token of this user.
+    await supabase.auth.signOut().catch(() => null);
+    return;
+  }
+  // Not the active account: revoke its tokens without disturbing the current session.
+  const current = data.session;
+  const res = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
+  if (res?.data?.session?.user?.id === userId) {
+    await supabase.auth.signOut().catch(() => null);
+  }
+  await restore(current);
 }
