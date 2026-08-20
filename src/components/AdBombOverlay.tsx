@@ -254,7 +254,7 @@ export function AdBombOverlay({
               void v.play().catch(() => {});
             } catch { /* noop */ }
           }}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-contain"
           style={{ opacity: 0.78 }}
         />
         <div className="absolute inset-0 bg-fuchsia-900/5" />
