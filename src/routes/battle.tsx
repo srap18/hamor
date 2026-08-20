@@ -317,7 +317,7 @@ function BattlePage() {
       {/* Always-visible escape buttons — render even before `me` loads so the
           player is never stuck if attempts run out or the arena gate fails. */}
       <div className="absolute z-50 flex flex-col gap-2"
-        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: "12px" }}>
+        style={{ top: "calc(var(--sa-top) + 12px)", right: "12px" }}>
         <Link to="/" aria-label="خروج للمحيط"
           className="w-11 h-11 rounded-full bg-black/70 border-2 border-white/40 flex items-center justify-center text-white text-lg font-black shadow-lg active:scale-95">
           ✕

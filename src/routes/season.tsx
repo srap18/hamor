@@ -132,7 +132,7 @@ function SeasonPage() {
     <div className="fixed inset-0 overflow-y-auto text-foreground" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, oklch(0.18 0.15 300) 0%, oklch(0.05 0.06 260) 100%)" }}>
       <header className="sticky top-0 z-20 glass-hud border-b border-amber-500/40 px-3 pb-3 flex items-center gap-3"
-        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
+        style={{ paddingTop: "max(0.75rem, var(--sa-top))" }}>
         <BackButton className="w-10 h-10 rounded-xl glass-hud flex items-center justify-center text-lg active:scale-95">←</BackButton>
         <div className="flex-1">
           <h1 className="text-lg font-black text-glow flex items-center gap-2 text-amber-200">🏆 SEASON RANKING</h1>

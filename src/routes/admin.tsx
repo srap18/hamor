@@ -133,7 +133,7 @@ function AdminLayout() {
       {/* Sidebar / Topbar */}
       <aside
         className="w-full md:w-60 md:shrink-0 md:h-screen md:overflow-y-auto shrink-0 z-30 border-b md:border-b-0 md:border-l border-slate-800 bg-slate-900/95 backdrop-blur flex flex-col"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        style={{ paddingTop: "var(--sa-top)" }}
       >
 
 

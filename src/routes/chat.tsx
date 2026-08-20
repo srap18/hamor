@@ -737,7 +737,7 @@ function ChatPage() {
           <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-amber-500/10 to-transparent" />
         </>
       )}
-      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.25rem, calc(env(safe-area-inset-top) + 0.5rem))" }}>
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.25rem, calc(var(--sa-top) + 0.5rem))" }}>
         <Link to="/" className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center ${soloTribe ? "bg-gradient-to-b from-amber-600 to-amber-800 border-amber-300 shadow-[0_0_12px_rgba(252,191,73,0.5)]" : "bg-amber-700 border-amber-300"}`}>↩</Link>
         <div className={`flex-1 text-center text-lg font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] ${soloTribe ? "text-amber-200 tracking-wider" : "text-amber-300"}`}>
           {soloTribe ? "🏴‍☠️ القبيلة" : "💬 الشات"}
@@ -755,7 +755,7 @@ function ChatPage() {
       )}
 
       {!soloTribe && (
-        <div className="absolute left-2 right-2 z-20 flex gap-1.5" style={{ top: "max(4.25rem, calc(3.5rem + env(safe-area-inset-top)))" }}>
+        <div className="absolute left-2 right-2 z-20 flex gap-1.5" style={{ top: "max(4.25rem, calc(3.5rem + var(--sa-top)))" }}>
           {((["public", "tribe", "dm", "topics"] as Channel[]).concat(isAdmin ? (["games"] as Channel[]) : [])).map(t => {
             const active = tab === t;
             return (
@@ -776,7 +776,7 @@ function ChatPage() {
       )}
 
 
-      <div className={`absolute left-2 right-2 rounded-2xl border overflow-hidden flex flex-col backdrop-blur-md ${soloTribe ? "bg-gradient-to-b from-stone-950/90 via-stone-950/80 to-stone-950/70 border-amber-400/60 shadow-[0_0_36px_rgba(252,191,73,0.28),inset_0_1px_0_rgba(255,255,255,0.06)]" : "bg-gradient-to-b from-stone-950/80 via-stone-950/70 to-stone-950/65 border-amber-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.05)]"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + env(safe-area-inset-top)))" : "max(6.75rem, calc(6rem + env(safe-area-inset-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
+      <div className={`absolute left-2 right-2 rounded-2xl border overflow-hidden flex flex-col backdrop-blur-md ${soloTribe ? "bg-gradient-to-b from-stone-950/90 via-stone-950/80 to-stone-950/70 border-amber-400/60 shadow-[0_0_36px_rgba(252,191,73,0.28),inset_0_1px_0_rgba(255,255,255,0.06)]" : "bg-gradient-to-b from-stone-950/80 via-stone-950/70 to-stone-950/65 border-amber-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.05)]"}`} style={{ top: soloTribe ? "max(4.5rem, calc(3.75rem + var(--sa-top)))" : "max(6.75rem, calc(6rem + var(--sa-top)))", bottom: (tab === "topics" || tab === "games") ? "5rem" : "calc(8rem + var(--keyboard-inset, 0px))" }}>
         {tab === "games" ? (
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-md mx-auto text-center pt-6">
@@ -2293,7 +2293,7 @@ function ChatComposer({ restoreDraftRef, onSend, sending, disabled, userId, onAu
 
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))" }}>
+    <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="absolute left-2 right-2 z-40 flex flex-col gap-1.5" style={{ bottom: "calc(76px + var(--keyboard-inset, 0px) + var(--sa-bottom))" }}>
       {replyTo && (
         <div className="flex items-stretch gap-2 rounded-xl border-r-4 border-amber-400 bg-stone-900/95 px-2 py-1.5 shadow-lg">
           <div className="flex-1 min-w-0">

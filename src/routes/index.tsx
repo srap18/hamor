@@ -2046,8 +2046,8 @@ function Index() {
         aria-label="المهام والإنجازات"
         className="fixed z-30 flex flex-col items-center justify-center active:scale-95 transition rounded-xl"
         style={{
-          left: "calc(env(safe-area-inset-left, 0px) + 8px)",
-          top: "calc(env(safe-area-inset-top, 0px) + 250px)",
+          left: "calc(var(--sa-left) + 8px)",
+          top: "calc(var(--sa-top) + 250px)",
           width: "clamp(34px, 9.5vw, 44px)",
           height: "clamp(38px, 11vw, 50px)",
           background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
@@ -2364,7 +2364,7 @@ function Index() {
 
 
       {/* TOP HUD — pirate luxury */}
-      <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.5rem)" }}>
+      <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "calc(var(--sa-top) + 0.5rem)" }}>
         <div className="flex items-start gap-2">
           {/* Avatar + name + treasury stacked */}
           <div className="flex flex-col items-center gap-1.5 shrink-0">
@@ -2577,8 +2577,8 @@ function Index() {
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
         className="fixed z-30 rounded-2xl flex flex-col items-center justify-center active:scale-95"
         style={{
-          left: "calc(env(safe-area-inset-left, 0px) + 8px)",
-          top: "calc(env(safe-area-inset-top, 0px) + 190px)",
+          left: "calc(var(--sa-left) + 8px)",
+          top: "calc(var(--sa-top) + 190px)",
           width: "clamp(34px, 9.5vw, 44px)",
           height: "clamp(38px, 11vw, 50px)",
           color: "#2a1605",
@@ -3775,9 +3775,9 @@ function Index() {
       <div
         className="fixed inset-x-0 bottom-0 z-[80] pb-2"
         style={{
-          paddingBottom: "max(0.55rem, env(safe-area-inset-bottom))",
-          paddingLeft: "max(1rem, env(safe-area-inset-left))",
-          paddingRight: "max(1rem, env(safe-area-inset-right))",
+          paddingBottom: "max(0.55rem, var(--sa-bottom))",
+          paddingLeft: "max(1rem, var(--sa-left))",
+          paddingRight: "max(1rem, var(--sa-right))",
         }}
       >
         <div
@@ -4305,10 +4305,10 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2"
-      style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(0.5rem + var(--keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))" }}
+      style={{ paddingTop: "calc(0.5rem + var(--sa-top))", paddingBottom: "calc(0.5rem + var(--keyboard-inset, 0px) + var(--sa-bottom))" }}
       onClick={shieldClose}>
       <div className="w-full max-w-md glass-hud border-2 border-accent/60 rounded-2xl p-3 flex flex-col"
-        style={{ maxHeight: "calc(var(--app-height, 100dvh) - var(--keyboard-inset, 0px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 1rem)" }}
+        style={{ maxHeight: "calc(var(--app-height, 100dvh) - var(--keyboard-inset, 0px) - var(--sa-top) - var(--sa-bottom) - 1rem)" }}
         onClick={(e) => e.stopPropagation()} dir="rtl">
 
         <div className="text-center text-accent font-bold text-lg mb-2">🏆 الترتيب</div>

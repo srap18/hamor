@@ -59,7 +59,7 @@ export function LuckyWinTicker() {
   return (
     <div
       className="fixed inset-x-0 z-[95] flex flex-col items-center gap-2 px-3 pointer-events-none"
-      style={{ top: "max(4.75rem, calc(env(safe-area-inset-top) + 4.75rem))" }}
+      style={{ top: "max(4.75rem, calc(var(--sa-top) + 4.75rem))" }}
     >
       {queue.slice(-3).map((t) => (
         <LuckyToast key={t.id} toast={t} onDismiss={() => setQueue((q) => q.filter((x) => x.id !== t.id))} />

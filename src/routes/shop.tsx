@@ -333,7 +333,7 @@ function Shop() {
       />
 
       {/* TOP HUD */}
-      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(var(--sa-top) + 1.25rem))" }}>
         <Link to="/" aria-label="العودة إلى الرئيسية" className="w-10 h-10 rounded-xl bg-gradient-to-b from-rose-500 to-rose-800 border-2 border-rose-300 flex items-center justify-center text-lg font-bold shadow-lg active:scale-95">
           ↩
         </Link>
@@ -350,13 +350,13 @@ function Shop() {
       {redeemOpen && <RedeemDialog onClose={() => setRedeemOpen(false)} />}
 
       {/* Title */}
-      <h1 className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow m-0" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 3.75rem)" }}>
+      <h1 className="absolute left-0 right-0 z-20 text-center text-lg font-extrabold text-glow m-0" style={{ top: "calc(max(1.75rem, var(--sa-top)) + 3.75rem)" }}>
         المتجر — ملوك القراصنة (هامور شابك)
       </h1>
 
 
       {/* Tabs */}
-      <div className="absolute left-0 right-0 z-20 px-2 flex gap-1" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 5.25rem)" }}>
+      <div className="absolute left-0 right-0 z-20 px-2 flex gap-1" style={{ top: "calc(max(1.75rem, var(--sa-top)) + 5.25rem)" }}>
         {TABS.map((t) => {
           const active = t.id === tab;
           return (
@@ -380,7 +380,7 @@ function Shop() {
       </div>
 
       {/* Panel */}
-      <div className="absolute left-2 right-2 bottom-32 z-10 rounded-2xl bg-gradient-to-b from-rose-950/90 to-stone-950/90 border-2 border-rose-900/60 shadow-2xl flex flex-col overflow-hidden" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 8rem)" }}>
+      <div className="absolute left-2 right-2 bottom-32 z-10 rounded-2xl bg-gradient-to-b from-rose-950/90 to-stone-950/90 border-2 border-rose-900/60 shadow-2xl flex flex-col overflow-hidden" style={{ top: "calc(max(1.75rem, var(--sa-top)) + 8rem)" }}>
         {/* Banner */}
         <div className="px-3 pt-3">
           <Banner

@@ -1036,11 +1036,20 @@ html { touch-action: manipulation; }
  * Web visitors are unaffected.
  * ========================================================= */
 :root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
+  /* Android WebViews often report env(safe-area-inset-*) as 0 even under a
+     status bar / cutout. src/lib/safe-area.ts measures the real inset and
+     exposes --fallback-safe-*; these vars always take the larger value so
+     HUD icons never slip under the status bar or off the screen edge. */
+  --sa-top: max(env(safe-area-inset-top, 0px), var(--fallback-safe-top, 0px));
+  --sa-bottom: max(env(safe-area-inset-bottom, 0px), var(--fallback-safe-bottom, 0px));
+  --sa-left: max(env(safe-area-inset-left, 0px), var(--fallback-safe-left, 0px));
+  --sa-right: max(env(safe-area-inset-right, 0px), var(--fallback-safe-right, 0px));
+  --safe-top: var(--sa-top);
+  --safe-bottom: var(--sa-bottom);
+  --safe-left: var(--sa-left);
+  --safe-right: var(--sa-right);
 }
+
 
 /* Convenience utilities — usable everywhere, no-ops on browsers without notches. */
 @layer utilities {

@@ -85,7 +85,7 @@ function TribePage() {
   return (
     <div className="min-h-screen w-full text-foreground" dir="rtl"
       style={{ background: "radial-gradient(ellipse at top, oklch(0.30 0.12 260) 0%, oklch(0.10 0.06 250) 100%)" }}>
-      <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 pb-3 flex items-center gap-3" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
+      <header className="sticky top-0 z-20 glass-hud border-b border-accent/30 px-3 pb-3 flex items-center gap-3" style={{ paddingTop: "max(0.75rem, var(--sa-top))" }}>
         <BackButton aria-label="رجوع" className="w-10 h-10 rounded-xl glass-hud flex items-center justify-center text-lg active:scale-95">←</BackButton>
         <h1 className="text-lg font-bold text-glow flex-1 truncate">🏴‍☠️ {tribe.name}</h1>
       </header>

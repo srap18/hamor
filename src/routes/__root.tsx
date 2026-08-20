@@ -648,8 +648,8 @@ function RootComponent() {
             visibleToasts={1}
             duration={3000}
             closeButton={false}
-            offset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
-            mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 64px)" }}
+            offset={{ top: "calc(var(--sa-top) + 64px)" }}
+            mobileOffset={{ top: "calc(var(--sa-top) + 64px)" }}
             toastOptions={{
               // Luxury dark-gold pirate look — solid gradient (no heavy blur),
               // thin gold border, subtle glow. Zero backdrop-filter = cool GPU.
