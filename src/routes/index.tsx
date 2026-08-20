@@ -5533,7 +5533,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
         return (
           <div
-            className="absolute bottom-full left-1/2 mb-[6px] w-[78%] flex flex-col items-center gap-[4px] pointer-events-none z-40"
+            className="absolute bottom-full left-1/2 mb-[6px] w-[78%] min-w-[88px] max-w-[140px] flex flex-col items-center gap-[4px] pointer-events-none z-40"
             style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
           >
             {/* Status / timer chip — always the top row, never over the hull */}
