@@ -114,7 +114,7 @@ export function SeamlessVideo({
     };
   }, [src, playbackRate, failed]);
 
-  if (failed) {
+  if (failed || yielded) {
     return poster ? (
       <img
         src={poster}
