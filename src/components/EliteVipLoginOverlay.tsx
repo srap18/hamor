@@ -123,7 +123,7 @@ export function EliteVipLoginOverlay() {
 
       <div
         className="pointer-events-none fixed inset-x-0 z-[9998] flex justify-center px-2"
-        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
+        style={{ bottom: "calc(var(--sa-bottom) + 5.5rem)" }}
         aria-live="polite"
       >
         <div onClick={() => setCurrent(null)} className={`vip-slide-in-bottom pointer-events-auto cursor-pointer relative w-full max-w-[260px] rounded-xl overflow-hidden border ${themeBorder} bg-gradient-to-r ${themeBg} shadow-lg`}>

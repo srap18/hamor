@@ -178,7 +178,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
           {/* Sticky top bar so the close button is always reachable */}
           <div
             className="sticky top-0 z-10 flex items-center justify-between px-4 bg-gradient-to-b from-black/90 to-transparent"
-            style={{ paddingTop: "max(12px, env(safe-area-inset-top))", paddingBottom: 12 }}
+            style={{ paddingTop: "max(12px, var(--sa-top))", paddingBottom: 12 }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -195,7 +195,7 @@ export default function ProfileAlbum({ userId, isOwner }: Props) {
           </div>
 
           <div
-            className="px-3 pb-[calc(40px+env(safe-area-inset-bottom))] flex flex-col items-center"
+            className="px-3 pb-[calc(40px+var(--sa-bottom))] flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
             {viewer.media_type === "image" ? (

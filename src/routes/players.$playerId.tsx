@@ -1185,7 +1185,7 @@ function PlayerPage() {
   if (!loading && p && targetIsStaff && friendStatus !== "self") {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-stone-900 to-stone-950 text-amber-100 flex flex-col" dir="rtl">
-        <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
+        <div className="px-3 pb-3 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(var(--sa-top) + 1.25rem))" }}>
           <BackButton className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center">↩</BackButton>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 text-center">
@@ -1458,7 +1458,7 @@ function PlayerPage() {
 
 
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(env(safe-area-inset-top) + 1.25rem))" }}>
+      <div className="absolute top-0 left-0 right-0 z-30 px-2 pb-2 flex items-center gap-2" style={{ paddingTop: "max(1.75rem, calc(var(--sa-top) + 1.25rem))" }}>
         <BackButton className="w-10 h-10 rounded-xl bg-amber-700 border-2 border-amber-300 flex items-center justify-center" aria-label="رجوع">↩</BackButton>
         <div className={`flex-1 glass-hud rounded-xl px-3 py-2 flex items-center gap-2 border border-amber-400/50 ${frameById(p?.profile_frame)?.kind === "profile" ? frameById(p?.profile_frame)?.profileClass : ""} ${frameById(p?.profile_frame)?.animClass ?? ""}`}>
           <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
@@ -1497,14 +1497,14 @@ function PlayerPage() {
       </div>
 
       {/* Stats row — only XP shown publicly; coins/gems are private */}
-      <div className="absolute left-2 right-2 z-30 grid grid-cols-2 gap-2" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 4.5rem)" }}>
+      <div className="absolute left-2 right-2 z-30 grid grid-cols-2 gap-2" style={{ top: "calc(max(1.75rem, var(--sa-top)) + 4.5rem)" }}>
         <Stat icon="⭐" label="XP" value={p?.xp ?? 0} />
         <Stat icon="⚓" label="السفن" value={ships.length} />
       </div>
 
       {/* Death banner — elegant transparent, minimizable, hideable from settings */}
       {!deathBannerHidden && p?.last_destroyer_name && (p.last_destroyer_kind === "nuke" || p.last_destroyer_kind === "ad_bomb") && (
-        <div className="absolute left-2 right-2 z-30 flex justify-center" style={{ top: "calc(max(1.75rem, env(safe-area-inset-top)) + 7.5rem)" }}>
+        <div className="absolute left-2 right-2 z-30 flex justify-center" style={{ top: "calc(max(1.75rem, var(--sa-top)) + 7.5rem)" }}>
           {deathBannerMin ? (
             <button
               onClick={() => {

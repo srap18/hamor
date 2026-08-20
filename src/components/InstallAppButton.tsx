@@ -106,7 +106,7 @@ export function InstallAppButton() {
         <div
           dir="rtl"
           className="fixed bottom-4 left-1/2 z-[9999] -translate-x-1/2 w-[92vw] max-w-md rounded-2xl border border-amber-500/40 bg-gradient-to-br from-slate-900/95 to-slate-950/95 px-4 py-3 shadow-2xl backdrop-blur-md"
-          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+          style={{ paddingBottom: "max(0.75rem, var(--sa-bottom))" }}
         >
           <div className="flex items-center gap-3">
             <div className="text-3xl">⚓</div>
@@ -142,7 +142,7 @@ export function InstallAppButton() {
           <div
             className="w-full max-w-sm rounded-2xl border border-amber-500/40 bg-slate-900 p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-            style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
+            style={{ paddingBottom: "max(1.25rem, var(--sa-bottom))" }}
           >
             <div className="text-center text-3xl mb-2">📲</div>
             <div className="text-center text-base font-bold text-amber-300 mb-3">

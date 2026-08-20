@@ -160,8 +160,8 @@ function QuestsPage() {
   return (
     <div className="min-h-[100dvh] text-amber-100" style={{
       background: "radial-gradient(ellipse at top,#1a0f06 0%,#0a0503 70%,#000 100%)",
-      paddingTop: "max(0.75rem, env(safe-area-inset-top))",
-      paddingBottom: "max(5rem, env(safe-area-inset-bottom))",
+      paddingTop: "max(0.75rem, var(--sa-top))",
+      paddingBottom: "max(5rem, var(--sa-bottom))",
     }}>
       <div className="max-w-xl mx-auto px-3">
         <div className="flex items-center justify-between py-3">
