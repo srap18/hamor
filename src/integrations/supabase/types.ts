@@ -7347,6 +7347,7 @@ export type Database = {
       device_install_collision: { Args: { _install: string }; Returns: boolean }
       device_install_register: { Args: { _install_id: string }; Returns: Json }
       device_is_privileged: { Args: { _uid: string }; Returns: boolean }
+      device_is_shared: { Args: { _device: string }; Returns: boolean }
       device_link_register: {
         Args: { _device_id: string; _hardware_hash?: string }
         Returns: Json
