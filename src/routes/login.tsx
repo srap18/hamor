@@ -35,6 +35,28 @@ function LoginPage() {
   const slotGate = useDeviceSlotGate();
   // Stable device key used by the anti-guessing throttle (set during preflight).
   const guardDeviceRef = useRef<string>("");
+  const [savedAccounts, setSavedAccounts] = useState<{ userId: string; username: string | null; email: string | null; emoji: string | null }[]>([]);
+  const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const { listAccounts } = await import("@/lib/account-switch");
+        setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
+      } catch {}
+    })();
+  }, []);
+
+  const quickSwitch = async (userId: string) => {
+    if (switching) return;
+    setSwitching(true); setErr(null);
+    const { switchToAccount, listAccounts } = await import("@/lib/account-switch");
+    const res = await switchToAccount(userId);
+    if (res.ok) { window.location.replace("/"); return; }
+    setSwitching(false);
+    setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
+    setErr(res.reason);
+  };
 
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
@@ -196,6 +218,22 @@ function LoginPage() {
           <div className="text-xl font-extrabold text-amber-300">Ocean Catch</div>
           <div className="text-xs text-amber-100/70">سجل دخولك واركب البحر</div>
         </div>
+        {savedAccounts.length > 0 && (
+          <div className="mb-4 space-y-2">
+            <div className="text-[11px] text-amber-100/70 text-center">حسابات محفوظة على هذا الجهاز</div>
+            {savedAccounts.map((a) => (
+              <button key={a.userId} type="button" disabled={switching} onClick={() => quickSwitch(a.userId)}
+                className="w-full flex items-center gap-2 p-2 rounded-lg bg-stone-900 border border-amber-700/40 text-right active:scale-95 disabled:opacity-50">
+                <span className="text-lg">{a.emoji || "🏴‍☠️"}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-xs font-bold text-white truncate">{a.username || a.email || "حساب"}</span>
+                  <span className="block text-[10px] text-amber-100/60 truncate">{a.email || ""}</span>
+                </span>
+                <span className="text-[11px] font-bold text-amber-300">{switching ? "..." : "دخول"}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={submit} className="space-y-3">
           <input type="email" required placeholder="الإيميل" value={email} onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/40 text-white text-sm focus:outline-none focus:border-amber-400" />
