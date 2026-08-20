@@ -215,21 +215,24 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
           <div className="rounded-xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-900/50 via-amber-800/40 to-amber-900/50 p-3 flex items-center gap-3">
             <div className="shrink-0"><RewardIcon r={todaysReward} size={44} /></div>
             <div className="flex-1 text-right">
-              <div className="text-[10px] text-amber-300">هدية اليوم {nextDayIndex + 1}</div>
-              <div className="text-amber-100 font-bold text-sm">{todaysReward.name}</div>
-              <div className="text-amber-300 text-xs">الكمية: ×{todaysReward.qty}</div>
+              <div className="text-[10px] text-amber-300">{loaded ? `هدية اليوم ${nextDayIndex + 1}` : "جاري التحميل..."}</div>
+              <div className="text-amber-100 font-bold text-sm">{loaded ? todaysReward.name : "—"}</div>
+              <div className="text-amber-300 text-xs">{loaded ? `الكمية: ×${todaysReward.qty}` : ""}</div>
             </div>
             <button
               onClick={claim}
-              disabled={claimedToday || busy}
+              disabled={!loaded || claimedToday || busy}
               className={`px-4 py-2 rounded-lg font-black text-sm border-2 ${
-                claimedToday
+                !loaded
+                  ? "bg-black/40 border-amber-700/40 text-amber-200/60"
+                  : claimedToday
                   ? "bg-emerald-900/60 border-emerald-500/40 text-emerald-300"
                   : "bg-gradient-to-b from-amber-300 to-amber-600 border-amber-200 text-amber-950 active:scale-95 shadow-lg"
               }`}
             >
-              {claimedToday ? "✓ تم" : "استلم"}
+              {!loaded ? "..." : claimedToday ? "✓ تم" : "استلم"}
             </button>
+
 
           </div>
           <button
