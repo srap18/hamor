@@ -42,11 +42,11 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
     const fingerprintVersion = 1;
     if (!data.hardwareHash) return { action: "allowed", reason: "no_fingerprint", canonicalHash: null };
     const sb = getDeviceSlotServiceClient();
-    const canonicalHash = await resolveDeviceHash(data.hardwareHash, data.signals, fingerprintVersion);
+    let canonicalHash = await resolveDeviceHash(data.hardwareHash, data.signals, fingerprintVersion);
     // Record the high-precision hardware identity for this account (accuracy
     // first: weak fingerprints are ignored and nothing network-based is used).
     try {
-      await resolveDeviceIdentity({
+      const identity = await resolveDeviceIdentity({
         stableKey: data.stableKey,
         noiseKey: data.noiseKey,
         nativeId: data.nativeId,
@@ -55,6 +55,11 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
         hardwareHash: canonicalHash,
         userId: data.userId,
       });
+      // A confirmed physical device always uses one shared device code, so
+      // repeated installs / home-screen shortcuts cannot mint new slots.
+      if (!identity.generic && identity.canonicalHash && identity.canonicalHash.length >= 16) {
+        canonicalHash = identity.canonicalHash;
+      }
     } catch {}
     const { data: res, error } = await sb.rpc("device_slot_check", {
       _hardware_hash: canonicalHash,
@@ -64,6 +69,7 @@ export const deviceSlotCheck = createServerFn({ method: "POST" })
     });
     if (error) return { action: "allowed", reason: "check_error", canonicalHash, error: error.message };
     return { ...(res as any), canonicalHash };
+
   });
 
 /**
