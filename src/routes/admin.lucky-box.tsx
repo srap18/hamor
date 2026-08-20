@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logAudit } from "@/hooks/use-admin";
+import { PRIZE_PRESET_GROUPS, findPreset, presetKeyFor } from "@/lib/prize-catalog";
+
 
 export const Route = createFileRoute("/admin/lucky-box")({
   component: AdminLuckyBox,
@@ -339,51 +341,58 @@ function PrizeRow({
             </div>
           )}
 
-          {/* Top: name + icon + controls */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <div className="flex-1 min-w-0">
-              <label className="text-[10px] text-slate-400 block mb-1">اسم الجائزة</label>
-              <div className="flex gap-2">
-                <input className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                  value={prize.label} placeholder="مثال: 50 مليون ذهب"
-                  onChange={(e) => onChange({ label: e.target.value })} />
-                <input className="w-14 px-2 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm text-center"
-                  value={prize.icon} maxLength={4} title="الأيقونة"
-                  onChange={(e) => onChange({ icon: e.target.value })} />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-2 sm:mt-5">
-              <label className="inline-flex items-center cursor-pointer gap-2">
-                <span className="text-xs text-slate-400">{prize.active ? "مفعّلة" : "معطّلة"}</span>
-                <input type="checkbox" className="sr-only peer" checked={prize.active}
-                  onChange={(e) => onChange({ active: e.target.checked })} />
-                <div className="w-11 h-6 rounded-full bg-slate-700 peer-checked:bg-emerald-600 relative transition shrink-0">
-                  <div className={`absolute top-0.5 ${prize.active ? "right-0.5" : "left-0.5"} w-5 h-5 bg-white rounded-full transition`} />
-                </div>
-              </label>
-              <button onClick={onDelete}
-                className="text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/70 text-red-200 border border-red-900/50">حذف</button>
+          {/* One-click prize picker — fills every field automatically */}
+          <div>
+            <label className="text-[10px] text-slate-400 block mb-1">اختر الجائزة (يعبّي كل الخانات تلقائياً)</label>
+            <select
+              className="w-full px-3 py-2.5 rounded-lg bg-emerald-950/50 border border-emerald-700/60 text-sm font-bold"
+              value={presetKeyFor(prize)}
+              onChange={(e) => {
+                const preset = findPreset(e.target.value);
+                if (!preset) return;
+                onChange({
+                  prize_type: preset.prize_type,
+                  item_type: preset.item_type,
+                  item_id: preset.item_id,
+                  amount: preset.amount,
+                  label: preset.name,
+                  icon: preset.icon,
+                });
+              }}
+            >
+              <option value="">— اختر جائزة جاهزة —</option>
+              {PRIZE_PRESET_GROUPS.map((g) => (
+                <optgroup key={g.group} label={g.group}>
+                  {g.items.map((p) => (
+                    <option key={p.key} value={p.key}>{p.icon} {p.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <div className="text-[10px] text-slate-500 mt-1">
+              الاسم والأيقونة والمعرّف تتعبّى تلقائياً — عدّل الكمية أو الوزن فقط إذا حبيت.
             </div>
           </div>
 
-          {/* Middle: type + amount + weight */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-[10px] text-slate-400 block mb-1">نوع الجائزة</label>
-              <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                value={prize.prize_type}
-                onChange={(e) => onChange({ prize_type: e.target.value as PrizeType })}>
-                <option value="coins">🪙 عملات</option>
-                <option value="gems">💎 جواهر</option>
-                <option value="rubies">❤️ ياقوت</option>
-                <option value="xp">⭐ نقاط خبرة</option>
-                <option value="item">🎒 عنصر مخزن</option>
-                <option value="dragon_equipment">🐉 معدة تنين</option>
-              </select>
-            </div>
+          {/* Controls: enable + delete */}
+          <div className="flex items-center justify-end gap-2">
+            <label className="inline-flex items-center cursor-pointer gap-2">
+              <span className="text-xs text-slate-400">{prize.active ? "مفعّلة" : "معطّلة"}</span>
+              <input type="checkbox" className="sr-only peer" checked={prize.active}
+                onChange={(e) => onChange({ active: e.target.checked })} />
+              <div className="w-11 h-6 rounded-full bg-slate-700 peer-checked:bg-emerald-600 relative transition shrink-0">
+                <div className={`absolute top-0.5 ${prize.active ? "right-0.5" : "left-0.5"} w-5 h-5 bg-white rounded-full transition`} />
+              </div>
+            </label>
+            <button onClick={onDelete}
+              className="text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/70 text-red-200 border border-red-900/50">حذف</button>
+          </div>
+
+          {/* Amount + weight */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] text-slate-400 block mb-1">
-                {prize.prize_type === "dragon_equipment" ? "عدد القطع" : "الكمية / القيمة"}
+                {prize.prize_type === "dragon_equipment" ? "عدد القطع" : isCurrency ? "الكمية" : "عدد النسخ"}
               </label>
               <input type="number" min={1}
                 className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
@@ -399,6 +408,39 @@ function PrizeRow({
               <div className="text-[10px] text-amber-200/70 mt-1">فرصة ظهورها الآن: {chance.toFixed(1)}%</div>
             </div>
           </div>
+
+          {/* Advanced (manual) — hidden by default */}
+          <details className="rounded-lg border border-slate-800 bg-slate-950/40">
+            <summary className="cursor-pointer text-[11px] text-slate-400 px-3 py-2">إعداد يدوي متقدم (اختياري)</summary>
+            <div className="p-3 pt-0 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1">اسم الجائزة</label>
+                  <input className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                    value={prize.label} placeholder="مثال: 50 مليون ذهب"
+                    onChange={(e) => onChange({ label: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1">الأيقونة</label>
+                  <input className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm text-center"
+                    value={prize.icon} maxLength={4}
+                    onChange={(e) => onChange({ icon: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-400 block mb-1">نوع الجائزة</label>
+                <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                  value={prize.prize_type}
+                  onChange={(e) => onChange({ prize_type: e.target.value as PrizeType })}>
+                  <option value="coins">🪙 عملات</option>
+                  <option value="gems">💎 جواهر</option>
+                  <option value="rubies">❤️ ياقوت</option>
+                  <option value="xp">⭐ نقاط خبرة</option>
+                  <option value="item">🎒 عنصر مخزن</option>
+                  <option value="dragon_equipment">🐉 معدة تنين</option>
+                </select>
+              </div>
+
 
           {/* Item-specific fields */}
           {!isCurrency && (
@@ -447,8 +489,11 @@ function PrizeRow({
               )}
             </div>
           )}
+            </div>
+          </details>
         </div>
       )}
+
     </div>
   );
 }
