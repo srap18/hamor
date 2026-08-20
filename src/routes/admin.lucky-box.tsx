@@ -82,6 +82,8 @@ function AdminLuckyBox() {
   const [recent, setRecent] = useState<Array<{ id: string; label: string; rarity: Rarity; created_at: string }>>([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Rarity>("legendary");
+
 
   const load = useCallback(async () => {
     setLoading(true);
