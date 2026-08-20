@@ -83,6 +83,12 @@ function LoginPage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
+      // While adding a second account the first session intentionally remains
+      // active so its refresh token is not revoked. Keep this page open and let
+      // the user either sign in to account two or return to account one.
+      const { pendingAddOrigin } = await import("@/lib/account-switch");
+      const origin = pendingAddOrigin();
+      if (origin?.userId === data.session.user.id) return;
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
       const { clearPendingAdd } = await import("@/lib/account-switch");
       clearPendingAdd();
@@ -181,12 +187,15 @@ function LoginPage() {
         "device_check_timeout",
       ).catch(() => false);
       if (!ok) {
-        try { await supabase.auth.signOut(); } catch {}
+        // Revoke only the rejected account's current session. Never use global
+        // sign-out here because account switching may have another saved login.
+        try { await supabase.auth.signOut({ scope: "local" }); } catch {}
         setErr("تعذر التحقق من صلاحية هذا الجهاز. حاول مجددًا");
         return;
       }
       if (ok) {
-        const { clearPendingAdd } = await import("@/lib/account-switch");
+        const { clearPendingAdd, rememberSession } = await import("@/lib/account-switch");
+        rememberSession(data.session);
         clearPendingAdd();
         nav({ to: "/" });
       }

@@ -164,7 +164,10 @@ export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogi
 
 async function restore(current: Session | null) {
   if (current?.refresh_token) {
-    await supabase.auth.refreshSession({ refresh_token: current.refresh_token }).catch(() => null);
+    const restored = await supabase.auth.refreshSession({ refresh_token: current.refresh_token }).catch(() => null);
+    if (restored?.data?.session?.user?.id === current.user.id) {
+      rememberSession(restored.data.session);
+    }
   } else {
     await supabase.auth.signOut({ scope: "local" }).catch(() => null);
   }
@@ -211,15 +214,21 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
 
 const PENDING_KEY = "oc_pending_add_from";
 
-/** Keep the current account saved, then drop the local session so /login is usable. */
+/**
+ * Enter add-account mode without signing out the current account.
+ *
+ * Even a `scope: "local"` sign-out revokes the current refresh token on the
+ * auth server. That made the saved first account unusable as soon as the user
+ * tapped "add account". The login page deliberately stays open while this
+ * marker exists, and a successful second sign-in simply replaces the active
+ * browser session while the first account's saved refresh token remains valid.
+ */
 export async function beginAddAccount(): Promise<void> {
   const { data } = await supabase.auth.getSession();
   if (data.session) {
     rememberSession(data.session);
     try { localStorage.setItem(PENDING_KEY, data.session.user.id); } catch {}
   }
-  // scope "local" keeps the saved refresh token valid on the server.
-  await supabase.auth.signOut({ scope: "local" }).catch(() => null);
 }
 
 /** The account the user came from when tapping "add account" (if any). */
@@ -243,6 +252,15 @@ export async function cancelAddAccount(): Promise<{ ok: boolean }> {
   const origin = pendingAddOrigin();
   clearPendingAdd();
   if (!origin) return { ok: false };
+
+  // The normal add-account path keeps the origin active, so returning should
+  // not rotate its refresh token or make any network request.
+  const { data: current } = await supabase.auth.getSession();
+  if (current.session?.user?.id === origin.userId) {
+    rememberSession(current.session, { username: origin.username, emoji: origin.emoji });
+    return { ok: true };
+  }
+
   const res = await supabase.auth.refreshSession({ refresh_token: origin.refresh_token }).catch(() => null);
   const session = res?.data?.session ?? null;
   if (!session || session.user?.id !== origin.userId) {
