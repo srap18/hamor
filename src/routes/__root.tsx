@@ -452,6 +452,8 @@ function RootComponent() {
     loadEconomyOverrides();
     installNativeShell();
     installSafeAreaFallback();
+    installTextZoomFix();
+
 
     // Track player session + online heartbeat for accurate admin online count.
     let disposed = false;
