@@ -241,7 +241,19 @@ function LoginPage() {
           <div className="text-xl font-extrabold text-amber-300">Ocean Catch</div>
           <div className="text-xs text-amber-100/70">سجل دخولك واركب البحر</div>
         </div>
+        {pendingBack && (
+          <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-600/50 text-center space-y-2">
+            <div className="text-[11px] text-emerald-100/80">
+              أنت في وضع «إضافة حساب». إذا ما تبي تضيف حساب جديد، ارجع لحسابك:
+            </div>
+            <button type="button" disabled={switching} onClick={cancelAdd}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-sm font-extrabold active:scale-95 disabled:opacity-50">
+              {switching ? "..." : `↩︎ رجوع إلى ${pendingBack.username || pendingBack.email || "حسابي"}`}
+            </button>
+          </div>
+        )}
         {savedAccounts.length > 0 && (
+
           <div className="mb-4 space-y-2">
             <div className="text-[11px] text-amber-100/70 text-center">حسابات محفوظة على هذا الجهاز</div>
             {savedAccounts.map((a) => (
