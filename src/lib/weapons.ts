@@ -7,6 +7,7 @@ import rocketLargeImg from "@/assets/weapons/rocket-large.webp";
 import nukeImg from "@/assets/weapons/nuke.webp";
 import adBombImg from "@/assets/weapons/ad-bomb.webp";
 import krakenBombImg from "@/assets/weapons/kraken-bomb.png";
+import doomAnnihilatorImg from "@/assets/weapons/doom-annihilator.png";
 
 export type Weapon = {
   id: string;
@@ -19,8 +20,11 @@ export type Weapon = {
   xp: number; // XP awarded to attacker per ship hit
   rarity: "common" | "rare" | "epic" | "legendary";
   aoe?: boolean; // true = hits every ship in the target fleet (nuke)
+  unlimited?: boolean; // true = ignores HP entirely, destroys every ship
+  noShop?: boolean; // true = never sold in the shop / trade (admin-granted only)
   desc?: string;
 };
+
 
 
 export const WEAPONS: Weapon[] = [
