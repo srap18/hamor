@@ -2048,8 +2048,8 @@ function Index() {
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
           top: "calc(env(safe-area-inset-top, 0px) + 250px)",
-          width: 44,
-          height: 50,
+          width: "clamp(34px, 9.5vw, 44px)",
+          height: "clamp(38px, 11vw, 50px)",
           background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
           border: "2px solid #fde68a",
           boxShadow: "0 3px 10px rgba(0,0,0,.7), 0 0 12px rgba(251,191,36,.4)",
