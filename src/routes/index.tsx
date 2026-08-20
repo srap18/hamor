@@ -2579,8 +2579,9 @@ function Index() {
         style={{
           left: "calc(var(--sa-left) + 8px)",
           top: "calc(var(--sa-top) + 190px)",
-          width: "clamp(34px, 9.5vw, 44px)",
-          height: "clamp(38px, 11vw, 50px)",
+          width: "clamp(38px, 10vw, 46px)",
+          height: "clamp(44px, 12.5vw, 54px)",
+
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
           border: "2px solid #ffe9a8",
@@ -2588,8 +2589,9 @@ function Index() {
         }}
       >
         <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
-        <span className="relative" style={{ fontSize: "clamp(18px, 5.6vw, 28px)", lineHeight: 1, filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
-        <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
+        <span className="relative" style={{ fontSize: "clamp(16px, 4.8vw, 24px)", lineHeight: 1, filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
+        <span className="relative text-[9px] font-black leading-none mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
+
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
 
