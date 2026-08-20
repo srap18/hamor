@@ -185,7 +185,12 @@ function LoginPage() {
         setErr("تعذر التحقق من صلاحية هذا الجهاز. حاول مجددًا");
         return;
       }
-      if (ok) nav({ to: "/" });
+      if (ok) {
+        const { clearPendingAdd } = await import("@/lib/account-switch");
+        clearPendingAdd();
+        nav({ to: "/" });
+      }
+
     } catch (error) {
       setErr(error instanceof Error ? error.message : "تعذر تسجيل الدخول، حاول مرة أخرى");
     } finally {
