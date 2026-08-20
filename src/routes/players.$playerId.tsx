@@ -1799,6 +1799,23 @@ function PlayerPage() {
                     );
                   }
                   const canFire = q > 0;
+                  if (w.noShop) {
+                    return (
+                      <div key={w.id} className="flex items-stretch gap-2">
+                        <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
+                          className="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gradient-to-b from-red-950/90 to-stone-950/90 border-2 border-red-500/60 shadow-[0_0_22px_rgba(255,60,30,0.35)] active:scale-95 disabled:opacity-40 text-right">
+                          {w.image ? <img decoding="async" src={w.image} alt={w.name} className="w-11 h-11 object-contain drop-shadow-[0_0_10px_rgba(255,80,40,0.9)]" /> : <span className="text-3xl">{w.emoji}</span>}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-red-200 font-extrabold text-sm">{w.name}</div>
+                            <div className="text-[10px] text-amber-300/90">
+                              {canFire ? "تدمير كامل ∞ · يصيب كل السفن" : "🎟️ نادر — يُمنح فقط من الإدارة/المسابقات"}
+                            </div>
+                          </div>
+                          <div className="text-xs text-red-300 font-bold tabular-nums">×{q}</div>
+                        </button>
+                      </div>
+                    );
+                  }
                   return (
                     <div key={w.id} className="flex items-stretch gap-2">
                       <button disabled={busy || !canFire} onClick={() => fireWeapon(w.id)}
@@ -1824,6 +1841,7 @@ function PlayerPage() {
                       )}
                     </div>
                   );
+
                 })}
                 {/* Disabler missiles — disable the matching anti-defense for 10 minutes */}
                 {[
