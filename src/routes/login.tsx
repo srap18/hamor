@@ -84,9 +84,12 @@ function LoginPage() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
+      const { clearPendingAdd } = await import("@/lib/account-switch");
+      clearPendingAdd();
       nav({ to: "/" });
     });
   }, [nav]);
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
