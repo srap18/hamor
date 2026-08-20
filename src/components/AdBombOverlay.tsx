@@ -151,6 +151,19 @@ export function AdBombOverlay({
     return () => sound.resumeForChat();
   }, [isActive]);
 
+  // Free hardware video decoders: tell every background <video> to swap to its
+  // still poster while the ad clip is on screen. On many Android devices only
+  // one or two H.264 decoders exist — otherwise the ad plays audio with no picture.
+  useEffect(() => {
+    if (!isActive) return;
+    const set = (v: boolean) => {
+      (window as unknown as { __adBombActive?: boolean }).__adBombActive = v;
+      window.dispatchEvent(new CustomEvent("ad-bomb:active", { detail: v }));
+    };
+    set(true);
+    return () => set(false);
+  }, [isActive]);
+
   // Always start the video muted (so autoplay never gets blocked and the
   // frames are visible), then try to unmute. If the browser still blocks
   // unmuted audio, the next user gesture unlocks sound — without remounting
@@ -246,6 +259,22 @@ export function AdBombOverlay({
           muted={isMuted}
           playsInline
           preload="auto"
+          webkit-playsinline="true"
+          disablePictureInPicture
+          disableRemotePlayback
+          onError={() => {
+            // Decoder hiccup (common on Android when another video was playing):
+            // reload the source and try again shortly.
+            const v = videoRef.current;
+            if (!v) return;
+            window.setTimeout(() => {
+              try { v.load(); void v.play().catch(() => {}); } catch { /* noop */ }
+            }, 800);
+          }}
+          onStalled={() => {
+            const v = videoRef.current;
+            if (v) void v.play().catch(() => {});
+          }}
           onEnded={() => {
             const v = videoRef.current;
             if (!v) return;

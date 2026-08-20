@@ -30,10 +30,23 @@ export function SeamlessVideo({
   // the browser paints its own big "play" button over the scene. Detect that
   // and drop the <video> entirely so the poster image shows instead.
   const [failed, setFailed] = useState(false);
+  // Some Android devices only have 1–2 hardware H.264 decoders. When an
+  // ad-bomb clip is playing fullscreen, the background video steals the last
+  // decoder and the ad plays audio-only (black frames). Yield the decoder:
+  // show the still poster while an ad-bomb is on screen.
+  const [yielded, setYielded] = useState<boolean>(
+    () => typeof window !== "undefined" && !!(window as unknown as { __adBombActive?: boolean }).__adBombActive,
+  );
 
   useEffect(() => {
     setFailed(false);
   }, [src]);
+
+  useEffect(() => {
+    const onAd = (e: Event) => setYielded(!!(e as CustomEvent<boolean>).detail);
+    window.addEventListener("ad-bomb:active", onAd as EventListener);
+    return () => window.removeEventListener("ad-bomb:active", onAd as EventListener);
+  }, []);
 
   useEffect(() => {
     const v = ref.current;
@@ -101,7 +114,7 @@ export function SeamlessVideo({
     };
   }, [src, playbackRate, failed]);
 
-  if (failed) {
+  if (failed || yielded) {
     return poster ? (
       <img
         src={poster}
