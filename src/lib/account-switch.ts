@@ -83,12 +83,12 @@ export function rememberSession(session: Session | null, meta?: { username?: str
 /** Fill in the display name once, so the switcher shows a real nickname. */
 export async function refreshAccountMeta(userId: string) {
   try {
-    const { data } = await supabase.from("profiles").select("username, emoji").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("profiles").select("display_name, avatar_emoji").eq("id", userId).maybeSingle();
     if (!data) return;
     const list = read();
     const idx = list.findIndex((a) => a.userId === userId);
     if (idx < 0) return;
-    list[idx] = { ...list[idx], username: (data as any).username ?? null, emoji: (data as any).emoji ?? null };
+    list[idx] = { ...list[idx], username: (data as any).display_name ?? null, emoji: (data as any).avatar_emoji ?? null };
     write(list);
   } catch { /* best effort */ }
 }

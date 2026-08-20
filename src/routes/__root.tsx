@@ -532,8 +532,18 @@ function RootComponent() {
         const onFocus = () => fire();
         document.addEventListener("visibilitychange", onVisible);
         window.addEventListener("focus", onFocus);
-        const { data: authSub } = supabase.auth.onAuthStateChange((e) => {
+        const { data: authSub } = supabase.auth.onAuthStateChange((e, session) => {
           if (e === "SIGNED_IN" || e === "TOKEN_REFRESHED") fire();
+          // Keep the fast account-switcher tokens fresh (max 2 accounts, no passwords stored).
+          if (e === "SIGNED_IN" || e === "TOKEN_REFRESHED" || e === "USER_UPDATED") {
+            void (async () => {
+              try {
+                const { rememberSession, refreshAccountMeta } = await import("@/lib/account-switch");
+                rememberSession(session);
+                if (e === "SIGNED_IN" && session?.user?.id) void refreshAccountMeta(session.user.id);
+              } catch {}
+            })();
+          }
         });
         cleanupSessionTracking = () => {
           window.clearInterval(heartbeat);
