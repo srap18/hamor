@@ -37,26 +37,41 @@ function LoginPage() {
   const guardDeviceRef = useRef<string>("");
   const [savedAccounts, setSavedAccounts] = useState<{ userId: string; username: string | null; email: string | null; emoji: string | null }[]>([]);
   const [switching, setSwitching] = useState(false);
+  const [pendingBack, setPendingBack] = useState<{ userId: string; username: string | null; email: string | null; emoji: string | null } | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
-        const { listAccounts } = await import("@/lib/account-switch");
+        const { listAccounts, pendingAddOrigin } = await import("@/lib/account-switch");
         setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
+        const o = pendingAddOrigin();
+        if (o) setPendingBack({ userId: o.userId, username: o.username, email: o.email, emoji: o.emoji });
       } catch {}
     })();
   }, []);
 
+  const cancelAdd = async () => {
+    if (switching) return;
+    setSwitching(true); setErr(null);
+    const { cancelAddAccount } = await import("@/lib/account-switch");
+    const res = await cancelAddAccount();
+    if (res.ok) { window.location.replace("/"); return; }
+    setSwitching(false);
+    setPendingBack(null);
+    setErr("انتهت صلاحية جلسة الحساب السابق — سجل الدخول له مرة واحدة");
+  };
+
   const quickSwitch = async (userId: string) => {
     if (switching) return;
     setSwitching(true); setErr(null);
-    const { switchToAccount, listAccounts } = await import("@/lib/account-switch");
+    const { switchToAccount, listAccounts, clearPendingAdd } = await import("@/lib/account-switch");
     const res = await switchToAccount(userId);
-    if (res.ok) { window.location.replace("/"); return; }
+    if (res.ok) { clearPendingAdd(); window.location.replace("/"); return; }
     setSwitching(false);
     setSavedAccounts(listAccounts().map((a) => ({ userId: a.userId, username: a.username, email: a.email, emoji: a.emoji })));
     setErr(res.reason);
   };
+
 
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
@@ -69,9 +84,12 @@ function LoginPage() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
       if (await mfaStepUpRequired()) { setNeedsMfa(true); return; }
+      const { clearPendingAdd } = await import("@/lib/account-switch");
+      clearPendingAdd();
       nav({ to: "/" });
     });
   }, [nav]);
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +185,12 @@ function LoginPage() {
         setErr("تعذر التحقق من صلاحية هذا الجهاز. حاول مجددًا");
         return;
       }
-      if (ok) nav({ to: "/" });
+      if (ok) {
+        const { clearPendingAdd } = await import("@/lib/account-switch");
+        clearPendingAdd();
+        nav({ to: "/" });
+      }
+
     } catch (error) {
       setErr(error instanceof Error ? error.message : "تعذر تسجيل الدخول، حاول مرة أخرى");
     } finally {
@@ -218,7 +241,19 @@ function LoginPage() {
           <div className="text-xl font-extrabold text-amber-300">Ocean Catch</div>
           <div className="text-xs text-amber-100/70">سجل دخولك واركب البحر</div>
         </div>
+        {pendingBack && (
+          <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-600/50 text-center space-y-2">
+            <div className="text-[11px] text-emerald-100/80">
+              أنت في وضع «إضافة حساب». إذا ما تبي تضيف حساب جديد، ارجع لحسابك:
+            </div>
+            <button type="button" disabled={switching} onClick={cancelAdd}
+              className="w-full py-2 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-700 text-white text-sm font-extrabold active:scale-95 disabled:opacity-50">
+              {switching ? "..." : `↩︎ رجوع إلى ${pendingBack.username || pendingBack.email || "حسابي"}`}
+            </button>
+          </div>
+        )}
         {savedAccounts.length > 0 && (
+
           <div className="mb-4 space-y-2">
             <div className="text-[11px] text-amber-100/70 text-center">حسابات محفوظة على هذا الجهاز</div>
             {savedAccounts.map((a) => (

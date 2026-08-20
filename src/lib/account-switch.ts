@@ -175,13 +175,52 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
   return { ok: true };
 }
 
+const PENDING_KEY = "oc_pending_add_from";
+
 /** Keep the current account saved, then drop the local session so /login is usable. */
 export async function beginAddAccount(): Promise<void> {
   const { data } = await supabase.auth.getSession();
-  if (data.session) rememberSession(data.session);
+  if (data.session) {
+    rememberSession(data.session);
+    try { localStorage.setItem(PENDING_KEY, data.session.user.id); } catch {}
+  }
   // scope "local" keeps the saved refresh token valid on the server.
   await supabase.auth.signOut({ scope: "local" }).catch(() => null);
 }
+
+/** The account the user came from when tapping "add account" (if any). */
+export function pendingAddOrigin(): StoredAccount | null {
+  try {
+    const id = localStorage.getItem(PENDING_KEY);
+    if (!id) return null;
+    return read().find((a) => a.userId === id) ?? null;
+  } catch { return null; }
+}
+
+export function clearPendingAdd() {
+  try { localStorage.removeItem(PENDING_KEY); } catch {}
+}
+
+/**
+ * Cancel "add account" and restore the session the user came from.
+ * No security re-check: this is exactly the session that was active a moment ago.
+ */
+export async function cancelAddAccount(): Promise<{ ok: boolean }> {
+  const origin = pendingAddOrigin();
+  clearPendingAdd();
+  if (!origin) return { ok: false };
+  const { data, error } = await supabase.auth.setSession({
+    access_token: origin.access_token,
+    refresh_token: origin.refresh_token,
+  });
+  if (error || !data.session) {
+    removeAccount(origin.userId);
+    return { ok: false };
+  }
+  rememberSession(data.session, { username: origin.username, emoji: origin.emoji });
+  return { ok: true };
+}
+
 
 /** Full sign-out of one account: revoke + forget. */
 export async function forgetAndSignOut(userId: string) {
