@@ -7377,6 +7377,14 @@ export type Database = {
         Args: { _hardware_hash: string }
         Returns: Json
       }
+      device_resident: {
+        Args: { _device: string; _uid: string }
+        Returns: boolean
+      }
+      device_shared_resident: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
       device_slot_check: {
         Args: {
           _email?: string
