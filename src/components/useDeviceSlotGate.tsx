@@ -4,8 +4,8 @@ import { SlotWarningModal, DeviceBlockedModal, DeviceMigrationModal } from "./De
 
 type SlotState =
   | { kind: "idle" }
-  | { kind: "confirm"; hardwareHash: string; freeSlots: number; onDone: () => void }
-  | { kind: "migrate"; hardwareHash: string; userId: string; candidates: any[]; onDone: () => void }
+  | { kind: "confirm"; hardwareHash: string; freeSlots: number; onDone: () => void; onCancel: () => void }
+  | { kind: "migrate"; hardwareHash: string; userId: string; candidates: any[]; onDone: () => void; onCancel: () => void }
   | { kind: "blocked"; hardwareHash: string; hasPendingAppeal: boolean; cooldownUntil: string | null };
 
 /**
@@ -45,6 +45,7 @@ export function useDeviceSlotGate() {
               userId,
               candidates: list,
               onDone: () => { setState({ kind: "idle" }); resolve(true); },
+              onCancel: () => { setState({ kind: "idle" }); resolve(false); },
             });
           });
         }
@@ -54,6 +55,7 @@ export function useDeviceSlotGate() {
             hardwareHash: canonicalHash,
             freeSlots: res.free_slots ?? 1,
             onDone: () => { setState({ kind: "idle" }); resolve(true); },
+            onCancel: () => { setState({ kind: "idle" }); resolve(false); },
           });
         });
       }
@@ -83,7 +85,7 @@ export function useDeviceSlotGate() {
           lockDays={14}
           onCancel={async () => {
             try { await supabase.auth.signOut({ scope: "local" }); } catch {}
-            setState({ kind: "idle" });
+            state.onCancel();
           }}
           onConfirm={async () => {
             try {
@@ -112,7 +114,7 @@ export function useDeviceSlotGate() {
           currentUserId={state.userId}
           onCancel={async () => {
             try { await supabase.auth.signOut({ scope: "local" }); } catch {}
-            setState({ kind: "idle" });
+            state.onCancel();
           }}
           onDone={async () => {
             // After migration, current user should now own a slot; assign explicitly just in case

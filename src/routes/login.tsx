@@ -231,7 +231,12 @@ function LoginPage() {
     const uid = sd.session?.user.id;
     if (uid) {
       const ok = await slotGate.checkAndProceed(uid, sd.session?.user.email || null);
-      if (ok) nav({ to: "/" });
+      if (ok) {
+        const { clearPendingAdd, rememberSession } = await import("@/lib/account-switch");
+        rememberSession(sd.session);
+        clearPendingAdd();
+        nav({ to: "/" });
+      }
     } else {
       nav({ to: "/" });
     }
