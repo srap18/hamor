@@ -2048,15 +2048,15 @@ function Index() {
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
           top: "calc(env(safe-area-inset-top, 0px) + 250px)",
-          width: 44,
-          height: 50,
+          width: "clamp(34px, 9.5vw, 44px)",
+          height: "clamp(38px, 11vw, 50px)",
           background: "radial-gradient(circle at 30% 30%, #fbbf24, #b45309 70%, #4a1d04)",
           border: "2px solid #fde68a",
           boxShadow: "0 3px 10px rgba(0,0,0,.7), 0 0 12px rgba(251,191,36,.4)",
           color: "#1a0f04",
         }}
       >
-        <span style={{ fontSize: 20, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: "clamp(15px, 4.4vw, 20px)", lineHeight: 1 }}>🏆</span>
         <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
       </Link>
 
@@ -2579,8 +2579,8 @@ function Index() {
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
           top: "calc(env(safe-area-inset-top, 0px) + 190px)",
-          width: 44,
-          height: 50,
+          width: "clamp(34px, 9.5vw, 44px)",
+          height: "clamp(38px, 11vw, 50px)",
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #ffe9a8 0%, #f1be52 35%, #c98a2a 70%, #7a4a14 100%)",
           border: "2px solid #ffe9a8",
@@ -2588,7 +2588,7 @@ function Index() {
         }}
       >
         <span className="pointer-events-none absolute inset-x-2 top-1 h-1/2 rounded-xl opacity-60" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)" }} />
-        <span className="relative text-3xl" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
+        <span className="relative" style={{ fontSize: "clamp(18px, 5.6vw, 28px)", lineHeight: 1, filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.4))" }}>🗝️</span>
         <span className="relative text-[10px] font-black mt-0.5" style={{ textShadow: "0 1px 0 rgba(255,243,200,0.6)" }}>يومي</span>
         <span className="absolute -top-1 -right-1 text-white text-[10px] font-black rounded-full px-1.5 h-5 min-w-[20px] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 50% 30%, #ff6a6a 0%, #c41818 70%, #6a0808 100%)", border: "2px solid #ffe9a8", boxShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>!</span>
       </button>
@@ -5019,7 +5019,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
   // Keep every ship (and its HUD above it) fully inside the screen — a slot
   // sitting at 84% with a 22% wide hull used to spill past the right edge and
   // got clipped, which made the page look like it needed sideways dragging.
-  const clampLeft = (x: number) => Math.max(1, Math.min(99 - shipW, x));
+  const clampLeft = (x: number) => Math.max(2, Math.min(94 - shipW, x));
   const dockLeft = clampLeft(ship.dockLeft);
   const seaSide = ship.seaSide ?? "right";
   const defaultSeaEdge = seaSide === "right" ? (96 - shipW) : 2;
@@ -5533,7 +5533,7 @@ function ShipSlot({ ship, onTap, active, crews = [] }: { ship: Ship; onTap: () =
 
         return (
           <div
-            className="absolute bottom-full left-1/2 mb-[6px] w-[78%] flex flex-col items-center gap-[4px] pointer-events-none z-40"
+            className="absolute bottom-full left-1/2 mb-[6px] w-[78%] min-w-[88px] max-w-[140px] flex flex-col items-center gap-[4px] pointer-events-none z-40"
             style={{ transform: `translateX(-50%) scaleX(${flipX})` }}
           >
             {/* Status / timer chip — always the top row, never over the hull */}

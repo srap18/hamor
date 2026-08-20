@@ -33,8 +33,8 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
         style={{
           left: "calc(env(safe-area-inset-left, 0px) + 8px)",
           top: "calc(env(safe-area-inset-top, 0px) + 130px)",
-          width: 44,
-          height: 50,
+          width: "clamp(34px, 9.5vw, 44px)",
+          height: "clamp(38px, 11vw, 50px)",
           color: "#2a1605",
           background: "radial-gradient(ellipse at 50% 0%, #fff3c0 0%, #f5c84a 30%, #c48a1a 70%, #5b2f06 100%)",
           border: "2px solid #ffe9a8",
