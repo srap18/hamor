@@ -2056,7 +2056,7 @@ function Index() {
           color: "#1a0f04",
         }}
       >
-        <span style={{ fontSize: 20, lineHeight: 1 }}>🏆</span>
+        <span style={{ fontSize: "clamp(15px, 4.4vw, 20px)", lineHeight: 1 }}>🏆</span>
         <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: ".2px", marginTop: 1 }}>مهام</span>
       </Link>
 
