@@ -30,7 +30,7 @@ export const TRADE_ANTIS: TradeCatalogItem[] = [
 
 export const TRADE_CATALOG: TradeCatalogItem[] = [
   ...CREWS.map((c) => ({ type: "crew" as const, id: c.id, name: c.name, emoji: c.emoji, image: c.image })),
-  ...WEAPONS.map((w) => ({ type: "weapon" as const, id: w.id, name: w.name, emoji: w.emoji, image: w.image })),
+  ...WEAPONS.filter((w) => !w.noShop).map((w) => ({ type: "weapon" as const, id: w.id, name: w.name, emoji: w.emoji, image: w.image })),
   ...TRADE_SHIELDS,
   ...TRADE_ANTIS,
 ];
