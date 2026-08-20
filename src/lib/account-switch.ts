@@ -127,9 +127,14 @@ async function securityCheck(userId: string, email: string | null): Promise<{ ok
         strong: fp.strong,
       },
     });
-    if (res?.action !== "allowed") {
-      return { ok: false, reason: "هذا الحساب غير مسموح له بالدخول من هذا الجهاز — سجل الدخول يدويًا" };
+    // Only a hard "blocked" decision stops a switch. "needs_confirmation" only
+    // means this device has a free slot — it never applies to an account that is
+    // already signed in on this device.
+    if (res?.action === "blocked") {
+      return { ok: false, reason: "هذا الحساب محظور من الدخول على هذا الجهاز" };
     }
+    return { ok: true };
+
     return { ok: true };
   } catch {
     return { ok: false, reason: "تعذر التحقق الأمني — حاول مجددًا" };
