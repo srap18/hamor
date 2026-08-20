@@ -121,7 +121,10 @@ export interface IdentityResult {
   identityId: string | null;
   confidence: number;
   generic: boolean;
+  /** Shared device code for this physical device (merges extra installs). */
+  canonicalHash?: string | null;
 }
+
 
 const clean = (v: unknown, min = 16) => {
   const s = String(v ?? "").trim();
