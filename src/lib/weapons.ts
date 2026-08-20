@@ -104,7 +104,10 @@ export const WEAPONS: Weapon[] = [
     xp: 700,
     rarity: "legendary",
     aoe: true,
+    desc: "70,000 ضرر على كل سفن الخصم + تسحب سمك مخزنه بحد مساحتك الفاضية. 700 خبرة · 3 يومياً.",
+  },
   {
+
     id: "doom_annihilator",
     name: "صاعقة الفناء ☄️",
     emoji: "☄️",
