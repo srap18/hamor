@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logAudit } from "@/hooks/use-admin";
+import { PRIZE_PRESET_GROUPS, findPreset, presetKeyFor } from "@/lib/prize-catalog";
+
 
 export const Route = createFileRoute("/admin/lucky-box")({
   component: AdminLuckyBox,
