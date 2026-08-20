@@ -1889,7 +1889,7 @@ function PlayerPage() {
             {mode === "ad_bomb" && (
               <>
                 <div className="text-fuchsia-200 text-xs font-bold">اختر الفيديو الإعلاني (يستمر ساعة على محيط الخصم):</div>
-                {AD_VIDEOS.map((v) => (
+                {AD_VIDEOS.filter((v) => !v.hidden).map((v) => (
                   <button
                     key={v.key}
                     disabled={busy}
