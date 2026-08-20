@@ -10,6 +10,7 @@ type SlotState =
       freeSlots: number;
       onDone: () => void;
       onCancel: () => void;
+      onReject: () => void;
     }
   | {
       kind: "migrate";
@@ -18,6 +19,7 @@ type SlotState =
       candidates: any[];
       onDone: () => void;
       onCancel: () => void;
+      onReject: () => void;
     }
   | {
       kind: "blocked";
@@ -75,6 +77,7 @@ export function useDeviceSlotGate() {
                 setState({ kind: "idle" });
                 resolve(false);
               },
+              onReject: () => resolve(false),
             });
           });
         }
@@ -91,6 +94,7 @@ export function useDeviceSlotGate() {
               setState({ kind: "idle" });
               resolve(false);
             },
+            onReject: () => resolve(false),
           });
         });
       }
@@ -142,6 +146,7 @@ export function useDeviceSlotGate() {
                   hasPendingAppeal: false,
                   cooldownUntil: null,
                 });
+                state.onReject();
                 return;
               }
             } catch {
@@ -154,6 +159,7 @@ export function useDeviceSlotGate() {
                 hasPendingAppeal: false,
                 cooldownUntil: null,
               });
+              state.onReject();
               return;
             }
             state.onDone();
@@ -188,6 +194,7 @@ export function useDeviceSlotGate() {
                   hasPendingAppeal: false,
                   cooldownUntil: null,
                 });
+                state.onReject();
                 return;
               }
             } catch {
@@ -200,6 +207,7 @@ export function useDeviceSlotGate() {
                 hasPendingAppeal: false,
                 cooldownUntil: null,
               });
+              state.onReject();
               return;
             }
             state.onDone();
