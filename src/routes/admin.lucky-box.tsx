@@ -223,33 +223,57 @@ function AdminLuckyBox() {
         </div>
       </section>
 
-      {/* Prize buckets */}
-      {(["legendary", "rare", "common"] as Rarity[]).map((rar) => {
-        const meta = RARITY_META[rar];
-        const list = prizes.filter((p) => p.rarity === rar);
+      {/* Prize buckets — one rarity at a time */}
+      {(() => {
+        const meta = RARITY_META[tab];
+        const pctTotal = Math.max(1, settings.pct_common + settings.pct_rare + settings.pct_legendary);
+        const rarPct = ((tab === "common" ? settings.pct_common : tab === "rare" ? settings.pct_rare : settings.pct_legendary) / pctTotal) * 100;
+        const list = prizes.filter((p) => p.rarity === tab);
+        const activeWeight = list.filter((p) => p.active).reduce((s, p) => s + Math.max(1, p.weight), 0) || 1;
+        const chanceOf = (p: Prize) => (p.active ? (rarPct * Math.max(1, p.weight)) / activeWeight : 0);
+        const sorted = [...list].sort((a, b) => chanceOf(b) - chanceOf(a));
         return (
-          <section key={rar} className={`rounded-xl border ${meta.ring} ${meta.color} p-4`}>
+          <section className={`rounded-xl border ${meta.ring} ${meta.color} p-4`}>
+            {/* Rarity tabs */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {(["legendary", "rare", "common"] as Rarity[]).map((r) => {
+                const on = r === tab;
+                const n = prizes.filter((x) => x.rarity === r).length;
+                return (
+                  <button key={r} onClick={() => setTab(r)}
+                    className={`py-2 rounded-xl text-xs font-bold border transition ${
+                      on ? "bg-amber-500/20 border-amber-400/60 text-amber-100" : "bg-slate-900/60 border-slate-700 text-slate-400"
+                    }`}>
+                    <div>{r === "legendary" ? "🔴🔥" : r === "rare" ? "🔵" : "✨"} {RARITY_META[r].ar}</div>
+                    <div className="text-[10px] opacity-70">{n} جائزة</div>
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex items-center justify-between mb-3">
               <div>
-                <div className="font-bold text-base">
-                  {rar === "legendary" ? "🔴🔥" : rar === "rare" ? "🔵" : "✨"} جوائز {meta.ar}
+                <div className="font-bold text-base">جوائز {meta.ar}</div>
+                <div className="text-xs text-slate-400">
+                  فرصة هذه الفئة كاملة: <span className="text-amber-200 font-bold">{rarPct.toFixed(1)}%</span> · موزّعة على الجوائز المفعّلة
                 </div>
-                <div className="text-xs text-slate-400">{list.length} جائزة · يُسحب منها بالوزن</div>
               </div>
-              <button onClick={() => addPrize(rar)}
+              <button onClick={() => addPrize(tab)}
                 className="text-xs px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600">
                 + إضافة
               </button>
             </div>
-            <div className="space-y-3">
-              {list.length === 0 && <div className="text-slate-500 text-sm">لا توجد جوائز في هذه الخانة بعد.</div>}
-              {list.map((p) => (
-                <PrizeRow key={p.id} prize={p} onChange={(patch) => updatePrize(p.id, patch)} onDelete={() => deletePrize(p.id)} />
+            <div className="space-y-2">
+              {sorted.length === 0 && <div className="text-slate-500 text-sm">لا توجد جوائز في هذه الفئة بعد.</div>}
+              {sorted.map((p) => (
+                <PrizeRow key={p.id} prize={p} chance={chanceOf(p)}
+                  onChange={(patch) => updatePrize(p.id, patch)} onDelete={() => deletePrize(p.id)} />
               ))}
             </div>
           </section>
         );
-      })}
+      })()}
+
 
       {/* Recent opens */}
       <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
