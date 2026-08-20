@@ -213,7 +213,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
         {/* Today reward + claim */}
         <div className="px-4 pb-4">
           <div className="rounded-xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-900/50 via-amber-800/40 to-amber-900/50 p-3 flex items-center gap-3">
-            <div className="shrink-0"><RewardIcon r={todaysReward} size={44} /></div>
+            <div className="shrink-0">{loaded ? <RewardIcon r={todaysReward} size={44} /> : <span style={{ fontSize: 44, lineHeight: 1 }}>🎁</span>}</div>
             <div className="flex-1 text-right">
               <div className="text-[10px] text-amber-300">{loaded ? `هدية اليوم ${nextDayIndex + 1}` : "جاري التحميل..."}</div>
               <div className="text-amber-100 font-bold text-sm">{loaded ? todaysReward.name : "—"}</div>
