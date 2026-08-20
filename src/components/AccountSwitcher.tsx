@@ -55,7 +55,9 @@ export function AccountSwitcher({ onClose }: { onClose?: () => void }) {
     setBusy("add");
     await beginAddAccount();
     onClose?.();
-    nav({ to: "/login" });
+    // A full navigation is required because /login intentionally permits the
+    // still-active origin session only while add-account mode is pending.
+    window.location.assign("/login");
   };
 
   const forget = (id: string) => {
