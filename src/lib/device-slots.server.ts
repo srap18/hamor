@@ -121,7 +121,10 @@ export interface IdentityResult {
   identityId: string | null;
   confidence: number;
   generic: boolean;
+  /** Shared device code for this physical device (merges extra installs). */
+  canonicalHash?: string | null;
 }
+
 
 const clean = (v: unknown, min = 16) => {
   const s = String(v ?? "").trim();
@@ -197,7 +200,22 @@ export async function resolveDeviceIdentity(input: IdentityInput): Promise<Ident
     );
   }
 
-  return { identityId: row.id, confidence, generic: !!row.is_generic };
+  // Every extra install (browser tab, "add to home screen" shortcut, re-install)
+  // produces a different composite hash on the same phone. Fold them all onto a
+  // single canonical device code so the 2-accounts-per-device rule cannot be
+  // bypassed by installing the app again.
+  let canonicalHash: string | null = null;
+  try {
+    const { data: canon } = await sb.rpc("device_identity_canonical", {
+      _identity: row.id,
+      _hash: input.hardwareHash ?? null,
+    });
+    const c = typeof canon === "string" ? canon.trim() : "";
+    if (c.length >= 16) canonicalHash = c;
+  } catch {}
+
+  return { identityId: row.id, confidence, generic: !!row.is_generic, canonicalHash };
+
 }
 
 /** True only when a confirmed (>=95) account on this exact identity is banned. */

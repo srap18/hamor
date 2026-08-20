@@ -1078,6 +1078,7 @@ export type Database = {
       }
       device_identities: {
         Row: {
+          canonical_hash: string | null
           first_seen: string
           id: string
           is_generic: boolean
@@ -1088,6 +1089,7 @@ export type Database = {
           stable_key: string
         }
         Insert: {
+          canonical_hash?: string | null
           first_seen?: string
           id?: string
           is_generic?: boolean
@@ -1098,6 +1100,7 @@ export type Database = {
           stable_key: string
         }
         Update: {
+          canonical_hash?: string | null
           first_seen?: string
           id?: string
           is_generic?: boolean
@@ -7321,6 +7324,10 @@ export type Database = {
       }
       device_hash_collision: { Args: { _hash: string }; Returns: boolean }
       device_id_is_collision: { Args: { _device_id: string }; Returns: boolean }
+      device_identity_canonical: {
+        Args: { _hash: string; _identity: string }
+        Returns: string
+      }
       device_identity_collision: {
         Args: { _identity: string }
         Returns: boolean
