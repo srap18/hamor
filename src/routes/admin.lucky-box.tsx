@@ -262,129 +262,158 @@ function AdminLuckyBox() {
 }
 
 function PrizeRow({
-  prize, onChange, onDelete,
+  prize, chance, onChange, onDelete,
 }: {
   prize: Prize;
+  chance: number;
   onChange: (patch: Partial<Prize>) => void;
   onDelete: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const invalidReason = validatePrize(prize);
   const isCurrency = ["coins", "gems", "rubies", "xp"].includes(prize.prize_type);
   return (
-    <div className={`rounded-xl bg-slate-900/70 border ${invalidReason && prize.active ? "border-red-600/70" : "border-slate-800"} p-3 space-y-3`}>
-      {invalidReason && (
-        <div className="text-[11px] text-red-300 bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
-          ⚠️ {invalidReason} — لن تُمنح للاعبين حتى تُكمل الإعداد.
-        </div>
-      )}
+    <div className={`rounded-xl bg-slate-900/70 border ${invalidReason && prize.active ? "border-red-600/70" : "border-slate-800"} overflow-hidden`}>
+      {/* Summary bar (always visible) */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 p-3 text-right hover:bg-slate-800/40"
+      >
+        <span className="text-xl shrink-0">{prize.icon || "🎁"}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-bold truncate">{prize.label || "بدون اسم"}</span>
+          <span className="block text-[11px] text-slate-400 truncate">
+            {PRIZE_TYPE_AR[prize.prize_type]} · {prize.amount.toLocaleString("ar-EG")}
+            {!prize.active ? " · معطّلة" : ""}
+            {invalidReason ? " · ناقصة الإعداد" : ""}
+          </span>
+        </span>
+        <span className="shrink-0 text-center px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40">
+          <span className="block text-sm font-black text-amber-200 tabular-nums">{chance.toFixed(1)}%</span>
+          <span className="block text-[9px] text-amber-200/70">فرصة الظهور</span>
+        </span>
+        <span className="shrink-0 text-slate-400 text-xs">{open ? "▲" : "▼"}</span>
+      </button>
 
-      {/* Top: name + icon + controls */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-        <div className="flex-1 min-w-0">
-          <label className="text-[10px] text-slate-400 block mb-1">اسم الجائزة</label>
-          <div className="flex gap-2">
-            <input className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-              value={prize.label} placeholder="مثال: 50 مليون ذهب"
-              onChange={(e) => onChange({ label: e.target.value })} />
-            <input className="w-14 px-2 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm text-center"
-              value={prize.icon} maxLength={4} title="الأيقونة"
-              onChange={(e) => onChange({ icon: e.target.value })} />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-2 sm:mt-5">
-          <label className="inline-flex items-center cursor-pointer gap-2">
-            <span className="text-xs text-slate-400">{prize.active ? "مفعّلة" : "معطّلة"}</span>
-            <input type="checkbox" className="sr-only peer" checked={prize.active}
-              onChange={(e) => onChange({ active: e.target.checked })} />
-            <div className="w-11 h-6 rounded-full bg-slate-700 peer-checked:bg-emerald-600 relative transition shrink-0">
-              <div className={`absolute top-0.5 ${prize.active ? "right-0.5" : "left-0.5"} w-5 h-5 bg-white rounded-full transition`} />
+      {open && (
+        <div className="p-3 pt-0 space-y-3">
+          {invalidReason && (
+            <div className="text-[11px] text-red-300 bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+              ⚠️ {invalidReason} — لن تُمنح للاعبين حتى تُكمل الإعداد.
             </div>
-          </label>
-          <button onClick={onDelete}
-            className="text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/70 text-red-200 border border-red-900/50">حذف</button>
-        </div>
-      </div>
+          )}
 
-      {/* Middle: type + amount + weight */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="text-[10px] text-slate-400 block mb-1">نوع الجائزة</label>
-          <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-            value={prize.prize_type}
-            onChange={(e) => onChange({ prize_type: e.target.value as PrizeType })}>
-            <option value="coins">🪙 عملات</option>
-            <option value="gems">💎 جواهر</option>
-            <option value="rubies">❤️ ياقوت</option>
-            <option value="xp">⭐ XP</option>
-            <option value="item">🎒 عنصر مخزن</option>
-            <option value="dragon_equipment">🐉 معدة تنين</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-[10px] text-slate-400 block mb-1">
-            {prize.prize_type === "dragon_equipment" ? "عدد القطع" : "الكمية / القيمة"}
-          </label>
-          <input type="number" min={1}
-            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-            value={prize.amount} title="الكمية"
-            onChange={(e) => onChange({ amount: Number(e.target.value) || 1 })} />
-        </div>
-        <div>
-          <label className="text-[10px] text-slate-400 block mb-1">الوزن (فرصة السحب)</label>
-          <input type="number" min={1}
-            className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-            value={prize.weight} title="الوزن"
-            onChange={(e) => onChange({ weight: Math.max(1, Number(e.target.value) || 1) })} />
-        </div>
-      </div>
+          {/* Top: name + icon + controls */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <div className="flex-1 min-w-0">
+              <label className="text-[10px] text-slate-400 block mb-1">اسم الجائزة</label>
+              <div className="flex gap-2">
+                <input className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                  value={prize.label} placeholder="مثال: 50 مليون ذهب"
+                  onChange={(e) => onChange({ label: e.target.value })} />
+                <input className="w-14 px-2 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm text-center"
+                  value={prize.icon} maxLength={4} title="الأيقونة"
+                  onChange={(e) => onChange({ icon: e.target.value })} />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 sm:mt-5">
+              <label className="inline-flex items-center cursor-pointer gap-2">
+                <span className="text-xs text-slate-400">{prize.active ? "مفعّلة" : "معطّلة"}</span>
+                <input type="checkbox" className="sr-only peer" checked={prize.active}
+                  onChange={(e) => onChange({ active: e.target.checked })} />
+                <div className="w-11 h-6 rounded-full bg-slate-700 peer-checked:bg-emerald-600 relative transition shrink-0">
+                  <div className={`absolute top-0.5 ${prize.active ? "right-0.5" : "left-0.5"} w-5 h-5 bg-white rounded-full transition`} />
+                </div>
+              </label>
+              <button onClick={onDelete}
+                className="text-xs px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/70 text-red-200 border border-red-900/50">حذف</button>
+            </div>
+          </div>
 
-      {/* Item-specific fields */}
-      {!isCurrency && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/60">
-          {prize.prize_type === "item" ? (
-            <>
-              <div>
-                <label className="text-[10px] text-slate-400 block mb-1">نوع العنصر</label>
-                <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                  value={prize.item_type ?? ""}
-                  onChange={(e) => onChange({ item_type: e.target.value || null })}>
-                  <option value="">— اختر —</option>
-                  {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-slate-400 block mb-1">معرّف العنصر</label>
-                <input className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                  value={prize.item_id ?? ""} placeholder="مثال: sailor"
-                  onChange={(e) => onChange({ item_id: e.target.value || null })} />
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="text-[10px] text-slate-400 block mb-1">خانة التنين</label>
-                <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                  value={prize.item_type ?? ""}
-                  onChange={(e) => onChange({ item_type: e.target.value || null })}>
-                  <option value="">— اختر —</option>
-                  {DRAGON_SLOTS.map((s) => <option key={s} value={s}>{s === "weapon" ? "سلاح" : s === "armor" ? "درع" : "تميمة"}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] text-slate-400 block mb-1">جودة المعدة</label>
-                <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
-                  value={prize.item_id ?? ""}
-                  onChange={(e) => onChange({ item_id: e.target.value || null })}>
-                  <option value="">— اختر —</option>
-                  {DRAGON_RARITIES.map((r) => <option key={r} value={r}>
-                    {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : r === "divine" ? "خرافي" : "فتاك"}
-                  </option>)}
-                </select>
-              </div>
-            </>
+          {/* Middle: type + amount + weight */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-[10px] text-slate-400 block mb-1">نوع الجائزة</label>
+              <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                value={prize.prize_type}
+                onChange={(e) => onChange({ prize_type: e.target.value as PrizeType })}>
+                <option value="coins">🪙 عملات</option>
+                <option value="gems">💎 جواهر</option>
+                <option value="rubies">❤️ ياقوت</option>
+                <option value="xp">⭐ نقاط خبرة</option>
+                <option value="item">🎒 عنصر مخزن</option>
+                <option value="dragon_equipment">🐉 معدة تنين</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-400 block mb-1">
+                {prize.prize_type === "dragon_equipment" ? "عدد القطع" : "الكمية / القيمة"}
+              </label>
+              <input type="number" min={1}
+                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                value={prize.amount} title="الكمية"
+                onChange={(e) => onChange({ amount: Number(e.target.value) || 1 })} />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-400 block mb-1">الوزن (كل ما زاد زادت الفرصة)</label>
+              <input type="number" min={1}
+                className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                value={prize.weight} title="الوزن"
+                onChange={(e) => onChange({ weight: Math.max(1, Number(e.target.value) || 1) })} />
+              <div className="text-[10px] text-amber-200/70 mt-1">فرصة ظهورها الآن: {chance.toFixed(1)}%</div>
+            </div>
+          </div>
+
+          {/* Item-specific fields */}
+          {!isCurrency && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/60">
+              {prize.prize_type === "item" ? (
+                <>
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">نوع العنصر</label>
+                    <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                      value={prize.item_type ?? ""}
+                      onChange={(e) => onChange({ item_type: e.target.value || null })}>
+                      <option value="">— اختر —</option>
+                      {ITEM_TYPES.map((t) => <option key={t} value={t}>{ITEM_TYPE_AR[t]}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">معرّف العنصر (كما في اللعبة)</label>
+                    <input className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                      value={prize.item_id ?? ""} placeholder="مثال: sailor"
+                      onChange={(e) => onChange({ item_id: e.target.value || null })} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">خانة التنين</label>
+                    <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                      value={prize.item_type ?? ""}
+                      onChange={(e) => onChange({ item_type: e.target.value || null })}>
+                      <option value="">— اختر —</option>
+                      {DRAGON_SLOTS.map((s) => <option key={s} value={s}>{s === "weapon" ? "سلاح" : s === "armor" ? "درع" : "تميمة"}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">جودة المعدة</label>
+                    <select className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm"
+                      value={prize.item_id ?? ""}
+                      onChange={(e) => onChange({ item_id: e.target.value || null })}>
+                      <option value="">— اختر —</option>
+                      {DRAGON_RARITIES.map((r) => <option key={r} value={r}>
+                        {r === "common" ? "عادي" : r === "rare" ? "نادر" : r === "epic" ? "ملحمي" : r === "legendary" ? "أسطوري" : r === "divine" ? "خرافي" : "فتاك"}
+                      </option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}
     </div>
   );
 }
+
