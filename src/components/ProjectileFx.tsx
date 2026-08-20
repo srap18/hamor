@@ -288,7 +288,9 @@ export function ProjectileFx({ fx }: { fx: FxState }) {
               height: boomSize * (isNuke ? 2.2 : 1.7),
               objectFit: "contain",
               transformOrigin: isNuke ? "50% 80%" : "50% 60%",
-              filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.55))",
+              filter: isDoom
+                ? "drop-shadow(0 8px 18px rgba(0,0,0,0.6)) hue-rotate(-25deg) saturate(1.5) drop-shadow(0 0 40px rgba(255,70,30,0.75))"
+                : "drop-shadow(0 8px 18px rgba(0,0,0,0.55))",
             }}
           />
 
