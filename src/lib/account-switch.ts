@@ -127,13 +127,18 @@ async function securityCheck(userId: string, email: string | null): Promise<{ ok
         strong: fp.strong,
       },
     });
-    if (res?.action !== "allowed") {
-      return { ok: false, reason: "هذا الحساب غير مسموح له بالدخول من هذا الجهاز — سجل الدخول يدويًا" };
+    // Only a hard "blocked" decision stops a switch. "needs_confirmation" only
+    // means this device has a free slot — it never applies to an account that is
+    // already signed in on this device.
+    if (res?.action === "blocked") {
+      return { ok: false, reason: "هذا الحساب محظور من الدخول على هذا الجهاز" };
     }
     return { ok: true };
   } catch {
-    return { ok: false, reason: "تعذر التحقق الأمني — حاول مجددًا" };
+    // Infra/network hiccup must never trap the player on one account.
+    return { ok: true };
   }
+
 }
 
 export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogin?: boolean };
@@ -148,28 +153,37 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
   if (current) rememberSession(current);
   if (current?.user?.id === userId) return { ok: true };
 
-  const { data, error } = await supabase.auth.setSession({
+  let session = null as import("@supabase/supabase-js").Session | null;
+  const first = await supabase.auth.setSession({
     access_token: target.access_token,
     refresh_token: target.refresh_token,
   });
-  if (error || !data.session) {
+  session = first.data?.session ?? null;
+  if (!session) {
+    // The stored access token may be expired; force a refresh with the refresh token.
+    const retry = await supabase.auth.refreshSession({ refresh_token: target.refresh_token }).catch(() => null);
+    session = retry?.data?.session ?? null;
+  }
+  if (!session) {
     removeAccount(userId);
     if (current) {
       await supabase.auth.setSession({ access_token: current.access_token, refresh_token: current.refresh_token }).catch(() => null);
     }
     return { ok: false, reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة", needsLogin: true };
   }
+  const data = { session };
 
   const check = await securityCheck(userId, data.session.user.email || target.email);
   if (!check.ok) {
-    removeAccount(userId);
+    // Keep the entry saved — a temporary block is not a reason to lose the row.
     if (current) {
       await supabase.auth.setSession({ access_token: current.access_token, refresh_token: current.refresh_token }).catch(() => null);
     } else {
       await supabase.auth.signOut({ scope: "local" }).catch(() => null);
     }
-    return { ok: false, reason: check.reason || "تعذر التبديل", needsLogin: true };
+    return { ok: false, reason: check.reason || "تعذر التبديل" };
   }
+
 
   rememberSession(data.session, { username: target.username, emoji: target.emoji });
   return { ok: true };
