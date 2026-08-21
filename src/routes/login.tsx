@@ -271,26 +271,28 @@ function LoginPage() {
         setNeedsMfa(true);
         return;
       }
-      const ok = await waitAtMost(
-        slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),
-        20000,
-        "device_check_timeout",
-      ).catch(() => false);
+      // A real "false" from the gate means the device rejected the account.
+      // A timeout/network error must not sign the player out.
+      let ok: boolean;
+      try {
+        ok = await waitAtMost(
+          slotGate.checkAndProceed(data.session!.user.id, data.session!.user.email || null),
+          20000,
+          "device_check_timeout",
+        );
+      } catch {
+        ok = true;
+      }
       if (!ok) {
-        // Revoke only the rejected account's current session. Never use global
-        // sign-out here because account switching may have another saved login.
-        try {
-          await supabase.auth.signOut({ scope: "local" });
-        } catch {}
-        setErr("تعذر التحقق من صلاحية هذا الجهاز. حاول مجددًا");
+        // The gate itself shows its dialog / handles the rejection; keep the
+        // session local-only decision to the gate and just stop here.
         return;
       }
-      if (ok) {
-        const { clearPendingAdd, rememberSession } = await import("@/lib/account-switch");
-        rememberSession(data.session);
-        clearPendingAdd();
-        nav({ to: "/" });
-      }
+      const { clearPendingAdd, rememberSession } = await import("@/lib/account-switch");
+      rememberSession(data.session);
+      clearPendingAdd();
+      nav({ to: "/" });
+
     } catch (error) {
       setErr(error instanceof Error ? error.message : "تعذر تسجيل الدخول، حاول مرة أخرى");
     } finally {
