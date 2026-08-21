@@ -224,26 +224,37 @@ export async function switchToAccount(userId: string): Promise<SwitchResult> {
   const target = read().find((a) => a.userId === userId);
   if (!target) return { ok: false, reason: "الحساب غير محفوظ", needsLogin: true };
 
-  const { data: curData } = await supabase.auth.getSession();
-  const current = curData.session;
+  const curData = await withTimeout(supabase.auth.getSession(), 6000, { data: { session: null } } as any);
+  const current = (curData as any)?.data?.session ?? null;
   if (current) rememberSession(current);
   if (current?.user?.id === userId) return { ok: true };
 
   // Rotating refresh: the stored token is consumed and replaced on the server.
-  const res = await supabase.auth
-    .refreshSession({ refresh_token: target.refresh_token })
-    .catch(() => null);
+  const res: any = await withTimeout(
+    supabase.auth.refreshSession({ refresh_token: target.refresh_token }) as Promise<any>,
+    15000,
+    { data: { session: null }, error: { __network: true } },
+  );
   const session = res?.data?.session ?? null;
 
   if (!session) {
-    removeAccount(userId);
+    // Only drop the saved account when the server explicitly rejected the token.
+    // A network timeout must never delete it (that logged people out).
+    const netIssue =
+      (res?.error as any)?.__network === true ||
+      !res?.error ||
+      /fetch|network|timeout|failed/i.test(String(res?.error?.message || ""));
+    if (!netIssue) removeAccount(userId);
     await restore(current);
     return {
       ok: false,
-      reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة",
-      needsLogin: true,
+      reason: netIssue
+        ? "تعذر الاتصال — تأكد من الإنترنت وحاول مرة أخرى"
+        : "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة",
+      needsLogin: !netIssue,
     };
   }
+
 
   // The server must have handed us exactly the account we asked for.
   if (session.user?.id !== userId) {
