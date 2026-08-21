@@ -4180,40 +4180,58 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
   useEffect(() => {
     if (tab === "search") return;
     let debounce: number | null = null;
-    const refreshNow = () => {
-      if (debounce) window.clearTimeout(debounce);
-      debounce = window.setTimeout(() => {
-        // Force a fresh fetch even if a previous one is stuck pending
-        // (e.g. the user lost connection mid-request).
-        setLoading(false);
-        setRefreshSeq((n) => n + 1);
-      }, 150);
+    let lastRun = 0;
+    // Throttle: global tables like `profiles` change many times per second on a
+    // busy server. Refetching a 100-row leaderboard on every event froze the
+    // phone. Cap refreshes to one every 15s (immediate on focus/online).
+    const MIN_GAP_MS = 15_000;
+    const run = () => {
+      lastRun = Date.now();
+      setLoading(false);
+      setRefreshSeq((n) => n + 1);
     };
+    const schedule = (delay: number) => {
+      if (debounce) window.clearTimeout(debounce);
+      debounce = window.setTimeout(run, delay);
+    };
+    const refreshLive = () => {
+      if (debounce) return; // already queued
+      const wait = Math.max(300, MIN_GAP_MS - (Date.now() - lastRun));
+      schedule(wait);
+    };
+    const refreshNow = () => schedule(150);
     const onVisible = () => { if (document.visibilityState === "visible") refreshNow(); };
     const onOnline = () => refreshNow();
     window.addEventListener("focus", refreshNow);
     window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisible);
+    // Only watch low-traffic tables via realtime; high-traffic ones (profiles,
+    // ships_owned, attacks) are covered by the periodic refresh below.
     const watchedTables =
-      tab === "fish" ? ["fish_caught", "profiles"] :
-      tab === "tribes" || tab === "tribe_donations" ? ["tribes", "tribe_donations", "support_gifts", "attacks"] :
-      tab === "ships" ? ["ships_owned", "profiles"] :
-      tab === "xp" || tab === "gems" || tab === "coins" ? ["profiles"] :
+      tab === "fish" ? ["fish_caught"] :
+      tab === "tribes" || tab === "tribe_donations" ? ["tribes", "tribe_donations"] :
       tab === "comp" ? ["competition_catches"] :
       [];
     const ch = watchedTables.length > 0
       ? watchedTables.reduce((channel, table) => (
-          channel.on("postgres_changes", { event: "*", schema: "public", table }, refreshNow)
+          channel.on("postgres_changes", { event: "*", schema: "public", table }, refreshLive)
         ), supabase.channel(`leaderboard-live-${tab}`)).subscribe()
       : null;
+    const poll = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      run();
+    }, 30_000);
     return () => {
       window.removeEventListener("focus", refreshNow);
       window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisible);
       if (debounce) window.clearTimeout(debounce);
+      window.clearInterval(poll);
       if (ch) supabase.removeChannel(ch);
     };
   }, [tab]);
+
+
 
   // Safety net: if a fetch stalls (e.g. network dropped mid-request and the
   // promise never resolves), give up after 8s, reset the spinner, and retry.
