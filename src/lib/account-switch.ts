@@ -154,33 +154,42 @@ async function securityCheck(
       (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
 
     const { authPreflight } = await import("@/lib/auth-preflight.functions");
-    const pre: any = await authPreflight({
-      data: {
-        email: email || "",
-        deviceId,
-        hardwareId: fp.hash,
-        stableKey: fp.stableKey,
-        noiseKey: fp.noiseKey,
-        nativeId: fp.nativeId,
-        signals: fp.signals as unknown as Record<string, unknown>,
-        strong: fp.strong,
-      },
-    });
+    const pre: any = await withTimeout(
+      authPreflight({
+        data: {
+          email: email || "",
+          deviceId,
+          hardwareId: fp.hash,
+          stableKey: fp.stableKey,
+          noiseKey: fp.noiseKey,
+          nativeId: fp.nativeId,
+          signals: fp.signals as unknown as Record<string, unknown>,
+          strong: fp.strong,
+        },
+      }) as Promise<any>,
+      8000,
+      null,
+    );
     if (pre?.blocked) return { ok: false, reason: pre.reason || "ممنوع الدخول بهذا الحساب" };
 
     const { deviceSlotCheck } = await import("@/lib/device-slots.functions");
-    const res: any = await deviceSlotCheck({
-      data: {
-        hardwareHash: fp.hash,
-        signals: fp.signals,
-        userId,
-        email,
-        stableKey: fp.stableKey,
-        noiseKey: fp.noiseKey,
-        nativeId: fp.nativeId,
-        strong: fp.strong,
-      },
-    });
+    const res: any = await withTimeout(
+      deviceSlotCheck({
+        data: {
+          hardwareHash: fp.hash,
+          signals: fp.signals,
+          userId,
+          email,
+          stableKey: fp.stableKey,
+          noiseKey: fp.noiseKey,
+          nativeId: fp.nativeId,
+          strong: fp.strong,
+        },
+      }) as Promise<any>,
+      8000,
+      null,
+    );
+
     // Only a hard "blocked" decision stops a switch. "needs_confirmation" only
     // means this device has a free slot — it never applies to an account that is
     // already signed in on this device.
