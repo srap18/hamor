@@ -353,8 +353,16 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Cheap pre-filter: forged/flood traffic hits this public endpoint
+        // constantly. Reject before reading the body or touching any client,
+        // so a request flood costs ~nothing (no DB, no crypto, no logging).
+        const sig = request.headers.get("paddle-signature");
+        if (!sig || sig.length < 20 || !sig.includes("h1=")) {
+          return new Response("unauthorized", { status: 401 });
+        }
         const url = new URL(request.url);
         const env = (url.searchParams.get("env") || "sandbox") as PaddleEnv;
+
         try {
           await handleWebhook(request, env);
           return Response.json({ received: true });
