@@ -45,7 +45,7 @@ export function useDeviceSlotGate() {
     try {
       const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
       const { hash, signals, stableKey, noiseKey, nativeId, strong } = await getDeviceFingerprint();
-      if (!hash) return false;
+      if (!hash) return true; // fail-open: never trap a real player on a fingerprint miss
 
       const { deviceSlotCheck, deviceMigrationCandidates } =
         await import("@/lib/device-slots.functions");
@@ -113,11 +113,11 @@ export function useDeviceSlotGate() {
         return false;
       }
     } catch {
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch {}
+      // Network/infra failure: allow the login. Bans and slot rules stay
+      // enforced server-side on every protected call afterwards.
+      return true;
     }
-    return false;
+    return true;
   }
 
   const node = (() => {
