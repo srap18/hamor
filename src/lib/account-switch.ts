@@ -133,13 +133,23 @@ export async function refreshAccountMeta(userId: string) {
   }
 }
 
+/** Never let a hung network call freeze the account switcher. */
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    p.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 async function securityCheck(
   userId: string,
   email: string | null,
 ): Promise<{ ok: boolean; reason?: string }> {
   try {
     const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
-    const fp = await getDeviceFingerprint();
+    const fp = await withTimeout(getDeviceFingerprint(), 4000, null as any);
+    if (!fp) return { ok: true };
+
     const deviceId =
       (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
 
