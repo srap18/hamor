@@ -95,24 +95,35 @@ function LoginPage() {
     if (switching) return;
     setSwitching(true);
     setErr(null);
-    const { switchToAccount, listAccounts, clearPendingAdd } = await import("@/lib/account-switch");
-    const res = await switchToAccount(userId);
-    if (res.ok) {
-      clearPendingAdd();
-      window.location.replace("/");
-      return;
+    try {
+      const { switchToAccount, listAccounts, clearPendingAdd } =
+        await import("@/lib/account-switch");
+      const res = await waitAtMost(
+        switchToAccount(userId),
+        25000,
+        "تعذر الدخول السريع — حاول مرة أخرى",
+      );
+      if (res.ok) {
+        clearPendingAdd();
+        window.location.replace("/");
+        return;
+      }
+      setSavedAccounts(
+        listAccounts().map((a) => ({
+          userId: a.userId,
+          username: a.username,
+          email: a.email,
+          emoji: a.emoji,
+        })),
+      );
+      setErr(res.reason);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "تعذر الدخول السريع — حاول مرة أخرى");
+    } finally {
+      setSwitching(false);
     }
-    setSwitching(false);
-    setSavedAccounts(
-      listAccounts().map((a) => ({
-        userId: a.userId,
-        username: a.username,
-        email: a.email,
-        emoji: a.emoji,
-      })),
-    );
-    setErr(res.reason);
   };
+
 
   const waitAtMost = <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> =>
     Promise.race([
