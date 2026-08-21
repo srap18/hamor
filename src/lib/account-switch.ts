@@ -133,44 +133,63 @@ export async function refreshAccountMeta(userId: string) {
   }
 }
 
+/** Never let a hung network call freeze the account switcher. */
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    p.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 async function securityCheck(
   userId: string,
   email: string | null,
 ): Promise<{ ok: boolean; reason?: string }> {
   try {
     const { getDeviceFingerprint } = await import("@/lib/device-fingerprint");
-    const fp = await getDeviceFingerprint();
+    const fp = await withTimeout(getDeviceFingerprint(), 4000, null as any);
+    if (!fp) return { ok: true };
+
     const deviceId =
       (typeof localStorage !== "undefined" ? localStorage.getItem("hamor_device_id") : null) || "";
 
     const { authPreflight } = await import("@/lib/auth-preflight.functions");
-    const pre: any = await authPreflight({
-      data: {
-        email: email || "",
-        deviceId,
-        hardwareId: fp.hash,
-        stableKey: fp.stableKey,
-        noiseKey: fp.noiseKey,
-        nativeId: fp.nativeId,
-        signals: fp.signals as unknown as Record<string, unknown>,
-        strong: fp.strong,
-      },
-    });
+    const pre: any = await withTimeout(
+      authPreflight({
+        data: {
+          email: email || "",
+          deviceId,
+          hardwareId: fp.hash,
+          stableKey: fp.stableKey,
+          noiseKey: fp.noiseKey,
+          nativeId: fp.nativeId,
+          signals: fp.signals as unknown as Record<string, unknown>,
+          strong: fp.strong,
+        },
+      }) as Promise<any>,
+      8000,
+      null,
+    );
     if (pre?.blocked) return { ok: false, reason: pre.reason || "ممنوع الدخول بهذا الحساب" };
 
     const { deviceSlotCheck } = await import("@/lib/device-slots.functions");
-    const res: any = await deviceSlotCheck({
-      data: {
-        hardwareHash: fp.hash,
-        signals: fp.signals,
-        userId,
-        email,
-        stableKey: fp.stableKey,
-        noiseKey: fp.noiseKey,
-        nativeId: fp.nativeId,
-        strong: fp.strong,
-      },
-    });
+    const res: any = await withTimeout(
+      deviceSlotCheck({
+        data: {
+          hardwareHash: fp.hash,
+          signals: fp.signals,
+          userId,
+          email,
+          stableKey: fp.stableKey,
+          noiseKey: fp.noiseKey,
+          nativeId: fp.nativeId,
+          strong: fp.strong,
+        },
+      }) as Promise<any>,
+      8000,
+      null,
+    );
+
     // Only a hard "blocked" decision stops a switch. "needs_confirmation" only
     // means this device has a free slot — it never applies to an account that is
     // already signed in on this device.
@@ -189,42 +208,55 @@ export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogi
 
 async function restore(current: Session | null) {
   if (current?.refresh_token) {
-    const restored = await supabase.auth
-      .refreshSession({ refresh_token: current.refresh_token })
-      .catch(() => null);
+    const restored: any = await withTimeout(
+      supabase.auth.refreshSession({ refresh_token: current.refresh_token }) as Promise<any>,
+      12000,
+      null,
+    );
     if (restored?.data?.session?.user?.id === current.user.id) {
       rememberSession(restored.data.session);
     }
-  } else {
-    await supabase.auth.signOut({ scope: "local" }).catch(() => null);
   }
+  // No sign-out here: losing the switch target must never drop the current login.
 }
+
 
 /** Switch the active session to another stored account. */
 export async function switchToAccount(userId: string): Promise<SwitchResult> {
   const target = read().find((a) => a.userId === userId);
   if (!target) return { ok: false, reason: "الحساب غير محفوظ", needsLogin: true };
 
-  const { data: curData } = await supabase.auth.getSession();
-  const current = curData.session;
+  const curData = await withTimeout(supabase.auth.getSession(), 6000, { data: { session: null } } as any);
+  const current = (curData as any)?.data?.session ?? null;
   if (current) rememberSession(current);
   if (current?.user?.id === userId) return { ok: true };
 
   // Rotating refresh: the stored token is consumed and replaced on the server.
-  const res = await supabase.auth
-    .refreshSession({ refresh_token: target.refresh_token })
-    .catch(() => null);
+  const res: any = await withTimeout(
+    supabase.auth.refreshSession({ refresh_token: target.refresh_token }) as Promise<any>,
+    15000,
+    { data: { session: null }, error: { __network: true } },
+  );
   const session = res?.data?.session ?? null;
 
   if (!session) {
-    removeAccount(userId);
+    // Only drop the saved account when the server explicitly rejected the token.
+    // A network timeout must never delete it (that logged people out).
+    const netIssue =
+      (res?.error as any)?.__network === true ||
+      !res?.error ||
+      /fetch|network|timeout|failed/i.test(String(res?.error?.message || ""));
+    if (!netIssue) removeAccount(userId);
     await restore(current);
     return {
       ok: false,
-      reason: "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة",
-      needsLogin: true,
+      reason: netIssue
+        ? "تعذر الاتصال — تأكد من الإنترنت وحاول مرة أخرى"
+        : "انتهت صلاحية الجلسة — سجل الدخول لهذا الحساب مرة واحدة",
+      needsLogin: !netIssue,
     };
   }
+
 
   // The server must have handed us exactly the account we asked for.
   if (session.user?.id !== userId) {
