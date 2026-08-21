@@ -194,10 +194,10 @@ function LoginPage() {
         return;
       }
     } catch {
-      setLoading(false);
-      setErr("تعذر التحقق الأمني من الجهاز. تأكد من الاتصال ثم حاول مجددًا");
-      return;
+      // Fingerprint/preflight is best-effort: a slow device or flaky network must
+      // never block a legitimate login. Bans stay enforced server-side after login.
     }
+
     // Anti-guessing throttle: 5 free tries, then a short growing cooldown.
     const guardKey = { email: email.trim().toLowerCase(), device: guardDeviceRef.current };
     try {
