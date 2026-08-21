@@ -87,20 +87,25 @@ export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
         }
         const users = Array.from(userIds).map((id) => ({ id }));
 
-        await Promise.all(
-          users.map(async (u: { id: string }) => {
-            const { data, error: rpcErr } = await supabaseAdmin.rpc("golden_fisher_tick", {
-              _user: u.id,
-            });
-            if (rpcErr) {
-              console.error("[golden-fisher-tick] rpc failed", u.id, rpcErr);
-              return;
-            }
-            const res = (data as { cycles?: number; ships?: number }) ?? {};
-            totalCycles += res.cycles ?? 0;
-            totalShips += res.ships ?? 0;
-          }),
-        );
+        // Bounded concurrency so a large active population can't exhaust the
+        // DB connection pool (which previously made whole batches fail).
+        const CONCURRENCY = 25;
+        for (let i = 0; i < users.length; i += CONCURRENCY) {
+          await Promise.all(
+            users.slice(i, i + CONCURRENCY).map(async (u: { id: string }) => {
+              const { data, error: rpcErr } = await supabaseAdmin.rpc("golden_fisher_tick", {
+                _user: u.id,
+              });
+              if (rpcErr) {
+                console.error("[golden-fisher-tick] rpc failed", u.id, rpcErr);
+                return;
+              }
+              const res = (data as { cycles?: number; ships?: number }) ?? {};
+              totalCycles += res.cycles ?? 0;
+              totalShips += res.ships ?? 0;
+            }),
+          );
+        }
 
         return Response.json({
           ok: true,
