@@ -208,16 +208,18 @@ export type SwitchResult = { ok: true } | { ok: false; reason: string; needsLogi
 
 async function restore(current: Session | null) {
   if (current?.refresh_token) {
-    const restored = await supabase.auth
-      .refreshSession({ refresh_token: current.refresh_token })
-      .catch(() => null);
+    const restored: any = await withTimeout(
+      supabase.auth.refreshSession({ refresh_token: current.refresh_token }) as Promise<any>,
+      12000,
+      null,
+    );
     if (restored?.data?.session?.user?.id === current.user.id) {
       rememberSession(restored.data.session);
     }
-  } else {
-    await supabase.auth.signOut({ scope: "local" }).catch(() => null);
   }
+  // No sign-out here: losing the switch target must never drop the current login.
 }
+
 
 /** Switch the active session to another stored account. */
 export async function switchToAccount(userId: string): Promise<SwitchResult> {
