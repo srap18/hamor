@@ -23,31 +23,52 @@ export const Route = createFileRoute("/api/public/hooks/golden-fisher-tick")({
         // Find all users with active Golden Fisher, whether it was activated
         // globally or is still stored as an assigned crew row from the old flow.
         const nowIso = new Date().toISOString();
-        const { data: activeProfiles, error } = await supabaseAdmin
-          .from("profiles")
-          .select("id,golden_fisher_until,elite_vip_level,elite_vip_expires_at")
-          .or(`golden_fisher_until.gt.${nowIso},elite_vip_level.gte.6`);
-
-        if (error) {
-          console.error("[golden-fisher-tick] select failed", error);
-          return new Response(JSON.stringify({ ok: false, error: error.message }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+        // PostgREST caps un-ranged selects at 1000 rows, which silently skipped
+        // users once the active/crew population grew. Page through everything.
+        const PAGE = 1000;
+        type ProfileRow = {
+          id: string;
+          golden_fisher_until?: string | null;
+          elite_vip_level?: number | null;
+          elite_vip_expires_at?: string | null;
+        };
+        const activeProfiles: ProfileRow[] = [];
+        for (let from = 0; ; from += PAGE) {
+          const { data, error } = await supabaseAdmin
+            .from("profiles")
+            .select("id,golden_fisher_until,elite_vip_level,elite_vip_expires_at")
+            .or(`golden_fisher_until.gt.${nowIso},elite_vip_level.gte.6`)
+            .order("id", { ascending: true })
+            .range(from, from + PAGE - 1);
+          if (error) {
+            console.error("[golden-fisher-tick] select failed", error);
+            return new Response(JSON.stringify({ ok: false, error: error.message }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          activeProfiles.push(...((data ?? []) as ProfileRow[]));
+          if (!data || data.length < PAGE) break;
         }
 
-        const { data: activeInventory, error: inventoryError } = await supabaseAdmin
-          .from("inventory")
-          .select("user_id, meta")
-          .eq("item_type", "crew")
-          .eq("item_id", "golden_fisher");
-
-        if (inventoryError) {
-          console.error("[golden-fisher-tick] inventory select failed", inventoryError);
-          return new Response(JSON.stringify({ ok: false, error: inventoryError.message }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+        const activeInventory: Array<{ user_id: string; meta: unknown }> = [];
+        for (let from = 0; ; from += PAGE) {
+          const { data, error: inventoryError } = await supabaseAdmin
+            .from("inventory")
+            .select("user_id, meta")
+            .eq("item_type", "crew")
+            .eq("item_id", "golden_fisher")
+            .order("user_id", { ascending: true })
+            .range(from, from + PAGE - 1);
+          if (inventoryError) {
+            console.error("[golden-fisher-tick] inventory select failed", inventoryError);
+            return new Response(JSON.stringify({ ok: false, error: inventoryError.message }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          activeInventory.push(...((data ?? []) as Array<{ user_id: string; meta: unknown }>));
+          if (!data || data.length < PAGE) break;
         }
 
         let totalCycles = 0;
