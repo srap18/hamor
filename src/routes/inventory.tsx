@@ -389,7 +389,8 @@ function InventoryPage() {
                 if (skipErr) {
                   const sm = skipErr.message || "";
                   if (sm.includes("not_enough_gems")) {
-                    toast.error(`💎 تحتاج ${cost} جوهرة لتخطي الانتظار`);
+                    const need = parseInt(sm.split("not_enough_gems:")[1] || "0", 10) || cost;
+                    toast.error(`💎 تحتاج ${need} جوهرة لتخطي الانتظار`);
                   } else {
                     toast.error("فشل تخطي الانتظار");
                   }
