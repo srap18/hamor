@@ -15,6 +15,7 @@ import { getMySubscription, setAutoRenew, type MySubscription } from "@/lib/vip-
 
 function AutoRenewCard() {
   const { user } = useAuth();
+  const { level: vipLevel } = useEliteVipLevel();
   const [sub, setSub] = useState<MySubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -56,7 +57,50 @@ function AutoRenewCard() {
     }
   }
 
-  if (loading || !sub) return null;
+  if (loading) {
+    if (!user || vipLevel <= 0) return null;
+    return (
+      <div className="px-4 mt-4 max-w-2xl mx-auto">
+        <div className="rounded-2xl border border-amber-400/30 bg-slate-900/70 p-4 text-sm text-slate-300">
+          جاري تحميل حالة الاشتراك...
+        </div>
+      </div>
+    );
+  }
+
+  // VIP user whose subscription could not be matched automatically
+  // (مثلاً اشتراك عبر Google Play أو حساب دفع مختلف) — نعرض له طريقة الإلغاء.
+  if (!sub) {
+    if (vipLevel <= 0) return null;
+    return (
+      <div className="px-4 mt-4 max-w-2xl mx-auto">
+        <div className="rounded-2xl border border-amber-400/40 bg-slate-900/70 p-4">
+          <div className="font-extrabold text-amber-200">إدارة الاشتراك</div>
+          <div className="text-xs text-slate-300 mt-2 leading-6">
+            لم نتمكن من ربط اشتراكك تلقائياً بهذا الحساب. لإلغاء التجديد التلقائي:
+            <br />• إذا اشتركت من <b>تطبيق أندرويد</b>: افتح Google Play ← الحساب ← الدفعات والاشتراكات ← الاشتراكات ← إلغاء.
+            <br />• إذا اشتركت من <b>المتصفح</b>: افتح رابط «إدارة الاشتراك» في رسالة الفاتورة على بريدك، أو تواصل مع الدعم وسنلغيه لك فوراً.
+          </div>
+          <div className="flex gap-2 mt-3 flex-wrap">
+            <a
+              href="https://play.google.com/store/account/subscriptions"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2 rounded-xl bg-slate-800 border border-amber-400/40 text-amber-200 font-bold text-xs"
+            >
+              اشتراكات Google Play
+            </a>
+            <Link
+              to="/support"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 font-extrabold text-xs"
+            >
+              طلب إلغاء عبر الدعم
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const end = sub.currentPeriodEnd
     ? new Date(sub.currentPeriodEnd).toLocaleDateString("ar", { year: "numeric", month: "long", day: "numeric" })
