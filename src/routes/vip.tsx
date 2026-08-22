@@ -15,6 +15,7 @@ import { getMySubscription, setAutoRenew, type MySubscription } from "@/lib/vip-
 
 function AutoRenewCard() {
   const { user } = useAuth();
+  const { level: vipLevel } = useEliteVipLevel();
   const [sub, setSub] = useState<MySubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
