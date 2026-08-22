@@ -1,43 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
+import { resolveMySubscription, type MySubscription } from "@/lib/vip-subscription.server";
 
-export type MySubscription = {
-  id: string;
-  status: string;
-  productId: string;
-  priceId: string;
-  currentPeriodEnd: string | null;
-  cancelAtPeriodEnd: boolean;
-  environment: PaddleEnv;
-};
+export type { MySubscription };
 
 /** Read the signed-in user's active Paddle subscription (if any). */
 export const getMySubscription = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MySubscription | null> => {
     const { supabase, userId } = context;
-    const { data } = await supabase
-      .from("subscriptions")
-      .select(
-        "paddle_subscription_id, status, product_id, price_id, current_period_end, cancel_at_period_end, environment",
-      )
-      .eq("user_id", userId)
-      .in("status", ["active", "trialing", "past_due", "paused"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!data) return null;
-    return {
-      id: data.paddle_subscription_id,
-      status: data.status,
-      productId: data.product_id,
-      priceId: data.price_id,
-      currentPeriodEnd: data.current_period_end,
-      cancelAtPeriodEnd: !!data.cancel_at_period_end,
-      environment: (data.environment === "live" ? "live" : "sandbox") as PaddleEnv,
-    };
+    return await resolveMySubscription(supabase as never, userId);
   });
 
 /**
@@ -53,19 +26,12 @@ export const setAutoRenew = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: row } = await supabase
-      .from("subscriptions")
-      .select("paddle_subscription_id, status, environment, current_period_end")
-      .eq("user_id", userId)
-      .in("status", ["active", "trialing", "past_due", "paused"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const sub = await resolveMySubscription(supabase as never, userId);
 
-    if (!row) throw new Error("لا يوجد اشتراك نشط على هذا الحساب");
+    if (!sub) throw new Error("لا يوجد اشتراك نشط على هذا الحساب");
 
-    const env: PaddleEnv = row.environment === "live" ? "live" : "sandbox";
-    const subId = row.paddle_subscription_id;
+    const env: PaddleEnv = sub.environment;
+    const subId = sub.id;
 
     let res: Response;
     if (data.enabled) {
@@ -97,6 +63,6 @@ export const setAutoRenew = createServerFn({ method: "POST" })
     return {
       ok: true,
       cancelAtPeriodEnd: !data.enabled,
-      currentPeriodEnd: row.current_period_end as string | null,
+      currentPeriodEnd: sub.currentPeriodEnd,
     };
   });
