@@ -123,3 +123,41 @@ export async function resolveMySubscription(
   if (row) return row;
   return await resolveFromPaddle(userId);
 }
+
+export async function updateMySubscriptionAutoRenew(
+  supabase: AnyClient,
+  userId: string,
+  enabled: boolean,
+) {
+  const sub = await resolveMySubscription(supabase, userId);
+  if (!sub) throw new Error("لا يوجد اشتراك نشط على هذا الحساب");
+
+  const response = enabled
+    ? await gatewayFetch(sub.environment, `/subscriptions/${sub.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ scheduled_change: null }),
+      })
+    : await gatewayFetch(sub.environment, `/subscriptions/${sub.id}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ effective_from: "next_billing_period" }),
+      });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("paddle auto-renew update failed", response.status, text);
+    throw new Error("تعذّر تحديث الاشتراك، حاول لاحقاً");
+  }
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin
+    .from("subscriptions")
+    .update({ cancel_at_period_end: !enabled, updated_at: new Date().toISOString() })
+    .eq("paddle_subscription_id", sub.id)
+    .eq("user_id", userId);
+
+  return {
+    ok: true,
+    cancelAtPeriodEnd: !enabled,
+    currentPeriodEnd: sub.currentPeriodEnd,
+  };
+}
