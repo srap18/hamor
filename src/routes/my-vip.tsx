@@ -258,13 +258,13 @@ function MyVipPage() {
 
           {/* Upgrade CTA */}
           {tier.level < 6 && (
-            <Link to="/vip" className="block mt-4 text-center py-4 rounded-2xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition">
+            <a href="/vip?appv=20260823-ios-vip-4" className="block mt-4 text-center py-4 rounded-2xl font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 shadow-lg hover:brightness-110 active:scale-95 transition">
               ⬆️ ترقية لمستوى أعلى
-            </Link>
+            </a>
           )}
-          <Link to="/vip" className="block mt-3 text-center py-3 rounded-xl border border-amber-400/40 text-amber-200 hover:bg-amber-500/10">
+          <a href="/vip?appv=20260823-ios-vip-4" className="block mt-3 text-center py-3 rounded-xl border border-amber-400/40 text-amber-200 hover:bg-amber-500/10">
             عرض جميع مستويات VIP
-          </Link>
+          </a>
         </div>
       ) : (
         // No active VIP
@@ -277,9 +277,9 @@ function MyVipPage() {
                 ? "انتهى اشتراكك السابق. جدّد الآن لاستعادة مميزاتك الحصرية."
                 : "اشترك الآن واحصل على مميزات قتالية وخصومات وشارات أسطورية."}
             </p>
-            <Link to="/vip" className="inline-block mt-5 px-6 py-3 rounded-xl font-extrabold bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 shadow-lg hover:brightness-110">
+            <a href="/vip?appv=20260823-ios-vip-4" className="inline-block mt-5 px-6 py-3 rounded-xl font-extrabold bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 shadow-lg hover:brightness-110">
               استكشف باقات Elite VIP
-            </Link>
+            </a>
 
             <div className="mt-8 grid grid-cols-5 gap-2">
               {ELITE_VIP_TIERS.map((t) => (
