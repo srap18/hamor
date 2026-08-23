@@ -250,10 +250,14 @@ function isTransientError(error: unknown) {
     msg.includes("load failed") ||
     msg.includes("timeout") ||
     msg.includes("aborted") ||
+    // Router navigation races (concurrent redirects) — always recoverable.
+    msg.includes("_nonreactive") ||
+    msg.includes("cannot read properties of undefined") ||
     msg.includes("504") ||
     msg.includes("502") ||
     msg.includes("503")
   );
+
 }
 
 function isStaleChunkError(error: unknown) {
