@@ -1,7 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { isLowBandwidth } from "./lib/perf-mode";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
@@ -22,8 +21,10 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 5 * 60_000,
     defaultPreloadGcTime: 30 * 60_000,
-    defaultPreload: "intent",
-    defaultPreloadDelay: isLowBandwidth ? 120 : 60,
+    // Intent preloading can race an auth redirect on mobile taps and leave
+    // TanStack Router with a disposed match (`_nonReactive`). Load only after
+    // the user actually navigates; route chunks are cached after first use.
+    defaultPreload: false,
 
 
     // Native-app feel: never flash a loading screen unless the wait is really long.

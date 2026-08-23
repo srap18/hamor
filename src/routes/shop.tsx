@@ -579,6 +579,7 @@ function VipPanel() {
     <div className="mt-3 px-2 space-y-2">
       <Link
         to="/vip"
+        preload={false}
         className="block w-full rounded-xl p-3 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 font-extrabold text-center shadow-lg active:scale-95"
       >
         🏆 افتح صفحة Elite VIP الكاملة
@@ -588,6 +589,7 @@ function VipPanel() {
           <Link
             key={t.level}
             to="/vip"
+            preload={false}
             className={`flex items-center gap-3 rounded-xl p-2 border-2 ${
               t.level === 6
                 ? "bg-gradient-to-r from-cyan-950/80 to-sky-950/80 border-cyan-300/70"
