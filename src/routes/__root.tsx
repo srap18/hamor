@@ -241,12 +241,99 @@ function NotFoundComponent() {
   );
 }
 
+function isTransientError(error: unknown) {
+  const msg = String((error as any)?.message ?? error ?? "").toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("networkerror") ||
+    msg.includes("network request failed") ||
+    msg.includes("load failed") ||
+    msg.includes("timeout") ||
+    msg.includes("aborted") ||
+    msg.includes("504") ||
+    msg.includes("502") ||
+    msg.includes("503")
+  );
+}
+
+function isStaleChunkError(error: unknown) {
+  const msg = String((error as any)?.message ?? error ?? "").toLowerCase();
+  return (
+    msg.includes("dynamically imported module") ||
+    msg.includes("importing a module script failed") ||
+    msg.includes("chunkloaderror") ||
+    msg.includes("unexpected token '<'")
+  );
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   // Log internally only; never render the raw error/path to the user.
   if (typeof console !== "undefined") {
     try { console.error(error); } catch {}
   }
   const router = useRouter();
+  const [retrying, setRetrying] = useState(false);
+
+  // Self-healing: most of these screens come from a momentary network hiccup
+  // or from an app update that invalidated the old code chunks. Recover
+  // automatically instead of dumping the user on an error page.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (isStaleChunkError(error)) {
+      try {
+        const key = "app:chunk-reloaded";
+        if (sessionStorage.getItem(key) !== "1") {
+          sessionStorage.setItem(key, "1");
+          window.location.reload();
+          return;
+        }
+      } catch { /* noop */ }
+    }
+
+    if (isTransientError(error)) {
+      let attempts = 0;
+      try {
+        attempts = Number(sessionStorage.getItem("app:err-retries") || "0");
+      } catch { /* noop */ }
+      if (attempts < 2) {
+        setRetrying(true);
+        const t = setTimeout(async () => {
+          if (cancelled) return;
+          try { sessionStorage.setItem("app:err-retries", String(attempts + 1)); } catch { /* noop */ }
+          try { await router.invalidate(); } catch { /* noop */ }
+          reset();
+          setRetrying(false);
+        }, 1200);
+        return () => { cancelled = true; clearTimeout(t); };
+      }
+    }
+
+    // Reaching a stable render means recovery worked; clear the counters.
+    return () => { cancelled = true; };
+  }, [error, reset, router]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        sessionStorage.removeItem("app:err-retries");
+        sessionStorage.removeItem("app:chunk-reloaded");
+      } catch { /* noop */ }
+    }, 15000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (retrying) {
+    return (
+      <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="mt-4 text-sm text-muted-foreground">جاري إعادة الاتصال...</p>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background px-4">
