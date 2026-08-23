@@ -33,10 +33,22 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    if (!loading && !session) {
-      navigate({ to: "/login" });
-    }
+    if (loading || session) return;
+    if (typeof window !== "undefined" && window.location.pathname === "/login") return;
+    // Defer + dedupe: several guards can mount at once and concurrent
+    // navigations crash the router ("_nonReactive" TypeError) which then
+    // renders the generic error screen.
+    const w = window as unknown as { __ocLoginRedirect?: boolean };
+    if (w.__ocLoginRedirect) return;
+    w.__ocLoginRedirect = true;
+    const t = window.setTimeout(() => {
+      Promise.resolve(navigate({ to: "/login", replace: true }))
+        .catch(() => { try { window.location.href = "/login"; } catch { /* noop */ } })
+        .finally(() => { w.__ocLoginRedirect = false; });
+    }, 0);
+    return () => { window.clearTimeout(t); w.__ocLoginRedirect = false; };
   }, [loading, session, navigate]);
+
 
   useEffect(() => {
     if (!user) { setChecking(false); return; }
