@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { ELITE_VIP_TIERS, getEliteVipTier } from "@/lib/elite-vip";
 import { EliteVipBadge } from "@/components/EliteVipBadge";
 import { useEliteVipLevel } from "@/hooks/use-elite-vip";
@@ -11,161 +11,8 @@ import { formatSarFromUsd } from "@/lib/currency";
 import { toast } from "sonner";
 import { isNativeApp } from "@/lib/platform";
 import { NativePurchaseBlock } from "@/components/NativePurchaseButton";
-import { getMySubscription, setAutoRenew, type MySubscription } from "@/lib/vip-subscription.functions";
 
 const ELITE_VIP_PRODUCT_IDS = ELITE_VIP_TIERS.map((tier) => tier.paddlePriceId);
-
-function AutoRenewCard() {
-  const { user } = useAuth();
-  const { level: vipLevel } = useEliteVipLevel();
-  const [sub, setSub] = useState<MySubscription | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      setSub(await getMySubscription());
-    } catch {
-      setSub(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    void load();
-  }, [user, load]);
-
-  async function toggle(enabled: boolean) {
-    setBusy(true);
-    try {
-      const r = await setAutoRenew({ data: { enabled } });
-      setSub((s) => (s ? { ...s, cancelAtPeriodEnd: r.cancelAtPeriodEnd } : s));
-      toast.success(
-        enabled
-          ? "تم تفعيل التجديد التلقائي مرة أخرى ✅"
-          : "تم إلغاء التجديد التلقائي — مميزاتك تبقى حتى نهاية الفترة الحالية",
-      );
-      setConfirming(false);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "تعذّر تحديث الاشتراك");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (loading) {
-    if (!user || vipLevel <= 0) return null;
-    return (
-      <div className="px-4 mt-4 max-w-2xl mx-auto">
-        <div className="rounded-2xl border border-amber-400/30 bg-slate-900/70 p-4 text-sm text-slate-300">
-          جاري تحميل حالة الاشتراك...
-        </div>
-      </div>
-    );
-  }
-
-  // VIP user whose subscription could not be matched automatically
-  // (مثلاً اشتراك عبر Google Play أو حساب دفع مختلف) — نعرض له طريقة الإلغاء.
-  if (!sub) {
-    if (vipLevel <= 0) return null;
-    return (
-      <div className="px-4 mt-4 max-w-2xl mx-auto">
-        <div className="rounded-2xl border border-amber-400/40 bg-slate-900/70 p-4">
-          <div className="font-extrabold text-amber-200">إدارة الاشتراك</div>
-          <div className="text-xs text-slate-300 mt-2 leading-6">
-            لم نتمكن من ربط اشتراكك تلقائياً بهذا الحساب. لإلغاء التجديد التلقائي:
-            <br />• إذا اشتركت من <b>تطبيق أندرويد</b>: افتح Google Play ← الحساب ← الدفعات والاشتراكات ← الاشتراكات ← إلغاء.
-            <br />• إذا اشتركت من <b>المتصفح</b>: افتح رابط «إدارة الاشتراك» في رسالة الفاتورة على بريدك، أو تواصل مع الدعم وسنلغيه لك فوراً.
-          </div>
-          <div className="flex gap-2 mt-3 flex-wrap">
-            <a
-              href="https://play.google.com/store/account/subscriptions"
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-slate-800 border border-amber-400/40 text-amber-200 font-bold text-xs"
-            >
-              اشتراكات Google Play
-            </a>
-            <Link
-              to="/support"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 font-extrabold text-xs"
-            >
-              طلب إلغاء عبر الدعم
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const end = sub.currentPeriodEnd
-    ? new Date(sub.currentPeriodEnd).toLocaleDateString("ar", { year: "numeric", month: "long", day: "numeric" })
-    : null;
-
-  return (
-    <div className="px-4 mt-4 max-w-2xl mx-auto">
-      <div className="rounded-2xl border border-amber-400/40 bg-slate-900/70 p-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <div className="font-extrabold text-amber-200">إدارة الاشتراك</div>
-            <div className="text-xs text-slate-300 mt-1">
-              {sub.cancelAtPeriodEnd
-                ? `التجديد التلقائي متوقف${end ? ` — ينتهي اشتراكك في ${end}` : ""}`
-                : `التجديد التلقائي مفعّل${end ? ` — التجديد القادم ${end}` : ""}`}
-            </div>
-          </div>
-          {sub.cancelAtPeriodEnd ? (
-            <button
-              disabled={busy}
-              onClick={() => toggle(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-900 font-extrabold text-sm disabled:opacity-50"
-            >
-              {busy ? "..." : "إعادة تفعيل التجديد"}
-            </button>
-          ) : (
-            <button
-              disabled={busy}
-              onClick={() => setConfirming(true)}
-              className="px-4 py-2 rounded-xl bg-slate-800 border border-rose-400/50 text-rose-200 font-bold text-sm disabled:opacity-50"
-            >
-              إلغاء التجديد التلقائي
-            </button>
-          )}
-        </div>
-
-        {confirming && (
-          <div className="mt-3 rounded-xl border border-rose-400/40 bg-rose-950/30 p-3 text-sm text-rose-100">
-            هل أنت متأكد؟ سيتوقف التجديد التلقائي، وتبقى مميزات Elite VIP فعّالة حتى
-            {end ? ` ${end}` : " نهاية الفترة الحالية"}.
-            <div className="flex gap-2 mt-3">
-              <button
-                disabled={busy}
-                onClick={() => toggle(false)}
-                className="px-4 py-2 rounded-lg bg-rose-600 text-white font-bold text-xs disabled:opacity-50"
-              >
-                {busy ? "جاري..." : "نعم، ألغِ التجديد"}
-              </button>
-              <button
-                disabled={busy}
-                onClick={() => setConfirming(false)}
-                className="px-4 py-2 rounded-lg bg-slate-700 text-slate-100 font-bold text-xs"
-              >
-                تراجع
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 
 export const Route = createFileRoute("/vip")({
   // Keep this route in the main application bundle. Older iOS Safari/WKWebView
@@ -229,8 +76,6 @@ function VipPage() {
           <div className="w-8" />
         </div>
         <NativePurchaseBlock productIds={ELITE_VIP_PRODUCT_IDS} />
-        <AutoRenewCard />
-
       </div>
     );
   }
@@ -266,8 +111,6 @@ function VipPage() {
           </div>
         )}
       </div>
-
-      <AutoRenewCard />
 
       {/* Tiers grid */}
 
