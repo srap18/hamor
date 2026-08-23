@@ -575,21 +575,23 @@ function ResChip({ icon, v, color, plus }: { icon: string; v: number; color: str
 
 
 function VipPanel() {
+  // Use a document navigation for this route. Safari keeps failed dynamic
+  // imports in its module map after a deployment, so a client-side Link can
+  // repeatedly request a deleted VIP chunk until the WebView is restarted.
+  const vipHref = "/vip?appv=20260823-ios-vip-4";
   return (
     <div className="mt-3 px-2 space-y-2">
-      <Link
-        to="/vip"
-        preload={false}
+      <a
+        href={vipHref}
         className="block w-full rounded-xl p-3 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 font-extrabold text-center shadow-lg active:scale-95"
       >
         🏆 افتح صفحة Elite VIP الكاملة
-      </Link>
+      </a>
       <div className="grid grid-cols-1 gap-2">
         {ELITE_VIP_TIERS.map((t) => (
-          <Link
+          <a
             key={t.level}
-            to="/vip"
-            preload={false}
+            href={vipHref}
             className={`flex items-center gap-3 rounded-xl p-2 border-2 ${
               t.level === 6
                 ? "bg-gradient-to-r from-cyan-950/80 to-sky-950/80 border-cyan-300/70"
@@ -621,7 +623,7 @@ function VipPanel() {
               <div className="text-[10px] text-slate-300">/شهر</div>
               <div className="text-[9px] text-slate-400">شامل الضريبة</div>
             </div>
-          </Link>
+          </a>
         ))}
       </div>
     </div>
