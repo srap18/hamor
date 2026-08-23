@@ -7,7 +7,6 @@
  * The web build never renders this — callers gate with `isNativeApp()`.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   IAP_CATALOG,
@@ -22,7 +21,6 @@ import {
   finishIapPurchase,
   isAlreadyOwnedError,
 } from "@/lib/iap";
-import { verifyIapPurchase } from "@/lib/iap-verify.functions";
 import { formatSarFromUsd } from "@/lib/currency";
 import type { PackCategory } from "@/lib/store-catalog";
 
@@ -43,7 +41,6 @@ export function NativePurchaseBlock({
   /** Optional whitelist. When omitted, the full catalog is shown. */
   productIds?: string[];
 }) {
-  const verify = useServerFn(verifyIapPurchase);
   const available = isIapAvailable();
   const store = currentStoreLabel();
 
@@ -100,7 +97,11 @@ export function NativePurchaseBlock({
    */
   const deliver = async (purchase: Awaited<ReturnType<typeof purchaseIap>>) => {
     if (!purchase) return null;
-    const res = await verify({ data: purchase });
+    // Keep the server-function client out of the VIP route's startup graph.
+    // If an older iOS WebView has a stale copy, this import now happens only
+    // after a completed native purchase and remains inside the caller's catch.
+    const { verifyIapPurchase } = await import("@/lib/iap-verify.functions");
+    const res = await verifyIapPurchase({ data: purchase });
     await finishIapPurchase(purchase).catch(() => null);
     return res;
   };
