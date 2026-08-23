@@ -183,7 +183,7 @@ if (typeof window !== "undefined") {
   // we wipe Cache Storage and reload once so the user always runs the latest
   // version without needing to hit the manual "تحديث اللعبة" button.
   try {
-    const BUILD_ID = "force-update-20260823-ios-vip-crash-2";
+    const BUILD_ID = "force-update-20260823-ios-native-checkout-3";
     const KEY = "oc-build-id";
     const prev = localStorage.getItem(KEY);
     if (prev && prev !== BUILD_ID) {
