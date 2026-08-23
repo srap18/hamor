@@ -168,6 +168,11 @@ function AutoRenewCard() {
 
 
 export const Route = createFileRoute("/vip")({
+  // Keep this route in the main application bundle. Older iOS Safari/WKWebView
+  // instances can permanently cache a failed dynamic module lookup, which made
+  // every later VIP navigation fall into the root error screen. VIP is a core
+  // purchase route, so reliability is more important than splitting this page.
+  codeSplitGroupings: [],
   ssr: false,
   component: VipPage,
   head: () => ({
