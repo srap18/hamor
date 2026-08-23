@@ -172,6 +172,10 @@ export const Route = createFileRoute("/vip")({
     meta: [
       { title: "Elite VIP — ملوك القراصنة" },
       { name: "description", content: "نظام Elite VIP الحصري — 5 مستويات اشتراك فاخرة بشارات وامتيازات أسطورية." },
+      { property: "og:title", content: "Elite VIP — ملوك القراصنة" },
+      { property: "og:description", content: "مستويات Elite VIP الحصرية وامتيازات الاشتراك في ملوك القراصنة." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
