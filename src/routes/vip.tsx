@@ -13,6 +13,8 @@ import { isNativeApp } from "@/lib/platform";
 import { NativePurchaseBlock } from "@/components/NativePurchaseButton";
 import { getMySubscription, setAutoRenew, type MySubscription } from "@/lib/vip-subscription.functions";
 
+const ELITE_VIP_PRODUCT_IDS = ELITE_VIP_TIERS.map((tier) => tier.paddlePriceId);
+
 function AutoRenewCard() {
   const { user } = useAuth();
   const { level: vipLevel } = useEliteVipLevel();
@@ -221,7 +223,7 @@ function VipPage() {
           </h1>
           <div className="w-8" />
         </div>
-        <NativePurchaseBlock productIds={ELITE_VIP_TIERS.map((t) => t.paddlePriceId)} />
+        <NativePurchaseBlock productIds={ELITE_VIP_PRODUCT_IDS} />
         <AutoRenewCard />
 
       </div>

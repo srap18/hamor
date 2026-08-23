@@ -47,11 +47,19 @@ export function NativePurchaseBlock({
   const available = isIapAvailable();
   const store = currentStoreLabel();
 
+  // Callers may build the whitelist inline (for example with `.map()`).
+  // Depending on that array by reference retriggered the store lookup after
+  // every state update and caused an infinite render/effect loop in WKWebView.
+  const productIdsKey = productIds?.join("\u0000") ?? "";
+
   // Catalog the page is allowed to show.
   const allowed = useMemo<IapCatalogItem[]>(() => {
-    if (!productIds || productIds.length === 0) return IAP_CATALOG;
-    return productIds.map(getIapItem).filter((x): x is IapCatalogItem => !!x);
-  }, [productIds]);
+    if (!productIdsKey) return IAP_CATALOG;
+    return productIdsKey
+      .split("\u0000")
+      .map(getIapItem)
+      .filter((x): x is IapCatalogItem => !!x);
+  }, [productIdsKey]);
 
   // Default tab = first category that has any item.
   const tabsWithItems = useMemo(
