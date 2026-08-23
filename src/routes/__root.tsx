@@ -131,24 +131,41 @@ if (typeof window !== "undefined") {
       /Loading chunk \d+ failed/i.test(msg) ||
       /error loading dynamically imported module/i.test(msg);
 
-    const tryReload = () => {
+    const tryReload = async () => {
       try {
         const last = Number(sessionStorage.getItem(RELOAD_KEY) || "0");
         // Throttle to avoid infinite reload loops (max once per 10s)
         if (Date.now() - last < 10_000) return;
         sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
       } catch {}
-      window.location.reload();
+      // Safari can cache a failed ES-module lookup. A plain reload asks for the
+      // same failed module graph again, so remove all browser-controlled caches
+      // and request a unique document URL to obtain the current route manifest.
+      try {
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((registration) => registration.unregister()));
+        }
+      } catch {}
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((key) => caches.delete(key)));
+        }
+      } catch {}
+      const url = new URL(window.location.href);
+      url.searchParams.set("__chunk_v", Date.now().toString(36));
+      window.location.replace(url.toString());
     };
 
     window.addEventListener("error", (e) => {
       const msg = (e?.message || (e?.error && (e.error.message || String(e.error))) || "") + "";
-      if (isChunkError(msg)) tryReload();
+      if (isChunkError(msg)) void tryReload();
     });
     window.addEventListener("unhandledrejection", (e) => {
       const reason: any = e?.reason;
       const msg = (reason && (reason.message || String(reason))) || "";
-      if (isChunkError(msg)) tryReload();
+      if (isChunkError(msg)) void tryReload();
     });
 
     // When the tab comes back online or becomes visible after a long offline,
@@ -285,14 +302,26 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     let cancelled = false;
 
     if (isStaleChunkError(error)) {
-      try {
-        const key = "app:chunk-reloaded";
-        if (sessionStorage.getItem(key) !== "1") {
-          sessionStorage.setItem(key, "1");
-          window.location.reload();
-          return;
-        }
-      } catch { /* noop */ }
+      setRetrying(true);
+      void (async () => {
+        try {
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((registration) => registration.unregister()));
+          }
+        } catch { /* noop */ }
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key)));
+          }
+        } catch { /* noop */ }
+        if (cancelled) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set("__chunk_v", Date.now().toString(36));
+        window.location.replace(url.toString());
+      })();
+      return () => { cancelled = true; };
     }
 
     if (isTransientError(error)) {
@@ -321,7 +350,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     const t = setTimeout(() => {
       try {
         sessionStorage.removeItem("app:err-retries");
-        sessionStorage.removeItem("app:chunk-reloaded");
       } catch { /* noop */ }
     }, 15000);
     return () => clearTimeout(t);

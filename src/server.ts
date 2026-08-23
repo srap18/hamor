@@ -71,7 +71,22 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      const contentType = normalized.headers.get("content-type") ?? "";
+      if (contentType.includes("text/html")) {
+        const headers = new Headers(normalized.headers);
+        // Route documents must always reference the current hashed chunks.
+        // This is especially important for persistent iOS WebViews.
+        headers.set("cache-control", "no-store, no-cache, must-revalidate");
+        headers.set("pragma", "no-cache");
+        headers.set("expires", "0");
+        return new Response(normalized.body, {
+          status: normalized.status,
+          statusText: normalized.statusText,
+          headers,
+        });
+      }
+      return normalized;
     } catch (error) {
       console.error(error);
       return brandedErrorResponse();
