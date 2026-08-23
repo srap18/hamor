@@ -22,8 +22,10 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 5 * 60_000,
     defaultPreloadGcTime: 30 * 60_000,
-    defaultPreload: "intent",
-    defaultPreloadDelay: isLowBandwidth ? 80 : 30,
+    // Intent-preloading races with redirects/unmounts in this router version and
+    // throws ("_nonReactive"), which surfaced as the generic error screen.
+    defaultPreload: false,
+
     // Native-app feel: never flash a loading screen unless the wait is really long.
     defaultPendingMs: 2000,
     defaultPendingMinMs: 0,
