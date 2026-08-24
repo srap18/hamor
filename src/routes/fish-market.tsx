@@ -661,8 +661,15 @@ function FishMarket() {
       // fish's max price — reflect that in the "gross" so the math on-screen
       // (gross - rotLoss = net) is always consistent.
       const effectiveUnit = marketExpertActive ? Math.max(baseUnit, Math.round(ctx.maxPrice)) : baseUnit;
-      const gross = effectiveUnit * requestedQty;
-      const rotLoss = Math.max(0, gross - serverEarned);
+      const rawGross = effectiveUnit * requestedQty;
+      // Fresh fish (freshness ~100%) must never show a spoilage deduction.
+      // Any tiny gap here comes from rounding the unit price on the client vs
+      // the exact fractional price the server used — not from real rot.
+      const fresh = ctx.rotMult >= 0.999;
+      const rawLoss = Math.max(0, rawGross - serverEarned);
+      const noise = rawLoss <= Math.max(1, rawGross * 0.01);
+      const rotLoss = fresh || noise ? 0 : rawLoss;
+      const gross = rotLoss === 0 ? serverEarned : rawGross;
       const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
       const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
       const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
@@ -672,6 +679,7 @@ function FishMarket() {
         ? { basePrice: baseUnit, boostedPrice: effectiveUnit, qty: requestedQty }
         : null;
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
+
       // Invalidate shared cache + broadcast so index/inventory/other tabs refresh
       // instantly without a manual refresh.
       invalidateFishStock(user.id);
@@ -860,14 +868,16 @@ function SellResultModal({ result, onClose }: { result: SellResult; onClose: () 
               </div>
               <div>السعر الاجمالي: <span className="tabular-nums">{result.gross.toLocaleString()}</span>ذهب</div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                {[1,2,3].map(i => (
-                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
-                ))}
+            {result.rotLoss > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {[1,2,3].map(i => (
+                    <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                  ))}
+                </div>
+                <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
               </div>
-              <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
-            </div>
+            )}
             <div className="pt-1 text-base">
               الدخل: <span className="tabular-nums text-amber-900">{result.net.toLocaleString()}</span>ذهب
             </div>
