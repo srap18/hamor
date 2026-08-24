@@ -661,8 +661,15 @@ function FishMarket() {
       // fish's max price — reflect that in the "gross" so the math on-screen
       // (gross - rotLoss = net) is always consistent.
       const effectiveUnit = marketExpertActive ? Math.max(baseUnit, Math.round(ctx.maxPrice)) : baseUnit;
-      const gross = effectiveUnit * requestedQty;
-      const rotLoss = Math.max(0, gross - serverEarned);
+      const rawGross = effectiveUnit * requestedQty;
+      // Fresh fish (freshness ~100%) must never show a spoilage deduction.
+      // Any tiny gap here comes from rounding the unit price on the client vs
+      // the exact fractional price the server used — not from real rot.
+      const fresh = ctx.rotMult >= 0.999;
+      const rawLoss = Math.max(0, rawGross - serverEarned);
+      const noise = rawLoss <= Math.max(1, rawGross * 0.01);
+      const rotLoss = fresh || noise ? 0 : rawLoss;
+      const gross = rotLoss === 0 ? serverEarned : rawGross;
       const span = Math.max(0.0001, ctx.maxPrice - ctx.minPrice);
       const marketRank = Math.max(0, Math.min(1, (ctx.currentPrice - ctx.minPrice) / span));
       const tier = computeTier({ marketRank, rotMult: ctx.rotMult });
@@ -672,6 +679,7 @@ function FishMarket() {
         ? { basePrice: baseUnit, boostedPrice: effectiveUnit, qty: requestedQty }
         : null;
       setSellResult({ tier, gross, rotLoss, net: serverEarned, fishName, marketExpertBoost: boost });
+
       // Invalidate shared cache + broadcast so index/inventory/other tabs refresh
       // instantly without a manual refresh.
       invalidateFishStock(user.id);
