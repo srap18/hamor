@@ -357,6 +357,9 @@ function MyVipPage() {
             </div>
           )}
 
+          {/* Auto-renew management */}
+          <AutoRenewCard />
+
 
           {/* Upgrade CTA */}
           {tier.level < 6 && (
