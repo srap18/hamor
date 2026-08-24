@@ -235,10 +235,10 @@ export const STORE_PACKS: StorePack[] = [
   {
     id: "bd_lootbox5",
     category: "bundle",
-    label: "📦 حزمة صناديق أسطورية × 5",
-    emoji: "📦",
+    label: "💰 حزمة الذهب الكبرى",
+    emoji: "💰",
     priceUSD: 14.99,
-    description: "1,725 💎 + 172,500 🪙",
+    description: "1,725 💎 + 172,500 🪙 — تُضاف فوراً لرصيدك",
     reward: { gems: 1_725, coins: 172_500 },
   },
   {
