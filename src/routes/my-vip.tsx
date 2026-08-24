@@ -31,6 +31,108 @@ function fmtRemain(ms: number) {
   return `${sec} ثانية`;
 }
 
+type SubInfo = { id: string; status: string; cancelAtPeriodEnd: boolean; currentPeriodEnd: string | null } | null;
+
+function AutoRenewCard() {
+  const [sub, setSub] = useState<SubInfo>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { getMySubscription } = await import("@/lib/vip-subscription.functions");
+        const res = await getMySubscription();
+        if (!cancelled) setSub((res as SubInfo) ?? null);
+      } catch {
+        if (!cancelled) setSub(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const apply = async (enabled: boolean) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const { setAutoRenew } = await import("@/lib/vip-subscription.functions");
+      await setAutoRenew({ data: { enabled } });
+      setSub((s) => (s ? { ...s, cancelAtPeriodEnd: !enabled } : s));
+      setMsg(enabled ? "✓ تم تفعيل التجديد التلقائي" : "✓ تم إلغاء التجديد التلقائي — يبقى اشتراكك حتى نهاية المدة");
+      setConfirming(false);
+    } catch (e) {
+      setMsg("تعذر تنفيذ الطلب، حاول لاحقًا");
+    }
+    setBusy(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-4 rounded-3xl border border-amber-400/30 bg-slate-900/70 p-5 text-center text-xs text-amber-200/60">
+        جاري قراءة حالة الاشتراك...
+      </div>
+    );
+  }
+  if (!sub) return null;
+
+  return (
+    <div className="mt-4 rounded-3xl border border-amber-400/30 bg-slate-900/70 p-5">
+      <div className="text-sm font-black text-amber-200">🔄 التجديد التلقائي</div>
+      <div className={`mt-1 text-xs font-bold ${sub.cancelAtPeriodEnd ? "text-rose-300" : "text-emerald-300"}`}>
+        {sub.cancelAtPeriodEnd
+          ? "✕ مُلغى — لن يتم تجديد الاشتراك بعد انتهاء المدة"
+          : "✓ مُفعّل — سيتجدد الاشتراك تلقائيًا"}
+      </div>
+
+      {sub.cancelAtPeriodEnd ? (
+        <button
+          onClick={() => apply(true)}
+          disabled={busy}
+          className="mt-3 w-full py-3 rounded-xl font-extrabold bg-gradient-to-r from-emerald-500 to-green-400 text-slate-900 disabled:opacity-50"
+        >
+          {busy ? "..." : "إعادة تفعيل التجديد التلقائي"}
+        </button>
+      ) : confirming ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-slate-300 leading-relaxed">
+            سيبقى اشتراكك ومميزاتك فعّالة حتى نهاية المدة الحالية، ولن يتم خصم أي مبلغ بعدها. هل أنت متأكد؟
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => apply(false)}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl font-extrabold bg-rose-600 text-white disabled:opacity-50"
+            >
+              {busy ? "..." : "نعم، ألغِ التجديد"}
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl font-extrabold border border-amber-400/40 text-amber-200"
+            >
+              تراجع
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirming(true)}
+          className="mt-3 w-full py-3 rounded-xl font-extrabold border border-rose-400/50 text-rose-200 hover:bg-rose-500/10"
+        >
+          إلغاء التجديد التلقائي
+        </button>
+      )}
+
+      {msg && <div className="mt-2 text-xs text-amber-200">{msg}</div>}
+    </div>
+  );
+}
+
 function MyVipPage() {
   const { user } = useAuth();
   const { profile } = useProfile();
