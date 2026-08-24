@@ -868,14 +868,16 @@ function SellResultModal({ result, onClose }: { result: SellResult; onClose: () 
               </div>
               <div>السعر الاجمالي: <span className="tabular-nums">{result.gross.toLocaleString()}</span>ذهب</div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                {[1,2,3].map(i => (
-                  <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
-                ))}
+            {result.rotLoss > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {[1,2,3].map(i => (
+                    <span key={i} className={i <= info.stars ? "text-yellow-400" : "text-gray-400"} style={{ fontSize: 18, lineHeight: 1 }}>★</span>
+                  ))}
+                </div>
+                <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
               </div>
-              <div>صلاحية السمك: <span className="tabular-nums">-{result.rotLoss.toLocaleString()}</span>ذهب</div>
-            </div>
+            )}
             <div className="pt-1 text-base">
               الدخل: <span className="tabular-nums text-amber-900">{result.net.toLocaleString()}</span>ذهب
             </div>
