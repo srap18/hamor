@@ -35,6 +35,8 @@ const SITE_NAME = "ملوك القراصنة"
 const SENDER_DOMAIN = "notify.www.molok-alqarasna.com"
 const ROOT_DOMAIN = "www.molok-alqarasna.com"
 const FROM_DOMAIN = SENDER_DOMAIN
+// ASCII display name keeps the From header safe across all mail servers.
+const FROM_NAME = "Molok Alqarasna"
 
 function buildAppConfirmationUrl(
   actionType: string,
@@ -219,7 +221,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             run_id,
             message_id: messageId,
             to: payload.data.email,
-            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+            from: `${FROM_NAME} <noreply@${FROM_DOMAIN}>`,
             sender_domain: SENDER_DOMAIN,
             subject: EMAIL_SUBJECTS[emailType] || 'Notification',
             html,
