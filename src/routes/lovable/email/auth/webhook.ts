@@ -12,12 +12,12 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'تأكيد بريدك الإلكتروني — ملوك القراصنة',
+  invite: 'دعوة للانضمام — ملوك القراصنة',
+  magiclink: 'رابط تأكيد الحساب — ملوك القراصنة',
+  recovery: 'إعادة تعيين كلمة المرور — ملوك القراصنة',
+  email_change: 'تأكيد بريدك الجديد — ملوك القراصنة',
+  reauthentication: 'كود التحقق — ملوك القراصنة',
 }
 
 // Template mapping
@@ -31,10 +31,12 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "hamor"
+const SITE_NAME = "ملوك القراصنة"
 const SENDER_DOMAIN = "notify.www.molok-alqarasna.com"
 const ROOT_DOMAIN = "www.molok-alqarasna.com"
-const FROM_DOMAIN = "www.molok-alqarasna.com"
+const FROM_DOMAIN = SENDER_DOMAIN
+// ASCII display name keeps the From header safe across all mail servers.
+const FROM_NAME = "Molok Alqarasna"
 
 function buildAppConfirmationUrl(
   actionType: string,
@@ -169,16 +171,24 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         }
 
         // Build template props from payload.data (HookData structure)
+        // Secure email change fires this hook twice (old address + new address)
+        // with BOTH tokens in the payload. Sending token_hash to the new address
+        // produces a dead link, so pick the token that matches the recipient.
+        const d = payload.data as any
+        const isNewAddressCopy =
+          emailType === 'email_change' &&
+          !!d.new_email &&
+          String(d.email).toLowerCase() === String(d.new_email).toLowerCase()
+        const tokenHash = isNewAddressCopy
+          ? (d.token_hash_new ?? d.token_hash ?? null)
+          : (d.token_hash ?? d.token_hash_new ?? null)
+
         const templateProps = {
           siteName: SITE_NAME,
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
           confirmationUrl:
-            buildAppConfirmationUrl(
-              emailType,
-              (payload.data as any).url,
-              (payload.data as any).token_hash ?? (payload.data as any).token_hash_new ?? null,
-            ) ?? (payload.data as any).url,
+            buildAppConfirmationUrl(emailType, d.url, tokenHash) ?? d.url,
           token: payload.data.token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
@@ -219,7 +229,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             run_id,
             message_id: messageId,
             to: payload.data.email,
-            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+            from: `${FROM_NAME} <noreply@${FROM_DOMAIN}>`,
             sender_domain: SENDER_DOMAIN,
             subject: EMAIL_SUBJECTS[emailType] || 'Notification',
             html,
