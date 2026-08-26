@@ -12,12 +12,12 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'تأكيد بريدك الإلكتروني — ملوك القراصنة',
+  invite: 'دعوة للانضمام — ملوك القراصنة',
+  magiclink: 'رابط تأكيد الحساب — ملوك القراصنة',
+  recovery: 'إعادة تعيين كلمة المرور — ملوك القراصنة',
+  email_change: 'تأكيد بريدك الجديد — ملوك القراصنة',
+  reauthentication: 'كود التحقق — ملوك القراصنة',
 }
 
 // Template mapping
@@ -31,10 +31,10 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "hamor"
+const SITE_NAME = "ملوك القراصنة"
 const SENDER_DOMAIN = "notify.www.molok-alqarasna.com"
 const ROOT_DOMAIN = "www.molok-alqarasna.com"
-const FROM_DOMAIN = "www.molok-alqarasna.com"
+const FROM_DOMAIN = SENDER_DOMAIN
 
 function buildAppConfirmationUrl(
   actionType: string,
