@@ -171,16 +171,24 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         }
 
         // Build template props from payload.data (HookData structure)
+        // Secure email change fires this hook twice (old address + new address)
+        // with BOTH tokens in the payload. Sending token_hash to the new address
+        // produces a dead link, so pick the token that matches the recipient.
+        const d = payload.data as any
+        const isNewAddressCopy =
+          emailType === 'email_change' &&
+          !!d.new_email &&
+          String(d.email).toLowerCase() === String(d.new_email).toLowerCase()
+        const tokenHash = isNewAddressCopy
+          ? (d.token_hash_new ?? d.token_hash ?? null)
+          : (d.token_hash ?? d.token_hash_new ?? null)
+
         const templateProps = {
           siteName: SITE_NAME,
           siteUrl: `https://${ROOT_DOMAIN}`,
           recipient: payload.data.email,
           confirmationUrl:
-            buildAppConfirmationUrl(
-              emailType,
-              (payload.data as any).url,
-              (payload.data as any).token_hash ?? (payload.data as any).token_hash_new ?? null,
-            ) ?? (payload.data as any).url,
+            buildAppConfirmationUrl(emailType, d.url, tokenHash) ?? d.url,
           token: payload.data.token,
           email: payload.data.email,
           oldEmail: payload.data.old_email,
