@@ -95,7 +95,7 @@ function AdminFleetCombos() {
   };
 
   const patch = async (c: Combo, field: "qty" | "chance_pct" | "cooldown_minutes", value: number) => {
-    await supabase.from("fleet_combos").update({ [field]: value }).eq("id", c.id);
+    await supabase.from("fleet_combos").update({ [field]: value } as any).eq("id", c.id);
     await load();
   };
 
