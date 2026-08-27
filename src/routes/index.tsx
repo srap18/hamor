@@ -55,6 +55,7 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 
 import { ShieldBadge } from "@/components/ShieldBadge";
+import { FleetComboBadge } from "@/components/FleetComboBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import {
   useShipSlotOverrides,
@@ -2544,6 +2545,7 @@ function Index() {
 
             {/* Notifications + Shield row */}
             <div className="flex items-center gap-1.5">
+              <FleetComboBadge />
               <ShieldBadge />
               <NotificationsBell />
             </div>

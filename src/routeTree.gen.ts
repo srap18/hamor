@@ -73,6 +73,7 @@ import { Route as AdminPlayersRouteImport } from './routes/admin.players'
 import { Route as AdminPlayProductsRouteImport } from './routes/admin.play-products'
 import { Route as AdminLuckyBoxRouteImport } from './routes/admin.lucky-box'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminFleetCombosRouteImport } from './routes/admin.fleet-combos'
 import { Route as AdminFishRouteImport } from './routes/admin.fish'
 import { Route as AdminEventPointsRouteImport } from './routes/admin.event-points'
 import { Route as AdminDeviceAppealsRouteImport } from './routes/admin.device-appeals'
@@ -413,6 +414,11 @@ const AdminInventoryRoute = AdminInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFleetCombosRoute = AdminFleetCombosRouteImport.update({
+  id: '/fleet-combos',
+  path: '/fleet-combos',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFishRoute = AdminFishRouteImport.update({
   id: '/fish',
   path: '/fish',
@@ -567,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/event-points': typeof AdminEventPointsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/fleet-combos': typeof AdminFleetCombosRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -651,6 +658,7 @@ export interface FileRoutesByTo {
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/event-points': typeof AdminEventPointsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/fleet-combos': typeof AdminFleetCombosRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -737,6 +745,7 @@ export interface FileRoutesById {
   '/admin/device-appeals': typeof AdminDeviceAppealsRoute
   '/admin/event-points': typeof AdminEventPointsRoute
   '/admin/fish': typeof AdminFishRoute
+  '/admin/fleet-combos': typeof AdminFleetCombosRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/lucky-box': typeof AdminLuckyBoxRoute
   '/admin/play-products': typeof AdminPlayProductsRoute
@@ -824,6 +833,7 @@ export interface FileRouteTypes {
     | '/admin/device-appeals'
     | '/admin/event-points'
     | '/admin/fish'
+    | '/admin/fleet-combos'
     | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -908,6 +918,7 @@ export interface FileRouteTypes {
     | '/admin/device-appeals'
     | '/admin/event-points'
     | '/admin/fish'
+    | '/admin/fleet-combos'
     | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -993,6 +1004,7 @@ export interface FileRouteTypes {
     | '/admin/device-appeals'
     | '/admin/event-points'
     | '/admin/fish'
+    | '/admin/fleet-combos'
     | '/admin/inventory'
     | '/admin/lucky-box'
     | '/admin/play-products'
@@ -1534,6 +1546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/fleet-combos': {
+      id: '/admin/fleet-combos'
+      path: '/fleet-combos'
+      fullPath: '/admin/fleet-combos'
+      preLoaderRoute: typeof AdminFleetCombosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/fish': {
       id: '/admin/fish'
       path: '/fish'
@@ -1682,6 +1701,7 @@ interface AdminRouteChildren {
   AdminDeviceAppealsRoute: typeof AdminDeviceAppealsRoute
   AdminEventPointsRoute: typeof AdminEventPointsRoute
   AdminFishRoute: typeof AdminFishRoute
+  AdminFleetCombosRoute: typeof AdminFleetCombosRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLuckyBoxRoute: typeof AdminLuckyBoxRoute
   AdminPlayProductsRoute: typeof AdminPlayProductsRoute
@@ -1711,6 +1731,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDeviceAppealsRoute: AdminDeviceAppealsRoute,
   AdminEventPointsRoute: AdminEventPointsRoute,
   AdminFishRoute: AdminFishRoute,
+  AdminFleetCombosRoute: AdminFleetCombosRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLuckyBoxRoute: AdminLuckyBoxRoute,
   AdminPlayProductsRoute: AdminPlayProductsRoute,
