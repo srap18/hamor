@@ -104,7 +104,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     nextDayIndex = ((streak - 1) % 15 + 15) % 15;
   } else {
     const gap = daysBetween(lastDate, today);
-    if (gap === 1) nextDayIndex = streak % 15; // continue
+    if (gap <= 2) nextDayIndex = streak % 15; // continue (one missed day forgiven)
     else nextDayIndex = 0; // reset
   }
   const todaysReward = REWARDS[nextDayIndex];
