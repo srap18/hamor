@@ -53,6 +53,9 @@ import coral_phantom from "@/assets/fish/coral_phantom.webp";
 import imperial_moonfish from "@/assets/fish/imperial_moonfish.png";
 import diamond_manta from "@/assets/fish/diamond_manta.png";
 import royal_amethyst from "@/assets/fish/royal_amethyst.png";
+import coral_dragon_fish from "@/assets/fish/coral_dragon_fish.png";
+import golden_abyss_shark from "@/assets/fish/golden_abyss_shark.png";
+import silver_moon_whale from "@/assets/fish/silver_moon_whale.png";
 
 export const FISH_IMG: Record<string, string> = {
   sardine, anchovy, herring, smelt, minnow, mullet, shrimp, crab_small,
@@ -64,6 +67,7 @@ export const FISH_IMG: Record<string, string> = {
   phoenix, abyss_titan, black_dragon,
   silver_arowana, coral_phantom,
   imperial_moonfish, diamond_manta, royal_amethyst,
+  coral_dragon_fish, golden_abyss_shark, silver_moon_whale,
 };
 
 export type Fish = {
@@ -154,7 +158,15 @@ const FISH_DEFS: Record<string, FishDef> = {
   imperial_moonfish: { id: "imperial_moonfish", name: "قمرية الإمبراطور", emoji: "👑", price: 45, tier: 6, rarity: "mythic" },
   diamond_manta:     { id: "diamond_manta",     name: "مانتا الألماس",    emoji: "💎", price: 48, tier: 6, rarity: "mythic" },
   royal_amethyst:    { id: "royal_amethyst",    name: "الجمشت الملكي",    emoji: "🔮", price: 50, tier: 6, rarity: "mythic" },
+
+  // ========== COMBO — حصرية لخلطات الأسطول (لا تصيدها أي سفينة بمفردها) ==========
+  coral_dragon_fish:  { id: "coral_dragon_fish",  name: "سمكة التنين المرجانية", emoji: "🐉", price: 60, tier: 6, rarity: "mythic" },
+  golden_abyss_shark: { id: "golden_abyss_shark", name: "قرش الأعماق الذهبي",   emoji: "🦈", price: 70, tier: 6, rarity: "mythic" },
+  silver_moon_whale:  { id: "silver_moon_whale",  name: "حوت القمر الفضي",      emoji: "🌙", price: 85, tier: 6, rarity: "mythic" },
 };
+
+// Fish that can ONLY come from fleet combos — never in any ship pool.
+export const COMBO_FISH_IDS = ["coral_dragon_fish", "golden_abyss_shark", "silver_moon_whale"] as const;
 
 export const FISH: Record<string, Fish> = Object.fromEntries(
   Object.entries(FISH_DEFS).map(([k, v]) => [k, { ...v, img: FISH_IMG[k] ?? "" }])
@@ -173,7 +185,7 @@ export function fishForShip(shipLevel: number, shipId: number): string[] {
   if (shipLevel >= 32) return ["silver_arowana", "coral_phantom"];
   if (shipLevel >= 31) return ["phoenix"];
   const tier = Math.min(6, Math.max(1, Math.ceil(shipLevel / 5))) as 1|2|3|4|5|6;
-  const pool = FISH_LIST.filter(f => f.tier === tier && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon" && f.id !== "silver_arowana" && f.id !== "coral_phantom" && f.id !== "imperial_moonfish" && f.id !== "diamond_manta" && f.id !== "royal_amethyst");
+  const pool = FISH_LIST.filter(f => f.tier === tier && !(COMBO_FISH_IDS as readonly string[]).includes(f.id) && f.id !== "phoenix" && f.id !== "abyss_titan" && f.id !== "black_dragon" && f.id !== "silver_arowana" && f.id !== "coral_phantom" && f.id !== "imperial_moonfish" && f.id !== "diamond_manta" && f.id !== "royal_amethyst");
   if (pool.length === 0) return [];
   const a = pool[shipId % pool.length].id;
   const b = pool[(shipId + 3) % pool.length].id;
