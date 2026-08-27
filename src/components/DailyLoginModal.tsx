@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { syncServerTime, serverTodayKey } from "@/lib/server-time";
+import { syncServerTime, serverGameDayKey } from "@/lib/server-time";
+import { WEAPONS } from "@/lib/weapons";
+import { CREWS } from "@/lib/crews";
 import iconCoins from "@/assets/icons/icon-coins.webp";
 import iconGems from "@/assets/icons/icon-gems.webp";
 
