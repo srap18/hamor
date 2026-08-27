@@ -50,6 +50,21 @@ function RewardIcon({ r, size }: { r: Reward; size: number }) {
   if (r.item_type === "gems") {
     return <img decoding="async" src={iconGems} alt="أيقونة الجواهر الزرقاء" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
   }
+  const img =
+    r.item_type === "weapon"
+      ? WEAPONS.find((w) => w.id === r.item_id)?.image
+      : CREWS.find((c) => c.id === r.item_id)?.image;
+  if (img) {
+    return (
+      <img
+        decoding="async"
+        src={img}
+        alt={r.name}
+        style={{ width: size, height: size }}
+        className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+      />
+    );
+  }
   return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
 }
 
