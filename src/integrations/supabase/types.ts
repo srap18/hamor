@@ -1939,6 +1939,109 @@ export type Database = {
         }
         Relationships: []
       }
+      fleet_combo_claims: {
+        Row: {
+          combo_id: string
+          created_at: string
+          fish_id: string
+          id: string
+          qty: number
+          user_id: string
+        }
+        Insert: {
+          combo_id: string
+          created_at?: string
+          fish_id: string
+          id?: string
+          qty: number
+          user_id: string
+        }
+        Update: {
+          combo_id?: string
+          created_at?: string
+          fish_id?: string
+          id?: string
+          qty?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_combo_claims_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "fleet_combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fleet_combo_ships: {
+        Row: {
+          catalog_code: string
+          combo_id: string
+          created_at: string
+          id: string
+          slot: number
+        }
+        Insert: {
+          catalog_code: string
+          combo_id: string
+          created_at?: string
+          id?: string
+          slot: number
+        }
+        Update: {
+          catalog_code?: string
+          combo_id?: string
+          created_at?: string
+          id?: string
+          slot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_combo_ships_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "fleet_combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fleet_combos: {
+        Row: {
+          active: boolean
+          chance_pct: number
+          cooldown_minutes: number
+          created_at: string
+          fish_id: string
+          id: string
+          name: string
+          qty: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          chance_pct?: number
+          cooldown_minutes?: number
+          created_at?: string
+          fish_id: string
+          id?: string
+          name: string
+          qty?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          chance_pct?: number
+          cooldown_minutes?: number
+          created_at?: string
+          fish_id?: string
+          id?: string
+          name?: string
+          qty?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forum_bans: {
         Row: {
           banned_by: string | null
@@ -6173,6 +6276,10 @@ export type Database = {
       _audit_caller_source: { Args: never; Returns: string }
       _audit_current_reason: { Args: never; Returns: string }
       _audit_current_source: { Args: never; Returns: string }
+      _award_fleet_combo: {
+        Args: { _ship_id: string; _uid: string }
+        Returns: undefined
+      }
       _client_ip: { Args: never; Returns: string }
       _client_ua: { Args: never; Returns: string }
       _consume_boss_attack: { Args: { p_user: string }; Returns: Json }
@@ -8124,6 +8231,16 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      my_active_fleet_combos: {
+        Args: never
+        Returns: {
+          chance_pct: number
+          combo_id: string
+          fish_id: string
+          name: string
+          qty: number
+        }[]
       }
       my_leaderboard_rank: {
         Args: { _kind: string; _ref?: string }
