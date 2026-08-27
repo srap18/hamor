@@ -2544,6 +2544,7 @@ function Index() {
 
             {/* Notifications + Shield row */}
             <div className="flex items-center gap-1.5">
+              <FleetComboBadge />
               <ShieldBadge />
               <NotificationsBell />
             </div>
