@@ -70,6 +70,23 @@ export function serverTodayKey(): string {
 }
 
 /**
+ * Game-day key (YYYY-MM-DD) in Riyadh time, matching the database
+ * `(now() AT TIME ZONE 'Asia/Riyadh')::date` used by daily rewards.
+ */
+export function serverGameDayKey(): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Riyadh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(serverNow());
+  } catch {
+    return new _OrigDate(serverNowMs() + 3 * 3600_000).toISOString().slice(0, 10);
+  }
+}
+
+/**
  * Globally patch Date.now() and the zero-arg Date constructor so the entire
  * app uses server-corrected time. This neutralises phone-clock tampering for
  * every UI timer comparison without having to touch every call site.

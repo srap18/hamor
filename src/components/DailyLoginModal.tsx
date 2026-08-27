@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { sound } from "@/lib/sound";
-import { syncServerTime, serverTodayKey } from "@/lib/server-time";
+import { syncServerTime, serverGameDayKey } from "@/lib/server-time";
+import { WEAPONS } from "@/lib/weapons";
+import { CREWS } from "@/lib/crews";
 import iconCoins from "@/assets/icons/icon-coins.webp";
 import iconGems from "@/assets/icons/icon-gems.webp";
 
@@ -37,7 +39,7 @@ const REWARDS: Reward[] = [
   { item_type: "weapon", item_id: "nuke",         emoji: "☢️",   name: "قنبلة ذرية",   qty: 10 },
 ];
 
-const todayKey = () => serverTodayKey();
+const todayKey = () => serverGameDayKey();
 const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 
@@ -47,6 +49,21 @@ function RewardIcon({ r, size }: { r: Reward; size: number }) {
   }
   if (r.item_type === "gems") {
     return <img decoding="async" src={iconGems} alt="أيقونة الجواهر الزرقاء" style={{ width: size, height: size }} className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]" />;
+  }
+  const img =
+    r.item_type === "weapon"
+      ? WEAPONS.find((w) => w.id === r.item_id)?.image
+      : CREWS.find((c) => c.id === r.item_id)?.image;
+  if (img) {
+    return (
+      <img
+        decoding="async"
+        src={img}
+        alt={r.name}
+        style={{ width: size, height: size }}
+        className="object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+      />
+    );
   }
   return <span style={{ fontSize: size, lineHeight: 1 }}>{r.emoji}</span>;
 }
@@ -102,7 +119,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
     nextDayIndex = ((streak - 1) % 15 + 15) % 15;
   } else {
     const gap = daysBetween(lastDate, today);
-    if (gap === 1) nextDayIndex = streak % 15; // continue
+    if (gap <= 2) nextDayIndex = streak % 15; // continue (one missed day forgiven)
     else nextDayIndex = 0; // reset
   }
   const todaysReward = REWARDS[nextDayIndex];
