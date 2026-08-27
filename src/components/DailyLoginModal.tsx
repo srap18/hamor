@@ -39,7 +39,7 @@ const REWARDS: Reward[] = [
   { item_type: "weapon", item_id: "nuke",         emoji: "☢️",   name: "قنبلة ذرية",   qty: 10 },
 ];
 
-const todayKey = () => serverTodayKey();
+const todayKey = () => serverGameDayKey();
 const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 
