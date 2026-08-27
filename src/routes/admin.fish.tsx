@@ -98,6 +98,46 @@ function AdminFishPrices() {
     }).filter((b) => b.fishIds.length > 0);
   }, []);
 
+  // Fish that no ship catches directly (fleet-combo exclusives, etc.)
+  const otherIds = useMemo(() => {
+    const covered = new Set(shipBlocks.flatMap((b) => b.fishIds));
+    return Object.keys(FISH).filter((id) => !covered.has(id));
+  }, [shipBlocks]);
+
+  const renderRow = (fid: string) => {
+    const f = FISH[fid];
+    const r = rows[fid];
+    if (!f || !r) return null;
+    return (
+      <div key={fid} className="p-3 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 min-w-[140px]">
+          <img decoding="async" src={f.img} alt={f.name} className="w-10 h-10 object-contain" />
+          <div>
+            <div className="text-sm font-medium text-slate-100">{f.name}</div>
+            <div className="text-[10px] text-slate-500">{fid}</div>
+          </div>
+        </div>
+        <NumField label="الحد الأدنى" value={r.min_price} onChange={(v) => update(fid, "min_price", v)} />
+        <NumField label="الحد الأقصى" value={r.max_price} onChange={(v) => update(fid, "max_price", v)} />
+        <NumField label="حد التغير/ساعة" value={r.max_hourly_change} onChange={(v) => update(fid, "max_hourly_change", v)} />
+        <button
+          onClick={() => save(fid)}
+          disabled={r.saving || !r.dirty}
+          className={`px-3 py-2 rounded-lg text-xs font-bold ${
+            r.dirty
+              ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+              : r.saved
+                ? "bg-emerald-900/40 text-emerald-300"
+                : "bg-slate-800 text-slate-400"
+          } disabled:opacity-60`}
+        >
+          {r.saving ? "..." : r.saved && !r.dirty ? "✓ محفوظ" : "حفظ"}
+        </button>
+        {r.error && <span className="text-[10px] text-rose-300">{r.error}</span>}
+      </div>
+    );
+  };
+
   if (loading) return <div className="p-6 text-slate-300">جاري التحميل...</div>;
 
   return (
