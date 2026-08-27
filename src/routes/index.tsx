@@ -55,6 +55,7 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { DragonShoreCreature } from "@/components/DragonShoreCreature";
 
 import { ShieldBadge } from "@/components/ShieldBadge";
+import { FleetComboBadge } from "@/components/FleetComboBadge";
 import { useIsAdmin } from "@/hooks/use-admin";
 import {
   useShipSlotOverrides,
