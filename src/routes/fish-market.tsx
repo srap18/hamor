@@ -578,7 +578,7 @@ function FishMarket() {
       title: "استئجار سعة",
       message: extending
         ? `تمديد باقتك الحالية (+${rentedCapacity.toLocaleString()}) 24 ساعة إضافية مقابل ${pack.price.toLocaleString()} جوهرة؟`
-        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (ستُرفع سعتك الحالية لهذه الباقة وتُمدد المدة 24 ساعة)" : ""}`,
+        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (عند الترقية يُحوّل وقتك المتبقي بحسب فرق سعر الباقتين ثم تُضاف 24 ساعة)" : ""}`,
       confirmText: "استأجر",
     });
     if (!ok) return;
