@@ -578,7 +578,7 @@ function FishMarket() {
       title: "استئجار سعة",
       message: extending
         ? `تمديد باقتك الحالية (+${rentedCapacity.toLocaleString()}) 24 ساعة إضافية مقابل ${pack.price.toLocaleString()} جوهرة؟`
-        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (ستُرفع سعتك الحالية لهذه الباقة وتُمدد المدة 24 ساعة)" : ""}`,
+        : `استئجار ${pack.label} (+${(pack.capacity / 1_000_000).toLocaleString()} مليون) لمدة 24 ساعة مقابل ${pack.price.toLocaleString()} جوهرة؟${rentActive ? " (عند الترقية يُحوّل وقتك المتبقي بحسب فرق سعر الباقتين ثم تُضاف 24 ساعة)" : ""}`,
       confirmText: "استأجر",
     });
     if (!ok) return;
@@ -795,7 +795,7 @@ function FishMarket() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-1 text-base font-extrabold text-fuchsia-200">📦 استئجار سعة إضافية</div>
-            <div className="text-center text-[11px] text-slate-300 mb-2">السعة لا تتراكم — التمديد يتطلب باقة بنفس سعتك السارية أو أعلى</div>
+            <div className="text-center text-[11px] text-slate-300 mb-2">السعة لا تتراكم — التمديد يتطلب باقة بنفس سعتك السارية أو أعلى، وعند الترقية يُحوّل الوقت المتبقي بحسب فرق السعر</div>
             <div className="mb-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-center text-[11px] font-bold text-emerald-100">
               🔒 عند انتهاء المدة لا يُحذف أي سمك من المخزن — يبقى كما هو، فقط تتوقف الإضافة حتى تنزل الكمية تحت السعة الأساسية
             </div>
