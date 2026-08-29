@@ -1872,6 +1872,24 @@ function Index() {
       try { refreshProfile(); } catch {}
     }
 
+    // Fleet combos: the server awards the exclusive fish inside the same RPC.
+    // Surface it to the player, otherwise the reward is invisible.
+    void (async () => {
+      try {
+        const { data: claims } = await (supabase as any).rpc("my_recent_fleet_combo_claims", { _since_seconds: 60 });
+        const c = Array.isArray(claims) ? claims[0] : null;
+        if (c) {
+          const cf = FISH[c.fish_id as string];
+          showToast(`🌟 ${c.name}: +${c.qty} ${cf?.name ?? c.fish_id}`);
+          sound.play("catch");
+          try { invalidateFishStock(profile?.id); } catch {}
+          try { window.dispatchEvent(new CustomEvent("fish-stock-changed")); } catch {}
+        }
+      } catch {}
+    })();
+
+
+
 
     sound.play("splash");
     setTimeout(() => sound.play("coin"), 180);
