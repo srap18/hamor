@@ -8251,6 +8251,16 @@ export type Database = {
           total: number
         }[]
       }
+      my_recent_fleet_combo_claims: {
+        Args: { _since_seconds?: number }
+        Returns: {
+          combo_id: string
+          created_at: string
+          fish_id: string
+          name: string
+          qty: number
+        }[]
+      }
       my_verification_status: {
         Args: never
         Returns: {
