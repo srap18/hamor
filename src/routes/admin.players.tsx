@@ -450,6 +450,34 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     await reloadInventory();
   };
 
+  // ---- منح الخلفيات (دائم / 7 أيام / مدة مخصصة) ----
+  const [bgGrantId, setBgGrantId] = useState<string>(BACKGROUNDS[0]?.id ?? "cove");
+  const [bgGrantDays, setBgGrantDays] = useState<string>("7");
+  const [bgBusy, setBgBusy] = useState(false);
+
+  const grantBackground = async () => {
+    if (!bgGrantId) return;
+    const perm = bgGrantDays === "perm";
+    const days = perm ? null : Math.max(1, Number(bgGrantDays) || 7);
+    setBgBusy(true);
+    const { error } = await (supabase as any).rpc("admin_grant_background", {
+      _player: player.id, _bg_id: bgGrantId, _days: days,
+    });
+    setBgBusy(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success(perm ? "✅ تم منح الخلفية بشكل دائم" : `✅ تم منح الخلفية لمدة ${days} يوم`);
+    await reloadInventory();
+  };
+
+  const revokeBackground = async (bgId: string) => {
+    if (!confirm("سحب هذه الخلفية من اللاعب؟")) return;
+    const { error } = await (supabase as any).rpc("admin_revoke_background", { _player: player.id, _bg_id: bgId });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success("تم سحب الخلفية");
+    await reloadInventory();
+  };
+
+
   const [totalPaidUsd, setTotalPaidUsd] = useState<number | null>(null);
   const [paidBreakdown, setPaidBreakdown] = useState<{ paddle: number; stripe: number; polar: number }>({ paddle: 0, stripe: 0, polar: 0 });
 
