@@ -43,7 +43,7 @@ const ROCKETS = [
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
+const rpc = (supabase as any).rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
 
 type Projectile = { id: number; kind: "rocket" | "boss"; weapon?: string; key: number };
 type Splash = { id: number; side: "ship" | "boss"; crit?: boolean; dmg?: number };

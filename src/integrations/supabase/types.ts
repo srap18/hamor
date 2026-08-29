@@ -6653,6 +6653,10 @@ export type Database = {
           username: string
         }[]
       }
+      admin_grant_background: {
+        Args: { _bg_id: string; _days?: number; _player: string }
+        Returns: Json
+      }
       admin_grant_code_to_online: {
         Args: { _code: string; _within_minutes: number }
         Returns: {
@@ -6842,6 +6846,10 @@ export type Database = {
           qty_reversed: number
           user_id: string
         }[]
+      }
+      admin_revoke_background: {
+        Args: { _bg_id: string; _player: string }
+        Returns: Json
       }
       admin_revoke_elite_vip: { Args: { _user_id: string }; Returns: undefined }
       admin_revoke_redemption:

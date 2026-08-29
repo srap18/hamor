@@ -450,6 +450,34 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     await reloadInventory();
   };
 
+  // ---- منح الخلفيات (دائم / 7 أيام / مدة مخصصة) ----
+  const [bgGrantId, setBgGrantId] = useState<string>(BACKGROUNDS[0]?.id ?? "cove");
+  const [bgGrantDays, setBgGrantDays] = useState<string>("7");
+  const [bgBusy, setBgBusy] = useState(false);
+
+  const grantBackground = async () => {
+    if (!bgGrantId) return;
+    const perm = bgGrantDays === "perm";
+    const days = perm ? null : Math.max(1, Number(bgGrantDays) || 7);
+    setBgBusy(true);
+    const { error } = await (supabase as any).rpc("admin_grant_background", {
+      _player: player.id, _bg_id: bgGrantId, _days: days,
+    });
+    setBgBusy(false);
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success(perm ? "✅ تم منح الخلفية بشكل دائم" : `✅ تم منح الخلفية لمدة ${days} يوم`);
+    await reloadInventory();
+  };
+
+  const revokeBackground = async (bgId: string) => {
+    if (!confirm("سحب هذه الخلفية من اللاعب؟")) return;
+    const { error } = await (supabase as any).rpc("admin_revoke_background", { _player: player.id, _bg_id: bgId });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    toast.success("تم سحب الخلفية");
+    await reloadInventory();
+  };
+
+
   const [totalPaidUsd, setTotalPaidUsd] = useState<number | null>(null);
   const [paidBreakdown, setPaidBreakdown] = useState<{ paddle: number; stripe: number; polar: number }>({ paddle: 0, stripe: 0, polar: 0 });
 
@@ -1146,6 +1174,56 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
           </div>
         </div>
         <button onClick={onClose} className="w-full mt-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm">إغلاق</button>
+
+        {/* 🖼️ منح الخلفيات */}
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="text-sm font-semibold text-slate-300 mb-2">🖼️ منح خلفية</div>
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_130px_auto] gap-2 items-end">
+            <label className="text-[10px] text-slate-400">الخلفية
+              <select value={bgGrantId} onChange={(e) => setBgGrantId(e.target.value)}
+                className="w-full mt-1 px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs">
+                {BACKGROUNDS.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </label>
+            <label className="text-[10px] text-slate-400">المدة
+              <select value={bgGrantDays} onChange={(e) => setBgGrantDays(e.target.value)}
+                className="w-full mt-1 px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs">
+                <option value="perm">♾️ دائم</option>
+                <option value="7">7 أيام</option>
+                <option value="14">14 يوم</option>
+                <option value="30">30 يوم</option>
+                <option value="90">90 يوم</option>
+              </select>
+            </label>
+            <button onClick={grantBackground} disabled={bgBusy}
+              className="px-3 py-2 rounded bg-emerald-600/50 hover:bg-emerald-600/70 disabled:opacity-50 text-emerald-50 text-xs font-bold">
+              {bgBusy ? "..." : "➕ منح"}
+            </button>
+          </div>
+
+          {invRows.filter((r) => r.item_type === "background").length > 0 && (
+            <div className="mt-3 space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {invRows.filter((r) => r.item_type === "background").map((r) => {
+                const exp = r.meta?.expires_at as string | undefined;
+                return (
+                  <div key={r.id} className="rounded-lg bg-slate-800/60 border border-slate-700 p-2 flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-100 truncate">{getItemNameAr("background", r.item_id)}</div>
+                      <div className="text-[10px] truncate">
+                        {exp
+                          ? <span className={new Date(exp) > new Date() ? "text-amber-300" : "text-rose-400"}>ينتهي: {new Date(exp).toLocaleString("ar")}</span>
+                          : <span className="text-emerald-400">♾️ دائم</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => revokeBackground(r.item_id)}
+                      className="px-2 py-1 rounded bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 text-[11px]">سحب</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
 
         {/* Inventory / مخزن اللاعب */}
         <div className="mt-4 pt-4 border-t border-slate-800">

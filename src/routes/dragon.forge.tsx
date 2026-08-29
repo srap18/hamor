@@ -42,7 +42,7 @@ function ForgeLocked() {
 type Tab = "smelt" | "inventory" | "shop" | "upgrade";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rpc = supabase.rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
+const rpc = (supabase as any).rpc.bind(supabase) as unknown as (n: string, args?: Record<string, unknown>) => Promise<{ data: any; error: { message: string } | null }>;
 
 function ForgePage() {
   const [tab, setTab] = useState<Tab>("smelt");
