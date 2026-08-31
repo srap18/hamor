@@ -2395,16 +2395,6 @@ function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: numb
   const [current, setCurrent] = useState(0);
   const [dur, setDur] = useState(durationMs > 0 ? durationMs / 1000 : 0);
 
-  // Guess MIME type from URL extension to help Safari pick the right decoder
-  const inferredType = (() => {
-    const s = src.toLowerCase();
-    if (s.includes(".webm")) return "audio/webm";
-    if (s.includes(".m4a") || s.includes(".mp4")) return "audio/mp4";
-    if (s.includes(".mp3")) return "audio/mpeg";
-    if (s.includes(".ogg")) return "audio/ogg";
-    return undefined;
-  })();
-
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
@@ -2430,6 +2420,10 @@ function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: numb
       a.removeEventListener("error", onErr);
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
+      // Free the decoder slot — mobile WebViews allow only a handful of active
+      // media elements; leaking them makes later voice notes silently fail.
+      if (__activeVoiceAudio === a) __activeVoiceAudio = null;
+      try { a.pause(); a.removeAttribute("src"); a.load(); } catch {}
     };
   }, []);
 
@@ -2438,17 +2432,33 @@ function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: numb
     if (!a) return;
     setError(null);
     if (playing) { a.pause(); return; }
-    // Pause any other playing voice message first
+    // Pause and unload any other voice message first (frees its decoder).
     if (__activeVoiceAudio && __activeVoiceAudio !== a) {
-      try { __activeVoiceAudio.pause(); } catch {}
+      try {
+        __activeVoiceAudio.pause();
+        __activeVoiceAudio.removeAttribute("src");
+        __activeVoiceAudio.load();
+      } catch {}
     }
     __activeVoiceAudio = a;
     setLoading(true);
     try {
-      // Ensure it's loaded (Safari sometimes needs an explicit load after user gesture)
-      if (a.readyState < 2) { try { a.load(); } catch {} }
+      // Attach the source only on demand, inside the user gesture.
+      if (a.getAttribute("src") !== src) {
+        a.setAttribute("src", src);
+        try { a.load(); } catch {}
+      }
       await a.play();
     } catch (e: any) {
+      // One retry with a fresh load — WebViews occasionally reject the first
+      // play() on a source that was just attached.
+      try {
+        a.setAttribute("src", src);
+        a.load();
+        await new Promise((r) => setTimeout(r, 120));
+        await a.play();
+        return;
+      } catch {}
       setLoading(false);
       setError(e?.message ? `تعذر التشغيل: ${e.message}` : "تعذر تشغيل التسجيل");
     }
@@ -2465,7 +2475,8 @@ function VoiceMessage({ src, durationMs, mine }: { src: string; durationMs: numb
 
   return (
     <div className={`flex items-center gap-2 rounded-lg px-2 py-1.5 min-w-[180px] max-w-[220px] ${mine ? "bg-amber-950/30" : "bg-stone-900/40"}`}>
-      <audio ref={audioRef} src={src} preload="auto" playsInline />
+      <audio ref={audioRef} preload="none" playsInline />
+
 
       <button
         type="button"
