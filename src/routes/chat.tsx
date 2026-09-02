@@ -135,7 +135,7 @@ function ChatPage() {
   }, [user?.id]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const SHIP_MARKET_MIN = 14;
+  const SHIP_MARKET_MIN = 6;
   const canChat = (marketLevel ?? 1) >= SHIP_MARKET_MIN;
 
   // Pause background music while on the chat screen, resume on leave
