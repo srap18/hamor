@@ -75,23 +75,33 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     item?.price?.external_id ??
     item?.price?.customData?.externalId ??
     item?.price?.custom_data?.externalId ??
-    item?.price?.name;
+    item?.price?.name ??
+    // Fall back to the pack id we attached at checkout, then the raw Paddle id.
+    data.customData?.packId ??
+    data.custom_data?.packId ??
+    item?.price?.id;
   const productId =
     item?.product?.importMeta?.externalId ??
     item?.product?.import_meta?.external_id ??
     item?.product?.externalId ??
-    item?.product?.external_id;
+    item?.product?.external_id ??
+    item?.price?.productId ??
+    item?.price?.product_id ??
+    item?.product?.id;
+  // Never skip the row: a missing external id used to leave subscribers with no
+  // manage/cancel card, which made them buy a second subscription by mistake.
   if (!priceId || !productId) {
-    console.warn("Skipping subscription: missing importMeta.externalId");
-    return;
+    console.warn("subscription: missing external ids, storing raw paddle ids", data.id);
   }
+
   await getSupabase().from("subscriptions").upsert(
     {
       user_id: userId,
       paddle_subscription_id: data.id,
       paddle_customer_id: data.customerId,
-      product_id: productId,
-      price_id: priceId,
+      product_id: productId ?? item?.price?.product_id ?? "unknown",
+      price_id: priceId ?? item?.price?.id ?? "unknown",
+
       status: data.status,
       current_period_start: data.currentBillingPeriod?.startsAt,
       current_period_end: data.currentBillingPeriod?.endsAt,

@@ -51,6 +51,9 @@ function VipPage() {
     }
     setBusy(level);
     try {
+      // Block a second parallel subscription (duplicate monthly charges).
+      const { assertEliteVipPurchaseAllowed } = await import("@/lib/vip-subscription.functions");
+      await assertEliteVipPurchaseAllowed({ data: {} });
       const { buyPackWithPaddle } = await import("@/lib/paddle-buy");
       await buyPackWithPaddle(priceId);
       toast.success("تم فتح صفحة الدفع — أكمل العملية وارجع للعبة.");
@@ -61,6 +64,7 @@ function VipPage() {
       setBusy(null);
     }
   }
+
 
 
   // Native apps (Android / iOS) — Elite VIP subscriptions must go through
