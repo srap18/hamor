@@ -99,8 +99,9 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
       user_id: userId,
       paddle_subscription_id: data.id,
       paddle_customer_id: data.customerId,
-      product_id: productId,
-      price_id: priceId,
+      product_id: productId ?? item?.price?.product_id ?? "unknown",
+      price_id: priceId ?? item?.price?.id ?? "unknown",
+
       status: data.status,
       current_period_start: data.currentBillingPeriod?.startsAt,
       current_period_end: data.currentBillingPeriod?.endsAt,
