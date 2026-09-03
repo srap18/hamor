@@ -8364,6 +8364,7 @@ export type Database = {
         Args: { _recipient: string; _sender: string }
         Returns: string
       }
+      pvp_tier_level: { Args: { _user_id: string }; Returns: number }
       qa_award: {
         Args: { _coins: number; _gems: number; _user: string; _xp: number }
         Returns: undefined
