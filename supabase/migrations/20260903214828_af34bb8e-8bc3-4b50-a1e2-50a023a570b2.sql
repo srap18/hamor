@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.pvp_tier_level(uuid) FROM anon;
