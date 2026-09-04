@@ -573,6 +573,7 @@ function RootComponent() {
     installAuthUserCache();
     loadEconomyOverrides();
     installNativeShell();
+    installNativeAuthDeepLink();
     installSafeAreaFallback();
     installTextZoomFix();
 
