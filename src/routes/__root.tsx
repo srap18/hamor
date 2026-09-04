@@ -34,6 +34,7 @@ import { installAuthUserCache } from "@/lib/auth-user-cache";
 
 import { OfflineOverlay } from "@/components/OfflineOverlay";
 import { installNativeShell } from "@/lib/native-shell";
+import { installNativeAuthDeepLink } from "@/lib/native-auth-deep-link";
 import { installSafeAreaFallback } from "@/lib/safe-area";
 import { installTextZoomFix } from "@/lib/text-zoom";
 
