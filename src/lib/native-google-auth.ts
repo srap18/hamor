@@ -41,8 +41,23 @@ async function ensureInit() {
 }
 
 type Result =
-  | { ok: true; redirected?: false }
+  | { ok: true; redirected?: false; external?: boolean }
   | { ok: false; error: string };
+
+/**
+ * Opens Google sign-in in a Chrome Custom Tab and lets it return to the app
+ * via the com.hamor.game:// deep link (see /auth/native + native-auth-deep-link).
+ * The session is completed by the deep-link listener, not here.
+ */
+async function signInWithCustomTab(origin: string): Promise<Result> {
+  const { Browser } = await import("@capacitor/browser");
+  const callback = `${origin}/auth/native`;
+  const url =
+    `${origin}/~oauth/initiate?provider=google` +
+    `&redirect_uri=${encodeURIComponent(callback)}`;
+  await Browser.open({ url, presentationStyle: "popover" });
+  return { ok: true, external: true };
+}
 
 export async function signInWithGoogleSmart(redirectUri: string): Promise<Result> {
   // Web / PWA → keep existing OAuth flow.
@@ -56,34 +71,36 @@ export async function signInWithGoogleSmart(redirectUri: string): Promise<Result
     }
   }
 
-  // Native → open Google's in-app native sheet and exchange the id token.
-  try {
-    await ensureInit();
-    const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
-    const user = await GoogleAuth.signIn();
-    const idToken = user?.authentication?.idToken;
-    if (!idToken) return { ok: false, error: "لم يتم استلام رمز تحقق من Google" };
-
-    const { error } = await supabase.auth.signInWithIdToken({
-      provider: "google",
-      token: idToken,
-    });
-    if (error) return { ok: false, error: error.message };
-    return { ok: true };
-  } catch (e: any) {
-    // User cancelled → treat silently.
-    const msg = String(e?.message || e || "").toLowerCase();
-    if (msg.includes("cancel") || msg.includes("12501")) {
-      return { ok: false, error: "" };
-    }
-    // If the plugin isn't configured yet, fall back to the web OAuth flow
-    // inside the WebView so the user isn't blocked.
+  // Native → prefer Google's in-app native sheet when a Web Client ID is
+  // configured (requires the app's SHA-1 registered in the same Google Cloud
+  // project). Otherwise, or if the sheet fails, use the Custom Tab flow that
+  // returns to the app automatically through the deep link.
+  if (WEB_CLIENT_ID) {
     try {
-      const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: redirectUri });
-      if (r.error) return { ok: false, error: r.error.message ?? "فشل تسجيل الدخول" };
-      return { ok: true };
-    } catch {
-      return { ok: false, error: e?.message ?? "فشل تسجيل الدخول بجوجل" };
+      await ensureInit();
+      const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
+      const user = await GoogleAuth.signIn();
+      const idToken = user?.authentication?.idToken;
+      if (!idToken) return { ok: false, error: "لم يتم استلام رمز تحقق من Google" };
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+      });
+      if (!error) return { ok: true };
+    } catch (e: any) {
+      // User cancelled → treat silently.
+      const msg = String(e?.message || e || "").toLowerCase();
+      if (msg.includes("cancel") || msg.includes("12501")) {
+        return { ok: false, error: "" };
+      }
+      // Fall through to the Custom Tab flow below.
     }
+  }
+
+  try {
+    return await signInWithCustomTab(window.location.origin);
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? "فشل تسجيل الدخول بجوجل" };
   }
 }

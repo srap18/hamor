@@ -58,6 +58,7 @@ import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as GuideLegacyPlayersRouteImport } from './routes/guide.legacy-players'
 import { Route as DragonForgeRouteImport } from './routes/dragon.forge'
+import { Route as AuthNativeRouteImport } from './routes/auth.native'
 import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
 import { Route as AdminWeeklyXpRouteImport } from './routes/admin.weekly-xp'
 import { Route as AdminVipRouteImport } from './routes/admin.vip'
@@ -339,6 +340,11 @@ const DragonForgeRoute = DragonForgeRouteImport.update({
   path: '/forge',
   getParentRoute: () => DragonRoute,
 } as any)
+const AuthNativeRoute = AuthNativeRouteImport.update({
+  id: '/auth/native',
+  path: '/auth/native',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthConfirmRoute = AuthConfirmRouteImport.update({
   id: '/auth/confirm',
   path: '/auth/confirm',
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/admin/vip': typeof AdminVipRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/native': typeof AuthNativeRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -674,6 +681,7 @@ export interface FileRoutesByTo {
   '/admin/vip': typeof AdminVipRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/native': typeof AuthNativeRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -761,6 +769,7 @@ export interface FileRoutesById {
   '/admin/vip': typeof AdminVipRoute
   '/admin/weekly-xp': typeof AdminWeeklyXpRoute
   '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/native': typeof AuthNativeRoute
   '/dragon/forge': typeof DragonForgeRoute
   '/guide/legacy-players': typeof GuideLegacyPlayersRoute
   '/p/$id': typeof PIdRoute
@@ -849,6 +858,7 @@ export interface FileRouteTypes {
     | '/admin/vip'
     | '/admin/weekly-xp'
     | '/auth/confirm'
+    | '/auth/native'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -934,6 +944,7 @@ export interface FileRouteTypes {
     | '/admin/vip'
     | '/admin/weekly-xp'
     | '/auth/confirm'
+    | '/auth/native'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -1020,6 +1031,7 @@ export interface FileRouteTypes {
     | '/admin/vip'
     | '/admin/weekly-xp'
     | '/auth/confirm'
+    | '/auth/native'
     | '/dragon/forge'
     | '/guide/legacy-players'
     | '/p/$id'
@@ -1081,6 +1093,7 @@ export interface RootRouteChildren {
   UpdatesRoute: typeof UpdatesRoute
   VipRoute: typeof VipRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
+  AuthNativeRoute: typeof AuthNativeRoute
   GuideLegacyPlayersRoute: typeof GuideLegacyPlayersRoute
   PIdRoute: typeof PIdRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
@@ -1440,6 +1453,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dragon/forge'
       preLoaderRoute: typeof DragonForgeRouteImport
       parentRoute: typeof DragonRoute
+    }
+    '/auth/native': {
+      id: '/auth/native'
+      path: '/auth/native'
+      fullPath: '/auth/native'
+      preLoaderRoute: typeof AuthNativeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/confirm': {
       id: '/auth/confirm'
@@ -1806,6 +1826,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpdatesRoute: UpdatesRoute,
   VipRoute: VipRoute,
   AuthConfirmRoute: AuthConfirmRoute,
+  AuthNativeRoute: AuthNativeRoute,
   GuideLegacyPlayersRoute: GuideLegacyPlayersRoute,
   PIdRoute: PIdRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
