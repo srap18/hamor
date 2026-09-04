@@ -321,6 +321,9 @@ function LoginPage() {
       if (result.error) setErr(result.error);
       return;
     }
+    // Native app: sign-in continues in a Custom Tab and completes through the
+    // deep-link listener — nothing more to do on this page.
+    if ((result as { external?: boolean }).external) return;
     if (await mfaStepUpRequired()) {
       setNeedsMfa(true);
       return;
