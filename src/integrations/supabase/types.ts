@@ -6402,6 +6402,18 @@ export type Database = {
         Args: { _caught: string; _now: string; _uid: string }
         Returns: number
       }
+      _selftest_daily_rewards: {
+        Args: { _uid: string }
+        Returns: {
+          after_v: number
+          before_v: number
+          day: number
+          ok: boolean
+          qty: number
+          r_id: string
+          r_type: string
+        }[]
+      }
       _settle_steal_mission: {
         Args: { _attacker_ship_id: string; _reason: string }
         Returns: {
@@ -7384,6 +7396,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      daily_login_reward_for: {
+        Args: { _idx: number }
+        Returns: {
+          reward_id: string
+          reward_qty: number
+          reward_type: string
+        }[]
       }
       daily_rockets_status: { Args: never; Returns: Json }
       daily_xp_cap: { Args: never; Returns: number }
