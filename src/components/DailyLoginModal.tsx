@@ -9,7 +9,7 @@ import iconCoins from "@/assets/icons/icon-coins.webp";
 import iconGems from "@/assets/icons/icon-gems.webp";
 
 type Reward = {
-  item_type: "crew" | "weapon" | "coins" | "gems";
+  item_type: "crew" | "weapon" | "coins" | "gems" | "anti" | "shield";
   item_id: string;
   emoji: string;
   name: string;
@@ -18,26 +18,27 @@ type Reward = {
 
 
 // 15-day cycle. Day 15 = legendary nuke bundle.
-// IMPORTANT: crew item_id must match an entry in src/lib/crews.ts and
-// weapon item_id must match src/lib/weapons.ts, otherwise the item is
-// saved to the DB but never appears in the inventory UI.
+// IMPORTANT: ids must match the server table in public.daily_login_reward_for
+// (crew → src/lib/crews.ts, weapon → src/lib/weapons.ts, anti/shield → inventory ids),
+// otherwise the item is saved to the DB but never appears in the inventory UI.
 const REWARDS: Reward[] = [
-  { item_type: "coins",  item_id: "coins",        emoji: "🪙",   name: "ذهب",          qty: 1000 },
-  { item_type: "weapon", item_id: "rocket_small", emoji: "🚀",   name: "صاروخ صغير",   qty: 4 },
-  { item_type: "crew",   item_id: "sailor",       emoji: "⛵",   name: "بحار",         qty: 1 },
-  { item_type: "weapon", item_id: "rocket_small", emoji: "🚀",   name: "صاروخ صغير",   qty: 5 },
-  { item_type: "coins",  item_id: "coins",        emoji: "🪙",   name: "ذهب",          qty: 3000 },
-  { item_type: "weapon", item_id: "rocket_medium",emoji: "🎯",   name: "صاروخ متوسط",  qty: 5 },
-  { item_type: "crew",   item_id: "fixer_1",      emoji: "🔧",   name: "مصلح مبتدئ",   qty: 1 },
-  { item_type: "weapon", item_id: "rocket_medium",emoji: "🎯",   name: "صاروخ متوسط",  qty: 6 },
-  { item_type: "gems",   item_id: "gems",         emoji: "💎",   name: "جواهر",        qty: 20 },
-  { item_type: "weapon", item_id: "rocket_large", emoji: "💥",   name: "صاروخ كبير",   qty: 7 },
-  { item_type: "crew",   item_id: "guide",        emoji: "🧭",   name: "المرشد",       qty: 1 },
-  { item_type: "weapon", item_id: "rocket_large", emoji: "💥",   name: "صاروخ كبير",   qty: 8 },
-  { item_type: "crew",   item_id: "luck",         emoji: "🍀",   name: "الحظ",         qty: 1 },
-  { item_type: "coins",  item_id: "coins",        emoji: "🪙",   name: "ذهب",          qty: 15000 },
-  { item_type: "weapon", item_id: "nuke",         emoji: "☢️",   name: "قنبلة ذرية",   qty: 10 },
+  { item_type: "coins",  item_id: "coins",         emoji: "🪙",   name: "ذهب",              qty: 5000 },
+  { item_type: "weapon", item_id: "rocket_small",  emoji: "🚀",   name: "صاروخ صغير",       qty: 5 },
+  { item_type: "anti",   item_id: "anti_rocket",   emoji: "🧿",   name: "مضاد صواريخ",      qty: 3 },
+  { item_type: "shield", item_id: "shield_1d",     emoji: "🛡️",   name: "درع يوم",          qty: 1 },
+  { item_type: "coins",  item_id: "coins",         emoji: "🪙",   name: "ذهب",              qty: 25000 },
+  { item_type: "weapon", item_id: "rocket_medium", emoji: "🎯",   name: "صاروخ متوسط",      qty: 6 },
+  { item_type: "crew",   item_id: "fixer_2",       emoji: "🛠️",   name: "مصلح متوسط",       qty: 1 },
+  { item_type: "gems",   item_id: "gems",          emoji: "💎",   name: "جواهر",            qty: 25 },
+  { item_type: "anti",   item_id: "anti_nuke",     emoji: "☢️",   name: "مضاد قنبلة ذرية",  qty: 2 },
+  { item_type: "weapon", item_id: "rocket_large",  emoji: "💥",   name: "صاروخ كبير",       qty: 7 },
+  { item_type: "crew",   item_id: "market_expert", emoji: "📈",   name: "خبير الأسواق",     qty: 1 },
+  { item_type: "weapon", item_id: "ad_bomb",       emoji: "📺",   name: "قنبلة إعلانية",    qty: 3 },
+  { item_type: "shield", item_id: "shield_2d",     emoji: "🛡️",   name: "درع يومين",        qty: 1 },
+  { item_type: "coins",  item_id: "coins",         emoji: "🪙",   name: "ذهب",              qty: 150000 },
+  { item_type: "weapon", item_id: "nuke",          emoji: "☢️",   name: "قنبلة ذرية",       qty: 12 },
 ];
+
 
 const todayKey = () => serverGameDayKey();
 const daysBetween = (a: string, b: string) =>
