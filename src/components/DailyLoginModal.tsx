@@ -188,7 +188,7 @@ export function DailyLoginModal({ open, onClose }: { open: boolean; onClose: () 
           </h2>
           <div className="text-amber-200/80 text-[11px] mt-1">
             {loaded
-              ? `متتالية ${streak} يوم — اجمع 15 يوم للحصول على 10 قنابل ذرية ☢️`
+              ? `متتالية ${streak} يوم — اجمع 15 يوم للحصول على 12 قنبلة ذرية ☢️`
               : "جاري تحميل بيانات هديتك..."}
           </div>
 
