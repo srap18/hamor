@@ -14,39 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _daily_reward_test_log: {
-        Row: {
-          after_v: number | null
-          at: string | null
-          before_v: number | null
-          day: number | null
-          ok: boolean | null
-          qty: number | null
-          r_id: string | null
-          r_type: string | null
-        }
-        Insert: {
-          after_v?: number | null
-          at?: string | null
-          before_v?: number | null
-          day?: number | null
-          ok?: boolean | null
-          qty?: number | null
-          r_id?: string | null
-          r_type?: string | null
-        }
-        Update: {
-          after_v?: number | null
-          at?: string | null
-          before_v?: number | null
-          day?: number | null
-          ok?: boolean | null
-          qty?: number | null
-          r_id?: string | null
-          r_type?: string | null
-        }
-        Relationships: []
-      }
       account_links: {
         Row: {
           created_at: string
@@ -6434,18 +6401,6 @@ export type Database = {
       _rot_frozen_seconds: {
         Args: { _caught: string; _now: string; _uid: string }
         Returns: number
-      }
-      _selftest_daily_rewards: {
-        Args: { _uid: string }
-        Returns: {
-          after_v: number
-          before_v: number
-          day: number
-          ok: boolean
-          qty: number
-          r_id: string
-          r_type: string
-        }[]
       }
       _settle_steal_mission: {
         Args: { _attacker_ship_id: string; _reason: string }
