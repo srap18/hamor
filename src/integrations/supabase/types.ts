@@ -7385,6 +7385,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      daily_login_reward_for: {
+        Args: { _idx: number }
+        Returns: {
+          reward_id: string
+          reward_qty: number
+          reward_type: string
+        }[]
+      }
       daily_rockets_status: { Args: never; Returns: Json }
       daily_xp_cap: { Args: never; Returns: number }
       daughter_apply_purchase_bonus: {
