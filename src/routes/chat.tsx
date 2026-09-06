@@ -1009,7 +1009,7 @@ function ChatPage() {
                           ? bubbleFrame.bubbleClass
                           : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
                         return (
-                            <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
+                            <div className={`max-w-[70%] min-w-0 shrink rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
                             {!mine && (
                               <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
                                 <NameBadge p={p} />
