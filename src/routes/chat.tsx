@@ -999,7 +999,7 @@ function ChatPage() {
                     key={m.id}
                     onReply={() => setReplyTo({ id: m.id, body: previewBody, name: senderName })}
                   >
-                    <div className={`flex gap-2 items-center ${mine ? "flex-row-reverse" : ""}`}>
+                    <div className={`flex gap-2 items-center w-full ${mine ? "flex-row-reverse" : ""}`}>
                       <button type="button" onClick={() => !mine && p && setActionTarget(p)} className="shrink-0">
                         <Avatar p={p} size={56} />
                       </button>
@@ -1009,7 +1009,7 @@ function ChatPage() {
                           ? bubbleFrame.bubbleClass
                           : (mine ? "bg-amber-600 text-amber-50" : "bg-stone-800 text-white");
                         return (
-                            <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
+                            <div className={`max-w-[70%] min-w-0 shrink rounded-2xl px-3 py-1.5 ${bubbleCls} ${bubbleFrame?.animClass ?? ""}`}>
                             {!mine && (
                               <button type="button" onClick={() => p && setActionTarget(p)} className="hover:opacity-90">
                                 <NameBadge p={p} />
@@ -1027,7 +1027,7 @@ function ChatPage() {
                             {m.audio_url ? (
                               <VoiceMessage src={m.audio_url} durationMs={m.audio_duration_ms || 0} mine={mine} />
                             ) : (
-                              <div className="text-sm break-words">{m.body}</div>
+                              <div className="text-sm break-words [overflow-wrap:anywhere]">{m.body}</div>
                             )}
                             <div className={`text-[10px] mt-0.5 opacity-70 ${mine ? "text-amber-100 text-left" : "text-stone-300 text-right"}`}>
                               {new Date(m.created_at).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit", hour12: true })}
