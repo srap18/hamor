@@ -230,7 +230,7 @@ function TradePage() {
     if (!status) return null;
     if (status.system_disabled) return "🚫 تم ايقاف المقايضة مؤقتاً من قبل الإدارة.";
     if (!status.trade_allowed) return "🚫 المقايضة معطّلة على حسابك من قبل الإدارة.";
-    if ((status.market_level ?? 1) < 28) return "🔒 يجب ترقية سوق السفن إلى المستوى 28 لفتح نظام المقايضة.";
+    if ((status.market_level ?? 1) < 20) return "🔒 يجب ترقية سوق السفن إلى المستوى 20 لفتح نظام المقايضة.";
     return null;
   }, [status]);
 
