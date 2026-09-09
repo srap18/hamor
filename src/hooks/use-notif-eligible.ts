@@ -37,11 +37,24 @@ export function useNotifEligible(): boolean {
         supabase.from("user_fish_market").select("level").eq("user_id", user.id).maybeSingle(),
         supabase.from("user_market").select("level").eq("user_id", user.id).maybeSingle(),
       ]);
-      // On error keep whatever we already have (cached / previous state).
-      if (fish.error && ship.error) return false;
-      const fishLv = Number((fish.data as any)?.level ?? 0);
-      const shipLv = Number((ship.data as any)?.level ?? 0);
-      const ok = Math.max(fishLv, shipLv) >= NOTIF_MIN_LEVEL;
+      let ok: boolean;
+      if (fish.error && ship.error) {
+        // Both level reads failed (flaky network / transient RLS hiccup).
+        // Fallback: an established account (created 3+ days ago) is treated as
+        // eligible so the bell never vanishes permanently for old players.
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("created_at")
+          .eq("id", user.id)
+          .maybeSingle();
+        const createdAt = (prof as any)?.created_at ? Date.parse((prof as any).created_at) : 0;
+        if (!createdAt || Date.now() - createdAt < 3 * 86400000) return false; // genuinely new/unknown → stay hidden, retry later
+        ok = true;
+      } else {
+        const fishLv = Number((fish.data as any)?.level ?? 0);
+        const shipLv = Number((ship.data as any)?.level ?? 0);
+        ok = Math.max(fishLv, shipLv) >= NOTIF_MIN_LEVEL;
+      }
       if (cancelled) return true;
       setEligible(ok);
       try {
