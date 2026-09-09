@@ -4069,16 +4069,31 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
   const [prizesModal, setPrizesModal] = useState<{ title: string; tiers: PrizeTier[] } | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
   const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
+  // Fail-closed gate: until the staff list is confirmed by the server we never
+  // render search results, so a failed/slow staff fetch (or a cached restore
+  // after visiting a player) can't leak admin accounts into the results.
+  const [staffReady, setStaffReady] = useState(false);
+  const searchRawRef = useRef<LbProfile[]>([]);
   const restoredSearchRef = useRef(false);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
   useEffect(() => {
+    let alive = true;
     (async () => {
-      const { data } = await (supabase as any).rpc("get_staff_user_ids");
-      const ids = Array.isArray(data)
-        ? data.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean)
-        : [];
-      setStaffIds(new Set(ids as string[]));
+      for (let attempt = 0; attempt < 4 && alive; attempt++) {
+        try {
+          const { data, error } = await (supabase as any).rpc("get_staff_user_ids");
+          if (!error && Array.isArray(data)) {
+            const ids = data.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean);
+            if (!alive) return;
+            setStaffIds(new Set(ids as string[]));
+            setStaffReady(true);
+            return;
+          }
+        } catch { /* retry */ }
+        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+      }
     })();
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
