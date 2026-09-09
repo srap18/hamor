@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isStaffAccount } from "@/lib/staff-check";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import { BackButton } from "@/components/BackButton";
 
@@ -60,10 +61,7 @@ function TribePage() {
       setMembers(list);
       // hide "visit ocean" for staff accounts
       const flags = await Promise.all(ids.map(async id => {
-        try {
-          const { data } = await (supabase as any).rpc("is_staff", { _user_id: id });
-          return data === true ? id : null;
-        } catch { return null; }
+        return (await isStaffAccount(id)) ? id : null;
       }));
       setStaff(new Set(flags.filter(Boolean) as string[]));
       setLoading(false);
