@@ -4306,7 +4306,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       .ilike("display_name", `%${query}%`).limit(200);
     const raw = (data as LbProfile[]) || [];
     searchRawRef.current = raw;
-    setRows(raw.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+    setRows(sortSearchResults(raw.filter((p) => !staffIds.has(p.id)), query).slice(0, 100));
     setLoading(false);
   };
 
