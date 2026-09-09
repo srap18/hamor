@@ -4315,10 +4315,30 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     const query = term.trim();
     if (!query) return;
     setLoading(true);
-    const { data } = await supabase.from("profiles")
-      .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
-      .ilike("display_name", `%${query}%`).limit(200);
-    const raw = (data as LbProfile[]) || [];
+    // Fetch in priority tiers so a popular substring (e.g. "لاعب") can't bury
+    // the exact match: exact first, then names starting with the query, then
+    // any other contains-matches. ilike is case-insensitive and the query is
+    // escaped for PostgREST pattern chars.
+    const esc = query.replace(/[%_,]/g, (c) => `\\${c}`);
+    const cols = "id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame";
+    const seen = new Set<string>();
+    const merged: LbProfile[] = [];
+    const addRows = (rows: LbProfile[] | null) => {
+      for (const r of rows || []) {
+        if (seen.has(r.id)) continue;
+        seen.add(r.id);
+        merged.push(r);
+      }
+    };
+    const [exactRes, prefixRes, containsRes] = await Promise.all([
+      supabase.from("profiles").select(cols).ilike("display_name", esc).limit(20),
+      supabase.from("profiles").select(cols).ilike("display_name", `${esc}%`).limit(100),
+      supabase.from("profiles").select(cols).ilike("display_name", `%${esc}%`).limit(200),
+    ]);
+    addRows(exactRes.data as LbProfile[] | null);
+    addRows(prefixRes.data as LbProfile[] | null);
+    addRows(containsRes.data as LbProfile[] | null);
+    const raw = merged;
     searchRawRef.current = raw;
     setRows(sortSearchResults(raw.filter((p) => !staffIds.has(p.id)), query).slice(0, 100));
     setLoading(false);
