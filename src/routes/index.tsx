@@ -4012,6 +4012,20 @@ type LbProfile = {
   avatar_frame?: string | null; name_frame?: string | null;
 };
 
+// Order search results: exact name match first, then names starting with the
+// query, then the rest — so typing the full correct name puts that player on top.
+function sortSearchResults(list: LbProfile[], query: string): LbProfile[] {
+  const nq = query.trim().toLowerCase();
+  if (!nq) return list;
+  const score = (p: LbProfile) => {
+    const n = (p.display_name || "").trim().toLowerCase();
+    if (n === nq) return 0;
+    if (n.startsWith(nq)) return 1;
+    return 2;
+  };
+  return [...list].sort((a, b) => score(a) - score(b));
+}
+
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number; donation_score?: number; support_score?: number; attack_score?: number };
 
 type CompLb = {
@@ -4306,7 +4320,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
       .ilike("display_name", `%${query}%`).limit(200);
     const raw = (data as LbProfile[]) || [];
     searchRawRef.current = raw;
-    setRows(raw.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+    setRows(sortSearchResults(raw.filter((p) => !staffIds.has(p.id)), query).slice(0, 100));
     setLoading(false);
   };
 
@@ -4315,8 +4329,8 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
   useEffect(() => {
     if (tab !== "search") return;
     if (searchRawRef.current.length === 0) return;
-    setRows(searchRawRef.current.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-  }, [staffIds, staffReady, tab]);
+    setRows(sortSearchResults(searchRawRef.current.filter((p) => !staffIds.has(p.id)), q.trim()).slice(0, 100));
+  }, [staffIds, staffReady, tab, q]);
 
   useEffect(() => {
     if (restoredSearchRef.current || initialRestore?.tab !== "search" || tab !== "search" || !q.trim()) return;
