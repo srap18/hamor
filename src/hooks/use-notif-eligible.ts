@@ -71,16 +71,37 @@ export function useNotifEligible(): boolean {
       return true;
     };
 
-    (async () => {
-      // Retry a couple of times on transient failures.
-      for (let i = 0; i < 3; i++) {
-        const done = await check();
-        if (done || cancelled) return;
-        await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    let running = false;
+    const runWithRetries = async () => {
+      if (running) return;
+      running = true;
+      try {
+        // Retry a couple of times on transient failures.
+        for (let i = 0; i < 3; i++) {
+          const done = await check();
+          if (done || cancelled) return;
+          await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+        }
+      } finally {
+        running = false;
       }
-    })();
+    };
+    void runWithRetries();
 
-    return () => { cancelled = true; };
+    // If all retries failed (e.g. the app was opened on a dead network), try
+    // again whenever the tab comes back instead of leaving the bell hidden
+    // until a full reload.
+    const onWake = () => { if (!cancelled) void runWithRetries(); };
+    document.addEventListener("visibilitychange", onWake);
+    window.addEventListener("focus", onWake);
+    window.addEventListener("online", onWake);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onWake);
+      window.removeEventListener("focus", onWake);
+      window.removeEventListener("online", onWake);
+    };
   }, [user?.id]);
 
   return eligible;
