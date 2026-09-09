@@ -4727,9 +4727,9 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 </>
               );
             })()
-          ) : rows.length === 0 ? (
+          ) : (tab === "search" && !staffReady) || rows.length === 0 ? (
             <div className="text-center text-accent/60 py-6 text-sm">
-              {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
+              {tab === "search" ? (staffReady ? "ابحث باسم قبطان" : "جاري التحميل...") : "لا توجد نتائج"}
             </div>
           ) : (() => {
             const showPodium = tab !== "search" && rows.length >= 3;
