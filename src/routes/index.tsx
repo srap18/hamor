@@ -4315,8 +4315,8 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
   useEffect(() => {
     if (tab !== "search") return;
     if (searchRawRef.current.length === 0) return;
-    setRows(searchRawRef.current.filter((p) => !staffIds.has(p.id)).slice(0, 100));
-  }, [staffIds, staffReady, tab]);
+    setRows(sortSearchResults(searchRawRef.current.filter((p) => !staffIds.has(p.id)), q.trim()).slice(0, 100));
+  }, [staffIds, staffReady, tab, q]);
 
   useEffect(() => {
     if (restoredSearchRef.current || initialRestore?.tab !== "search" || tab !== "search" || !q.trim()) return;
