@@ -4304,16 +4304,26 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     const { data } = await supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
       .ilike("display_name", `%${query}%`).limit(200);
-    const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
-    setRows(filtered);
+    const raw = (data as LbProfile[]) || [];
+    searchRawRef.current = raw;
+    setRows(raw.filter((p) => !staffIds.has(p.id)).slice(0, 100));
     setLoading(false);
   };
 
+  // Re-apply the staff filter whenever the confirmed staff list changes, so
+  // results fetched before/while the list loaded get scrubbed too.
+  useEffect(() => {
+    if (tab !== "search") return;
+    if (searchRawRef.current.length === 0) return;
+    setRows(searchRawRef.current.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+  }, [staffIds, staffReady, tab]);
+
   useEffect(() => {
     if (restoredSearchRef.current || initialRestore?.tab !== "search" || tab !== "search" || !q.trim()) return;
+    if (!staffReady) return; // wait for the confirmed staff list first
     restoredSearchRef.current = true;
     void runSearch(q);
-  }, [initialRestore?.tab, q, tab, staffIds]);
+  }, [initialRestore?.tab, q, tab, staffIds, staffReady]);
 
 
   const TABS = [
