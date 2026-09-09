@@ -50,6 +50,13 @@ export function useNotifEligible(): boolean {
         const createdAt = (prof as any)?.created_at ? Date.parse((prof as any).created_at) : 0;
         if (!createdAt || Date.now() - createdAt < 3 * 86400000) return false; // genuinely new/unknown → stay hidden, retry later
         ok = true;
+      } else if (fish.error || ship.error) {
+        // Only one table answered. Trust it when it proves eligibility, but
+        // never let a half-failed read DEMOTE an established player (a level-30
+        // fish-market row + a failed ship-market read used to hide the bell).
+        const lv = Number(((fish.error ? ship.data : fish.data) as any)?.level ?? 0);
+        if (lv < NOTIF_MIN_LEVEL) return false; // inconclusive → keep current state, retry
+        ok = true;
       } else {
         const fishLv = Number((fish.data as any)?.level ?? 0);
         const shipLv = Number((ship.data as any)?.level ?? 0);
