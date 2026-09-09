@@ -4012,6 +4012,20 @@ type LbProfile = {
   avatar_frame?: string | null; name_frame?: string | null;
 };
 
+// Order search results: exact name match first, then names starting with the
+// query, then the rest — so typing the full correct name puts that player on top.
+function sortSearchResults(list: LbProfile[], query: string): LbProfile[] {
+  const nq = query.trim().toLowerCase();
+  if (!nq) return list;
+  const score = (p: LbProfile) => {
+    const n = (p.display_name || "").trim().toLowerCase();
+    if (n === nq) return 0;
+    if (n.startsWith(nq)) return 1;
+    return 2;
+  };
+  return [...list].sort((a, b) => score(a) - score(b));
+}
+
 type TribeLb = { id: string; name: string; emblem: string; banner?: string; level?: number; members: number; power: number; donation_score?: number; support_score?: number; attack_score?: number };
 
 type CompLb = {
