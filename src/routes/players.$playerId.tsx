@@ -6,6 +6,7 @@ import { WEAPONS } from "@/lib/weapons";
 import { CREWS } from "@/lib/crews";
 import { FISH } from "@/lib/fish";
 import { supabase } from "@/integrations/supabase/client";
+import { isStaffAccount } from "@/lib/staff-check";
 import { PROFILE_PUBLIC_COLUMNS } from "@/lib/profile-columns";
 import { getSceneVisual } from "@/lib/backgrounds";
 import { useShipSlotOverrides, useShipSlotLayoutReady } from "@/lib/ship-slot-editor";
@@ -113,7 +114,7 @@ function PlayerPage() {
     ships_destroyed?: number; total_damage?: number; free_space_before?: number;
     victim_stock_before?: number; loot_details?: Array<{ fish_id: string; qty: number; value: number }>;
   } | null>(null);
-  const [targetIsStaff, setTargetIsStaff] = useState(false);
+  const [targetIsStaff, setTargetIsStaff] = useState(true); // fail-closed
   const [tribe, setTribe] = useState<{ id: string; name: string; emblem: string | null; level: number } | null>(null);
 
   const [targetMarketUnlocked, setTargetMarketUnlocked] = useState<boolean>(true);
@@ -244,7 +245,7 @@ function PlayerPage() {
       const [{ data: prof }, { data: sh }, { data: staffRes }, { data: dragonRow }, { data: marketUnlocked }] = await Promise.all([
         supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).eq("id", playerId).maybeSingle(),
         supabase.from("ships_owned").select("*").eq("user_id", playerId).eq("in_storage", false).order("acquired_at", { ascending: true }),
-        (supabase as any).rpc("is_staff", { _user_id: playerId }),
+        isStaffAccount(playerId).then((v) => ({ data: v })),
         supabase.from("dragons").select("stage").eq("user_id", playerId).maybeSingle(),
         (supabase as any).rpc("is_market_pvp_unlocked", { _user_id: playerId }),
       ]);
@@ -258,7 +259,7 @@ function PlayerPage() {
       }
 
       setShips((sh as Ship[]) || []);
-      setTargetIsStaff(!!staffRes);
+      setTargetIsStaff(staffRes !== false);
       setTargetMarketUnlocked(marketUnlocked !== false);
       setTheirDragonStage(((dragonRow as any)?.stage as number) ?? 1);
 

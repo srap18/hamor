@@ -6,6 +6,7 @@ import { getProfileByUsername, type PublicProfile } from "@/lib/profiles-public"
 import { frameById } from "@/lib/frames";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import ProfileAlbum from "@/components/ProfileAlbum";
+import { isStaffAccount } from "@/lib/staff-check";
 
 type TribeInfo = { id: string; name: string; level: number; emblem: string | null };
 
@@ -49,7 +50,7 @@ function UserProfilePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [tribe, setTribe] = useState<TribeInfo | null>(null);
   const [albumPrivacy, setAlbumPrivacy] = useState<"public" | "friends">("public");
-  const [isStaff, setIsStaff] = useState(false);
+  const [isStaff, setIsStaff] = useState(true); // fail-closed until server confirms
 
 
   const flash = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 1800); };
@@ -69,11 +70,8 @@ function UserProfilePage() {
       if (p) {
         const { data: pr } = await supabase.from("profiles").select("album_privacy").eq("id", p.id).maybeSingle();
         setAlbumPrivacy(((pr as any)?.album_privacy === "friends" ? "friends" : "public"));
-        try {
-          const { data: staff } = await (supabase as any).rpc("is_staff", { _user_id: p.id });
-          setIsStaff(staff === true);
-        } catch { setIsStaff(false); }
-      } else setIsStaff(false);
+        setIsStaff(await isStaffAccount(p.id));
+      } else setIsStaff(true);
 
       if (p && u.user) {
         if (p.id === u.user.id) setFriendStatus("self");
