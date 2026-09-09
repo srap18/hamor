@@ -100,8 +100,15 @@ function FriendsPage() {
 
   const search = async () => {
     if (!q.trim()) return;
-    const { data } = await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).ilike("display_name", `%${q}%`).neq("id", user?.id || "").limit(20);
-    setResults((data || []) as P[]);
+    // Staff accounts must never surface in player search. Fail closed: if the
+    // staff list can't be confirmed, show no results instead of leaking them.
+    const { data: staffData, error: staffErr } = await (supabase as any).rpc("get_staff_user_ids");
+    if (staffErr || !Array.isArray(staffData)) { setResults([]); return; }
+    const staff = new Set(
+      staffData.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean) as string[],
+    );
+    const { data } = await supabase.from("profiles").select(PROFILE_PUBLIC_COLUMNS).ilike("display_name", `%${q}%`).neq("id", user?.id || "").limit(40);
+    setResults(((data || []) as P[]).filter((p) => !staff.has(p.id)).slice(0, 20));
   };
 
   const sendReq = async (toId: string) => {
