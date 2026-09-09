@@ -4069,16 +4069,31 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
   const [prizesModal, setPrizesModal] = useState<{ title: string; tiers: PrizeTier[] } | null>(null);
   const [meId, setMeId] = useState<string | null>(null);
   const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
+  // Fail-closed gate: until the staff list is confirmed by the server we never
+  // render search results, so a failed/slow staff fetch (or a cached restore
+  // after visiting a player) can't leak admin accounts into the results.
+  const [staffReady, setStaffReady] = useState(false);
+  const searchRawRef = useRef<LbProfile[]>([]);
   const restoredSearchRef = useRef(false);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? null)); }, []);
   useEffect(() => {
+    let alive = true;
     (async () => {
-      const { data } = await (supabase as any).rpc("get_staff_user_ids");
-      const ids = Array.isArray(data)
-        ? data.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean)
-        : [];
-      setStaffIds(new Set(ids as string[]));
+      for (let attempt = 0; attempt < 4 && alive; attempt++) {
+        try {
+          const { data, error } = await (supabase as any).rpc("get_staff_user_ids");
+          if (!error && Array.isArray(data)) {
+            const ids = data.map((r: any) => (typeof r === "string" ? r : r?.get_staff_user_ids ?? r?.user_id)).filter(Boolean);
+            if (!alive) return;
+            setStaffIds(new Set(ids as string[]));
+            setStaffReady(true);
+            return;
+          }
+        } catch { /* retry */ }
+        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+      }
     })();
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -4289,16 +4304,26 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
     const { data } = await supabase.from("profiles")
       .select("id,display_name,avatar_emoji,avatar_url,level,xp,coins,gems,avatar_frame,name_frame")
       .ilike("display_name", `%${query}%`).limit(200);
-    const filtered = ((data as LbProfile[]) || []).filter((p) => !staffIds.has(p.id)).slice(0, 100);
-    setRows(filtered);
+    const raw = (data as LbProfile[]) || [];
+    searchRawRef.current = raw;
+    setRows(raw.filter((p) => !staffIds.has(p.id)).slice(0, 100));
     setLoading(false);
   };
 
+  // Re-apply the staff filter whenever the confirmed staff list changes, so
+  // results fetched before/while the list loaded get scrubbed too.
+  useEffect(() => {
+    if (tab !== "search") return;
+    if (searchRawRef.current.length === 0) return;
+    setRows(searchRawRef.current.filter((p) => !staffIds.has(p.id)).slice(0, 100));
+  }, [staffIds, staffReady, tab]);
+
   useEffect(() => {
     if (restoredSearchRef.current || initialRestore?.tab !== "search" || tab !== "search" || !q.trim()) return;
+    if (!staffReady) return; // wait for the confirmed staff list first
     restoredSearchRef.current = true;
     void runSearch(q);
-  }, [initialRestore?.tab, q, tab, staffIds]);
+  }, [initialRestore?.tab, q, tab, staffIds, staffReady]);
 
 
   const TABS = [
@@ -4702,9 +4727,9 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                 </>
               );
             })()
-          ) : rows.length === 0 ? (
+          ) : (tab === "search" && !staffReady) || rows.length === 0 ? (
             <div className="text-center text-accent/60 py-6 text-sm">
-              {tab === "search" ? "ابحث باسم قبطان" : "لا توجد نتائج"}
+              {tab === "search" ? (staffReady ? "ابحث باسم قبطان" : "جاري التحميل...") : "لا توجد نتائج"}
             </div>
           ) : (() => {
             const showPodium = tab !== "search" && rows.length >= 3;
