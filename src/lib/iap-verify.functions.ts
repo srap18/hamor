@@ -39,8 +39,22 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
     }
 
 
-    // Resolve product to either a store pack or an Elite VIP tier.
-    const pack = STORE_PACKS.find((p) => p.id === data.productId);
+    // Resolve product to a store pack, an Elite VIP tier, or a legacy Play
+    // product that is still live on the store but no longer in the catalog.
+    const legacy = getLegacyPlayProduct(data.productId);
+    const pack =
+      STORE_PACKS.find((p) => p.id === data.productId) ??
+      (legacy
+        ? {
+            id: legacy.id,
+            category: "vip" as const,
+            label: legacy.label,
+            emoji: "🌟",
+            priceUSD: legacy.priceUSD,
+            subscription: legacy.subscription,
+            reward: legacy.reward,
+          }
+        : undefined);
     const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === data.productId);
     if (!pack && !eliteTier) {
       throw new Error(`unknown product: ${data.productId}`);
