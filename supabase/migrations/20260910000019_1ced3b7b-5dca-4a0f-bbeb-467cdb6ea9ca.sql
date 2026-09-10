@@ -1,0 +1,2 @@
+ALTER TABLE public.paddle_purchases ADD COLUMN IF NOT EXISTS play_purchase_token text;
+CREATE INDEX IF NOT EXISTS paddle_purchases_play_token_idx ON public.paddle_purchases (play_purchase_token) WHERE play_purchase_token IS NOT NULL;

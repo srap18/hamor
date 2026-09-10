@@ -15,6 +15,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { STORE_PACKS } from "@/lib/store-catalog";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
+import { getLegacyPlayProduct } from "@/lib/legacy-play-products";
 
 const InputSchema = z.object({
   productId: z.string().min(1).max(100),
@@ -38,8 +39,22 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
     }
 
 
-    // Resolve product to either a store pack or an Elite VIP tier.
-    const pack = STORE_PACKS.find((p) => p.id === data.productId);
+    // Resolve product to a store pack, an Elite VIP tier, or a legacy Play
+    // product that is still live on the store but no longer in the catalog.
+    const legacy = getLegacyPlayProduct(data.productId);
+    const pack =
+      STORE_PACKS.find((p) => p.id === data.productId) ??
+      (legacy
+        ? {
+            id: legacy.id,
+            category: "vip" as const,
+            label: legacy.label,
+            emoji: "🌟",
+            priceUSD: legacy.priceUSD,
+            subscription: legacy.subscription,
+            reward: legacy.reward,
+          } as (typeof STORE_PACKS)[number]
+        : undefined);
     const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === data.productId);
     if (!pack && !eliteTier) {
       throw new Error(`unknown product: ${data.productId}`);
@@ -61,6 +76,23 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
         await consumePlayProduct(toPlayId(data.productId), data.receipt);
       } catch (e: any) {
         console.error("[iap-verify] consume failed", data.productId, e?.message ?? e);
+      }
+    };
+
+    /**
+     * Persist the Google Play purchase token on the purchase row so the RTDN
+     * webhook can map later renewals / refunds of the same subscription back
+     * to this buyer (RTDN only knows the token, never the order id).
+     */
+    const rememberToken = async () => {
+      if (data.platform !== "android") return;
+      try {
+        await supabaseAdmin
+          .from("paddle_purchases")
+          .update({ play_purchase_token: data.receipt } as never)
+          .eq("paddle_transaction_id", data.transactionId);
+      } catch (e: any) {
+        console.error("[iap-verify] token persist failed", e?.message ?? e);
       }
     };
 
@@ -150,6 +182,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
         _env: env,
       } as never);
       if (error) throw new Error(error.message);
+      await rememberToken();
       const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
       return { ok: true, alreadyGranted, productId: data.productId };
     }
@@ -171,6 +204,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       _env: env,
     } as never);
     if (error) throw new Error(error.message);
+    await rememberToken();
 
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
