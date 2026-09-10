@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import {
-  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES,
-  frameById, type Frame, type FrameKind,
+  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES, EXCLUSIVE_FRAMES,
+  frameById, frameAvatarStyle, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
 import { SeasonAchievements } from "@/components/SeasonAchievements";
