@@ -19,7 +19,7 @@ import { SeamlessVideo } from "@/components/SeamlessVideo";
 import { burnTargetBg } from "@/components/BurnedBgOverlay";
 import { DraggableRepairBgButton } from "@/components/DraggableRepairBgButton";
 
-import { frameById } from "@/lib/frames";
+import { frameById, frameAvatarStyle } from "@/lib/frames";
 import { AdBombOverlay } from "@/components/AdBombOverlay";
 import { AntiBlockBurst } from "@/components/AntiBlockBurst";
 import { AD_VIDEOS } from "@/lib/ad-videos";

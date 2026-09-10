@@ -3,7 +3,7 @@ import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileByUsername, type PublicProfile } from "@/lib/profiles-public";
-import { frameById } from "@/lib/frames";
+import { frameById, frameAvatarStyle } from "@/lib/frames";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import { isStaffAccount } from "@/lib/staff-check";

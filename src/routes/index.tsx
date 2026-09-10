@@ -83,7 +83,7 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 import { useServerTick } from "@/lib/use-server-tick";
 import { consumePlayerReturnSource, savePlayerReturnSource } from "@/lib/navigation-source";
 
-import { frameById } from "@/lib/frames";
+import { frameById, frameAvatarStyle } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
 import navIconBattle from "@/assets/nav-icon-battle.webp";
 import navIconTribe from "@/assets/nav-icon-tribe.webp";
