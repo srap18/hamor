@@ -53,7 +53,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
             priceUSD: legacy.priceUSD,
             subscription: legacy.subscription,
             reward: legacy.reward,
-          }
+          } as (typeof STORE_PACKS)[number]
         : undefined);
     const eliteTier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === data.productId);
     if (!pack && !eliteTier) {
