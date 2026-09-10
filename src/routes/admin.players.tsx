@@ -8,7 +8,7 @@ import { FISH_LIST } from "@/lib/fish";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { BACKGROUNDS } from "@/lib/backgrounds";
-import { ALL_FRAMES } from "@/lib/frames";
+import { ALL_FRAMES, EXCLUSIVE_FRAMES } from "@/lib/frames";
 import { getShipByCode } from "@/lib/ships";
 
 const ITEM_NAME_AR: Record<string, string> = {
