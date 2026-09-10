@@ -25,9 +25,9 @@ import luxObsidian  from "@/assets/frames/lux-obsidian.webp";
 import luxSakura    from "@/assets/frames/lux-sakura.webp";
 import luxEmerald   from "@/assets/frames/lux-emerald.webp";
 import luxImperial  from "@/assets/frames/lux-imperial.webp";
-import blastPrince   from "@/assets/frames/frame-blast-prince.webp.asset.json";
-import blastKing     from "@/assets/frames/frame-blast-king.webp.asset.json";
-import blastMinister from "@/assets/frames/frame-blast-minister.webp.asset.json";
+import blastPrince   from "@/assets/frames/frame-blast-prince.webp";
+import blastKing     from "@/assets/frames/frame-blast-king.webp";
+import blastMinister from "@/assets/frames/frame-blast-minister.webp";
 
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
@@ -456,9 +456,9 @@ export const SEASON_AWARD_FRAMES: Frame[] = [
 
 // ── Exclusive frames (admin-granted only, NOT sold in the shop) ──
 export const EXCLUSIVE_FRAMES: Frame[] = [
-  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing.url,     avatarScale: 0.26, animClass: "frame-anim-imperial" },
-  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince.url,   avatarScale: 0.28, animClass: "frame-anim-diamond" },
-  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister.url, avatarScale: 0.27, animClass: "frame-anim-royal" },
+  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing,     avatarScale: 0.42, animClass: "frame-anim-imperial" },
+  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince,   avatarScale: 0.42, animClass: "frame-anim-diamond" },
+  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister, avatarScale: 0.42, animClass: "frame-anim-royal" },
 ];
 
 export const ALL_FRAMES: Frame[] = [
