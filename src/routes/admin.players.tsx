@@ -450,6 +450,20 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     await reloadInventory();
   };
 
+  // ---- منح الإطارات الحصرية (شهر واحد) ----
+  const [xFrameId, setXFrameId] = useState<string>(EXCLUSIVE_FRAMES[0]?.id ?? "");
+  const grantExclusiveFrame = async () => {
+    const f = EXCLUSIVE_FRAMES.find((x) => x.id === xFrameId);
+    if (!f) return;
+    const { error } = await (supabase as any).rpc("admin_grant_inventory_item", {
+      _player: player.id, _item_type: "frame", _item_id: f.id, _quantity: 1,
+    });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_grant_inventory_item", player.id, { item_type: "frame", item_id: f.id, quantity: 1, exclusive: true });
+    toast.success(`تم منح ${f.name} لمدة 30 يوم`);
+    await reloadInventory();
+  };
+
   // ---- منح الخلفيات (دائم / 7 أيام / مدة مخصصة) ----
   const [bgGrantId, setBgGrantId] = useState<string>(BACKGROUNDS[0]?.id ?? "cove");
   const [bgGrantDays, setBgGrantDays] = useState<string>("7");
