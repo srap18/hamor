@@ -18,12 +18,35 @@ function ForgotPasswordPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null); setMsg(null); setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const clean = email.trim().toLowerCase();
+
+    // Most "the email never arrived" reports are simply a mailbox that has no
+    // account (typo, or the account was created with a different provider).
+    // Supabase returns success in that case and sends nothing — so we check first.
+    try {
+      const { data: exists, error: rpcErr } = await (supabase as any)
+        .rpc("email_has_existing_account", { _email: clean });
+      if (!rpcErr && exists === false) {
+        setLoading(false);
+        setErr("لا يوجد حساب مسجّل بهذا البريد. تأكد من كتابته صحيحاً أو من البريد الذي أنشأت به الحساب.");
+        return;
+      }
+    } catch { /* ignore — fall through to normal send */ }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(clean, {
       redirectTo: `${siteUrl()}/auth/confirm?type=recovery&next=/reset-password`,
     });
     setLoading(false);
-    if (error) { setErr(error.message); return; }
-    setMsg("تم إرسال رابط الاستعادة إلى بريدك ✓");
+    if (error) {
+      const m = String(error.message ?? "").toLowerCase();
+      if (m.includes("rate") || m.includes("29") || m.includes("limit")) {
+        setErr("تم إرسال عدة رسائل خلال وقت قصير. انتظر دقيقة ثم أعد المحاولة.");
+      } else {
+        setErr(error.message);
+      }
+      return;
+    }
+    setMsg("تم إرسال رابط الاستعادة إلى بريدك ✓ (تحقق من صندوق الوارد و Spam)");
   };
 
   return (
