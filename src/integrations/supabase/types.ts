@@ -3219,6 +3219,7 @@ export type Database = {
           id: string
           pack_id: string
           paddle_transaction_id: string
+          play_purchase_token: string | null
           refund_banned_at: string | null
           status: string
           user_id: string
@@ -3237,6 +3238,7 @@ export type Database = {
           id?: string
           pack_id: string
           paddle_transaction_id: string
+          play_purchase_token?: string | null
           refund_banned_at?: string | null
           status?: string
           user_id: string
@@ -3255,6 +3257,7 @@ export type Database = {
           id?: string
           pack_id?: string
           paddle_transaction_id?: string
+          play_purchase_token?: string | null
           refund_banned_at?: string | null
           status?: string
           user_id?: string
