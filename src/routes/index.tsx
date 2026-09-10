@@ -83,7 +83,7 @@ import { syncServerTime, serverTodayKey, serverNowMs, serverNow, isServerClockSy
 import { useServerTick } from "@/lib/use-server-tick";
 import { consumePlayerReturnSource, savePlayerReturnSource } from "@/lib/navigation-source";
 
-import { frameById } from "@/lib/frames";
+import { frameById, frameAvatarStyle } from "@/lib/frames";
 import { rankTier } from "@/lib/rank-tiers";
 import navIconBattle from "@/assets/nav-icon-battle.webp";
 import navIconTribe from "@/assets/nav-icon-tribe.webp";
@@ -2389,7 +2389,7 @@ function Index() {
           <div className="flex flex-col items-center gap-1.5 shrink-0">
             <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1">
               <div className="relative w-20 h-20 flex items-center justify-center">
-                <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
+                <div style={frameAvatarStyle(frameById((profile as any)?.avatar_frame))} className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-amber-300/60 shadow-[0_0_14px_rgba(252,191,73,0.7)] bg-gradient-to-b from-amber-900 to-amber-950">
                   {(profile as any)?.avatar_url ? (
                     <img decoding="async" src={(profile as any).avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -4674,7 +4674,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                   <div className={`w-7 text-center text-sm font-extrabold ${tier ? "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" : "text-accent"}`}>{tier ? tier.badge : i + 1}</div>
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
                     <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
-                      style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
+                      style={{ ...(tier && !hasAvatarFrame ? { filter: tier.glowFilter } : {}), ...frameAvatarStyle(frameById(p.avatar_frame)) }}>
                       {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
                     {hasAvatarFrame && (
@@ -4732,7 +4732,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
                   <div className={`w-7 text-center text-sm font-extrabold ${tier ? "text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" : "text-accent"}`}>{tier ? tier.badge : i + 1}</div>
                   <div className="relative w-[60px] h-[60px] shrink-0 flex items-center justify-center">
                     <div className={`w-[44px] h-[44px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-lg overflow-hidden ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
-                      style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
+                      style={{ ...(tier && !hasAvatarFrame ? { filter: tier.glowFilter } : {}), ...frameAvatarStyle(frameById(p.avatar_frame)) }}>
                       {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                     </div>
                     {hasAvatarFrame && (
@@ -4820,7 +4820,7 @@ function LeaderboardModal({ onClose, initialRestore }: { onClose: () => void; in
               )}
               <div className="relative w-[72px] h-[72px] shrink-0 flex items-center justify-center">
                 <div className={`w-[50px] h-[50px] rounded-full bg-gradient-to-b from-sky-400 to-sky-700 flex items-center justify-center text-xl overflow-hidden shadow-[0_0_10px_rgba(252,191,73,0.5)] ${hasAvatarFrame ? "ring-2 ring-amber-300/50" : tier ? tier.ringClass : "ring-2 ring-amber-300/50"}`}
-                  style={tier && !hasAvatarFrame ? { filter: tier.glowFilter } : undefined}>
+                  style={{ ...(tier && !hasAvatarFrame ? { filter: tier.glowFilter } : {}), ...frameAvatarStyle(frameById(p.avatar_frame)) }}>
                   {p.avatar_url ? <img decoding="async" src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : p.avatar_emoji}
                 </div>
                 {hasAvatarFrame && (

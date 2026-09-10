@@ -25,6 +25,9 @@ import luxObsidian  from "@/assets/frames/lux-obsidian.webp";
 import luxSakura    from "@/assets/frames/lux-sakura.webp";
 import luxEmerald   from "@/assets/frames/lux-emerald.webp";
 import luxImperial  from "@/assets/frames/lux-imperial.webp";
+import blastPrince   from "@/assets/frames/frame-blast-prince.webp.asset.json";
+import blastKing     from "@/assets/frames/frame-blast-king.webp.asset.json";
+import blastMinister from "@/assets/frames/frame-blast-minister.webp.asset.json";
 
 export type FrameKind = "avatar" | "name" | "bubble" | "profile";
 
@@ -42,6 +45,9 @@ export type Frame = {
   imageUrl?: string;
   animClass?: string;
   preview: string;
+  /** Card-style frames: portrait hole size as a fraction of the frame box,
+   *  used to size the avatar so it sits exactly inside the artwork hole. */
+  avatarScale?: number;
 };
 
 export const AVATAR_FRAMES: Frame[] = [
@@ -448,9 +454,24 @@ export const SEASON_AWARD_FRAMES: Frame[] = [
   { id: "sf_10", name: "ملك القراصنة 🏴‍☠️",      kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: luxImperial,  animClass: "frame-anim-imperial" },
 ];
 
-export const ALL_FRAMES: Frame[] = [
-  ...AVATAR_FRAMES, ...NAME_FRAMES, ...BUBBLE_FRAMES, ...PROFILE_FRAMES, ...SEASON_AWARD_FRAMES,
+// ── Exclusive frames (admin-granted only, NOT sold in the shop) ──
+export const EXCLUSIVE_FRAMES: Frame[] = [
+  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing.url,     avatarScale: 0.26, animClass: "frame-anim-imperial" },
+  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince.url,   avatarScale: 0.28, animClass: "frame-anim-diamond" },
+  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister.url, avatarScale: 0.27, animClass: "frame-anim-royal" },
 ];
+
+export const ALL_FRAMES: Frame[] = [
+  ...AVATAR_FRAMES, ...NAME_FRAMES, ...BUBBLE_FRAMES, ...PROFILE_FRAMES, ...SEASON_AWARD_FRAMES, ...EXCLUSIVE_FRAMES,
+];
+
+/** Inline style for the avatar element sitting inside a frame, so card-style
+ *  frames render the photo inside their portrait hole. */
+export function frameAvatarStyle(frame?: Frame | null): Record<string, string> | undefined {
+  return frame?.avatarScale
+    ? { width: `${frame.avatarScale * 100}%`, height: `${frame.avatarScale * 100}%` }
+    : undefined;
+}
 
 export function frameById(id?: string | null): Frame | undefined {
   if (!id) return undefined;

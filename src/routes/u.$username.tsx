@@ -3,7 +3,7 @@ import { BackButton } from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileByUsername, type PublicProfile } from "@/lib/profiles-public";
-import { frameById } from "@/lib/frames";
+import { frameById, frameAvatarStyle } from "@/lib/frames";
 import { getTribeBanner } from "@/lib/tribe-banners";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import { isStaffAccount } from "@/lib/staff-check";
@@ -175,7 +175,7 @@ function UserProfilePage() {
               style={{ background: "radial-gradient(circle at top right, rgba(251,191,36,0.35), transparent 60%)" }} />
             <div className="relative flex items-center gap-4">
               <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-                <div className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
+                <div style={frameAvatarStyle(equippedAvatarFrame)} className={`relative w-20 h-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "" : equippedAvatarFrame?.ring ?? "ring-2 ring-amber-400/60"}`}>
                   {profile.avatar_url ? (
                     <img decoding="async" src={profile.avatar_url} alt={`Player avatar — ${profile.display_name ?? profile.username}`} className="w-full h-full object-cover" />
                   ) : (

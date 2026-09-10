@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileAlbum from "@/components/ProfileAlbum";
 import {
-  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES,
-  frameById, type Frame, type FrameKind,
+  AVATAR_FRAMES, NAME_FRAMES, BUBBLE_FRAMES, PROFILE_FRAMES, SEASON_AWARD_FRAMES, EXCLUSIVE_FRAMES,
+  frameById, frameAvatarStyle, type Frame, type FrameKind,
 } from "@/lib/frames";
 import { VerificationStatus } from "@/components/VerificationStatus";
 import { SeasonAchievements } from "@/components/SeasonAchievements";
@@ -335,7 +335,7 @@ function ProfilePage() {
           <div className="rounded-2xl p-4 glass-hud border border-accent/40 flex items-center gap-4">
             <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
               {/* Avatar sits centered and smaller so the frame's ring surrounds it without covering the picture */}
-              <div className={`relative z-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
+              <div style={frameAvatarStyle(equippedAvatarFrame)} className={`relative z-20 rounded-full overflow-hidden ${equippedAvatarFrame?.imageUrl ? "w-[62%] h-[62%]" : `w-16 h-16 ${equippedAvatarFrame?.ring ?? "ring-2 ring-border"}`}`}>
                 {avatarUrl ? (
                   <img decoding="async" src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -550,6 +550,13 @@ function ProfilePage() {
           frames={AVATAR_FRAMES}
           owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
         />
+        {EXCLUSIVE_FRAMES.some(f => ownedFrameIds.has(f.id)) && (
+          <FrameSection
+            title="🎖️ إطارات حصرية (ممنوحة)" kind="avatar"
+            frames={EXCLUSIVE_FRAMES.filter(f => ownedFrameIds.has(f.id))}
+            owned={ownedFrameIds} selected={avatarFrame} onSelect={setAvatarFrame}
+          />
+        )}
         {seasonFrameIds.size > 0 && (
           <FrameSection
             title="🏆 إطارات المواسم (ممنوحة)" kind="avatar"
@@ -623,7 +630,7 @@ function FrameSection({ title, kind, frames, owned, selected, onSelect }: {
               {kind === "avatar" && (
                 f.imageUrl ? (
                   <div className="relative w-14 h-14 flex items-center justify-center">
-                    <div className="absolute w-9 h-9 rounded-full bg-stone-700 flex items-center justify-center text-base">👤</div>
+                    <div style={frameAvatarStyle(f)} className="absolute w-9 h-9 rounded-full bg-stone-700 flex items-center justify-center text-base">👤</div>
                     <img decoding="async" src={f.imageUrl} alt="" className={`absolute inset-0 w-full h-full object-contain pointer-events-none ${f.animClass ?? ""}`} loading="lazy" />
                   </div>
                 ) : (

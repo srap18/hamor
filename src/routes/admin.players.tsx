@@ -8,7 +8,7 @@ import { FISH_LIST } from "@/lib/fish";
 import { CREWS } from "@/lib/crews";
 import { WEAPONS } from "@/lib/weapons";
 import { BACKGROUNDS } from "@/lib/backgrounds";
-import { ALL_FRAMES } from "@/lib/frames";
+import { ALL_FRAMES, EXCLUSIVE_FRAMES } from "@/lib/frames";
 import { getShipByCode } from "@/lib/ships";
 
 const ITEM_NAME_AR: Record<string, string> = {
@@ -447,6 +447,20 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
     if (error) { toast.error("خطأ: " + error.message); return; }
     await logAudit("admin_grant_inventory_item", player.id, { item_type: itype, item_id: iid, quantity: q });
     toast.success("تم إضافة العنصر");
+    await reloadInventory();
+  };
+
+  // ---- منح الإطارات الحصرية (شهر واحد) ----
+  const [xFrameId, setXFrameId] = useState<string>(EXCLUSIVE_FRAMES[0]?.id ?? "");
+  const grantExclusiveFrame = async () => {
+    const f = EXCLUSIVE_FRAMES.find((x) => x.id === xFrameId);
+    if (!f) return;
+    const { error } = await (supabase as any).rpc("admin_grant_inventory_item", {
+      _player: player.id, _item_type: "frame", _item_id: f.id, _quantity: 1,
+    });
+    if (error) { toast.error("خطأ: " + error.message); return; }
+    await logAudit("admin_grant_inventory_item", player.id, { item_type: "frame", item_id: f.id, quantity: 1, exclusive: true });
+    toast.success(`تم منح ${f.name} لمدة 30 يوم`);
     await reloadInventory();
   };
 
@@ -1244,8 +1258,17 @@ function EditPlayerModal({ player, onClose }: { player: Player; onClose: () => v
                 </button>
               ));
             })()}
-          </div>
-          {invRows.length === 0 ? (
+           </div>
+           <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2 flex flex-wrap items-center gap-2">
+             <span className="text-[11px] font-bold text-amber-200">🎖️ منح إطار حصري (30 يوم)</span>
+             <select value={xFrameId} onChange={(e) => setXFrameId(e.target.value)}
+               className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+               {EXCLUSIVE_FRAMES.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+             </select>
+             <button onClick={grantExclusiveFrame}
+               className="px-2 py-1 rounded bg-amber-600/50 hover:bg-amber-600/70 text-amber-50 text-xs font-bold">منح</button>
+           </div>
+           {invRows.length === 0 ? (
             <div className="text-xs text-slate-500 py-3 text-center">المخزن فارغ</div>
           ) : (
             <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
