@@ -148,33 +148,146 @@ export const Route = createFileRoute("/api/public/hooks/play-rtdn")({
 
           if (sub && purchaseToken && subscriptionId) {
             const { verifyPlaySubscription } = await import("@/lib/play-verify.server");
-            const info = await verifyPlaySubscription(subscriptionId, purchaseToken);
+            const info = (await verifyPlaySubscription(subscriptionId, purchaseToken)) as {
+              expiryTimeMillis?: string;
+              paymentState?: number;
+              orderId?: string;
+              linkedPurchaseToken?: string;
+            };
             const expiry = Number(info.expiryTimeMillis ?? 0);
-            // Update matching profile's elite VIP / VIP expiry if we track this token.
-            const { data: purch } = await supabaseAdmin
-              .from("paddle_purchases")
-              .select("user_id, pack_id")
-              .eq("paddle_transaction_id", purchaseToken)
-              .maybeSingle();
-            if (purch?.user_id && expiry) {
-              // notificationType 13 = expired, 3 = canceled (still active until expiry)
-              if (sub.notificationType === 13) {
+            const orderId = String(info.orderId ?? "");
+            // Renewal order ids look like "GPA.1234-5678-9012-34567..3" —
+            // the part before ".." is the id stored for the first payment.
+            const baseOrderId = orderId.includes("..") ? orderId.split("..")[0] : orderId;
+
+            // Resolve the buyer: by stored token, by the token this one
+            // replaced (upgrade/downgrade/resubscribe), or by the original
+            // order id of the very first payment of this subscription.
+            const findBuyer = async () => {
+              const byToken = await supabaseAdmin
+                .from("paddle_purchases")
+                .select("id, user_id, pack_id")
+                .eq("play_purchase_token", purchaseToken)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              if (byToken.data?.user_id) return byToken.data;
+
+              if (info.linkedPurchaseToken) {
+                const byLinked = await supabaseAdmin
+                  .from("paddle_purchases")
+                  .select("id, user_id, pack_id")
+                  .eq("play_purchase_token", info.linkedPurchaseToken)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                if (byLinked.data?.user_id) return byLinked.data;
+              }
+
+              if (baseOrderId) {
+                const byOrder = await supabaseAdmin
+                  .from("paddle_purchases")
+                  .select("id, user_id, pack_id")
+                  .eq("paddle_transaction_id", baseOrderId)
+                  .maybeSingle();
+                if (byOrder.data?.user_id) return byOrder.data;
+              }
+
+              // Legacy rows keyed by the raw token.
+              const byRaw = await supabaseAdmin
+                .from("paddle_purchases")
+                .select("id, user_id, pack_id")
+                .eq("paddle_transaction_id", purchaseToken)
+                .maybeSingle();
+              return byRaw.data ?? null;
+            };
+
+            const purch = await findBuyer();
+
+            if (purch?.user_id) {
+              // Backfill the token so future renewals resolve instantly.
+              await supabaseAdmin
+                .from("paddle_purchases")
+                .update({ play_purchase_token: purchaseToken } as never)
+                .eq("id", purch.id)
+                .is("play_purchase_token", null);
+
+              const paid = info.paymentState === 1 || info.paymentState === 2;
+              const active = !!expiry && expiry > Date.now();
+              // 1 = recovered, 2 = renewed, 4 = purchased, 7 = restarted
+              const isPayment = [1, 2, 4, 7].includes(sub.notificationType);
+
+              if (isPayment && paid && active) {
+                const { ELITE_VIP_TIERS } = await import("@/lib/elite-vip");
+                const { STORE_PACKS } = await import("@/lib/store-catalog");
+                const { getLegacyPlayProduct } = await import("@/lib/legacy-play-products");
+
+                const tier = ELITE_VIP_TIERS.find((t) => t.paddlePriceId === subscriptionId);
+                const legacy = getLegacyPlayProduct(subscriptionId);
+                const packDef = STORE_PACKS.find((p) => p.id === subscriptionId);
+                const reward = (packDef?.reward ?? legacy?.reward ?? {}) as {
+                  gems?: number;
+                  coins?: number;
+                  rubies?: number;
+                  shieldDays?: number;
+                  vipDays?: number;
+                };
+                const priceUsd =
+                  tier?.monthlyPriceUsd ?? packDef?.priceUSD ?? legacy?.priceUSD ?? 0;
+
+                // Idempotent per renewal order id — repeated RTDN deliveries
+                // of the same payment never double-grant.
+                const txnId = orderId || `${purchaseToken}:${expiry}`;
+                const { error: grantErr } = await supabaseAdmin.rpc(
+                  "grant_paddle_purchase" as never,
+                  {
+                    _txn_id: txnId,
+                    _user: purch.user_id,
+                    _pack_id: subscriptionId,
+                    _amount_cents: Math.round(priceUsd * 100),
+                    _gems: tier ? 0 : (reward.gems ?? 0),
+                    _coins: tier ? 0 : (reward.coins ?? 0),
+                    _rubies: tier ? 0 : (reward.rubies ?? 0),
+                    _shield_days: tier ? 0 : (reward.shieldDays ?? 0),
+                    _vip_days: tier ? 0 : (reward.vipDays ?? 0),
+                    _env: "google_play",
+                  } as never,
+                );
+                if (grantErr) throw new Error(`renewal grant failed: ${grantErr.message}`);
+
+                await supabaseAdmin
+                  .from("paddle_purchases")
+                  .update({ play_purchase_token: purchaseToken } as never)
+                  .eq("paddle_transaction_id", txnId);
+
+                if (tier) {
+                  await supabaseAdmin
+                    .from("profiles")
+                    .update({ elite_vip_expires_at: new Date(expiry).toISOString() } as never)
+                    .eq("id", purch.user_id);
+                } else {
+                  // Legacy/plain VIP — keep expiry aligned with Play.
+                  await supabaseAdmin
+                    .from("profiles")
+                    .update({ vip_expires_at: new Date(expiry).toISOString() } as never)
+                    .eq("id", purch.user_id);
+                }
+              } else if (sub.notificationType === 13 || sub.notificationType === 12) {
+                // Expired / revoked — end the entitlement now.
+                const tierEnd = (await import("@/lib/elite-vip")).ELITE_VIP_TIERS.find(
+                  (t) => t.paddlePriceId === subscriptionId,
+                );
                 await supabaseAdmin
                   .from("profiles")
-                  .update({
-                    elite_vip_level: 0,
-                    elite_vip_expires_at: null,
-                  } as never)
-                  .eq("id", purch.user_id);
-              } else if (sub.notificationType === 2) {
-                // Renewed — extend expiry.
-                await supabaseAdmin
-                  .from("profiles")
-                  .update({
-                    elite_vip_expires_at: new Date(expiry).toISOString(),
-                  } as never)
+                  .update(
+                    (tierEnd
+                      ? { elite_vip_level: 0, elite_vip_expires_at: null }
+                      : { vip_expires_at: new Date().toISOString() }) as never,
+                  )
                   .eq("id", purch.user_id);
               }
+            } else {
+              console.error("[play-rtdn] no buyer found for token", purchaseToken, subscriptionId);
             }
           }
 
