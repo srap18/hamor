@@ -15,6 +15,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { STORE_PACKS } from "@/lib/store-catalog";
 import { ELITE_VIP_TIERS } from "@/lib/elite-vip";
+import { getLegacyPlayProduct } from "@/lib/legacy-play-products";
 
 const InputSchema = z.object({
   productId: z.string().min(1).max(100),
