@@ -204,6 +204,7 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       _env: env,
     } as never);
     if (error) throw new Error(error.message);
+    await rememberToken();
 
     const alreadyGranted = !!(grantRes as { already_granted?: boolean } | null)?.already_granted;
 
