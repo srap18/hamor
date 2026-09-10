@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.email_has_existing_account(text) TO anon, authenticated;
