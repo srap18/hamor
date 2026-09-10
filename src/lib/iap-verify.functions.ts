@@ -79,6 +79,23 @@ export const verifyIapPurchase = createServerFn({ method: "POST" })
       }
     };
 
+    /**
+     * Persist the Google Play purchase token on the purchase row so the RTDN
+     * webhook can map later renewals / refunds of the same subscription back
+     * to this buyer (RTDN only knows the token, never the order id).
+     */
+    const rememberToken = async () => {
+      if (data.platform !== "android") return;
+      try {
+        await supabaseAdmin
+          .from("paddle_purchases")
+          .update({ play_purchase_token: data.receipt } as never)
+          .eq("paddle_transaction_id", data.transactionId);
+      } catch (e: any) {
+        console.error("[iap-verify] token persist failed", e?.message ?? e);
+      }
+    };
+
     // 1) Idempotency — this receipt was already processed. Still re-run the
     //    item grant (idempotent via the ledger) so a previous partial delivery
     //    heals itself instead of leaving the buyer without their items.
