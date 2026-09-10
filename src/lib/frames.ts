@@ -45,8 +45,8 @@ export type Frame = {
   imageUrl?: string;
   animClass?: string;
   preview: string;
-  /** For card-style frames whose portrait hole is smaller than the default:
-   *  scales the avatar down so it fits exactly inside the artwork hole. */
+  /** Card-style frames: portrait hole size as a fraction of the frame box,
+   *  used to size the avatar so it sits exactly inside the artwork hole. */
   avatarScale?: number;
 };
 
@@ -456,9 +456,9 @@ export const SEASON_AWARD_FRAMES: Frame[] = [
 
 // ── Exclusive frames (admin-granted only, NOT sold in the shop) ──
 export const EXCLUSIVE_FRAMES: Frame[] = [
-  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing.url,     avatarScale: 0.41, animClass: "frame-anim-imperial" },
-  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince.url,   avatarScale: 0.44, animClass: "frame-anim-diamond" },
-  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister.url, avatarScale: 0.43, animClass: "frame-anim-royal" },
+  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing.url,     avatarScale: 0.26, animClass: "frame-anim-imperial" },
+  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince.url,   avatarScale: 0.28, animClass: "frame-anim-diamond" },
+  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister.url, avatarScale: 0.27, animClass: "frame-anim-royal" },
 ];
 
 export const ALL_FRAMES: Frame[] = [
@@ -467,8 +467,10 @@ export const ALL_FRAMES: Frame[] = [
 
 /** Inline style for the avatar element sitting inside a frame, so card-style
  *  frames render the photo inside their portrait hole. */
-export function frameAvatarStyle(frame?: Frame | null): React.CSSProperties | undefined {
-  return frame?.avatarScale ? { transform: `scale(${frame.avatarScale})` } : undefined;
+export function frameAvatarStyle(frame?: Frame | null): Record<string, string> | undefined {
+  return frame?.avatarScale
+    ? { width: `${frame.avatarScale * 100}%`, height: `${frame.avatarScale * 100}%` }
+    : undefined;
 }
 
 export function frameById(id?: string | null): Frame | undefined {
