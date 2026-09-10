@@ -456,9 +456,9 @@ export const SEASON_AWARD_FRAMES: Frame[] = [
 
 // ── Exclusive frames (admin-granted only, NOT sold in the shop) ──
 export const EXCLUSIVE_FRAMES: Frame[] = [
-  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing,     avatarScale: 0.42, animClass: "frame-anim-imperial" },
-  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince,   avatarScale: 0.42, animClass: "frame-anim-diamond" },
-  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister, avatarScale: 0.42, animClass: "frame-anim-royal" },
+  { id: "xf_blast_king",     name: "ملك التفجير 👑",  kind: "avatar", price: 0, currency: "gem", rarity: "mythic",    preview: "👑", imageUrl: blastKing,     animClass: "frame-anim-imperial" },
+  { id: "xf_blast_prince",   name: "أمير التفجير 🔱", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "🔱", imageUrl: blastPrince,   animClass: "frame-anim-imperial" },
+  { id: "xf_blast_minister", name: "وزير التفجير ⚓", kind: "avatar", price: 0, currency: "gem", rarity: "legendary", preview: "⚓", imageUrl: blastMinister, animClass: "frame-anim-imperial" },
 ];
 
 export const ALL_FRAMES: Frame[] = [
