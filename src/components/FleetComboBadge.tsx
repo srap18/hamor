@@ -15,9 +15,19 @@ export function FleetComboBadge() {
       if (alive) setCombos((data ?? []) as ActiveCombo[]);
     };
     void load();
-    const t = setInterval(load, 30000);
-    return () => { alive = false; clearInterval(t); };
+    // Display-only badge: refresh slowly and only while the page is visible.
+    // The combo reward itself is granted server-side, so a slower poll here
+    // changes nothing about gameplay — only the pill's refresh cadence.
+    const t = setInterval(() => { if (!document.hidden) void load(); }, 90000);
+    const onVis = () => { if (document.visibilityState === "visible") void load(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      alive = false;
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, []);
+
 
   if (combos.length === 0) return null;
   const c = combos[0];
