@@ -31,7 +31,7 @@ export function LuckyBoxButton({ onChanged }: { onChanged?: () => void }) {
         aria-label="صندوق الحظ"
         className="fixed z-30 flex flex-col items-center justify-center active:scale-95 rounded-lg"
         style={{
-          left: "calc(var(--sa-left) + 8px)",
+          left: "max(10px, calc(var(--sa-left) + 10px))",
           top: "calc(var(--sa-top) + 130px)",
           width: "clamp(34px, 9.5vw, 44px)",
           height: "clamp(38px, 11vw, 50px)",

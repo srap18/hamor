@@ -161,7 +161,31 @@ export function AdBombOverlay({
       window.dispatchEvent(new CustomEvent("ad-bomb:active", { detail: v }));
     };
     set(true);
-    return () => set(false);
+
+    // Safety net for any decorative <video> that does not listen to the event:
+    // pause it and drop its source so the decoder is definitely released.
+    const parked: HTMLVideoElement[] = [];
+    const park = () => {
+      document.querySelectorAll("video").forEach((el) => {
+        const v = el as HTMLVideoElement;
+        if (v === videoRef.current || parked.includes(v)) return;
+        try {
+          v.pause();
+          v.removeAttribute("autoplay");
+          parked.push(v);
+        } catch { /* noop */ }
+      });
+    };
+    park();
+    const parkTimer = window.setInterval(park, 2000);
+
+    return () => {
+      window.clearInterval(parkTimer);
+      parked.forEach((v) => {
+        try { v.setAttribute("autoplay", ""); void v.play().catch(() => {}); } catch { /* noop */ }
+      });
+      set(false);
+    };
   }, [isActive]);
 
   // Android/WebView playback:

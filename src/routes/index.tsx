@@ -2065,7 +2065,7 @@ function Index() {
         aria-label="المهام والإنجازات"
         className="fixed z-30 flex flex-col items-center justify-center active:scale-95 transition rounded-xl"
         style={{
-          left: "calc(var(--sa-left) + 8px)",
+          left: "max(10px, calc(var(--sa-left) + 10px))",
           top: "calc(var(--sa-top) + 250px)",
           width: "clamp(34px, 9.5vw, 44px)",
           height: "clamp(38px, 11vw, 50px)",
@@ -2384,7 +2384,7 @@ function Index() {
 
       {/* TOP HUD — pirate luxury */}
       <div className="absolute top-0 left-0 right-0 px-2.5 pb-2.5 z-20 flex flex-col gap-2" style={{ paddingTop: "calc(var(--sa-top) + 0.5rem)" }}>
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2 min-w-0 w-full">
           {/* Avatar + name + treasury stacked */}
           <div className="flex flex-col items-center gap-1.5 shrink-0">
             <Link to="/profile" className="relative active:scale-95 flex flex-col items-center gap-1">
@@ -2452,9 +2452,9 @@ function Index() {
           </div>
 
           {/* Action column — luxury stack opposite the avatar */}
-          <div className="ms-auto flex flex-col items-end gap-1.5 shrink-0">
+          <div className="ms-auto flex min-w-0 flex-1 flex-col items-end gap-1.5">
             {/* Fish discovery + Golden Fisher active indicator */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5">
               {(() => {
                 const gfUntilProf = (profile as any)?.golden_fisher_until ? new Date((profile as any).golden_fisher_until).getTime() : 0;
                 const eliteExpiry = (profile as any)?.elite_vip_expires_at;
@@ -2562,7 +2562,7 @@ function Index() {
             </div>
 
             {/* Notifications + Shield row */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5">
               <FleetComboBadge />
               <ShieldBadge />
               <NotificationsBell />
@@ -2597,7 +2597,7 @@ function Index() {
         onClick={() => { sound.play("coin"); setDailyOpen(true); }}
         className="fixed z-30 rounded-2xl flex flex-col items-center justify-center active:scale-95"
         style={{
-          left: "calc(var(--sa-left) + 8px)",
+          left: "max(10px, calc(var(--sa-left) + 10px))",
           top: "calc(var(--sa-top) + 190px)",
           width: "clamp(38px, 10vw, 46px)",
           height: "clamp(44px, 12.5vw, 54px)",

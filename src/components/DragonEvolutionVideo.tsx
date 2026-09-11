@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { getDragonVideoForStage } from "@/lib/dragon-videos";
+import { useAdBombYield } from "@/hooks/use-ad-bomb-yield";
 import dragonEgg from "@/assets/dragon-egg.webp";
 
 type Props = {
@@ -25,6 +26,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
   const keyColorRef = useRef<{ r: number; g: number; b: number } | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const [canvasDisabled, setCanvasDisabled] = useState(false);
+  const adBombActive = useAdBombYield();
 
   useEffect(() => {
     if (isStaticEgg) return;
@@ -205,24 +207,28 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
       style={{ ...style, display: "block", position: "relative", overflow: "visible" }}
       data-dragon-stage={stageKind}
     >
-      <video
-        ref={videoRef}
-        src={url}
-        autoPlay
-        loop={loop}
-        muted
-        playsInline
-        crossOrigin="anonymous"
-        onError={() => setCanvasDisabled(true)}
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{
-          objectFit: "contain",
-          objectPosition: "bottom center",
-          mixBlendMode: canvasDisabled ? "multiply" : undefined,
-          // Hide the raw video as soon as the keyed canvas has its first frame.
-          opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0,
-        }}
-      />
+      {/* While an ad-bomb clip plays we release this hardware decoder — on many
+          Android devices only 1–2 exist and the ad would otherwise be audio-only. */}
+      {!adBombActive && (
+        <video
+          ref={videoRef}
+          src={url}
+          autoPlay
+          loop={loop}
+          muted
+          playsInline
+          crossOrigin="anonymous"
+          onError={() => setCanvasDisabled(true)}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{
+            objectFit: "contain",
+            objectPosition: "bottom center",
+            mixBlendMode: canvasDisabled ? "multiply" : undefined,
+            // Hide the raw video as soon as the keyed canvas has its first frame.
+            opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0,
+          }}
+        />
+      )}
       {!canvasDisabled && (
         <canvas
           ref={canvasRef}
