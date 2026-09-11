@@ -101,18 +101,21 @@ function KeyedWhiteVideo({
 
   return (
     <span className={className} style={{ ...style, display: "block", position: "relative" }}>
-      <video
-        ref={videoRef}
-        src={src}
-        autoPlay
-        loop={loop}
-        muted
-        playsInline
-        onEnded={onEnded}
-        onError={() => setCanvasDisabled(true)}
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ objectFit: "contain", objectPosition: "center", opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0 }}
-      />
+      {/* Release the hardware decoder while an ad-bomb clip is playing. */}
+      {!adBombActive && (
+        <video
+          ref={videoRef}
+          src={src}
+          autoPlay
+          loop={loop}
+          muted
+          playsInline
+          onEnded={onEnded}
+          onError={() => setCanvasDisabled(true)}
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{ objectFit: "contain", objectPosition: "center", opacity: canvasDisabled ? 1 : canvasReady ? 0 : 0 }}
+        />
+      )}
       {!canvasDisabled && (
         <canvas
           ref={canvasRef}
