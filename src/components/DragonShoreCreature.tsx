@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useAdBombYield } from "@/hooks/use-ad-bomb-yield";
 
 import { supabase } from "@/integrations/supabase/client";
 import { overallLevel, getStage, type Dragon } from "@/lib/dragon";
@@ -41,6 +42,7 @@ function KeyedWhiteVideo({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const [canvasDisabled, setCanvasDisabled] = useState(false);
+  const adBombActive = useAdBombYield();
 
   useEffect(() => {
     if (canvasDisabled) return;
