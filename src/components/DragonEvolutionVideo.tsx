@@ -26,6 +26,7 @@ export function DragonEvolutionVideo({ stage, className, style, loop = true }: P
   const keyColorRef = useRef<{ r: number; g: number; b: number } | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const [canvasDisabled, setCanvasDisabled] = useState(false);
+  const adBombActive = useAdBombYield();
 
   useEffect(() => {
     if (isStaticEgg) return;
