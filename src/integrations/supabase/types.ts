@@ -8310,6 +8310,7 @@ export type Database = {
         Args: { _x: string; _y: string }
         Returns: undefined
       }
+      paddle_refund_sweep_tick: { Args: never; Returns: undefined }
       pause_golden_fisher: { Args: never; Returns: Json }
       player_attack_bonus: { Args: { p_user: string }; Returns: Json }
       post_elite_vip_login_broadcast: { Args: never; Returns: undefined }
