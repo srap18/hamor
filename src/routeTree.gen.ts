@@ -92,6 +92,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksPlaySyncRouteImport } from './routes/api/public/hooks/play-sync'
 import { Route as ApiPublicHooksPlayRtdnRouteImport } from './routes/api/public/hooks/play-rtdn'
+import { Route as ApiPublicHooksPaddleRefundSweepRouteImport } from './routes/api/public/hooks/paddle-refund-sweep'
 import { Route as ApiPublicHooksGoldenFisherTickRouteImport } from './routes/api/public/hooks/golden-fisher-tick'
 import { Route as ApiPublicAdminRunPlaySyncRouteImport } from './routes/api/public/admin/run-play-sync'
 
@@ -512,6 +513,12 @@ const ApiPublicHooksPlayRtdnRoute = ApiPublicHooksPlayRtdnRouteImport.update({
   path: '/api/public/hooks/play-rtdn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPaddleRefundSweepRoute =
+  ApiPublicHooksPaddleRefundSweepRouteImport.update({
+    id: '/api/public/hooks/paddle-refund-sweep',
+    path: '/api/public/hooks/paddle-refund-sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksGoldenFisherTickRoute =
   ApiPublicHooksGoldenFisherTickRouteImport.update({
     id: '/api/public/hooks/golden-fisher-tick',
@@ -605,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/paddle-refund-sweep': typeof ApiPublicHooksPaddleRefundSweepRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -691,6 +699,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/paddle-refund-sweep': typeof ApiPublicHooksPaddleRefundSweepRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -779,6 +788,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/api/public/admin/run-play-sync': typeof ApiPublicAdminRunPlaySyncRoute
   '/api/public/hooks/golden-fisher-tick': typeof ApiPublicHooksGoldenFisherTickRoute
+  '/api/public/hooks/paddle-refund-sweep': typeof ApiPublicHooksPaddleRefundSweepRoute
   '/api/public/hooks/play-rtdn': typeof ApiPublicHooksPlayRtdnRoute
   '/api/public/hooks/play-sync': typeof ApiPublicHooksPlaySyncRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -868,6 +878,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/paddle-refund-sweep'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/paddle-refund-sweep'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
@@ -1041,6 +1053,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/admin/run-play-sync'
     | '/api/public/hooks/golden-fisher-tick'
+    | '/api/public/hooks/paddle-refund-sweep'
     | '/api/public/hooks/play-rtdn'
     | '/api/public/hooks/play-sync'
     | '/api/public/payments/webhook'
@@ -1101,6 +1114,7 @@ export interface RootRouteChildren {
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicAdminRunPlaySyncRoute: typeof ApiPublicAdminRunPlaySyncRoute
   ApiPublicHooksGoldenFisherTickRoute: typeof ApiPublicHooksGoldenFisherTickRoute
+  ApiPublicHooksPaddleRefundSweepRoute: typeof ApiPublicHooksPaddleRefundSweepRoute
   ApiPublicHooksPlayRtdnRoute: typeof ApiPublicHooksPlayRtdnRoute
   ApiPublicHooksPlaySyncRoute: typeof ApiPublicHooksPlaySyncRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1692,6 +1706,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPlayRtdnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/paddle-refund-sweep': {
+      id: '/api/public/hooks/paddle-refund-sweep'
+      path: '/api/public/hooks/paddle-refund-sweep'
+      fullPath: '/api/public/hooks/paddle-refund-sweep'
+      preLoaderRoute: typeof ApiPublicHooksPaddleRefundSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/golden-fisher-tick': {
       id: '/api/public/hooks/golden-fisher-tick'
       path: '/api/public/hooks/golden-fisher-tick'
@@ -1834,6 +1855,7 @@ const rootRouteChildren: RootRouteChildren = {
   UUsernameRoute: UUsernameRoute,
   ApiPublicAdminRunPlaySyncRoute: ApiPublicAdminRunPlaySyncRoute,
   ApiPublicHooksGoldenFisherTickRoute: ApiPublicHooksGoldenFisherTickRoute,
+  ApiPublicHooksPaddleRefundSweepRoute: ApiPublicHooksPaddleRefundSweepRoute,
   ApiPublicHooksPlayRtdnRoute: ApiPublicHooksPlayRtdnRoute,
   ApiPublicHooksPlaySyncRoute: ApiPublicHooksPlaySyncRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
